@@ -185,7 +185,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->dimensions = 2;
   if (!_sdf->HasElement("dimensions"))
   {
-    igndbg << "OdometryPublisher system plugin missing <dimensions>, "
+    gzdbg << "OdometryPublisher system plugin missing <dimensions>, "
       << "defaults to \"" << this->dataPtr->dimensions << "\"" << std::endl;
   }
   else

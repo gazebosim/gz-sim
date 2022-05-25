@@ -40,21 +40,21 @@ int main(int _argc, char** _argv)
   {
     sdfFile = _argv[1];
   }
-  igndbg << "SDF file: " << sdfFile << std::endl;
+  gzdbg << "SDF file: " << sdfFile << std::endl;
 
   unsigned int iterations{10000};
   if (_argc >= 3)
   {
     iterations = atoi(_argv[2]);
   }
-  igndbg << "Iterations: " << iterations << std::endl;
+  gzdbg << "Iterations: " << iterations << std::endl;
 
   double updateRate{-1};
   if (_argc >= 4)
   {
     updateRate = atoi(_argv[3]);
   }
-  igndbg << "Update rate: " << updateRate << std::endl;
+  gzdbg << "Update rate: " << updateRate << std::endl;
 
   gz::sim::ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))

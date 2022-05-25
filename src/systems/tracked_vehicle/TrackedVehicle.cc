@@ -735,10 +735,10 @@ void TrackedVehiclePrivate::UpdateVelocity(
 
   if (this->debug)
   {
-    igndbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
-    igndbg << "- cmd vel v=" << linVel << ", w=" << angVel
+    gzdbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
+    gzdbg << "- cmd vel v=" << linVel << ", w=" << angVel
            << (hadNewCommand ? " (new command)" : "") << std::endl;
-    igndbg << "- left v=" << this->leftSpeed
+    gzdbg << "- left v=" << this->leftSpeed
            << ", right v=" << this->rightSpeed
            << (sendCommandsToTracks ? " (sent to tracks)" : "") << std::endl;
 

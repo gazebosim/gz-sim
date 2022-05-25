@@ -142,7 +142,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic
+  gzdbg << "Requesting initial state from [" << this->dataPtr->stateTopic
          << "]..." << std::endl;
 
   this->RequestState();
@@ -359,7 +359,7 @@ void GuiRunner::LoadSystems()
           sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
               this->dataPtr->eventMgr);
         }
-        igndbg << "Loaded system [" << name
+        gzdbg << "Loaded system [" << name
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
       }

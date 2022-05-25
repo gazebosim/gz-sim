@@ -821,7 +821,7 @@ void Physics::Configure(const Entity &_entity,
 
     if (nullptr != this->dataPtr->engine)
     {
-      igndbg << "Loaded [" << className << "] from library ["
+      gzdbg << "Loaded [" << className << "] from library ["
              << pathToLib << "]" << std::endl;
       break;
     }
@@ -886,7 +886,7 @@ void Physics::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 
   if (this->dataPtr->engine)
   {
-    igndbg << "Resetting Physics\n";
+    gzdbg << "Resetting Physics\n";
     this->dataPtr->ResetPhysics(_ecm);
   }
 }
@@ -950,7 +950,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to set physics options, but the "
+              gzdbg << "Attempting to set physics options, but the "
                      << "phyiscs engine doesn't support feature "
                      << "[CollisionDetectorFeature]. Options will be ignored."
                      << std::endl;
@@ -976,7 +976,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to set physics options, but the "
+              gzdbg << "Attempting to set physics options, but the "
                      << "phyiscs engine doesn't support feature "
                      << "[SolverFeature]. Options will be ignored."
                      << std::endl;
@@ -1052,7 +1052,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               static bool informed{false};
               if (!informed)
               {
-                igndbg << "Attempting to construct nested models, but the "
+                gzdbg << "Attempting to construct nested models, but the "
                        << "phyiscs engine doesn't support feature "
                        << "[ConstructSdfNestedModelFeature]. "
                        << "Nested model will be ignored."
@@ -1087,7 +1087,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               static bool informed{false};
               if (!informed)
               {
-                igndbg << "Attempting to construct nested models, but the "
+                gzdbg << "Attempting to construct nested models, but the "
                        << "physics engine doesn't support feature "
                        << "[ConstructSdfNestedModelFeature]. "
                        << "Nested model will be ignored."
@@ -1285,7 +1285,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to process mesh geometries, but the physics"
+              gzdbg << "Attempting to process mesh geometries, but the physics"
                      << " engine doesn't support feature "
                      << "[AttachMeshShapeFeature]. Meshes will be ignored."
                      << std::endl;
@@ -1309,7 +1309,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to process heightmap geometries, but the "
+              gzdbg << "Attempting to process heightmap geometries, but the "
                      << "physics engine doesn't support feature "
                      << "[AttachHeightmapShapeFeature]. Heightmaps will be "
                      << "ignored." << std::endl;
@@ -1380,7 +1380,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             static bool informed{false};
             if (!informed)
             {
-              igndbg << "Attempting to process collisions, but the physics "
+              gzdbg << "Attempting to process collisions, but the physics "
                      << "engine doesn't support feature "
                      << "[ConstructSdfCollision]. Collisions will be ignored."
                      << std::endl;
@@ -1395,7 +1395,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
 
         if (nullptr == collisionPtrPhys)
         {
-          igndbg << "Failed to create collision [" << _name->Data()
+          gzdbg << "Failed to create collision [" << _name->Data()
                  << "]. Does the physics engine support geometries of type ["
                  << static_cast<int>(_geom->Data().Type()) << "]?" << std::endl;
           return true;
@@ -1417,7 +1417,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set collision bitmasks, but the physics "
+            gzdbg << "Attempting to set collision bitmasks, but the physics "
                    << "engine doesn't support feature [CollisionFilterMask]. "
                    << "Collision bitmasks will be ignored." << std::endl;
             informed = true;
@@ -1489,7 +1489,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to process joints, but the physics "
+            gzdbg << "Attempting to process joints, but the physics "
                    << "engine doesn't support joint features. "
                    << "Joints will be ignored." << std::endl;
             informed = true;
@@ -1586,7 +1586,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to create a detachable joint, but the physics"
+            gzdbg << "Attempting to create a detachable joint, but the physics"
                    << " engine doesn't support feature "
                    << "[AttachFixedJointFeature]. Detachable joints will be "
                    << "ignored." << std::endl;
@@ -1611,7 +1611,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           // We let the joint be at the origin of the child link.
           jointPtrPhys->SetTransformFromParent(poseParentChild);
 
-          igndbg << "Creating detachable joint [" << _entity << "]"
+          gzdbg << "Creating detachable joint [" << _entity << "]"
                  << std::endl;
           this->entityJointMap.AddEntity(_entity, jointPtrPhys);
           this->topLevelModelMap.insert(std::make_pair(_entity,
@@ -1755,7 +1755,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to detach a joint, but the physics "
+            gzdbg << "Attempting to detach a joint, but the physics "
                    << "engine doesn't support feature "
                    << "[DetachJointFeature]. Joint won't be detached."
                    << std::endl;
@@ -1766,7 +1766,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           return false;
         }
 
-        igndbg << "Detaching joint [" << _entity << "]" << std::endl;
+        gzdbg << "Detaching joint [" << _entity << "]" << std::endl;
         castEntity->Detach();
         return true;
       });
@@ -2067,7 +2067,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to apply a wrench, but the physics "
+            gzdbg << "Attempting to apply a wrench, but the physics "
                    << "engine doesn't support feature "
                    << "[AddLinkExternalForceTorque]. Wrench will be ignored."
                    << std::endl;
@@ -2224,7 +2224,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set model angular velocity, but the "
+            gzdbg << "Attempting to set model angular velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be set."
                    << std::endl;
@@ -2274,7 +2274,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set model linear velocity, but the "
+            gzdbg << "Attempting to set model linear velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be set."
                    << std::endl;
@@ -2319,7 +2319,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set link angular velocity, but the "
+            gzdbg << "Attempting to set link angular velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be set."
                    << std::endl;
@@ -2370,7 +2370,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set link linear velocity, but the "
+            gzdbg << "Attempting to set link linear velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be set."
                    << std::endl;
@@ -2415,7 +2415,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to get a bounding box, but the physics "
+            gzdbg << "Attempting to get a bounding box, but the physics "
                    << "engine doesn't support feature "
                    << "[GetModelBoundingBox]. Bounding box won't be populated."
                    << std::endl;
@@ -2484,7 +2484,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to reset link angular velocity, but the "
+            gzdbg << "Attempting to reset link angular velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be reset."
                    << std::endl;
@@ -2506,7 +2506,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            igndbg << "Attempting to set link linear velocity, but the "
+            gzdbg << "Attempting to set link linear velocity, but the "
                    << "physics engine doesn't support velocity commands. "
                    << "Velocity won't be set."
                    << std::endl;
@@ -3354,7 +3354,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            igndbg
+            gzdbg
                 << "Attempting to get joint transmitted wrenches, but the "
                    "physics engine doesn't support this feature. Values in the "
                    "JointTransmittedWrench component will not be meaningful."
@@ -3401,7 +3401,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     static bool informed{false};
     if (!informed)
     {
-      igndbg << "Attempting process contacts, but the physics "
+      gzdbg << "Attempting process contacts, but the physics "
              << "engine doesn't support contact features. "
              << "Contacts won't be computed."
              << std::endl;

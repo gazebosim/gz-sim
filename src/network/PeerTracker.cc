@@ -163,7 +163,7 @@ bool PeerTracker::RemovePeer(const PeerInfo &_info)
   auto iter = this->peers.find(_info.id);
   if (iter == this->peers.end())
   {
-    igndbg << "Attempting to remove peer [" << _info.id << "] from ["
+    gzdbg << "Attempting to remove peer [" << _info.id << "] from ["
            << this->info.id << "] but it wasn't connected" << std::endl;
     return false;
   }

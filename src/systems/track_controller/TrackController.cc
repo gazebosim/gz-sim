@@ -250,7 +250,7 @@ void TrackController::Configure(const Entity &_entity,
            << "Track will not receive commands." << std::endl;
     return;
   }
-  igndbg << "Subscribed to " << velTopic << " for receiving track velocity "
+  gzdbg << "Subscribed to " << velTopic << " for receiving track velocity "
          << "commands." << std::endl;
 
   const auto kDefaultCorTopic = topicPrefix + "/track_cmd_center_of_rotation";
@@ -265,7 +265,7 @@ void TrackController::Configure(const Entity &_entity,
            << std::endl;
     return;
   }
-  igndbg << "Subscribed to " << corTopic << " for receiving track center "
+  gzdbg << "Subscribed to " << corTopic << " for receiving track center "
          << "of rotation commands." << std::endl;
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
@@ -277,7 +277,7 @@ void TrackController::Configure(const Entity &_entity,
     this->dataPtr->maxCommandAge =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
         std::chrono::duration<double>(seconds));
-    igndbg << "Track commands will time out after " << seconds << " seconds"
+    gzdbg << "Track commands will time out after " << seconds << " seconds"
            << std::endl;
   }
 
@@ -509,18 +509,18 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
   if (this->debug)
   {
-    igndbg << "Link: " << linkName << std::endl;
-    igndbg << "- is collision 1 track " << (isCollision1Track ? "1" : "0")
+    gzdbg << "Link: " << linkName << std::endl;
+    gzdbg << "- is collision 1 track " << (isCollision1Track ? "1" : "0")
            << std::endl;
-    igndbg << "- velocity cmd         " << this->velocity << std::endl;
-    igndbg << "- limited velocity cmd " << this->limitedVelocity << std::endl;
-    igndbg << "- friction direction   " << frictionDirection << std::endl;
-    igndbg << "- surface motion       " << surfaceMotion << std::endl;
-    igndbg << "- contact point        " << convert(_point) << std::endl;
-    igndbg << "- contact normal       " << contactNormal << std::endl;
-    igndbg << "- track rot            " << trackWorldRot << std::endl;
-    igndbg << "- track Y              " << trackYAxisGlobal << std::endl;
-    igndbg << "- belt direction       " << beltDirection << std::endl;
+    gzdbg << "- velocity cmd         " << this->velocity << std::endl;
+    gzdbg << "- limited velocity cmd " << this->limitedVelocity << std::endl;
+    gzdbg << "- friction direction   " << frictionDirection << std::endl;
+    gzdbg << "- surface motion       " << surfaceMotion << std::endl;
+    gzdbg << "- contact point        " << convert(_point) << std::endl;
+    gzdbg << "- contact normal       " << contactNormal << std::endl;
+    gzdbg << "- track rot            " << trackWorldRot << std::endl;
+    gzdbg << "- track Y              " << trackYAxisGlobal << std::endl;
+    gzdbg << "- belt direction       " << beltDirection << std::endl;
 
     this->debugMarker.set_id(++this->markerId);
 

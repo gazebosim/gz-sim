@@ -370,7 +370,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
             return true;
           });
       ASSERT_TRUE(initialPose.has_value());
-      igndbg << "Init: " << initialPose->Pos() << " Final: "
+      gzdbg << "Init: " << initialPose->Pos() << " Final: "
                 << finalPose.Pos() << std::endl;
       EXPECT_NEAR(initialPose->Pos().Z(), finalPose.Pos().Z(), 1e-3);
     }

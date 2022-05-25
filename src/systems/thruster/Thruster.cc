@@ -241,7 +241,7 @@ void Thruster::Configure(
   }
   else
   {
-    igndbg << "Using angular velocity mode" << std::endl;
+    gzdbg << "Using angular velocity mode" << std::endl;
     // Subscribe to angvel commands
     std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
@@ -296,7 +296,7 @@ void Thruster::Configure(
 
   if (!this->dataPtr->velocityControl)
   {
-    igndbg << "Using PID controller for propeller joint." << std::endl;
+    gzdbg << "Using PID controller for propeller joint." << std::endl;
 
     double p         =  0.1;
     double i         =  0;
@@ -332,7 +332,7 @@ void Thruster::Configure(
   }
   else
   {
-    igndbg << "Using velocity control for propeller joint." << std::endl;
+    gzdbg << "Using velocity control for propeller joint." << std::endl;
   }
 }
 

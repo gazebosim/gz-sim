@@ -55,7 +55,7 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   }
   else
   {
-    igndbg << "Advertised PeerControl service on [" << controlService << "]"
+    gzdbg << "Advertised PeerControl service on [" << controlService << "]"
       << std::endl;
   }
 
@@ -105,7 +105,7 @@ void NetworkManagerSecondary::OnStep(
   // Throttle the number of step messages going to the debug output.
   if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)
   {
-    igndbg << "Network iterations: " << _msg.stats().iterations()
+    gzdbg << "Network iterations: " << _msg.stats().iterations()
            << std::endl;
   }
 

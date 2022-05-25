@@ -353,7 +353,7 @@ extern "C" int runServer(const char *_sdfString,
   // Run the server
   server.Run(true, _iterations, _run == 0);
 
-  igndbg << "Shutting down ign-gazebo-server" << std::endl;
+  gzdbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;
 }
 

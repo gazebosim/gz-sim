@@ -83,7 +83,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   }
   const auto nolevelsDuration = watch.ElapsedRunTime();
 
-  igndbg << "\nUsing levels = "
+  gzdbg << "\nUsing levels = "
          << duration_cast<milliseconds>(levelsDuration).count() << " ms\n"
          << "Without levels = "
          << duration_cast<milliseconds>(nolevelsDuration).count() << " ms\n";

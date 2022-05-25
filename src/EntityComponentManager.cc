@@ -1614,7 +1614,7 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
   int entitiesPerThread = static_cast<int>(std::ceil(
     static_cast<double>(numEntities) / numThreads));
 
-  igndbg << "Updated state thread iterators: " << numThreads
+  gzdbg << "Updated state thread iterators: " << numThreads
          << " threads processing around " << entitiesPerThread
          << " entities each." << std::endl;
 

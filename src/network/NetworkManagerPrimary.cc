@@ -74,7 +74,7 @@ void NetworkManagerPrimary::Handshake()
     std::string topic {sc->prefix + "/control"};
     unsigned int timeout = 5000;
 
-    igndbg << "Registering secondary [" << topic << "]" << std::endl;
+    gzdbg << "Registering secondary [" << topic << "]" << std::endl;
     bool executed = this->node.Request(topic, req, timeout, resp, result);
 
     if (executed)

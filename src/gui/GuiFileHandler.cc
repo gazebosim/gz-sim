@@ -74,7 +74,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
         this->node.Request(sdfGenService, req, timeout, genWorldSdf, result);
     if (serviceCall && result && !genWorldSdf.data().empty())
     {
-      igndbg << "Saving world: " << worldName << " to: " << localPath << "\n";
+      gzdbg << "Saving world: " << worldName << " to: " << localPath << "\n";
       std::ofstream fs(localPath, std::ios::out);
       if (fs.is_open())
       {

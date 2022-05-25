@@ -127,19 +127,19 @@ void JointController::Configure(const Entity &_entity,
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
-    igndbg << "[JointController] Force mode with parameters:" << std::endl;
-    igndbg << "p_gain: ["     << p         << "]"             << std::endl;
-    igndbg << "i_gain: ["     << i         << "]"             << std::endl;
-    igndbg << "d_gain: ["     << d         << "]"             << std::endl;
-    igndbg << "i_max: ["      << iMax      << "]"             << std::endl;
-    igndbg << "i_min: ["      << iMin      << "]"             << std::endl;
-    igndbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
-    igndbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
-    igndbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+    gzdbg << "[JointController] Force mode with parameters:" << std::endl;
+    gzdbg << "p_gain: ["     << p         << "]"             << std::endl;
+    gzdbg << "i_gain: ["     << i         << "]"             << std::endl;
+    gzdbg << "d_gain: ["     << d         << "]"             << std::endl;
+    gzdbg << "i_max: ["      << iMax      << "]"             << std::endl;
+    gzdbg << "i_min: ["      << iMin      << "]"             << std::endl;
+    gzdbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
+    gzdbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
+    gzdbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
   }
   else
   {
-    igndbg << "[JointController] Velocity mode" << std::endl;
+    gzdbg << "[JointController] Velocity mode" << std::endl;
   }
 
   // Subscribe to commands

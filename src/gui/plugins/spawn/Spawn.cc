@@ -286,7 +286,7 @@ void SpawnPrivate::OnRender()
         // Ray Query
         this->rayQuery = this->camera->Scene()->CreateRayQuery();
 
-        igndbg << "Spawn plugin is using camera ["
+        gzdbg << "Spawn plugin is using camera ["
                << this->camera->Name() << "]" << std::endl;
         break;
       }

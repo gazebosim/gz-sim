@@ -292,7 +292,7 @@ void Buoyancy::Configure(const Entity &_entity,
       if (argument->GetName() == "default_density")
       {
         argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
-        igndbg << "Default density set to "
+        gzdbg << "Default density set to "
           << this->dataPtr->fluidDensity << std::endl;
       }
       if (argument->GetName() == "density_change")
@@ -310,7 +310,7 @@ void Buoyancy::Configure(const Entity &_entity,
             << "child of <density_change>" << std::endl;
         }
         this->dataPtr->layers[depth.first] = density.first;
-        igndbg << "Added layer at " << depth.first << ", "
+        gzdbg << "Added layer at " << depth.first << ", "
           <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();

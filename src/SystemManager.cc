@@ -46,7 +46,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
   if (system)
   {
     this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
+    gzdbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }

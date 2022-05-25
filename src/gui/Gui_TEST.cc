@@ -46,13 +46,13 @@ class GuiTest : public InternalFixture<::testing::Test>
 TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 {
   common::Console::SetVerbosity(4);
-  igndbg << "Start test" << std::endl;
+  gzdbg << "Start test" << std::endl;
 
   gz::common::setenv("GZ_SIM_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
   gz::common::setenv("SDF_PATH", "");
   gz::common::setenv("IGN_FILE_PATH", "");
-  igndbg << "Environment set" << std::endl;
+  gzdbg << "Environment set" << std::endl;
 
   transport::Node node;
 
@@ -66,7 +66,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/gazebo/worlds", worldsCb);
-  igndbg << "Worlds advertised" << std::endl;
+  gzdbg << "Worlds advertised" << std::endl;
 
   // GUI info callback
   bool guiInfoCalled{false};
@@ -77,7 +77,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/world/world_name/gui/info", guiInfoCb);
-  igndbg << "GUI info advertised" << std::endl;
+  gzdbg << "GUI info advertised" << std::endl;
 
   // Resource paths callback
   bool pathsCalled{false};
@@ -89,12 +89,12 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
-  igndbg << "Paths advertised" << std::endl;
+  gzdbg << "Paths advertised" << std::endl;
 
   auto app = gz::sim::gui::createGui(
     gg_argc, gg_argv, nullptr, nullptr, false, nullptr);
   EXPECT_NE(nullptr, app);
-  igndbg << "GUI created" << std::endl;
+  gzdbg << "GUI created" << std::endl;
 
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
@@ -103,7 +103,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   // Check paths
   for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    igndbg << "Checking variable [" << env << "]" << std::endl;
+    gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
@@ -128,7 +128,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         topicCalled = true;
       };
   node.Subscribe("/gazebo/resource_paths", topicCb);
-  igndbg << "Paths subscribed" << std::endl;
+  gzdbg << "Paths subscribed" << std::endl;
 
   // Notify new path through a topic
   msgs::StringMsg_V msg;
@@ -149,7 +149,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   // Check paths
   for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
   {
-    igndbg << "Checking variable [" << env << "]" << std::endl;
+    gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');

@@ -202,17 +202,17 @@ void JointPositionController::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 
-  igndbg << "[JointPositionController] system parameters:" << std::endl;
-  igndbg << "p_gain: ["     << p         << "]"            << std::endl;
-  igndbg << "i_gain: ["     << i         << "]"            << std::endl;
-  igndbg << "d_gain: ["     << d         << "]"            << std::endl;
-  igndbg << "i_max: ["      << iMax      << "]"            << std::endl;
-  igndbg << "i_min: ["      << iMin      << "]"            << std::endl;
-  igndbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
-  igndbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
-  igndbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
-  igndbg << "Topic: ["      << topic     << "]"            << std::endl;
-  igndbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
+  gzdbg << "[JointPositionController] system parameters:" << std::endl;
+  gzdbg << "p_gain: ["     << p         << "]"            << std::endl;
+  gzdbg << "i_gain: ["     << i         << "]"            << std::endl;
+  gzdbg << "d_gain: ["     << d         << "]"            << std::endl;
+  gzdbg << "i_max: ["      << iMax      << "]"            << std::endl;
+  gzdbg << "i_min: ["      << iMin      << "]"            << std::endl;
+  gzdbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
+  gzdbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
+  gzdbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
+  gzdbg << "Topic: ["      << topic     << "]"            << std::endl;
+  gzdbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
          << std::endl;
 }
 

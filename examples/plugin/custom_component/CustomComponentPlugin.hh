@@ -50,7 +50,7 @@ class CustomComponentPlugin :
                          gz::sim::EventManager &) override
   {
     // You can create the custom component as you would create any other
-    igndbg << "Creating component" << std::endl;
+    gzdbg << "Creating component" << std::endl;
     _ecm.CreateComponent(_entity, CustomComponent(123));
 
     // You can use the ECM's API, such as Each, to query for the
@@ -59,8 +59,8 @@ class CustomComponentPlugin :
         [&](const gz::sim::Entity &_entityEach,
             const CustomComponent *_comp) -> bool
     {
-      igndbg << "Entity: " << _entityEach << std::endl;
-      igndbg << "Component's data: " << _comp->Data() << std::endl;
+      gzdbg << "Entity: " << _entityEach << std::endl;
+      gzdbg << "Component's data: " << _comp->Data() << std::endl;
       return true;
     });
   }

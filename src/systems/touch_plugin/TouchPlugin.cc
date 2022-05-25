@@ -213,14 +213,14 @@ void TouchPluginPrivate::Enable(const bool _value)
     this->touchStart = DurationType::zero();
     this->enabled = true;
 
-    igndbg << "Started touch plugin [" << this->ns << "]" << std::endl;
+    gzdbg << "Started touch plugin [" << this->ns << "]" << std::endl;
   }
   else
   {
     this->touchedPub.reset();
     this->enabled = false;
 
-    igndbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
+    gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
   }
 }
 
@@ -283,7 +283,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (this->touchStart != DurationType::zero())
     {
-      igndbg << "Model [" << this->model.Name(_ecm)
+      gzdbg << "Model [" << this->model.Name(_ecm)
              << "] not touching anything at [" << _info.simTime.count()
              << "]" << std::endl;
     }
@@ -299,7 +299,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
       this->touchStart =
         std::chrono::duration_cast<DurationType>(_info.simTime);
 
-      igndbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
+      gzdbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
         << this->targetName << "] at " << this->touchStart.count() << " s"
         << std::endl;
     }
@@ -313,7 +313,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
   // and stop updating
   if (completed)
   {
-    igndbg << "Model [" << this->model.Name(_ecm) << "] touched ["
+    gzdbg << "Model [" << this->model.Name(_ecm) << "] touched ["
       << this->targetName << "] exclusively for "
       << this->targetTime.count() << " s" << std::endl;
 

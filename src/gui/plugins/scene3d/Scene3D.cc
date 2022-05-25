@@ -2160,7 +2160,7 @@ void IgnRenderer::Destroy()
   // If that was the last sensor, destroy scene
   if (scene->SensorCount() == 0)
   {
-    igndbg << "Destroy scene [" << scene->Name() << "]" << std::endl;
+    gzdbg << "Destroy scene [" << scene->Name() << "]" << std::endl;
     engine->DestroyScene(scene);
 
     // TODO(anyone) If that was the last scene, terminate engine?
@@ -3305,7 +3305,7 @@ void Scene3D::Update(const UpdateInfo &_info,
       }
       else
       {
-        igndbg << "RenderEngineGuiPlugin component not found, "
+        gzdbg << "RenderEngineGuiPlugin component not found, "
           "render engine won't be set from the ECM " << std::endl;
       }
     }

@@ -247,7 +247,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 
   if (_sdf->HasElement("performer"))
   {
-    igndbg << "Reading performer info\n";
+    gzdbg << "Reading performer info\n";
     for (auto performer = _sdf->GetElement("performer"); performer;
         performer = performer->GetNextElement("performer"))
     {
@@ -288,7 +288,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 
   if (this->useLevels && performerMap.empty())
   {
-    igndbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+    gzdbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
       << "the /world/<world_name>/level/set_performer service to specify "
       << "performers.\n";
   }
@@ -377,7 +377,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 {
   IGN_PROFILE("LevelManager::ReadLevels");
 
-  igndbg << "Reading levels info\n";
+  gzdbg << "Reading levels info\n";
 
   if (_sdf == nullptr)
     return;

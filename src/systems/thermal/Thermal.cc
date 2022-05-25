@@ -109,7 +109,7 @@ void Thermal::Configure(const Entity &_entity,
       max = min;
       min = temporary;
     }
-    igndbg << "Thermal plugin, heat signature: using a minimum temperature of "
+    gzdbg << "Thermal plugin, heat signature: using a minimum temperature of "
       << min << " kelvin, and a max temperature of " << max << " kelvin.\n";
 
     components::TemperatureRangeInfo rangeInfo;

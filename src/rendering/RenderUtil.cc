@@ -2524,7 +2524,7 @@ void RenderUtil::Init()
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
   if (!this->dataPtr->scene)
   {
-    igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
+    gzdbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)

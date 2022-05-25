@@ -256,7 +256,7 @@ void SimulationRunner::UpdateCurrentInfo()
   // Rewind
   if (this->requestedRewind)
   {
-    igndbg << "Rewinding simulation back to time zero." << std::endl;
+    gzdbg << "Rewinding simulation back to time zero." << std::endl;
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
@@ -277,7 +277,7 @@ void SimulationRunner::UpdateCurrentInfo()
   // Seek
   if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
   {
-    igndbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
+    gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
         this->requestedSeek).count() << "s." << std::endl;
 
     this->realTimes.clear();
@@ -491,7 +491,7 @@ void SimulationRunner::ProcessSystemQueue()
 
   auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
 
-  igndbg << "Creating PostUpdate worker threads: "
+  gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
 
   this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
@@ -502,7 +502,7 @@ void SimulationRunner::ProcessSystemQueue()
 
   for (auto &system : this->systemMgr->SystemsPostUpdate())
   {
-    igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
 
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
@@ -518,7 +518,7 @@ void SimulationRunner::ProcessSystemQueue()
         }
         this->postUpdateStopBarrier->Wait();
       }
-      igndbg << "Exiting postupdate worker thread ("
+      gzdbg << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
     id++;
@@ -614,19 +614,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Initialize network communications.
   if (this->networkMgr)
   {
-    igndbg << "Initializing network configuration" << std::endl;
+    gzdbg << "Initializing network configuration" << std::endl;
     this->networkMgr->Handshake();
 
     // Secondaries are stepped through the primary, just keep alive until
     // simulation is over
     if (this->networkMgr->IsSecondary())
     {
-      igndbg << "Secondary running." << std::endl;
+      gzdbg << "Secondary running." << std::endl;
       while (!this->stopReceived)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
-      igndbg << "Secondary finished run." << std::endl;
+      gzdbg << "Secondary finished run." << std::endl;
       return true;
     }
   }
@@ -667,12 +667,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       gzwarn << "Found additional publishers on /stats," <<
                  " using namespaced stats topic only" << std::endl;
-      igndbg << "Publishers [Address, Message Type]:\n";
+      gzdbg << "Publishers [Address, Message Type]:\n";
 
       /// List the publishers
       for (auto & pub : publishers)
       {
-        igndbg << "  " << pub.Addr() << ", "
+        gzdbg << "  " << pub.Addr() << ", "
           << pub.MsgTypeName() << std::endl;
       }
     }
@@ -700,12 +700,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       gzwarn << "Found additional publishers on /clock," <<
                  " using namespaced clock topic only" << std::endl;
-      igndbg << "Publishers [Address, Message Type]:\n";
+      gzdbg << "Publishers [Address, Message Type]:\n";
 
       /// List the publishers
       for (auto & pub : publishers)
       {
-        igndbg << "  " << pub.Addr() << ", "
+        gzdbg << "  " << pub.Addr() << ", "
           << pub.MsgTypeName() << std::endl;
       }
     }

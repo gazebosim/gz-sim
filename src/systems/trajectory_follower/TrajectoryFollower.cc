@@ -163,7 +163,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       this->localWaypoints.push_back(position);
 
       // Print some debugging messages
-      igndbg << "Waypoint, Local: X = " << position.X()
+      gzdbg << "Waypoint, Local: X = " << position.X()
              << " Y = " << position.Y() << std::endl;
 
       waypointElem = waypointElem->GetNextElement("waypoint");
@@ -172,7 +172,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   // If no waypoints present, check for the <circle> element and parse.
   else if (_sdf->HasElement("circle"))
   {
-    igndbg << "Circle element activated" << std::endl;
+    gzdbg << "Circle element activated" << std::endl;
     auto circleElem = _sdf->GetElement("circle");
 
     if (!circleElem->HasElement("radius"))
@@ -197,7 +197,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       this->localWaypoints.push_back(position + vec);
       angle += 2 * IGN_PI / this->numSamples;
       vec.Set(radius * cos(angle), radius * sin(angle));
-      igndbg << "Entered circle waypoint " << position + vec << std::endl;
+      gzdbg << "Entered circle waypoint " << position + vec << std::endl;
     }
   }
   // If no waypoints or circle, check for the <line> element and parse.
@@ -233,7 +233,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     gz::math::Vector3d p = this->modelPose.CoordPositionAdd(lineVec);
     gz::math::Vector2d p2D = {p.X(), p.Y()};
     this->localWaypoints.push_back(p2D);
-    igndbg << "Entered line waypoints " << position << ", " << p2D << std::endl;
+    gzdbg << "Entered line waypoints " << position << ", " << p2D << std::endl;
   }
 
   // Parse the optional <loop> element.

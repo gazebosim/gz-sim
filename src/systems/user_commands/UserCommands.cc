@@ -1305,7 +1305,7 @@ bool CreateCommand::Execute()
     *poseComp = components::Pose(createPose.value());
   }
 
-  igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
+  gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;
 
   return true;
@@ -1355,7 +1355,7 @@ bool RemoveCommand::Execute()
     return false;
   }
 
-  igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
+  gzdbg << "Requesting removal of entity [" << entity << "]" << std::endl;
   this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }
@@ -1698,7 +1698,7 @@ bool EnableCollisionCommand::Execute()
 
   this->iface->ecm->
     CreateComponent(entityMsg->id(), components::ContactSensorData());
-  igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
+  gzdbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }
@@ -1750,7 +1750,7 @@ bool DisableCollisionCommand::Execute()
   this->iface->ecm->
     RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
 
-  igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
+  gzdbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }

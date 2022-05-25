@@ -201,7 +201,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   int maxSleep{30};
   while (!executed && sleep < maxSleep)
   {
-    igndbg << "Requesting /test/service" << std::endl;
+    gzdbg << "Requesting /test/service" << std::endl;
     executed = node.Request("/test/service", 100, rep, result);
     sleep++;
   }
@@ -230,7 +230,7 @@ TEST_P(ServerFixture,
       "sensor", "libTestSensorSystem.so", "gz::sim::TestSensorSystem",
       sdf});
 
-  igndbg << "Create server" << std::endl;
+  gzdbg << "Create server" << std::endl;
   sim::Server server(serverConfig);
 
   // The simulation runner should not be running.
@@ -238,13 +238,13 @@ TEST_P(ServerFixture,
   EXPECT_EQ(3u, *server.SystemCount());
 
   // Run the server
-  igndbg << "Run server" << std::endl;
+  gzdbg << "Run server" << std::endl;
   EXPECT_TRUE(server.Run(false, 0, false));
   EXPECT_FALSE(*server.Paused());
 
   // The TestSensorSystem should have created a service. Call the service to
   // make sure the TestSensorSystem was successfully loaded.
-  igndbg << "Request service" << std::endl;
+  gzdbg << "Request service" << std::endl;
   transport::Node node;
   msgs::StringMsg rep;
   bool result{false};
@@ -253,7 +253,7 @@ TEST_P(ServerFixture,
   int maxSleep{30};
   while (!executed && sleep < maxSleep)
   {
-    igndbg << "Requesting /test/service/sensor" << std::endl;
+    gzdbg << "Requesting /test/service/sensor" << std::endl;
     executed = node.Request("/test/service/sensor", 100, rep, result);
     sleep++;
   }
@@ -346,7 +346,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
-  igndbg << "Log path [" << logPath << "]" << std::endl;
+  gzdbg << "Log path [" << logPath << "]" << std::endl;
 
   common::removeAll(logPath);
   common::removeAll(compressedFile);
@@ -386,7 +386,7 @@ TEST_P(ServerFixture,
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
-  igndbg << "Log path [" << logPath << "]" << std::endl;
+  gzdbg << "Log path [" << logPath << "]" << std::endl;
 
   common::removeAll(logPath);
   common::removeAll(compressedFile);
@@ -695,7 +695,7 @@ TEST_P(ServerFixture, ServerControlStop)
   // first, call with stop = false; the server should keep running
   while (!executed && sleep < maxSleep)
   {
-    igndbg << "Requesting /server_control" << std::endl;
+    gzdbg << "Requesting /server_control" << std::endl;
     executed = node.Request("/server_control", req, 100, res, result);
     sleep++;
   }
@@ -711,7 +711,7 @@ TEST_P(ServerFixture, ServerControlStop)
   // now call with stop = true; the server should stop
   req.set_stop(true);
 
-  igndbg << "Requesting /server_control" << std::endl;
+  gzdbg << "Requesting /server_control" << std::endl;
   executed = node.Request("/server_control", req, 100, res, result);
 
   EXPECT_TRUE(executed);
@@ -953,7 +953,7 @@ TEST_P(ServerFixture, GetResourcePaths)
   int maxSleep{30};
   while (!executed && sleep < maxSleep)
   {
-    igndbg << "Requesting /gazebo/resource_paths/get" << std::endl;
+    gzdbg << "Requesting /gazebo/resource_paths/get" << std::endl;
     executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
     sleep++;
   }

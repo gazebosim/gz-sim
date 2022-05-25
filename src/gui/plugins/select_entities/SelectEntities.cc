@@ -449,7 +449,7 @@ void SelectEntitiesPrivate::Initialize()
           std::get<bool>(cam->UserData("user-camera")))
       {
         this->camera = cam;
-        igndbg << "SelectEntities plugin is using camera ["
+        gzdbg << "SelectEntities plugin is using camera ["
                << this->camera->Name() << "]" << std::endl;
         break;
       }

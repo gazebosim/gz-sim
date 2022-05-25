@@ -319,8 +319,8 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   gzmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Add default topics if no topics were specified.
-  igndbg << "Recording default topic[" << sdfTopic << "].\n";
-  igndbg << "Recording default topic[" << stateTopic << "].\n";
+  gzdbg << "Recording default topic[" << sdfTopic << "].\n";
+  gzdbg << "Recording default topic[" << stateTopic << "].\n";
   this->recorder.AddTopic(sdfTopic);
   this->recorder.AddTopic(stateTopic);
 
@@ -338,12 +338,12 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
       if (std::regex_match(topic, regexMatch))
       {
         this->recorder.AddTopic(std::regex(topic));
-        igndbg << "Recording topic[" << topic << "] as regular expression.\n";
+        gzdbg << "Recording topic[" << topic << "] as regular expression.\n";
       }
       else
       {
         this->recorder.AddTopic(topic);
-        igndbg << "Recording topic[" << topic << "] as plain topic.\n";
+        gzdbg << "Recording topic[" << topic << "] as plain topic.\n";
       }
       recordTopicElem = recordTopicElem->GetNextElement("record_topic");
     }

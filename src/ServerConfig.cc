@@ -610,7 +610,7 @@ ServerConfig::LogRecordPlugin() const
   recordElem = std::make_shared<sdf::Element>();
   recordElem->SetName("plugin");
 
-  igndbg << "Generating LogRecord SDF:" << std::endl;
+  gzdbg << "Generating LogRecord SDF:" << std::endl;
 
   if (!this->LogRecordPath().empty())
   {
@@ -660,7 +660,7 @@ ServerConfig::LogRecordPlugin() const
     topicElem->Set<std::string>(topic);
   }
 
-  igndbg << recordElem->ToString("") << std::endl;
+  gzdbg << recordElem->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
       entityType,
@@ -887,7 +887,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
         gzwarn << sim::kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+      gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
         "[" << envConfig << "]\n";
 
       return ret;
@@ -967,7 +967,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
       << "], but no plugins found\n";
   }
 
-  igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
+  gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
     "[" << defaultConfig << "]\n";
 
   return ret;

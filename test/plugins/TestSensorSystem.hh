@@ -43,17 +43,17 @@ class TestSensorSystem :
 {
   public: TestSensorSystem()
         {
-          igndbg << "Constructing TestSensorSystem" << std::endl;
+          gzdbg << "Constructing TestSensorSystem" << std::endl;
         }
 
   public: ~TestSensorSystem()
         {
-          igndbg << "Destroying TestSensorSystem" << std::endl;
+          gzdbg << "Destroying TestSensorSystem" << std::endl;
         }
 
   private: bool Service(msgs::StringMsg &_msg)
            {
-             igndbg << "TestSensorSystem service called" << std::endl;
+             gzdbg << "TestSensorSystem service called" << std::endl;
              _msg.set_data("TestSensorSystem");
              return true;
            }
@@ -63,7 +63,7 @@ class TestSensorSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestSensorSystem" << std::endl;
+          gzdbg << "Configuring TestSensorSystem" << std::endl;
           auto value = _sdf->Get<int>("sensor_key");
           _ecm.CreateComponent(_entity,
               components::SensorPluginComponent(value));

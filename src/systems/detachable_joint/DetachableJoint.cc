@@ -175,7 +175,7 @@ void DetachableJoint::PreUpdate(
     if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
     {
       // Detach the models
-      igndbg << "Removing entity: " << this->detachableJointEntity << std::endl;
+      gzdbg << "Removing entity: " << this->detachableJointEntity << std::endl;
       _ecm.RequestRemoveEntity(this->detachableJointEntity);
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;

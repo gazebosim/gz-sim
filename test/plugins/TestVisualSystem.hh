@@ -43,17 +43,17 @@ class TestVisualSystem :
 {
   public: TestVisualSystem()
         {
-          igndbg << "Constructing TestVisualSystem" << std::endl;
+          gzdbg << "Constructing TestVisualSystem" << std::endl;
         }
 
   public: ~TestVisualSystem()
         {
-          igndbg << "Destroying TestVisualSystem" << std::endl;
+          gzdbg << "Destroying TestVisualSystem" << std::endl;
         }
 
   private: bool Service(msgs::StringMsg &_msg)
         {
-          igndbg << "TestVisualSystem service called" << std::endl;
+          gzdbg << "TestVisualSystem service called" << std::endl;
           _msg.set_data("TestVisualSystem");
           return true;
         }
@@ -63,7 +63,7 @@ class TestVisualSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestVisualSystem" << std::endl;
+          gzdbg << "Configuring TestVisualSystem" << std::endl;
           auto value = _sdf->Get<int>("visual_key");
           _ecm.CreateComponent(_entity,
               components::VisualPluginComponent(value));

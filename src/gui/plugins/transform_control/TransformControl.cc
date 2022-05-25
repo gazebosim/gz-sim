@@ -211,12 +211,12 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 
   if (this->dataPtr->legacy)
   {
-    igndbg << "Legacy mode is enabled; this plugin must be used with "
+    gzdbg << "Legacy mode is enabled; this plugin must be used with "
            << "GzScene3D." << std::endl;
   }
   else
   {
-    igndbg << "Legacy mode is disabled; this plugin must be used with "
+    gzdbg << "Legacy mode is disabled; this plugin must be used with "
            << "MinimalScene." << std::endl;
   }
 
@@ -525,7 +525,7 @@ void TransformControlPrivate::HandleTransform()
           std::get<bool>(cam->UserData("user-camera")))
       {
         this->camera = cam;
-        igndbg << "TransformControl plugin is using camera ["
+        gzdbg << "TransformControl plugin is using camera ["
                << this->camera->Name() << "]" << std::endl;
         break;
       }

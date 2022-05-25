@@ -472,27 +472,27 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // Debug
   // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
-  // igndbg << "=============================\n";
-  // igndbg << "Link: [" << linkName << "] pose: [" << pose
+  // gzdbg << "=============================\n";
+  // gzdbg << "Link: [" << linkName << "] pose: [" << pose
   //        << "] dynamic pressure: [" << q << "]\n";
-  // igndbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
-  // igndbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
+  // gzdbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
+  // gzdbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
   //        << velInLDPlane << "]\n";
-  // igndbg << "forward (inertial): " << forwardI << "\n";
-  // igndbg << "upward (inertial): " << upwardI << "\n";
-  // igndbg << "q: " << q << "\n";
-  // igndbg << "cl: " << cl << "\n";
-  // igndbg << "lift dir (inertial): " << liftI << "\n";
-  // igndbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
-  // igndbg << "sweep: " << sweep << "\n";
-  // igndbg << "alpha: " << alpha << "\n";
-  // igndbg << "lift: " << lift << "\n";
-  // igndbg << "drag: " << drag << " cd: " << cd << " cda: "
+  // gzdbg << "forward (inertial): " << forwardI << "\n";
+  // gzdbg << "upward (inertial): " << upwardI << "\n";
+  // gzdbg << "q: " << q << "\n";
+  // gzdbg << "cl: " << cl << "\n";
+  // gzdbg << "lift dir (inertial): " << liftI << "\n";
+  // gzdbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
+  // gzdbg << "sweep: " << sweep << "\n";
+  // gzdbg << "alpha: " << alpha << "\n";
+  // gzdbg << "lift: " << lift << "\n";
+  // gzdbg << "drag: " << drag << " cd: " << cd << " cda: "
   //        << this->cda << "\n";
-  // igndbg << "moment: " << moment << "\n";
-  // igndbg << "force: " << force << "\n";
-  // igndbg << "torque: " << torque << "\n";
-  // igndbg << "totalTorque: " << totalTorque << "\n";
+  // gzdbg << "moment: " << moment << "\n";
+  // gzdbg << "force: " << force << "\n";
+  // gzdbg << "torque: " << torque << "\n";
+  // gzdbg << "totalTorque: " << totalTorque << "\n";
 }
 
 //////////////////////////////////////////////////

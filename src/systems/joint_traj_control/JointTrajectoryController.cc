@@ -600,7 +600,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       }
       case sdf::JointType::FIXED:
       {
-        igndbg << "[JointTrajectoryController] Fixed joint [" << jointName
+        gzdbg << "[JointTrajectoryController] Fixed joint [" << jointName
                << "(Entity=" << jointEntity << ")] is skipped.\n";
         continue;
       }
@@ -873,7 +873,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
                                             _params.velocityPID.cmdMin,
                                             _params.velocityPID.cmdOffset);
 
-  igndbg << "[JointTrajectoryController] Parameters for joint (Entity="
+  gzdbg << "[JointTrajectoryController] Parameters for joint (Entity="
          << _entity << "):\n"
          << "initial_position: ["    << _params.initialPosition       << "]\n"
          << "position_p_gain: ["     << _params.positionPID.pGain     << "]\n"

@@ -219,7 +219,7 @@ void SensorsPrivate::WaitForInit()
 {
   while (!this->initialized && this->running)
   {
-    igndbg << "Waiting for init" << std::endl;
+    gzdbg << "Waiting for init" << std::endl;
     std::unique_lock<std::mutex> lock(this->renderMutex);
     // Wait to be ready for initialization or stopped running.
     // We need rendering sensors to be available to initialize.
@@ -231,7 +231,7 @@ void SensorsPrivate::WaitForInit()
     if (this->doInit)
     {
       // Only initialize if there are rendering sensors
-      igndbg << "Initializing render context" << std::endl;
+      gzdbg << "Initializing render context" << std::endl;
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
@@ -245,7 +245,7 @@ void SensorsPrivate::WaitForInit()
     this->updateAvailable = false;
     this->renderCv.notify_one();
   }
-  igndbg << "Rendering Thread initialized" << std::endl;
+  gzdbg << "Rendering Thread initialized" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -346,7 +346,7 @@ void SensorsPrivate::RenderThread()
 {
   IGN_PROFILE_THREAD_NAME("RenderThread");
 
-  igndbg << "SensorsPrivate::RenderThread started" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread started" << std::endl;
 
   // We have to wait for rendering sensors to be available
   this->WaitForInit();
@@ -360,13 +360,13 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
-  igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void SensorsPrivate::Run()
 {
-  igndbg << "SensorsPrivate::Run" << std::endl;
+  gzdbg << "SensorsPrivate::Run" << std::endl;
   this->running = true;
   this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
 }
@@ -374,7 +374,7 @@ void SensorsPrivate::Run()
 //////////////////////////////////////////////////
 void SensorsPrivate::Stop()
 {
-  igndbg << "SensorsPrivate::Stop" << std::endl;
+  gzdbg << "SensorsPrivate::Stop" << std::endl;
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->running = false;
 
@@ -447,7 +447,7 @@ void Sensors::Configure(const Entity &/*_id*/,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  igndbg << "Configuring Sensors system" << std::endl;
+  gzdbg << "Configuring Sensors system" << std::endl;
 
   // Setup rendering
   std::string engineName =
@@ -552,7 +552,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
          _ecm.HasComponentType(components::WideAngleCamera::typeId)))
     {
-      igndbg << "Initialization needed" << std::endl;
+      gzdbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
       this->dataPtr->renderCv.notify_one();
     }

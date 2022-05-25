@@ -192,7 +192,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
       this->dataPtr->positionMarkerMsg.set_action(
         gz::msgs::Marker::DELETE_ALL);
 
-      igndbg << "Removing markers..." << std::endl;
+      gzdbg << "Removing markers..." << std::endl;
       this->dataPtr->node.Request(
         "/marker", this->dataPtr->positionMarkerMsg);
 
@@ -264,7 +264,7 @@ void VisualizeContactsPrivate::CreateCollisionData(
 
       if (collisionHasContactSensor)
       {
-        igndbg << "ContactSensorData detected in collision [" << _entity << "]"
+        gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
           << std::endl;
         return true;
       }

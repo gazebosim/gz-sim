@@ -69,7 +69,7 @@ bool FilterEntry(const ExampleEntry &_entry)
       (_entry.base == "custom_sensor_system" ||
        _entry.base == "gtest_setup"))
   {
-    igndbg << "Skipping [" << _entry.base
+    gzdbg << "Skipping [" << _entry.base
            << "] test, which requires CMake version "
            << ">= 3.11.0. Currently using CMake "
            << cmakeVersion
@@ -124,12 +124,12 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
   // Path to examples of the given type
   ASSERT_TRUE(gz::common::exists(_entry.sourceDir));
 
-  igndbg << "Source: " << _entry.sourceDir << std::endl;
+  gzdbg << "Source: " << _entry.sourceDir << std::endl;
 
   // Create a temp build directory
   common::TempDirectory tmpBuildDir;
   ASSERT_TRUE(tmpBuildDir.Valid());
-  igndbg << "Build directory: " << tmpBuildDir.Path() << std::endl;
+  gzdbg << "Build directory: " << tmpBuildDir.Path() << std::endl;
 
   char cmd[1024];
 

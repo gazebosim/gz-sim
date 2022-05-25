@@ -93,7 +93,7 @@ void RenderingGuiPlugin::FindScene()
   auto loadedEngNames = gz::rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
-    igndbg << "No rendering engine is loaded yet" << std::endl;
+    gzdbg << "No rendering engine is loaded yet" << std::endl;
     return;
   }
 
@@ -101,7 +101,7 @@ void RenderingGuiPlugin::FindScene()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    igndbg << "More than one engine is available. "
+    gzdbg << "More than one engine is available. "
       << "Using engine [" << engineName << "]" << std::endl;
   }
   auto engine = gz::rendering::engine(engineName);
@@ -114,7 +114,7 @@ void RenderingGuiPlugin::FindScene()
 
   if (engine->SceneCount() == 0)
   {
-    igndbg << "No scene has been created yet" << std::endl;
+    gzdbg << "No scene has been created yet" << std::endl;
     return;
   }
 
@@ -128,7 +128,7 @@ void RenderingGuiPlugin::FindScene()
 
   if (engine->SceneCount() > 1)
   {
-    igndbg << "More than one scene is available. "
+    gzdbg << "More than one scene is available. "
       << "Using scene [" << scene->Name() << "]" << std::endl;
   }
 

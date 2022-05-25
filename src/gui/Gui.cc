@@ -153,7 +153,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   // resolved when this while loop can be removed.
   while (!sigKilled && !executed)
   {
-    igndbg << "GUI requesting list of world names. The server may be busy "
+    gzdbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
@@ -212,7 +212,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       }
       else
       {
-        igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
+        gzdbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
         // Request and block
         executed = node.Request(service, timeout, res, result);
@@ -328,7 +328,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
     // Run main window.
     // This blocks until the window is closed or we receive a SIGINT
     app->exec();
-    igndbg << "Shutting down ign-gazebo-gui" << std::endl;
+    gzdbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
 

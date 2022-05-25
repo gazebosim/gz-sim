@@ -249,7 +249,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
     _txState.bytesSent.pop_front();
   }
 
-  // igndbg << "Bytes sent: " <<  _txState.bytesSentThisEpoch << " + "
+  // gzdbg << "Bytes sent: " <<  _txState.bytesSentThisEpoch << " + "
   //        << _numBytes << " = "
   //        << _txState.bytesSentThisEpoch + _numBytes << std::endl;
 
@@ -287,7 +287,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   double packetDropProb = 1.0 - exp(_numBytes * log(1 - ber));
 
-  // igndbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
+  // gzdbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
   //           "RX power (dBm): " << rxPower << "\n" <<
   //           "BER: " << ber << "\n" <<
   //           "# Bytes: " << _numBytes << "\n" <<
@@ -307,7 +307,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
     _rxState.bytesReceived.pop_front();
   }
 
-  // igndbg << "bytes received: " << _rxState.bytesReceivedThisEpoch
+  // gzdbg << "bytes received: " << _rxState.bytesReceivedThisEpoch
   //        << " + " << _numBytes
   //       << " = " << _rxState.bytesReceivedThisEpoch + _numBytes << std::endl;
 
@@ -380,10 +380,10 @@ void RFComms::Load(const Entity &/*_entity*/,
         this->dataPtr->radioConfig.noiseFloor).first;
   }
 
-  igndbg << "Range configuration:" << std::endl
+  gzdbg << "Range configuration:" << std::endl
          << this->dataPtr->rangeConfig << std::endl;
 
-  igndbg << "Radio configuration:" << std::endl
+  gzdbg << "Radio configuration:" << std::endl
          << this->dataPtr->radioConfig << std::endl;
 }
 

@@ -524,7 +524,7 @@ std::string validTopic(const std::vector<std::string> &_topics)
     }
     if (validTopic != topic)
     {
-      igndbg << "Topic [" << topic << "] changed to valid topic ["
+      gzdbg << "Topic [" << topic << "] changed to valid topic ["
              << validTopic << "]" << std::endl;
     }
     return validTopic;

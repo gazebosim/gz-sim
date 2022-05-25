@@ -76,7 +76,7 @@ void EntityContextMenuPrivate::OnRender()
       {
         this->camera = cam;
 
-        igndbg << "Entity context menu plugin is using camera ["
+        gzdbg << "Entity context menu plugin is using camera ["
                << this->camera->Name() << "]" << std::endl;
         break;
       }

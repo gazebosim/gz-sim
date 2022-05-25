@@ -282,7 +282,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   {
     if (_info.paused)
     {
-      igndbg << "Warning: Playback is either manually paused or <start_time> "
+      gzdbg << "Warning: Playback is either manually paused or <start_time> "
              << "is smaller than total log playback time!"
              << std::endl;
     }
@@ -339,7 +339,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
     {
       // No more models to record.
       if (this->dataPtr->statusMsg.data().empty())
-        igndbg << "Finish Recording" << std::endl;
+        gzdbg << "Finish Recording" << std::endl;
       this->dataPtr->statusMsg.set_data("end");
       this->dataPtr->statusPub.Publish(this->dataPtr->statusMsg);
 
@@ -365,7 +365,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   // rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    igndbg << "Detected Rewind." << std::endl;
+    gzdbg << "Detected Rewind." << std::endl;
   }
 }
 
@@ -384,7 +384,7 @@ void LogVideoRecorderPrivate::Rewind()
   req.set_rewind(true);
   if (this->node.Request(this->playbackControlService, req, cb))
   {
-    igndbg << "Rewind Playback " << std::endl;
+    gzdbg << "Rewind Playback " << std::endl;
     this->rewindRequested = true;
   }
 }
@@ -393,7 +393,7 @@ void LogVideoRecorderPrivate::Rewind()
 void LogVideoRecorderPrivate::Play()
 {
   this->eventManager->Emit<events::Pause>(false);
-  igndbg << "Play log " << std::endl;
+  gzdbg << "Play log " << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -410,7 +410,7 @@ void LogVideoRecorderPrivate::Follow(const std::string &_entity)
   req.set_data(_entity);
   if (this->node.Request(this->followService, req, cb))
   {
-    igndbg << "Following entity: " << _entity << std::endl;
+    gzdbg << "Following entity: " << _entity << std::endl;
   }
 }
 
@@ -432,11 +432,11 @@ void LogVideoRecorderPrivate::Record(bool _record)
     req.set_start(true);
     req.set_format(this->videoFormat);
     req.set_save_filename(filename);
-    igndbg << "Recording video " << filename << std::endl;
+    gzdbg << "Recording video " << filename << std::endl;
   }
   else
   {
-    igndbg << "Stopping video recorder" << std::endl;
+    gzdbg << "Stopping video recorder" << std::endl;
     req.set_stop(true);
     this->recordStopRequested = true;
     this->recordStopTime = std::chrono::system_clock::now();

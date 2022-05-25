@@ -42,12 +42,12 @@ class TestWorldSystem :
 {
   public: TestWorldSystem()
         {
-          igndbg << "Constructing TestWorldSystem" << std::endl;
+          gzdbg << "Constructing TestWorldSystem" << std::endl;
         }
 
   public: ~TestWorldSystem()
         {
-          igndbg << "Destroying TestWorldSystem" << std::endl;
+          gzdbg << "Destroying TestWorldSystem" << std::endl;
         }
 
   public: void Configure(const Entity &_entity,
@@ -55,7 +55,7 @@ class TestWorldSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestWorldSystem" << std::endl;
+          gzdbg << "Configuring TestWorldSystem" << std::endl;
           auto value = _sdf->Get<double>("world_key");
           _ecm.CreateComponent(_entity,
               components::WorldPluginComponent(value));

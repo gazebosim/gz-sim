@@ -44,17 +44,17 @@ class TestModelSystem :
 {
   public: TestModelSystem()
         {
-          igndbg << "Constructing TestModelSystem" << std::endl;
+          gzdbg << "Constructing TestModelSystem" << std::endl;
         }
 
   public: ~TestModelSystem()
         {
-          igndbg << "Destroying TestModelSystem" << std::endl;
+          gzdbg << "Destroying TestModelSystem" << std::endl;
         }
 
   private: bool Service(msgs::StringMsg &_msg)
            {
-             igndbg << "TestModelSystem service called" << std::endl;
+             gzdbg << "TestModelSystem service called" << std::endl;
              _msg.set_data("TestModelSystem");
              return true;
            }
@@ -64,7 +64,7 @@ class TestModelSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestModelSystem" << std::endl;
+          gzdbg << "Configuring TestModelSystem" << std::endl;
           this->model = Model(_entity);
 
           auto link = this->model.LinkByName(_ecm, "link_1");

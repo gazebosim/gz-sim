@@ -398,7 +398,7 @@ with their Ignition equivalents:
 
 ```cpp
 // NEW
-igndbg << ... ;
+gzdbg << ... ;
 gzlog << ... ;
 gzwarn << ... ;
 gzerr << ... ;

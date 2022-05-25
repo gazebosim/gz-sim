@@ -107,7 +107,7 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
-  igndbg << "Server received signal[" << _sig  << "]\n";
+  gzdbg << "Server received signal[" << _sig  << "]\n";
   this->Stop();
 }
 

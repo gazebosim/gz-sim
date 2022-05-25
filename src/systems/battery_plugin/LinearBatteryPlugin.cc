@@ -371,7 +371,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   gzmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
-  igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
+  gzdbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
 
   this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
@@ -413,7 +413,7 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 void LinearBatteryPluginPrivate::OnEnableRecharge(
   const gz::msgs::Boolean &/*_req*/)
 {
-  igndbg << "Request for start charging received" << std::endl;
+  gzdbg << "Request for start charging received" << std::endl;
   this->startCharging = true;
 }
 
@@ -421,7 +421,7 @@ void LinearBatteryPluginPrivate::OnEnableRecharge(
 void LinearBatteryPluginPrivate::OnDisableRecharge(
   const gz::msgs::Boolean &/*_req*/)
 {
-  igndbg << "Request for stop charging received" << std::endl;
+  gzdbg << "Request for stop charging received" << std::endl;
   this->startCharging = false;
 }
 
@@ -514,7 +514,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   if (drainTime != this->dataPtr->lastPrintTime)
   {
     this->dataPtr->lastPrintTime = drainTime;
-    igndbg << "[Battery Plugin] Battery drain: " << drainTime <<
+    gzdbg << "[Battery Plugin] Battery drain: " << drainTime <<
       " minutes passed.\n";
   }
 
@@ -650,14 +650,14 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
   if (socInt % 10 == 0 && socInt != prevSocInt)
   {
-    igndbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
-    igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
+    gzdbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
+    gzdbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
            << std::endl;
-    igndbg << "charging status: " << std::boolalpha
+    gzdbg << "charging status: " << std::boolalpha
            << this->dataPtr->startCharging << std::endl;
-    igndbg << "charging current: " << iCharge << std::endl;
-    igndbg << "voltage: " << voltage << std::endl;
-    igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
+    gzdbg << "charging current: " << iCharge << std::endl;
+    gzdbg << "voltage: " << voltage << std::endl;
+    gzdbg << "state of charge: " << this->dataPtr->StateOfCharge()
            << " (q " << this->dataPtr->q << ")" << std::endl << std::endl;
   }
   if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)

@@ -630,7 +630,7 @@ void TriggeredPublisher::Configure(const Entity &,
   {
     ss << info.topic << ", ";
   }
-  igndbg << ss.str() << "\n";
+  gzdbg << ss.str() << "\n";
 
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));

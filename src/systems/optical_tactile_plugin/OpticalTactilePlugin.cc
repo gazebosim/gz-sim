@@ -200,7 +200,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("enabled"))
   {
-    igndbg << "Missing parameter <enabled>, "
+    gzdbg << "Missing parameter <enabled>, "
       << "setting to " << this->dataPtr->enabled << std::endl;
   }
   else
@@ -210,7 +210,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualization_resolution"))
   {
-    igndbg << "Missing parameter <visualization_resolution>, "
+    gzdbg << "Missing parameter <visualization_resolution>, "
       << "setting to " << this->dataPtr->visualizationResolution << std::endl;
   }
   else
@@ -229,7 +229,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualize_forces"))
   {
-    igndbg << "Missing parameter <visualize_forces>, "
+    gzdbg << "Missing parameter <visualize_forces>, "
       << "setting to " << this->dataPtr->visualizeForces << std::endl;
   }
   else
@@ -239,7 +239,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualize_contacts"))
   {
-    igndbg << "Missing parameter <visualize_contacts>, "
+    gzdbg << "Missing parameter <visualize_contacts>, "
       << "setting to " << this->dataPtr->visualizeContacts << std::endl;
   }
   else
@@ -249,7 +249,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("extended_sensing"))
   {
-    igndbg << "Missing parameter <extended_sensing>, "
+    gzdbg << "Missing parameter <extended_sensing>, "
       << "setting to " << this->dataPtr->extendedSensing << std::endl;
   }
   else
@@ -267,7 +267,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("visualize_sensor"))
   {
-    igndbg << "Missing parameter <visualize_sensor>, "
+    gzdbg << "Missing parameter <visualize_sensor>, "
       << "setting to " << this->dataPtr->visualizeSensor << std::endl;
   }
   else
@@ -277,7 +277,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("force_length"))
   {
-    igndbg << "Missing parameter <force_length>, "
+    gzdbg << "Missing parameter <force_length>, "
       << "setting to " << this->dataPtr->forceLength << std::endl;
   }
   else
@@ -295,7 +295,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 
   if (!_sdf->HasElement("namespace"))
   {
-    igndbg << "Missing parameter <namespace>, "
+    gzdbg << "Missing parameter <namespace>, "
       << "setting to " << this->dataPtr->ns << std::endl;
   }
   else
@@ -323,7 +323,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
               _sdf->GetParent()->GetElement("link")->GetElement("collision")->
               GetElement("geometry")->GetElement("box")->
               Get<gz::math::Vector3d>("size");
-            igndbg << "Setting sensor size to box collision size: ["
+            gzdbg << "Setting sensor size to box collision size: ["
                    << this->dataPtr->sensorSize << "]" << std::endl;
           }
         }
@@ -589,7 +589,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   }
   else
   {
-    igndbg << "Depth camera publishing to "
+    gzdbg << "Depth camera publishing to "
       << depthCameraSdf.Topic() << " topic" << std::endl;
   }
 

@@ -91,12 +91,12 @@ void ModelPhotoShoot::Configure(const gz::sim::Entity &_entity,
       _sdf->Get<std::string>("translation_data_file");
   if (saveDataLocation.empty())
   {
-    igndbg << "No data location specified, skipping translaiton data"
+    gzdbg << "No data location specified, skipping translaiton data"
               "saving.\n";
   }
   else
   {
-    igndbg << "Saving translation data to: "
+    gzdbg << "Saving translation data to: "
         << saveDataLocation << std::endl;
     this->dataPtr->savingFile.open(saveDataLocation);
   }
@@ -180,7 +180,7 @@ void ModelPhotoShoot::PreUpdate(
         }
         else
         {
-          igndbg << "Ignoring fixed joint: " << jointNameComp->Data() <<
+          gzdbg << "Ignoring fixed joint: " << jointNameComp->Data() <<
               std::endl;
         }
       }
@@ -303,7 +303,7 @@ void ModelPhotoShootPrivate::SavePicture(
   image.SetFromData(cameraImage.Data<unsigned char>(), width, height, format);
   image.SavePNG(_fileName);
 
-  igndbg << "Saved image to [" << _fileName << "]" << std::endl;
+  gzdbg << "Saved image to [" << _fileName << "]" << std::endl;
 }
 
 IGNITION_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,

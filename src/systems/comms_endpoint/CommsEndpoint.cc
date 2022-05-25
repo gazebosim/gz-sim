@@ -86,7 +86,7 @@ void CommsEndpoint::Implementation::BindCallback(
   if (_result)
     this->bound = true;
 
-  igndbg << "Succesfuly bound to [" << this->address << "] on topic ["
+  gzdbg << "Succesfuly bound to [" << this->address << "] on topic ["
          << this->topic << "]" << std::endl;
 }
 

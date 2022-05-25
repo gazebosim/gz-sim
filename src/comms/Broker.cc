@@ -110,11 +110,11 @@ void Broker::Start()
     return;
   }
 
-  igndbg << "Broker services:" << std::endl;
-  igndbg << "  Bind: [" << this->dataPtr->bindSrv << "]" << std::endl;
-  igndbg << "  Unbind: [" << this->dataPtr->unbindSrv << "]" << std::endl;
-  igndbg << "Broker topics:" << std::endl;
-  igndbg << "  Incoming messages: [" << this->dataPtr->msgTopic << "]"
+  gzdbg << "Broker services:" << std::endl;
+  gzdbg << "  Bind: [" << this->dataPtr->bindSrv << "]" << std::endl;
+  gzdbg << "  Unbind: [" << this->dataPtr->unbindSrv << "]" << std::endl;
+  gzdbg << "Broker topics:" << std::endl;
+  gzdbg << "  Incoming messages: [" << this->dataPtr->msgTopic << "]"
          << std::endl;
 }
 

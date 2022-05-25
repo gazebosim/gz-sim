@@ -200,7 +200,7 @@ extern "C" int runServer(const char *_sdfString,
   // Run the server
   server.Run(true, _iterations, _run == 0);
 
-  igndbg << "Shutting down server" << std::endl;
+  gzdbg << "Shutting down server" << std::endl;
   return 0;
 }
 
@@ -277,7 +277,7 @@ extern "C" int runGui(const char *_guiConfig)
   // resolved when this while loop can be removed.
   while (!sigKilled && !executed)
   {
-    igndbg << "GUI requesting list of world names. The server may be busy "
+    gzdbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
@@ -355,7 +355,7 @@ extern "C" int runGui(const char *_guiConfig)
       result = false;
       service = std::string("/world/" + worldName + "/gui/info");
 
-      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
+      gzdbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
       // Request and block
       gz::msgs::GUI res;
@@ -456,6 +456,6 @@ extern "C" int runGui(const char *_guiConfig)
     delete runner;
   runners.clear();
 
-  igndbg << "Shutting down GUI" << std::endl;
+  gzdbg << "Shutting down GUI" << std::endl;
   return 0;
 }

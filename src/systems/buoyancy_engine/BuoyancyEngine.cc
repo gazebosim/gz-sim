@@ -209,7 +209,7 @@ void BuoyancyEnginePlugin::Configure(
   this->dataPtr->statusPub =
     this->dataPtr->node.Advertise<gz::msgs::Double>(statusTopic);
 
-  igndbg << "Listening to commands on [" << cmdTopic
+  gzdbg << "Listening to commands on [" << cmdTopic
          << "], publishing status on [" << statusTopic << "]" <<std::endl;
 }
 

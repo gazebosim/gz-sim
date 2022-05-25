@@ -371,7 +371,7 @@ void Plotting::UnRegisterChartFromComponent(uint64_t _entity, uint64_t _typeId,
 {
   std::lock_guard<std::recursive_mutex> lock(this->dataPtr->componentsMutex);
   std::string id = std::to_string(_entity) + "," + std::to_string(_typeId);
-  igndbg << "UnRegister [" << id  << "]" << std::endl;
+  gzdbg << "UnRegister [" << id  << "]" << std::endl;
 
   if (this->dataPtr->components.count(id) == 0)
     return;

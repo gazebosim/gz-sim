@@ -329,7 +329,7 @@ TEST_F(LevelManagerFixture,
 
   auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
   {
-    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+    gzdbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
            << _perf2.Id() << "]\n";
 
     // Reset positions
@@ -447,7 +447,7 @@ TEST_F(LevelManagerFixture,
 
   auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
   {
-    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+    gzdbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
            << _perf2.Id() << "]\n";
     // Move performer1 into level1 and performer2 to level1's buffer
     _perf1.SetPose(level1Pose);

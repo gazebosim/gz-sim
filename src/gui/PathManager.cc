@@ -52,7 +52,7 @@ void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
     gzerr << "Failed to get resource paths through service" << std::endl;
     return;
   }
-  igndbg << "Received resource paths." << std::endl;
+  gzdbg << "Received resource paths." << std::endl;
 
   onAddResourcePaths(_res);
 }
@@ -63,7 +63,7 @@ PathManager::PathManager()
   // Trigger an initial request to get all paths from server
   std::string service{"/gazebo/resource_paths/get"};
 
-  igndbg << "Requesting resource paths through [" << service << "]"
+  gzdbg << "Requesting resource paths through [" << service << "]"
          << std::endl;
   this->node.Request(service, onAddResourcePaths);
 

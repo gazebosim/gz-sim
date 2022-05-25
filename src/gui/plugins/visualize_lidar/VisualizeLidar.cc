@@ -156,7 +156,7 @@ void VisualizeLidar::LoadLidar()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    igndbg << "More than one engine is available. "
+    gzdbg << "More than one engine is available. "
       << "VisualizeLidar plugin will use engine ["
         << engineName << "]" << std::endl;
   }
@@ -186,7 +186,7 @@ void VisualizeLidar::LoadLidar()
   }
 
   // Create lidar visual
-  igndbg << "Creating lidar visual" << std::endl;
+  gzdbg << "Creating lidar visual" << std::endl;
 
   auto root = scene->RootVisual();
   this->dataPtr->lidar = scene->CreateLidarVisual();

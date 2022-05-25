@@ -39,14 +39,14 @@ class EventTriggerSystem :
                          EntityComponentManager &/*_ecm*/,
                          EventManager &_eventManager) override
         {
-          igndbg << "Configure" << std::endl;
+          gzdbg << "Configure" << std::endl;
           this->eventManager = &_eventManager;
         }
 
   public: void Update(const UpdateInfo &/*_info*/,
                       EntityComponentManager &/*_ecm*/) override
         {
-          igndbg << "Update" << std::endl;
+          gzdbg << "Update" << std::endl;
           this->eventManager->Emit<events::Pause>(false);
         }
 
