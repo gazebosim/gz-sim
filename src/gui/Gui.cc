@@ -177,7 +177,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       std::string(_guiConfig) != "_playback_")
   {
     // Use the first world name with the config file
-    // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
+    // TODO(anyone) Most of gz-sim's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
     auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));

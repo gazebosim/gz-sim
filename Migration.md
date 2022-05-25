@@ -11,7 +11,7 @@ release will remove the deprecated code.
   + The `ParticleEmitter2` system was renamed to `ParticleEmitter`. The
   `ParticleEmitter2` system is now deprecated. Please use the
   `ParticleEmitter` system.
-  + The `ignition` namespace is deprecated and will be removed in future versions. Use `gz` instead.
+  + The `ignition::gazebo` namespace is deprecated and will be removed in future versions. Use `gz::sim` instead.
   + Header files under `ignition/...` are deprecated and will be removed in future versions.
   Use `gz/...` instead.
 

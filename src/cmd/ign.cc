@@ -319,7 +319,7 @@ extern "C" int runGui(const char *_guiConfig)
     }
 
     // Use the first world name with the config file
-    // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
+    // TODO(anyone) Most of gz-sim's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
 
