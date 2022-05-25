@@ -17,7 +17,7 @@ Some of them are listed below and demonstrated in this [example ERB file](https:
 ## Set up Ruby
 
 Firstly, Ruby needs to be installed.
-If you have gone through [Ignition's installation guide](https://gazebosim.org/docs/latest/install), it's most likely you already have Ruby installed.
+If you have gone through [Gazebo's installation guide](https://gazebosim.org/docs/latest/install), it's most likely you already have Ruby installed.
 To check if Ruby is installed, use 
 ```{.sh}
 ruby --version

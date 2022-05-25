@@ -93,7 +93,7 @@ namespace comms
     /// \brief This method is called when there is a timestep in the simulator.
     /// \param[in] _info Simulator information about the current timestep.
     ///                         will become the new registry.
-    /// \param[in] _ecm - Ignition's ECM.
+    /// \param[in] _ecm - Gazebo's ECM.
     public: virtual void StepImpl(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm);
 
@@ -118,7 +118,7 @@ namespace comms
     /// \param[in] _currentRegistry The current registry.
     /// \param[out] _newRegistry The new registry. When Step() is finished this
     ///                         will become the new registry.
-    /// \param[in] _ecm - Ignition's ECM.
+    /// \param[in] _ecm - Gazebo's ECM.
     public: virtual void Step(const UpdateInfo &_info,
                               const Registry &_currentRegistry,
                               Registry &_newRegistry,
