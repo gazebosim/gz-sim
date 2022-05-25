@@ -489,7 +489,7 @@ class sdf_model_exporter(ModuleType):
         cls._generate_model_config_file(export_path=export_path, model_name=model_name)
 
         # Render few images to generate thumbnails
-        if generate_thumbnails:
+        if not bpy.app.background and generate_thumbnails:
             cls._generate_thumbnails(export_path=export_path)
 
         cls._print_bpy(
@@ -1348,7 +1348,7 @@ class procedural_dataset_generator(sdf_model_exporter):
 
             # Update the viewport to keep track of progress and look *fancy*
             # Performance might be lowered because the scene needs to be re-rendered
-            if redraw_viewport_during_processing:
+            if not bpy.app.background and redraw_viewport_during_processing:
                 bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
 
     @classmethod
