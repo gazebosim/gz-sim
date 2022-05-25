@@ -356,6 +356,8 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
+  // Advertise a service that returns the full path, on the Gazebo server's
+  // host machine, based on a provided URI.
   std::string resolvePathService{"/gazebo/resource_paths/resolve"};
   if (this->node.Advertise(resolvePathService,
       &ServerPrivate::ResourcePathsResolveService, this))
@@ -368,7 +370,6 @@ void ServerPrivate::SetupTransport()
     ignerr << "Something went wrong, failed to advertise [" << getPathService
            << "]" << std::endl;
   }
-
 
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
@@ -507,14 +508,14 @@ bool ServerPrivate::ResourcePathsResolveService(
   // Get the request
   std::string req = _req.data();
 
-  // Handle the case where the request is already valid
+  // Handle the case where the request is already a valid path
   if (common::exists(req))
   {
     _res.set_data(req);
     return true;
   }
 
-  // Try Fuel first.
+  // Try Fuel
   std::string path =
       fuel_tools::fetchResourceWithClient(req, *this->fuelClient.get());
   if (!path.empty() && common::exists(path))
@@ -553,6 +554,7 @@ bool ServerPrivate::ResourcePathsResolveService(
     }
   }
 
+  // Otherwise the resource could not be found
   return false;
 }
 

@@ -308,8 +308,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -687,9 +691,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
   // Populate a graph with latest information from all entities
 
-  auto sceneComp = _manager.Component<components::Scene>(this->worldEntity);
-  this->sdfScene = sceneComp->Data();
-
   // Scene graph for new entities. This will be used later to create a scene msg
   // to publish.
   SceneGraphType newGraph;
@@ -1023,7 +1024,7 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
     msgs::Scene sceneMsg;
     // Populate scene message
-    _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 

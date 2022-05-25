@@ -914,6 +914,43 @@ TEST_P(SceneBroadcasterTest,
   server.Run(true, 1, false);
 }
 
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/conveyor.sdf");
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene res;
+
+  EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  ASSERT_TRUE(res.has_ambient());
+  EXPECT_EQ(math::Color(1.0, 1.0, 1.0, 1.0), msgs::Convert(res.ambient()));
+
+  ASSERT_TRUE(res.has_background());
+  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1.0), msgs::Convert(res.background()));
+
+  EXPECT_TRUE(res.shadows());
+  EXPECT_FALSE(res.grid());
+  EXPECT_FALSE(res.has_fog());
+  EXPECT_FALSE(res.has_sky());
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));
