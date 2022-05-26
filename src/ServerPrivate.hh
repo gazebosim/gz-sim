@@ -126,13 +126,13 @@ namespace ignition
       /// variable paths. This service will not check for files relative to
       /// working directory of the Gazebo server.
       ///
-      /// \param[in] _req Request filled with a rsource URI to resolve.
+      /// \param[in] _req Request filled with a resource URI to resolve.
       /// Example values could be:
       ///   * https://URI_TO_A_FUEL_RESOURCE
       ///   * model://MODLE_NAME/meshes/MESH_NAME
       ///   * file://PATH/TO/FILE
       ///
-      /// \param[out] _res Response filled with the resovled path, or empty
+      /// \param[out] _res Response filled with the resolved path, or empty
       /// if the resource could not be found.
       /// \return True if successful, false otherwise.
       private: bool ResourcePathsResolveService(
