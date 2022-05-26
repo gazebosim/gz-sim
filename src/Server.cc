@@ -260,7 +260,7 @@ void Server::Init()
     std::string filePath = systemPaths.FindFile(this->dataPtr->config.SdfFile());
 
     std::string worldName;
-    auto errors2 = this->dataPtr->sdfRoot.GetWorldName(filePath, worldName);
+    auto errors2 = this->dataPtr->sdfRoot.WorldName(filePath, worldName);
 
     // Load an empty world.
     /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
