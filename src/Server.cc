@@ -217,7 +217,7 @@ void Server::Init()
       this->dataPtr->config.SdfFile());
 
     std::string worldName;
-    auto errors2 = this->dataPtr->sdfRoot.GetWorldName(filePath, worldName);
+    auto errors2 = this->dataPtr->sdfRoot.WorldName(filePath, worldName);
 
     errors = this->dataPtr->sdfRoot.LoadSdfString(
       DefaultWorld::World(worldName));
