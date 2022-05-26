@@ -1036,8 +1036,7 @@ TEST_P(ServerFixture, AddResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResolveResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
   ignition::common::setenv("SDF_PATH", "");
   ignition::common::setenv("IGN_FILE_PATH", "");
 

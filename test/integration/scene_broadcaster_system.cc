@@ -921,7 +921,7 @@ TEST_P(SceneBroadcasterTest,
   // Start server
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/conveyor.sdf");
+      common::joinPaths("/", "test", "worlds", "conveyor.sdf"));
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
