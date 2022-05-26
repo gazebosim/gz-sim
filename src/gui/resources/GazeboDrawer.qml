@@ -146,7 +146,7 @@ Rectangle {
    */
   Dialog {
     id: aboutDialog
-    title: "Gazebo"
+    title: "Gazebo Sim"
 
     modal: true
     focus: true

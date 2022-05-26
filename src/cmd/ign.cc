@@ -241,7 +241,7 @@ extern "C" int runGui(const char *_guiConfig)
   // Customize window
   auto mainWin = app.findChild<gz::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
-  win->setProperty("title", "Gazebo");
+  win->setProperty("title", "Gazebo Sim");
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");

@@ -113,7 +113,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     mainWin->SetRenderEngine(_renderEngine);
   }
   auto win = mainWin->QuickWindow();
-  win->setProperty("title", "Gazebo");
+  win->setProperty("title", "Gazebo Sim");
 
   // Let QML files use C++ functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
