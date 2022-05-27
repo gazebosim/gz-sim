@@ -53,6 +53,7 @@ set(tests
   pose_publisher_system.cc
   rf_comms.cc
   recreate_entities.cc
+  recreate_entities_worldjoint.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
