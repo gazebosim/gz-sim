@@ -476,8 +476,8 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         end
 
         Signal.trap("INT") {
-          self.killProcess(guiPid, "Gazebo GUI", 5.0)
-          self.killProcess(serverPid, "Gazebo Server", 5.0)
+          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
+          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
           return 1
         }
 
@@ -485,9 +485,9 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         pid, status = Process.wait2
 
         if pid == serverPid
-          self.killProcess(guiPid, "Gazebo GUI", 5.0)
+          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
         else
-          self.killProcess(serverPid, "Gazebo Server", 5.0)
+          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
         end
 
       # If the -s option was specified, then run only the server

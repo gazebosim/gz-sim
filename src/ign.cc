@@ -281,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
-  gzmsg << "Gazebo Server v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo Sim Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user

@@ -52,7 +52,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     sigKilled = true;
   });
 
-  gzmsg << "Gazebo GUI    v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo Sim GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
