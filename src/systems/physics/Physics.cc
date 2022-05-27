@@ -3604,3 +3604,6 @@ IGNITION_ADD_PLUGIN(Physics,
                     Physics::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

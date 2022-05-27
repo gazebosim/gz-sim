@@ -264,5 +264,9 @@ IGNITION_ADD_PLUGIN(PerformerDetector,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
+                          "ignition::gazebo::PerformerDetector")
+
 IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
                           "gz::sim::systems::PerformerDetector")

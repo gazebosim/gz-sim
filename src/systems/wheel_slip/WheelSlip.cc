@@ -390,5 +390,9 @@ IGNITION_ADD_PLUGIN(WheelSlip,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
+                          "ignition::gazebo::WheelSlip")
+
 IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
                           "gz::sim::systems::WheelSlip")

@@ -1180,5 +1180,9 @@ IGNITION_ADD_PLUGIN(SceneBroadcaster,
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "ignition::gazebo::SceneBroadcaster")
+
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "gz::sim::systems::SceneBroadcaster")

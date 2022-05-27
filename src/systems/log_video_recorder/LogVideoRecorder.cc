@@ -451,5 +451,9 @@ IGNITION_ADD_PLUGIN(LogVideoRecorder,
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+                          "ignition::gazebo::LogVideoRecorder")
+
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "gz::sim::systems::LogVideoRecorder")

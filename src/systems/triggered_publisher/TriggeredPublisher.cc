@@ -728,5 +728,9 @@ IGNITION_ADD_PLUGIN(TriggeredPublisher,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+                          "ignition::gazebo::TriggeredPublisher")
+
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "gz::sim::systems::TriggeredPublisher")

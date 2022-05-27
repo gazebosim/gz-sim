@@ -435,5 +435,9 @@ IGNITION_ADD_PLUGIN(TrajectoryFollower,
                     TrajectoryFollower::ISystemConfigure,
                     TrajectoryFollower::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TrajectoryFollower,
+                          "ignition::gazebo::TrajectoryFollower")
+
 IGNITION_ADD_PLUGIN_ALIAS(TrajectoryFollower,
                           "gz::sim::systems::TrajectoryFollower")

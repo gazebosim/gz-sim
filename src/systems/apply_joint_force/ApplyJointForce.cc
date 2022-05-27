@@ -168,5 +168,9 @@ IGNITION_ADD_PLUGIN(ApplyJointForce,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+                          "ignition::gazebo::ApplyJointForce")
+
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "gz::sim::systems::ApplyJointForce")

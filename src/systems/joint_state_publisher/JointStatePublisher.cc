@@ -317,5 +317,9 @@ IGNITION_ADD_PLUGIN(JointStatePublisher,
                     JointStatePublisher::ISystemConfigure,
                     JointStatePublisher::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+                          "ignition::gazebo::JointStatePublisher")
+
 IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
     "gz::sim::systems::JointStatePublisher")

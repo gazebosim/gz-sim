@@ -380,5 +380,9 @@ IGNITION_ADD_PLUGIN(VelocityControl,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+                          "ignition::gazebo::VelocityControl")
+
 IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
                           "gz::sim::systems::VelocityControl")

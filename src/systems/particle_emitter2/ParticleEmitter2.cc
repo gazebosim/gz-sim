@@ -251,5 +251,9 @@ IGNITION_ADD_PLUGIN(ParticleEmitter2,
                     ParticleEmitter2::ISystemConfigure,
                     ParticleEmitter2::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter2,
+                          "ignition::gazebo::ParticleEmitter2")
+
 IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter2,
                           "gz::sim::systems::ParticleEmitter2")

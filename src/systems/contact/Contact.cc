@@ -301,3 +301,6 @@ IGNITION_ADD_PLUGIN(Contact, System,
 
 IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
+

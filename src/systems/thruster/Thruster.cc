@@ -466,3 +466,6 @@ IGNITION_ADD_PLUGIN(
   Thruster::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")

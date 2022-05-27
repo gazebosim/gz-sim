@@ -1925,5 +1925,9 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemPreUpdate
 )
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+                          "ignition::gazebo::UserCommands")
+
 IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
                           "gz::sim::systems::UserCommands")

@@ -361,5 +361,9 @@ IGNITION_ADD_PLUGIN(JointPositionController,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+                          "ignition::gazebo::JointPositionController")
+
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
                           "gz::sim::systems::JointPositionController")

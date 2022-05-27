@@ -614,5 +614,15 @@ IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogPlayback,
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+                          "ignition::gazebo::gz::sim::systems::LogPlayback")
+
+IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogPlayback,
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
                           "gz::sim::systems::LogPlayback")

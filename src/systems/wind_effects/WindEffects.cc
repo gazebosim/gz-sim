@@ -741,3 +741,6 @@ IGNITION_ADD_PLUGIN(WindEffects, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

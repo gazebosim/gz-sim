@@ -467,5 +467,9 @@ IGNITION_ADD_PLUGIN(CameraVideoRecorder,
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+                          "ignition::gazebo::CameraVideoRecorder")
+
 IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
                           "gz::sim::systems::CameraVideoRecorder")

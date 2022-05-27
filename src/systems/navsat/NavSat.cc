@@ -282,3 +282,6 @@ IGNITION_ADD_PLUGIN(NavSat, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(NavSat, "gz::sim::systems::NavSat")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(NavSat, "ignition::gazebo::systems::NavSat")

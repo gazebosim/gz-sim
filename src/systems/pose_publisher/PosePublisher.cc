@@ -587,5 +587,9 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemConfigure,
                     PosePublisher::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+                          "ignition::gazebo::PosePublisher")
+
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
                           "gz::sim::systems::PosePublisher")

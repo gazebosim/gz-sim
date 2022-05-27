@@ -89,5 +89,9 @@ IGNITION_ADD_PLUGIN(ThermalSensor, System,
   ThermalSensor::ISystemConfigure
 )
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
+                          "ignition::gazebo::ThermalSensor")
+
 IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
     "gz::sim::systems::ThermalSensor")

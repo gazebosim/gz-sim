@@ -446,6 +446,9 @@ IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
 
 IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
+
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace sim

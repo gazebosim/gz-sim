@@ -838,5 +838,9 @@ IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
   OpticalTactilePlugin::ISystemPreUpdate,
   OpticalTactilePlugin::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
+                          "ignition::gazebo::OpticalTactilePlugin")
+
 IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
   "gz::sim::systems::OpticalTactilePlugin")

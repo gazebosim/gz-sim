@@ -456,3 +456,8 @@ IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
 IGNITION_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
     "gz::sim::systems::MulticopterVelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(
+    MulticopterVelocityControl,
+    "ignition::gazebo::systems::MulticopterVelocityControl")

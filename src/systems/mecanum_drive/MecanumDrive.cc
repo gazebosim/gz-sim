@@ -565,5 +565,9 @@ IGNITION_ADD_PLUGIN(MecanumDrive,
                     MecanumDrive::ISystemPreUpdate,
                     MecanumDrive::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
+                          "ignition::gazebo::MecanumDrive")
+
 IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
                           "gz::sim::systems::MecanumDrive")

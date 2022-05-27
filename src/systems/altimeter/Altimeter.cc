@@ -287,3 +287,6 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

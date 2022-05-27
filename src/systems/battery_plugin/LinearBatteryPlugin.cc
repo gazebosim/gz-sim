@@ -676,5 +676,9 @@ IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     LinearBatteryPlugin::ISystemUpdate,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+                          "ignition::gazebo::LinearBatteryPlugin")
+
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "gz::sim::systems::LinearBatteryPlugin")

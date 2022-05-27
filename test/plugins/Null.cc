@@ -64,3 +64,6 @@ IGNITION_ADD_PLUGIN(Null,
                     Null::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Null, "gz::sim::systems::Null")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Null, "ignition::gazebo::systems::Null")
