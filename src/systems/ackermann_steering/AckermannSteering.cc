@@ -764,9 +764,9 @@ IGNITION_ADD_PLUGIN(AckermannSteering,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::AckermannSteering")
-
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "gz::sim::systems::AckermannSteering")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+                          "ignition::gazebo::systems::AckermannSteering")

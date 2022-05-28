@@ -774,9 +774,9 @@ IGNITION_ADD_PLUGIN(TrackedVehicle,
                     TrackedVehicle::ISystemPreUpdate,
                     TrackedVehicle::ISystemPostUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "ignition::gazebo::TrackedVehicle")
-
 IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "gz::sim::systems::TrackedVehicle")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+                          "ignition::gazebo::systems::TrackedVehicle")

@@ -301,10 +301,9 @@ IGNITION_ADD_PLUGIN(LogicalCamera, System,
   LogicalCamera::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+    "gz::sim::systems::LogicalCamera")
 
 // TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
-                          "ignition::gazebo::LogicalCamera")
-
-IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
-    "gz::sim::systems::LogicalCamera")
+    "ignition::gazebo::systems::LogicalCamera")

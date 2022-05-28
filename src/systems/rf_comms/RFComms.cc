@@ -461,9 +461,9 @@ IGNITION_ADD_PLUGIN(RFComms,
                     comms::ICommsModel::ISystemConfigure,
                     comms::ICommsModel::ISystemPreUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(RFComms,
-                          "ignition::gazebo::RFComms")
-
 IGNITION_ADD_PLUGIN_ALIAS(RFComms,
                           "gz::sim::systems::RFComms")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(RFComms,
+                          "ignition::gazebo::systems::RFComms")

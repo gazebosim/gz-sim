@@ -618,9 +618,9 @@ IGNITION_ADD_PLUGIN(TrackController,
                     TrackController::ISystemConfigure,
                     TrackController::ISystemPreUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TrackController,
-                          "ignition::gazebo::TrackController")
-
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
                           "gz::sim::systems::TrackController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+                          "ignition::gazebo::systems::TrackController")

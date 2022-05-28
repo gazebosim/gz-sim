@@ -327,9 +327,9 @@ IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     System,
                     ColladaWorldExporter::ISystemPostUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "ignition::gazebo::ColladaWorldExporter")
-
 IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
                           "gz::sim::systems::ColladaWorldExporter")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
+                          "ignition::gazebo::systems::ColladaWorldExporter")

@@ -264,9 +264,9 @@ IGNITION_ADD_PLUGIN(JointController,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(JointController,
-                          "ignition::gazebo::JointController")
-
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
                           "gz::sim::systems::JointController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointController,
+                          "ignition::gazebo::systems::JointController")

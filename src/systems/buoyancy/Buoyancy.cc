@@ -585,9 +585,9 @@ IGNITION_ADD_PLUGIN(Buoyancy,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "ignition::gazebo::Buoyancy")
-
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+                          "ignition::gazebo::systems::Buoyancy")

@@ -310,9 +310,9 @@ IGNITION_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,
                     ModelPhotoShoot::ISystemConfigure,
                     ModelPhotoShoot::ISystemPreUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
-                          "ignition::gazebo::ModelPhotoShoot")
-
 IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
                           "gz::sim::systems::ModelPhotoShoot")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
+                          "ignition::gazebo::systems::ModelPhotoShoot")

@@ -173,9 +173,9 @@ IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
                     KineticEnergyMonitor::ISystemConfigure,
                     KineticEnergyMonitor::ISystemPostUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-                          "ignition::gazebo::KineticEnergyMonitor")
-
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "gz::sim::systems::KineticEnergyMonitor")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+  "ignition::gazebo::systems::KineticEnergyMonitor")

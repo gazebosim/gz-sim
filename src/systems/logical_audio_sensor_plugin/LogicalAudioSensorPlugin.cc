@@ -531,9 +531,9 @@ IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
                     LogicalAudioSensorPlugin::ISystemPreUpdate,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-                          "ignition::gazebo::LogicalAudioSensorPlugin")
-
 IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "gz::sim::systems::LogicalAudioSensorPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
+  "ignition::gazebo::systems::LogicalAudioSensorPlugin")
