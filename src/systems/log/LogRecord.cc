@@ -714,13 +714,7 @@ IGNITION_ADD_PLUGIN(gz::sim::systems::LogRecord,
 
 // TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogRecord,
-
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
                           "ignition::gazebo::gz::sim::systems::LogRecord")
 
 IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogRecord,
-
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
                           "gz::sim::systems::LogRecord")
