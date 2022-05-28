@@ -28,28 +28,28 @@
 #include <gz/math/config.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     template<typename T>
-    class ignition::math::OrientedBox
+    class gz::math::OrientedBox
     {
       %rename("%(undercase)s", %$isfunction, %$ismember, %$not %$isconstructor) "";
       public: OrientedBox();
 
       public: OrientedBox(
-        const ignition::math::Vector3<T> &_size, const ignition::math::Pose3<T> &_pose);
+        const gz::math::Vector3<T> &_size, const gz::math::Pose3<T> &_pose);
 
-      public: OrientedBox(const ignition::math::Vector3<T> &_size, const ignition::math::Pose3<T> &_pose,
-                  const ignition::math::Material &_mat);
+      public: OrientedBox(const gz::math::Vector3<T> &_size, const gz::math::Pose3<T> &_pose,
+                  const gz::math::Material &_mat);
 
-      public: explicit OrientedBox(const ignition::math::Vector3<T> &_size);
+      public: explicit OrientedBox(const gz::math::Vector3<T> &_size);
 
-      public: explicit OrientedBox(const ignition::math::Vector3<T> &_size,
-                                   const ignition::math::Material &_mat);
+      public: explicit OrientedBox(const gz::math::Vector3<T> &_size,
+                                   const gz::math::Material &_mat);
 
-      public: OrientedBox(const ignition::math::OrientedBox<T> &_b);
+      public: OrientedBox(const gz::math::OrientedBox<T> &_b);
 
       public: virtual ~OrientedBox();
 
@@ -62,23 +62,23 @@ namespace ignition
       %rename(z_length) ZLength;
       public: T ZLength() const;
 
-      public: const ignition::math::Vector3<T> &Size() const;
+      public: const gz::math::Vector3<T> &Size() const;
 
-      public: const ignition::math::Pose3<T> &Pose() const;
+      public: const gz::math::Pose3<T> &Pose() const;
 
-      public: void Size(ignition::math::Vector3<T> &_size);
+      public: void Size(gz::math::Vector3<T> &_size);
 
-      public: void Pose(ignition::math::Pose3<T> &_pose);
+      public: void Pose(gz::math::Pose3<T> &_pose);
 
-      public: bool operator==(const ignition::math::OrientedBox<T> &_b) const;
+      public: bool operator==(const gz::math::OrientedBox<T> &_b) const;
 
-      public: bool operator!=(const ignition::math::OrientedBox<T> &_b) const;
+      public: bool operator!=(const gz::math::OrientedBox<T> &_b) const;
 
-      public: bool Contains(const ignition::math::Vector3<double> &_p) const;
+      public: bool Contains(const gz::math::Vector3<double> &_p) const;
 
-      public: const ignition::math::ignition::math::Material &ignition::math::Material() const;
+      public: const gz::math::gz::math::Material &gz::math::Material() const;
 
-      public: void ignition::math::SetMaterial(const ignition::math::ignition::math::Material &_mat);
+      public: void gz::math::SetMaterial(const gz::math::gz::math::Material &_mat);
 
       public: T Volume() const;
 

@@ -26,7 +26,7 @@
 #include "gz/math/Helpers.hh"
 #include <gz/utils/SuppressWarning.hh>
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 // Test a few function in Helpers

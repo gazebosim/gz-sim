@@ -26,7 +26,7 @@
 #include <gz/math/config.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -64,66 +64,66 @@ namespace ignition
       public: explicit SphericalCoordinates(const SurfaceType _type);
 
       public: SphericalCoordinates(const SurfaceType _type,
-                                   const ignition::math::Angle &_latitude,
-                                   const ignition::math::Angle &_longitude,
+                                   const gz::math::Angle &_latitude,
+                                   const gz::math::Angle &_longitude,
                                    const double _elevation,
-                                   const ignition::math::Angle &_heading);
+                                   const gz::math::Angle &_heading);
 
       public: SphericalCoordinates(const SphericalCoordinates &_sc);
 
       /// \brief Destructor.
       public: ~SphericalCoordinates();
 
-      public: ignition::math::Vector3<double> SphericalFromLocalPosition(
-                  const ignition::math::Vector3<double> &_xyz) const;
+      public: gz::math::Vector3<double> SphericalFromLocalPosition(
+                  const gz::math::Vector3<double> &_xyz) const;
 
-      public: ignition::math::Vector3<double> GlobalFromLocalVelocity(
-                  const ignition::math::Vector3<double> &_xyz) const;
+      public: gz::math::Vector3<double> GlobalFromLocalVelocity(
+                  const gz::math::Vector3<double> &_xyz) const;
 
       public: static SurfaceType Convert(const std::string &_str);
 
       public: static std::string Convert(SurfaceType _type);
 
-      public: static double Distance(const ignition::math::Angle &_latA,
-                                     const ignition::math::Angle &_lonA,
-                                     const ignition::math::Angle &_latB,
-                                     const ignition::math::Angle &_lonB);
+      public: static double Distance(const gz::math::Angle &_latA,
+                                     const gz::math::Angle &_lonA,
+                                     const gz::math::Angle &_latB,
+                                     const gz::math::Angle &_lonB);
 
       public: SurfaceType Surface() const;
 
-      public: ignition::math::Angle LatitudeReference() const;
+      public: gz::math::Angle LatitudeReference() const;
 
-      public: ignition::math::Angle LongitudeReference() const;
+      public: gz::math::Angle LongitudeReference() const;
 
       public: double ElevationReference() const;
 
-      public: ignition::math::Angle HeadingOffset() const;
+      public: gz::math::Angle HeadingOffset() const;
 
       public: void SetSurface(const SurfaceType &_type);
 
-      public: void SetLatitudeReference(const ignition::math::Angle &_angle);
+      public: void SetLatitudeReference(const gz::math::Angle &_angle);
 
-      public: void SetLongitudeReference(const ignition::math::Angle &_angle);
+      public: void SetLongitudeReference(const gz::math::Angle &_angle);
 
       public: void SetElevationReference(const double _elevation);
 
-      public: void SetHeadingOffset(const ignition::math::Angle &_angle);
+      public: void SetHeadingOffset(const gz::math::Angle &_angle);
 
-      public: ignition::math::Vector3<double> LocalFromSphericalPosition(
-                  const ignition::math::Vector3<double> &_latLonEle) const;
+      public: gz::math::Vector3<double> LocalFromSphericalPosition(
+                  const gz::math::Vector3<double> &_latLonEle) const;
 
-      public: ignition::math::Vector3<double> LocalFromGlobalVelocity(
-                  const ignition::math::Vector3<double> &_xyz) const;
+      public: gz::math::Vector3<double> LocalFromGlobalVelocity(
+                  const gz::math::Vector3<double> &_xyz) const;
 
       public: void UpdateTransformationMatrix();
 
-      public: ignition::math::Vector3<double>
-              PositionTransform(const ignition::math::Vector3<double> &_pos,
+      public: gz::math::Vector3<double>
+              PositionTransform(const gz::math::Vector3<double> &_pos,
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       /// \return Transformed velocity vector
-      public: ignition::math::Vector3<double> VelocityTransform(
-                  const ignition::math::Vector3<double> &_vel,
+      public: gz::math::Vector3<double> VelocityTransform(
+                  const gz::math::Vector3<double> &_vel,
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       public: bool operator==(const SphericalCoordinates &_sc) const;

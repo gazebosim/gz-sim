@@ -25,7 +25,7 @@
 #include <gz/math/config.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -57,9 +57,9 @@ namespace ignition
 
       public: Frustum(double _near,
                   double _far,
-                  const ignition::math::Angle &_fov,
+                  const gz::math::Angle &_fov,
                   double _aspectRatio,
-                  const ignition::math::Pose3<double> &_pose = ignition::math::Pose3<double>::Zero);
+                  const gz::math::Pose3<double> &_pose = gz::math::Pose3<double>::Zero);
 
       public: Frustum(const Frustum &_p);
 
@@ -71,23 +71,23 @@ namespace ignition
 
       public: void SetFar(double _far);
 
-      public: ignition::math::Angle FOV() const;
+      public: gz::math::Angle FOV() const;
 
-      public: void SetFOV(const ignition::math::Angle &_fov);
+      public: void SetFOV(const gz::math::Angle &_fov);
 
       public: double AspectRatio() const;
 
       public: void SetAspectRatio(double _aspectRatio);
 
-      public: ignition::math::Plane<double> Plane(const FrustumPlane _plane) const;
+      public: gz::math::Plane<double> Plane(const FrustumPlane _plane) const;
 
-      public: bool Contains(const ignition::math::AxisAlignedBox &_b) const;
+      public: bool Contains(const gz::math::AxisAlignedBox &_b) const;
 
-      public: bool Contains(const ignition::math::Vector3<double> &_p) const;
+      public: bool Contains(const gz::math::Vector3<double> &_p) const;
 
-      public: ignition::math::Pose3<double> Pose() const;
+      public: gz::math::Pose3<double> Pose() const;
 
-      public: void SetPose(const ignition::math::Pose3<double> &_pose);
+      public: void SetPose(const gz::math::Pose3<double> &_pose);
     };
   }
 }

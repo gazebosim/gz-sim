@@ -14,19 +14,19 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_KMEANSPRIVATE_HH_
-#define IGNITION_MATH_KMEANSPRIVATE_HH_
+#ifndef GZ_MATH_KMEANSPRIVATE_HH_
+#define GZ_MATH_KMEANSPRIVATE_HH_
 
 #include <vector>
 #include <gz/math/Vector3.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    inline namespace GZ_MATH_VERSION_NAMESPACE
     {
     /// \internal
     /// \brief Private data for Kmeans class

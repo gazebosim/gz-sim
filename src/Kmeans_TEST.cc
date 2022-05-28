@@ -19,7 +19,7 @@
 #include <vector>
 #include "gz/math/Kmeans.hh"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(KmeansTest, Kmeans)

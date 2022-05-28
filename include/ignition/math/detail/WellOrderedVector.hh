@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/WellOrderedVector.hh>
+#include <ignition/math/config.hh>

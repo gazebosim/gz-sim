@@ -24,7 +24,7 @@
 #include "gz/math/Polynomial3.hh"
 #include "gz/math/Vector3.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(PiecewiseScalarField3Test, Evaluate)

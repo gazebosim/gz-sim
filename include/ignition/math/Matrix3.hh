@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Matrix3.hh>
+#include <ignition/math/config.hh>

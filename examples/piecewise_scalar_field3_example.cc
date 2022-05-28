@@ -24,31 +24,31 @@
 int main(int argc, char **argv)
 {
   const double kConstant = 1.;
-  const ignition::math::Polynomial3d xPoly(
-      ignition::math::Vector4d(0., 1., 0., 1.));
-  const ignition::math::Polynomial3d yPoly(
-      ignition::math::Vector4d(1., 0., 1., 0.));
-  const ignition::math::Polynomial3d zPoly(
-      ignition::math::Vector4d(1., 0., 0., -1.));
+  const gz::math::Polynomial3d xPoly(
+      gz::math::Vector4d(0., 1., 0., 1.));
+  const gz::math::Polynomial3d yPoly(
+      gz::math::Vector4d(1., 0., 1., 0.));
+  const gz::math::Polynomial3d zPoly(
+      gz::math::Vector4d(1., 0., 0., -1.));
   using AdditivelySeparableScalarField3dT =
-      ignition::math::AdditivelySeparableScalarField3d<
-        ignition::math::Polynomial3d>;
+      gz::math::AdditivelySeparableScalarField3d<
+        gz::math::Polynomial3d>;
   using PiecewiseScalarField3dT =
-      ignition::math::PiecewiseScalarField3d<
+      gz::math::PiecewiseScalarField3d<
         AdditivelySeparableScalarField3dT>;
   const PiecewiseScalarField3dT scalarField({
-      {ignition::math::Region3d(  // x < 0 halfspace
-          ignition::math::Intervald::Open(
-              -ignition::math::INF_D, 0.),
-          ignition::math::Intervald::Unbounded,
-          ignition::math::Intervald::Unbounded),
+      {gz::math::Region3d(  // x < 0 halfspace
+          gz::math::Intervald::Open(
+              -gz::math::INF_D, 0.),
+          gz::math::Intervald::Unbounded,
+          gz::math::Intervald::Unbounded),
        AdditivelySeparableScalarField3dT(
            kConstant, xPoly, yPoly, zPoly)},
-      {ignition::math::Region3d(  // x >= 0 halfspace
-          ignition::math::Intervald::LeftClosed(
-              0., ignition::math::INF_D),
-          ignition::math::Intervald::Unbounded,
-          ignition::math::Intervald::Unbounded),
+      {gz::math::Region3d(  // x >= 0 halfspace
+          gz::math::Intervald::LeftClosed(
+              0., gz::math::INF_D),
+          gz::math::Intervald::Unbounded,
+          gz::math::Intervald::Unbounded),
        AdditivelySeparableScalarField3dT(
            -kConstant, xPoly, yPoly, zPoly)}});
 
@@ -59,10 +59,10 @@ int main(int argc, char **argv)
 
   // A piecewise scalar field can be evaluated.
   std::cout << "Evaluating P(x, y, z) at (1, 0, 0) yields "
-            << scalarField(ignition::math::Vector3d::UnitX)
+            << scalarField(gz::math::Vector3d::UnitX)
             << std::endl;
   std::cout << "Evaluating P(x, y, z) at (-1, 0, 0) yields "
-            << scalarField(-ignition::math::Vector3d::UnitX)
+            << scalarField(-gz::math::Vector3d::UnitX)
             << std::endl;
 
   // A piecewise scalar field can be queried for its minimum

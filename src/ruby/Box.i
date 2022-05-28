@@ -31,10 +31,10 @@
 %}
 
 %include "typemaps.i"
-%typemap(out) (std::optional< ignition::math::Vector3< double > >) %{
+%typemap(out) (std::optional< gz::math::Vector3< double > >) %{
   if((*(&result)).has_value()) {
     $result = SWIG_NewPointerObj(
-      (new ignition::math::Vector3< double >(static_cast< const ignition::math::Vector3< double >& >((*(&result)).value()))),
+      (new gz::math::Vector3< double >(static_cast< const gz::math::Vector3< double >& >((*(&result)).value()))),
       SWIGTYPE_p_ignition__math__Vector3T_double_t,
       SWIG_POINTER_OWN |  0 );
   } else {
@@ -43,10 +43,10 @@
   }
 %}
 
-%typemap(out) (std::optional< ignition::math::Vector3< int > >) %{
+%typemap(out) (std::optional< gz::math::Vector3< int > >) %{
   if((*(&result)).has_value()) {
     $result = SWIG_NewPointerObj(
-      (new ignition::math::Vector3< int >(static_cast< const ignition::math::Vector3< int >& >((*(&result)).value()))),
+      (new gz::math::Vector3< int >(static_cast< const gz::math::Vector3< int >& >((*(&result)).value()))),
       SWIGTYPE_p_ignition__math__Vector3T_int_t,
       SWIG_POINTER_OWN |  0 );
   } else {
@@ -56,10 +56,10 @@
 %}
 
 #include "std_set.i"
-%template(SetBoxDouble) std::set<ignition::math::Vector3<double>, ignition::math::WellOrderedVectors<double>>;
-%template(SetBoxInt) std::set<ignition::math::Vector3<int>, ignition::math::WellOrderedVectors<int>>;
+%template(SetBoxDouble) std::set<gz::math::Vector3<double>, gz::math::WellOrderedVectors<double>>;
+%template(SetBoxInt) std::set<gz::math::Vector3<int>, gz::math::WellOrderedVectors<int>>;
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -76,18 +76,18 @@ namespace ignition
 
       public: Box(const Precision _length, const Precision _width,
                   const Precision _height,
-                  const ignition::math::Material &_mat);
+                  const gz::math::Material &_mat);
 
-      public: explicit Box(const ignition::math::Vector3<Precision> &_size);
+      public: explicit Box(const gz::math::Vector3<Precision> &_size);
 
-      public: Box(const ignition::math::Vector3<Precision> &_size,
-                  const ignition::math::Material &_mat);
+      public: Box(const gz::math::Vector3<Precision> &_size,
+                  const gz::math::Material &_mat);
 
       public: virtual ~Box() = default;
 
-      public: ignition::math::Vector3<Precision> Size() const;
+      public: gz::math::Vector3<Precision> Size() const;
 
-      public: void SetSize(const ignition::math::Vector3<Precision> &_size);
+      public: void SetSize(const gz::math::Vector3<Precision> &_size);
 
       public: void SetSize(const Precision _length,
                            const Precision _width,
@@ -97,32 +97,32 @@ namespace ignition
 
       public: bool operator!=(const Box<Precision> &_b) const;
 
-      public: const ignition::math::Material &Material() const;
+      public: const gz::math::Material &Material() const;
 
-      public: void SetMaterial(const ignition::math::Material &_mat);
+      public: void SetMaterial(const gz::math::Material &_mat);
 
       public: Precision Volume() const;
 
-      public: Precision VolumeBelow(const ignition::math::Plane<Precision> &_plane) const;
+      public: Precision VolumeBelow(const gz::math::Plane<Precision> &_plane) const;
 
-      public: std::optional<ignition::math::Vector3<Precision>>
-        CenterOfVolumeBelow(const ignition::math::Plane<Precision> &_plane) const;
+      public: std::optional<gz::math::Vector3<Precision>>
+        CenterOfVolumeBelow(const gz::math::Plane<Precision> &_plane) const;
 
-      public: std::set<ignition::math::Vector3<Precision>, ignition::math::WellOrderedVectors<Precision>>
-        VerticesBelow(const ignition::math::Plane<Precision> &_plane) const;
+      public: std::set<gz::math::Vector3<Precision>, gz::math::WellOrderedVectors<Precision>>
+        VerticesBelow(const gz::math::Plane<Precision> &_plane) const;
 
       public: Precision DensityFromMass(const Precision _mass) const;
 
       public: bool SetDensityFromMass(const Precision _mass);
 
-      public: bool MassMatrix(ignition::math::MassMatrix3<Precision> &_massMat) const;
+      public: bool MassMatrix(gz::math::MassMatrix3<Precision> &_massMat) const;
 
-      public: std::set<ignition::math::Vector3<Precision>, ignition::math::WellOrderedVectors<Precision>> Intersections(
-        const ignition::math::Plane<Precision> &_plane) const;
+      public: std::set<gz::math::Vector3<Precision>, gz::math::WellOrderedVectors<Precision>> Intersections(
+        const gz::math::Plane<Precision> &_plane) const;
 
-      private: ignition::math::Vector3<Precision> size = ignition::math::Vector3<Precision>::Zero;
+      private: gz::math::Vector3<Precision> size = gz::math::Vector3<Precision>::Zero;
 
-      private: ignition::math::Material material;
+      private: gz::math::Material material;
     };
 
     %template(Boxi) Box<int>;

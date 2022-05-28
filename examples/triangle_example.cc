@@ -25,10 +25,10 @@ int main(int argc, char **argv)
   // 2: x = 0, y = 1
   // 3: x = 1, y = 0
 //! [constructor]
-  ignition::math::Triangled tri(
-      ignition::math::Vector2d(-1, 0),
-      ignition::math::Vector2d(0, 1),
-      ignition::math::Vector2d(1, 0));
+  gz::math::Triangled tri(
+      gz::math::Vector2d(-1, 0),
+      gz::math::Vector2d(0, 1),
+      gz::math::Vector2d(1, 0));
 //! [constructor]
 
   // The individual vertices are accessible through the [] operator
@@ -48,16 +48,16 @@ int main(int argc, char **argv)
 
   // It's also possible to set each vertex individually.
 //! [vertex1]
-  tri.Set(0, ignition::math::Vector2d(-10, 0));
-  tri.Set(1, ignition::math::Vector2d(0, 20));
-  tri.Set(2, ignition::math::Vector2d(10, 2));
+  tri.Set(0, gz::math::Vector2d(-10, 0));
+  tri.Set(1, gz::math::Vector2d(0, 20));
+  tri.Set(2, gz::math::Vector2d(10, 2));
 //! [vertex1]
 
   // Or set all the vertices at once.
 //! [vertex2]
-  tri.Set(ignition::math::Vector2d(-1, 0),
-          ignition::math::Vector2d(0, 1),
-          ignition::math::Vector2d(1, 0));
+  tri.Set(gz::math::Vector2d(-1, 0),
+          gz::math::Vector2d(0, 1),
+          gz::math::Vector2d(1, 0));
 //! [vertex2]
 
   // You can get the perimeter length and area of the triangle
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
   // The Contains functions check if a line or point is inside the triangle
 //! [contains]
-  if (tri.Contains(ignition::math::Vector2d(0, 0.5)))
+  if (tri.Contains(gz::math::Vector2d(0, 0.5)))
     std::cout << "Triangle contains the point 0, 0.5\n";
   else
     std::cout << "Triangle does not contain the point 0, 0.5\n";
@@ -77,8 +77,8 @@ int main(int argc, char **argv)
   // The Intersect function check if a line segment intersects the triangle.
   // It also returns the points of intersection
 //! [intersect]
-  ignition::math::Vector2d pt1, pt2;
-  if (tri.Intersects(ignition::math::Line2d(-2, 0.5, 2, 0.5), pt1, pt2))
+  gz::math::Vector2d pt1, pt2;
+  if (tri.Intersects(gz::math::Line2d(-2, 0.5, 2, 0.5), pt1, pt2))
   {
     std::cout << "A line from (-2, 0.5) to (2, 0.5) intersects "
               << "the triangle at the\nfollowing points:\n"
@@ -93,5 +93,5 @@ int main(int argc, char **argv)
 //! [intersect]
 
   // There are more functions in Triangle. Take a look at the API;
-  // http://ignitionrobotics.org/libraries/ign_mat/api
+  // http://gazebosim.org/libraries/ign_mat/api
 }

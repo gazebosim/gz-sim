@@ -26,12 +26,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Region3 Region3.hh gz/math/Region3.hh
     /// \brief The Region3 class represents the cartesian product
@@ -174,7 +174,7 @@ namespace ignition
       /// \param _r Region3 to output
       /// \return the stream
       public: friend std::ostream &operator<<(
-        std::ostream &_out, const ignition::math::Region3<T> &_r)
+        std::ostream &_out, const gz::math::Region3<T> &_r)
       {
         return _out <<_r.ix << " x " << _r.iy << " x " << _r.iz;
       }

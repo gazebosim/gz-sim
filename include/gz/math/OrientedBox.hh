@@ -26,12 +26,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \brief Mathematical representation of a box which can be arbitrarily
     /// positioned and rotated.
@@ -190,14 +190,14 @@ namespace ignition
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const ignition::math::Material &Material() const
+      public: const gz::math::Material &Material() const
       {
         return this->material;
       }
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box.
-      public: void SetMaterial(const ignition::math::Material &_mat)
+      public: void SetMaterial(const gz::math::Material &_mat)
       {
         this->material = _mat;
       }
@@ -263,7 +263,7 @@ namespace ignition
       private: Pose3<T> pose;
 
       /// \brief The box's material.
-      private: ignition::math::Material material;
+      private: gz::math::Material material;
     };
 
     typedef OrientedBox<double> OrientedBoxd;

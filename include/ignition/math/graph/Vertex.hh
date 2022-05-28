@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/graph/Vertex.hh>
+#include <ignition/math/config.hh>

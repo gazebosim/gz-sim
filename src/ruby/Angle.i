@@ -20,7 +20,7 @@
 #include <gz/math/Angle.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

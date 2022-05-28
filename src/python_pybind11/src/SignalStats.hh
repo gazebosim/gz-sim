@@ -15,56 +15,56 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__SIGNALSTATS_HH_
-#define IGNITION_MATH_PYTHON__SIGNALSTATS_HH_
+#ifndef GZ_MATH_PYTHON__SIGNALSTATS_HH_
+#define GZ_MATH_PYTHON__SIGNALSTATS_HH_
 
 #include <pybind11/pybind11.h>
 #include <string>
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::SignalStats
+/// Define a pybind11 wrapper for an gz::math::SignalStats
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalStats(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalStatistic
+/// Define a pybind11 wrapper for an gz::math::SignalStatistic
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalStatistic(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalMaximum
+/// Define a pybind11 wrapper for an gz::math::SignalMaximum
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalMaximum(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalMinimum
+/// Define a pybind11 wrapper for an gz::math::SignalMinimum
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalMinimum(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalVariance
+/// Define a pybind11 wrapper for an gz::math::SignalVariance
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalVariance(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalMaxAbsoluteValue
+/// Define a pybind11 wrapper for an gz::math::SignalMaxAbsoluteValue
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -72,14 +72,14 @@ void defineMathSignalVariance(py::module &m, const std::string &typestr);
 void defineMathSignalMaxAbsoluteValue(
   py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalRootMeanSquare
+/// Define a pybind11 wrapper for an gz::math::SignalRootMeanSquare
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathSignalRootMeanSquare(py::module &m, const std::string &typestr);
 
-/// Define a pybind11 wrapper for an ignition::math::SignalMean
+/// Define a pybind11 wrapper for an gz::math::SignalMean
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -87,6 +87,6 @@ void defineMathSignalRootMeanSquare(py::module &m, const std::string &typestr);
 void defineMathSignalMean(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__SIGNALSTATS_HH_
+#endif  // GZ_MATH_PYTHON__SIGNALSTATS_HH_

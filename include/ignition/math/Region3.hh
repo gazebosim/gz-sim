@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Region3.hh>
+#include <ignition/math/config.hh>

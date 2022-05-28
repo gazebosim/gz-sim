@@ -20,41 +20,41 @@ require 'math'
 
 class Pose3_TEST < Test::Unit::TestCase
   def test_construction
-    p = Ignition::Math::Pose3d.new
+    p = Gz::Math::Pose3d.new
 
     assert(p.Pos().X() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have PX==0")
+           "Gz::Math::Pose3d default constructor should have PX==0")
     assert(p.Pos().Y() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have PY==0")
+           "Gz::Math::Pose3d default constructor should have PY==0")
     assert(p.Pos().Z() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have PZ==0")
+           "Gz::Math::Pose3d default constructor should have PZ==0")
 
     assert(p.Rot().W() == 1.0,
-           "Ignition::Math::Pose3d default constructor should have QW==1")
+           "Gz::Math::Pose3d default constructor should have QW==1")
     assert(p.Rot().X() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have QX==0")
+           "Gz::Math::Pose3d default constructor should have QX==0")
     assert(p.Rot().Y() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have QY==0")
+           "Gz::Math::Pose3d default constructor should have QY==0")
     assert(p.Rot().Z() == 0.0,
-           "Ignition::Math::Pose3d default constructor should have QZ==0")
+           "Gz::Math::Pose3d default constructor should have QZ==0")
 
-    p1 = Ignition::Math::Pose3d.new(
-      Ignition::Math::Vector3d.new(1, 2, 3),
-      Ignition::Math::Quaterniond.new(0, 0, Math::PI/2.0))
+    p1 = Gz::Math::Pose3d.new(
+      Gz::Math::Vector3d.new(1, 2, 3),
+      Gz::Math::Quaterniond.new(0, 0, Math::PI/2.0))
 
     assert(p1.Pos().X() == 1.0,
-           "Ignition::Math::Pose3d default constructor should have PX==1")
+           "Gz::Math::Pose3d default constructor should have PX==1")
     assert(p1.Pos().Y() == 2.0,
-           "Ignition::Math::Pose3d default constructor should have PY==2")
+           "Gz::Math::Pose3d default constructor should have PY==2")
     assert(p1.Pos().Z() == 3.0,
-           "Ignition::Math::Pose3d default constructor should have PZ==3")
+           "Gz::Math::Pose3d default constructor should have PZ==3")
 
     assert(p1.Rot().Euler().X() == 0.0,
-           "Ignition::Math::Pose3d should have EulerX==0")
+           "Gz::Math::Pose3d should have EulerX==0")
     assert(p1.Rot().Euler().Y() == 0.0,
-           "Ignition::Math::Pose3d should have EulerY==0")
+           "Gz::Math::Pose3d should have EulerY==0")
     assert((p1.Rot().Euler().Z() - Math::PI/2.0).abs() < 1e-3,
-           "Ignition::Math::Pose3d should have EulerZ==PI/2")
+           "Gz::Math::Pose3d should have EulerZ==PI/2")
   end
 end
 

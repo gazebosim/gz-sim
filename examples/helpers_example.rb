@@ -31,16 +31,16 @@ printf("The volume of a box with x=1, y=2, and z=3 is %f.\n",
    IGN_BOX_VOLUME(1, 2, 3))
 
 printf("The result of clamping 2.4 to the range [1,2] is %f.\n",
-  Ignition::Math::Clamp(2.4, 1, 2))
+  Gz::Math::Clamp(2.4, 1, 2))
 
 std::vector v{1, 2, 3, 4, 5};
 printf("The mean of a vector containing {1, 2, 3, 4, 5} is %f.\n",
- Ignition::Math::mean(v))
+ Gz::Math::mean(v))
 
 printf("The variance of a vector containing {1, 2, 3, 4, 5} is %f.\n",
-  Ignition::Math::variance(v))
+  Gz::Math::variance(v))
 
 printf("The result of rounding up 3 to the next power of two is %f.\n",
-    << ignition::math::roundUpPowerOfTwo(3) << std::endl;
+    << gz::math::roundUpPowerOfTwo(3) << std::endl;
 
 

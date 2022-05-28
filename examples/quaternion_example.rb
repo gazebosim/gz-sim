@@ -23,17 +23,17 @@
 require 'ignition/math'
 
 # Construct a default quaternion.
-q = Ignition::Math::Quaterniond.new
+q = Gz::Math::Quaterniond.new
 printf("A default quaternion has the following values\n"+
        "\tW=%f X=%f Y=%f Z=%f\n", q.W(), q.X(), q.Y(), q.Z())
 
 # Set the quaternion to [1, 0, 0, 0], the identity.
-q = Ignition::Math::Quaterniond.Identity
+q = Gz::Math::Quaterniond.Identity
 printf("The identity quaternion has the following values\n" +
        "\tW=%f X=%f Y=%f Z=%f\n", q.W(), q.X(), q.Y(), q.Z())
 
 # Create a new quaternion using Euler angles.
-q2 = Ignition::Math::Quaterniond.new(0, 0, 3.14)
+q2 = Gz::Math::Quaterniond.new(0, 0, 3.14)
 printf("A quaternion initialized from roll=0, pitch=0, and yaw=3.14 " +
        "has the following values\n" +
        "\tW=%f X=%f Y=%f Z=%f\n", q2.W(), q2.X(), q2.Y(), q2.Z())

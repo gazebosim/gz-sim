@@ -19,7 +19,7 @@
 #include <cmath>
 #include <gz/math/Color.hh>
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Color, ConstColors)

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Line2.hh>
+#include <ignition/math/config.hh>

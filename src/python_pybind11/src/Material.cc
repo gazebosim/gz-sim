@@ -25,7 +25,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl_bind.h>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -35,17 +35,17 @@ void defineMathMaterial(py::module &m, const std::string &typestr)
 {
 
   py::bind_map<std::map<
-    ignition::math::MaterialType, ignition::math::Material>>
+    gz::math::MaterialType, gz::math::Material>>
       (m, "MaterialMap");
 
-  using Class = ignition::math::Material;
+  using Class = gz::math::Material;
   std::string pyclass_name = typestr;
   py::class_<Class> (m,
                     pyclass_name.c_str(),
                     py::buffer_protocol(),
                     py::dynamic_attr())
    .def(py::init<>())
-   .def(py::init<const ignition::math::MaterialType>())
+   .def(py::init<const gz::math::MaterialType>())
    .def(py::init<const std::string&>())
    .def(py::init<const double>())
    .def(py::init<const Class&>())
@@ -83,24 +83,24 @@ void defineMathMaterial(py::module &m, const std::string &typestr)
    .def("density", &Class::Density,
         "Set the density value of the material in kg/m^3.");
 
-   py::enum_<ignition::math::MaterialType>(m, "MaterialType")
-       .value("STYROFOAM", ignition::math::MaterialType::STYROFOAM)
-       .value("PINE", ignition::math::MaterialType::PINE)
-       .value("WOOD", ignition::math::MaterialType::WOOD)
-       .value("OAK", ignition::math::MaterialType::OAK)
-       .value("PLASTIC", ignition::math::MaterialType::PLASTIC)
-       .value("CONCRETE", ignition::math::MaterialType::CONCRETE)
-       .value("ALUMINUM", ignition::math::MaterialType::ALUMINUM)
-       .value("STEEL_ALLOY", ignition::math::MaterialType::STEEL_ALLOY)
-       .value("STEEL_STAINLESS", ignition::math::MaterialType::STEEL_STAINLESS)
-       .value("IRON", ignition::math::MaterialType::IRON)
-       .value("BRASS", ignition::math::MaterialType::BRASS)
-       .value("COPPER", ignition::math::MaterialType::COPPER)
-       .value("TUNGSTEN", ignition::math::MaterialType::TUNGSTEN)
+   py::enum_<gz::math::MaterialType>(m, "MaterialType")
+       .value("STYROFOAM", gz::math::MaterialType::STYROFOAM)
+       .value("PINE", gz::math::MaterialType::PINE)
+       .value("WOOD", gz::math::MaterialType::WOOD)
+       .value("OAK", gz::math::MaterialType::OAK)
+       .value("PLASTIC", gz::math::MaterialType::PLASTIC)
+       .value("CONCRETE", gz::math::MaterialType::CONCRETE)
+       .value("ALUMINUM", gz::math::MaterialType::ALUMINUM)
+       .value("STEEL_ALLOY", gz::math::MaterialType::STEEL_ALLOY)
+       .value("STEEL_STAINLESS", gz::math::MaterialType::STEEL_STAINLESS)
+       .value("IRON", gz::math::MaterialType::IRON)
+       .value("BRASS", gz::math::MaterialType::BRASS)
+       .value("COPPER", gz::math::MaterialType::COPPER)
+       .value("TUNGSTEN", gz::math::MaterialType::TUNGSTEN)
        .value("UNKNOWN_MATERIAL",
-              ignition::math::MaterialType::UNKNOWN_MATERIAL)
+              gz::math::MaterialType::UNKNOWN_MATERIAL)
        .export_values();
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

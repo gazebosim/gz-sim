@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/MovingWindowFilter.hh>
+#include <ignition/math/config.hh>

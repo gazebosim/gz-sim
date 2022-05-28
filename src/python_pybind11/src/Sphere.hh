@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__SPHERE_HH_
-#define IGNITION_MATH_PYTHON__SPHERE_HH_
+#ifndef GZ_MATH_PYTHON__SPHERE_HH_
+#define GZ_MATH_PYTHON__SPHERE_HH_
 
 #include <string>
 #include <vector>
@@ -29,13 +29,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Sphere
+/// Define a pybind11 wrapper for an gz::math::Sphere
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -44,7 +44,7 @@ template<typename T>
 void defineMathSphere(py::module &m, const std::string &typestr)
 {
 
-  using Class = ignition::math::Sphere<T>;
+  using Class = gz::math::Sphere<T>;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -52,7 +52,7 @@ void defineMathSphere(py::module &m, const std::string &typestr)
                     py::dynamic_attr())
     .def(py::init<>())
     .def(py::init<const T>())
-    .def(py::init<const T, const ignition::math::Material&>())
+    .def(py::init<const T, const gz::math::Material&>())
     .def(py::self != py::self)
     .def(py::self == py::self)
     .def("radius",
@@ -98,6 +98,6 @@ void defineMathSphere(py::module &m, const std::string &typestr)
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__SPHERE_HH_
+#endif  // GZ_MATH_PYTHON__SPHERE_HH_

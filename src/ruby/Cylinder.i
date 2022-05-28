@@ -24,7 +24,7 @@
 #include <gz/math/Quaternion.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -36,13 +36,13 @@ namespace ignition
       public: Cylinder() = default;
 
       public: Cylinder(const Precision _length, const Precision _radius,
-                  const ignition::math::Quaternion<Precision> &_rotOffset =
-                  ignition::math::Quaternion<Precision>::Identity);
+                  const gz::math::Quaternion<Precision> &_rotOffset =
+                  gz::math::Quaternion<Precision>::Identity);
 
       public: Cylinder(const Precision _length, const Precision _radius,
-                  const ignition::math::Material &_mat,
-                  const ignition::math::Quaternion<Precision> &_rotOffset =
-                  ignition::math::Quaternion<Precision>::Identity);
+                  const gz::math::Material &_mat,
+                  const gz::math::Quaternion<Precision> &_rotOffset =
+                  gz::math::Quaternion<Precision>::Identity);
 
       public: ~Cylinder() = default;
 
@@ -54,16 +54,16 @@ namespace ignition
 
       public: void SetLength(const Precision _length);
 
-      public: ignition::math::Quaternion<Precision> RotationalOffset() const;
+      public: gz::math::Quaternion<Precision> RotationalOffset() const;
 
       public: void SetRotationalOffset(
-                  const ignition::math::Quaternion<Precision> &_rotOffset);
+                  const gz::math::Quaternion<Precision> &_rotOffset);
 
-      public: const ignition::math::Material &Mat() const;
+      public: const gz::math::Material &Mat() const;
 
-      public: void SetMat(const ignition::math::Material &_mat);
+      public: void SetMat(const gz::math::Material &_mat);
 
-      public: bool MassMatrix(ignition::math::MassMatrix3<double> &_massMat) const;
+      public: bool MassMatrix(gz::math::MassMatrix3<double> &_massMat) const;
 
       public: bool operator==(const Cylinder &_cylinder) const;
 

@@ -20,7 +20,7 @@
 #include <gz/math/Angle.hh>
 #include <gz/math/SphericalCoordinates.hh>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -28,7 +28,7 @@ namespace python
 {
 void defineMathSphericalCoordinates(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SphericalCoordinates;
+  using Class = gz::math::SphericalCoordinates;
   std::string pyclass_name = typestr;
 
   py::class_<Class> sphericalCoordinates(m,
@@ -39,9 +39,9 @@ void defineMathSphericalCoordinates(py::module &m, const std::string &typestr)
     .def(py::init<>())
     .def(py::init<const Class&>())
     .def(py::init<const Class::SurfaceType>())
-    .def(py::init<const Class::SurfaceType, const ignition::math::Angle &,
-                  const ignition::math::Angle &, const double,
-                  const ignition::math::Angle &>())
+    .def(py::init<const Class::SurfaceType, const gz::math::Angle &,
+                  const gz::math::Angle &, const double,
+                  const gz::math::Angle &>())
     .def(py::self != py::self)
     .def(py::self == py::self)
     .def("spherical_from_local_position",
@@ -129,4 +129,4 @@ void defineMathSphericalCoordinates(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

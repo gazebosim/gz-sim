@@ -26,12 +26,12 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Vector3 Vector3.hh gz/math/Vector3.hh
     /// \brief The Vector3 class represents the generic vector containing 3
@@ -729,7 +729,7 @@ namespace ignition
       /// \param _pt Vector3 to output
       /// \return the stream
       public: friend std::ostream &operator<<(
-                  std::ostream &_out, const ignition::math::Vector3<T> &_pt)
+                  std::ostream &_out, const gz::math::Vector3<T> &_pt)
       {
         for (auto i : {0, 1, 2})
         {
@@ -747,7 +747,7 @@ namespace ignition
       /// \param _pt vector3 to read values into
       /// \return the stream
       public: friend std::istream &operator>>(
-                  std::istream &_in, ignition::math::Vector3<T> &_pt)
+                  std::istream &_in, gz::math::Vector3<T> &_pt)
       {
         // Skip white spaces
         _in.setf(std::ios_base::skipws);

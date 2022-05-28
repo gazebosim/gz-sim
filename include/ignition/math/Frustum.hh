@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Frustum.hh>
+#include <ignition/math/config.hh>

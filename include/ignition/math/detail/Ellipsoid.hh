@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/Ellipsoid.hh>
+#include <ignition/math/config.hh>

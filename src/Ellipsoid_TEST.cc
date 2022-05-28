@@ -22,7 +22,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Vector3.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(EllipsoidTest, Constructor)

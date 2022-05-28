@@ -34,19 +34,19 @@
   PyTuple_SET_ITEM($result, 1, PyFloat_FromDouble(std::get<1>($1)));
 }
 
-%typemap(out) (std::tuple<bool, double, ignition::math::Vector3< double > >) {
+%typemap(out) (std::tuple<bool, double, gz::math::Vector3< double > >) {
   $result = PyTuple_New(3);
-  std::tuple<bool, double, ignition::math::Vector3< double > > tuplecpp($1);
+  std::tuple<bool, double, gz::math::Vector3< double > > tuplecpp($1);
   PyTuple_SET_ITEM($result, 0, PyBool_FromLong(std::get<0>(tuplecpp)));
   PyTuple_SET_ITEM($result, 1, PyFloat_FromDouble(std::get<1>(tuplecpp)));
 
-  ignition::math::Vector3<double> vector3 = std::get<2>(tuplecpp);
-  PyObject *pyobject =  SWIG_NewPointerObj((new ignition::math::Vector3< double >(static_cast< const ignition::math::Vector3< double >& >(vector3))), SWIGTYPE_p_ignition__math__Vector3T_double_t, SWIG_POINTER_OWN |  0 );
+  gz::math::Vector3<double> vector3 = std::get<2>(tuplecpp);
+  PyObject *pyobject =  SWIG_NewPointerObj((new gz::math::Vector3< double >(static_cast< const gz::math::Vector3< double >& >(vector3))), SWIGTYPE_p_ignition__math__Vector3T_double_t, SWIG_POINTER_OWN |  0 );
   PyTuple_SET_ITEM(resultobj, 2, pyobject);
 }
 
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

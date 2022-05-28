@@ -70,8 +70,8 @@ int main(int argc, char **argv)
           IGN_RTOD(yaw));
 
 //![constructor]
-  ignition::math::Quaterniond q(roll, pitch, yaw);
-  ignition::math::Matrix3d m(q);
+  gz::math::Quaterniond q(roll, pitch, yaw);
+  gz::math::Matrix3d m(q);
 //![constructor]
 
   std::cout << "\nto Quaternion\n";

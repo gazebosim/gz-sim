@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_PYTHON__AXISALIGNEDBOX_HPP_
-#define IGNITION_MATH_PYTHON__AXISALIGNEDBOX_HPP_
+#ifndef GZ_MATH_PYTHON__AXISALIGNEDBOX_HPP_
+#define GZ_MATH_PYTHON__AXISALIGNEDBOX_HPP_
 
 #include <string>
 
@@ -23,13 +23,13 @@
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::AxisAlignedBox
+/// Define a pybind11 wrapper for an gz::math::AxisAlignedBox
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -37,6 +37,6 @@ namespace python
 void defineMathAxisAlignedBox(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__AXISALIGNEDBOX_HPP_
+#endif  // GZ_MATH_PYTHON__AXISALIGNEDBOX_HPP_

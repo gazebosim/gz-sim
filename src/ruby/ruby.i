@@ -1,4 +1,4 @@
-%module "ignition::math"
+%module "gz::math"
 %include Angle.i
 %include GaussMarkovProcess.i
 %include Rand.i

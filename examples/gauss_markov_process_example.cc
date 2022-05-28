@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   //   * Theta (rate at which the process should approach the mean) of 0.1
   //   * Mu (mean value) 0.
   //   * Sigma (volatility) of 0.5.
-  ignition::math::GaussMarkovProcess gmp(20.2, 0.1, 0, 0.5);
+  gz::math::GaussMarkovProcess gmp(20.2, 0.1, 0, 0.5);
 
   std::chrono::steady_clock::duration dt = std::chrono::milliseconds(100);
 

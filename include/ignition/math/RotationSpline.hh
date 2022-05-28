@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/RotationSpline.hh>
+#include <ignition/math/config.hh>

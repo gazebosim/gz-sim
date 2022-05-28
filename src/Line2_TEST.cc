@@ -20,7 +20,7 @@
 #include "gz/math/Line2.hh"
 #include "gz/math/Helpers.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Line2Test, Constructor)

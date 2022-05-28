@@ -28,10 +28,10 @@
 %}
 
 %include "typemaps.i"
-%typemap(out) (std::optional< ignition::math::Vector3< double > >) %{
+%typemap(out) (std::optional< gz::math::Vector3< double > >) %{
   if((*(&result)).has_value()) {
     $result = SWIG_NewPointerObj(
-      (new ignition::math::Vector3< double >(static_cast< const ignition::math::Vector3< double >& >((*(&result)).value()))),
+      (new gz::math::Vector3< double >(static_cast< const gz::math::Vector3< double >& >((*(&result)).value()))),
       SWIGTYPE_p_ignition__math__Vector3T_double_t,
       SWIG_POINTER_OWN |  0 );
   } else {
@@ -41,7 +41,7 @@
 %}
 
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

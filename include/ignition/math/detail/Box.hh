@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/Box.hh>
+#include <ignition/math/config.hh>

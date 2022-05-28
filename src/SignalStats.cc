@@ -19,7 +19,7 @@
 #include <gz/math/SignalStats.hh>
 #include "SignalStatsPrivate.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 //////////////////////////////////////////////////

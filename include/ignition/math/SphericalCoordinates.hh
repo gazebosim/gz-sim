@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/SphericalCoordinates.hh>
+#include <ignition/math/config.hh>

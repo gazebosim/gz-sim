@@ -22,7 +22,7 @@
 #include "gz/math/graph/Edge.hh"
 #include "gz/math/graph/Vertex.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 using namespace graph;
 

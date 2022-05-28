@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Frustum.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /////////////////////////////////////////////////

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Rand.hh>
+#include <ignition/math/config.hh>

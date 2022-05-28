@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Temperature.hh>
+#include <ignition/math/config.hh>

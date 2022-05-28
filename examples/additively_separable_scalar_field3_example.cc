@@ -22,15 +22,15 @@
 int main(int argc, char **argv)
 {
   const double kConstant = 1.;
-  const ignition::math::Polynomial3d xPoly(
-      ignition::math::Vector4d(0., 1., 0., 1.));
-  const ignition::math::Polynomial3d yPoly(
-      ignition::math::Vector4d(1., 0., 1., 0.));
-  const ignition::math::Polynomial3d zPoly(
-      ignition::math::Vector4d(1., 0., 0., -1.));
+  const gz::math::Polynomial3d xPoly(
+      gz::math::Vector4d(0., 1., 0., 1.));
+  const gz::math::Polynomial3d yPoly(
+      gz::math::Vector4d(1., 0., 1., 0.));
+  const gz::math::Polynomial3d zPoly(
+      gz::math::Vector4d(1., 0., 0., -1.));
   using AdditivelySeparableScalarField3dT =
-      ignition::math::AdditivelySeparableScalarField3d<
-        ignition::math::Polynomial3d>;
+      gz::math::AdditivelySeparableScalarField3d<
+        gz::math::Polynomial3d>;
   const AdditivelySeparableScalarField3dT scalarField(
       kConstant, xPoly, yPoly, zPoly);
 
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
   // An additively separable scalar field can be evaluated.
   std::cout << "Evaluating F(x, y, z) at (0, 1, 0) yields "
-            << scalarField(ignition::math::Vector3d::UnitY)
+            << scalarField(gz::math::Vector3d::UnitY)
             << std::endl;
 
   // An additively separable scalar field can be queried for its

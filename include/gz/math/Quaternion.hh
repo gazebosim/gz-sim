@@ -23,12 +23,12 @@
 #include <gz/math/Matrix3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     template <typename T> class Matrix3;
 
@@ -58,15 +58,15 @@ namespace ignition
     /// #
     /// require 'gz/math'
     ///
-    /// q = Ignition::Math::Quaterniond.new
+    /// q = Gz::Math::Quaterniond.new
     /// printf("A default quaternion has the following values\n"+
     ///        "\tW=%f X=%f Y=%f Z=%f\n", q.W(), q.X(), q.Y(), q.Z())
     ///
-    /// q = Ignition::Math::Quaterniond.Identity
+    /// q = Gz::Math::Quaterniond.Identity
     /// printf("The identity quaternion has the following values\n" +
     ///        "\tW=%f X=%f Y=%f Z=%f\n", q.W(), q.X(), q.Y(), q.Z())
     ///
-    /// q2 = Ignition::Math::Quaterniond.new(0, 0, 3.14)
+    /// q2 = Gz::Math::Quaterniond.new(0, 0, 3.14)
     /// printf("A quaternion initialized from roll=0, pitch=0, and yaw=3.14 " +
     ///        "has the following values\n" +
     ///        "\tW=%f X=%f Y=%f Z=%f\n", q2.W(), q2.X(), q2.Y(), q2.Z())
@@ -301,7 +301,7 @@ namespace ignition
       /// \param[in] _az Z axis
       /// \param[in] _aa Angle in radians
       /// \deprecated Use SetFromAxisAngle(T, T, T, T)
-      public: void IGN_DEPRECATED(7) Axis(T _ax, T _ay, T _az, T _aa)
+      public: void GZ_DEPRECATED(7) Axis(T _ax, T _ay, T _az, T _aa)
       {
         this->SetFromAxisAngle(_ax, _ay, _az, _aa);
       }
@@ -341,7 +341,7 @@ namespace ignition
       /// \param[in] _axis Axis
       /// \param[in] _a Angle in radians
       /// \deprecated Use SetFromAxisAngle(const Vector3<T> &_axis, T _a)
-      public: void IGN_DEPRECATED(7) Axis(const Vector3<T> &_axis, T _a)
+      public: void GZ_DEPRECATED(7) Axis(const Vector3<T> &_axis, T _a)
       {
         this->SetFromAxisAngle(_axis, _a);
       }
@@ -373,7 +373,7 @@ namespace ignition
       /// Roll is a rotation about x, pitch is about y, yaw is about z.
       /// \param[in] _vec Euler angle
       /// \deprecated Use SetFromEuler(const Vector3<T> &)
-      public: void IGN_DEPRECATED(7) Euler(const Vector3<T> &_vec)
+      public: void GZ_DEPRECATED(7) Euler(const Vector3<T> &_vec)
       {
         this->SetFromEuler(_vec);
       }
@@ -393,7 +393,7 @@ namespace ignition
       /// \param[in] _pitch Pitch angle (radians).
       /// \param[in] _yaw Yaw angle (radians).
       /// \deprecated Use SetFromEuler(T, T, T)
-      public: void IGN_DEPRECATED(7) Euler(T _roll, T _pitch, T _yaw)
+      public: void GZ_DEPRECATED(7) Euler(T _roll, T _pitch, T _yaw)
       {
         this->SetFromEuler(_roll, _pitch, _yaw);
       }
@@ -535,7 +535,7 @@ namespace ignition
       /// \param[out] _axis rotation axis
       /// \param[out] _angle ccw angle in radians
       /// \deprecated Use AxisAngle(Vector3<T> &_axis, T &_angle) const
-      public: void IGN_DEPRECATED(7) ToAxis(Vector3<T> &_axis, T &_angle) const
+      public: void GZ_DEPRECATED(7) ToAxis(Vector3<T> &_axis, T &_angle) const
       {
         this->AxisAngle(_axis, _angle);
       }
@@ -567,7 +567,7 @@ namespace ignition
       /// http://www.euclideanspace.com/maths/geometry/rotations/
       /// conversions/matrixToQuaternion/
       /// \deprecated Use SetFromMatrix(const Matrix3<T>&)
-      public: void IGN_DEPRECATED(7) Matrix(const Matrix3<T> &_mat)
+      public: void GZ_DEPRECATED(7) Matrix(const Matrix3<T> &_mat)
       {
         this->SetFromMatrix(_mat);
       }
@@ -626,7 +626,7 @@ namespace ignition
       /// Implementation inspired by
       /// http://stackoverflow.com/a/11741520/1076564
       /// \deprecated Use SetFrom2Axes(const Vector3<T> &, const Vector3<T> &)
-      public: void IGN_DEPRECATED(7) From2Axes(
+      public: void GZ_DEPRECATED(7) From2Axes(
                   const Vector3<T> &_v1, const Vector3<T> &_v2)
       {
         this->SetFrom2Axes(_v1, _v2);
@@ -811,7 +811,7 @@ namespace ignition
       }
 
       /// \brief Equality comparison operator. A tolerance of 0.001 is used
-      /// with the ignition::math::equal function for each component of the
+      /// with the gz::math::equal function for each component of the
       /// quaternions.
       /// \param[in] _qt Quaternion<T> for comparison.
       /// \return True if each component of both quaternions is within the
@@ -822,7 +822,7 @@ namespace ignition
       }
 
       /// \brief Not equal to operator. A tolerance of 0.001 is used
-      /// with the ignition::math::equal function for each component of the
+      /// with the gz::math::equal function for each component of the
       /// quaternions.
       /// \param[in] _qt Quaternion for comparison.
       /// \return True if any component of both quaternions is not within
@@ -1134,7 +1134,7 @@ namespace ignition
       /// \brief Set the x component.
       /// \param[in] _v The new value for the x quaternion component.
       /// \deprecated Use SetX(T)
-      public: inline void IGN_DEPRECATED(7) X(T _v)
+      public: inline void GZ_DEPRECATED(7) X(T _v)
       {
         this->SetX(_v);
       }
@@ -1149,7 +1149,7 @@ namespace ignition
       /// \brief Set the y component.
       /// \param[in] _v The new value for the y quaternion component.
       /// \deprecated Use SetY(T)
-      public: inline void IGN_DEPRECATED(7) Y(T _v)
+      public: inline void GZ_DEPRECATED(7) Y(T _v)
       {
         this->SetY(_v);
       }
@@ -1165,7 +1165,7 @@ namespace ignition
       /// \brief Set the z component.
       /// \param[in] _v The new value for the z quaternion component.
       /// \deprecated Use SetZ(T)
-      public: inline void IGN_DEPRECATED(7) Z(T _v)
+      public: inline void GZ_DEPRECATED(7) Z(T _v)
       {
         this->SetZ(_v);
       }
@@ -1180,7 +1180,7 @@ namespace ignition
       /// \brief Set the w component.
       /// \param[in] _v The new value for the w quaternion component.
       /// \deprecated Use SetW(T)
-      public: inline void IGN_DEPRECATED(7) W(T _v)
+      public: inline void GZ_DEPRECATED(7) W(T _v)
       {
         this->SetW(_v);
       }
@@ -1197,7 +1197,7 @@ namespace ignition
       /// \param[in] _q quaternion to output
       /// \return the stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                  const ignition::math::Quaternion<T> &_q)
+                  const gz::math::Quaternion<T> &_q)
       {
         Vector3<T> v(_q.Euler());
         _out << v;
@@ -1209,7 +1209,7 @@ namespace ignition
       /// \param[out] _q Quaternion<T> to read values into
       /// \return The istream
       public: friend std::istream &operator>>(std::istream &_in,
-          ignition::math::Quaternion<T> &_q)
+          gz::math::Quaternion<T> &_q)
       {
         Angle roll, pitch, yaw;
 
@@ -1226,7 +1226,7 @@ namespace ignition
       }
 
       /// \brief Equality comparison test with a tolerance parameter.
-      /// The tolerance is used with the ignition::math::equal function for
+      /// The tolerance is used with the gz::math::equal function for
       /// each component of the quaternions.
       /// \param[in] _q The quaternion to compare against.
       /// \param[in] _tol equality tolerance.

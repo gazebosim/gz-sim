@@ -18,10 +18,10 @@
 #include <gz/math/GaussMarkovProcess.hh>
 #include <gz/math/Rand.hh>
 
-using namespace ignition::math;
+using namespace gz::math;
 
 //////////////////////////////////////////////////
-class ignition::math::GaussMarkovProcess::Implementation
+class gz::math::GaussMarkovProcess::Implementation
 {
   /// \brief Current process value.
   public: double value{0};
@@ -41,7 +41,7 @@ class ignition::math::GaussMarkovProcess::Implementation
 
 //////////////////////////////////////////////////
 GaussMarkovProcess::GaussMarkovProcess()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

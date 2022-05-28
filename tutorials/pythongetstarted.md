@@ -4,9 +4,9 @@ Previous Tutorial: \ref cppgetstarted
 
 ## Overview
 
-This tutorial describes how to get started using Ignition Math with Python.
+This tutorial describes how to get started using Gazebo Math with Python.
 
-**NOTE**: If you have compiled Ignition Math from source, you should export
+**NOTE**: If you have compiled Gazebo Math from source, you should export
 your `PYTHONPATH`.
 
 ```bash
@@ -25,7 +25,7 @@ if __name__ == "__main__":
   main()
 ```
 
-The easiest way to include Ignition Math is through `import ignition.math`.
+The easiest way to include Gazebo Math is through `import ignition.math`.
 
 At this point your main file should look like
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 ```
 
 Now let's create two 3D points with arbitrary values. We will use the
-`ignition.math.Vector3` class to represent these points. Ignition Math provides
+`ignition.math.Vector3` class to represent these points. Gazebo Math provides
 some `Vector3` types which are: `Vector3d` (Vector3 using doubles), `Vector3f` (Vector3 using floats)
 and `Vector3i` (Vector3 using integers). The result of this addition will be a
 main file similar to the following.

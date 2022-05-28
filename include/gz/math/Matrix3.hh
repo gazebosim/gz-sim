@@ -25,12 +25,12 @@
 #include <gz/math/Quaternion.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     template <typename T> class Quaternion;
 
@@ -58,7 +58,7 @@ namespace ignition
     /// require 'gz/math'
     ///
     /// # Construct a default matrix3.
-    /// m = Ignition::Math::Matrix3d.new
+    /// m = Gz::Math::Matrix3d.new
     /// printf("The default constructed matrix m has the following "+
     ///        "values.\n\t" +
     ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
@@ -67,7 +67,7 @@ namespace ignition
     ///        m.(2, 0), m.(2, 1), m.(2, 2))
     ///
     /// # Set the first column of the matrix.
-    /// m.SetCol(0, Ignition::Math::Vector3d.new(3, 4, 5))
+    /// m.SetCol(0, Gz::Math::Vector3d.new(3, 4, 5))
     /// printf("Setting the first column of the matrix m to 3, 4, 5.\n\t" +
     ///        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
     ///        m.(0, 0), m.(0, 1), m.(0, 2),
@@ -191,7 +191,7 @@ namespace ignition
       /// \param[in] _zAxis The z axis, the third column of the matrix.
       /// \deprecated Use SetAxes(const Vector3<T> &, const Vector3<T> &,
       /// const Vector3<T> &,)
-      public: void IGN_DEPRECATED(7) Axes(const Vector3<T> &_xAxis,
+      public: void GZ_DEPRECATED(7) Axes(const Vector3<T> &_xAxis,
                   const Vector3<T> &_yAxis,
                   const Vector3<T> &_zAxis)
       {
@@ -215,7 +215,7 @@ namespace ignition
       /// \param[in] _axis the axis
       /// \param[in] _angle ccw rotation around the axis in radians
       /// \deprecated Use SetFromAxisAngle(const Vector3<T> &, T)
-      public: void IGN_DEPRECATED(7) Axis(const Vector3<T> &_axis, T _angle)
+      public: void GZ_DEPRECATED(7) Axis(const Vector3<T> &_axis, T _angle)
       {
         this->SetFromAxisAngle(_axis, _angle);
       }
@@ -249,7 +249,7 @@ namespace ignition
       /// \param[in] _v1 The first vector
       /// \param[in] _v2 The second vector
       /// \deprecated Use SetFrom2Axes(const Vector3<T> &, const Vector3<T> &)
-      public: void IGN_DEPRECATED(7) From2Axes(
+      public: void GZ_DEPRECATED(7) From2Axes(
                   const Vector3<T> &_v1, const Vector3<T> &_v2)
       {
         this->SetFrom2Axes(_v1, _v2);
@@ -303,7 +303,7 @@ namespace ignition
       /// range [0, 2].
       /// \param[in] _v The value to set in each row of the column.
       /// \deprecated Use SetCol(unsigned int _c, const Vector3<T> &_v)
-      public: void IGN_DEPRECATED(7) Col(unsigned int _c, const Vector3<T> &_v)
+      public: void GZ_DEPRECATED(7) Col(unsigned int _c, const Vector3<T> &_v)
       {
         this->SetCol(_c, _v);
       }
@@ -595,7 +595,7 @@ namespace ignition
       /// \param[in] _m Matrix to output.
       /// \return The stream.
       public: friend std::ostream &operator<<(
-                  std::ostream &_out, const ignition::math::Matrix3<T> &_m)
+                  std::ostream &_out, const gz::math::Matrix3<T> &_m)
       {
         for (auto i : {0, 1, 2})
         {
@@ -617,7 +617,7 @@ namespace ignition
       /// \param [out] _m Matrix3 to read values into.
       /// \return The stream.
       public: friend std::istream &operator>>(
-                  std::istream &_in, ignition::math::Matrix3<T> &_m)
+                  std::istream &_in, gz::math::Matrix3<T> &_m)
       {
         // Skip white spaces
         _in.setf(std::ios_base::skipws);

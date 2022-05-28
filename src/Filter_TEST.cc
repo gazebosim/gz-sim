@@ -19,7 +19,7 @@
 
 #include "gz/math/Filter.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(FilterTest, OnePole)

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Quaternion.hh>
+#include <ignition/math/config.hh>

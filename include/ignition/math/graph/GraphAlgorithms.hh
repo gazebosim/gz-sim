@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/graph/GraphAlgorithms.hh>
+#include <ignition/math/config.hh>

@@ -25,7 +25,7 @@
 #include <gz/math/Vector3.hh>
 %}
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -34,27 +34,27 @@ namespace math
     {
       %rename("%(undercase)s", %$isfunction, %$ismember, %$not %$isconstructor) "";
       public: Triangle3() = default;
-      public: Triangle3(const ignition::math::Vector3<T> &_pt1,
-                        const ignition::math::Vector3<T> &_pt2,
-                        const ignition::math::Vector3<T> &_pt3);
+      public: Triangle3(const gz::math::Vector3<T> &_pt1,
+                        const gz::math::Vector3<T> &_pt2,
+                        const gz::math::Vector3<T> &_pt3);
       public: void Set(const unsigned int _index, const math::Vector3<T> &_pt);
-      public: void Set(const ignition::math::Vector3<T> &_pt1,
-                       const ignition::math::Vector3<T> &_pt2,
-                       const ignition::math::Vector3<T> &_pt3);
+      public: void Set(const gz::math::Vector3<T> &_pt1,
+                       const gz::math::Vector3<T> &_pt2,
+                       const gz::math::Vector3<T> &_pt3);
       public: bool Valid() const;
       public: Line3<T> Side(const unsigned int _index) const;
       public: bool Contains(const Line3<T> &_line) const;
-      public: bool Contains(const ignition::math::Vector3<T> &_pt) const;
-      public: ignition::math::Vector3d Normal() const;
+      public: bool Contains(const gz::math::Vector3<T> &_pt) const;
+      public: gz::math::Vector3d Normal() const;
       public: bool Intersects(const Line3<T> &_line,
-                              ignition::math::Vector3<T> &_ipt1) const;
+                              gz::math::Vector3<T> &_ipt1) const;
       public: T Perimeter() const;
       public: double Area() const;
     };
 
     %extend Triangle3
     {
-      ignition::math::Vector3<T> __getitem__(const unsigned int i) const
+      gz::math::Vector3<T> __getitem__(const unsigned int i) const
       {
         return (*$self)[i];
       }

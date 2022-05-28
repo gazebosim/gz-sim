@@ -28,7 +28,7 @@
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -37,7 +37,7 @@ namespace python
 void defineMathGaussMarkovProcess(
   py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::GaussMarkovProcess;
+  using Class = gz::math::GaussMarkovProcess;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -70,4 +70,4 @@ void defineMathGaussMarkovProcess(
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

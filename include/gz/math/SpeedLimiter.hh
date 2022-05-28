@@ -23,17 +23,17 @@
 #include <gz/math/config.hh>
 #include "gz/math/Helpers.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+inline namespace GZ_MATH_VERSION_NAMESPACE {
   // Forward declaration.
   class SpeedLimiterPrivate;
 
   /// \brief Class to limit velocity, acceleration and jerk.
-  class IGNITION_MATH_VISIBLE SpeedLimiter
+  class GZ_MATH_VISIBLE SpeedLimiter
   {
     /// \brief Constructor.
     /// There are no limits by default.

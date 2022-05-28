@@ -21,17 +21,17 @@
 int main(int argc, char **argv)
 {
   // Construct a default matrix3.
-  ignition::math::Matrix3d m;
+  gz::math::Matrix3d m;
   std::cout << "The default constructed matrix m has the following values.\n\t"
     << m << std::endl;
 
   // Set the first column of the matrix.
-  m.SetCol(0, ignition::math::Vector3d(3, 4, 5));
+  m.SetCol(0, gz::math::Vector3d(3, 4, 5));
   std::cout << "Setting the first column of the matrix m to 3, 4, 5.\n\t"
     << m << std::endl;
 
   // Transpose the matrix.
-  ignition::math::Matrix3d t = m.Transposed();
+  gz::math::Matrix3d t = m.Transposed();
   std::cout << "The transposed matrix t has the values.\n\t"
     << t << std::endl;
 

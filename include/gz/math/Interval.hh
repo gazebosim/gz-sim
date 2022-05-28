@@ -25,12 +25,12 @@
 
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Interval Interval.hh gz/math/Interval.hh
     /// \brief The Interval class represents a range of real numbers.
@@ -264,7 +264,7 @@ namespace ignition
       /// \param _interval Interval to output
       /// \return the stream
       public: friend std::ostream &operator<<(
-        std::ostream &_out, const ignition::math::Interval<T> &_interval)
+        std::ostream &_out, const gz::math::Interval<T> &_interval)
       {
         return _out << (_interval.leftClosed ? "[" : "(")
                     << _interval.leftValue << ", " << _interval.rightValue

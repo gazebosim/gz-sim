@@ -34,7 +34,7 @@
   $result = SWIG_From_long((&result)->count());
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

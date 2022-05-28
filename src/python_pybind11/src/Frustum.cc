@@ -22,7 +22,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl_bind.h>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -30,20 +30,20 @@ namespace python
 {
 void defineMathFrustum(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Frustum;
+  using Class = gz::math::Frustum;
   std::string pyclass_name = typestr;
   py::class_<Class> (m,
                     pyclass_name.c_str(),
                     py::buffer_protocol(),
                     py::dynamic_attr())
    .def(py::init<>())
-   .def(py::init<const double, const double, const ignition::math::Angle&,
-                 const double, const ignition::math::Pose3d&>(),
+   .def(py::init<const double, const double, const gz::math::Angle&,
+                 const double, const gz::math::Pose3d&>(),
         py::arg("_near") = 0,
         py::arg("_far") = 0,
-        py::arg("_fov") = ignition::math::Angle(0),
+        py::arg("_fov") = gz::math::Angle(0),
         py::arg("_aspectRatio") = 0,
-        py::arg("_pose") = ignition::math::Pose3d::Zero)
+        py::arg("_pose") = gz::math::Pose3d::Zero)
    .def(py::init<const Class&>())
    .def("near",
         &Class::Near,
@@ -84,32 +84,32 @@ void defineMathFrustum(py::module &m, const std::string &typestr)
         &Class::SetPose,
         "Set the pose of the frustum")
    .def("contains",
-        py::overload_cast<const ignition::math::AxisAlignedBox&>
+        py::overload_cast<const gz::math::AxisAlignedBox&>
             (&Class::Contains, py::const_),
         "Check if a box lies inside the pyramid frustum.")
    .def("contains",
-        py::overload_cast<const ignition::math::Vector3d&>
+        py::overload_cast<const gz::math::Vector3d&>
             (&Class::Contains, py::const_),
         "Check if a point lies inside the pyramid frustum.")
    .def("plane",
         &Class::Plane,
         "Get a plane of the frustum.");
 
-   py::enum_<ignition::math::Frustum::FrustumPlane>(m, "FrustumPlane")
+   py::enum_<gz::math::Frustum::FrustumPlane>(m, "FrustumPlane")
        .value("FRUSTUM_PLANE_NEAR",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_NEAR)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_NEAR)
        .value("FRUSTUM_PLANE_FAR",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_FAR)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_FAR)
        .value("FRUSTUM_PLANE_LEFT",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_LEFT)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_LEFT)
        .value("FRUSTUM_PLANE_RIGHT",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_RIGHT)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_RIGHT)
        .value("FRUSTUM_PLANE_TOP",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_TOP)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_TOP)
        .value("FRUSTUM_PLANE_BOTTOM",
-              ignition::math::Frustum::FrustumPlane::FRUSTUM_PLANE_BOTTOM)
+              gz::math::Frustum::FrustumPlane::FRUSTUM_PLANE_BOTTOM)
        .export_values();
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

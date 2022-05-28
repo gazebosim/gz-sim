@@ -19,7 +19,7 @@
 
 #include <gz/math/eigen3/Util.hh>
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 /// \brief Test the oriented box converted from a set of vertices

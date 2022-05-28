@@ -20,7 +20,7 @@ require 'math'
 
 class GaussMarkovProcess_TEST < Test::Unit::TestCase
   def test_construction
-    gmp = Ignition::Math::GaussMarkovProcess.new
+    gmp = Gz::Math::GaussMarkovProcess.new
 
     assert(gmp.Start() == 0.0, "Start value should equal zero")
     assert(gmp.Value() == 0.0, "Initial value should equal zero")
@@ -30,7 +30,7 @@ class GaussMarkovProcess_TEST < Test::Unit::TestCase
   end
 
   def test_no_noise
-    gmp = Ignition::Math::GaussMarkovProcess.new(-1.2, 1.0, 2.5, 0)
+    gmp = Gz::Math::GaussMarkovProcess.new(-1.2, 1.0, 2.5, 0)
     assert(gmp.Start() == -1.2, "Start value should equal zero")
     assert(gmp.Value() == -1.2, "Initial value should equal zero")
     assert(gmp.Theta() == 1.0, "Theta should equal zero")
@@ -47,13 +47,13 @@ class GaussMarkovProcess_TEST < Test::Unit::TestCase
   end
 
   def test_noise
-    gmp = Ignition::Math::GaussMarkovProcess.new(20.2, 0.1, 0, 0.5)
+    gmp = Gz::Math::GaussMarkovProcess.new(20.2, 0.1, 0, 0.5)
     assert(gmp.Start() == 20.2, "Start value should equal zero")
     assert(gmp.Value() == 20.2, "Initial value should equal zero")
     assert(gmp.Theta() == 0.1, "Theta should equal zero")
     assert(gmp.Mu() == 0, "Mu should equal zero")
     assert(gmp.Sigma() == 0.5, "Sigma should equal zero")
-    Ignition::Math::Rand::Seed(1001);
+    Gz::Math::Rand::Seed(1001);
 
     for i in 0..1000 do
       value = gmp.Update(0.1);

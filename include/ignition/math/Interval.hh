@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Interval.hh>
+#include <ignition/math/config.hh>

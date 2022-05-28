@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/OrientedBox.hh>
+#include <ignition/math/config.hh>

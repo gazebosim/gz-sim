@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/VolumetricGridLookupField.hh>
+#include <ignition/math/config.hh>

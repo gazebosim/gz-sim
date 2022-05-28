@@ -40,11 +40,11 @@ int main(int argc, char **argv)
     double value;
     if (std::string(argv[1]) == "normal")
     {
-      value = ignition::math::Rand::DblNormal(0, 100);
+      value = gz::math::Rand::DblNormal(0, 100);
     }
     else if (std::string(argv[1]) == "uniform")
     {
-      value = ignition::math::Rand::DblUniform(0, 1000);
+      value = gz::math::Rand::DblUniform(0, 1000);
     }
     std::cout << value << std::endl;
   }

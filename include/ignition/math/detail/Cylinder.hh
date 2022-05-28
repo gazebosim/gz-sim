@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/Cylinder.hh>
+#include <ignition/math/config.hh>

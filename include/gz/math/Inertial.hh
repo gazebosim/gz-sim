@@ -21,12 +21,12 @@
 #include "gz/math/MassMatrix3.hh"
 #include "gz/math/Pose3.hh"
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Inertial Inertial.hh gz/math/Inertial.hh
     /// \brief The Inertial object provides a representation for the mass and

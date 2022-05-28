@@ -20,7 +20,7 @@
 #include "gz/math/MaterialType.hh"
 #include "gz/math/Helpers.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /////////////////////////////////////////////////

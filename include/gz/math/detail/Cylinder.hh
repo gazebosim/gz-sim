@@ -16,7 +16,7 @@
 */
 #ifndef GZ_MATH_DETAIL_CYLINDER_HH_
 #define GZ_MATH_DETAIL_CYLINDER_HH_
-namespace ignition
+namespace gz
 {
 namespace math
 {

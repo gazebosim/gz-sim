@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__BOX_HH_
-#define IGNITION_MATH_PYTHON__BOX_HH_
+#ifndef GZ_MATH_PYTHON__BOX_HH_
+#define GZ_MATH_PYTHON__BOX_HH_
 
 #include <string>
 #include <vector>
@@ -30,13 +30,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Box
+/// Define a pybind11 wrapper for an gz::math::Box
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -45,7 +45,7 @@ template<typename T>
 void defineMathBox(py::module &m, const std::string &typestr)
 {
 
-  using Class = ignition::math::Box<T>;
+  using Class = gz::math::Box<T>;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -53,18 +53,18 @@ void defineMathBox(py::module &m, const std::string &typestr)
                     py::dynamic_attr())
     .def(py::init<>())
     .def(py::init<const T, const T, const T>())
-    .def(py::init<const T, const T, const T, const ignition::math::Material&>())
-    .def(py::init<const T, const T, const T, const ignition::math::Material&>())
-    .def(py::init<const ignition::math::Vector3<T>&>())
-    .def(py::init<const ignition::math::Vector3<T>&,
-                  const ignition::math::Material&>())
+    .def(py::init<const T, const T, const T, const gz::math::Material&>())
+    .def(py::init<const T, const T, const T, const gz::math::Material&>())
+    .def(py::init<const gz::math::Vector3<T>&>())
+    .def(py::init<const gz::math::Vector3<T>&,
+                  const gz::math::Material&>())
     .def(py::self != py::self)
     .def(py::self == py::self)
     .def("size",
          &Class::Size,
          "Get the size of the box.")
     .def("set_size",
-         py::overload_cast<const ignition::math::Vector3<T>&>
+         py::overload_cast<const gz::math::Vector3<T>&>
           (&Class::SetSize),
          "Set the size of the box.")
     .def("set_size",
@@ -90,7 +90,7 @@ void defineMathBox(py::module &m, const std::string &typestr)
     .def("vertices_below",
          [](const Class &self, const Plane<T> &_plane)
          {
-           std::vector<ignition::math::Vector3<T>> result;
+           std::vector<gz::math::Vector3<T>> result;
            auto vertices = self.VerticesBelow(_plane);
            for (auto & v : vertices)
            {
@@ -113,7 +113,7 @@ void defineMathBox(py::module &m, const std::string &typestr)
     .def("intersections",
          [](const Class &self, const Plane<T> &_plane)
          {
-           std::vector<ignition::math::Vector3<T>> result;
+           std::vector<gz::math::Vector3<T>> result;
            auto vertices = self.Intersections(_plane);
            for (auto & v : vertices)
            {
@@ -133,6 +133,6 @@ void defineMathBox(py::module &m, const std::string &typestr)
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__BOX_HH_
+#endif  // GZ_MATH_PYTHON__BOX_HH_

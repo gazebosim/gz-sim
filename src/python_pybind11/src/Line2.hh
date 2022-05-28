@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__LINE2_HH_
-#define IGNITION_MATH_PYTHON__LINE2_HH_
+#ifndef GZ_MATH_PYTHON__LINE2_HH_
+#define GZ_MATH_PYTHON__LINE2_HH_
 
 #include <sstream>
 #include <string>
@@ -29,13 +29,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Help define a pybind11 wrapper for an ignition::math::Line2
+/// Help define a pybind11 wrapper for an gz::math::Line2
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -43,7 +43,7 @@ namespace python
 template<typename T>
 void helpDefineMathLine2(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Line2<T>;
+  using Class = gz::math::Line2<T>;
   auto toString = [](const Class &si) {
     std::stringstream stream;
     stream << si;
@@ -54,14 +54,14 @@ void helpDefineMathLine2(py::module &m, const std::string &typestr)
                     pyclass_name.c_str(),
                     py::buffer_protocol(),
                     py::dynamic_attr())
-    .def(py::init<const ignition::math::Vector2<T>&,
-                  const ignition::math::Vector2<T>&>())
+    .def(py::init<const gz::math::Vector2<T>&,
+                  const gz::math::Vector2<T>&>())
     .def(py::init<double, double, double, double>())
     .def(py::self != py::self)
     .def(py::self == py::self)
     .def("set",
-         py::overload_cast<const ignition::math::Vector2<T>&,
-                           const ignition::math::Vector2<T>&>(&Class::Set),
+         py::overload_cast<const gz::math::Vector2<T>&,
+                           const gz::math::Vector2<T>&>(&Class::Set),
          "Set the start and end point of the line segment")
     .def("set",
          py::overload_cast<double, double, double, double>(&Class::Set),
@@ -70,13 +70,13 @@ void helpDefineMathLine2(py::module &m, const std::string &typestr)
          py::overload_cast<const Class&>(&Class::CrossProduct, py::const_),
          "Return the cross product of this line and the given line.")
     .def("cross_product",
-         py::overload_cast<const ignition::math::Vector2<T>&>(
+         py::overload_cast<const gz::math::Vector2<T>&>(
            &Class::CrossProduct, py::const_),
          "Return the cross product of this line and the given line.")
     .def("collinear",
-         py::overload_cast<const ignition::math::Vector2<T>&, double>(
+         py::overload_cast<const gz::math::Vector2<T>&, double>(
          &Class::Collinear, py::const_),
-         py::arg("_pt") = ignition::math::Vector2<T>::Zero,
+         py::arg("_pt") = gz::math::Vector2<T>::Zero,
          py::arg("_epsilon") = 1e-6,
          "Check if the given point is collinear with this line.")
     .def("collinear",
@@ -98,11 +98,11 @@ void helpDefineMathLine2(py::module &m, const std::string &typestr)
     .def("intersect",
          py::overload_cast<
            const Class&,
-           ignition::math::Vector2<T>&,
+           gz::math::Vector2<T>&,
            double>(
              &Class::Intersect, py::const_),
          py::arg("_line") = Class(0, 0, 0, 0),
-         py::arg("_pt") = ignition::math::Vector2<T>::Zero,
+         py::arg("_pt") = gz::math::Vector2<T>::Zero,
          py::arg("_epsilon") = 1e-6,
          "Check if this line intersects the given line segment.")
     .def("intersect",
@@ -129,7 +129,7 @@ void helpDefineMathLine2(py::module &m, const std::string &typestr)
     .def("__repr__", toString);
 }
 
-/// Define a pybind11 wrapper for an ignition::math::Line2
+/// Define a pybind11 wrapper for an gz::math::Line2
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -138,6 +138,6 @@ void defineMathLine2(py::module &m, const std::string &typestr);
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__LINE2_HH_
+#endif  // GZ_MATH_PYTHON__LINE2_HH_

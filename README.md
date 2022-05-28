@@ -1,21 +1,21 @@
-# Ignition Math : Math classes and functions for robot applications
+# Gazebo Math : Math classes and functions for robot applications
 
 **Maintainer:** nate AT openrobotics DOT org
 
-[![GitHub open issues](https://img.shields.io/github/issues-raw/ignitionrobotics/ign-math.svg)](https://github.com/ignitionrobotics/ign-math/issues)
-[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/ignitionrobotics/ign-math.svg)](https://github.com/ignitionrobotics/ign-math/pulls)
+[![GitHub open issues](https://img.shields.io/github/issues-raw/gazebosim/gz-math.svg)](https://github.com/gazebosim/gz-math/issues)
+[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/gazebosim/gz-math.svg)](https://github.com/gazebosim/gz-math/pulls)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-math/branch/ign-math7/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-math)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-math/branch/ign-math7/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-math)
 Ubuntu Focal  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-focal-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_math-ign-7-win)](https://build.osrfoundation.org/job/ign_math-ign-7-win)
 
-Ignition Math, a component of [Ignition
-Robotics](https://ignitionrobotics.org), provides general purpose math
+Gazebo Math, a component of [Ignition
+Robotics](https://gazebosim.org), provides general purpose math
 classes and functions designed for robotic applications.
 
 # Table of Contents
@@ -38,7 +38,7 @@ classes and functions designed for robotic applications.
 
 # Features
 
-Ignition Math provides a wide range of functionality, including:
+Gazebo Math provides a wide range of functionality, including:
 
 * Type-templated pose, matrix, vector, and quaternion classes.
 * Shape representations along with operators to compute volume, density, size and other properties.
@@ -48,11 +48,11 @@ Math types.
 
 # Install
 
-See the [installation tutorial](https://ignitionrobotics.org/api/math/6.8/install.html).
+See the [installation tutorial](https://gazebosim.org/api/math/6.8/install.html).
 
 # Usage
 
-Please refer to the [examples directory](https://github.com/ignitionrobotics/ign-math/raw/ign-math7/examples/).
+Please refer to the [examples directory](https://github.com/gazebosim/gz-math/raw/ign-math7/examples/).
 
 # Folder Structure
 
@@ -78,17 +78,17 @@ ign-math
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
-This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Gazebo project](https://gazebosim.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Gazebo website](https://gazebosim.org) for version and release information.
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-math/blob/main/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/gazebosim/gz-math/blob/main/LICENSE) file.

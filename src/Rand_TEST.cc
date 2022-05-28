@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Rand.hh"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(RandTest, Rand)

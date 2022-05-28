@@ -19,7 +19,7 @@
 
 #include "Triangle.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -33,5 +33,5 @@ void defineMathTriangle(py::module &m, const std::string &typestr)
 }
 
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz

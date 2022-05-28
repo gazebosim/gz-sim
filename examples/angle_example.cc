@@ -22,14 +22,14 @@ int main(int argc, char **argv)
 {
 
 //! [Create an angle]
-  ignition::math::Angle a;
+  gz::math::Angle a;
 //! [Create an angle]
 
   // A default constructed angle should be zero.
   std::cout << "The angle 'a' should be zero: " << a << std::endl;
 //! [constant pi]
-  a = ignition::math::Angle::HalfPi;
-  a = ignition::math::Angle::Pi;
+  a = gz::math::Angle::HalfPi;
+  a = gz::math::Angle::Pi;
 //! [constant pi]
 
 //! [Output the angle in radians and degrees.]
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 //! [Output the angle in radians and degrees.]
 
 //! [The Angle class overloads the +=, and many other, math operators.]
-  a += ignition::math::Angle::HalfPi;
+  a += gz::math::Angle::HalfPi;
 //! [The Angle class overloads the +=, and many other, math operators.]
   std::cout << "Pi + PI/2 in radians: " << a << std::endl;
 //! [normalized]

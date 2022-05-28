@@ -25,7 +25,7 @@
 
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -33,7 +33,7 @@ namespace python
 {
 void defineMathAngle(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Angle;
+  using Class = gz::math::Angle;
   auto toString = [](const Class &si) {
     std::stringstream stream;
     stream << si;
@@ -94,4 +94,4 @@ void defineMathAngle(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

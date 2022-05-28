@@ -20,7 +20,7 @@
 #include <gz/math/Rand.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

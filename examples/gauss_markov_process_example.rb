@@ -32,7 +32,7 @@ require 'ignition/math'
 #   * Theta (rate at which the process should approach the mean) of 0.1
 #   * Mu (mean value) 0.
 #   * Sigma (volatility) of 0.5.
-gmp = Ignition::Math::GaussMarkovProcess.new(20.2, 0.1, 0, 0.5);
+gmp = Gz::Math::GaussMarkovProcess.new(20.2, 0.1, 0, 0.5);
 
 # This process should decrease toward the mean value of 0.
 # With noise of 0.5, the process will walk a bit.

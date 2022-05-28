@@ -31,7 +31,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/eigen3/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -84,7 +84,7 @@ namespace ignition
       /// http://codextechnicanum.blogspot.com/2015/04/find-minimum-oriented-bounding-box-of.html
       /// \param[in] _vertices a vector of 3d vertices
       /// \return Oriented 3D box
-      inline ignition::math::OrientedBoxd verticesToOrientedBox(
+      inline gz::math::OrientedBoxd verticesToOrientedBox(
         const std::vector<math::Vector3d> &_vertices)
       {
         math::OrientedBoxd box;

@@ -22,7 +22,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/DiffDriveOdometry.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(DiffDriveOdometryTest, DiffDriveOdometry)

@@ -40,12 +40,12 @@
 /// \return the angle, in range
 #define IGN_NORMALIZE(a) (atan2(sin(a), cos(a)))
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Angle Angle.hh gz/math/Angle.hh
     /// \brief The Angle class is used to simplify and clarify the use of
@@ -59,7 +59,7 @@ namespace ignition
     /// ## Example
     ///
     /// \snippet examples/angle_example.cc complete
-    class IGNITION_MATH_VISIBLE Angle
+    class GZ_MATH_VISIBLE Angle
     {
       /// \brief An angle with a value of zero.
       /// Equivalent to math::Angle(0).
@@ -99,7 +99,7 @@ namespace ignition
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.
       /// \deprecated Use void SetRadian(double)
-      public: void IGN_DEPRECATED(7) Radian(double _radian);
+      public: void GZ_DEPRECATED(7) Radian(double _radian);
 
       /// \brief Set the value from an angle in radians.
       /// \param[in] _radian Radian value.
@@ -108,7 +108,7 @@ namespace ignition
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
       /// \deprecated Use void SetDegree(double)
-      public: void IGN_DEPRECATED(7) Degree(double _degree);
+      public: void GZ_DEPRECATED(7) Degree(double _degree);
 
       /// \brief Set the value from an angle in degrees
       /// \param[in] _degree Degree value
@@ -218,7 +218,7 @@ namespace ignition
       /// \param[in] _a Angle to output.
       /// \return The output stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                                              const ignition::math::Angle &_a)
+                                              const gz::math::Angle &_a)
       {
         _out << _a.Radian();
         return _out;
@@ -229,7 +229,7 @@ namespace ignition
       /// \param[out] _a Angle to read value into.
       /// \return The input stream.
       public: friend std::istream &operator>>(std::istream &_in,
-                                              ignition::math::Angle &_a)
+                                              gz::math::Angle &_a)
       {
         // Skip white spaces
         _in.setf(std::ios_base::skipws);

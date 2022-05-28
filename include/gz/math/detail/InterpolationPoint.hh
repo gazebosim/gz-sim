@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_MATH_INTERPOLATION_POINT_HH_
-#define IGNITION_MATH_INTERPOLATION_POINT_HH_
+#ifndef GZ_MATH_INTERPOLATION_POINT_HH_
+#define GZ_MATH_INTERPOLATION_POINT_HH_
 
 #include <gz/math/Vector3.hh>
 #include <gz/math/Vector2.hh>
@@ -25,7 +25,7 @@
 #include <vector>
 
 #include <cassert>
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -193,7 +193,7 @@ namespace ignition
     /// \param[in] _start_index defines the slice to use.
     /// \param[in] _pos The position to project onto the plane
     template<typename T>
-    ignition::math::Vector3<T> ProjectPointToPlane(
+    gz::math::Vector3<T> ProjectPointToPlane(
       const std::vector<InterpolationPoint3D<T>> _points,
       const std::size_t &_start_index,
       const Vector3<T> &_pos)

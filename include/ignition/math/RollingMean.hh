@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/RollingMean.hh>
+#include <ignition/math/config.hh>

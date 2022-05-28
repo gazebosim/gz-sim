@@ -20,7 +20,7 @@
 #include <gz/math/GaussMarkovProcess.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

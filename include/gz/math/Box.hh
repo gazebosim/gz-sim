@@ -27,12 +27,12 @@
 
 #include <set>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /// \brief This is the type used for deduplicating and returning the set of
     /// intersections.
     template<typename T>
@@ -68,7 +68,7 @@ namespace ignition
       /// \param[in] _mat Material property for the box.
       public: Box(const Precision _length, const Precision _width,
                   const Precision _height,
-                  const ignition::math::Material &_mat);
+                  const gz::math::Material &_mat);
 
       /// \brief Construct a box with specified dimensions, in vector form.
       /// \param[in] _size Size of the box. The vector _size has the following
@@ -89,7 +89,7 @@ namespace ignition
       /// * _size[2] == height in meters
       /// \param[in] _mat Material property for the box.
       public: Box(const Vector3<Precision> &_size,
-                  const ignition::math::Material &_mat);
+                  const gz::math::Material &_mat);
 
       /// \brief Get the size of the box.
       /// \return Size of the box in meters.
@@ -124,11 +124,11 @@ namespace ignition
 
       /// \brief Get the material associated with this box.
       /// \return The material assigned to this box.
-      public: const ignition::math::Material &Material() const;
+      public: const gz::math::Material &Material() const;
 
       /// \brief Set the material associated with this box.
       /// \param[in] _mat The material assigned to this box.
-      public: void SetMaterial(const ignition::math::Material &_mat);
+      public: void SetMaterial(const gz::math::Material &_mat);
 
       /// \brief Get the volume of the box in m^3.
       /// \return Volume of the box in m^3.
@@ -201,7 +201,7 @@ namespace ignition
       private: Vector3<Precision> size = Vector3<Precision>::Zero;
 
       /// \brief The box's material.
-      private: ignition::math::Material material;
+      private: gz::math::Material material;
     };
 
     /// \typedef Box<int> Boxi

@@ -18,7 +18,7 @@
 #define GZ_MATH_DETAIL_WELLORDERED_VECTOR_HH_
 #include <gz/math/Vector3.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

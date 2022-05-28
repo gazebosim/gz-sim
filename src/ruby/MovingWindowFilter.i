@@ -20,7 +20,7 @@
 #include "gz/math/Vector3.hh"
 %}
 
-namespace ignition
+namespace gz
 {
 namespace math
 {

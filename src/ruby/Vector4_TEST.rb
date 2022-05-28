@@ -21,7 +21,7 @@ require 'math'
 
 class Vector4_TEST < Test::Unit::TestCase
   def test_construction
-    v = Ignition::Math::Vector4d.new
+    v = Gz::Math::Vector4d.new
 
     # ::operator== vector4
     assert(true,
@@ -29,48 +29,48 @@ class Vector4_TEST < Test::Unit::TestCase
 
     # ::Distance, ::Length()
     v.Set(1, 2, 3, 4)
-    assert(v.Length() == v.Distance(Ignition::Math::Vector4d.Zero),
+    assert(v.Length() == v.Distance(Gz::Math::Vector4d.Zero),
            "Vector4d::Lenth() should equal Vector4d::Distance(zero)")
 
     # ::operator/ vector4
     v.Set(4, 4, 4, 4)
-    v = v / Ignition::Math::Vector4d.new(1, 2, 2, 4)
-    assert(v == Ignition::Math::Vector4d.new(4, 2, 2, 1),
+    v = v / Gz::Math::Vector4d.new(1, 2, 2, 4)
+    assert(v == Gz::Math::Vector4d.new(4, 2, 2, 1),
            "v / Vector4d(1, 2, 2, 4) should equal Vector4d(4, 2, 2, 1)")
 
     # ::operator / double
     v = v / 2
-    assert(v == Ignition::Math::Vector4d.new(2, 1, 1, 0.5),
+    assert(v == Gz::Math::Vector4d.new(2, 1, 1, 0.5),
            "v / 2 should equal Vector4d(2, 1, 1, .5)")
 
     # ::operator * vector4
-    v = v * Ignition::Math::Vector4d.new(2, 3, 3, 4)
-    assert(v == Ignition::Math::Vector4d.new(4, 3, 3, 2),
+    v = v * Gz::Math::Vector4d.new(2, 3, 3, 4)
+    assert(v == Gz::Math::Vector4d.new(4, 3, 3, 2),
            "v * Vector4d(2, 3, 3, 4) should equal Vector4d(4, 3, 3, 2)")
 
     # operator /=
     v.Set(1, 2, 2, 4)
-    v /= Ignition::Math::Vector4d.new(1, 4, 8, 4)
-    assert(v == Ignition::Math::Vector4d.new(1, 0.5, 0.25, 1))
+    v /= Gz::Math::Vector4d.new(1, 4, 8, 4)
+    assert(v == Gz::Math::Vector4d.new(1, 0.5, 0.25, 1))
 
     # operator *=
     v.Set(1, 2, 2, 4)
-    v *= Ignition::Math::Vector4d.new(2, 0.5, 0.25, 0.1)
-    assert(v == Ignition::Math::Vector4d.new(2, 1, 0.5, 0.4))
+    v *= Gz::Math::Vector4d.new(2, 0.5, 0.25, 0.1)
+    assert(v == Gz::Math::Vector4d.new(2, 1, 0.5, 0.4))
 
     # Test the static defines.
-    assert(Ignition::Math::Vector4d.Zero ==
-           Ignition::Math::Vector4d.new(0, 0, 0, 0),
+    assert(Gz::Math::Vector4d.Zero ==
+           Gz::Math::Vector4d.new(0, 0, 0, 0),
            "Vector4d::Zero should equal [0, 0, 0, 0]")
 
-    assert(Ignition::Math::Vector4d.One ==
-           Ignition::Math::Vector4d.new(1, 1, 1, 1),
+    assert(Gz::Math::Vector4d.One ==
+           Gz::Math::Vector4d.new(1, 1, 1, 1),
            "Vector4d::One should equal [1, 1, 1, 1]")
   end
 
   def test_distance
-    vec1 = Ignition::Math::Vector4d.new(0, 0, 0, 0)
-    vec2 = Ignition::Math::Vector4d.new(1, 2, 3, 4)
+    vec1 = Gz::Math::Vector4d.new(0, 0, 0, 0)
+    vec2 = Gz::Math::Vector4d.new(1, 2, 3, 4)
 
     dist = vec1.Distance(vec2)
     assert((dist - 5.47722557505).abs() < 1e-6,
@@ -78,8 +78,8 @@ class Vector4_TEST < Test::Unit::TestCase
   end
 
   def test_squared_length
-    vec1 = Ignition::Math::Vector4d.new(0, 0, 0, 0)
-    vec2 = Ignition::Math::Vector4d.new(1, 2, 3, 4)
+    vec1 = Gz::Math::Vector4d.new(0, 0, 0, 0)
+    vec2 = Gz::Math::Vector4d.new(1, 2, 3, 4)
 
     sum1 = vec1.SquaredLength()
     sum2 = vec2.SquaredLength()
@@ -90,21 +90,21 @@ class Vector4_TEST < Test::Unit::TestCase
 
   def test_length
     # Zero vector
-    assert(Ignition::Math::Vector4d.Zero.Length() == 0.0,
+    assert(Gz::Math::Vector4d.Zero.Length() == 0.0,
            "Vector4 length of [0, 0, 0, 0] should equal 0")
-    assert(Ignition::Math::Vector4d.Zero.SquaredLength() == 0.0,
+    assert(Gz::Math::Vector4d.Zero.SquaredLength() == 0.0,
            "Vector4 squared length of [0, 0, 0, 0] should equal 0")
 
     # One vector
-    assert((Ignition::Math::Vector4d.One.Length() -
+    assert((Gz::Math::Vector4d.One.Length() -
             Math.sqrt(4.0)).abs() < 1e-10,
            "Vector4 length of [1, 1, 1, 1] should equal sqrt(4.0)")
 
-    assert(Ignition::Math::Vector4d.One.SquaredLength() == 4.0,
+    assert(Gz::Math::Vector4d.One.SquaredLength() == 4.0,
            "Vector4 squared lenght of [1, 1, 1, 1] should equal 4.0")
 
     # Arbitrary vector
-    v = Ignition::Math::Vector4d.new(0.1, -4.2, 2.5, -1.2)
+    v = Gz::Math::Vector4d.new(0.1, -4.2, 2.5, -1.2)
     assert((v.Length() - 5.03388517946).abs() < 1e-10,
            "Vector4 v length should equal 5.03388517946")
 
@@ -113,31 +113,31 @@ class Vector4_TEST < Test::Unit::TestCase
   end
 
   def test_normalize
-    vec1 = Ignition::Math::Vector4d.new(0, 0, 0, 0)
-    vec2 = Ignition::Math::Vector4d.new(1, 2, 3, 4)
+    vec1 = Gz::Math::Vector4d.new(0, 0, 0, 0)
+    vec2 = Gz::Math::Vector4d.new(1, 2, 3, 4)
 
     vec3 = vec1
     vec3.Normalize()
     assert(vec3 == vec1, "Vector4 vec3 should equal vec1")
-    assert(vec1 == Ignition::Math::Vector4d.Zero,
+    assert(vec1 == Gz::Math::Vector4d.Zero,
            "Vector4 should equal [0, 0, 0, 0]")
 
     vec3 = vec2
     vec2.Normalize()
-    assert(vec2.Equal(Ignition::Math::Vector4d.new(0.182575, 0.365150, 0.547725, 0.730300), 1e-5),
+    assert(vec2.Equal(Gz::Math::Vector4d.new(0.182575, 0.365150, 0.547725, 0.730300), 1e-5),
            "Vector4 vec3 should equal [0.182575, 0.365150, 0.547725, 0.730300]")
   end
 
   def test_add
-    vec1 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
-    vec2 = Ignition::Math::Vector4d.new(1.1, 2.2, 3.4, 4.3)
+    vec1 = Gz::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
+    vec2 = Gz::Math::Vector4d.new(1.1, 2.2, 3.4, 4.3)
 
     vec3 = vec1
     vec3 += vec2
 
-    assert(vec1 + vec2 == Ignition::Math::Vector4d.new(1.2, 2.4, 3.8, 5.1),
+    assert(vec1 + vec2 == Gz::Math::Vector4d.new(1.2, 2.4, 3.8, 5.1),
            "Vector4 vec1 + vec2 should equal [1.2, 2.4, 3.8, 4.9]")
-    assert(vec3 == Ignition::Math::Vector4d.new(1.2, 2.4, 3.8, 5.1),
+    assert(vec3 == Gz::Math::Vector4d.new(1.2, 2.4, 3.8, 5.1),
            "Vector4 vec3 should equal [1.2, 2.4, 3.8, 4.9]")
 
     # Addition with zeros
@@ -146,38 +146,38 @@ class Vector4_TEST < Test::Unit::TestCase
     assert(vec1 + 0 == vec1, "Vector4 vec1+0 should equal vec1")
 
     # Vector left and right
-    assert(Ignition::Math::Vector4d.Zero + vec1 == vec1,
+    assert(Gz::Math::Vector4d.Zero + vec1 == vec1,
            "Vector4 Zero + vec1 should equal vec1")
-    assert(vec1 + Ignition::Math::Vector4d.Zero == vec1,
+    assert(vec1 + Gz::Math::Vector4d.Zero == vec1,
            "Vector4 vec1 + Zero should equal vec1")
 
     # Addition assignment
     vec4 = vec1
     vec4 += 0
     assert(vec4 == vec1, "Vector4 vec4 should equal vec1")
-    vec4 += Ignition::Math::Vector4d.Zero
+    vec4 += Gz::Math::Vector4d.Zero
     assert(vec4 == vec1, "Vector4 vec4 should equal vec1")
 
     # Add non-trivial scalar values left and right
-    assert(vec1 + 2.5 == Ignition::Math::Vector4d.new(2.6, 2.7, 2.9, 3.3),
+    assert(vec1 + 2.5 == Gz::Math::Vector4d.new(2.6, 2.7, 2.9, 3.3),
            "Vector4 vec1 + 2.5 should equal [2.6, 2.7, 2.9, 3.3]")
 
     vec1 = vec4
     vec4 += 2.5
-    assert(vec4 == Ignition::Math::Vector4d.new(2.6, 2.7, 2.9, 3.3),
+    assert(vec4 == Gz::Math::Vector4d.new(2.6, 2.7, 2.9, 3.3),
            "Vector4 vec4 should equal [2.6, 2.7, 2.9, 3.3]")
   end
 
   def test_sub
-    vec1 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
-    vec2 = Ignition::Math::Vector4d.new(1.1, 2.2, 3.4, 4.3)
+    vec1 = Gz::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
+    vec2 = Gz::Math::Vector4d.new(1.1, 2.2, 3.4, 4.3)
 
     vec3 = vec2
     vec3 -= vec1
 
-    assert(vec2 - vec1 === Ignition::Math::Vector4d.new(1.0, 2.0, 3.0, 3.5),
+    assert(vec2 - vec1 === Gz::Math::Vector4d.new(1.0, 2.0, 3.0, 3.5),
            "Vector4 vec2 - vec1 should equal [1.0, 2.0, 3.0, 3.5]")
-    assert(vec3 == Ignition::Math::Vector4d.new(1.0, 2.0, 3.0, 3.5),
+    assert(vec3 == Gz::Math::Vector4d.new(1.0, 2.0, 3.0, 3.5),
            "Vector4 vec3 should equal [1.0, 2.0, 3.0, 3.5]")
 
     # Subtraction with zeros
@@ -186,59 +186,59 @@ class Vector4_TEST < Test::Unit::TestCase
     assert(vec1 - 0 == vec1, "Vector4 vec1 - 0 should equal vec1")
 
     # Vector left and right
-    assert(Ignition::Math::Vector4d.Zero - vec1 == -vec1,
+    assert(Gz::Math::Vector4d.Zero - vec1 == -vec1,
            "Vector4 Zero - vec1 should equal -vec1")
-    assert(vec1 - Ignition::Math::Vector4d.Zero == vec1,
+    assert(vec1 - Gz::Math::Vector4d.Zero == vec1,
            "Vector4 vec1 - Zero should equal vec1")
 
     # Subtraction assignment
     vec4 = vec1
     vec4 -= 0
     assert(vec4 == vec1, "Vector4 vec4 should equal vec1")
-    vec4 -= Ignition::Math::Vector4d.Zero
+    vec4 -= Gz::Math::Vector4d.Zero
     assert(vec4 == vec1, "Vector4 vec4 should equal vec1")
 
     # Subtract non-trivial scalar values left and right
-    assert(vec1 - 2.5 == -Ignition::Math::Vector4d.new(2.4, 2.3, 2.1, 1.7),
+    assert(vec1 - 2.5 == -Gz::Math::Vector4d.new(2.4, 2.3, 2.1, 1.7),
            "Vecetor3 vec1 - 2.5 should equal [2.4, 2.3, 2.1, 1.7]")
 
     vec4 = vec1
     vec4 -= 2.5
-    assert(vec4 == -Ignition::Math::Vector4d.new(2.4, 2.3, 2.1, 1.7),
+    assert(vec4 == -Gz::Math::Vector4d.new(2.4, 2.3, 2.1, 1.7),
            "Vector4 vec4 - 2.5 should equal [2.4, 2.3, 2.1, 1.7]")
   end
 
   def test_divide
-    vec1 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
+    vec1 = Gz::Math::Vector4d.new(0.1, 0.2, 0.4, 0.8)
 
     vec3 = vec1 / 2.0
-    assert(vec3 == Ignition::Math::Vector4d.new(0.05, 0.1, 0.2, 0.4),
+    assert(vec3 == Gz::Math::Vector4d.new(0.05, 0.1, 0.2, 0.4),
            "Vector4 vec3 should equal [0.05, 0.1, 0.2, 0.4]")
 
     vec3 /= 4.0
-    assert(vec3 == Ignition::Math::Vector4d.new(0.0125, 0.025, 0.05, 0.1),
+    assert(vec3 == Gz::Math::Vector4d.new(0.0125, 0.025, 0.05, 0.1),
            "Vector4 vec3 should qual [0.0125, 0.025, 0.05, 0.1]")
   end
 
   def test_multiply
-    v = Ignition::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
+    v = Gz::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
 
     vec3 = v * 2.0
-    assert(vec3 == Ignition::Math::Vector4d.new(0.2, 0.4, 0.6, 0.8),
+    assert(vec3 == Gz::Math::Vector4d.new(0.2, 0.4, 0.6, 0.8),
            "Vector4 vec3 should equal[0.2, 0.4, 0.6, 0.8]")
 
     vec3 *= 4.0
-    assert(vec3 == Ignition::Math::Vector4d.new(0.8, 1.6, 2.4, 3.2),
+    assert(vec3 == Gz::Math::Vector4d.new(0.8, 1.6, 2.4, 3.2),
            "Vector4 vec3 should equal [0.8, 1.6, 2.4, 3.2]")
 
     # Multiply by zero
 
     # Scalar left and right
-    assert(v * 0 == Ignition::Math::Vector4d.Zero,
+    assert(v * 0 == Gz::Math::Vector4d.Zero,
            "Vector4 v * 0 should equal Zero")
 
     # Element-wise vector multiplication
-    assert(v * Ignition::Math::Vector4d.Zero == Ignition::Math::Vector4d.Zero,
+    assert(v * Gz::Math::Vector4d.Zero == Gz::Math::Vector4d.Zero,
            "Vector4 v * Zero should equal Zero")
 
     # Multiply by one
@@ -247,57 +247,57 @@ class Vector4_TEST < Test::Unit::TestCase
     assert(v * 1 == v, "Vector4 v * 1 should equal v")
 
     # Element-wise vector multiplication
-    assert(v * Ignition::Math::Vector4d.One == v,
+    assert(v * Gz::Math::Vector4d.One == v,
            "Vector4 v * One should equal v")
 
     # Multiply by non-trivial scalar value
 
     scalar = 2.5
-    expect = Ignition::Math::Vector4d.new(0.25, 0.5, 0.75, 1.0)
+    expect = Gz::Math::Vector4d.new(0.25, 0.5, 0.75, 1.0)
     assert(v * scalar == expect,
            "Vector4 v * scalar should equal [0.25, 0.5, 0.75, 1.0]")
 
     # Multiply by itself element-wise
-    assert(v*v == Ignition::Math::Vector4d.new(0.01, 0.04, 0.09, 0.16),
+    assert(v*v == Gz::Math::Vector4d.new(0.01, 0.04, 0.09, 0.16),
            "Vector4 v * v should euqal [0.01, 0.04, 0.09, 0.16]")
   end
 
   def test_not_equal
-    vec1 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
-    vec2 = Ignition::Math::Vector4d.new(0.2, 0.2, 0.3, 0.4)
-    vec3 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
+    vec1 = Gz::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
+    vec2 = Gz::Math::Vector4d.new(0.2, 0.2, 0.3, 0.4)
+    vec3 = Gz::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
 
     assert(vec1 != vec2, "Vector4 vec1 should not equal vec2")
     assert(!(vec1 != vec3), "Vector4 vec1 should equal vec3" )
   end
 
   def test_equal
-    assert(!Ignition::Math::Vector4d.Zero.Equal(
-      Ignition::Math::Vector4d.One, 1e-6),
+    assert(!Gz::Math::Vector4d.Zero.Equal(
+      Gz::Math::Vector4d.One, 1e-6),
       "Vector4 Zero should not equal 1 with tolerance of 1e-6")
-    assert(!Ignition::Math::Vector4d.Zero.Equal(
-      Ignition::Math::Vector4d.One, 1e-3),
+    assert(!Gz::Math::Vector4d.Zero.Equal(
+      Gz::Math::Vector4d.One, 1e-3),
       "Vector4 Zero should not equal 1 with tolerance of 1e-3")
-    assert(!Ignition::Math::Vector4d.Zero.Equal(
-      Ignition::Math::Vector4d.One, 1e-1),
+    assert(!Gz::Math::Vector4d.Zero.Equal(
+      Gz::Math::Vector4d.One, 1e-1),
       "Vector4 Zero should not equal 1 with tolerance of 1e-1")
 
-    assert(Ignition::Math::Vector4d.Zero.Equal(
-           Ignition::Math::Vector4d.One, 1),
+    assert(Gz::Math::Vector4d.Zero.Equal(
+           Gz::Math::Vector4d.One, 1),
            "Vector4 Zero should equal 1 with tolerance of 1")
-    assert(Ignition::Math::Vector4d.Zero.Equal(
-           Ignition::Math::Vector4d.One, 1.1),
+    assert(Gz::Math::Vector4d.Zero.Equal(
+           Gz::Math::Vector4d.One, 1.1),
            "Vector4 Zero should equal 1 with tolerance of 1.1")
   end
 
   def test_finite
-    vec1 = Ignition::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
+    vec1 = Gz::Math::Vector4d.new(0.1, 0.2, 0.3, 0.4)
 
     assert(vec1.IsFinite(), "Vector4 vec1 should be be finite")
   end
 
   def test_nan
-    nanVec = Ignition::Math::Vector4d.NaN
+    nanVec = Gz::Math::Vector4d.NaN
     assert(!nanVec.IsFinite(),
            "NaN vector shouldn't be finite")
     assert(nanVec.X().nan?, "X should be NaN")
@@ -306,10 +306,10 @@ class Vector4_TEST < Test::Unit::TestCase
     assert(nanVec.W().nan?, "W should be NaN")
 
     nanVec.Correct()
-    assert(Ignition::Math::Vector4d.Zero == nanVec,
+    assert(Gz::Math::Vector4d.Zero == nanVec,
            "Corrected vector should equal zero")
 
-    nanVecF = Ignition::Math::Vector4f.NaN
+    nanVecF = Gz::Math::Vector4f.NaN
     assert(!nanVecF.IsFinite(),
            "NaN vector shouldn't be finite")
     assert(nanVecF.X().nan?, "X should be NaN")
@@ -318,7 +318,7 @@ class Vector4_TEST < Test::Unit::TestCase
     assert(nanVecF.W().nan?, "W should be NaN")
 
     nanVecF.Correct()
-    assert(Ignition::Math::Vector4f.Zero == nanVecF,
+    assert(Gz::Math::Vector4f.Zero == nanVecF,
            "Corrected vector should equal zero")
   end
 end

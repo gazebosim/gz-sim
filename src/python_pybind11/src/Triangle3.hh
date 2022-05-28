@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__TRIANGLE3_HH_
-#define IGNITION_MATH_PYTHON__TRIANGLE3_HH_
+#ifndef GZ_MATH_PYTHON__TRIANGLE3_HH_
+#define GZ_MATH_PYTHON__TRIANGLE3_HH_
 
 #include <string>
 
@@ -28,20 +28,20 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Triangle3
+/// Define a pybind11 wrapper for an gz::math::Triangle3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathTriangle3(py::module &m, const std::string &typestr);
 
-/// Help define a pybind11 wrapper for an ignition::math::Triangle3
+/// Help define a pybind11 wrapper for an gz::math::Triangle3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -49,7 +49,7 @@ void defineMathTriangle3(py::module &m, const std::string &typestr);
 template<typename T>
 void helpDefineMathTriangle3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Triangle3<T>;
+  using Class = gz::math::Triangle3<T>;
   py::class_<Class>(m,
                     typestr.c_str(),
                     py::buffer_protocol(),
@@ -107,7 +107,7 @@ void helpDefineMathTriangle3(py::module &m, const std::string &typestr)
 }
 
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__TRIANGLE3_HH_
+#endif  // GZ_MATH_PYTHON__TRIANGLE3_HH_

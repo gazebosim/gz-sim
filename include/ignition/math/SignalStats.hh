@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/SignalStats.hh>
+#include <ignition/math/config.hh>

@@ -20,15 +20,15 @@ require 'math'
 
 class Rand_TEST < Test::Unit::TestCase
   def test_rand
-    d = Ignition::Math::Rand::DblUniform(1, 2)
+    d = Gz::Math::Rand::DblUniform(1, 2)
     assert(d >= 1 && d <= 2, "The value should be 1 <= d <= 2")
 
-    i = Ignition::Math::Rand::IntUniform(1, 2)
+    i = Gz::Math::Rand::IntUniform(1, 2)
     assert(i >= 1 && i <= 2, "The value should be 1 <= i <= 2")
 
-    Ignition::Math::Rand::Seed(1001)
+    Gz::Math::Rand::Seed(1001)
 
-    i = Ignition::Math::Rand::IntNormal(10, 5)
+    i = Gz::Math::Rand::IntNormal(10, 5)
     assert(i == 11, "The value should be 11")
   end
 end

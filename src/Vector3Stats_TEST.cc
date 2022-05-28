@@ -19,7 +19,7 @@
 
 #include <gz/math/Vector3Stats.hh>
 
-using namespace ignition;
+using namespace gz;
 
 class Vector3StatsTest : public ::testing::Test
 {

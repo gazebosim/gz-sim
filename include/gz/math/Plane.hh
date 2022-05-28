@@ -25,12 +25,12 @@
 #include <gz/math/Quaternion.hh>
 #include <optional>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Plane Plane.hh gz/math/Plane.hh
     /// \brief A plane and related functions.

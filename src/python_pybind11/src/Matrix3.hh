@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__MATRIX3_HH_
-#define IGNITION_MATH_PYTHON__MATRIX3_HH_
+#ifndef GZ_MATH_PYTHON__MATRIX3_HH_
+#define GZ_MATH_PYTHON__MATRIX3_HH_
 
 #include <sstream>
 #include <string>
@@ -29,20 +29,20 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Matrix3
+/// Define a pybind11 wrapper for an gz::math::Matrix3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathMatrix3(py::module &m, const std::string &typestr);
 
-/// Help define a pybind11 wrapper for an ignition::math::Matrix3
+/// Help define a pybind11 wrapper for an gz::math::Matrix3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -50,7 +50,7 @@ void defineMathMatrix3(py::module &m, const std::string &typestr);
 template<typename T>
 void helpDefineMathMatrix3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Matrix3<T>;
+  using Class = gz::math::Matrix3<T>;
   auto toString = [](const Class &si) {
     std::stringstream stream;
     stream << si;
@@ -64,12 +64,12 @@ void helpDefineMathMatrix3(py::module &m, const std::string &typestr)
     .def(py::init<>())
     .def(py::init<Class>())
     .def(py::init<T, T, T, T, T, T, T, T, T>())
-    .def(py::init<const ignition::math::Quaternion<T>&>())
+    .def(py::init<const gz::math::Quaternion<T>&>())
     .def(py::self - py::self)
     .def(py::self + py::self)
     .def(py::self * py::self)
     .def(py::self * float())
-    .def(py::self * ignition::math::Vector3<T>())
+    .def(py::self * gz::math::Vector3<T>())
     // .def(py::self * py::self)
     // .def(py::self += py::self)
     // .def(-py::self)
@@ -127,6 +127,6 @@ void helpDefineMathMatrix3(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__MATRIX3_HH_
+#endif  // GZ_MATH_PYTHON__MATRIX3_HH_

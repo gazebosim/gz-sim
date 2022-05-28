@@ -26,7 +26,7 @@
 #include <gz/math/Vector3.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -38,27 +38,27 @@ namespace ignition
       public: %extend {
         static Vector3 Zero()
         {
-          return ignition::math::Vector3<T>::Zero;
+          return gz::math::Vector3<T>::Zero;
         }
         static Vector3 One()
         {
-          return ignition::math::Vector3<T>::One;
+          return gz::math::Vector3<T>::One;
         }
         static Vector3 UnitX()
         {
-          return ignition::math::Vector3<T>::UnitX;
+          return gz::math::Vector3<T>::UnitX;
         }
         static Vector3 UnitY()
         {
-          return ignition::math::Vector3<T>::UnitY;
+          return gz::math::Vector3<T>::UnitY;
         }
         static Vector3 UnitZ()
         {
-          return ignition::math::Vector3<T>::UnitZ;
+          return gz::math::Vector3<T>::UnitZ;
         }
         static Vector3 NaN()
         {
-          return ignition::math::Vector3<T>::NaN;
+          return gz::math::Vector3<T>::NaN;
         }
       }
       public: Vector3();

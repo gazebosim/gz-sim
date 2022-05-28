@@ -16,7 +16,7 @@
 */
 #include <gz/math/Vector3Stats.hh>
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /// \brief Private data class for the Vector3Stats class.
@@ -37,7 +37,7 @@ class Vector3Stats::Implementation
 
 //////////////////////////////////////////////////
 Vector3Stats::Vector3Stats()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

@@ -79,13 +79,13 @@ constexpr T IGN_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
 /// \param[in] _v Vector3d that contains the box's dimensions.
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
 
-namespace ignition
+namespace gz
 {
   /// \brief Math classes and function useful in robot applications.
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \brief size_t type with a value of 0
     static const size_t IGN_ZERO_SIZE_T  = 0u;
@@ -466,7 +466,7 @@ namespace ignition
     /// \param[in] _precision Precision for floating point numbers.
     /// \deprecated Use appendToStream(std::ostream, T) instead.
     template<typename T>
-    inline void IGN_DEPRECATED(7) appendToStream(
+    inline void GZ_DEPRECATED(7) appendToStream(
         std::ostream &_out, T _number, int _precision)
     {
       if (std::fpclassify(_number) == FP_ZERO)
@@ -485,7 +485,7 @@ namespace ignition
     /// _precision Not used for int.
     /// \deprecated Use appendToStream(std::ostream, int) instead.
     template<>
-    inline void IGN_DEPRECATED(7) appendToStream(
+    inline void GZ_DEPRECATED(7) appendToStream(
         std::ostream &_out, int _number, int)
     {
       _out << _number;
@@ -714,13 +714,13 @@ namespace ignition
     /// \brief Convert a std::chrono::steady_clock::time_point to a string
     /// \param[in] _point The std::chrono::steady_clock::time_point to convert.
     /// \return A string formatted with the time_point
-    std::string IGNITION_MATH_VISIBLE timePointToString(
+    std::string GZ_MATH_VISIBLE timePointToString(
         const std::chrono::steady_clock::time_point &_point);
 
     /// \brief Convert a std::chrono::steady_clock::duration to a string
     /// \param[in] _duration The std::chrono::steady_clock::duration to convert.
     /// \return A string formatted with the duration
-    std::string IGNITION_MATH_VISIBLE durationToString(
+    std::string GZ_MATH_VISIBLE durationToString(
         const std::chrono::steady_clock::duration &_duration);
 
     /// \brief Check if the given string represents a time.
@@ -800,7 +800,7 @@ namespace ignition
     /// \param[out] numberSeconds number of seconds in the string
     /// \param[out] numberMilliseconds number of milliseconds in the string
     /// \return True if the regex was able to split the string otherwise False
-    bool IGNITION_MATH_VISIBLE splitTimeBasedOnTimeRegex(
+    bool GZ_MATH_VISIBLE splitTimeBasedOnTimeRegex(
         const std::string &_timeString,
         uint64_t & numberDays, uint64_t & numberHours,
         uint64_t & numberMinutes, uint64_t & numberSeconds,
@@ -812,7 +812,7 @@ namespace ignition
     /// \return A std::chrono::steady_clock::duration containing the
     /// string's time value. If it isn't possible to convert, the duration will
     /// be zero.
-    std::chrono::steady_clock::duration IGNITION_MATH_VISIBLE stringToDuration(
+    std::chrono::steady_clock::duration GZ_MATH_VISIBLE stringToDuration(
         const std::string &_timeString);
 
     /// \brief Convert a string to a std::chrono::steady_clock::time_point
@@ -822,7 +822,7 @@ namespace ignition
     /// string's time value. If it isn't possible to convert, the time will
     /// be negative 1 second.
     std::chrono::steady_clock::time_point
-    IGNITION_MATH_VISIBLE stringToTimePoint(const std::string &_timeString);
+    GZ_MATH_VISIBLE stringToTimePoint(const std::string &_timeString);
 
     // Degrade precision on Windows, which cannot handle 'long double'
     // values properly. See the implementation of Unpair.
@@ -845,7 +845,7 @@ namespace ignition
     /// \return A unique non-negative integer value. On Windows the return
     /// value is uint32_t. On Linux/OSX the return value is uint64_t
     /// \sa Unpair
-    PairOutput IGNITION_MATH_VISIBLE Pair(
+    PairOutput GZ_MATH_VISIBLE Pair(
         const PairInput _a, const PairInput _b);
 
     /// \brief The reverse of the Pair function. Accepts a key, produced
@@ -859,7 +859,7 @@ namespace ignition
     /// tuple contains two uint16_t values. On Linux/OSX the tuple contains
     /// two uint32_t values.
     /// \sa Pair
-    std::tuple<PairInput, PairInput> IGNITION_MATH_VISIBLE Unpair(
+    std::tuple<PairInput, PairInput> GZ_MATH_VISIBLE Unpair(
         const PairOutput _key);
     }
   }

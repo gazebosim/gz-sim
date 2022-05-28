@@ -22,9 +22,9 @@
 #
 require 'ignition/math'
 
-va = Ignition::Math::Vector2d.new(1, 2)
-vb = Ignition::Math::Vector2d.new(3, 4)
-vc = Ignition::Math::Vector2d.new(vb)
+va = Gz::Math::Vector2d.new(1, 2)
+vb = Gz::Math::Vector2d.new(3, 4)
+vc = Gz::Math::Vector2d.new(vb)
 
 printf("va = %f %f\n", va.X(), va.Y())
 printf("vb = %f %f\n", vb.X(), vb.Y())

@@ -22,7 +22,7 @@
 #include <gz/math/MaterialType.hh>
 %}
 
-namespace ignition
+namespace gz
 {
 namespace math
 {

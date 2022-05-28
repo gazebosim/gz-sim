@@ -27,7 +27,7 @@
 #include "gz/math/Matrix3.hh"
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

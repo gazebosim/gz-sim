@@ -24,14 +24,14 @@ int main(int argc, char **argv)
   // The initial x any y values are zero.\n\n";
   // The x and y component of vec2 can be set at anytime.
 //! [constructor]
-  ignition::math::Vector2d vec2;
+  gz::math::Vector2d vec2;
   vec2.Set(2.0, 4.0);
 //! [constructor]
 
   // The Vector2 class is a template, so you can also create a Vector2 using
-  // ignition::math::Vector2<double>
+  // gz::math::Vector2<double>
   //! [constructor2]
-  ignition::math::Vector2<double> vec2a;
+  gz::math::Vector2<double> vec2a;
 
   vec2a.Set(1.0, 2.0);
   //! [constructor2]
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
   // It's also possible to set initial values. This time we are using
   // a Vector2 of floats
   //! [constructor3]
-  ignition::math::Vector2f vec2b(1.2f, 3.4f);
+  gz::math::Vector2f vec2b(1.2f, 3.4f);
   //! [constructor3]
 
   // We can output the contents of each vector using std::cout
@@ -75,6 +75,6 @@ int main(int argc, char **argv)
 //! [distance]
 
   // There are more functions in Vector2. Take a look at the API:
-  // https://ignitionrobotics.org/libs/math
+  // https://gazebosim.org/libs/math
 }
 //! [complete]

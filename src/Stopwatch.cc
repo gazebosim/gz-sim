@@ -17,10 +17,10 @@
 #include <chrono>
 #include "gz/math/Stopwatch.hh"
 
-using namespace ignition::math;
+using namespace gz::math;
 
 // Private data class
-class ignition::math::Stopwatch::Implementation
+class gz::math::Stopwatch::Implementation
 {
   /// \brief True if the real time clock is running.
   public: bool running = false;
@@ -40,7 +40,7 @@ class ignition::math::Stopwatch::Implementation
 
 //////////////////////////////////////////////////
 Stopwatch::Stopwatch()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

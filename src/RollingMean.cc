@@ -20,10 +20,10 @@
 #include <deque>
 #include "gz/math/RollingMean.hh"
 
-using namespace ignition::math;
+using namespace gz::math;
 
 /// \brief Private data
-class ignition::math::RollingMean::Implementation
+class gz::math::RollingMean::Implementation
 {
   /// \brief The window size
   public: size_t windowSize{10};
@@ -34,7 +34,7 @@ class ignition::math::RollingMean::Implementation
 
 //////////////////////////////////////////////////
 RollingMean::RollingMean(size_t _windowSize)
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
   if (_windowSize > 0)
     this->dataPtr->windowSize = _windowSize;

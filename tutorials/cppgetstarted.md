@@ -4,7 +4,7 @@ Previous Tutorial: \ref install
 
 ## Overview
 
-This tutorial describes how to get started using Ignition Math with C++.
+This tutorial describes how to get started using Gazebo Math with C++.
 
 We will run through an example that determines the distance between two
 points in 3D space. Start by creating a bare-bones main file using the
@@ -17,7 +17,7 @@ int main()
 }
 ```
 
-The easiest way to include Ignition Math is through the `ignition/math.hh`
+The easiest way to include Gazebo Math is through the `ignition/math.hh`
 header file. Alternatively, you can include only the header files you need.
 For this example, we'll take the short and easy approach. 
 
@@ -33,8 +33,8 @@ int main()
 ```
 
 Now let's create to 3D points with arbitrary values. We will use the
-ignition::math::Vector3 class to represent these points. Ignition Math provides a handy
-ignition::math::Vector3d type which is a typedef of `Vector3<double>`. The result of this
+gz::math::Vector3 class to represent these points. Gazebo Math provides a handy
+gz::math::Vector3d type which is a typedef of `Vector3<double>`. The result of this
 addition will be a main file similar to the following.
 
 ```{.cpp}
@@ -42,23 +42,23 @@ addition will be a main file similar to the following.
 
 int main()
 {
-  ignition::math::Vector3d point1(1, 3, 5);
-  ignition::math::Vector3d point2(2, 4, 6);
+  gz::math::Vector3d point1(1, 3, 5);
+  gz::math::Vector3d point2(2, 4, 6);
 
   return 0;
 }
 ```
 
 Finally, we can compute the distance between `point1` and `point2` using the
-ignition::math::Vector3::Distance() function and output the distance value.
+gz::math::Vector3::Distance() function and output the distance value.
 
 ```{.cpp}
 #include <gz/math.hh>
 
 int main()
 {
-  ignition::math::Vector3d point1(1, 3, 5);
-  ignition::math::Vector3d point2(2, 4, 6);
+  gz::math::Vector3d point1(1, 3, 5);
+  gz::math::Vector3d point2(2, 4, 6);
 
   double distance = point1.Distance(point2);
   std::cout << "Distance from " << point1 << " to " << point2 << " is " <<

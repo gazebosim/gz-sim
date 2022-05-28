@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/Sphere.hh>
+#include <ignition/math/config.hh>

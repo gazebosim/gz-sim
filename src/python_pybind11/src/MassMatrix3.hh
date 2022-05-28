@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__MASSMATRIX3_HH_
-#define IGNITION_MATH_PYTHON__MASSMATRIX3_HH_
+#ifndef GZ_MATH_PYTHON__MASSMATRIX3_HH_
+#define GZ_MATH_PYTHON__MASSMATRIX3_HH_
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
@@ -27,20 +27,20 @@
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::MassMatrix3
+/// Define a pybind11 wrapper for an gz::math::MassMatrix3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathMassMatrix3(py::module &m, const std::string &typestr);
 
-/// Help define a pybind11 wrapper for an ignition::math::MassMatrix3
+/// Help define a pybind11 wrapper for an gz::math::MassMatrix3
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -48,7 +48,7 @@ void defineMathMassMatrix3(py::module &m, const std::string &typestr);
 template<typename T>
 void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::MassMatrix3<T>;
+  using Class = gz::math::MassMatrix3<T>;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -56,8 +56,8 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
                     py::dynamic_attr())
   .def(py::init<>())
   .def(py::init<const Class&>())
-  .def(py::init<const T&, const ignition::math::Vector3<T>&,
-                const ignition::math::Vector3<T>&>())
+  .def(py::init<const T&, const gz::math::Vector3<T>&,
+                const gz::math::Vector3<T>&>())
   .def("set_mass", &Class::SetMass, "Set the mass.")
   .def("mass", py::overload_cast<>(&Class::Mass, py::const_), "Get the mass")
   .def("ixx", &Class::Ixx, "Get ixx")
@@ -92,55 +92,55 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
        &Class::SetDiagonalMoments,
        "Set the diagonal moments of inertia (Ixx, Iyy, Izz).")
   .def("set_from_box",
-       py::overload_cast<const Material&, const ignition::math::Vector3<T>&,
-                         const ignition::math::Quaternion<T>&>
+       py::overload_cast<const Material&, const gz::math::Vector3<T>&,
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromBox),
-       py::arg("_mat") = ignition::math::Material(),
-       py::arg("_size") = ignition::math::Vector3<T>::Zero,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_mat") = gz::math::Material(),
+       py::arg("_size") = gz::math::Vector3<T>::Zero,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent box.")
   .def("set_from_box",
-       py::overload_cast<const T, const ignition::math::Vector3<T>&,
-                         const ignition::math::Quaternion<T>&>
+       py::overload_cast<const T, const gz::math::Vector3<T>&,
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromBox),
        py::arg("_mass") = 0,
-       py::arg("_size") = ignition::math::Vector3<T>::Zero,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_size") = gz::math::Vector3<T>::Zero,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent box.")
   .def("set_from_box",
-       py::overload_cast<const ignition::math::Vector3<T>&,
-                         const ignition::math::Quaternion<T>&>
+       py::overload_cast<const gz::math::Vector3<T>&,
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromBox),
-       py::arg("_size") = ignition::math::Vector3<T>::Zero,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_size") = gz::math::Vector3<T>::Zero,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent box.")
   .def("set_from_cylinder_z",
        py::overload_cast<const Material&, const T, const T,
-                         const ignition::math::Quaternion<T>&>
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromCylinderZ),
-       py::arg("_mat") = ignition::math::Material(),
+       py::arg("_mat") = gz::math::Material(),
        py::arg("_length") = 0,
        py::arg("_radius") = 0,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent "
        "cylinder aligned with Z axis.")
   .def("set_from_cylinder_z",
        py::overload_cast<const T, const T, const T,
-                         const ignition::math::Quaternion<T>&>
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromCylinderZ),
        py::arg("_mass") = 0,
        py::arg("_length") = 0,
        py::arg("_radius") = 0,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent "
        "cylinder aligned with Z axis.")
   .def("set_from_cylinder_z",
        py::overload_cast<const T, const T,
-                         const ignition::math::Quaternion<T>&>
+                         const gz::math::Quaternion<T>&>
                          (&Class::SetFromCylinderZ),
        py::arg("_length") = 0,
        py::arg("_radius") = 0,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        "Set inertial properties based on a Material and equivalent "
        "cylinder aligned with Z axis.")
   .def("set_from_sphere",
@@ -159,8 +159,8 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
        "using the current mass value.")
   .def("equivalent_box",
        &Class::EquivalentBox,
-       py::arg("_size") = ignition::math::Vector3<T>::Zero,
-       py::arg("_rot") = ignition::math::Quaternion<T>::Identity,
+       py::arg("_size") = gz::math::Vector3<T>::Zero,
+       py::arg("_rot") = gz::math::Quaternion<T>::Identity,
        py::arg("_tol") = 1e-6,
        "Get dimensions and rotation offset of uniform box "
        "with equivalent mass and moment of inertia.")
@@ -182,7 +182,7 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
        "Verify that inertia values are positive semi-definite "
        "and satisfy the triangle inequality.")
   .def("epsilon",
-       py::overload_cast<const ignition::math::Vector3<T>&, const T>
+       py::overload_cast<const gz::math::Vector3<T>&, const T>
         (&Class::Epsilon),
        py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
        "Get an epsilon value that represents the amount of "
@@ -202,6 +202,6 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__MASSMATRIX3_HH_
+#endif  // GZ_MATH_PYTHON__MASSMATRIX3_HH_

@@ -15,21 +15,21 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__TEMPERATURE_HH_
-#define IGNITION_MATH_PYTHON__TEMPERATURE_HH_
+#ifndef GZ_MATH_PYTHON__TEMPERATURE_HH_
+#define GZ_MATH_PYTHON__TEMPERATURE_HH_
 
 #include <pybind11/pybind11.h>
 #include <string>
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Temperature
+/// Define a pybind11 wrapper for an gz::math::Temperature
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -37,6 +37,6 @@ namespace python
 void defineMathTemperature(py::module &m, const std::string &typestr);
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__TEMPERATURE_HH_
+#endif  // GZ_MATH_PYTHON__TEMPERATURE_HH_

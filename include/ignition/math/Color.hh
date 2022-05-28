@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Color.hh>
+#include <ignition/math/config.hh>

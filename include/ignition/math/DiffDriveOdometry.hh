@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/DiffDriveOdometry.hh>
+#include <ignition/math/config.hh>

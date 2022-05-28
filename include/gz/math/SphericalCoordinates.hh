@@ -25,15 +25,15 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
 
     /// \brief Convert spherical coordinates for planetary surfaces.
-    class IGNITION_MATH_VISIBLE SphericalCoordinates
+    class GZ_MATH_VISIBLE SphericalCoordinates
     {
       /// \enum SurfaceType
       /// \brief Unique identifiers for planetary surface models.
@@ -80,10 +80,10 @@ namespace ignition
       /// \param[in] _elevation Reference elevation.
       /// \param[in] _heading Heading offset.
       public: SphericalCoordinates(const SurfaceType _type,
-                                   const ignition::math::Angle &_latitude,
-                                   const ignition::math::Angle &_longitude,
+                                   const gz::math::Angle &_latitude,
+                                   const gz::math::Angle &_longitude,
                                    const double _elevation,
-                                   const ignition::math::Angle &_heading);
+                                   const gz::math::Angle &_heading);
 
 
       /// \brief Convert a Cartesian position vector to geodetic coordinates.
@@ -99,8 +99,8 @@ namespace ignition
       /// world frame.
       /// \return Cooordinates: geodetic latitude (deg), longitude (deg),
       ///         altitude above sea level (m).
-      public: ignition::math::Vector3d SphericalFromLocalPosition(
-                  const ignition::math::Vector3d &_xyz) const;
+      public: gz::math::Vector3d SphericalFromLocalPosition(
+                  const gz::math::Vector3d &_xyz) const;
 
       /// \brief Convert a Cartesian velocity vector in the local frame
       ///        to a global Cartesian frame with components East, North, Up.
@@ -113,8 +113,8 @@ namespace ignition
       /// \param[in] _xyz Cartesian velocity vector in the heading-adjusted
       /// world frame.
       /// \return Rotated vector with components (x,y,z): (East, North, Up).
-      public: ignition::math::Vector3d GlobalFromLocalVelocity(
-                  const ignition::math::Vector3d &_xyz) const;
+      public: gz::math::Vector3d GlobalFromLocalVelocity(
+                  const gz::math::Vector3d &_xyz) const;
 
       /// \brief Convert a string to a SurfaceType.
       /// Allowed values: ["EARTH_WGS84"].
@@ -136,10 +136,10 @@ namespace ignition
       /// \param[in] _latB Latitude of point B.
       /// \param[in] _lonB Longitude of point B.
       /// \return Distance in meters.
-      public: static double Distance(const ignition::math::Angle &_latA,
-                                     const ignition::math::Angle &_lonA,
-                                     const ignition::math::Angle &_latB,
-                                     const ignition::math::Angle &_lonB);
+      public: static double Distance(const gz::math::Angle &_latA,
+                                     const gz::math::Angle &_lonA,
+                                     const gz::math::Angle &_latB,
+                                     const gz::math::Angle &_lonB);
 
       /// \brief Get SurfaceType currently in use.
       /// \return Current SurfaceType value.
@@ -147,11 +147,11 @@ namespace ignition
 
       /// \brief Get reference geodetic latitude.
       /// \return Reference geodetic latitude.
-      public: ignition::math::Angle LatitudeReference() const;
+      public: gz::math::Angle LatitudeReference() const;
 
       /// \brief Get reference longitude.
       /// \return Reference longitude.
-      public: ignition::math::Angle LongitudeReference() const;
+      public: gz::math::Angle LongitudeReference() const;
 
       /// \brief Get reference elevation in meters.
       /// \return Reference elevation.
@@ -161,7 +161,7 @@ namespace ignition
       ///        angle from East to x-axis, or equivalently
       ///        from North to y-axis.
       /// \return Heading offset of reference frame.
-      public: ignition::math::Angle HeadingOffset() const;
+      public: gz::math::Angle HeadingOffset() const;
 
       /// \brief Set SurfaceType for planetary surface model.
       /// \param[in] _type SurfaceType value.
@@ -169,11 +169,11 @@ namespace ignition
 
       /// \brief Set reference geodetic latitude.
       /// \param[in] _angle Reference geodetic latitude.
-      public: void SetLatitudeReference(const ignition::math::Angle &_angle);
+      public: void SetLatitudeReference(const gz::math::Angle &_angle);
 
       /// \brief Set reference longitude.
       /// \param[in] _angle Reference longitude.
-      public: void SetLongitudeReference(const ignition::math::Angle &_angle);
+      public: void SetLongitudeReference(const gz::math::Angle &_angle);
 
       /// \brief Set reference elevation above sea level in meters.
       /// \param[in] _elevation Reference elevation.
@@ -181,23 +181,23 @@ namespace ignition
 
       /// \brief Set heading angle offset for the frame.
       /// \param[in] _angle Heading offset for the frame.
-      public: void SetHeadingOffset(const ignition::math::Angle &_angle);
+      public: void SetHeadingOffset(const gz::math::Angle &_angle);
 
       /// \brief Convert a geodetic position vector to Cartesian coordinates.
       /// This performs a `PositionTransform` from SPHERICAL to LOCAL.
       /// \param[in] _latLonEle Geodetic position in the planetary frame of
       /// reference. X: latitude (deg), Y: longitude (deg), X: altitude.
       /// \return Cartesian position vector in the heading-adjusted world frame.
-      public: ignition::math::Vector3d LocalFromSphericalPosition(
-                  const ignition::math::Vector3d &_latLonEle) const;
+      public: gz::math::Vector3d LocalFromSphericalPosition(
+                  const gz::math::Vector3d &_latLonEle) const;
 
       /// \brief Convert a Cartesian velocity vector with components East,
       /// North, Up to a local cartesian frame vector XYZ.
       /// This is a wrapper around `VelocityTransform(_xyz, GLOBAL, LOCAL)`
       /// \param[in] _xyz Vector with components (x,y,z): (East, North, Up).
       /// \return Cartesian vector in the world frame.
-      public: ignition::math::Vector3d LocalFromGlobalVelocity(
-                  const ignition::math::Vector3d &_xyz) const;
+      public: gz::math::Vector3d LocalFromGlobalVelocity(
+                  const gz::math::Vector3d &_xyz) const;
 
       /// \brief Update coordinate transformation matrix with reference location
       public: void UpdateTransformationMatrix();
@@ -208,8 +208,8 @@ namespace ignition
       /// \param[in] _in  CoordinateType for input
       /// \param[in] _out CoordinateType for output
       /// \return Transformed coordinate using cached origin.
-      public: ignition::math::Vector3d
-              PositionTransform(const ignition::math::Vector3d &_pos,
+      public: gz::math::Vector3d
+              PositionTransform(const gz::math::Vector3d &_pos,
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       /// \brief Convert between velocity in SPHERICAL/ECEF/LOCAL/GLOBAL frame
@@ -218,8 +218,8 @@ namespace ignition
       /// \param[in] _in  CoordinateType for input
       /// \param[in] _out CoordinateType for output
       /// \return Transformed velocity vector
-      public: ignition::math::Vector3d VelocityTransform(
-                  const ignition::math::Vector3d &_vel,
+      public: gz::math::Vector3d VelocityTransform(
+                  const gz::math::Vector3d &_vel,
                   const CoordinateType &_in, const CoordinateType &_out) const;
 
       /// \brief Equality operator, result = this == _sc

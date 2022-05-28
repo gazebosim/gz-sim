@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/RollingMean.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(RollingMeanTest, RollingMean)

@@ -21,15 +21,15 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /// \class RotationSpline RotationSpline.hh gz/math/RotationSpline.hh
     /// \brief Spline for rotations
-    class IGNITION_MATH_VISIBLE  RotationSpline
+    class GZ_MATH_VISIBLE  RotationSpline
     {
       /// \brief Constructor. Sets the autoCalc to true
       public: RotationSpline();

@@ -20,27 +20,27 @@ require 'math'
 
 class Matrix3_TEST < Test::Unit::TestCase
   def test_construction
-    m = Ignition::Math::Matrix3d.new
+    m = Gz::Math::Matrix3d.new
     assert(m.(0, 0) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (0,0)==0")
+           "Gz::Math::Matrix3d default constructor should have (0,0)==0")
     assert(m.(0, 1) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (0,1)==0")
+           "Gz::Math::Matrix3d default constructor should have (0,1)==0")
     assert(m.(0, 2) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (0,2)==0")
+           "Gz::Math::Matrix3d default constructor should have (0,2)==0")
     assert(m.(1, 0) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (1,0)==0")
+           "Gz::Math::Matrix3d default constructor should have (1,0)==0")
     assert(m.(1, 1) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (1,1)==0")
+           "Gz::Math::Matrix3d default constructor should have (1,1)==0")
     assert(m.(1, 2) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (1,2)==0")
+           "Gz::Math::Matrix3d default constructor should have (1,2)==0")
     assert(m.(2, 0) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (2,0)==0")
+           "Gz::Math::Matrix3d default constructor should have (2,0)==0")
     assert(m.(2, 1) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (2,1)==0")
+           "Gz::Math::Matrix3d default constructor should have (2,1)==0")
     assert(m.(2, 2) == 0.0,
-           "Ignition::Math::Matrix3d default constructor should have (2,2)==0")
+           "Gz::Math::Matrix3d default constructor should have (2,2)==0")
 
-    m1 = Ignition::Math::Matrix3d.new(1, 2, 3, 4, 5, 6 , 7, 8, 9)
+    m1 = Gz::Math::Matrix3d.new(1, 2, 3, 4, 5, 6 , 7, 8, 9)
     assert(m1.(0, 0) == 1.0,
            "m1 should have (0,0)==1")
     assert(m1.(0, 1) == 2.0,

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Kmeans.hh>
+#include <ignition/math/config.hh>

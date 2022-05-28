@@ -22,7 +22,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Angle.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(AngleTest, Angle)

@@ -15,24 +15,18 @@
  *
 */
 
-#include <string>
+#include <gtest/gtest.h>
 
-#include <gz/math/Vector3.hh>
-#include "MovingWindowFilter.hh"
+#define SUPPRESS_IGNITION_HEADER_DEPRECATION
 
-namespace gz
+#include <ignition/math/Angle.hh>
+#include <ignition/utils/SuppressWarning.hh>
+
+/////////////////////////////////////////////////
+// Make sure the ignition namespace still works
+TEST(Deprecated, IgnitionNamespace)
 {
-namespace math
-{
-namespace python
-{
-void defineMathMovingWindowFilter(py::module &m, const std::string &typestr)
-{
-  helpDefineMathMovingWindowFilter<int>(m, typestr + "i");
-  helpDefineMathMovingWindowFilter<double>(m, typestr + "d");
-  helpDefineMathMovingWindowFilter<gz::math::Vector3d>(m, typestr + "v3");
+  ignition::math::Angle angle;
 }
 
-}  // namespace python
-}  // namespace math
-}  // namespace gz
+#undef SUPPRESS_IGNITION_HEADER_DEPRECATION

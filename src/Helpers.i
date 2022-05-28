@@ -38,7 +38,7 @@ constexpr T IGN_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
 #define IGN_BOX_VOLUME(_x, _y, _z) (_x *_y * _z)
 #define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

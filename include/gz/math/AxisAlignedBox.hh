@@ -27,16 +27,16 @@
 #include <gz/math/Vector3.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /// \class AxisAlignedBox AxisAlignedBox.hh gz/math/AxisAlignedBox.hh
     /// \brief Mathematical representation of a box that is aligned along
     /// an X,Y,Z axis.
-    class IGNITION_MATH_VISIBLE AxisAlignedBox
+    class GZ_MATH_VISIBLE AxisAlignedBox
     {
       /// \brief Default constructor. This constructor will set the box's
       /// minimum and maximum corners to the highest (max) and lowest
@@ -132,7 +132,7 @@ namespace ignition
       /// \param[in] _b AxisAlignedBox to output to the stream
       /// \return The stream
       public: friend std::ostream &operator<<(std::ostream &_out,
-                  const ignition::math::AxisAlignedBox &_b)
+                  const gz::math::AxisAlignedBox &_b)
       {
         _out << "Min[" << _b.Min() << "] Max[" << _b.Max() << "]";
         return _out;

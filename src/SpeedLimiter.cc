@@ -18,11 +18,11 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/SpeedLimiter.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /// \brief Private SpeedLimiter data class.
-class ignition::math::SpeedLimiterPrivate
+class gz::math::SpeedLimiterPrivate
 {
   /// \brief Minimum velocity limit.
   public: double minVelocity{-std::numeric_limits<double>::infinity()};
@@ -142,7 +142,7 @@ double SpeedLimiter::LimitVelocity(double &_vel) const
 {
   const double vUnclamped = _vel;
 
-  _vel = ignition::math::clamp(
+  _vel = gz::math::clamp(
     _vel, this->dataPtr->minVelocity, this->dataPtr->maxVelocity);
 
   return _vel - vUnclamped;
@@ -161,7 +161,7 @@ double SpeedLimiter::LimitAcceleration(double &_vel, double _prevVel,
 
   const double accUnclamped = (_vel - _prevVel) / dtSec;
 
-  const double accClamped = ignition::math::clamp(accUnclamped,
+  const double accClamped = gz::math::clamp(accUnclamped,
       this->dataPtr->minAcceleration, this->dataPtr->maxAcceleration);
 
   _vel = _prevVel + accClamped * dtSec;
@@ -184,7 +184,7 @@ double SpeedLimiter::LimitJerk(double &_vel, double _prevVel,
   const double accPrev = (_prevVel - _prevPrevVel) / dtSec;
   const double jerkUnclamped = (accUnclamped - accPrev) / dtSec;
 
-  const double jerkClamped = ignition::math::clamp(jerkUnclamped,
+  const double jerkClamped = gz::math::clamp(jerkUnclamped,
       this->dataPtr->minJerk, this->dataPtr->maxJerk);
 
   const double accClamped = accPrev + jerkClamped * dtSec;

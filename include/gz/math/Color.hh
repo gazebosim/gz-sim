@@ -25,12 +25,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Color Color.hh gz/math/Color.hh
     /// \brief Defines a color using a red (R), green (G), blue (B), and alpha
@@ -39,7 +39,7 @@ namespace ignition
     /// ## Example
     ///
     /// \snippet examples/color_example.cc complete
-    class IGNITION_MATH_VISIBLE Color
+    class GZ_MATH_VISIBLE Color
     {
       /// \brief (1, 1, 1)
       public: static const Color &White;

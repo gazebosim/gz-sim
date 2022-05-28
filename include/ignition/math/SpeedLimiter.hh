@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/SpeedLimiter.hh>
+#include <ignition/math/config.hh>

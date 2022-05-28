@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/eigen3/Conversions.hh>
+#include <ignition/math/config.hh>

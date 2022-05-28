@@ -1,6 +1,6 @@
 ## Examples
 
-Example programs using Ignition Math.
+Example programs using Gazebo Math.
 
 ## Build
 

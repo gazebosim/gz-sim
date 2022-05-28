@@ -1,13 +1,13 @@
 \page example_triangle Triangle example
 
-This tutorial explains how to use the `Triangle` class from Ignition Math library.
+This tutorial explains how to use the `Triangle` class from Gazebo Math library.
 
 ## Compile the code
 
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-git clone https://github.com/ignitionrobotics/ign-math/ -b master
+git clone https://github.com/gazebosim/gz-math/ -b master
 cd ign-math/examples
 mkdir build
 cd build
@@ -69,4 +69,4 @@ The `Intersects` function checks if a line segment intersects the triangle. It a
 
 \snippet examples/triangle_example.cc intersect
 
-There are more functions in `Triangle`. Take a look at the [API](https://ignitionrobotics.org/api/math/6.4/index.html)
+There are more functions in `Triangle`. Take a look at the [API](https://gazebosim.org/api/math/6.4/index.html)

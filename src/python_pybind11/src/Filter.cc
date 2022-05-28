@@ -17,7 +17,7 @@
 
 #include "Filter.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -39,7 +39,7 @@ void defineMathOnePole(py::module &m, const std::string &typestr)
 
 void defineMathOnePoleQuaternion(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::OnePoleQuaternion;
+  using Class = gz::math::OnePoleQuaternion;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -63,7 +63,7 @@ void defineMathOnePoleQuaternion(py::module &m, const std::string &typestr)
 
 void defineMathOnePoleVector3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::OnePoleVector3;
+  using Class = gz::math::OnePoleVector3;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -95,7 +95,7 @@ void defineMathBiQuad(py::module &m, const std::string &typestr)
 
 void defineMathBiQuadVector3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::BiQuadVector3;
+  using Class = gz::math::BiQuadVector3;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -121,4 +121,4 @@ void defineMathBiQuadVector3(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

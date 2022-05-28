@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
-#define IGNITION_MATH_SIGNALSTATSPRIVATE_HH_
+#ifndef GZ_MATH_SIGNALSTATSPRIVATE_HH_
+#define GZ_MATH_SIGNALSTATSPRIVATE_HH_
 
 #include <memory>
 #include <vector>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    inline namespace GZ_MATH_VERSION_NAMESPACE
     {
     /// \brief Private data class for the SignalStatistic class.
     class SignalStatisticPrivate

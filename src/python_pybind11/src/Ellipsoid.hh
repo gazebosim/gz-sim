@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__Ellipsoid_HH_
-#define IGNITION_MATH_PYTHON__Ellipsoid_HH_
+#ifndef GZ_MATH_PYTHON__Ellipsoid_HH_
+#define GZ_MATH_PYTHON__Ellipsoid_HH_
 
 #include <string>
 
@@ -30,13 +30,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Ellipsoid
+/// Define a pybind11 wrapper for an gz::math::Ellipsoid
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -44,16 +44,16 @@ namespace python
 template<typename T>
 void helpDefineMathEllipsoid(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Ellipsoid<T>;
+  using Class = gz::math::Ellipsoid<T>;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
                     py::buffer_protocol(),
                     py::dynamic_attr())
     .def(py::init<>())
-    .def(py::init<ignition::math::Vector3<T>>())
-    .def(py::init<ignition::math::Vector3<T>,
-                  const ignition::math::Material&>())
+    .def(py::init<gz::math::Vector3<T>>())
+    .def(py::init<gz::math::Vector3<T>,
+                  const gz::math::Material&>())
     .def(py::self == py::self)
     .def("radii",
          &Class::Radii,
@@ -89,7 +89,7 @@ void helpDefineMathEllipsoid(py::module &m, const std::string &typestr)
     }, "memo"_a);
 }
 
-/// Define a pybind11 wrapper for an ignition::math::Ellipsoid
+/// Define a pybind11 wrapper for an gz::math::Ellipsoid
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -98,6 +98,6 @@ void defineMathEllipsoid(py::module &m, const std::string &typestr);
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__BOX_HH_
+#endif  // GZ_MATH_PYTHON__BOX_HH_

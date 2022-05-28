@@ -19,7 +19,7 @@
 
 #include "gz/math/Box.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(BoxTest, Constructor)

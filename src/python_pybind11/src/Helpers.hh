@@ -15,26 +15,26 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__HELPERS_HH_
-#define IGNITION_MATH_PYTHON__HELPERS_HH_
+#ifndef GZ_MATH_PYTHON__HELPERS_HH_
+#define GZ_MATH_PYTHON__HELPERS_HH_
 
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a py::bind11 wrapper for an ignition::math::Helpers
+/// Define a py::bind11 wrapper for an gz::math::Helpers
 /**
  * \param[in] module a py::bind11 module to add the definition to
  */
 void defineMathHelpers(py::module &m);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__HELPERS_HH_
+#endif  // GZ_MATH_PYTHON__HELPERS_HH_

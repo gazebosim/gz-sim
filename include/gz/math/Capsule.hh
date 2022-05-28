@@ -21,7 +21,7 @@
 #include "gz/math/MassMatrix3.hh"
 #include "gz/math/Material.hh"
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -29,7 +29,7 @@ namespace ignition
     class CapsulePrivate;
 
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Capsule Capsule.hh gz/math/Capsule.hh
     /// \brief A representation of a capsule or sphere-capped cylinder.

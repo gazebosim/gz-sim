@@ -26,7 +26,7 @@
 #include "gz/math/Plane.hh"
 #include "gz/math/Pose3.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /// \internal
@@ -68,7 +68,7 @@ class Frustum::Implementation
 
 /////////////////////////////////////////////////
 Frustum::Frustum()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

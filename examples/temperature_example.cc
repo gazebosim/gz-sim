@@ -21,17 +21,17 @@
 int main(int argc, char **argv)
 {
   /// Convert from Kelvin to Celsius
-  double celsius = ignition::math::Temperature::KelvinToCelsius(2.5);
+  double celsius = gz::math::Temperature::KelvinToCelsius(2.5);
   printf("2.5Kelvin to Celsius is %f\n", celsius);
 
-  ignition::math::Temperature temp(123.5);
+  gz::math::Temperature temp(123.5);
   printf("Constructed a Temperature object with %f Kelvin\n", temp());
   printf("Same temperature in Celsius %f\n", temp.Celsius());
 
   temp += 100.0;
   printf("Temperature + 100.0 is %fK\n", temp());
 
-  ignition::math::Temperature newTemp(temp);
+  gz::math::Temperature newTemp(temp);
   newTemp += temp + 23.5;
   printf("Copied the temp object and added 23.5K. The new tempurature is %fF\n",
       newTemp.Fahrenheit());

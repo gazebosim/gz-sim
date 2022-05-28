@@ -22,7 +22,7 @@
 #include "SignalStats.hh"
 #include <gz/math/SignalStats.hh>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -31,7 +31,7 @@ namespace python
 //////////////////////////////////////////////////
 void defineMathSignalStats(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalStats;
+  using Class = gz::math::SignalStats;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -56,7 +56,7 @@ void defineMathSignalStats(py::module &m, const std::string &typestr)
 }
 
 //////////////////////////////////////////////////
-class SignalStatisticTrampoline : public ignition::math::SignalStatistic
+class SignalStatisticTrampoline : public gz::math::SignalStatistic
 {
 public:
   SignalStatisticTrampoline() : SignalStatistic() {}
@@ -68,7 +68,7 @@ public:
   {
       PYBIND11_OVERLOAD_PURE(
           double,                           // Return type (ret_type)
-          ignition::math::SignalStatistic,  // Parent class (cname)
+          gz::math::SignalStatistic,  // Parent class (cname)
           // Name of function in C++ (must match Python name) (fn)
           Value,
       );
@@ -78,7 +78,7 @@ public:
   {
       PYBIND11_OVERLOAD_PURE(
           std::string,                      // Return type (ret_type)
-          ignition::math::SignalStatistic,  // Parent class (cname)
+          gz::math::SignalStatistic,  // Parent class (cname)
           // Name of function in C++ (must match Python name) (fn)
           ShortName,
       );
@@ -88,7 +88,7 @@ public:
   {
       PYBIND11_OVERLOAD_PURE(
           size_t,                           // Return type (ret_type)
-          ignition::math::SignalStatistic,  // Parent class (cname)
+          gz::math::SignalStatistic,  // Parent class (cname)
           // Name of function in C++ (must match Python name) (fn)
           Count,
       );
@@ -98,7 +98,7 @@ public:
   {
       PYBIND11_OVERLOAD_PURE(
           void,                             // Return type (ret_type)
-          ignition::math::SignalStatistic,  // Parent class (cname)
+          gz::math::SignalStatistic,  // Parent class (cname)
           // Name of function in C++ (must match Python name) (fn)
           InsertData,
           _data                             // Argument(s) (...)
@@ -109,7 +109,7 @@ public:
   {
       PYBIND11_OVERLOAD_PURE(
           void,                              // Return type (ret_type)
-          ignition::math::SignalStatistic,   // Parent class (cname)
+          gz::math::SignalStatistic,   // Parent class (cname)
           // Name of function in C++ (must match Python name) (fn)
           Reset,
       );
@@ -119,7 +119,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalStatistic(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalStatistic;
+  using Class = gz::math::SignalStatistic;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalStatisticTrampoline>(m,
                     pyclass_name.c_str(),
@@ -145,7 +145,7 @@ void defineMathSignalStatistic(py::module &m, const std::string &typestr)
 }
 
 //////////////////////////////////////////////////
-class SignalVarianceTrampoline : public ignition::math::SignalVariance {
+class SignalVarianceTrampoline : public gz::math::SignalVariance {
 public:
     // Inherit the constructors
     SignalVarianceTrampoline(){}
@@ -155,7 +155,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -165,7 +165,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                      // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName,
         );
@@ -175,7 +175,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -186,7 +186,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalVariance(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalVariance;
+  using Class = gz::math::SignalVariance;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalVarianceTrampoline>(m,
                     pyclass_name.c_str(),
@@ -211,7 +211,7 @@ void defineMathSignalVariance(py::module &m, const std::string &typestr)
 }
 
 //////////////////////////////////////////////////
-class SignalMaximumTrampoline : public ignition::math::SignalMaximum
+class SignalMaximumTrampoline : public gz::math::SignalMaximum
 {
 public:
     // Inherit the constructors
@@ -222,7 +222,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -232,7 +232,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                      // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName,
         );
@@ -242,7 +242,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -253,7 +253,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalMaximum(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalMaximum;
+  using Class = gz::math::SignalMaximum;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalMaximumTrampoline>(m,
                     pyclass_name.c_str(),
@@ -278,7 +278,7 @@ void defineMathSignalMaximum(py::module &m, const std::string &typestr)
 }
 
 //////////////////////////////////////////////////
-class SignalMinimumTrampoline : public ignition::math::SignalMinimum
+class SignalMinimumTrampoline : public gz::math::SignalMinimum
 {
 public:
     // Inherit the constructors
@@ -289,7 +289,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -299,7 +299,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                      // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName,
         );
@@ -309,7 +309,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -320,7 +320,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalMinimum(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalMinimum;
+  using Class = gz::math::SignalMinimum;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalMinimumTrampoline>(m,
                     pyclass_name.c_str(),
@@ -345,7 +345,7 @@ void defineMathSignalMinimum(py::module &m, const std::string &typestr)
 }
 
 //////////////////////////////////////////////////
-class SignalMeanTrampoline : public ignition::math::SignalMean
+class SignalMeanTrampoline : public gz::math::SignalMean
 {
 public:
     // Inherit the constructors
@@ -356,7 +356,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -366,7 +366,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                      // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName,
         );
@@ -376,7 +376,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -387,7 +387,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalMean(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalMean;
+  using Class = gz::math::SignalMean;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalMeanTrampoline>(m,
                     pyclass_name.c_str(),
@@ -413,7 +413,7 @@ void defineMathSignalMean(py::module &m, const std::string &typestr)
 
 //////////////////////////////////////////////////
 class SignalRootMeanSquareTrampoline :
-  public ignition::math::SignalRootMeanSquare
+  public gz::math::SignalRootMeanSquare
 {
 public:
     // Inherit the constructors
@@ -424,7 +424,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -434,7 +434,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                      // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName
         );
@@ -444,7 +444,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -455,7 +455,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalRootMeanSquare(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalRootMeanSquare;
+  using Class = gz::math::SignalRootMeanSquare;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalRootMeanSquareTrampoline>(m,
                     pyclass_name.c_str(),
@@ -481,7 +481,7 @@ void defineMathSignalRootMeanSquare(py::module &m, const std::string &typestr)
 
 //////////////////////////////////////////////////
 class SignalMaxAbsoluteValueTrampoline :
-  public ignition::math::SignalMaxAbsoluteValue
+  public gz::math::SignalMaxAbsoluteValue
 {
 public:
     // Inherit the constructors
@@ -492,7 +492,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             double,                           // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             Value,
         );
@@ -502,7 +502,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             std::string,                       // Return type (ret_type)
-            ignition::math::SignalStatistic,   // Parent class (cname)
+            gz::math::SignalStatistic,   // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             ShortName,
         );
@@ -512,7 +512,7 @@ public:
     {
         PYBIND11_OVERLOAD_PURE(
             void,                             // Return type (ret_type)
-            ignition::math::SignalStatistic,  // Parent class (cname)
+            gz::math::SignalStatistic,  // Parent class (cname)
             // Name of function in C++ (must match Python name) (fn)
             InsertData,
             _data                             // Argument(s) (...)
@@ -523,7 +523,7 @@ public:
 //////////////////////////////////////////////////
 void defineMathSignalMaxAbsoluteValue(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::SignalMaxAbsoluteValue;
+  using Class = gz::math::SignalMaxAbsoluteValue;
   std::string pyclass_name = typestr;
   py::class_<Class, SignalMaxAbsoluteValueTrampoline>(m,
                     pyclass_name.c_str(),
@@ -548,4 +548,4 @@ void defineMathSignalMaxAbsoluteValue(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

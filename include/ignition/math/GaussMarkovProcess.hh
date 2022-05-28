@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/GaussMarkovProcess.hh>
+#include <ignition/math/config.hh>

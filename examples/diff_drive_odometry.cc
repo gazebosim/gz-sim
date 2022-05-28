@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 {
 
 //! [Create a DiffDriveOdometry]
-  ignition::math::DiffDriveOdometry odom;
+  gz::math::DiffDriveOdometry odom;
 //! [Create an DiffDriveOdometry]
 
   double wheelSeparation = 2.0;

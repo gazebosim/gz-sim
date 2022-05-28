@@ -25,7 +25,7 @@
 %include "std_map.i"
 %template(map_string_double) std::map<std::string, double>;
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

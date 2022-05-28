@@ -20,7 +20,7 @@
 #include "gz/math/Matrix3.hh"
 #include "gz/math/SphericalCoordinates.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 // Parameters for EARTH_WGS84 model
@@ -39,23 +39,23 @@ const double g_EarthWGS84Flattening = 1.0/298.257223563;
 const double g_EarthRadius = 6371000.0;
 
 // Private data for the SphericalCoordinates class.
-class ignition::math::SphericalCoordinates::Implementation
+class gz::math::SphericalCoordinates::Implementation
 {
   /// \brief Type of surface being used.
   public: SphericalCoordinates::SurfaceType surfaceType;
 
   /// \brief Latitude of reference point.
-  public: ignition::math::Angle latitudeReference;
+  public: gz::math::Angle latitudeReference;
 
   /// \brief Longitude of reference point.
-  public: ignition::math::Angle longitudeReference;
+  public: gz::math::Angle longitudeReference;
 
   /// \brief Elevation of reference point relative to sea level in meters.
   public: double elevationReference;
 
   /// \brief Heading offset, expressed as angle from East to
   ///        gazebo x-axis, or equivalently from North to gazebo y-axis.
-  public: ignition::math::Angle headingOffset;
+  public: gz::math::Angle headingOffset;
 
   /// \brief Semi-major axis ellipse parameter
   public: double ellA;
@@ -73,13 +73,13 @@ class ignition::math::SphericalCoordinates::Implementation
   public: double ellP;
 
   /// \brief Rotation matrix that moves ECEF to GLOBAL
-  public: ignition::math::Matrix3d rotECEFToGlobal;
+  public: gz::math::Matrix3d rotECEFToGlobal;
 
   /// \brief Rotation matrix that moves GLOBAL to ECEF
-  public: ignition::math::Matrix3d rotGlobalToECEF;
+  public: gz::math::Matrix3d rotGlobalToECEF;
 
   /// \brief Cache the ECEF position of the the origin
-  public: ignition::math::Vector3d origin;
+  public: gz::math::Vector3d origin;
 
   /// \brief Cache cosine head transform
   public: double cosHea;
@@ -114,7 +114,7 @@ std::string SphericalCoordinates::Convert(
 
 //////////////////////////////////////////////////
 SphericalCoordinates::SphericalCoordinates()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
   this->SetSurface(EARTH_WGS84);
   this->SetElevationReference(0.0);
@@ -130,10 +130,10 @@ SphericalCoordinates::SphericalCoordinates(const SurfaceType _type)
 
 //////////////////////////////////////////////////
 SphericalCoordinates::SphericalCoordinates(const SurfaceType _type,
-    const ignition::math::Angle &_latitude,
-    const ignition::math::Angle &_longitude,
+    const gz::math::Angle &_latitude,
+    const gz::math::Angle &_longitude,
     const double _elevation,
-    const ignition::math::Angle &_heading)
+    const gz::math::Angle &_heading)
   : SphericalCoordinates()
 {
   // Set the reference and calculate ellipse parameters
@@ -156,13 +156,13 @@ SphericalCoordinates::SurfaceType SphericalCoordinates::Surface() const
 }
 
 //////////////////////////////////////////////////
-ignition::math::Angle SphericalCoordinates::LatitudeReference() const
+gz::math::Angle SphericalCoordinates::LatitudeReference() const
 {
   return this->dataPtr->latitudeReference;
 }
 
 //////////////////////////////////////////////////
-ignition::math::Angle SphericalCoordinates::LongitudeReference() const
+gz::math::Angle SphericalCoordinates::LongitudeReference() const
 {
   return this->dataPtr->longitudeReference;
 }
@@ -174,7 +174,7 @@ double SphericalCoordinates::ElevationReference() const
 }
 
 //////////////////////////////////////////////////
-ignition::math::Angle SphericalCoordinates::HeadingOffset() const
+gz::math::Angle SphericalCoordinates::HeadingOffset() const
 {
   return this->dataPtr->headingOffset;
 }
@@ -221,7 +221,7 @@ void SphericalCoordinates::SetSurface(const SurfaceType &_type)
 
 //////////////////////////////////////////////////
 void SphericalCoordinates::SetLatitudeReference(
-    const ignition::math::Angle &_angle)
+    const gz::math::Angle &_angle)
 {
   this->dataPtr->latitudeReference = _angle;
   this->UpdateTransformationMatrix();
@@ -229,7 +229,7 @@ void SphericalCoordinates::SetLatitudeReference(
 
 //////////////////////////////////////////////////
 void SphericalCoordinates::SetLongitudeReference(
-    const ignition::math::Angle &_angle)
+    const gz::math::Angle &_angle)
 {
   this->dataPtr->longitudeReference = _angle;
   this->UpdateTransformationMatrix();
@@ -243,17 +243,17 @@ void SphericalCoordinates::SetElevationReference(const double _elevation)
 }
 
 //////////////////////////////////////////////////
-void SphericalCoordinates::SetHeadingOffset(const ignition::math::Angle &_angle)
+void SphericalCoordinates::SetHeadingOffset(const gz::math::Angle &_angle)
 {
   this->dataPtr->headingOffset.SetRadian(_angle.Radian());
   this->UpdateTransformationMatrix();
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::SphericalFromLocalPosition(
-    const ignition::math::Vector3d &_xyz) const
+gz::math::Vector3d SphericalCoordinates::SphericalFromLocalPosition(
+    const gz::math::Vector3d &_xyz) const
 {
-  ignition::math::Vector3d result =
+  gz::math::Vector3d result =
     this->PositionTransform(_xyz, LOCAL, SPHERICAL);
   result.X(IGN_RTOD(result.X()));
   result.Y(IGN_RTOD(result.Y()));
@@ -261,38 +261,38 @@ ignition::math::Vector3d SphericalCoordinates::SphericalFromLocalPosition(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::LocalFromSphericalPosition(
-    const ignition::math::Vector3d &_xyz) const
+gz::math::Vector3d SphericalCoordinates::LocalFromSphericalPosition(
+    const gz::math::Vector3d &_xyz) const
 {
-  ignition::math::Vector3d result = _xyz;
+  gz::math::Vector3d result = _xyz;
   result.X(IGN_DTOR(result.X()));
   result.Y(IGN_DTOR(result.Y()));
   return this->PositionTransform(result, SPHERICAL, LOCAL);
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::GlobalFromLocalVelocity(
-    const ignition::math::Vector3d &_xyz) const
+gz::math::Vector3d SphericalCoordinates::GlobalFromLocalVelocity(
+    const gz::math::Vector3d &_xyz) const
 {
   return this->VelocityTransform(_xyz, LOCAL, GLOBAL);
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::LocalFromGlobalVelocity(
-    const ignition::math::Vector3d &_xyz) const
+gz::math::Vector3d SphericalCoordinates::LocalFromGlobalVelocity(
+    const gz::math::Vector3d &_xyz) const
 {
   return this->VelocityTransform(_xyz, GLOBAL, LOCAL);
 }
 
 //////////////////////////////////////////////////
 /// Based on Haversine formula (http://en.wikipedia.org/wiki/Haversine_formula).
-double SphericalCoordinates::Distance(const ignition::math::Angle &_latA,
-                                      const ignition::math::Angle &_lonA,
-                                      const ignition::math::Angle &_latB,
-                                      const ignition::math::Angle &_lonB)
+double SphericalCoordinates::Distance(const gz::math::Angle &_latA,
+                                      const gz::math::Angle &_lonA,
+                                      const gz::math::Angle &_latB,
+                                      const gz::math::Angle &_lonB)
 {
-  ignition::math::Angle dLat = _latB - _latA;
-  ignition::math::Angle dLon = _lonB - _lonA;
+  gz::math::Angle dLat = _latB - _latA;
+  gz::math::Angle dLon = _lonB - _lonA;
 
   double a = sin(dLat.Radian() / 2) * sin(dLat.Radian() / 2) +
              sin(dLon.Radian() / 2) * sin(dLon.Radian() / 2) *
@@ -315,7 +315,7 @@ void SphericalCoordinates::UpdateTransformationMatrix()
   // Create a rotation matrix that moves ECEF to GLOBAL
   // http://www.navipedia.net/index.php/
   // Transformations_between_ECEF_and_ENU_coordinates
-  this->dataPtr->rotECEFToGlobal = ignition::math::Matrix3d(
+  this->dataPtr->rotECEFToGlobal = gz::math::Matrix3d(
                       -sinLon,           cosLon,          0.0,
                       -cosLon * sinLat, -sinLon * sinLat, cosLat,
                        cosLon * cosLat,  sinLon * cosLat, sinLat);
@@ -323,7 +323,7 @@ void SphericalCoordinates::UpdateTransformationMatrix()
   // Create a rotation matrix that moves GLOBAL to ECEF
   // http://www.navipedia.net/index.php/
   // Transformations_between_ECEF_and_ENU_coordinates
-  this->dataPtr->rotGlobalToECEF = ignition::math::Matrix3d(
+  this->dataPtr->rotGlobalToECEF = gz::math::Matrix3d(
                       -sinLon, -cosLon * sinLat, cosLon * cosLat,
                        cosLon, -sinLon * sinLat, sinLon * cosLat,
                        0,      cosLat,           sinLat);
@@ -337,7 +337,7 @@ void SphericalCoordinates::UpdateTransformationMatrix()
   this->dataPtr->sinHea = sin(-this->dataPtr->headingOffset.Radian());
 
   // Cache the ECEF coordinate of the origin
-  this->dataPtr->origin = ignition::math::Vector3d(
+  this->dataPtr->origin = gz::math::Vector3d(
     this->dataPtr->latitudeReference.Radian(),
     this->dataPtr->longitudeReference.Radian(),
     this->dataPtr->elevationReference);
@@ -346,11 +346,11 @@ void SphericalCoordinates::UpdateTransformationMatrix()
 }
 
 /////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::PositionTransform(
-    const ignition::math::Vector3d &_pos,
+gz::math::Vector3d SphericalCoordinates::PositionTransform(
+    const gz::math::Vector3d &_pos,
     const CoordinateType &_in, const CoordinateType &_out) const
 {
-  ignition::math::Vector3d tmp = _pos;
+  gz::math::Vector3d tmp = _pos;
 
   // Cache trig results
   double cosLat = cos(_pos.X());
@@ -455,7 +455,7 @@ ignition::math::Vector3d SphericalCoordinates::PositionTransform(
     case LOCAL2:
       tmp = this->dataPtr->rotECEFToGlobal * (tmp - this->dataPtr->origin);
 
-      tmp = ignition::math::Vector3d(
+      tmp = gz::math::Vector3d(
           tmp.X() * this->dataPtr->cosHea - tmp.Y() * this->dataPtr->sinHea,
           tmp.X() * this->dataPtr->sinHea + tmp.Y() * this->dataPtr->cosHea,
           tmp.Z());
@@ -474,8 +474,8 @@ ignition::math::Vector3d SphericalCoordinates::PositionTransform(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d SphericalCoordinates::VelocityTransform(
-    const ignition::math::Vector3d &_vel,
+gz::math::Vector3d SphericalCoordinates::VelocityTransform(
+    const gz::math::Vector3d &_vel,
     const CoordinateType &_in, const CoordinateType &_out) const
 {
   // Sanity check -- velocity should not be expressed in spherical coordinates
@@ -485,7 +485,7 @@ ignition::math::Vector3d SphericalCoordinates::VelocityTransform(
   }
 
   // Intermediate data type
-  ignition::math::Vector3d tmp = _vel;
+  gz::math::Vector3d tmp = _vel;
 
   // First, convert to an ECEF vector
   switch (_in)
@@ -534,7 +534,7 @@ ignition::math::Vector3d SphericalCoordinates::VelocityTransform(
     case LOCAL:
     case LOCAL2:
       tmp = this->dataPtr->rotECEFToGlobal * tmp;
-      tmp = ignition::math::Vector3d(
+      tmp = gz::math::Vector3d(
           tmp.X() * this->dataPtr->cosHea - tmp.Y() * this->dataPtr->sinHea,
           tmp.X() * this->dataPtr->sinHea + tmp.Y() * this->dataPtr->cosHea,
           tmp.Z());

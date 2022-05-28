@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Triangle3.hh>
+#include <ignition/math/config.hh>

@@ -22,7 +22,7 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -30,7 +30,7 @@ namespace ignition
     using clock = std::chrono::steady_clock;
 
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /** \class GaussMarkovProcess GaussMarkovProcess.hh\
      * gz/math/GaussMarkovProcess.hh
      **/
@@ -43,7 +43,7 @@ namespace ignition
     /// ## Example usage
     ///
     /// \snippet examples/gauss_markov_process_example.cc complete
-    class IGNITION_MATH_VISIBLE GaussMarkovProcess
+    class GZ_MATH_VISIBLE GaussMarkovProcess
     {
       // Default constructor. This sets all the parameters to zero.
       public: GaussMarkovProcess();

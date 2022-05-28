@@ -23,26 +23,26 @@ int main(int argc, char **argv)
 {
   std::cout << std::boolalpha;
 
-  const ignition::math::Region3d defaultRegion;
+  const gz::math::Region3d defaultRegion;
   // A default constructed region should be empty.
   std::cout << "The " << defaultRegion << " region is empty: "
             << defaultRegion.Empty() << std::endl;
 
-  const ignition::math::Region3d openRegion =
-      ignition::math::Region3d::Open(-1., -1., -1., 1., 1., 1.);
+  const gz::math::Region3d openRegion =
+      gz::math::Region3d::Open(-1., -1., -1., 1., 1., 1.);
   // An open region should exclude points on its boundary.
   std::cout << "The " << openRegion << " region contains the "
-            << ignition::math::Vector3d::UnitX << " point: "
-            << openRegion.Contains(ignition::math::Vector3d::UnitX)
+            << gz::math::Vector3d::UnitX << " point: "
+            << openRegion.Contains(gz::math::Vector3d::UnitX)
             << std::endl;
 
-  const ignition::math::Region3d closedRegion =
-      ignition::math::Region3d::Closed(0., 0., 0., 1., 1., 1.);
+  const gz::math::Region3d closedRegion =
+      gz::math::Region3d::Closed(0., 0., 0., 1., 1., 1.);
 
   // A closed region should include points on its boundary.
   std::cout << "The " << closedRegion << " region contains the "
-            << ignition::math::Vector3d::UnitX << " point: "
-            << closedRegion.Contains(ignition::math::Vector3d::UnitX)
+            << gz::math::Vector3d::UnitX << " point: "
+            << closedRegion.Contains(gz::math::Vector3d::UnitX)
             << std::endl;
 
   // Closed and open regions may intersect.
@@ -51,10 +51,10 @@ int main(int argc, char **argv)
             << std::endl;
 
   // The unbounded region should include all non-empty regions.
-  std::cout << "The " << ignition::math::Region3d::Unbounded
+  std::cout << "The " << gz::math::Region3d::Unbounded
             << " region contains all previous non-empty intervals: "
-            << (ignition::math::Region3d::Unbounded.Contains(openRegion) ||
-                ignition::math::Region3d::Unbounded.Contains(closedRegion))
+            << (gz::math::Region3d::Unbounded.Contains(openRegion) ||
+                gz::math::Region3d::Unbounded.Contains(closedRegion))
             << std::endl;
 
 }

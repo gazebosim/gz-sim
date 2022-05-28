@@ -21,7 +21,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/utils/SuppressWarning.hh>
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(PoseTest, Construction)

@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 {
   // Create a directed graph that is capable of storing integer data in the
   // vertices and double data on the edges.
-  ignition::math::graph::DirectedGraph<int, double> graph(
+  gz::math::graph::DirectedGraph<int, double> graph(
     // Create the vertices, with default data and vertex ids.
     {
       {"vertex1"}, {"vertex2"}, {"vertex3"}
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
             << graph << std::endl;
 
   // You can assign data to vertices.
-  ignition::math::graph::DirectedGraph<int, double> graph2(
+  gz::math::graph::DirectedGraph<int, double> graph2(
     // Create the vertices, with custom data and default vertex ids.
     {
       {"vertex1", 1}, {"vertex2", 2}, {"vertex3", 10}
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
             << graph2 << std::endl;
 
   // It's also possible to specify vertex ids.
-  ignition::math::graph::DirectedGraph<int, double> graph3(
+  gz::math::graph::DirectedGraph<int, double> graph3(
     // Create the vertices with custom data and vertex ids.
     {
       {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
             << graph3 << std::endl;
 
   // Finally, you can also assign weights to the edges.
-  ignition::math::graph::DirectedGraph<int, double> graph4(
+  gz::math::graph::DirectedGraph<int, double> graph4(
     // Create the vertices with custom data and vertex ids.
     {
       {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}

@@ -21,12 +21,12 @@
 #include <vector>
 #include "gz/math/Export.hh"
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
 
     /// \cond
@@ -66,7 +66,7 @@ namespace ignition
     /// \endcond
 
     /// \brief Base class for MovingWindowFilter. This replaces the
-    /// version of MovingWindowFilter in the Ignition Common library.
+    /// version of MovingWindowFilter in the Gazebo Common library.
     ///
     /// The default window size is 4.
     template< typename T>

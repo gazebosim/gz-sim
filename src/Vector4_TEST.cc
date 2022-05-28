@@ -21,7 +21,7 @@
 #include "gz/math/Matrix4.hh"
 #include "gz/math/Vector4.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Vector4dTest, Construction)

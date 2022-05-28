@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Capsule.hh>
+#include <ignition/math/config.hh>

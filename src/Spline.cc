@@ -23,12 +23,12 @@
 
 #include "SplinePrivate.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 ///////////////////////////////////////////////////////////
 Spline::Spline()
-  : dataPtr(ignition::utils::MakeImpl<Implementation>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

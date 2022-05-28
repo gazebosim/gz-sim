@@ -82,7 +82,7 @@ def sort3(_a, _b, _c):
 // Because then you'll get
 // error : Template 'myfunction' undefined.
 // Workaround it's to split the template functions and the normal ones
-namespace ignition
+namespace gz
 {
   /// \brief Math classes and function useful in robot applications.
   namespace math
@@ -155,7 +155,7 @@ namespace ignition
   }
 }
 
-namespace ignition
+namespace gz
 {
   /// \brief Math classes and function useful in robot applications.
   namespace math

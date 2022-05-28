@@ -19,7 +19,7 @@
 
 #include "gz/math/Region3.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Region3Test, DefaultConstructor)

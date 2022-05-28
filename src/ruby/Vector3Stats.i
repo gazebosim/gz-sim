@@ -25,7 +25,7 @@
 
 %include "std_string.i"
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

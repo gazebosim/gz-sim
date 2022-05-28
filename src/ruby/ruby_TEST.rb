@@ -23,19 +23,19 @@ class Ruby_TEST < Test::Unit::TestCase
   # This test just uses a few classes to make sure multiple ruby interfaces
   # work together.
   def test_construction
-    angle1 = Ignition::Math::Angle.new
+    angle1 = Gz::Math::Angle.new
 
     assert(angle1.Radian() == 0.0,
            "Angle::Radian() should equal zero")
 
-    v = Ignition::Math::Vector3d.new
+    v = Gz::Math::Vector3d.new
 
     # ::Distance, ::Length()
     v.Set(1, 2, 3)
-    assert(v.Length() == v.Distance(Ignition::Math::Vector3d.Zero),
+    assert(v.Length() == v.Distance(Gz::Math::Vector3d.Zero),
            "Vector3d::Lenth() should equal Vector3d::Distance(zero)")
 
-    v2 = Ignition::Math::Vector2d.new(1, 2)
+    v2 = Gz::Math::Vector2d.new(1, 2)
     assert(v2.X == 1, "v2.X should equal 1")
     assert(v2.Y == 2, "v2.Y should equal 2")
   end

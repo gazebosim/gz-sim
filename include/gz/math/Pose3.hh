@@ -21,12 +21,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Pose3 Pose3.hh gz/math/Pose3.hh
     /// \brief The Pose3 class represents a 3D position and rotation. The
@@ -50,13 +50,13 @@ namespace ignition
     /// require 'gz/math'
     ///
     /// # Construct a default Pose3d.
-    /// p = Ignition::Math::Pose3d.new
+    /// p = Gz::Math::Pose3d.new
     /// printf("A default Pose3d has the following values\n" +
     ///        "%f %f %f %f %f %f\n", p.Pos().X(), p.Pos().Y(), p.Pos().Z(),
     ///        p.Rot().Euler().X(), p.Rot().Euler().Y(), p.Rot().Euler().Z())
     ///
     /// # Construct a pose at position 1, 2, 3 with a yaw of PI radians.
-    /// p1 = Ignition::Math::Pose3d.new(1, 2, 3, 0, 0, Math::PI)
+    /// p1 = Gz::Math::Pose3d.new(1, 2, 3, 0, 0, Math::PI)
     /// printf("A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n" +
     ///        "%f %f %f %f %f %f\n", p1.Pos().X(), p1.Pos().Y(), p1.Pos().Z(),
     ///        p1.Rot().Euler().X(), p1.Rot().Euler().Y(), p1.Rot().Euler().Z())
@@ -183,7 +183,7 @@ namespace ignition
       /// then, B + A is the transform from O to Q specified in frame O
       /// \param[in] _pose Pose3<T> to add to this pose.
       /// \return The resulting pose.
-      public: IGN_DEPRECATED(7) Pose3<T> operator+(const Pose3<T> &_pose) const
+      public: GZ_DEPRECATED(7) Pose3<T> operator+(const Pose3<T> &_pose) const
       {
         Pose3<T> result;
 
@@ -197,7 +197,7 @@ namespace ignition
       /// \param[in] _pose Pose3<T> to add to this pose.
       /// \sa operator+(const Pose3<T> &_pose) const.
       /// \return The resulting pose.
-      public: IGN_DEPRECATED(7) const Pose3<T> &
+      public: GZ_DEPRECATED(7) const Pose3<T> &
               operator+=(const Pose3<T> &_pose)
       {
         this->p = this->CoordPositionAdd(_pose);
@@ -501,7 +501,7 @@ namespace ignition
       /// \param[in] _pose pose to output
       /// \return the stream
       public: friend std::ostream &operator<<(
-                  std::ostream &_out, const ignition::math::Pose3<T> &_pose)
+                  std::ostream &_out, const gz::math::Pose3<T> &_pose)
       {
         _out << _pose.Pos() << " " << _pose.Rot();
         return _out;
@@ -512,7 +512,7 @@ namespace ignition
       /// \param[in] _pose the pose
       /// \return the stream
       public: friend std::istream &operator>>(
-                  std::istream &_in, ignition::math::Pose3<T> &_pose)
+                  std::istream &_in, gz::math::Pose3<T> &_pose)
       {
         // Skip white spaces
         _in.setf(std::ios_base::skipws);

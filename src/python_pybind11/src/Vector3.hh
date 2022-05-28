@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__VECTOR3_HH_
-#define IGNITION_MATH_PYTHON__VECTOR3_HH_
+#ifndef GZ_MATH_PYTHON__VECTOR3_HH_
+#define GZ_MATH_PYTHON__VECTOR3_HH_
 
 #include <sstream>
 #include <string>
@@ -29,20 +29,20 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Help define a pybind11 wrapper for an ignition::math::Vector3
+/// Help define a pybind11 wrapper for an gz::math::Vector3
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 template<typename T>
 void helpDefineMathVector3(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Vector3<T>;
+  using Class = gz::math::Vector3<T>;
   auto toString = [](const Class &si) {
     std::stringstream stream;
     stream << si;
@@ -167,13 +167,13 @@ void helpDefineMathVector3(py::module &m, const std::string &typestr)
     .def("__repr__", toString);
 }
 
-/// Define a pybind11 wrapper for an ignition::math::Vector2
+/// Define a pybind11 wrapper for an gz::math::Vector2
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void defineMathVector3(py::module &m, const std::string &typestr);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__VECTOR3_HH_
+#endif  // GZ_MATH_PYTHON__VECTOR3_HH_

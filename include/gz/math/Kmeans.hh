@@ -24,19 +24,19 @@
 
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
 
     /// \class Kmeans Kmeans.hh math/gzmath.hh
     /// \brief K-Means clustering algorithm. Given a set of observations,
     /// k-means partitions the observations into k sets so as to minimize the
     /// within-cluster sum of squares.
     /// Description based on http://en.wikipedia.org/wiki/K-means_clustering.
-    class IGNITION_MATH_VISIBLE Kmeans
+    class GZ_MATH_VISIBLE Kmeans
     {
       /// \brief constructor
       /// \param[in] _obs Set of observations to cluster.

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Plane.hh>
+#include <ignition/math/config.hh>

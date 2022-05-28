@@ -20,7 +20,7 @@
 
 #include "gz/math/Inertial.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 /// \brief Compare quaternions, but allow rotations of PI about any axis.
@@ -500,10 +500,10 @@ TEST(Inertiald_Test, Addition)
     math::MassMatrix3d cubeMM3;
     EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
     EXPECT_EQ(
-        ignition::math::Vector3d::One,
+        gz::math::Vector3d::One,
         cubeMM3.DiagonalMoments());
     EXPECT_EQ(
-        ignition::math::Vector3d::Zero,
+        gz::math::Vector3d::Zero,
         cubeMM3.OffDiagonalMoments());
 
     const math::Inertiald diagonalCubes =
@@ -531,13 +531,13 @@ TEST(Inertiald_Test, Addition)
     //   [ -1.5  -1.5   4.0 ]
     //
     // then double it to account for both cubes
-    EXPECT_EQ(ignition::math::Pose3d::Zero, diagonalCubes.Pose());
+    EXPECT_EQ(gz::math::Pose3d::Zero, diagonalCubes.Pose());
     EXPECT_DOUBLE_EQ(mass * 2.0, diagonalCubes.MassMatrix().Mass());
     EXPECT_EQ(
-        ignition::math::Vector3d(8, 8, 8),
+        gz::math::Vector3d(8, 8, 8),
         diagonalCubes.MassMatrix().DiagonalMoments());
     EXPECT_EQ(
-        ignition::math::Vector3d(-3, -3, -3),
+        gz::math::Vector3d(-3, -3, -3),
         diagonalCubes.MassMatrix().OffDiagonalMoments());
   }
 }

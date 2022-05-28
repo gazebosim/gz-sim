@@ -23,7 +23,7 @@
 require 'ignition/math'
 
 # Construct a default matrix3.
-m = Ignition::Math::Matrix3d.new
+m = Gz::Math::Matrix3d.new
 printf("The default constructed matrix m has the following values.\n\t" +
        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
        m.(0, 0), m.(0, 1), m.(0, 2),
@@ -31,7 +31,7 @@ printf("The default constructed matrix m has the following values.\n\t" +
        m.(2, 0), m.(2, 1), m.(2, 2))
 
 # Set the first column of the matrix.
-m.SetCol(0, Ignition::Math::Vector3d.new(3, 4, 5))
+m.SetCol(0, Gz::Math::Vector3d.new(3, 4, 5))
 printf("Setting the first column of the matrix m to 3, 4, 5.\n\t" +
        "%2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f %2.1f\n",
        m.(0, 0), m.(0, 1), m.(0, 2),

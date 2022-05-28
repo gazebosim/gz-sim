@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__QUATERNION_HH_
-#define IGNITION_MATH_PYTHON__QUATERNION_HH_
+#ifndef GZ_MATH_PYTHON__QUATERNION_HH_
+#define GZ_MATH_PYTHON__QUATERNION_HH_
 
 #include <sstream>
 #include <string>
@@ -32,20 +32,20 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Quaternion
+/// Define a pybind11 wrapper for an gz::math::Quaternion
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
  */
 void defineMathQuaternion(py::module &m, const std::string &typestr);
 
-/// Help define a pybind11 wrapper for an ignition::math::Quaternion
+/// Help define a pybind11 wrapper for an gz::math::Quaternion
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -53,7 +53,7 @@ void defineMathQuaternion(py::module &m, const std::string &typestr);
 template<typename T>
 void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Quaternion<T>;
+  using Class = gz::math::Quaternion<T>;
   auto toString = [](const Class &si) {
     std::stringstream stream;
     stream << si;
@@ -67,9 +67,9 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
     .def(py::init<>())
     .def(py::init<T, T, T, T>())
     .def(py::init<T, T, T>())
-    .def(py::init<const ignition::math::Vector3<T>&, T>())
-    .def(py::init<const ignition::math::Vector3<T>&>())
-    .def(py::init<const ignition::math::Matrix3<T>&>())
+    .def(py::init<const gz::math::Vector3<T>&, T>())
+    .def(py::init<const gz::math::Vector3<T>&>())
+    .def(py::init<const gz::math::Matrix3<T>&>())
     .def(py::init<const Class&>())
     .def(py::self + py::self)
     .def(py::self += py::self)
@@ -78,7 +78,7 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
     .def(py::self -= py::self)
     .def(py::self * py::self)
     .def(py::self * float())
-    .def(py::self * ignition::math::Vector3<T>())
+    .def(py::self * gz::math::Vector3<T>())
     .def(py::self *= py::self)
     .def(py::self == py::self)
     .def(py::self != py::self)
@@ -106,14 +106,14 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
          py::overload_cast<T, T, T, T>(&Class::SetFromAxisAngle),
          "Set the quaternion from an axis and angle")
     .def("set_from_axis_angle",
-         py::overload_cast<const ignition::math::Vector3<T>&, T>(
+         py::overload_cast<const gz::math::Vector3<T>&, T>(
          &Class::SetFromAxisAngle),
          "Set the quaternion from an axis and angle")
     .def("set",
          &Class::Set,
          "Set this quaternion from 4 floating numbers")
     .def("set_from_euler",
-         py::overload_cast<const ignition::math::Vector3<T>&>(
+         py::overload_cast<const gz::math::Vector3<T>&>(
          &Class::SetFromEuler),
          "Set the quaternion from Euler angles. The order of operations "
          "is roll, pitch, yaw around a fixed body frame axis "
@@ -125,7 +125,7 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
          py::overload_cast<>(&Class::Euler, py::const_),
          "Return the rotation in Euler angles")
     .def("euler_to_quaternion",
-         py::overload_cast<const ignition::math::Vector3<T>&>(
+         py::overload_cast<const gz::math::Vector3<T>&>(
            &Class::EulerToQuaternion),
          "Convert euler angles to quatern.")
     .def("euler_to_quaternion",
@@ -136,7 +136,7 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
     .def("yaw", &Class::Yaw, "Get the Euler yaw angle in radians")
     .def("axis_angle",
          [](const Class &self) {
-            ignition::math::Vector3<T> _axis;
+            gz::math::Vector3<T> _axis;
             T _angle;
             self.AxisAngle(_axis, _angle);
             return std::make_tuple(_axis, _angle);
@@ -215,6 +215,6 @@ void helpDefineMathQuaternion(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__QUATERNION_HH_
+#endif  // GZ_MATH_PYTHON__QUATERNION_HH_

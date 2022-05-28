@@ -19,7 +19,7 @@
 
 #include "gz/math/Interval.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(IntervalTest, DefaultConstructor)

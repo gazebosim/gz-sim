@@ -17,7 +17,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Angle.hh"
 
-using namespace ignition::math;
+using namespace gz::math;
 
 namespace {
 

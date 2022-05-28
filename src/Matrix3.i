@@ -25,7 +25,7 @@
 #include <gz/math/Matrix3.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -39,27 +39,27 @@ namespace ignition
       public: Matrix3(T _v00, T _v01, T _v02,
                       T _v10, T _v11, T _v12,
                       T _v20, T _v21, T _v22);
-      public: explicit Matrix3(const ignition::math::Quaternion<T> &_q);
+      public: explicit Matrix3(const gz::math::Quaternion<T> &_q);
       public: ~Matrix3();
       public: void Set(size_t _row, size_t _col, T _v);
       public: void Set(T _v00, T _v01, T _v02,
                        T _v10, T _v11, T _v12,
                        T _v20, T _v21, T _v22);
-      public: void SetAxes(const ignition::math::Vector3<T> &_xAxis,
-                           const ignition::math::Vector3<T> &_yAxis,
-                           const ignition::math::Vector3<T> &_zAxis);
-      public: void SetFromAxisAngle(const ignition::math::Vector3<T> &_axis,
+      public: void SetAxes(const gz::math::Vector3<T> &_xAxis,
+                           const gz::math::Vector3<T> &_yAxis,
+                           const gz::math::Vector3<T> &_zAxis);
+      public: void SetFromAxisAngle(const gz::math::Vector3<T> &_axis,
                   T _angle);
-      public: void SetFrom2Axes(const ignition::math::Vector3<T> &_v1,
-                  const ignition::math::Vector3<T> &_v2);
+      public: void SetFrom2Axes(const gz::math::Vector3<T> &_v1,
+                  const gz::math::Vector3<T> &_v2);
       public: void SetCol(unsigned int _c,
-                  const ignition::math::Vector3<T> &_v);
+                  const gz::math::Vector3<T> &_v);
       public: Matrix3<T> operator-(const Matrix3<T> &_m) const;
       public: Matrix3<T> operator+(const Matrix3<T> &_m) const;
       public: Matrix3<T> operator*(const T &_s) const;
       public: Matrix3<T> operator*(const Matrix3<T> &_m) const;
-      public: ignition::math::Vector3<T> operator*(
-                  const ignition::math::Vector3<T> &_vec) const;
+      public: gz::math::Vector3<T> operator*(
+                  const gz::math::Vector3<T> &_vec) const;
       public: bool Equal(const Matrix3 &_m, const T &_tol) const;
       public: bool operator==(const Matrix3<T> &_m) const;
       public: inline T operator()(size_t _row, size_t _col) const;

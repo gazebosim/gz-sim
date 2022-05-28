@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__PLANE_HH_
-#define IGNITION_MATH_PYTHON__PLANE_HH_
+#ifndef GZ_MATH_PYTHON__PLANE_HH_
+#define GZ_MATH_PYTHON__PLANE_HH_
 
 #include <string>
 
@@ -29,13 +29,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Plane
+/// Define a pybind11 wrapper for an gz::math::Plane
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -43,52 +43,52 @@ namespace python
 template<typename T>
 void defineMathPlane(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Plane<T>;
+  using Class = gz::math::Plane<T>;
   std::string pyclass_name = typestr;
   py::class_<Class> plane(m,
                     pyclass_name.c_str(),
                     py::buffer_protocol(),
                     py::dynamic_attr());
   plane.def(py::init<>())
-    .def(py::init<const ignition::math::Vector3<T>&, T>(),
-         py::arg("_normal") = ignition::math::Vector3<T>::Zero,
+    .def(py::init<const gz::math::Vector3<T>&, T>(),
+         py::arg("_normal") = gz::math::Vector3<T>::Zero,
          py::arg("_offset") = 0.0)
-    .def(py::init<const ignition::math::Vector3<T>&,
-                  const ignition::math::Vector2<T>&, T>())
+    .def(py::init<const gz::math::Vector3<T>&,
+                  const gz::math::Vector2<T>&, T>())
     .def(py::init<const Class&>())
     .def("set",
-         py::overload_cast<const ignition::math::Vector3<T>&, T>
+         py::overload_cast<const gz::math::Vector3<T>&, T>
              (&Class::Set),
          "Set the plane")
     .def("set",
-         py::overload_cast<const ignition::math::Vector3<T>&,
-                           const ignition::math::Vector2<T>&, T>
+         py::overload_cast<const gz::math::Vector3<T>&,
+                           const gz::math::Vector2<T>&, T>
              (&Class::Set),
          "Set the plane")
     .def("distance",
-         py::overload_cast<const ignition::math::Vector3<T>&>
+         py::overload_cast<const gz::math::Vector3<T>&>
              (&Class::Distance, py::const_),
          "The distance to the plane from the given point. The "
          "distance can be negative, which indicates the point is on the "
          "negative side of the plane.")
     .def("distance",
-         py::overload_cast<const ignition::math::Vector3<T>&,
-                           const ignition::math::Vector3<T>&>
+         py::overload_cast<const gz::math::Vector3<T>&,
+                           const gz::math::Vector3<T>&>
              (&Class::Distance, py::const_),
          "Get distance to the plane give an origin and direction.")
     .def("intersection",
          &Class::Intersection,
-         py::arg("_point") = ignition::math::Vector3<T>::Zero,
-         py::arg("_gradient") = ignition::math::Vector3<T>::Zero,
+         py::arg("_point") = gz::math::Vector3<T>::Zero,
+         py::arg("_gradient") = gz::math::Vector3<T>::Zero,
          py::arg("_tolerance") = 1e-6,
          "Get the intersection of an infinite line with the plane, "
          "given the line's gradient and a point in parametrized space.")
     .def("side",
-         py::overload_cast<const ignition::math::Vector3<T>&>
+         py::overload_cast<const gz::math::Vector3<T>&>
              (&Class::Side, py::const_),
          "The side of the plane a point is on.")
     .def("side",
-         py::overload_cast<const ignition::math::AxisAlignedBox&>
+         py::overload_cast<const gz::math::AxisAlignedBox&>
              (&Class::Side, py::const_),
          "The side of the plane a point is on.")
     .def("size",
@@ -109,16 +109,16 @@ void defineMathPlane(py::module &m, const std::string &typestr)
       return Class(self);
     }, "memo"_a);
 
-    py::enum_<ignition::math::Planed::PlaneSide>(m, "PlaneSide")
-      .value("NEGATIVE_SIDE", ignition::math::Planed::PlaneSide::NEGATIVE_SIDE)
-      .value("POSITIVE_SIDE", ignition::math::Planed::PlaneSide::POSITIVE_SIDE)
-      .value("NO_SIDE", ignition::math::Planed::PlaneSide::NO_SIDE)
-      .value("BOTH_SIDE", ignition::math::Planed::PlaneSide::BOTH_SIDE)
+    py::enum_<gz::math::Planed::PlaneSide>(m, "PlaneSide")
+      .value("NEGATIVE_SIDE", gz::math::Planed::PlaneSide::NEGATIVE_SIDE)
+      .value("POSITIVE_SIDE", gz::math::Planed::PlaneSide::POSITIVE_SIDE)
+      .value("NO_SIDE", gz::math::Planed::PlaneSide::NO_SIDE)
+      .value("BOTH_SIDE", gz::math::Planed::PlaneSide::BOTH_SIDE)
       .export_values();
 }
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__PLANE_HH_
+#endif  // GZ_MATH_PYTHON__PLANE_HH_

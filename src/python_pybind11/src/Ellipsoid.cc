@@ -17,7 +17,7 @@
 
 #include "Ellipsoid.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -30,4 +30,4 @@ void defineMathEllipsoid(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

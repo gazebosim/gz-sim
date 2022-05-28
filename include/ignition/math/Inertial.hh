@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Inertial.hh>
+#include <ignition/math/config.hh>

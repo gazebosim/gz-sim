@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Vector3Stats.hh>
+#include <ignition/math/config.hh>

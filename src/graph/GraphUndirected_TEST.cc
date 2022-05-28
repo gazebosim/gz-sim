@@ -23,7 +23,7 @@
 
 #include "gz/math/graph/Graph.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 using namespace graph;
 

@@ -20,7 +20,7 @@
 
 #include "gz/math/Sphere.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /////////////////////////////////////////////////

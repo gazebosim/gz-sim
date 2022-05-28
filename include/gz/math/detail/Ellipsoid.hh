@@ -22,7 +22,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Inertial.hh>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {

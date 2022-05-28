@@ -17,7 +17,7 @@
 #include "gz/math/Quaternion.hh"
 #include "gz/math/RotationSpline.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /// \internal
@@ -37,7 +37,7 @@ class RotationSpline::Implementation
 
 /////////////////////////////////////////////////
 RotationSpline::RotationSpline()
-: dataPtr(ignition::utils::MakeImpl<Implementation>())
+: dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

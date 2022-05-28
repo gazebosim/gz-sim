@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/Matrix3.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Matrix3dTest, Matrix3d)

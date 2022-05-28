@@ -36,7 +36,7 @@ $1 = new std::chrono::steady_clock::time_point();
 *$1 += duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(PyInt_AsLong($input)));
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

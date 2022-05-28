@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/SemanticVersion.hh>
+#include <ignition/math/config.hh>

@@ -20,7 +20,7 @@
 #include <gz/math/Temperature.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

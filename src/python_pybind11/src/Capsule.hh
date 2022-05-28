@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__CAPSULE_HH_
-#define IGNITION_MATH_PYTHON__CAPSULE_HH_
+#ifndef GZ_MATH_PYTHON__CAPSULE_HH_
+#define GZ_MATH_PYTHON__CAPSULE_HH_
 
 #include <string>
 
@@ -29,13 +29,13 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Capsule
+/// Define a pybind11 wrapper for an gz::math::Capsule
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -43,7 +43,7 @@ namespace python
 template<typename T>
 void helpDefineMathCapsule(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Capsule<T>;
+  using Class = gz::math::Capsule<T>;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -51,7 +51,7 @@ void helpDefineMathCapsule(py::module &m, const std::string &typestr)
                     py::dynamic_attr())
     .def(py::init<>())
     .def(py::init<const T, const T>())
-    .def(py::init<const T, const T, const ignition::math::Material&>())
+    .def(py::init<const T, const T, const gz::math::Material&>())
     .def(py::self == py::self)
     .def("radius",
          &Class::Radius,
@@ -93,7 +93,7 @@ void helpDefineMathCapsule(py::module &m, const std::string &typestr)
     }, "memo"_a);
 }
 
-/// Define a pybind11 wrapper for an ignition::math::Line2
+/// Define a pybind11 wrapper for an gz::math::Line2
 /**
  * \param[in] module a pybind11 module to add the definition to
  * \param[in] typestr name of the type used by Python
@@ -102,6 +102,6 @@ void defineMathCapsule(py::module &m, const std::string &typestr);
 
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__BOX_HH_
+#endif  // GZ_MATH_PYTHON__BOX_HH_

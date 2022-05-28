@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/AxisAlignedBox.hh>
+#include <ignition/math/config.hh>

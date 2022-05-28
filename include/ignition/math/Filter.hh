@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Filter.hh>
+#include <ignition/math/config.hh>

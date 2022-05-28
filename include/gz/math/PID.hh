@@ -22,12 +22,12 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class PID PID.hh gz/math/PID.hh
     /// \brief Generic PID controller class.
@@ -36,7 +36,7 @@ namespace ignition
     /// the state of a system and a user specified target state.
     /// It includes a user-adjustable command offset term (feed-forward).
     // cppcheck-suppress class_X_Y
-    class IGNITION_MATH_VISIBLE PID
+    class GZ_MATH_VISIBLE PID
     {
       /// \brief Constructor, zeros out Pid values when created and
       /// initialize Pid-gains and integral term limits:[iMax:iMin]-[I1:I2].

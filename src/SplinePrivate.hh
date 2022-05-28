@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SPLINEPRIVATE_HH_
-#define IGNITION_MATH_SPLINEPRIVATE_HH_
+#ifndef GZ_MATH_SPLINEPRIVATE_HH_
+#define GZ_MATH_SPLINEPRIVATE_HH_
 
 #include <algorithm>
 #include <vector>
@@ -25,11 +25,11 @@
 #include <gz/math/Vector4.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    inline namespace GZ_MATH_VERSION_NAMESPACE
     {
     /// \brief Control point representation for
     /// polynomial interpolation, defined in terms
@@ -63,7 +63,7 @@ namespace ignition
       {
         // Workaround to compare the two vector of vectors in MSVC 2013
         // and MSVC 2015. See
-        // https://github.com/ignitionrobotics/ign-math/issues/70
+        // https://github.com/gazebosim/gz-math/issues/70
         if (this->derivatives.size() != _other.derivatives.size())
           return false;
 

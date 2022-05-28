@@ -23,32 +23,32 @@
 int main(int argc, char **argv)
 {
   // Create some observations.
-  std::vector<ignition::math::Vector3d> obs;
-  obs.push_back(ignition::math::Vector3d(1.0, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(1.1, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(1.2, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(1.3, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(1.4, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(5.0, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(5.1, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(5.2, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(5.3, 1.0, 0.0));
-  obs.push_back(ignition::math::Vector3d(5.4, 1.0, 0.0));
+  std::vector<gz::math::Vector3d> obs;
+  obs.push_back(gz::math::Vector3d(1.0, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(1.1, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(1.2, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(1.3, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(1.4, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(5.0, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(5.1, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(5.2, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(5.3, 1.0, 0.0));
+  obs.push_back(gz::math::Vector3d(5.4, 1.0, 0.0));
 
   // Initialize Kmeans with two partitions.
-  ignition::math::Kmeans kmeans(obs);
+  gz::math::Kmeans kmeans(obs);
 
-  std::vector<ignition::math::Vector3d> obsCopy;
+  std::vector<gz::math::Vector3d> obsCopy;
   obsCopy = kmeans.Observations();
 
   for (auto &elem : obsCopy)
-    elem += ignition::math::Vector3d(0.1, 0.2, 0.0);
+    elem += gz::math::Vector3d(0.1, 0.2, 0.0);
 
   // append more observations
   kmeans.AppendObservations(obsCopy);
 
   // cluster
-  std::vector<ignition::math::Vector3d> centroids;
+  std::vector<gz::math::Vector3d> centroids;
   std::vector<unsigned int> labels;
   auto result = kmeans.Cluster(2, centroids, labels);
 

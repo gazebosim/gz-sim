@@ -19,7 +19,7 @@
 
 #include "gz/math/Sphere.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -32,7 +32,7 @@ Sphere<T>::Sphere(const T _radius)
 
 //////////////////////////////////////////////////
 template<typename T>
-Sphere<T>::Sphere(const T _radius, const ignition::math::Material &_mat)
+Sphere<T>::Sphere(const T _radius, const gz::math::Material &_mat)
 {
   this->radius = _radius;
   this->material = _mat;
@@ -54,14 +54,14 @@ void Sphere<T>::SetRadius(const T _radius)
 
 //////////////////////////////////////////////////
 template<typename T>
-const ignition::math::Material &Sphere<T>::Material() const
+const gz::math::Material &Sphere<T>::Material() const
 {
   return this->material;
 }
 
 //////////////////////////////////////////////////
 template<typename T>
-void Sphere<T>::SetMaterial(const ignition::math::Material &_mat)
+void Sphere<T>::SetMaterial(const gz::math::Material &_mat)
 {
   this->material = _mat;
 }

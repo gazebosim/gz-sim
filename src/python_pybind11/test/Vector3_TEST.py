@@ -142,7 +142,7 @@ class TestVector3(unittest.TestCase):
         self.assertEqual(Vector3d.ZERO.length(), 0.0)
         self.assertEqual(Vector3d.ZERO.squared_length(), 0.0)
 
-        # UnitXYZ vectorsIgnition::
+        # UnitXYZ vectorsGz::
         self.assertEqual(Vector3d.UNIT_X.length(), 1.0)
         self.assertEqual(Vector3d.UNIT_Y.length(), 1.0)
         self.assertEqual(Vector3d.UNIT_Z.length(), 1.0)

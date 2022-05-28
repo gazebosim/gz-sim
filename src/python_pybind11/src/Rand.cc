@@ -19,7 +19,7 @@
 #include "Rand.hh"
 #include <gz/math/Rand.hh>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -27,7 +27,7 @@ namespace python
 {
 void defineMathRand(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Rand;
+  using Class = gz::math::Rand;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -35,24 +35,24 @@ void defineMathRand(py::module &m, const std::string &typestr)
                     py::dynamic_attr())
   .def(py::init<>())
   .def("seed",
-        py::overload_cast<>(&ignition::math::Rand::Seed),
+        py::overload_cast<>(&gz::math::Rand::Seed),
         "Get the seed value.")
    .def("seed",
-        py::overload_cast<unsigned int>(&ignition::math::Rand::Seed),
+        py::overload_cast<unsigned int>(&gz::math::Rand::Seed),
         "Set the seed value.")
    .def("dbl_uniform",
-        ignition::math::Rand::DblUniform,
+        gz::math::Rand::DblUniform,
         "Get a double from a uniform distribution")
    .def("dbl_normal",
-        ignition::math::Rand::DblNormal,
+        gz::math::Rand::DblNormal,
         "Get a double from a normal distribution")
    .def("int_uniform",
-        ignition::math::Rand::IntUniform,
+        gz::math::Rand::IntUniform,
         "Get a integer from a uniform distribution")
    .def("int_normal",
-        ignition::math::Rand::IntNormal,
+        gz::math::Rand::IntNormal,
         "Get a integer from a normal distribution");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz

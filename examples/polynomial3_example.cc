@@ -23,15 +23,15 @@ int main(int argc, char **argv)
 {
   // A default constructed polynomial should have zero coefficients.
   std::cout << "A default constructed polynomial is always: "
-            << ignition::math::Polynomial3d() << std::endl;
+            << gz::math::Polynomial3d() << std::endl;
 
   // A constant polynomial only has an independent term.
   std::cout << "A constant polynomial only has an independent term: "
-            << ignition::math::Polynomial3d::Constant(-1.) << std::endl;
+            << gz::math::Polynomial3d::Constant(-1.) << std::endl;
 
   // A cubic polynomial may be incomplete.
-  const ignition::math::Polynomial3d p(
-      ignition::math::Vector4d(1., 0., -1., 2.));
+  const gz::math::Polynomial3d p(
+      gz::math::Vector4d(1., 0., -1., 2.));
   std::cout << "A cubic polynomial may be incomplete: " << p << std::endl;
 
   // A polynomial can be evaluated.
@@ -41,15 +41,15 @@ int main(int argc, char **argv)
 
   // A polynomial can be queried for its minimum in a given interval,
   // as well as for its global minimum (which may not always be finite).
-  const ignition::math::Intervald interval =
-      ignition::math::Intervald::Closed(-1, 1.);
+  const gz::math::Intervald interval =
+      gz::math::Intervald::Closed(-1, 1.);
   std::cout << "The minimum of " << p << " in the " << interval
             << " interval is " << p.Minimum(interval) << std::endl;
   std::cout << "The global minimum of " << p
             << " is " << p.Minimum() << std::endl;
 
-  const ignition::math::Polynomial3d q(
-      ignition::math::Vector4d(0., 1., 2., 1.));
+  const gz::math::Polynomial3d q(
+      gz::math::Vector4d(0., 1., 2., 1.));
   std::cout << "The minimum of " << q << " in the " << interval
             << " interval is " << q.Minimum(interval) << std::endl;
   std::cout << "The global minimum of " << q

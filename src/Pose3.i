@@ -25,7 +25,7 @@
 #include <gz/math/Pose3.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -34,16 +34,16 @@ namespace ignition
     {
       public: static const Pose3<T> Zero;
       public: Pose3();
-      public: Pose3(const ignition::math::Vector3<T> &_pos,
-                    const ignition::math::Quaternion<T> &_rot);
+      public: Pose3(const gz::math::Vector3<T> &_pos,
+                    const gz::math::Quaternion<T> &_rot);
       public: Pose3(T _x, T _y, T _z, T _roll, T _pitch, T _yaw);
       public: Pose3(T _x, T _y, T _z, T _qw, T _qx, T _qy, T _qz);
       public: Pose3(const Pose3<T> &_pose);
       public: ~Pose3();
-      public: void Set(const ignition::math::Vector3<T> &_pos,
-                       const ignition::math::Quaternion<T> &_rot);
-      public: void Set(const ignition::math::Vector3<T> &_pos,
-                  const ignition::math::Vector3<T> &_rpy);
+      public: void Set(const gz::math::Vector3<T> &_pos,
+                       const gz::math::Quaternion<T> &_rot);
+      public: void Set(const gz::math::Vector3<T> &_pos,
+                  const gz::math::Vector3<T> &_rpy);
       public: void Set(T _x, T _y, T _z, T _roll, T _pitch, T _yaw);
       public: bool IsFinite() const;
       public: inline void Correct();
@@ -53,25 +53,25 @@ namespace ignition
       public: inline Pose3<T> operator-(const Pose3<T> &_pose) const;
       public: bool operator==(const Pose3<T> &_pose) const;
       public: Pose3<T> operator*(const Pose3<T> &_pose) const;
-      public: ignition::math::Vector3<T> CoordPositionAdd(
-                  const ignition::math::Vector3<T> &_pos) const;
-      public: ignition::math::Vector3<T> CoordPositionAdd(
+      public: gz::math::Vector3<T> CoordPositionAdd(
+                  const gz::math::Vector3<T> &_pos) const;
+      public: gz::math::Vector3<T> CoordPositionAdd(
                   const Pose3<T> &_pose) const;
-      public: inline ignition::math::Vector3<T> CoordPositionSub(
+      public: inline gz::math::Vector3<T> CoordPositionSub(
                   const Pose3<T> &_pose) const;
-      public: ignition::math::Quaternion<T> CoordRotationAdd(
-                  const ignition::math::Quaternion<T> &_rot) const;
-      public: inline ignition::math::Quaternion<T> CoordRotationSub(
-                  const ignition::math::Quaternion<T> &_rot) const;
+      public: gz::math::Quaternion<T> CoordRotationAdd(
+                  const gz::math::Quaternion<T> &_rot) const;
+      public: inline gz::math::Quaternion<T> CoordRotationSub(
+                  const gz::math::Quaternion<T> &_rot) const;
       public: Pose3<T> CoordPoseSolve(const Pose3<T> &_b) const;
       public: void Reset();
       public: Pose3<T> RotatePositionAboutOrigin(
-                  const ignition::math::Quaternion<T> &_q) const;
+                  const gz::math::Quaternion<T> &_q) const;
       public: void Round(int _precision);
-      public: inline const ignition::math::Vector3<T> &Pos() const;
-      public: inline ignition::math::Vector3<T> &Pos();
-      public: inline const ignition::math::Quaternion<T> &Rot() const;
-      public: inline ignition::math::Quaternion<T> &Rot();
+      public: inline const gz::math::Vector3<T> &Pos() const;
+      public: inline gz::math::Vector3<T> &Pos();
+      public: inline const gz::math::Quaternion<T> &Rot() const;
+      public: inline gz::math::Quaternion<T> &Rot();
     };
 
     %template(Pose3d) Pose3<double>;

@@ -23,7 +23,7 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -31,7 +31,7 @@ namespace ignition
     using clock = std::chrono::steady_clock;
 
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /** \class DiffDriveOdometry DiffDriveOdometry.hh \
      * gz/math/DiffDriveOdometry.hh
      **/
@@ -60,7 +60,7 @@ namespace ignition
     /// **Example Usage**
     ///
     /// \code{.cpp}
-    /// ignition::math::DiffDriveOdometry odom;
+    /// gz::math::DiffDriveOdometry odom;
     /// odom.SetWheelParams(2.0, 0.5, 0.5);
     /// odom.Init(std::chrono::steady_clock::now());
     ///
@@ -74,7 +74,7 @@ namespace ignition
     /// // The left wheel has rotated, the right wheel did not rotate
     /// odom.Update(IGN_DTOR(4), IGN_DTOR(2), std::chrono::steady_clock::now());
     /// \endcode
-    class IGNITION_MATH_VISIBLE DiffDriveOdometry
+    class GZ_MATH_VISIBLE DiffDriveOdometry
     {
       /// \brief Constructor.
       /// \param[in] _windowSize Rolling window size used to compute the

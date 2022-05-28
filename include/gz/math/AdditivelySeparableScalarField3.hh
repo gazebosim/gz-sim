@@ -24,12 +24,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /** \class AdditivelySeparableScalarField3\
      * AdditivelySeparableScalarField3.hh\
@@ -145,7 +145,7 @@ namespace ignition
       /// \return the stream
       public: friend std::ostream &operator<<(
           std::ostream &_out,
-          const ignition::math::AdditivelySeparableScalarField3<
+          const gz::math::AdditivelySeparableScalarField3<
           ScalarFunctionT, ScalarT> &_field)
       {
         using std::abs;  // enable ADL

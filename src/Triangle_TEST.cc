@@ -20,7 +20,7 @@
 #include "gz/math/Triangle.hh"
 #include "gz/math/Helpers.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(TriangleTest, Constructor)

@@ -5,7 +5,7 @@ VERSIONED_NS=v@PROJECT_VERSION_MAJOR@
 IGN_PROJECT=@IGN_DESIGNATION@
 
 # Sanity check - there should be at least one symbol
-NUM_SYMBOLS=$(nm $LIBPATH | grep -e "ignition.*$IGN_PROJECT" | wc -l)
+NUM_SYMBOLS=$(nm $LIBPATH | grep -e "gz.*$IGN_PROJECT" | wc -l)
 
 if [ $NUM_SYMBOLS -eq 0 ]
 then
@@ -14,7 +14,7 @@ then
 fi
 
 # There must be no unversioned symbols
-UNVERSIONED_SYMBOLS=$(nm $LIBPATH | grep -e "ignition.*$IGN_PROJECT" | grep -e "$VERSIONED_NS" -v)
+UNVERSIONED_SYMBOLS=$(nm $LIBPATH | grep -e "gz.*$IGN_PROJECT" | grep -e "$VERSIONED_NS" -v)
 UNVERSIONED_SYMBOL_CHARS=$(printf "$UNVERSIONED_SYMBOLS" | wc -m)
 
 if [ $UNVERSIONED_SYMBOL_CHARS -ne 0 ]

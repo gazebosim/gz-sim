@@ -22,7 +22,7 @@
 #include "gz/math/MassMatrix3.hh"
 #include "gz/math/Material.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(MassMatrix3dTest, Constructors)

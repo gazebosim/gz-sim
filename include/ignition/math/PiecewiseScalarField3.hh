@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/PiecewiseScalarField3.hh>
+#include <ignition/math/config.hh>

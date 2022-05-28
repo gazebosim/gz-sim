@@ -25,7 +25,7 @@
 #include "gz/math/Matrix4.hh"
 #include <gz/utils/SuppressWarning.hh>
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Construction)

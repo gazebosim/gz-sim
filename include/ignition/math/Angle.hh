@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Angle.hh>
+#include <ignition/math/config.hh>

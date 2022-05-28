@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Pose3.hh>
+#include <ignition/math/config.hh>

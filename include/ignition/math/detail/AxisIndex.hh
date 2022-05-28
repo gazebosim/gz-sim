@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/detail/AxisIndex.hh>
+#include <ignition/math/config.hh>

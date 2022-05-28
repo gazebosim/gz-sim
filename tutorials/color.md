@@ -1,13 +1,13 @@
 \page color Color example
 
-This tutorial explains how to use the `Color` class from Ignition Math library.
+This tutorial explains how to use the `Color` class from Gazebo Math library.
 
 ## Compile the code
 
 Go to `ign-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
-git clone https://github.com/ignitionrobotics/ign-math/ -b ign-math7
+git clone https://github.com/gazebosim/gz-math/ -b ign-math7
 cd ign-math/examples
 mkdir build
 cd build
@@ -54,5 +54,5 @@ You can also set or read a color in HSV.
 
 \snippet examples/color_example.cc Set value from HSV
 
-There are more functions in `Color`. Take a look at the [API](https://ignitionrobotics.org/api/math/6.9/classignition_1_1math_1_1Color.html)
+There are more functions in `Color`. Take a look at the [API](https://gazebosim.org/api/math/6.9/classignition_1_1math_1_1Color.html)
 

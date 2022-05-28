@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/PID.hh>
+#include <ignition/math/config.hh>

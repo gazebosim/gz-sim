@@ -26,7 +26,7 @@ endif()
 # Create and install Ruby interfaces
 # Example usage
 # $ export RUBYLIB=/usr/local/lib/ruby
-# $ ruby -e "require 'ignition/math'; a = Ignition::Math::Angle.new(20); puts a.Degree()"
+# $ ruby -e "require 'ignition/math'; a = Gz::Math::Angle.new(20); puts a.Degree()"
 if (RUBY_FOUND)
   foreach (swig_file ${swig_files})
     # Assuming that each swig file has a test

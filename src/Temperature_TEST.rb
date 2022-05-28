@@ -20,7 +20,7 @@ require 'math'
 
 class Temperature_TEST < Test::Unit::TestCase
   def test_construction
-    tmp = Ignition::Math::Temperature.new
+    tmp = Gz::Math::Temperature.new
 
     assert(tmp.Kelvin() == 0.0,
            "Temperature::Kelvin() should equal zero")
@@ -29,14 +29,14 @@ class Temperature_TEST < Test::Unit::TestCase
     assert(tmp.Kelvin() == 123.5,
            "Temperature::Kelvin() should equal 123.5")
 
-    tmp2 = Ignition::Math::Temperature.new(123.5)
+    tmp2 = Gz::Math::Temperature.new(123.5)
     assert(tmp == tmp2, "Both temperatures should be the same.")
 
     tmp2.SetCelsius(123.6)
     assert(tmp != tmp2, "Both temperatures should not be the same.")
     assert(tmp < tmp2, "123.6K should be less than 123.6C")
 
-    assert(Ignition::Math::Temperature::CelsiusToKelvin(123.6) == tmp2.Kelvin(),
+    assert(Gz::Math::Temperature::CelsiusToKelvin(123.6) == tmp2.Kelvin(),
            "123.6C convert to Kelvin should equal tmp2" )
   end
 end

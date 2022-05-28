@@ -18,7 +18,7 @@
 #include "Spline.hh"
 #include <gz/math/Spline.hh>
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -26,7 +26,7 @@ namespace python
 {
 void defineMathSpline(py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::Spline;
+  using Class = gz::math::Spline;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -131,4 +131,4 @@ void defineMathSpline(py::module &m, const std::string &typestr)
 }
 }  // namespace python
 }  // namespace math
-}  // namespace ignition
+}  // namespace gz

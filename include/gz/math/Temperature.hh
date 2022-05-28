@@ -25,12 +25,12 @@
 #include <gz/utils/ImplPtr.hh>
 
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /// \brief A class that stores temperature information, and allows
     /// conversion between different units.
     ///
@@ -56,10 +56,10 @@ namespace ignition
     /// #
     /// require 'gz/math'
     ///
-    /// celsius = Ignition::Math::Temperature::KelvinToCelsius(2.5);
+    /// celsius = Gz::Math::Temperature::KelvinToCelsius(2.5);
     /// printf("2.5Kelvin to Celsius is %f\n", celsius)
     ///
-    /// temp = Ignition::Math::Temperature.new(123.5)
+    /// temp = Gz::Math::Temperature.new(123.5)
     /// printf("Constructed a Temperature object with %f Kelvin\n",
     ///        temp.Kelvin())
     ///
@@ -68,12 +68,12 @@ namespace ignition
     /// temp += 100.0
     /// printf("Temperature + 100.0 is %fK", temp.Kelvin())
     ///
-    /// newTemp = Ignition::Math::Temperature.new(temp.Kelvin())
+    /// newTemp = Gz::Math::Temperature.new(temp.Kelvin())
     /// newTemp += temp + 23.5;
     /// printf("Copied temp and added 23.5K. The new tempurature is %fF\n",
     ///     newTemp.Fahrenheit());
     /// \endcode
-    class IGNITION_MATH_VISIBLE Temperature
+    class GZ_MATH_VISIBLE Temperature
     {
       /// \brief Default constructor.
       public: Temperature();
@@ -335,7 +335,7 @@ namespace ignition
       /// \param[in] _temp Temperature to write to the stream.
       /// \return The output stream.
       public: friend std::ostream &operator<<(std::ostream &_out,
-                  const ignition::math::Temperature &_temp)
+                  const gz::math::Temperature &_temp)
               {
                 _out << _temp.Kelvin();
                 return _out;
@@ -347,7 +347,7 @@ namespace ignition
       /// temperature value is in Kelvin.
       /// \return The input stream.
       public: friend std::istream &operator>>(std::istream &_in,
-                  ignition::math::Temperature &_temp)
+                  gz::math::Temperature &_temp)
               {
                 // Skip white spaces
                 _in.setf(std::ios_base::skipws);

@@ -21,12 +21,12 @@
 int main(int argc, char **argv)
 {
   // Construct a default Pose3d.
-  ignition::math::Pose3d p;
+  gz::math::Pose3d p;
   std::cout << "A default Pose3d has the following values\n"
     << p << std::endl;
 
   // Construct a pose at position 1, 2, 3 with a yaw of PI radians.
-  ignition::math::Pose3d p1(1, 2, 3, 0, 0, IGN_PI);
+  gz::math::Pose3d p1(1, 2, 3, 0, 0, IGN_PI);
   std::cout << "A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n"
     << p1 << std::endl;
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   p.Pos().Set(10, 20, 30);
 
   // Combine two poses, and store the result in a new pose
-  ignition::math::Pose3d p3 = p * p1;
+  gz::math::Pose3d p3 = p * p1;
   std::cout << "Result of adding two poses together is\n"
    << p3 << std::endl;
 }

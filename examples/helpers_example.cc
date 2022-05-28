@@ -30,17 +30,17 @@ int main(int argc, char **argv)
     << IGN_BOX_VOLUME(1, 2, 3) << std::endl;
 
   std::cout << "The result of clamping 2.4 to the range [1,2] is "
-    << ignition::math::clamp(2.4f, 1.0f, 2.0f) << std::endl;
+    << gz::math::clamp(2.4f, 1.0f, 2.0f) << std::endl;
 
   std::vector v{1, 2, 3, 4, 5};
   std::cout << "The mean of a vector containing {1, 2, 3, 4, 5} is "
-    << ignition::math::mean(v) << std::endl;
+    << gz::math::mean(v) << std::endl;
 
   std::cout << "The variance of a vector containing {1, 2, 3, 4, 5} is "
-    << ignition::math::variance(v) << std::endl;
+    << gz::math::variance(v) << std::endl;
 
   std::cout << "The result of rounding up 3 to the next power of two is "
-    << ignition::math::roundUpPowerOfTwo(3) << std::endl;
+    << gz::math::roundUpPowerOfTwo(3) << std::endl;
 
 }
 //! [complete]

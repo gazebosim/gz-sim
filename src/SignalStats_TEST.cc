@@ -20,7 +20,7 @@
 #include <gz/math/Rand.hh>
 #include <gz/math/SignalStats.hh>
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 TEST(SignalStatsTest, SignalMaximumConstructor)

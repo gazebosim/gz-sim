@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Stopwatch.hh>
+#include <ignition/math/config.hh>

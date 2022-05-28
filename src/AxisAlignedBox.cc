@@ -17,11 +17,11 @@
 #include <cmath>
 #include <gz/math/AxisAlignedBox.hh>
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 // Private data for AxisAlignedBox class
-class ignition::math::AxisAlignedBox::Implementation
+class gz::math::AxisAlignedBox::Implementation
 {
   /// \brief Minimum corner of the box
   public: Vector3d min = Vector3d(MAX_D, MAX_D, MAX_D);
@@ -32,7 +32,7 @@ class ignition::math::AxisAlignedBox::Implementation
 
 //////////////////////////////////////////////////
 AxisAlignedBox::AxisAlignedBox()
-: dataPtr(ignition::utils::MakeImpl<Implementation>())
+: dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 

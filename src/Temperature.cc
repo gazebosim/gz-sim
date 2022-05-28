@@ -21,18 +21,18 @@
 #include <ostream>
 
 /// \brief Private data for the Temperature class.
-class ignition::math::Temperature::Implementation
+class gz::math::Temperature::Implementation
 {
   /// \brief Temperature value in Kelvin.
   public: double kelvin{0.0};
 };
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /////////////////////////////////////////////////
 Temperature::Temperature()
-: dataPtr(ignition::utils::MakeImpl<Implementation>())
+: dataPtr(gz::utils::MakeImpl<Implementation>())
 {
 }
 
@@ -235,13 +235,13 @@ const Temperature &Temperature::operator/=(const Temperature &_temp)
 /////////////////////////////////////////////////
 bool Temperature::operator==(const Temperature &_temp) const
 {
-  return ignition::math::equal(this->dataPtr->kelvin, _temp.Kelvin());
+  return gz::math::equal(this->dataPtr->kelvin, _temp.Kelvin());
 }
 
 /////////////////////////////////////////////////
 bool Temperature::operator==(double _temp) const
 {
-  return ignition::math::equal(this->dataPtr->kelvin, _temp);
+  return gz::math::equal(this->dataPtr->kelvin, _temp);
 }
 
 /////////////////////////////////////////////////

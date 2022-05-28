@@ -25,7 +25,7 @@
 #include <gz/math/Quaternion.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -38,10 +38,10 @@ namespace ignition
       public: Quaternion();
       public: Quaternion(const T &_w, const T &_x, const T &_y, const T &_z);
       public: Quaternion(const T &_roll, const T &_pitch, const T &_yaw);
-      public: Quaternion(const ignition::math::Vector3<T> &_axis,
+      public: Quaternion(const gz::math::Vector3<T> &_axis,
                          const T &_angle);
-      public: explicit Quaternion(const ignition::math::Vector3<T> &_rpy);
-      public: explicit Quaternion(const ignition::math::Matrix3<T> &_mat);
+      public: explicit Quaternion(const gz::math::Vector3<T> &_rpy);
+      public: explicit Quaternion(const gz::math::Matrix3<T> &_mat);
       public: Quaternion(const Quaternion<T> &_qt);
       public: ~Quaternion();
       public: void Invert();
@@ -50,42 +50,42 @@ namespace ignition
       public: Quaternion<T> Exp() const;
       public: void Normalize();
       public: void SetFromAxisAngle(T _ax, T _ay, T _az, T _aa);
-      public: void SetFromAxisAngle(const ignition::math::Vector3<T> &_axis,
+      public: void SetFromAxisAngle(const gz::math::Vector3<T> &_axis,
                   T _a);
       public: void Set(T _w, T _x, T _y, T _z);
-      public: void SetFromEuler(const ignition::math::Vector3<T> &_vec);
+      public: void SetFromEuler(const gz::math::Vector3<T> &_vec);
       public: void SetFromEuler(T _roll, T _pitch, T _yaw);
-      public: ignition::math::Vector3<T> Euler() const;
+      public: gz::math::Vector3<T> Euler() const;
       public: static Quaternion<T> EulerToQuaternion(
-                  const ignition::math::Vector3<T> &_vec);
+                  const gz::math::Vector3<T> &_vec);
       public: static Quaternion<T> EulerToQuaternion(T _x, T _y, T _z);
       public: T Roll() const;
       public: T Pitch() const;
       public: T Yaw() const;
-      public: void AxisAngle(ignition::math::Vector3<T> &_axis,
+      public: void AxisAngle(gz::math::Vector3<T> &_axis,
                   T &_angle) const;
-      void SetFromMatrix(const ignition::math::Matrix3<T> &_mat);
-      public: void SetFrom2Axes(const ignition::math::Vector3<T> &_v1,
-                  const ignition::math::Vector3<T> &_v2);
+      void SetFromMatrix(const gz::math::Matrix3<T> &_mat);
+      public: void SetFrom2Axes(const gz::math::Vector3<T> &_v1,
+                  const gz::math::Vector3<T> &_v2);
       public: void Scale(T _scale);
       public: Quaternion<T> operator+(const Quaternion<T> &_qt) const;
       public: Quaternion<T> operator-(const Quaternion<T> &_qt) const;
       public: inline Quaternion<T> operator*(const Quaternion<T> &_q) const;
       public: Quaternion<T> operator*(const T &_f) const;
-      public: ignition::math::Vector3<T> operator*(
-                  const ignition::math::Vector3<T> &_v) const;
+      public: gz::math::Vector3<T> operator*(
+                  const gz::math::Vector3<T> &_v) const;
       public: bool operator==(const Quaternion<T> &_qt) const;
       public: bool Equal(const Quaternion<T> &_qt, const T &_tol) const;
       public: Quaternion<T> operator-() const;
-      public: inline ignition::math::Vector3<T> RotateVector(
-                  const ignition::math::Vector3<T> &_vec) const;
-      public: ignition::math::Vector3<T> RotateVectorReverse(
-                  const ignition::math::Vector3<T> &_vec) const;
+      public: inline gz::math::Vector3<T> RotateVector(
+                  const gz::math::Vector3<T> &_vec) const;
+      public: gz::math::Vector3<T> RotateVectorReverse(
+                  const gz::math::Vector3<T> &_vec) const;
       public: bool IsFinite() const;
       public: inline void Correct();
-      public: ignition::math::Vector3<T> XAxis() const;
-      public: ignition::math::Vector3<T> YAxis() const;
-      public: ignition::math::Vector3<T> ZAxis() const;
+      public: gz::math::Vector3<T> XAxis() const;
+      public: gz::math::Vector3<T> YAxis() const;
+      public: gz::math::Vector3<T> ZAxis() const;
       public: void Round(int _precision);
       public: T Dot(const Quaternion<T> &_q) const;
       public: static Quaternion<T> Squad(T _fT,
@@ -96,7 +96,7 @@ namespace ignition
                   const Quaternion<T> &_rkP, const Quaternion<T> &_rkQ,
                   bool _shortestPath = false);
       public: Quaternion<T> Integrate(
-                  const ignition::math::Vector3<T> &_angularVelocity,
+                  const gz::math::Vector3<T> &_angularVelocity,
                   const T _deltaT) const;
       public: inline T W() const;
       public: inline T X() const;

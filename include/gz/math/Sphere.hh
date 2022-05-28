@@ -22,7 +22,7 @@
 #include "gz/math/Quaternion.hh"
 #include "gz/math/Plane.hh"
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -30,7 +30,7 @@ namespace ignition
     class SpherePrivate;
 
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Sphere Sphere.hh gz/math/Sphere.hh
     /// \brief A representation of a sphere.
@@ -63,11 +63,11 @@ namespace ignition
 
       /// \brief Get the material associated with this sphere.
       /// \return The material assigned to this sphere
-      public: const ignition::math::Material &Material() const;
+      public: const gz::math::Material &Material() const;
 
       /// \brief Set the material associated with this sphere.
       /// \param[in] _mat The material assigned to this sphere
-      public: void SetMaterial(const ignition::math::Material &_mat);
+      public: void SetMaterial(const gz::math::Material &_mat);
 
       /// \brief Get the mass matrix for this sphere. This function
       /// is only meaningful if the sphere's radius and material have been set.
@@ -134,7 +134,7 @@ namespace ignition
       private: Precision radius = 0.0;
 
       /// \brief the sphere's material.
-      private: ignition::math::Material material;
+      private: gz::math::Material material;
     };
 
     /// \typedef Sphere<int> Spherei

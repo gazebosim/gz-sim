@@ -19,7 +19,7 @@
 #include <gz/math/VolumetricGridLookupField.hh>
 #include <unordered_set>
 #include <gtest/gtest.h>
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 

@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/AdditivelySeparableScalarField3.hh>
+#include <ignition/math/config.hh>

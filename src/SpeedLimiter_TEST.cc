@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/SpeedLimiter.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 using namespace std::literals::chrono_literals;
 

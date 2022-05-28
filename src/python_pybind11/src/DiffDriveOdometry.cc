@@ -17,7 +17,7 @@
 #include <string>
 #include "DiffDriveOdometry.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -26,7 +26,7 @@ namespace python
 void defineMathDiffDriveOdometry(
   py::module &m, const std::string &typestr)
 {
-  using Class = ignition::math::DiffDriveOdometry;
+  using Class = gz::math::DiffDriveOdometry;
   std::string pyclass_name = typestr;
   py::class_<Class>(m,
                     pyclass_name.c_str(),
@@ -58,5 +58,5 @@ void defineMathDiffDriveOdometry(
          "Set the velocity rolling window size.");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz

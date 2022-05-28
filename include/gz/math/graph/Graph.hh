@@ -30,12 +30,12 @@
 #include "gz/math/graph/Edge.hh"
 #include "gz/math/graph/Vertex.hh"
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+inline namespace GZ_MATH_VERSION_NAMESPACE {
 namespace graph
 {
   /// \brief A generic graph class.
@@ -51,7 +51,7 @@ namespace graph
   ///
   /// // Create a directed graph that is capable of storing integer data in the
   /// // vertices and double data on the edges.
-  /// ignition::math::graph::DirectedGraph<int, double> graph(
+  /// gz::math::graph::DirectedGraph<int, double> graph(
   ///   // Create the vertices, with default data and vertex ids.
   ///   {
   ///     {"vertex1"}, {"vertex2"}, {"vertex3"}
@@ -64,7 +64,7 @@ namespace graph
   ///   });
   ///
   /// // You can assign data to vertices.
-  /// ignition::math::graph::DirectedGraph<int, double> graph2(
+  /// gz::math::graph::DirectedGraph<int, double> graph2(
   ///   // Create the vertices, with custom data and default vertex ids.
   ///   {
   ///     {"vertex1", 1}, {"vertex2", 2}, {"vertex3", 10}
@@ -78,7 +78,7 @@ namespace graph
   ///
   ///
   /// // It's also possible to specify vertex ids.
-  /// ignition::math::graph::DirectedGraph<int, double> graph3(
+  /// gz::math::graph::DirectedGraph<int, double> graph3(
   ///   // Create the vertices with custom data and vertex ids.
   ///   {
   ///     {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}
@@ -89,7 +89,7 @@ namespace graph
   ///   });
   ///
   /// // Finally, you can also assign weights to the edges.
-  /// ignition::math::graph::DirectedGraph<int, double> graph4(
+  /// gz::math::graph::DirectedGraph<int, double> graph4(
   ///   // Create the vertices with custom data and vertex ids.
   ///   {
   ///     {"vertex1", 1, 2}, {"vertex2", 2, 3}, {"vertex3", 10, 4}

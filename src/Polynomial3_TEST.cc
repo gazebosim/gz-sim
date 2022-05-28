@@ -19,7 +19,7 @@
 
 #include "gz/math/Polynomial3.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(Polynomial3Test, DefaultConstructor)

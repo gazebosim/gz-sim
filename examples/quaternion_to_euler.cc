@@ -65,7 +65,7 @@ int main(int argc, char **argv)
             << "\n  Y " << y
             << "\n  Z " << z
             << std::endl;
-  ignition::math::Quaterniond q(w, x, y, z);
+  gz::math::Quaterniond q(w, x, y, z);
   q.Normalize();
   std::cout << "to"
             << "\n  W " << q.W()
@@ -74,9 +74,9 @@ int main(int argc, char **argv)
             << "\n  Z " << q.Z()
             << std::endl;
 
-  ignition::math::Matrix3d m(q);
+  gz::math::Matrix3d m(q);
 //![constructor]
-  ignition::math::Vector3d euler(q.Euler());
+  gz::math::Vector3d euler(q.Euler());
 //![constructor]
 
   std::cout << "\nConverting to Euler angles\n";

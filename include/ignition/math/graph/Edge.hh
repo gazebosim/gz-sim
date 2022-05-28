@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/graph/Edge.hh>
+#include <ignition/math/config.hh>

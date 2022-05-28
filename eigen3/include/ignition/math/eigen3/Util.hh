@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/eigen3/Util.hh>
+#include <ignition/math/config.hh>

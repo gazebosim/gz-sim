@@ -24,16 +24,16 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
 
     /// \brief Mathematical representation of a frustum and related functions.
     /// This is also known as a view frustum.
-    class IGNITION_MATH_VISIBLE Frustum
+    class GZ_MATH_VISIBLE Frustum
     {
       /// \brief Planes that define the boundaries of the frustum.
       public: enum FrustumPlane

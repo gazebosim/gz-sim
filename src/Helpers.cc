@@ -20,11 +20,11 @@
 #include <regex>
 #include <sstream>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE
+    inline namespace GZ_MATH_VERSION_NAMESPACE
     {
 
     /////////////////////////////////////////////

@@ -27,12 +27,12 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /** \class PiecewiseScalarField3 PiecewiseScalarField3.hh\
      * gz/math/PiecewiseScalarField3.hh
@@ -187,7 +187,7 @@ namespace ignition
       /// \return the stream
       public: friend std::ostream &operator<<(
           std::ostream &_out,
-          const ignition::math::PiecewiseScalarField3<
+          const gz::math::PiecewiseScalarField3<
           ScalarField3T, ScalarT> &_field)
       {
         if (_field.pieces.empty())

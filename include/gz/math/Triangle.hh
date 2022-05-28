@@ -23,12 +23,12 @@
 #include <gz/math/Vector2.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \class Triangle Triangle.hh gz/math/Triangle.hh
     /// \brief Triangle class and related functions.

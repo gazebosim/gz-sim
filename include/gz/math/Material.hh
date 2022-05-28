@@ -25,12 +25,12 @@
 #include <gz/math/MaterialType.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
 
     /// \brief Contains information about a single material.
     ///
@@ -40,8 +40,8 @@ namespace ignition
     /// enum.
     ///
     /// This class will replace the
-    /// [MaterialDensity class](https://github.com/ignitionrobotics/ign-common/blob/ign-common1/include/gz/common/MaterialDensity.hh)
-    /// found in the Ignition Common library, which was at version 1 at the
+    /// [MaterialDensity class](https://github.com/gazebosim/gz-common/blob/main/include/gz/common/MaterialDensity.hh)
+    /// found in the Gazebo Common library, which was at version 1 at the
     /// time of this writing.
     ///
     /// **How to create a wood material:**
@@ -61,7 +61,7 @@ namespace ignition
     /// std::cout << "The density of " << mat.Name() is "
     ///   << mat.Density() << std::endl;
     /// ~~~
-    class IGNITION_MATH_VISIBLE Material
+    class GZ_MATH_VISIBLE Material
     {
       /// \brief Constructor.
       public: Material();

@@ -15,27 +15,27 @@
  *
 */
 
-#ifndef IGNITION_MATH_PYTHON__RAND_HH_
-#define IGNITION_MATH_PYTHON__RAND_HH_
+#ifndef GZ_MATH_PYTHON__RAND_HH_
+#define GZ_MATH_PYTHON__RAND_HH_
 
 #include <pybind11/pybind11.h>
 #include <string>
 
 namespace py = pybind11;
 
-namespace ignition
+namespace gz
 {
 namespace math
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::math::Rand
+/// Define a pybind11 wrapper for an gz::math::Rand
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void defineMathRand(py::module &m, const std::string &typestr);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace math
+}  // namespace gz
 
-#endif  // IGNITION_MATH_PYTHON__RAND_HH_
+#endif  // GZ_MATH_PYTHON__RAND_HH_

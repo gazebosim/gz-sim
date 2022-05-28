@@ -23,12 +23,12 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/config.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \def GeneratorType
     /// \brief std::mt19937
@@ -45,7 +45,7 @@ namespace ignition
 
     /// \class Rand Rand.hh gz/math/Rand.hh
     /// \brief Random number generator class
-    class IGNITION_MATH_VISIBLE Rand
+    class GZ_MATH_VISIBLE Rand
     {
       /// \brief Set the seed value.
       /// \param[in] _seed The seed used to initialize the randon number

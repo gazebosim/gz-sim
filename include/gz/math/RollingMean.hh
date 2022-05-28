@@ -21,17 +21,17 @@
 #include <gz/math/config.hh>
 #include <gz/utils/ImplPtr.hh>
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_MATH_VERSION_NAMESPACE {
+    inline namespace GZ_MATH_VERSION_NAMESPACE {
     /// \brief A class that computes the mean over a series of data points.
     /// The window size determines the maximum number of data points. The
     /// oldest value is popped off when the window size is reached and
     /// a new value is pushed in.
-    class IGNITION_MATH_VISIBLE RollingMean
+    class GZ_MATH_VISIBLE RollingMean
     {
       /// \brief Constructor
       /// \param[in] _windowSize The window size to use. This value will be

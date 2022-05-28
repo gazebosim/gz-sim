@@ -23,7 +23,7 @@
 #include "gz/math/Pose3.hh"
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

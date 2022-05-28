@@ -25,10 +25,10 @@
 %}
 
 %include "typemaps.i"
-%typemap(out) (std::optional< ignition::math::Vector3< double > >) %{
+%typemap(out) (std::optional< gz::math::Vector3< double > >) %{
   if((*(&result)).has_value()) {
     $result = SWIG_NewPointerObj(
-      (new ignition::math::Vector3< double >(static_cast< const ignition::math::Vector3< double >& >((*(&result)).value()))),
+      (new gz::math::Vector3< double >(static_cast< const gz::math::Vector3< double >& >((*(&result)).value()))),
       SWIGTYPE_p_ignition__math__Vector3T_double_t,
       SWIG_POINTER_OWN |  0 );
   } else {
@@ -37,7 +37,7 @@
   }
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {
@@ -48,7 +48,7 @@ namespace ignition
 
       public: explicit Sphere(const Precision _radius);
 
-      public: Sphere(const Precision _radius, const ignition::math::Material &_mat);
+      public: Sphere(const Precision _radius, const gz::math::Material &_mat);
 
       public: ~Sphere() = default;
 
@@ -56,11 +56,11 @@ namespace ignition
 
       public: void SetRadius(const Precision _radius);
 
-      public: const ignition::math::Material &Material() const;
+      public: const gz::math::Material &Material() const;
 
-      public: void SetMaterial(const ignition::math::Material &_mat);
+      public: void SetMaterial(const gz::math::Material &_mat);
 
-      public: bool MassMatrix(ignition::math::MassMatrix3<double> &_massMat) const;
+      public: bool MassMatrix(gz::math::MassMatrix3<double> &_massMat) const;
 
       public: bool operator==(const Sphere &_sphere) const;
 
@@ -68,10 +68,10 @@ namespace ignition
 
       public: Precision Volume() const;
 
-      public: Precision VolumeBelow(const ignition::math::Plane<Precision> &_plane) const;
+      public: Precision VolumeBelow(const gz::math::Plane<Precision> &_plane) const;
 
-      public: std::optional<ignition::math::Vector3<Precision>>
-        CenterOfVolumeBelow(const ignition::math::Plane<Precision> &_plane) const;
+      public: std::optional<gz::math::Vector3<Precision>>
+        CenterOfVolumeBelow(const gz::math::Plane<Precision> &_plane) const;
 
       public: Precision DensityFromMass(const Precision _mass) const;
 

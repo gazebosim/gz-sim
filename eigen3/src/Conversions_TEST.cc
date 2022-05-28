@@ -25,22 +25,22 @@
 TEST(EigenConversions, ConvertVector3)
 {
   {
-    ignition::math::Vector3d iVec, iVec2;
-    Eigen::Vector3d eVec = ignition::math::eigen3::convert(iVec);
+    gz::math::Vector3d iVec, iVec2;
+    Eigen::Vector3d eVec = gz::math::eigen3::convert(iVec);
     EXPECT_DOUBLE_EQ(0, eVec[0]);
     EXPECT_DOUBLE_EQ(0, eVec[1]);
     EXPECT_DOUBLE_EQ(0, eVec[2]);
-    iVec2 = ignition::math::eigen3::convert(eVec);
+    iVec2 = gz::math::eigen3::convert(eVec);
     EXPECT_EQ(iVec, iVec2);
   }
 
   {
-    ignition::math::Vector3d iVec(100.5, -2.314, 42), iVec2;
-    Eigen::Vector3d eVec = ignition::math::eigen3::convert(iVec);
+    gz::math::Vector3d iVec(100.5, -2.314, 42), iVec2;
+    Eigen::Vector3d eVec = gz::math::eigen3::convert(iVec);
     EXPECT_DOUBLE_EQ(iVec[0], eVec[0]);
     EXPECT_DOUBLE_EQ(iVec[1], eVec[1]);
     EXPECT_DOUBLE_EQ(iVec[2], eVec[2]);
-    iVec2 = ignition::math::eigen3::convert(eVec);
+    iVec2 = gz::math::eigen3::convert(eVec);
     EXPECT_EQ(iVec, iVec2);
   }
 }
@@ -50,31 +50,31 @@ TEST(EigenConversions, ConvertVector3)
 TEST(EigenConversions, ConvertAxisAlignedBox)
 {
   {
-    ignition::math::AxisAlignedBox iBox, iBox2;
-    Eigen::AlignedBox3d eBox = ignition::math::eigen3::convert(iBox);
-    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[0]);
-    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[1]);
-    EXPECT_DOUBLE_EQ(ignition::math::MAX_D, eBox.min()[2]);
-    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[0]);
-    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[1]);
-    EXPECT_DOUBLE_EQ(ignition::math::LOW_D, eBox.max()[2]);
-    iBox2 = ignition::math::eigen3::convert(eBox);
+    gz::math::AxisAlignedBox iBox, iBox2;
+    Eigen::AlignedBox3d eBox = gz::math::eigen3::convert(iBox);
+    EXPECT_DOUBLE_EQ(gz::math::MAX_D, eBox.min()[0]);
+    EXPECT_DOUBLE_EQ(gz::math::MAX_D, eBox.min()[1]);
+    EXPECT_DOUBLE_EQ(gz::math::MAX_D, eBox.min()[2]);
+    EXPECT_DOUBLE_EQ(gz::math::LOW_D, eBox.max()[0]);
+    EXPECT_DOUBLE_EQ(gz::math::LOW_D, eBox.max()[1]);
+    EXPECT_DOUBLE_EQ(gz::math::LOW_D, eBox.max()[2]);
+    iBox2 = gz::math::eigen3::convert(eBox);
     EXPECT_EQ(iBox, iBox2);
   }
 
   {
-    ignition::math::AxisAlignedBox iBox(
-        ignition::math::Vector3d(100.5, -2.314, 42),
-        ignition::math::Vector3d(305, 2.314, 142));
-    ignition::math::AxisAlignedBox iBox2;
-    Eigen::AlignedBox3d eBox = ignition::math::eigen3::convert(iBox);
+    gz::math::AxisAlignedBox iBox(
+        gz::math::Vector3d(100.5, -2.314, 42),
+        gz::math::Vector3d(305, 2.314, 142));
+    gz::math::AxisAlignedBox iBox2;
+    Eigen::AlignedBox3d eBox = gz::math::eigen3::convert(iBox);
     EXPECT_DOUBLE_EQ(iBox.Min()[0], eBox.min()[0]);
     EXPECT_DOUBLE_EQ(iBox.Min()[1], eBox.min()[1]);
     EXPECT_DOUBLE_EQ(iBox.Min()[2], eBox.min()[2]);
     EXPECT_DOUBLE_EQ(iBox.Max()[0], eBox.max()[0]);
     EXPECT_DOUBLE_EQ(iBox.Max()[1], eBox.max()[1]);
     EXPECT_DOUBLE_EQ(iBox.Max()[2], eBox.max()[2]);
-    iBox2 = ignition::math::eigen3::convert(eBox);
+    iBox2 = gz::math::eigen3::convert(eBox);
     EXPECT_EQ(iBox, iBox2);
   }
 }
@@ -84,24 +84,24 @@ TEST(EigenConversions, ConvertAxisAlignedBox)
 TEST(EigenConversions, ConvertQuaternion)
 {
   {
-    ignition::math::Quaterniond iQuat, iQuat2;
-    Eigen::Quaterniond eQuat = ignition::math::eigen3::convert(iQuat);
+    gz::math::Quaterniond iQuat, iQuat2;
+    Eigen::Quaterniond eQuat = gz::math::eigen3::convert(iQuat);
     EXPECT_DOUBLE_EQ(1, eQuat.w());
     EXPECT_DOUBLE_EQ(0, eQuat.x());
     EXPECT_DOUBLE_EQ(0, eQuat.y());
     EXPECT_DOUBLE_EQ(0, eQuat.z());
-    iQuat2 = ignition::math::eigen3::convert(eQuat);
+    iQuat2 = gz::math::eigen3::convert(eQuat);
     EXPECT_EQ(iQuat, iQuat2);
   }
 
   {
-    ignition::math::Quaterniond iQuat(0.1, 0.2, 0.3), iQuat2;
-    Eigen::Quaterniond eQuat = ignition::math::eigen3::convert(iQuat);
+    gz::math::Quaterniond iQuat(0.1, 0.2, 0.3), iQuat2;
+    Eigen::Quaterniond eQuat = gz::math::eigen3::convert(iQuat);
     EXPECT_DOUBLE_EQ(iQuat.W(), eQuat.w());
     EXPECT_DOUBLE_EQ(iQuat.X(), eQuat.x());
     EXPECT_DOUBLE_EQ(iQuat.Y(), eQuat.y());
     EXPECT_DOUBLE_EQ(iQuat.Z(), eQuat.z());
-    iQuat2 = ignition::math::eigen3::convert(eQuat);
+    iQuat2 = gz::math::eigen3::convert(eQuat);
     EXPECT_EQ(iQuat, iQuat2);
   }
 }
@@ -111,8 +111,8 @@ TEST(EigenConversions, ConvertQuaternion)
 TEST(EigenConversions, ConvertMatrix3)
 {
   {
-    ignition::math::Matrix3d iMat, iMat2;
-    Eigen::Matrix3d eMat = ignition::math::eigen3::convert(iMat);
+    gz::math::Matrix3d iMat, iMat2;
+    Eigen::Matrix3d eMat = gz::math::eigen3::convert(iMat);
     EXPECT_DOUBLE_EQ(0, eMat(0, 0));
     EXPECT_DOUBLE_EQ(0, eMat(0, 1));
     EXPECT_DOUBLE_EQ(0, eMat(0, 2));
@@ -122,14 +122,14 @@ TEST(EigenConversions, ConvertMatrix3)
     EXPECT_DOUBLE_EQ(0, eMat(2, 0));
     EXPECT_DOUBLE_EQ(0, eMat(2, 1));
     EXPECT_DOUBLE_EQ(0, eMat(2, 2));
-    iMat2 = ignition::math::eigen3::convert(eMat);
+    iMat2 = gz::math::eigen3::convert(eMat);
     EXPECT_EQ(iMat, iMat2);
   }
 
 
   {
-    ignition::math::Matrix3d iMat(1, 2, 3, 4, 5, 6, 7, 8, 9), iMat2;
-    Eigen::Matrix3d eMat = ignition::math::eigen3::convert(iMat);
+    gz::math::Matrix3d iMat(1, 2, 3, 4, 5, 6, 7, 8, 9), iMat2;
+    Eigen::Matrix3d eMat = gz::math::eigen3::convert(iMat);
     EXPECT_DOUBLE_EQ(iMat(0, 0), eMat(0, 0));
     EXPECT_DOUBLE_EQ(iMat(0, 1), eMat(0, 1));
     EXPECT_DOUBLE_EQ(iMat(0, 2), eMat(0, 2));
@@ -139,7 +139,7 @@ TEST(EigenConversions, ConvertMatrix3)
     EXPECT_DOUBLE_EQ(iMat(2, 0), eMat(2, 0));
     EXPECT_DOUBLE_EQ(iMat(2, 1), eMat(2, 1));
     EXPECT_DOUBLE_EQ(iMat(2, 2), eMat(2, 2));
-    iMat2 = ignition::math::eigen3::convert(eMat);
+    iMat2 = gz::math::eigen3::convert(eMat);
     EXPECT_EQ(iMat, iMat2);
   }
 }
@@ -149,8 +149,8 @@ TEST(EigenConversions, ConvertMatrix3)
 TEST(EigenConversions, ConvertPose3)
 {
   {
-    ignition::math::Pose3d iPose, iPose2;
-    Eigen::Isometry3d ePose = ignition::math::eigen3::convert(iPose);
+    gz::math::Pose3d iPose, iPose2;
+    Eigen::Isometry3d ePose = gz::math::eigen3::convert(iPose);
     Eigen::Vector3d eVec = ePose.translation();
     EXPECT_DOUBLE_EQ(0, eVec[0]);
     EXPECT_DOUBLE_EQ(0, eVec[1]);
@@ -160,14 +160,14 @@ TEST(EigenConversions, ConvertPose3)
     EXPECT_DOUBLE_EQ(0, eQuat.x());
     EXPECT_DOUBLE_EQ(0, eQuat.y());
     EXPECT_DOUBLE_EQ(0, eQuat.z());
-    iPose2 = ignition::math::eigen3::convert(ePose);
+    iPose2 = gz::math::eigen3::convert(ePose);
     EXPECT_EQ(iPose, iPose2);
   }
 
   {
-    ignition::math::Pose3d iPose(105.4, 3.1, -0.34, 3.14/8, 3.14/16, -3.14/2);
-    ignition::math::Pose3d iPose2;
-    Eigen::Isometry3d ePose = ignition::math::eigen3::convert(iPose);
+    gz::math::Pose3d iPose(105.4, 3.1, -0.34, 3.14/8, 3.14/16, -3.14/2);
+    gz::math::Pose3d iPose2;
+    Eigen::Isometry3d ePose = gz::math::eigen3::convert(iPose);
     Eigen::Vector3d eVec = ePose.translation();
     EXPECT_DOUBLE_EQ(iPose.Pos()[0], eVec[0]);
     EXPECT_DOUBLE_EQ(iPose.Pos()[1], eVec[1]);
@@ -177,7 +177,7 @@ TEST(EigenConversions, ConvertPose3)
     EXPECT_DOUBLE_EQ(iPose.Rot().X(), eQuat.x());
     EXPECT_DOUBLE_EQ(iPose.Rot().Y(), eQuat.y());
     EXPECT_DOUBLE_EQ(iPose.Rot().Z(), eQuat.z());
-    iPose2 = ignition::math::eigen3::convert(ePose);
+    iPose2 = gz::math::eigen3::convert(ePose);
     EXPECT_EQ(iPose, iPose2);
   }
 }

@@ -20,7 +20,7 @@
 #include <gz/math/RollingMean.hh>
 %}
 
-namespace ignition
+namespace gz
 {
   namespace math
   {

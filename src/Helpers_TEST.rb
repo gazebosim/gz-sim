@@ -20,14 +20,14 @@ require 'math'
 
 class Helpers_TEST < Test::Unit::TestCase
   def Helpers
-    assert(12345 == Ignition::Math::parseInt("12345"),
+    assert(12345 == Gz::Math::parseInt("12345"),
           "The string '12345' should parse to an integer")
-    assert(-12345 == Ignition::Math::parseInt("-12345"),
+    assert(-12345 == Gz::Math::parseInt("-12345"),
           "The string '-12345' should parse to an integer")
-    assert(-12345 == Ignition::Math::parseInt("    -12345"))
-    assert(0 == Ignition::Math::parseInt("    "),
+    assert(-12345 == Gz::Math::parseInt("    -12345"))
+    assert(0 == Gz::Math::parseInt("    "),
           "The string '    ' should parse to 0")
-    assert(23 == Ignition::Math::parseInt("23ab67"),
+    assert(23 == Gz::Math::parseInt("23ab67"),
           "The string '23ab67' should parse to 23")
   end
 end

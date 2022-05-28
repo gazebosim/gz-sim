@@ -20,7 +20,7 @@
 #include "gz/math/Helpers.hh"
 #include "gz/math/PID.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 /////////////////////////////////////////////////
@@ -70,7 +70,7 @@ class PID::Implementation
 PID::PID(const double _p, const double _i, const double _d,
          const double _imax, const double _imin, const double _cmdMax,
          const double _cmdMin, const double _cmdOffset)
-: dataPtr(ignition::utils::MakeImpl<Implementation>())
+: dataPtr(gz::utils::MakeImpl<Implementation>())
 {
   this->Init(_p, _i, _d, _imax, _imin, _cmdMax, _cmdMin, _cmdOffset);
 }
@@ -155,7 +155,7 @@ double PID::Update(const double _error,
                    const std::chrono::duration<double> &_dt)
 {
   if (_dt == std::chrono::duration<double>(0) ||
-      ignition::math::isnan(_error) || std::isinf(_error))
+      gz::math::isnan(_error) || std::isinf(_error))
   {
     return 0.0;
   }

@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_MATH_SRC_MATERIAL_TYPE_HH_
-#define IGNITION_MATH_SRC_MATERIAL_TYPE_HH_
+#ifndef GZ_MATH_SRC_MATERIAL_TYPE_HH_
+#define GZ_MATH_SRC_MATERIAL_TYPE_HH_
 
 #include <array>
 #include <utility>
 
-using namespace ignition;
+using namespace gz;
 using namespace math;
 
 // This class is used to curly-brace initialize kMaterialData

@@ -1,6 +1,6 @@
 \page example_vector2 Vector example
 
-This tutorial explains how to use the `Vector` class from Ignition Math library.
+This tutorial explains how to use the `Vector` class from Gazebo Math library.
 
 ## C++ example
 
@@ -9,7 +9,7 @@ This tutorial explains how to use the `Vector` class from Ignition Math library.
 To compile the code, go to `ign-math/examples` and use `cmake`:
 
 ```{.sh}
-git clone https://github.com/ignitionrobotics/ign-math/ -b master
+git clone https://github.com/gazebosim/gz-math/ -b master
 cd ign-math/examples
 mkdir build
 cd build
@@ -47,7 +47,7 @@ Create a `Vector2` called `vec2` of doubles using the typedef `Vector2d`. **The 
 \snippet examples/vector2_example.cc constructor
 
 
-The `Vector2` class is a template, so you can also create a `Vector2` using `ignition::math::Vector2<double>`:
+The `Vector2` class is a template, so you can also create a `Vector2` using `gz::math::Vector2<double>`:
 
 \snippet examples/vector2_example.cc constructor2
 
@@ -71,11 +71,11 @@ There are also many useful function such as finding the distance between two vec
 
 \snippet examples/vector2_example.cc distance
 
-**There are more functions in Vector2. Take a look at the [API](https://ignitionrobotics.org/libs/math)**
+**There are more functions in Vector2. Take a look at the [API](https://gazebosim.org/libs/math)**
 
 ## Ruby examples
 
-This example will only work if the Ruby interface library was compiled and installed. Modify the `RUBYLIB` environment variable to include the Ignition Math library install path. For example, if you install to `/usr`:
+This example will only work if the Ruby interface library was compiled and installed. Modify the `RUBYLIB` environment variable to include the Gazebo Math library install path. For example, if you install to `/usr`:
 
 ```{.sh}
 export RUBYLIB=/usr/lib/ruby:$RUBYLIB
@@ -93,7 +93,7 @@ ruby vector3_example.rb
 Create a `Vector2` of doubles using the typedef `Vector2d`. It's possible to set initial values or use another object to create a identical copy.
 
 ```{.rb}
-va = Ignition::Math::Vector2d.new(1, 2)
+va = Gz::Math::Vector2d.new(1, 2)
 ```
 
 You can get access to each component in the vector using the `X()`, `Y()` accessors.
@@ -122,7 +122,7 @@ printf("vb.Distance(va) = %f\n", vb.Distance(va))
 You can create vectors with 3 dimensions using the typedef `Vector3d`:
 
 ```{.rb}
-v1 = Ignition::Math::Vector3d.new(0, 0, 0)
+v1 = Gz::Math::Vector3d.new(0, 0, 0)
 ```
 
 You can also get access to each component in the vector using the `X()`, `Y()` and `Z()` accessors:

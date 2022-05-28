@@ -16,3 +16,4 @@
  */
 
 #include <gz/math/Spline.hh>
+#include <ignition/math/config.hh>
