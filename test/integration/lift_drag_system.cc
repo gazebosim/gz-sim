@@ -76,7 +76,7 @@ TEST_P(VerticalForceParamFixture,
 {
   using namespace std::chrono_literals;
   gz::common::setenv(
-      "GZ_SIM_RESOURCE_PATH",
+      "IGN_GAZEBO_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
   // Start server

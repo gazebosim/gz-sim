@@ -116,7 +116,7 @@ Top-level entities such as models, lights and actors may be loaded through:
 
 Ignition will look for URIs (path / URL) in the following, in order:
 
-1. All paths on the `GZ_SIM_RESOURCE_PATH`\* environment variable (if
+1. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if
    path is URI, scheme is stripped)
 2. Current running path / absolute path
 3. [Gazebo Fuel](https://app.gazebosim.org/fuel/models)
@@ -138,7 +138,7 @@ Mesh files may be loaded through:
 Ignition will look for URIs (path / URL) in the following, in order:
 
 1. Current running path / absolute path
-2. All paths on the `GZ_SIM_RESOURCE_PATH`\* environment variable (if path
+2. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if path
    is URI, scheme is stripped)
 
 \* The `IGN_FILE_PATH` environment variable also works in some scenarios, but

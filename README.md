@@ -16,7 +16,7 @@ Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
-Gazebo Sim is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
+Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
 
 # Table of Contents
 

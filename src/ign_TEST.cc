@@ -71,8 +71,8 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
         << output;
   }
 
-  // Use GZ_SIM_RESOURCE_PATH instead of specifying the complete path
-  cmd = std::string("GZ_SIM_RESOURCE_PATH=") +
+  // Use IGN_GAZEBO_RESOURCE_PATH instead of specifying the complete path
+  cmd = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kIgnCommand +
     " -r -v 4 --iterations 5 " + " plugins.sdf";
 
@@ -146,7 +146,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
       << output;
 
   // Correct path
-  auto path = std::string("GZ_SIM_RESOURCE_PATH=") +
+  auto path = std::string("IGN_GAZEBO_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds ";
 
   output = customExecStr(path + cmd);
@@ -154,7 +154,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
       << output;
 
   // Several paths
-  path = std::string("GZ_SIM_RESOURCE_PATH=banana:") +
+  path = std::string("IGN_GAZEBO_RESOURCE_PATH=banana:") +
     PROJECT_SOURCE_PATH + "/test/worlds:orange ";
 
   output = customExecStr(path + cmd);
