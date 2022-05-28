@@ -2,18 +2,18 @@
 <!--
   Log record demo.
 
-  Running this world will record log files to ~/.ignition/gazebo/log/<timestamp>
+  Running this world will record log files to ~/.gz/sim/log/<timestamp>
   by default.
 
   Running `ign gazebo` with `-v 3` or `-v 4` will output a message indicating where
-  your logfile is being stored to (e.g., [Msg] Recording to log file 
-  [/home/username/.ignition/gazebo/log/<timestamp>/state.tlog]).
+  your logfile is being stored to (e.g., [Msg] Recording to log file
+  [/home/username/.gz/sim/log/<timestamp>/state.tlog]).
 
   Use the example program on examples/standalone/keyboard to control the vehicles.
 
   You can playback the logs with:
 
-      ign gazebo --playback ~/.ignition/gazebo/log/<timestamp>
+      ign gazebo --playback ~/.gz/sim/log/<timestamp>
 -->
 <sdf version="1.6">
   <world name="default">

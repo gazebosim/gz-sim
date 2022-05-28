@@ -39,7 +39,7 @@ System plugins may be loaded through:
 Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
-2. `$HOME/.ignition/gazebo/plugins`
+2. `$HOME/.gz/sim/plugins`
 3. [Systems that are installed with Gazebo](https://gazebosim.org/api/gazebo/4.6/namespace gz_1_1gazebo_1_1systems.html)
 
 ### Gazebo GUI plugins
@@ -61,7 +61,7 @@ Ignition will look for GUI plugins on the following paths, in order:
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
 2. [GUI plugins that are installed with Gazebo](https://github.com/gazebosim/gz-sim/tree/main/src/gui/plugins)
 3. Other paths added by calling `gz::gui::App()->AddPluginPath`
-4. `~/.ignition/gui/plugins`
+4. `~/.gz/gui/plugins`
 5. [Plugins which are installed with Gazebo GUI](https://gazebosim.org/api/gui/4.2/namespace gz_1_1gui_1_1plugins.html)
 
 ### Physics engines
@@ -152,7 +152,7 @@ can come from the following, in order:
 
 1. The command line option `--gui-config <file path>`
 2. Plugins within SDF's `<world><gui>`
-3. `$HOME/.ignition/gazebo/<#>/gui.config` (if that file doesn't
+3. `$HOME/.gz/sim/<#>/gui.config` (if that file doesn't
 exist, the default `gui.config` file that is installed with Gazebo
 will be copied to that location)
 

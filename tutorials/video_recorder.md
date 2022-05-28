@@ -42,7 +42,7 @@ in the world SDF file so you will need to download a copy of the
 and modify the GUI configuration in that file. On the other hand, if you
 launched Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in
-`$HOME/.ignition/gazebo/<#>/gui.config`.
+`$HOME/.gz/sim/<#>/gui.config`.
 
 Recall that videos are recorded from the 3D scene, we will to set the video
 configurations in the 3D scene plugin. Here is an example of the

@@ -14,7 +14,7 @@ There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
 2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
-3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
+3. The default configuration file at `$HOME/.gz/sim/<#>/server.config` \*,
    where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
@@ -24,7 +24,7 @@ file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
 > \* For log-playback, the default file is
-> `$HOME/.ignition/gazebo/<#>/playback_server.config`
+> `$HOME/.gz/sim/<#>/playback_server.config`
 
 ## Try it out
 
@@ -49,7 +49,7 @@ broadcaster is loaded.
 
 By default, you're loading this file:
 
-`$HOME/.ignition/gazebo/<#>/server.config`
+`$HOME/.gz/sim/<#>/server.config`
 
 That file is created the first time you load Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
@@ -60,7 +60,7 @@ Let's try customizing it:
 
 1. Open this file with your favorite editor:
 
-    `$HOME/.ignition/gazebo/<#>/server.config`
+    `$HOME/.gz/sim/<#>/server.config`
 
 2. Remove the `<plugin>` block for the physics system
 
@@ -78,7 +78,7 @@ provided by Ignition (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 
-`rm $HOME/.ignition/gazebo/<#>/server.config`
+`rm $HOME/.gz/sim/<#>/server.config`
 
 ### SDF
 
@@ -231,7 +231,7 @@ rendering-based sensors to generate data.
 @image html files/server_config/camera_no_env.gif
 
 Now let's create a custom configuration file in
-`$HOME/.ignition/gazebo/rendering_sensors_server.config` that has the sensors
+`$HOME/.gz/sim/rendering_sensors_server.config` that has the sensors
 system:
 
 ```
@@ -254,7 +254,7 @@ system:
 
 And point the environment variable to that file:
 
-`export IGN_GAZEBO_SERVER_CONFIG_PATH=$HOME/.ignition/gazebo/rendering_sensors_server.config`
+`export IGN_GAZEBO_SERVER_CONFIG_PATH=$HOME/.gz/sim/rendering_sensors_server.config`
 
 Now when we launch the simulation again, refreshing the image display will
 show the camera topic, and we can see the camera data.

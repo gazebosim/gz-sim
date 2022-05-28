@@ -204,7 +204,7 @@ class gz::sim::ServerConfigPrivate
 
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
-        ".ignition", "gazebo", "log", common::timeToIso(this->timestamp));
+        ".gz", "sim", "log", common::timeToIso(this->timestamp));
 
     // If directory already exists, do not overwrite. This could potentially
     // happen if multiple simulation instances are started in rapid
@@ -327,6 +327,9 @@ ServerConfig::~ServerConfig() = default;
 //////////////////////////////////////////////////
 bool ServerConfig::SetSdfFile(const std::string &_file)
 {
+  if (_file.empty())
+    return false;
+
   this->dataPtr->source = ServerConfig::SourceType::kSdfFile;
   this->dataPtr->sdfFile = _file;
   this->dataPtr->sdfString = "";

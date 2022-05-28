@@ -17,7 +17,7 @@ Ignition records two types of information to files:
 ### From command line
 
 Run the example world with `--record` flag. This records data to a default
-path, i.e. `~/.ignition/gazebo/log/<timestamp>`:
+path, i.e. `~/.gz/sim/log/<timestamp>`:
 
 `ign gazebo -v 4 -r --record pose_publisher.sdf`
 
@@ -77,9 +77,9 @@ start during a Gazebo run.
 The final record path will depend on a few options:
 
 * If state recording is not enabled, only the console log is recorded to
-  `~/.ignition/gazebo/log/<timestamp>`.
+  `~/.gz/sim/log/<timestamp>`.
 * If only `--record`, all files are recorded to
-  `~/.ignition/gazebo/log/<timestamp>`.
+  `~/.gz/sim/log/<timestamp>`.
 * If `--record-path` is specified:
     * If the path doesn't exist, logs are recorded there.
     * If the path exists:

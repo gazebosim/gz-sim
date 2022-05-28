@@ -333,7 +333,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, recording should take place in the `.ignition` directory
+  // ign.cc, recording should take place in the `.gz` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -374,7 +374,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // should be recorded here.
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
       "log");
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
@@ -399,7 +399,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::vector<std::string> entriesDiff;
   entryDiff(entriesBefore, entriesAfter, entriesDiff);
   EXPECT_EQ(1ul, entriesDiff.size());
-  // This should be $HOME/.ignition/..., default path
+  // This should be $HOME/.gz/..., default path
   std::string timestampPath = entriesDiff[0];
 
   EXPECT_FALSE(timestampPath.empty());
@@ -475,7 +475,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
       "log");
 #ifndef __APPLE__
   int nEntries = entryCount(logPath);
@@ -524,7 +524,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::vector<std::string> entriesDiff;
   entryDiff(entriesBefore, entriesAfter, entriesDiff);
   EXPECT_EQ(1ul, entriesDiff.size());
-  // This should be $HOME/.ignition/..., default path
+  // This should be $HOME/.gz/..., default path
   std::string timestampPath = entriesDiff[0];
 
   EXPECT_FALSE(timestampPath.empty());
