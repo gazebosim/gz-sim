@@ -92,7 +92,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Pointer to GlobalIlluminationVct
     public: rendering::GlobalIlluminationVctPtr gi GUARDED_BY(serviceMutex);
 
-    /// \brief TBD
+    /// \brief Toggles this GI on/off. Only one can be active at the same time.
     public: bool enabled GUARDED_BY(serviceMutex){false};
 
     /// \brief See rendering::GlobalIlluminationVct::SetResolution
@@ -251,11 +251,161 @@ void GlobalIlluminationVct::LoadGlobalIlluminationVct()
   }
 }
 
+/// \brief XML helper to retrieve values and handle errors
+/// \param[in] _elem XML element to read
+/// \param[out] _valueToSet Value to set. Left unmodified on error
+/// \return True if _valueToSet was successfully set
+static bool GetXmlBool(const tinyxml2::XMLElement *_elem, bool &_valueToSet)
+{
+  bool value = false;
+
+  if (_elem->QueryBoolText(&value) != tinyxml2::XML_SUCCESS)
+  {
+    ignerr << "Failed to parse <" << _elem->Name()
+           << "> value: " << _elem->GetText() << std::endl;
+    return false;
+  }
+  else
+  {
+    _valueToSet = value;
+    return true;
+  }
+}
+
+/// \brief XML helper to retrieve values and handle errors
+/// \param[in] _elem XML element to read
+/// \param[out] _valueToSet Value to set. Left unmodified on error
+/// \return True if _valueToSet was successfully set
+static bool GetXmlFloat(const tinyxml2::XMLElement *_elem, float &_valueToSet)
+{
+  float value = 0;
+
+  if (_elem->QueryFloatText(&value) != tinyxml2::XML_SUCCESS)
+  {
+    ignerr << "Failed to parse <" << _elem->Name()
+           << "> value: " << _elem->GetText() << std::endl;
+    return false;
+  }
+  else
+  {
+    _valueToSet = value;
+    return true;
+  }
+}
+
+/// \brief XML helper to retrieve values and handle errors
+/// \param[in] _elem XML element to read
+/// \param[out] _valueToSet Value to set. Left unmodified on error
+/// \return True if _valueToSet was successfully set
+static bool GetXmlUint32(const tinyxml2::XMLElement *_elem,
+                         uint32_t &_valueToSet)
+{
+  int value = 0;
+
+  if (_elem->QueryIntText(&value) != tinyxml2::XML_SUCCESS)
+  {
+    ignerr << "Failed to parse <" << _elem->Name()
+           << "> value: " << _elem->GetText() << std::endl;
+    return false;
+  }
+  else
+  {
+    _valueToSet = static_cast<uint32_t>(value);
+    return true;
+  }
+}
+
+/// \brief XML helper to retrieve values and handle errors
+/// \param[in] _elem XML element to read
+/// \param[out] _valueToSet Values to set. Left unmodified on error.
+/// Its array length must be >= 3
+/// \return True if _valueToSet was successfully set
+static bool GetXmlUint32x3(const tinyxml2::XMLElement *_elem,
+                           uint32_t _valueToSet[3])
+{
+  std::istringstream stream(_elem->GetText());
+  math::Vector3i values3;
+  stream >> values3;
+
+  _valueToSet[0] = static_cast<uint32_t>(values3.X());
+  _valueToSet[1] = static_cast<uint32_t>(values3.Y());
+  _valueToSet[2] = static_cast<uint32_t>(values3.Z());
+
+  return true;
+}
+
 /////////////////////////////////////////////////
-void GlobalIlluminationVct::LoadConfig(const tinyxml2::XMLElement *)
+void GlobalIlluminationVct::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
     this->title = "Global Illumination (VCT)";
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+
+  if (auto elem = _pluginElem->FirstChildElement("enabled"))
+  {
+    GetXmlBool(elem, this->dataPtr->enabled);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("highQuality"))
+  {
+    GetXmlBool(elem, this->dataPtr->highQuality);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("anisotropic"))
+  {
+    GetXmlBool(elem, this->dataPtr->anisotropic);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("conserveMemory"))
+  {
+    GetXmlBool(elem, this->dataPtr->conserveMemory);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("resolution"))
+  {
+    GetXmlUint32x3(elem, this->dataPtr->resolution);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("octantCount"))
+  {
+    GetXmlUint32x3(elem, this->dataPtr->octantCount);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("bounceCount"))
+  {
+    GetXmlUint32(elem, this->dataPtr->bounceCount);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("thinWallCounter"))
+  {
+    GetXmlFloat(elem, this->dataPtr->thinWallCounter);
+  }
+  if (auto elem = _pluginElem->FirstChildElement("debugVisMode"))
+  {
+    const std::string text = elem->GetText();
+    if (text == "none")
+    {
+      this->dataPtr->debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
+    }
+    else if (text == "albedo")
+    {
+      this->dataPtr->debugVisMode =
+        rendering::GlobalIlluminationVct::DVM_Albedo;
+    }
+    else if (text == "normal")
+    {
+      this->dataPtr->debugVisMode =
+        rendering::GlobalIlluminationVct::DVM_Normal;
+    }
+    else if (text == "emissive")
+    {
+      this->dataPtr->debugVisMode =
+        rendering::GlobalIlluminationVct::DVM_Emissive;
+    }
+    else if (text == "lighting")
+    {
+      this->dataPtr->debugVisMode =
+        rendering::GlobalIlluminationVct::DVM_Lighting;
+    }
+    else
+    {
+      GetXmlUint32(elem, this->dataPtr->debugVisMode);
+    }
+  }
 
   ignition::gui::App()
     ->findChild<ignition::gui::MainWindow *>()
