@@ -16,24 +16,24 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
 #include "gz/sim/test_config.hh"
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class PerformerDetectorTest : public InternalFixture<::testing::Test>
@@ -61,7 +61,7 @@ class PerformerDetectorTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PerformerDetectorTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingPerformer))
 {
   auto server = this->StartServer("/test/worlds/performer_detector.sdf");
@@ -199,8 +199,8 @@ TEST_F(PerformerDetectorTest,
   auto server = this->StartServer("/test/worlds/performer_detector.sdf", true);
 
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &_info,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &_info,
+                             sim::EntityComponentManager &_ecm)
   {
     Entity vehicle = _ecm.EntityByComponents(
         components::Model(), components::Name("vehicle_blue"));

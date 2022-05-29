@@ -1,16 +1,16 @@
 \page entity_creation Entity creation
 
-This tutorial gives an introduction to Ignition Gazebo's service `/world/<world name>/create`.
+This tutorial gives an introduction to Gazebo Sim's service `/world/<world name>/create`.
 This service allows creating entities in the scene such us spheres, lights, etc.
 
-Ignition Gazebo creates many services depending on the plugins that are specified in the SDF.
+Gazebo creates many services depending on the plugins that are specified in the SDF.
 In this case we need to load the `UserCommands` plugin, which will offer the `create` service.
 You can include the `UserCommands` system plugin including these lines in your SDF:
 
 ```xml
 <plugin
   filename="ignition-gazebo-user-commands-system"
-  name="ignition::gazebo::systems::UserCommands">
+  name="gz::sim::systems::UserCommands">
 </plugin>
 ```
 
@@ -58,16 +58,16 @@ ign service --list
 # Factory message
 
 To create new entities in the world we need to use the
-[ignition::msgs::EntityFactory](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
+[gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
 message to send a request to the create service.
 This message allows us to create entities from strings, files,
-[Models](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
-[Lights](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html) or even clone models.
+[Models](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
+[Lights](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html) or even clone models.
 This tutorial introduces how to create entities from SDF strings and light messages.
 
 ## Insert an entity based on a string
 
-We will open an empty Ignition Gazebo world, let's start creating a sphere in the world.
+We will open an empty Gazebo world, let's start creating a sphere in the world.
 In the next snippet you can see how to create models based on strings.
 
 \snippet examples/standalone/entity_creation/entity_creation.cc create sphere
@@ -91,8 +91,8 @@ There is an option to create a new entity every time that the message is sent by
 
 To insert a light in the world we have two options:
 
- - Fill the string inside the `ignition::msgs::EntityFactory` message like in the section above.
- - Fill the field `light` inside the `ignition::msgs::EntityFactory` message.
+ - Fill the string inside the `gz::msgs::EntityFactory` message like in the section above.
+ - Fill the field `light` inside the `gz::msgs::EntityFactory` message.
 
 In the following snippet you can see how the light's field is filled.
 
@@ -103,7 +103,7 @@ Or we can create an SDF string:
 \snippet examples/standalone/entity_creation/entity_creation.cc create light str
 
 Please check the API to know which fields are available in the
-[Light message](https://ignitionrobotics.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html).
+[Light message](https://gazebosim.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html).
 There are three types of lights: Point, Directional and Spot.
 
 Finally we should call the same service `/world/<world_name>/create`:

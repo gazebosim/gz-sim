@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/wheel-slip-system/Export.hh>
+#include <ignition/gazebo/config.hh>

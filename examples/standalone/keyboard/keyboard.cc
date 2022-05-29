@@ -47,12 +47,12 @@
 #define KEYCODE_W 0x77
 
 
-ignition::transport::Node::Publisher cmdVelPub;
-ignition::transport::Node::Publisher cmdVelPub2;
+gz::transport::Node::Publisher cmdVelPub;
+gz::transport::Node::Publisher cmdVelPub2;
 
-ignition::math::Vector3d scaleLinear;
+gz::math::Vector3d scaleLinear;
 
-ignition::math::Vector3d scaleAngular;
+gz::math::Vector3d scaleAngular;
 
 
 class KeyboardTeleop
@@ -174,11 +174,11 @@ void KeyboardTeleop::KeyLoop()
         break;
     }
    
-    ignition::msgs::Twist cmdVelMsg;
+    gz::msgs::Twist cmdVelMsg;
     cmdVelMsg.mutable_linear()->set_x(lScale * linear);
     cmdVelMsg.mutable_angular()->set_z(aScale * angular);
 
-    ignition::msgs::Twist cmdVelMsg2;
+    gz::msgs::Twist cmdVelMsg2;
     cmdVelMsg2.mutable_linear()->set_x(lScale * linear2);
     cmdVelMsg2.mutable_angular()->set_z(aScale * angular2);
 
@@ -220,19 +220,19 @@ int main(int argc, char** argv)
   auto plugin = sdf->Root()->GetElement("world")->GetElement("plugin");
 
   // Set up transport
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   auto twistTopic = plugin->Get<std::string>("twist_arrows", "/cmd_vel").first;
-  cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
+  cmdVelPub = node.Advertise<gz::msgs::Twist>(twistTopic);
 
   auto twistTopic2 = plugin->Get<std::string>("twist_wasd", "/cmd_vel").first;
-  cmdVelPub2 = node.Advertise<ignition::msgs::Twist>(twistTopic2);
+  cmdVelPub2 = node.Advertise<gz::msgs::Twist>(twistTopic2);
 
-  scaleLinear = plugin->Get<ignition::math::Vector3d>("scale_linear",
-      ignition::math::Vector3d(0.5, 0, 0)).first;
+  scaleLinear = plugin->Get<gz::math::Vector3d>("scale_linear",
+      gz::math::Vector3d(0.5, 0, 0)).first;
 
-  scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
-      ignition::math::Vector3d(0, 0, 0.5)).first;
+  scaleAngular = plugin->Get<gz::math::Vector3d>("scale_angular",
+      gz::math::Vector3d(0, 0, 0.5)).first;
 
 
   // Only linear X and angular Z are used

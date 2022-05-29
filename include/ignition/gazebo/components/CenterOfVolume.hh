@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/CenterOfVolume.hh>
+#include <ignition/gazebo/config.hh>

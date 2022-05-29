@@ -17,26 +17,26 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ThrusterTest : public InternalFixture<::testing::Test>
 {
@@ -74,10 +74,10 @@ void ThrusterTest::TestWorld(const std::string &_world,
   double dt{0.0};
   fixture.
   OnConfigure(
-    [&](const ignition::gazebo::Entity &_worldEntity,
+    [&](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
       World world(_worldEntity);
 
@@ -91,8 +91,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
-  OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                            const gazebo::EntityComponentManager &_ecm)
+  OnPostUpdate([&](const sim::UpdateInfo &_info,
+                            const sim::EntityComponentManager &_ecm)
     {
       dt = std::chrono::duration<double>(_info.dt).count();
 
@@ -272,7 +272,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),

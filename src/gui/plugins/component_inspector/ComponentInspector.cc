@@ -74,7 +74,7 @@
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ComponentInspectorPrivate
   {
@@ -117,12 +117,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
+void gz::sim::setData(QStandardItem *_item, const msgs::Light &_data)
 {
   if (nullptr == _item)
     return;
@@ -172,7 +172,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gz::sim::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -189,7 +189,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
+void gz::sim::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -202,7 +202,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gz::sim::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -216,7 +216,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
+void gz::sim::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -228,7 +228,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
+void gz::sim::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -240,14 +240,14 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
+void gz::sim::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
+void gz::sim::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -259,7 +259,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+void gz::sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -274,7 +274,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gz::sim::setData(QStandardItem *_item,
     const sdf::Material &_data)
 {
   if (nullptr == _item)
@@ -307,7 +307,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gz::sim::setData(QStandardItem *_item,
     const math::SphericalCoordinates &_data)
 {
   if (nullptr == _item)
@@ -326,7 +326,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
-void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
+void gz::sim::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -355,7 +355,7 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 QStandardItem *ComponentsModel::AddComponentType(
-    ignition::gazebo::ComponentTypeId _typeId)
+    gz::sim::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::AddComponentType");
@@ -386,7 +386,7 @@ QStandardItem *ComponentsModel::AddComponentType(
 
 /////////////////////////////////////////////////
 void ComponentsModel::RemoveComponentType(
-      ignition::gazebo::ComponentTypeId _typeId)
+      gz::sim::ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::RemoveComponentType");
@@ -423,7 +423,7 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<gz::sim::ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
@@ -436,8 +436,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -552,7 +552,7 @@ void ComponentInspector::Update(const UpdateInfo &,
 
     if (nullptr == item)
     {
-      ignerr << "Failed to get item for component type [" << typeId << "]"
+      gzerr << "Failed to get item for component type [" << typeId << "]"
              << std::endl;
       continue;
     }
@@ -866,7 +866,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   }
 
   // Remove components no longer present - list items to remove
-  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
+  std::list<gz::sim::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
@@ -882,7 +882,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
         "RemoveComponentType",
         Qt::QueuedConnection,
-        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+        Q_ARG(gz::sim::ComponentTypeId, typeId));
   }
 }
 
@@ -898,7 +898,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -907,7 +907,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -992,20 +992,20 @@ void ComponentInspector::OnLight(
   double _outerAngle, double _falloff, double _intensity, int _type,
   bool _isLightOn, bool _visualizeVisual)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting light configuration" << std::endl;
+      gzerr << "Error setting light configuration" << std::endl;
   };
 
-  ignition::msgs::Light req;
+  gz::msgs::Light req;
   req.set_name(this->dataPtr->entityName);
   req.set_id(this->dataPtr->entity);
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
   req.set_range(_attRange);
   req.set_attenuation_linear(_attLinear);
   req.set_attenuation_constant(_attConstant);
@@ -1015,11 +1015,11 @@ void ComponentInspector::OnLight(
   req.set_is_light_off(!_isLightOn);
   req.set_visualize_visual(_visualizeVisual);
   if (_type == 0)
-    req.set_type(ignition::msgs::Light::POINT);
+    req.set_type(gz::msgs::Light::POINT);
   else if (_type == 1)
-    req.set_type(ignition::msgs::Light::SPOT);
+    req.set_type(gz::msgs::Light::SPOT);
   else
-    req.set_type(ignition::msgs::Light::DIRECTIONAL);
+    req.set_type(gz::msgs::Light::DIRECTIONAL);
 
   if (_type == 1)  // sdf::LightType::SPOT
   {
@@ -1031,8 +1031,8 @@ void ComponentInspector::OnLight(
   // if sdf::LightType::SPOT || sdf::LightType::DIRECTIONAL
   if (_type == 1 || _type == 2)
   {
-    ignition::msgs::Set(req.mutable_direction(),
-      ignition::math::Vector3d(_directionX, _directionY, _directionZ));
+    gz::msgs::Set(req.mutable_direction(),
+      gz::math::Vector3d(_directionX, _directionY, _directionZ));
   }
 
   auto lightConfigService = "/world/" + this->dataPtr->worldName +
@@ -1040,7 +1040,7 @@ void ComponentInspector::OnLight(
   lightConfigService = transport::TopicUtils::AsValidTopic(lightConfigService);
   if (lightConfigService.empty())
   {
-    ignerr << "Invalid light command service topic provided" << std::endl;
+    gzerr << "Invalid light command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(lightConfigService, req, cb);
@@ -1049,14 +1049,14 @@ void ComponentInspector::OnLight(
 /////////////////////////////////////////////////
 void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-        ignerr << "Error setting physics parameters" << std::endl;
+        gzerr << "Error setting physics parameters" << std::endl;
   };
 
-  ignition::msgs::Physics req;
+  gz::msgs::Physics req;
   req.set_max_step_size(_stepSize);
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
@@ -1064,7 +1064,7 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
   physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
   if (physicsCmdService.empty())
   {
-    ignerr << "Invalid physics command service topic provided" << std::endl;
+    gzerr << "Invalid physics command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(physicsCmdService, req, cb);
@@ -1120,16 +1120,16 @@ void ComponentInspector::OnMaterialColor(
     }
     else
     {
-      ignerr << "Invalid material type: " << type << std::endl;
+      gzerr << "Invalid material type: " << type << std::endl;
       return;
     }
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting material color configuration"
+      gzerr << "Error setting material color configuration"
              << " on visual" << std::endl;
   };
 
@@ -1154,7 +1154,7 @@ void ComponentInspector::OnMaterialColor(
   materialCmdService = transport::TopicUtils::AsValidTopic(materialCmdService);
   if (materialCmdService.empty())
   {
-    ignerr << "Invalid material command service topic provided" << std::endl;
+    gzerr << "Invalid material command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(materialCmdService, req, cb);
@@ -1167,7 +1167,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 {
   if (_surface != QString("EARTH_WGS84"))
   {
-    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+    gzerr << "Surface [" << _surface.toStdString() << "] not supported."
            << std::endl;
     return;
   }
@@ -1176,7 +1176,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting spherical coordinates." << std::endl;
+      gzerr << "Error setting spherical coordinates." << std::endl;
   };
 
   msgs::SphericalCoordinates req;
@@ -1192,7 +1192,7 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
       transport::TopicUtils::AsValidTopic(sphericalCoordsCmdService);
   if (sphericalCoordsCmdService.empty())
   {
-    ignerr << "Invalid spherical coordinates service" << std::endl;
+    gzerr << "Invalid spherical coordinates service" << std::endl;
     return;
   }
   this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);
@@ -1217,5 +1217,5 @@ transport::Node &ComponentInspector::TransportNode()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspector,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::ComponentInspector,
+                    gz::gui::Plugin)

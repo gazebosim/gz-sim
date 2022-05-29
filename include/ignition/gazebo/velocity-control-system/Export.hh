@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/velocity-control-system/Export.hh>
+#include <ignition/gazebo/config.hh>

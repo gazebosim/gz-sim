@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKCONFIG_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKCONFIG_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKCONFIG_HH_
+#define GZ_SIM_NETWORK_NETWORKCONFIG_HH_
 
 #include <memory>
 #include <string>
@@ -25,18 +25,18 @@
 
 #include "NetworkRole.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \class NetworkConfig NetworkConfig.hh gz/sim/NetworkConfig.hh
     /// \brief Configuration parameters for a distributed simulation instance
     ///
     /// NetworkConfig can either be created programatically, or populated from
     /// environment variables set before the execution of the Gazebo server.
-    class IGNITION_GAZEBO_VISIBLE NetworkConfig
+    class GZ_GAZEBO_VISIBLE NetworkConfig
     {
       /// \brief Populate a new NetworkConfig object based on
       /// values.
@@ -54,7 +54,7 @@ namespace ignition
       public: size_t numSecondariesExpected { 0 };
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKCONFIG_HH_
+#endif  // GZ_SIM_NETWORKCONFIG_HH_

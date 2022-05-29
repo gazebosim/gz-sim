@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKMANAGER_HH_
+#define GZ_SIM_NETWORK_NETWORKMANAGER_HH_
 
 #include <chrono>
 #include <cstdint>
@@ -29,12 +29,12 @@
 
 #include "NetworkConfig.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations
     class NetworkManagerPrivate;
 
@@ -43,10 +43,10 @@ namespace ignition
     /// \brief The NetworkManager provides a common interface to derived
     /// objects that control the flow of information in the distributed
     /// simulation environment.
-    class IGNITION_GAZEBO_VISIBLE NetworkManager
+    class GZ_GAZEBO_VISIBLE NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Create a class derived from NetworkManager based on
       /// a given configuration
@@ -122,7 +122,7 @@ namespace ignition
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGER_HH_
+#endif  // GZ_SIM_NETWORKMANAGER_HH_

@@ -15,17 +15,17 @@
  *
  */
 
-#include <ignition/math/Rand.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/JointPositionReset.hh>
-#include <ignition/gazebo/components/JointPositionLimitsCmd.hh>
-#include <ignition/gazebo/components/JointType.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/math/Rand.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/JointPositionReset.hh>
+#include <gz/sim/components/JointPositionLimitsCmd.hh>
+#include <gz/sim/components/JointType.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 namespace reset_plugin
 {
 class JointPositionRandomizer : public System,
@@ -72,6 +72,6 @@ class JointPositionRandomizer : public System,
 }  // namespace reset_plugin
 
 IGNITION_ADD_PLUGIN(reset_plugin::JointPositionRandomizer,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     reset_plugin::JointPositionRandomizer::ISystemConfigure,
                     reset_plugin::JointPositionRandomizer::ISystemReset)

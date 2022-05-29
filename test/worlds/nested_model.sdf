@@ -7,12 +7,12 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
       <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -62,7 +62,7 @@
 
         <plugin
            filename="ignition-gazebo-pose-publisher-system"
-           name="ignition::gazebo::systems::PosePublisher">
+           name="gz::sim::systems::PosePublisher">
           <publish_link_pose>false</publish_link_pose>
           <publish_sensor_pose>false</publish_sensor_pose>
           <publish_collision_pose>false</publish_collision_pose>

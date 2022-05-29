@@ -3,7 +3,7 @@
   <world name="default">
     <plugin
      filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     name="gz::sim::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
@@ -197,7 +197,7 @@
       </link>
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
 
       <performer name="perf_sphere">
         <ref>sphere</ref>

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
+#ifndef GZ_SIM_GUI_COMPONENTINSPECTOR_TYPES_HH_
+#define GZ_SIM_GUI_COMPONENTINSPECTOR_TYPES_HH_
 
 #include <map>
 #include <QStandardItem>
@@ -25,9 +25,9 @@
 
 #include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   /// \brief UpdateCallback is a function defition that is used by a
   /// component to manage ECM changes.

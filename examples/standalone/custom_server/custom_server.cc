@@ -22,16 +22,16 @@
 int main()
 {
   // Set verbosity level - defaults to 1 if unset
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   // Object to pass custom configuration to the server
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   // Populate with some configuration, for example, the SDF file to load
   serverConfig.SetSdfFile("shapes.sdf");
 
   // Instantiate server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server unpaused for 100 iterations, blocking
   server.Run(true /*blocking*/, 100 /*iterations*/, false /*paused*/);

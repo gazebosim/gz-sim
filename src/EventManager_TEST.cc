@@ -22,7 +22,7 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/EventManager.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 TEST(EventManager, EmitConnectTest)
@@ -68,7 +68,7 @@ TEST(EventManager, NewEvent)
 {
   EventManager eventManager;
 
-  using TestEvent = ignition::common::EventT<void(std::string, std::string)>;
+  using TestEvent = gz::common::EventT<void(std::string, std::string)>;
 
   std::string val1, val2;
   auto connection = eventManager.Connect<TestEvent>(
@@ -91,8 +91,8 @@ TEST(EventManager, NewEvent)
 TEST(EventManager, Ambiguous)
 {
   EventManager eventManager;
-  using TestEvent1 = ignition::common::EventT<void(void)>;
-  using TestEvent2 = ignition::common::EventT<void(void)>;
+  using TestEvent1 = gz::common::EventT<void(void)>;
+  using TestEvent2 = gz::common::EventT<void(void)>;
 
   std::atomic<int> calls = 0;
   auto connection = eventManager.Connect<TestEvent1>([&](){ calls++;});
@@ -107,8 +107,8 @@ TEST(EventManager, Ambiguous)
 TEST(EventManager, Disambiguate)
 {
   EventManager eventManager;
-  using TestEvent1 = ignition::common::EventT<void(void), struct TestEvent1Tag>;
-  using TestEvent2 = ignition::common::EventT<void(void), struct TestEvent2Tag>;
+  using TestEvent1 = gz::common::EventT<void(void), struct TestEvent1Tag>;
+  using TestEvent2 = gz::common::EventT<void(void), struct TestEvent2Tag>;
 
   std::atomic<int> calls = 0;
   auto connection1 = eventManager.Connect<TestEvent1>([&](){ calls++;});

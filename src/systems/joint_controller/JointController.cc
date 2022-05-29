@@ -31,15 +31,15 @@
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointControllerPrivate
+class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const gz::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class ignition::gazebo::systems::JointControllerPrivate
   public: bool useForceCommands{false};
 
   /// \brief Velocity PID controller.
-  public: ignition::math::PID velPid;
+  public: gz::math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -80,7 +80,7 @@ void JointController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointController plugin should be attached to a model entity. "
+    gzerr << "JointController plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -89,7 +89,7 @@ void JointController::Configure(const Entity &_entity,
   auto jointName = _sdf->Get<std::string>("joint_name");
   if (jointName.empty())
   {
-    ignerr << "JointController found an empty jointName parameter. "
+    gzerr << "JointController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -98,7 +98,7 @@ void JointController::Configure(const Entity &_entity,
       jointName);
   if (this->dataPtr->jointEntity == kNullEntity)
   {
-    ignerr << "Joint with name[" << jointName << "] not found. "
+    gzerr << "Joint with name[" << jointName << "] not found. "
     << "The JointController may not control this joint.\n";
     return;
   }
@@ -106,7 +106,7 @@ void JointController::Configure(const Entity &_entity,
   if (_sdf->HasElement("initial_velocity"))
   {
     this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
-    ignmsg << "Joint velocity initialized to ["
+    gzmsg << "Joint velocity initialized to ["
            << this->dataPtr->jointVelCmd << "]" << std::endl;
   }
 
@@ -127,19 +127,19 @@ void JointController::Configure(const Entity &_entity,
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
-    igndbg << "[JointController] Force mode with parameters:" << std::endl;
-    igndbg << "p_gain: ["     << p         << "]"             << std::endl;
-    igndbg << "i_gain: ["     << i         << "]"             << std::endl;
-    igndbg << "d_gain: ["     << d         << "]"             << std::endl;
-    igndbg << "i_max: ["      << iMax      << "]"             << std::endl;
-    igndbg << "i_min: ["      << iMin      << "]"             << std::endl;
-    igndbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
-    igndbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
-    igndbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+    gzdbg << "[JointController] Force mode with parameters:" << std::endl;
+    gzdbg << "p_gain: ["     << p         << "]"             << std::endl;
+    gzdbg << "i_gain: ["     << i         << "]"             << std::endl;
+    gzdbg << "d_gain: ["     << d         << "]"             << std::endl;
+    gzdbg << "i_max: ["      << iMax      << "]"             << std::endl;
+    gzdbg << "i_min: ["      << iMin      << "]"             << std::endl;
+    gzdbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
+    gzdbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
+    gzdbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
   }
   else
   {
-    igndbg << "[JointController] Velocity mode" << std::endl;
+    gzdbg << "[JointController] Velocity mode" << std::endl;
   }
 
   // Subscribe to commands
@@ -148,7 +148,7 @@ void JointController::Configure(const Entity &_entity,
       "/cmd_vel");
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for joint [" << jointName
+    gzerr << "Failed to create topic for joint [" << jointName
            << "]" << std::endl;
     return;
   }
@@ -159,7 +159,7 @@ void JointController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
              << "]" << " for joint [" << jointName
              << "]" << std::endl;
       return;
@@ -168,13 +168,13 @@ void JointController::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
                                 this->dataPtr.get());
 
-  ignmsg << "JointController subscribing to Double messages on [" << topic
+  gzmsg << "JointController subscribing to Double messages on [" << topic
          << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void JointController::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointController::PreUpdate");
 
@@ -185,7 +185,7 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -260,9 +260,13 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(JointController,
+                          "gz::sim::systems::JointController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
                           "ignition::gazebo::systems::JointController")

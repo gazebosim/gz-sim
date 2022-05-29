@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_SYSTEMLOADER_HH_
-#define GZ_GAZEBO_SYSTEMLOADER_HH_
+#ifndef GZ_SIM_SYSTEMLOADER_HH_
+#define GZ_SIM_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -27,18 +27,18 @@
 #include <gz/sim/System.hh>
 #include <gz/sim/SystemPluginPtr.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN SystemLoaderPrivate;
+    class GZ_GAZEBO_HIDDEN SystemLoaderPrivate;
 
     /// \class SystemLoader SystemLoader.hh gz/sim/SystemLoader.hh
     /// \brief Class for loading/unloading System plugins.
-    class IGNITION_GAZEBO_VISIBLE SystemLoader
+    class GZ_GAZEBO_VISIBLE SystemLoader
     {
       /// \brief Constructor
       public: explicit SystemLoader();
@@ -77,5 +77,5 @@ namespace ignition
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif  // GZ_GAZEBO_SYSTEMLOADER_HH_
+#endif  // GZ_SIM_SYSTEMLOADER_HH_
 

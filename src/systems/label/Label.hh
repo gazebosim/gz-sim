@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LABEL_HH_
+#ifndef GZ_SIM_SYSTEMS_LABEL_HH_
+#define GZ_SIM_SYSTEMS_LABEL_HH_
 
 #include <memory>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A label plugin that annotates models by setting the label
@@ -50,7 +50,7 @@ namespace systems
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           gazebo::EventManager &_eventMgr) final;
+                           sim::EventManager &_eventMgr) final;
   };
   }
 }

@@ -24,8 +24,8 @@
 #include "gz/sim/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for Broker class
 class BrokerTest : public InternalFixture<::testing::Test>
@@ -48,7 +48,7 @@ TEST_F(BrokerTest, Broker)
   msgs::StringMsg_V wrongReqBind;
   wrongReqBind.add_data("addr1");
   wrongReqBind.add_data("model1");
-  ignition::msgs::Boolean unused;
+  gz::msgs::Boolean unused;
   EXPECT_FALSE(broker.OnBind(wrongReqBind, unused));
   allData = broker.DataManager().Data();
   EXPECT_EQ(0u, allData.size());

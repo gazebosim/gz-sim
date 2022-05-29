@@ -19,7 +19,7 @@ set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 include(FetchContent)
 FetchContent_Declare(
   sensors_clone
-  GIT_REPOSITORY https://github.com/ignitionrobotics/ign-sensors
+  GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
   GIT_TAG main
 )
 FetchContent_Populate(sensors_clone)

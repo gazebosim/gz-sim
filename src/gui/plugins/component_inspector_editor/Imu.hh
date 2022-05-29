@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_IMU_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_IMU_HH_
+#ifndef GZ_SIM_GUI_COMPONENTINSPECTOR_IMU_HH_
+#define GZ_SIM_GUI_COMPONENTINSPECTOR_IMU_HH_
 
 #include <QObject>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorEditor;
 

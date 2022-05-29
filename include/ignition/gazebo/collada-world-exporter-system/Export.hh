@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/collada-world-exporter-system/Export.hh>
+#include <ignition/gazebo/config.hh>

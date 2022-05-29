@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LaserRetro.hh>
+#include <ignition/gazebo/config.hh>

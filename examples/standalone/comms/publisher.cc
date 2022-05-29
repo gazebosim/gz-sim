@@ -61,10 +61,10 @@ int main(int argc, char **argv)
   std::signal(SIGTERM, signal_handler);
 
   // Create a transport node and advertise a topic.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   std::string topic = "/broker/msgs";
 
-  auto pub = node.Advertise<ignition::msgs::Dataframe>(topic);
+  auto pub = node.Advertise<gz::msgs::Dataframe>(topic);
   if (!pub)
   {
     std::cerr << "Error advertising topic [" << topic << "]" << std::endl;
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Prepare the message.
-  ignition::msgs::Dataframe msg;
+  gz::msgs::Dataframe msg;
   msg.set_src_address("addr1");
   msg.set_dst_address(argv[1]);
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
   while (!g_terminatePub)
   {
     // Prepare the payload.
-    ignition::msgs::StringMsg payload;
+    gz::msgs::StringMsg payload;
     payload.set_data("hello world " + std::to_string(counter));
     std::string serializedData;
     if (!payload.SerializeToString(&serializedData))

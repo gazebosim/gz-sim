@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/NavSat.hh>
+#include <ignition/gazebo/config.hh>

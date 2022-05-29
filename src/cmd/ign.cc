@@ -33,26 +33,26 @@
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_FULL);
+  return strdup(GZ_SIM_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
 extern "C" char *gazeboVersionHeader()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_HEADER);
+  return strdup(GZ_SIM_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  gz::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
 extern "C" const char *worldInstallDir()
 {
-  return IGN_GAZEBO_WORLD_INSTALL_DIR;
+  return GZ_SIM_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
@@ -61,7 +61,7 @@ extern "C" int runServer(const char *_sdfString,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _logOverwrite, const char *_playback, const char *_file)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
@@ -71,7 +71,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
+      gzerr << "Both record and playback are specified. Only specify one.\n";
       return -1;
     }
 
@@ -83,27 +83,27 @@ extern "C" int runServer(const char *_sdfString,
       recordPathMod = std::string(_recordPath);
 
       // Check if path or compressed file with same prefix exists
-      if (ignition::common::exists(recordPathMod))
+      if (gz::common::exists(recordPathMod))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
         {
           bool recordMsg = false;
           // Remove files before initializing console log files on top of them
-          if (ignition::common::exists(recordPathMod))
+          if (gz::common::exists(recordPathMod))
           {
             recordMsg = true;
-            ignition::common::removeAll(recordPathMod);
+            gz::common::removeAll(recordPathMod);
           }
 
           // Create log file before printing any messages so they can be logged
-          ignLogInit(recordPathMod, "server_console.log");
+          gzLogInit(recordPathMod, "server_console.log");
 
           if (recordMsg)
           {
-            ignmsg << "Log path already exists on disk! Existing files will "
+            gzmsg << "Log path already exists on disk! Existing files will "
               << "be overwritten." << std::endl;
-            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+            gzmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
         }
         // Otherwise rename to unique path
@@ -111,28 +111,28 @@ extern "C" int runServer(const char *_sdfString,
         {
           // Remove the separator at end of path
           if (!std::string(1, recordPathMod.back()).compare(
-            ignition::common::separator("")))
+            gz::common::separator("")))
           {
             recordPathMod = recordPathMod.substr(0, recordPathMod.length() - 1);
           }
-          recordPathMod = ignition::common::uniqueDirectoryPath(recordPathMod);
+          recordPathMod = gz::common::uniqueDirectoryPath(recordPathMod);
 
-          ignLogInit(recordPathMod, "server_console.log");
-          ignwarn << "Log path already exists on disk! "
+          gzLogInit(recordPathMod, "server_console.log");
+          gzwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
         }
       }
       else
       {
-        ignLogInit(recordPathMod, "server_console.log");
+        gzLogInit(recordPathMod, "server_console.log");
       }
     }
     // Empty record path specified. Use default.
     else
     {
       // Create log file before printing any messages so they can be logged
-      ignLogInit(recordPathMod, "server_console.log");
-      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+      gzLogInit(recordPathMod, "server_console.log");
+      gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
 
       serverConfig.SetLogRecordPath(recordPathMod);
@@ -140,12 +140,12 @@ extern "C" int runServer(const char *_sdfString,
   }
   else
   {
-    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
   serverConfig.SetLogRecordPath(recordPathMod);
 
-  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
+  gzmsg << "Ignition Gazebo Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -153,7 +153,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (!serverConfig.SetSdfString(_sdfString))
     {
-      ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
+      gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
     }
   }
@@ -166,13 +166,13 @@ extern "C" int runServer(const char *_sdfString,
   // Set whether levels should be used.
   if (_levels > 0)
   {
-    ignmsg << "Using the level system\n";
+    gzmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    ignmsg << "Using the distributed simulation and levels systems\n";
+    gzmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
@@ -182,66 +182,66 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
     {
-      ignerr << "Both an SDF file and playback flag are specified. "
+      gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
       return -1;
     }
     else
     {
-      ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+      gzmsg << "Playing back states" << _playback << std::endl;
+      serverConfig.SetLogPlaybackPath(gz::common::absPath(
         std::string(_playback)));
     }
   }
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
 
-  igndbg << "Shutting down server" << std::endl;
+  gzdbg << "Shutting down server" << std::endl;
   return 0;
 }
 
 //////////////////////////////////////////////////
 extern "C" int runGui(const char *_guiConfig)
 {
-  ignition::common::SignalHandler sigHandler;
+  gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
+  gzmsg << "Ignition Gazebo GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   int argc = 0;
   char **argv = nullptr;
 
   // Initialize Qt app
-  ignition::gui::Application app(argc, argv);
-  app.AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  gz::gui::Application app(argc, argv);
+  app.AddPluginPath(GZ_SIM_WORLD_INSTALL_DIR;;
 
   // add import path so we can load custom modules
-  app.Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  app.Engine()->addImportPath(GZ_SIM_WORLD_INSTALL_DIR;;
 
   // Set default config file for Gazebo
   std::string defaultConfigDir;
-  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = ignition::common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
+  gz::common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = gz::common::joinPaths(defaultConfig, ".gz",
+      "sim", GZ_SIM_MAJOR_VERSION_STR);
 
-  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
       "gui.config");
 
   app.SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app.findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app.findChild<gz::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
-  win->setProperty("title", "Gazebo");
+  win->setProperty("title", "Gazebo Sim");
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app.Engine(), ":/Gazebo/GazeboDrawer.qml");
@@ -258,18 +258,18 @@ extern "C" int runGui(const char *_guiConfig)
   }
   else
   {
-    ignerr << "Failed to instantiate custom drawer, drawer will be empty"
+    gzerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  gz::msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -277,7 +277,7 @@ extern "C" int runGui(const char *_guiConfig)
   // resolved when this while loop can be removed.
   while (!sigKilled && !executed)
   {
-    igndbg << "GUI requesting list of world names. The server may be busy "
+    gzdbg << "GUI requesting list of world names. The server may be busy "
       << "downloading resources. Please be patient." << std::endl;
     executed = node.Request(service, timeout, worldsMsg, result);
   }
@@ -286,9 +286,9 @@ extern "C" int runGui(const char *_guiConfig)
   if (!sigKilled)
   {
     if (!executed)
-      ignerr << "Timed out when getting world names." << std::endl;
+      gzerr << "Timed out when getting world names." << std::endl;
     else if (!result)
-      ignerr << "Failed to get world names." << std::endl;
+      gzerr << "Failed to get world names." << std::endl;
   }
 
   if (!executed || !result || worldsMsg.data().empty())
@@ -302,7 +302,7 @@ extern "C" int runGui(const char *_guiConfig)
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-  std::vector<ignition::gazebo::GuiRunner *> runners;
+  std::vector<gz::sim::GuiRunner *> runners;
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
@@ -314,12 +314,12 @@ extern "C" int runGui(const char *_guiConfig)
   {
     if (!app.LoadConfig(_guiConfig))
     {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+      gzwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
     }
 
     // Use the first world name with the config file
-    // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
+    // TODO(anyone) Most of gz-sim's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
 
@@ -331,16 +331,16 @@ extern "C" int runGui(const char *_guiConfig)
 # pragma warning(push)
 # pragma warning(disable: 4996)
 #endif
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+    auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));
 #ifndef _WIN32
 # pragma GCC diagnostic pop
 #else
 # pragma warning(pop)
 #endif
-    runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-        &ignition::gazebo::GuiRunner::OnPluginAdded);
+    runner->connect(&app, &gz::gui::Application::PluginAdded, runner,
+        &gz::sim::GuiRunner::OnPluginAdded);
     runners.push_back(runner);
-    runner->setParent(ignition::gui::App());
+    runner->setParent(gz::gui::App());
   }
   // GUI configuration from SDF (request to server)
   else
@@ -355,16 +355,16 @@ extern "C" int runGui(const char *_guiConfig)
       result = false;
       service = std::string("/world/" + worldName + "/gui/info");
 
-      igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
+      gzdbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
       // Request and block
-      ignition::msgs::GUI res;
+      gz::msgs::GUI res;
       executed = node.Request(service, timeout, res, result);
 
       if (!executed)
-        ignerr << "Service call timed out for [" << service << "]" << std::endl;
+        gzerr << "Service call timed out for [" << service << "]" << std::endl;
       else if (!result)
-        ignerr << "Service call failed for [" << service << "]" << std::endl;
+        gzerr << "Service call failed for [" << service << "]" << std::endl;
 
       for (int p = 0; p < res.plugin_size(); ++p)
       {
@@ -381,10 +381,10 @@ extern "C" int runGui(const char *_guiConfig)
       }
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->connect(&app, &ignition::gui::Application::PluginAdded, runner,
-          &ignition::gazebo::GuiRunner::OnPluginAdded);
-      runner->setParent(ignition::gui::App());
+      auto runner = new gz::sim::GuiRunner(worldName);
+      runner->connect(&app, &gz::gui::Application::PluginAdded, runner,
+          &gz::sim::GuiRunner::OnPluginAdded);
+      runner->setParent(gz::gui::App());
       runners.push_back(runner);
     }
     mainWin->configChanged();
@@ -392,48 +392,48 @@ extern "C" int runGui(const char *_guiConfig)
 
   if (runners.empty())
   {
-    ignerr << "Failed to start a GUI runner." << std::endl;
+    gzerr << "Failed to start a GUI runner." << std::endl;
     return -1;
   }
 
   // If no plugins have been added, load default config file
-  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
     // Check if there's a default config file under
     // ~/.gz/sim and use that. If there isn't, copy
     // the installed file there first.
-    if (!ignition::common::exists(defaultConfig))
+    if (!gz::common::exists(defaultConfig))
     {
-      auto installedConfig = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, "gui.config");
+      auto installedConfig = gz::common::joinPaths(
+          GZ_SIM_GUI_CONFIG_PATH, "gui.config");
 
-      if (!ignition::common::createDirectories(defaultConfigDir))
+      if (!gz::common::createDirectories(defaultConfigDir))
       {
-        ignerr << "Failed to create directory [" << defaultConfigDir
+        gzerr << "Failed to create directory [" << defaultConfigDir
                << "]." << std::endl;
         return -1;
       }
 
-      if (!ignition::common::exists(installedConfig))
+      if (!gz::common::exists(installedConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << "(file " << installedConfig << " doesn't exist)"
                << std::endl;
         return -1;
       }
 
-      if (!ignition::common::copyFile(installedConfig, defaultConfig))
+      if (!gz::common::copyFile(installedConfig, defaultConfig))
       {
-        ignerr << "Failed to copy installed config [" << installedConfig
+        gzerr << "Failed to copy installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
         return -1;
       }
       else
       {
-        ignmsg << "Copied installed config [" << installedConfig
+        gzmsg << "Copied installed config [" << installedConfig
                << "] to default config [" << defaultConfig << "]."
                << std::endl;
       }
@@ -442,7 +442,7 @@ extern "C" int runGui(const char *_guiConfig)
     // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app.LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << _guiConfig << "]."
+      gzerr << "Failed to load config file[" << _guiConfig << "]."
              << std::endl;
       return -1;
     }
@@ -456,6 +456,6 @@ extern "C" int runGui(const char *_guiConfig)
     delete runner;
   runners.clear();
 
-  igndbg << "Shutting down GUI" << std::endl;
+  gzdbg << "Shutting down GUI" << std::endl;
   return 0;
 }

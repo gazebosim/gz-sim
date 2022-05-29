@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
-#define IGNITION_GAZEBO_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
+#ifndef GZ_SIM_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
+#define GZ_SIM_TEST_INTEGRATION_MODELPHOTOSHOOTTEST_HH_
 
 #include <gtest/gtest.h>
 
@@ -27,51 +27,51 @@
 #include <memory>
 #include <vector>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/Model.hh"
 
-#include <ignition/common/Image.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
+#include <gz/common/Image.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
 
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Saves an image from a camera in a given position.
 /// \param[in] _camera Camera to use for the picture.
 /// \param[in] _pose Pose for the camera.
 /// \param[in] _fileName Filename to save the image.
-void SavePicture(const ignition::rendering::CameraPtr _camera,
-                const ignition::math::Pose3d &_pose,
+void SavePicture(const gz::rendering::CameraPtr _camera,
+                const gz::math::Pose3d &_pose,
                 const std::string &_fileName)
 {
   unsigned int width = _camera->ImageWidth();
   unsigned int height = _camera->ImageHeight();
-  ignition::common::Image image;
+  gz::common::Image image;
 
   _camera->SetWorldPose(_pose);
   auto cameraImage = _camera->CreateImage();
   _camera->Capture(cameraImage);
   auto formatStr =
-      ignition::rendering::PixelUtil::Name(_camera->ImageFormat());
-  auto format = ignition::common::Image::ConvertPixelFormat(formatStr);
+      gz::rendering::PixelUtil::Name(_camera->ImageFormat());
+  auto format = gz::common::Image::ConvertPixelFormat(formatStr);
   image.SetFromData(cameraImage.Data<unsigned char>(), width, height, format);
   image.SavePNG(_fileName);
 }
@@ -83,10 +83,10 @@ void testImages(const std::string &_imageFile,
                 const std::string &_testImageFile)
 {
   std::string imageFilePath = common::joinPaths(common::cwd(), _imageFile);
-  ignition::common::Image image(imageFilePath);
+  gz::common::Image image(imageFilePath);
   std::string testImageFilePath =
       common::joinPaths(common::cwd(), _testImageFile);
-  ignition::common::Image testImage(testImageFilePath);
+  gz::common::Image testImage(testImageFilePath);
 
   EXPECT_TRUE(image.Valid());
   EXPECT_TRUE(testImage.Valid());
@@ -120,15 +120,15 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   {
     if (takeTestPics)
     {
-      ignition::rendering::ScenePtr scene =
-        ignition::rendering::sceneFromFirstRenderEngine();
+      gz::rendering::ScenePtr scene =
+        gz::rendering::sceneFromFirstRenderEngine();
       for (unsigned int i = 0; i < scene->NodeCount(); ++i)
       {
-        auto camera = std::dynamic_pointer_cast<ignition::rendering::Camera>(
+        auto camera = std::dynamic_pointer_cast<gz::rendering::Camera>(
             scene->NodeByIndex(i));
         if (nullptr != camera && camera->Name() == "photo_shoot::link::camera")
         {
-          ignition::math::Pose3d pose;
+          gz::math::Pose3d pose;
           // Perspective view
           pose.Pos().Set(1.6 / scaling + translation.X(),
                         -1.6 / scaling + translation.Y(),
@@ -231,30 +231,30 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
       EntityComponentManager &,
       EventManager &_eventMgr)
     {
-      postRenderConn = _eventMgr.Connect<gazebo::events::PostRender>(
+      postRenderConn = _eventMgr.Connect<sim::events::PostRender>(
             std::bind(&ModelPhotoShootTest::OnPostRender, this));
     }).Finalize();
 
     fixture.Server()->Run(true, 50, false);
     this->LoadPoseValues();
 
-    fixture.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                            gazebo::EntityComponentManager &_ecm)
+    fixture.OnPreUpdate([&](const sim::UpdateInfo &,
+                            sim::EntityComponentManager &_ecm)
     {
       if(!jointPositions.empty() && this->checkRandomJoints)
       {
         _ecm.Each<components::Model>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const gz::sim::Entity &_entity,
             const components::Model *) -> bool
         {
           auto modelName = _ecm.Component<components::Name>(_entity);
           if (modelName->Data() == "r2")
           {
-            this->model = std::make_shared<ignition::gazebo::Model>(_entity);
+            this->model = std::make_shared<gz::sim::Model>(_entity);
           }
           return true;
         });
-        std::vector<gazebo::Entity> joints = this->model->Joints(_ecm);
+        std::vector<sim::Entity> joints = this->model->Joints(_ecm);
         for (const auto &joint : joints)
         {
           auto jointNameComp = _ecm.Component<components::Name>(joint);
@@ -298,9 +298,9 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
   private: bool takeTestPics{false};
   private: bool checkRandomJoints{true};
   private: double scaling;
-  private: ignition::math::Vector3d translation;
+  private: gz::math::Vector3d translation;
   private: std::map<std::string, double> jointPositions;
-  private: std::shared_ptr<ignition::gazebo::Model> model;
+  private: std::shared_ptr<gz::sim::Model> model;
 };
 
 #endif

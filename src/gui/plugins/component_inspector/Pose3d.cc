@@ -22,8 +22,8 @@
 
 #include "Pose3d.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace inspector;
 
 /////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void Pose3d::OnPose(double _x, double _y, double _z, double _roll,
       [](const msgs::Boolean &, const bool _result)
   {
     if (!_result)
-        ignerr << "Error setting pose" << std::endl;
+        gzerr << "Error setting pose" << std::endl;
   };
 
   msgs::Pose req;

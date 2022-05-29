@@ -17,12 +17,12 @@
 
 #include "gz/sim/detail/View.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace detail
 {
 //////////////////////////////////////////////////
@@ -57,12 +57,12 @@ bool View::HasCachedComponentData(const Entity _entity) const
 
   if (cachedComps && !cachedConstComps)
   {
-    ignwarn << "Non-const component data is cached for entity " << _entity
+    gzwarn << "Non-const component data is cached for entity " << _entity
       << ", but const component data is not cached." << std::endl;
   }
   else if (cachedConstComps && !cachedComps)
   {
-    ignwarn << "Const component data is cached for entity " << _entity
+    gzwarn << "Const component data is cached for entity " << _entity
       << ", but non-const component data is not cached." << std::endl;
   }
 
@@ -181,5 +181,5 @@ void View::Reset()
 
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

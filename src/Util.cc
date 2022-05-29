@@ -41,12 +41,12 @@
 
 #include "gz/sim/Util.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
@@ -54,7 +54,7 @@ math::Pose3d worldPose(const Entity &_entity,
   auto poseComp = _ecm.Component<components::Pose>(_entity);
   if (nullptr == poseComp)
   {
-    ignwarn << "Trying to get world pose from entity [" << _entity
+    gzwarn << "Trying to get world pose from entity [" << _entity
             << "], which doesn't have a pose component" << std::endl;
     return math::Pose3d();
   }
@@ -97,7 +97,7 @@ std::string scopedName(const Entity &_entity,
     std::string prefix = entityTypeStr(entity, _ecm);
     if (prefix.empty())
     {
-      ignwarn << "Skipping entity [" << name
+      gzwarn << "Skipping entity [" << name
               << "] when generating scoped name, entity type not known."
               << std::endl;
     }
@@ -132,7 +132,7 @@ std::unordered_set<Entity> entitiesFromScopedName(
 {
   if (_delim.empty())
   {
-    ignwarn << "Can't process scoped name [" << _scopedName
+    gzwarn << "Can't process scoped name [" << _scopedName
             << "] with empty delimiter." << std::endl;
     return {};
   }
@@ -347,7 +347,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   // When SDF is loaded from a string instead of a file
   if (std::string(sdf::kSdfStringSource) == _filePath)
   {
-    ignwarn << "Can't resolve full path for relative path ["
+    gzwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
     return _uri;
   }
@@ -449,20 +449,20 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   for (const auto &path : sdfPaths)
     sdfPathsStr += ':' + path;
 
-  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
+  gz::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
     ignPathsStr += ':' + path;
 
-  ignition::common::setenv(
+  gz::common::setenv(
     systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
     gzPathsStr += ':' + path;
 
-  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
+  gz::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -470,7 +470,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-ignition::gazebo::Entity topLevelModel(const Entity &_entity,
+gz::sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;
@@ -519,12 +519,12 @@ std::string validTopic(const std::vector<std::string> &_topics)
     auto validTopic = transport::TopicUtils::AsValidTopic(topic);
     if (validTopic.empty())
     {
-      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      gzerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
       continue;
     }
     if (validTopic != topic)
     {
-      igndbg << "Topic [" << topic << "] changed to valid topic ["
+      gzdbg << "Topic [" << topic << "] changed to valid topic ["
              << validTopic << "]" << std::endl;
     }
     return validTopic;
@@ -608,7 +608,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     }
     else
     {
-      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+      gzwarn << "Fuel couldn't download URL [" << _sdfFile
         << "], error: [" << result.ReadableResult() << "]"
         << std::endl;
     }
@@ -622,7 +622,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with ign-gazebo
-    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     filePath = systemPaths.FindFile(_sdfFile);
   }

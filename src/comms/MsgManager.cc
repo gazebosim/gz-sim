@@ -26,26 +26,26 @@
 #include "gz/sim/comms/MsgManager.hh"
 
 /// \brief Private MsgManager data class.
-class ignition::gazebo::comms::MsgManager::Implementation
+class gz::sim::comms::MsgManager::Implementation
 {
   /// \brief Buffer to store the content associated to each address.
   /// The key is an address. The value contains all the information associated
   /// to the address.
   public: Registry data;
 
-  /// \brief An Ignition Transport node for communications.
-  public: std::unique_ptr<ignition::transport::Node> node;
+  /// \brief A Gazebo Transport node for communications.
+  public: std::unique_ptr<gz::transport::Node> node;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace comms;
 
 //////////////////////////////////////////////////
 MsgManager::MsgManager()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
-  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
+  this->dataPtr->node = std::make_unique<gz::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -58,15 +58,15 @@ bool MsgManager::AddSubscriber(const std::string &_address,
   {
     if (!it->second.modelName.empty() && it->second.modelName != _modelName)
     {
-      ignerr << "AddSubscriber() error: Address already attached to a different"
+      gzerr << "AddSubscriber() error: Address already attached to a different"
              << " model" << std::endl;
       return false;
     }
   }
   this->dataPtr->data[_address].modelName = _modelName;
 
-  ignition::transport::Node::Publisher publisher =
-    this->dataPtr->node->Advertise<ignition::msgs::Dataframe>(_topic);
+  gz::transport::Node::Publisher publisher =
+    this->dataPtr->node->Advertise<gz::msgs::Dataframe>(_topic);
 
   this->dataPtr->data[_address].subscriptions[_topic] = publisher;
   return true;
@@ -93,7 +93,7 @@ bool MsgManager::RemoveSubscriber(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveSubscriber() error: Unable to find address ["
+    gzerr << "RemoveSubscriber() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }
@@ -115,7 +115,7 @@ bool MsgManager::RemoveInbound(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveInbound() error: Unable to find address ["
+    gzerr << "RemoveInbound() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }
@@ -132,7 +132,7 @@ bool MsgManager::RemoveOutbound(const std::string &_address,
   auto it = this->dataPtr->data.find(_address);
   if (it == this->dataPtr->data.end())
   {
-    ignerr << "RemoveOutbound() error: Unable to find address ["
+    gzerr << "RemoveOutbound() error: Unable to find address ["
            << _address << "]" << std::endl;
     return false;
   }

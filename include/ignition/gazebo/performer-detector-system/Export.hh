@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/performer-detector-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/gui/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -39,11 +39,11 @@
 #include <sdf/Element.hh>
 #include "LogicalAudio.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
+class gz::sim::systems::LogicalAudioSensorPluginPrivate
 {
   /// \brief Creates an audio source with attributes specified in an SDF file.
   /// \param[in] _elem A pointer to the source element in the SDF file.
@@ -78,7 +78,7 @@ class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
                const logical_audio::SourcePlayInfo &_sourcePlayInfo);
 
   /// \brief Node used to create publishers and services
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief A flag used to initialize a source's playing information
   /// before starting simulation.
@@ -97,7 +97,7 @@ class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
   /// (an entity can have multiple microphones attached to it).
   /// The value is the microphone's detection publisher.
   public: std::unordered_map<Entity,
-            ignition::transport::Node::Publisher> micEntities;
+            gz::transport::Node::Publisher> micEntities;
 
   /// \brief A mutex used to ensure that the play source service call does
   /// not interfere with the source's state in the PreUpdate step.
@@ -240,7 +240,7 @@ void LogicalAudioSensorPlugin::PostUpdate(const UpdateInfo &_info,
           // publish the source that the microphone heard, along with the
           // volume level the microphone detected. The detected source's
           // ID is embedded in the message's header
-          ignition::msgs::Double msg;
+          gz::msgs::Double msg;
           auto header = msg.mutable_header();
           auto timeStamp = header->mutable_stamp();
           timeStamp->set_sec(simSeconds.count());
@@ -270,7 +270,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
 
   if (!_elem->HasElement("id"))
   {
-    ignerr << "Audio source is missing an id. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing an id. " << kSourceSkipMsg;
     return;
   }
   const auto id = _elem->Get<unsigned int>("id");
@@ -278,62 +278,62 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   // make sure no other sources exist with the same ID in the parent
   if (_ids.find(id) != _ids.end())
   {
-    ignerr << "The specified source ID of " << id << " already exists for "
+    gzerr << "The specified source ID of " << id << " already exists for "
       << "another source in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
   _ids.insert(id);
 
-  ignition::math::Pose3d pose;
+  gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
-    ignwarn << "Audio source is missing a pose. "
+    gzwarn << "Audio source is missing a pose. "
       << "{0.0, 0.0, 0.0, 0.0, 0.0, 0.0} will be used.\n";
     pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   }
   else
   {
-    pose = _elem->Get<ignition::math::Pose3d>("pose");
+    pose = _elem->Get<gz::math::Pose3d>("pose");
   }
 
   if (!_elem->HasElement("attenuation_function"))
   {
-    ignerr << "Audio source has no attenuation function. " << kSourceSkipMsg;
+    gzerr << "Audio source has no attenuation function. " << kSourceSkipMsg;
     return;
   }
   const auto attenuationFunc = _elem->Get<std::string>("attenuation_function");
 
   if (!_elem->HasElement("attenuation_shape"))
   {
-    ignerr << "Audio source has no attenuation shape. " << kSourceSkipMsg;
+    gzerr << "Audio source has no attenuation shape. " << kSourceSkipMsg;
     return;
   }
   const auto attenuationShape = _elem->Get<std::string>("attenuation_shape");
 
   if (!_elem->HasElement("inner_radius"))
   {
-    ignerr << "Audio source has no inner radius. " << kSourceSkipMsg;
+    gzerr << "Audio source has no inner radius. " << kSourceSkipMsg;
     return;
   }
   const auto innerRadius = _elem->Get<double>("inner_radius");
 
   if (!_elem->HasElement("falloff_distance"))
   {
-    ignerr << "Audio source is missing a falloff distance. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing a falloff distance. " << kSourceSkipMsg;
     return;
   }
   const auto falloffDistance = _elem->Get<double>("falloff_distance");
 
   if (!_elem->HasElement("volume_level"))
   {
-    ignerr << "Audio source is missing a volume level. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing a volume level. " << kSourceSkipMsg;
     return;
   }
   const auto volumeLevel = _elem->Get<double>("volume_level");
 
   if (!_elem->HasElement("playing"))
   {
-    ignerr << "Audio source is missing the playing attribute. "
+    gzerr << "Audio source is missing the playing attribute. "
            << kSourceSkipMsg;
     return;
   }
@@ -341,7 +341,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
 
   if (!_elem->HasElement("play_duration"))
   {
-    ignerr << "Audio source is missing the play duration. " << kSourceSkipMsg;
+    gzerr << "Audio source is missing the play duration. " << kSourceSkipMsg;
     return;
   }
   const auto playDuration = _elem->Get<unsigned int>("play_duration");
@@ -350,7 +350,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
   {
-    ignerr << "Failed to create a logical audio source entity. "
+    gzerr << "Failed to create a logical audio source entity. "
       << kSourceSkipMsg;
     return;
   }
@@ -385,16 +385,16 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
       components::LogicalAudioSourcePlayInfo(playInfo));
 
   // create service callbacks that allow this source to be played/stopped
-  std::function<bool(ignition::msgs::Boolean &)> playSrvCb =
-    [this, entity](ignition::msgs::Boolean &_resp)
+  std::function<bool(gz::msgs::Boolean &)> playSrvCb =
+    [this, entity](gz::msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->playSourceMutex);
       this->sourceEntities[entity].first = true;
       _resp.set_data(true);
       return true;
     };
-  std::function<bool(ignition::msgs::Boolean &)> stopSrvCb =
-    [this, entity](ignition::msgs::Boolean &_resp)
+  std::function<bool(gz::msgs::Boolean &)> stopSrvCb =
+    [this, entity](gz::msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->stopSourceMutex);
       this->sourceEntities[entity].second = true;
@@ -407,19 +407,19 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   auto validName = transport::TopicUtils::AsValidTopic(fullName);
   if (validName.empty())
   {
-    ignerr << "Failed to create valid topics with entity scoped name ["
+    gzerr << "Failed to create valid topics with entity scoped name ["
            << fullName << "]" << std::endl;
     return;
   }
   if (!this->node.Advertise(validName + "/play", playSrvCb))
   {
-    ignerr << "Error advertising the play source service for source "
+    gzerr << "Error advertising the play source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
   if (!this->node.Advertise(validName + "/stop", stopSrvCb))
   {
-    ignerr << "Error advertising the stop source service for source "
+    gzerr << "Error advertising the stop source service for source "
       << id << " in entity " << _parent << ". " << kSourceSkipMsg;
     return;
   }
@@ -440,7 +440,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
 
   if (!_elem->HasElement("id"))
   {
-    ignerr << "Microphone is missing an id. " << kMicSkipMsg;
+    gzerr << "Microphone is missing an id. " << kMicSkipMsg;
     return;
   }
   const auto id = _elem->Get<unsigned int>("id");
@@ -448,28 +448,28 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   // make sure no other microphones exist with the same ID in the parent
   if (_ids.find(id) != _ids.end())
   {
-    ignerr << "The specified microphone ID of " << id << " already exists for "
+    gzerr << "The specified microphone ID of " << id << " already exists for "
       << "another microphone in entity " << _parent << ". " << kMicSkipMsg;
     return;
   }
   _ids.insert(id);
 
-  ignition::math::Pose3d pose;
+  gz::math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
-    ignwarn << "Microphone is missing a pose. "
+    gzwarn << "Microphone is missing a pose. "
       << "{0.0, 0.0, 0.0, 0.0, 0.0, 0.0} will be used.\n";
     pose = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   }
   else
   {
-    pose = _elem->Get<ignition::math::Pose3d>("pose");
+    pose = _elem->Get<gz::math::Pose3d>("pose");
   }
 
   double volumeDetectionThreshold;
   if (!_elem->HasElement("volume_threshold"))
   {
-    ignwarn << "Microphone is missing a volume threshold. 0.0 will be used.\n";
+    gzwarn << "Microphone is missing a volume threshold. 0.0 will be used.\n";
     volumeDetectionThreshold = 0.0;
   }
   else
@@ -481,7 +481,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   auto entity = _ecm.CreateEntity();
   if (entity == kNullEntity)
   {
-    ignerr << "Failed to create a logical audio microphone entity. "
+    gzerr << "Failed to create a logical audio microphone entity. "
       << kMicSkipMsg;
     return;
   }
@@ -501,11 +501,11 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
       components::Pose(pose));
 
   // create the detection publisher for this microphone
-  auto pub = this->node.Advertise<ignition::msgs::Double>(
+  auto pub = this->node.Advertise<gz::msgs::Double>(
       scopedName(entity, _ecm) + "/detection");
   if (!pub)
   {
-    ignerr << "Error creating a detection publisher for microphone "
+    gzerr << "Error creating a detection publisher for microphone "
       << id << " in entity " << _parent << ". " << kMicSkipMsg;
     return;
   }
@@ -526,10 +526,14 @@ bool LogicalAudioSensorPluginPrivate::DurationExceeded(
 }
 
 IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     LogicalAudioSensorPlugin::ISystemConfigure,
                     LogicalAudioSensorPlugin::ISystemPreUpdate,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
+  "gz::sim::systems::LogicalAudioSensorPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "ignition::gazebo::systems::LogicalAudioSensorPlugin")

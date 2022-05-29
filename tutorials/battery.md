@@ -19,7 +19,7 @@ model:
 <model>
   ...
   <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
         <voltage>4.2</voltage>
@@ -53,8 +53,8 @@ Next, you can find a description of the SDF parameters used:
 
 * `<power_load>`: Power load on battery (W).
 
-* `<fix_issue_225>`: As reported [here](https://github.com/ignitionrobotics/ign-gazebo/issues/225),
-there are some issues affecting batteries in Ignition Blueprint and Citadel.
+* `<fix_issue_225>`: As reported [here](https://github.com/gazebosim/gz-sim/issues/225),
+there are some issues affecting batteries in Gazebo Blueprint and Citadel.
 This parameter fixes the issues. Feel free to omit the parameter if you have
 legacy code and want to preserve the old behavior.
 
@@ -102,12 +102,12 @@ it will take a longer time to recharge.
 battery will also be available via topics. The regular Ignition services will
 still be available.
 
-By default, two Ignition Transport services are available for managing charging:
+By default, two Gazebo Transport services are available for managing charging:
 
 * `/model/<model_name>/battery/<battery_name>/recharge/start`: Enable recharging.
 * `/model/<model_name>/battery/<battery_name>/recharge/stop`: Disable recharging.
 
-Both services accept an `ignition::msgs::Boolean` parameter.
+Both services accept an `gz::msgs::Boolean` parameter.
 
 ## Try out an example
 

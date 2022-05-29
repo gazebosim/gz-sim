@@ -1,36 +1,36 @@
 \page rendering_plugins Rendering plugins
 
-This tutorial will go over how to write Ignition Gazebo plugins that alter the
-3D scene's visual appearance using Ignition Rendering APIs.
+This tutorial will go over how to write Gazebo plugins that alter the
+3D scene's visual appearance using Gazebo Rendering APIs.
 
 This is not to be confused with integrating a new rendering engine. See
-[How to write your own rendering engine plugin](https://ignitionrobotics.org/api/rendering/4.2/renderingplugin.html)
+[How to write your own rendering engine plugin](https://gazebosim.org/api/rendering/4.2/renderingplugin.html)
 for that.
 
 This tutorial will go over a couple of example plugins that are located at
-https://github.com/ignitionrobotics/ign-gazebo/tree/main/examples/plugin/rendering_plugins.
+https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/rendering_plugins.
 
 ## Scenes
 
 During simulation, there are up to two 3D scenes being rendered by
-Ignition Gazebo, one on the server process and one on the client process.
+Gazebo, one on the server process and one on the client process.
 
 The server-side scene will only be created when using the
-`ignition::gazebo::systems::Sensors` system plugin on the server. This is the
+`gz::sim::systems::Sensors` system plugin on the server. This is the
 scene that shows what the sensors see.
 
 The client-side scene will only be created when using the
-`ignition::gazebo::Scene3D` GUI system plugin on the client. This is the
+`gz::sim::Scene3D` GUI system plugin on the client. This is the
 scene that shows what the user sees.
 
 For the user to see what the sensors see, they need to use other GUI plugins
-that display sensor data, such as `ignition::gui::plugins::ImageDisplay` for
-camera images or `ignition::gazebo::VisualizeLidar` for lidar point clouds.
+that display sensor data, such as `gz::gui::plugins::ImageDisplay` for
+camera images or `gz::sim::VisualizeLidar` for lidar point clouds.
 
-Ignition Gazebo keeps these scenes in sync by sending periodic state messages
+Gazebo keeps these scenes in sync by sending periodic state messages
 from the server to the client that contain entity and component data with
-the `ignition::gazebo::systems::SceneBroadcaster` plugin. Any
-changes done to these scenes using Ignition Rendering APIs directly, as
+the `gz::sim::systems::SceneBroadcaster` plugin. Any
+changes done to these scenes using Gazebo Rendering APIs directly, as
 described in this tutorial, will only affect one of the scenes and will not be
 synchronized. The examples below will show how to change the ambient light for
 each scene separately.
@@ -41,18 +41,18 @@ Depending on the scene that you want to affect, you'll need to write a
 different plugin.
 
 To interact with the server-side scene, you'll need to write an
-`ignition::gazebo::System`.
+`gz::sim::System`.
 See [Create System Plugins](createsystemplugins.html).
 
 To interact with the client-side scene, you'll need to write an
-[ignition::gui::Plugin](https://ignitionrobotics.org/api/gui/4.1/classignition_1_1gui_1_1Plugin.html),
-or a more specialized `ignition::gazebo::GuiSystem`
+[gz::gui::Plugin](https://gazebosim.org/api/gui/4.1/classignition_1_1gui_1_1Plugin.html),
+or a more specialized `gz::sim::GuiSystem`
 if you need to access entities and components.
-See the [GUI system plugin example](https://github.com/ignitionrobotics/ign-gazebo/tree/main/examples/plugin/gui_system_plugin).
+See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/gui_system_plugin).
 
 ## Getting the scene
 
-When writing either plugin type, the `ignition::rendering::Scene` pointer can
+When writing either plugin type, the `gz::rendering::Scene` pointer can
 be conveniently found using the rendering engine's singleton. Both example
 plugins use the exact same logic to get the scene:
 
@@ -72,14 +72,14 @@ different for each plugin type.
 ### Render events on the GUI
 
 The GUI plugin will need to listen to
-[ignition::gui::events::Render](https://ignitionrobotics.org/api/gui/4.1/classignition_1_1gui_1_1events_1_1Render.html)
+[gz::gui::events::Render](https://gazebosim.org/api/gui/4.1/classignition_1_1gui_1_1events_1_1Render.html)
 events. Here's how to do it:
 
 1. Include the GUI events header:
 
     \snippet examples/plugin/rendering_plugins/RenderingGuiPlugin.cc includeGuiEvents
 
-2. The 3D scene sends render events periodically to the `ignition::gui::MainWindow`,
+2. The 3D scene sends render events periodically to the `gz::gui::MainWindow`,
    not directly to every plugin. Therefore, your plugin will need to install a filter
    so that it receives all events coming from the `MainWindow`. In your plugin's
    `LoadConfig` call, install the filter as follows:
@@ -100,8 +100,8 @@ events. Here's how to do it:
 
 ### Render events on the server
 
-The server plugin will need to listen to `ignition::gazebo::events::PreRender` or
-`ignition::gazebo::events::PostRender` events.
+The server plugin will need to listen to `gz::sim::events::PreRender` or
+`gz::sim::events::PostRender` events.
 
 Here's how to do it:
 
@@ -123,7 +123,7 @@ Here's how to do it:
 ## Running examples
 
 Follow the build instructions on the rendering plugins
-[README](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/plugin/rendering_plugins)
+[README](https://github.com/gazebosim/gz-sim/blob/main/examples/plugin/rendering_plugins)
 and you'll generate both plugins:
 
 * `RenderingGuiPlugin`: GUI plugin that updates the GUI scene's ambient light with a random color at each click.

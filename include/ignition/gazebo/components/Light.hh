@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Light.hh>
+#include <ignition/gazebo/config.hh>

@@ -15,23 +15,23 @@
  *
  */
 
-#ifndef GZ_GAZEBO_PRIMITIVES_HH_
-#define GZ_GAZEBO_PRIMITIVES_HH_
+#ifndef GZ_SIM_PRIMITIVES_HH_
+#define GZ_SIM_PRIMITIVES_HH_
 
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
 #include <string>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Enumeration of available primitive shape types
-    enum class IGNITION_GAZEBO_VISIBLE PrimitiveShape
+    enum class GZ_GAZEBO_VISIBLE PrimitiveShape
     {
       kBox,
       kCapsule,
@@ -41,7 +41,7 @@ namespace ignition
     };
 
     /// \brief Enumeration of available primitive light types
-    enum class IGNITION_GAZEBO_VISIBLE PrimitiveLight
+    enum class GZ_GAZEBO_VISIBLE PrimitiveLight
     {
       kDirectional,
       kPoint,
@@ -53,7 +53,7 @@ namespace ignition
     /// \param[in] _type Type of shape to retrieve
     /// \return String containing SDF description of primitive shape
     /// Empty string if the _type is not supported.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitiveShape(const PrimitiveShape &_type);
 
     /// \brief Return an SDF string of one of the available primitive
@@ -61,7 +61,7 @@ namespace ignition
     /// \param[in] _type Type of light to retrieve
     /// \return String containing SDF description of primitive light
     /// Empty string if the _type is not supported.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitiveLight(const PrimitiveLight &_type);
 
     /// \brief Return an SDF string of one of the available primitive shape or
@@ -71,13 +71,13 @@ namespace ignition
     /// point, or spot.
     /// \return String containing SDF description of primitive shape or light.
     /// Empty string if the _typeName is invalid.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     getPrimitive(const std::string &_typeName);
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
 
-#endif  // GZ_GAZEBO_PRIMITIVES_HH_
+#endif  // GZ_SIM_PRIMITIVES_HH_
 
 

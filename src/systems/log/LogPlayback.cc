@@ -47,12 +47,12 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private LogPlayback data class.
-class ignition::gazebo::systems::LogPlaybackPrivate
+class gz::sim::systems::LogPlaybackPrivate
 {
   /// \brief Extract model resource files and state file from compression.
   /// \return True if extraction was successful.
@@ -175,12 +175,12 @@ void LogPlayback::Configure(const Entity &,
         this->dataPtr->logPath.find_last_of(".") + 1));
     if (extension != "zip")
     {
-      ignerr << "Please specify a zip file.\n";
+      gzerr << "Please specify a zip file.\n";
       return;
     }
     if (!this->dataPtr->ExtractStateAndResources())
     {
-      ignerr << "Cannot play back files.\n";
+      gzerr << "Cannot play back files.\n";
       return;
     }
   }
@@ -192,7 +192,7 @@ void LogPlayback::Configure(const Entity &,
   }
   else
   {
-    ignwarn << "A LogPlayback instance has already been started. "
+    gzwarn << "A LogPlayback instance has already been started. "
       << "Will not start another.\n";
   }
 }
@@ -202,23 +202,23 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 {
   if (LogPlaybackPrivate::started)
   {
-    ignwarn << "A LogPlayback instance has already been started. "
+    gzwarn << "A LogPlayback instance has already been started. "
       << "Will not start another.\n";
     return true;
   }
 
   if (this->logPath.empty())
   {
-    ignerr << "Unspecified log path to playback. Nothing to play.\n";
+    gzerr << "Unspecified log path to playback. Nothing to play.\n";
     return false;
   }
 
   // Append file name
   std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
-  ignmsg << "Loading log file [" + dbPath + "]\n";
+  gzmsg << "Loading log file [" + dbPath + "]\n";
   if (!common::exists(dbPath))
   {
-    ignerr << "Log path invalid. File [" << dbPath << "] "
+    gzerr << "Log path invalid. File [" << dbPath << "] "
       << "does not exist. Nothing to play.\n";
     return false;
   }
@@ -227,7 +227,7 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   this->log = std::make_unique<transport::log::Log>();
   if (!this->log->Open(dbPath))
   {
-    ignerr << "Failed to open log file [" << dbPath << "]" << std::endl;
+    gzerr << "Failed to open log file [" << dbPath << "]" << std::endl;
   }
 
   // Access all messages in .tlog file
@@ -236,7 +236,7 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
 
   if (iter == this->batch.end())
   {
-    ignerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+    gzerr << "No messages found in log file [" << dbPath << "]" << std::endl;
   }
 
   // Look for the first SerializedState message and use it to set the initial
@@ -244,14 +244,14 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   for (; iter != this->batch.end(); ++iter)
   {
     auto msgType = iter->Type();
-    if (msgType == "ignition.msgs.SerializedState")
+    if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
       this->Parse(_ecm, msg);
       break;
     }
-    else if (msgType == "ignition.msgs.SerializedStateMap")
+    else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -272,7 +272,7 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   auto worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == worldEntity)
   {
-    ignerr << "Missing world entity." << std::endl;
+    gzerr << "Missing world entity." << std::endl;
     return false;
   }
 
@@ -436,7 +436,7 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 
   if (fuel_tools::Zip::Extract(this->logPath, this->extDest))
   {
-    ignmsg << "Extracted recording to [" << this->extDest << "]" << std::endl;
+    gzmsg << "Extracted recording to [" << this->extDest << "]" << std::endl;
 
     // Replace value in variable with the directory of extracted files
     // Assume directory has same name as compressed file, without extension
@@ -447,7 +447,7 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
   }
   else
   {
-    ignerr << "Failed to extract recording to [" << this->extDest << "]"
+    gzerr << "Failed to extract recording to [" << this->extDest << "]"
       << std::endl;
     return false;
   }
@@ -500,7 +500,14 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     auto msgType = iter->Type();
 
-    if (msgType == "ignition.msgs.SerializedState")
+    // Support ignition.msgs for backwards compatibility, don't remove on tock
+    // so users can use logs across versions
+    if (msgType.find("ignition.msgs") == 0)
+    {
+      msgType.replace(0, 8, "gz");
+    }
+
+    if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
@@ -526,7 +533,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "ignition.msgs.SerializedStateMap")
+    else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -553,13 +560,13 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "ignition.msgs.StringMsg")
+    else if (msgType == "gz.msgs.StringMsg")
     {
       // Do nothing, we assume this is the SDF string
     }
     else
     {
-      ignwarn << "Trying to playback unsupported message type ["
+      gzwarn << "Trying to playback unsupported message type ["
               << msgType << "]" << std::endl;
     }
     this->dataPtr->ReplaceResourceURIs(_ecm);
@@ -601,7 +608,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // pause playback if end of log is reached
   if (_info.simTime >= this->dataPtr->log->EndTime())
   {
-    ignmsg << "End of log file reached. Time: " <<
+    gzmsg << "End of log file reached. Time: " <<
       std::chrono::duration_cast<std::chrono::seconds>(
       this->dataPtr->log->EndTime()).count() << " seconds" << std::endl;
 
@@ -609,10 +616,14 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
+                    gz::sim::System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
+                          "gz::sim::systems::LogPlayback")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
                           "ignition::gazebo::systems::LogPlayback")

@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VISUALIZELIDAR_HH_
-#define IGNITION_GAZEBO_GUI_VISUALIZELIDAR_HH_
+#ifndef GZ_SIM_GUI_VISUALIZELIDAR_HH_
+#define GZ_SIM_GUI_VISUALIZELIDAR_HH_
 
 #include <memory>
 
@@ -24,12 +24,12 @@
 #include "gz/sim/gui/GuiSystem.hh"
 #include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class VisualizeLidarPrivate;
 
@@ -37,7 +37,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   /// checkbox to turn visualization of non-hitting rays on or off and
   /// the textfield to select the message to be visualised. The combobox is
   /// used to select the type of visual for the sensor data.
-  class VisualizeLidar : public ignition::gazebo::GuiSystem
+  class VisualizeLidar : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -99,7 +99,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: Q_INVOKABLE QStringList TopicList() const;
 
     /// \brief Set the topic list from a string, for example
-    /// 'ignition.msgs.StringMsg'
+    /// 'gz.msgs.StringMsg'
     /// \param[in] _topicList Message type
     public: Q_INVOKABLE void SetTopicList(const QStringList &_topicList);
 

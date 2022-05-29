@@ -1,6 +1,6 @@
 \page levels Levels
 
-This tutorial gives an introduction to Ignition Gazebo's levels feature.
+This tutorial gives an introduction to Gazebo Sim's levels feature.
 This feature allows loading and unloading objects in simulation according
 to their proximity to the robot, which improves performance in simulations
 with large environments.
@@ -39,11 +39,11 @@ Gazebo ships with an example world that demos the levels feature. Try it as foll
 2. Open a new terminal and publish the following commands for the vehicles to
     drive forward:
 
-    `ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 4.0}"`
+    `ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"`
 
     and
 
-    `ign topic -t "/model/vehicle_red/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 2.0}"`
+    `ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"`
 
 3. Press play on Gazebo. You'll see that the tunnels will be loaded as the
     vehicles move forward.
@@ -77,7 +77,7 @@ being added and removed.
 Take a look at the 2D example below. This example focuses on a single performer,
 but the same logic can be extended to multiple performers.
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/01.png"/>
+<img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/01.png"/>
 
 * The **green area** represents the area of the world which this simulation
   is expected to take place in.
@@ -115,23 +115,23 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
     * `M1` and `M3`, because they belong to the level.
     * `M6`, because it is global.
 
-    <img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/02.png"/>
+    <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/02.png"/>
 
 2. The performer moves south towards `L3` and enters its buffer zone, triggering
     a load of that level's models, `M4` and `M5`. Note that at this moment, both
     `L1` and `L3` are loaded.
 
-    <img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/03.png"/>
+    <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/03.png"/>
 
 3. The performer moves further south, exiting `L1` and entering `L3`. However,
   `L1` is still loaded, since `R1` is still within its buffer zone.
 
-    <img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/04.png"/>
+    <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/04.png"/>
 
 4. Eventually `R1` moves beyond `L1`'s buffer, triggering an unload of `L1`. The
   main effect is unloading `M1`.
 
-    <img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/05.png"/>
+    <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/05.png"/>
 
 ## SDF elements
 
@@ -140,12 +140,12 @@ Two new SDF elements are introduced for distributed simulation:
 * `<level>`
 * `<performer>`
 
-The concepts of levels and performers are specific to Ignition Gazebo, thus,
+The concepts of levels and performers are specific to Gazebo, thus,
 putting them directly under the `<world>` tag would diminish the generality of
 SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
 not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
-tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
-The plugin name `ignition::gazebo` will be fixed so that a simulation runner
+tags will be added to a `<plugin name="gz::sim" filename="dummy">` tag.
+The plugin name `gz::sim` will be fixed so that a simulation runner
 would know to check for that name in each plugin tag.
 
 ### <level>
@@ -215,7 +215,7 @@ Example snippet:
 
 ### Runtime performers
 
-Performers can be specified at runtime using an Ignition Transport service.
+Performers can be specified at runtime using a Gazebo Transport service.
 This functionality can be used when a performer is not known at load time. For
 example, you may need to start simulation with an empty world and spawn
 models (performers) into simulation at a later time.
@@ -224,7 +224,7 @@ The name of the add performer service is
 `/world/<world_name>/level/set_performer`. Make sure to replace
 `<world_name>` with the name of simulated world. The service request is an
 ignition:msgs::StringMsg message, and the response is an
-ignition::msgs::Boolean message. The response is true when the peformer was
+gz::msgs::Boolean message. The response is true when the peformer was
 successfuly added.
 
 #### Example
@@ -240,7 +240,7 @@ Here you will see the two vehicles, which are regular models that do not trigger
 2. In another terminal call the add performer service for the blue vehicle.
 
 ```
-ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
+ign service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example
@@ -248,7 +248,7 @@ ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringM
 The following is a world file that could be an instance of the world shown in
 the figure
 
-<img src="https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/06.png"/>
+<img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/06.png"/>
 
 ```xml
 <?xml version="1.0" ?>
@@ -298,7 +298,7 @@ the figure
     <!-- other links and joints-->
   </model>
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
     <performer name="perf1">
       <ref>R1</ref>
       <geometry>

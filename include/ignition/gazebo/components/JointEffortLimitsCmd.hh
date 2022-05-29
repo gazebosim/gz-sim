@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointEffortLimitsCmd.hh>
+#include <ignition/gazebo/config.hh>

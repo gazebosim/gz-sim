@@ -19,8 +19,8 @@
 
 #include "gz/sim/Entity.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 void EntityComponentManagerDiff::InsertAddedEntity(const Entity &_entity)

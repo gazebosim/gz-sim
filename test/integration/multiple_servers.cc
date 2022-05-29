@@ -17,13 +17,13 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -34,11 +34,11 @@ class MultipleServers : public InternalFixture<::testing::TestWithParam<int>>
 /////////////////////////////////////////////////
 TEST_P(MultipleServers, TwoServersNonBlocking)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
+  sim::Server server1(serverConfig);
+  sim::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());
@@ -74,11 +74,11 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(MultipleServers, TwoServersMixedBlocking)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
-  gazebo::Server server1(serverConfig);
-  gazebo::Server server2(serverConfig);
+  sim::Server server1(serverConfig);
+  sim::Server server2(serverConfig);
   EXPECT_FALSE(server1.Running());
   EXPECT_FALSE(*server1.Running(0));
   EXPECT_FALSE(server2.Running());

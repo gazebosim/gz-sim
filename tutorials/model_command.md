@@ -1,7 +1,7 @@
 \page model_command Model Command
 
 ## Overview
-`ign model` command allows you to get information about the models for a given running Ignition Gazebo simulation.
+`ign model` command allows you to get information about the models for a given running Gazebo simulation.
 
 For each model, it is possible to get information about its
  -  Pose: Pose of the model
@@ -14,7 +14,7 @@ To try out this command we need first a running simulation. Let's load the `diff
 
     ign gazebo diff_drive.sdf
 
-Once Ignition Gazebo is up, we can use the ign model command to get information of the simulation.
+Once Gazebo is up, we can use the ign model command to get information of the simulation.
 Open a new terminal and enter:
 
     ign model --list

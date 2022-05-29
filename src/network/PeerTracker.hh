@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
-#define IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
+#ifndef GZ_SIM_NETWORK_PEERTRACKER_HH_
+#define GZ_SIM_NETWORK_PEERTRACKER_HH_
 
 #include <map>
 #include <memory>
@@ -31,12 +31,12 @@
 
 #include "PeerInfo.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Network Events
     /// \brief PeerAdded fired when a peer announces itself or detected via
     /// heartbeat
@@ -53,9 +53,9 @@ namespace ignition
     ///
     /// It is used to both announce the existence of a peer, as well as track
     /// announcements and heartbeats from other peers.
-    class IGNITION_GAZEBO_VISIBLE PeerTracker {
+    class GZ_GAZEBO_VISIBLE PeerTracker {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Convenience type alias for duration
       public: using Duration = std::chrono::steady_clock::duration;
@@ -209,18 +209,18 @@ namespace ignition
       private: EventManager *eventMgr;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Heartbeat publisher
-      private: ignition::transport::Node::Publisher heartbeatPub;
+      private: gz::transport::Node::Publisher heartbeatPub;
 
       /// \brief Announcement publisher
-      private: ignition::transport::Node::Publisher announcePub;
+      private: gz::transport::Node::Publisher announcePub;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKCONFIG_HH_
+#endif  // GZ_SIM_NETWORKCONFIG_HH_
 
 

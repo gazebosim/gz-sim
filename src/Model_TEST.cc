@@ -29,11 +29,11 @@
 /////////////////////////////////////////////////
 TEST(ModelTest, Constructor)
 {
-  ignition::gazebo::Model modelNull;
-  EXPECT_EQ(ignition::gazebo::kNullEntity, modelNull.Entity());
+  gz::sim::Model modelNull;
+  EXPECT_EQ(gz::sim::kNullEntity, modelNull.Entity());
 
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
   EXPECT_EQ(id, model.Entity());
 }
@@ -41,22 +41,22 @@ TEST(ModelTest, Constructor)
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
   // Marked nolint because we are specifically testing copy
   // constructor here (clang wants unnecessary copies removed)
-  ignition::gazebo::Model modelCopy(model); // NOLINT
+  gz::sim::Model modelCopy(model); // NOLINT
   EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelCopy;
+  gz::sim::Model modelCopy;
   modelCopy = model;
   EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
@@ -64,20 +64,20 @@ TEST(ModelTest, CopyAssignmentOperator)
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelMoved(std::move(model));
+  gz::sim::Model modelMoved(std::move(model));
   EXPECT_EQ(id, modelMoved.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelMoved;
+  gz::sim::Model modelMoved;
   modelMoved = std::move(model);
   EXPECT_EQ(id, modelMoved.Entity());
 }
@@ -93,55 +93,55 @@ TEST(ModelTest, Links)
   //
   // modelC
 
-  ignition::gazebo::EntityComponentManager ecm;
+  gz::sim::EntityComponentManager ecm;
 
   // Model A
   auto modelAEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelAEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelAEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelAEntity,
-      ignition::gazebo::components::Name("modelA_name"));
+      gz::sim::components::Name("modelA_name"));
 
   // Link AA - Child of Model A
   auto linkAAEntity = ecm.CreateEntity();
-  ecm.CreateComponent(linkAAEntity, ignition::gazebo::components::Link());
+  ecm.CreateComponent(linkAAEntity, gz::sim::components::Link());
   ecm.CreateComponent(linkAAEntity,
-      ignition::gazebo::components::Name("linkAA_name"));
+      gz::sim::components::Name("linkAA_name"));
   ecm.CreateComponent(linkAAEntity,
-      ignition::gazebo::components::ParentEntity(modelAEntity));
+      gz::sim::components::ParentEntity(modelAEntity));
 
   // Link AB - Child of Model A
   auto linkABEntity = ecm.CreateEntity();
-  ecm.CreateComponent(linkABEntity, ignition::gazebo::components::Link());
+  ecm.CreateComponent(linkABEntity, gz::sim::components::Link());
   ecm.CreateComponent(linkABEntity,
-      ignition::gazebo::components::Name("linkAB_name"));
+      gz::sim::components::Name("linkAB_name"));
   ecm.CreateComponent(linkABEntity,
-      ignition::gazebo::components::ParentEntity(modelAEntity));
+      gz::sim::components::ParentEntity(modelAEntity));
 
   // Model B - Child of Model A
   auto modelBEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelBEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelBEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelBEntity,
-      ignition::gazebo::components::Name("modelB_name"));
+      gz::sim::components::Name("modelB_name"));
   ecm.CreateComponent(modelBEntity,
-      ignition::gazebo::components::ParentEntity(modelAEntity));
+      gz::sim::components::ParentEntity(modelAEntity));
 
   // Link BA - Child of Model B
   auto linkBAEntity = ecm.CreateEntity();
-  ecm.CreateComponent(linkBAEntity, ignition::gazebo::components::Link());
+  ecm.CreateComponent(linkBAEntity, gz::sim::components::Link());
   ecm.CreateComponent(linkBAEntity,
-      ignition::gazebo::components::Name("linkBA_name"));
+      gz::sim::components::Name("linkBA_name"));
   ecm.CreateComponent(linkBAEntity,
-      ignition::gazebo::components::ParentEntity(modelBEntity));
+      gz::sim::components::ParentEntity(modelBEntity));
 
   // Model C
   auto modelCEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelCEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelCEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelCEntity,
-      ignition::gazebo::components::Name("modelC_name"));
+      gz::sim::components::Name("modelC_name"));
 
   std::size_t foundLinks = 0;
 
-  ignition::gazebo::Model modelA(modelAEntity);
+  gz::sim::Model modelA(modelAEntity);
   auto links = modelA.Links(ecm);
   EXPECT_EQ(2u, links.size());
   for (const auto &link : links)
@@ -151,12 +151,12 @@ TEST(ModelTest, Links)
   }
   EXPECT_EQ(foundLinks, links.size());
 
-  ignition::gazebo::Model modelB(modelBEntity);
+  gz::sim::Model modelB(modelBEntity);
   links = modelB.Links(ecm);
   ASSERT_EQ(1u, links.size());
   EXPECT_EQ(linkBAEntity, links[0]);
 
-  ignition::gazebo::Model modelC(modelCEntity);
+  gz::sim::Model modelC(modelCEntity);
   EXPECT_EQ(0u, modelC.Links(ecm).size());
 }
 
@@ -168,41 +168,41 @@ TEST(ModelTest, Models)
   //  - modelC
   //    - modelD
 
-  ignition::gazebo::EntityComponentManager ecm;
+  gz::sim::EntityComponentManager ecm;
 
   // Model A
   auto modelAEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelAEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelAEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelAEntity,
-      ignition::gazebo::components::Name("modelA_name"));
+      gz::sim::components::Name("modelA_name"));
 
   // Model B - Child of Model A
   auto modelBEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelBEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelBEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelBEntity,
-      ignition::gazebo::components::Name("modelB_name"));
+      gz::sim::components::Name("modelB_name"));
   ecm.CreateComponent(modelBEntity,
-      ignition::gazebo::components::ParentEntity(modelAEntity));
+      gz::sim::components::ParentEntity(modelAEntity));
 
   // Model C - Child of Model A
   auto modelCEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelCEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelCEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelCEntity,
-      ignition::gazebo::components::Name("modelC_name"));
+      gz::sim::components::Name("modelC_name"));
   ecm.CreateComponent(modelCEntity,
-      ignition::gazebo::components::ParentEntity(modelAEntity));
+      gz::sim::components::ParentEntity(modelAEntity));
 
   // Model D - Child of Model C
   auto modelDEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelDEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelDEntity, gz::sim::components::Model());
   ecm.CreateComponent(modelDEntity,
-      ignition::gazebo::components::Name("modelD_name"));
+      gz::sim::components::Name("modelD_name"));
   ecm.CreateComponent(modelDEntity,
-      ignition::gazebo::components::ParentEntity(modelCEntity));
+      gz::sim::components::ParentEntity(modelCEntity));
 
   std::size_t foundModels = 0;
 
-  ignition::gazebo::Model modelA(modelAEntity);
+  gz::sim::Model modelA(modelAEntity);
   auto models = modelA.Models(ecm);
   EXPECT_EQ(2u, models.size());
   for (const auto &model : models)
@@ -212,14 +212,14 @@ TEST(ModelTest, Models)
   }
   EXPECT_EQ(foundModels, models.size());
 
-  ignition::gazebo::Model modelB(modelBEntity);
+  gz::sim::Model modelB(modelBEntity);
   EXPECT_EQ(0u, modelB.Models(ecm).size());
 
-  ignition::gazebo::Model modelC(modelCEntity);
+  gz::sim::Model modelC(modelCEntity);
   models = modelC.Models(ecm);
   ASSERT_EQ(1u, models.size());
   EXPECT_EQ(modelDEntity, models[0]);
 
-  ignition::gazebo::Model modelD(modelDEntity);
+  gz::sim::Model modelD(modelDEntity);
   EXPECT_EQ(0u, modelD.Models(ecm).size());
 }

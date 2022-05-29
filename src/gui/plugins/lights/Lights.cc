@@ -35,19 +35,19 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Primitives.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class LightsPrivate
   {
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Lights::Lights()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<LightsPrivate>())
 {
 }
@@ -70,13 +70,13 @@ void Lights::OnNewLightClicked(const QString &_sdfString)
 
   if (!modelSdfString.empty())
   {
-    ignition::gui::events::SpawnFromDescription event(modelSdfString);
-    ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(modelSdfString);
+    gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
           &event);
   }
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Lights,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::Lights,
+                    gz::gui::Plugin)

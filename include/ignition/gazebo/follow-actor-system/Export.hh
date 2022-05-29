@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/follow-actor-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -8,7 +8,7 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <!-- Elevator version 7 -->
@@ -761,7 +761,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_0</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -821,7 +821,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_1</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -881,7 +881,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_2</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -941,7 +941,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_3</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -1125,7 +1125,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>lift</joint_name>
         <p_gain>4000000</p_gain>
         <i_gain>2000</i_gain>
@@ -1275,7 +1275,7 @@
       <!-- ====================== START OF CONTROLLER ======================== -->
       <plugin
         filename="ignition-gazebo-elevator-system"
-        name="ignition::gazebo::systems::Elevator">
+        name="gz::sim::systems::Elevator">
       </plugin>
       <!-- ======================= END OF CONTROLLER ========================= -->
     </model>

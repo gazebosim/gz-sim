@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/WideAngleCamera.hh>
+#include <ignition/gazebo/config.hh>

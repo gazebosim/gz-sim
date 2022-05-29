@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/CastShadows.hh>
+#include <ignition/gazebo/config.hh>

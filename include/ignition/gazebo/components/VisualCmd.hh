@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/VisualCmd.hh>
+#include <ignition/gazebo/config.hh>

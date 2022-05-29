@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/SystemPluginPtr.hh>
+#include <ignition/gazebo/config.hh>

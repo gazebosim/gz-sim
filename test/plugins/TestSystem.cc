@@ -17,10 +17,10 @@
 
 #include "TestSystem.hh"
 
-#include <ignition/plugin/RegisterMore.hh>
+#include <gz/plugin/RegisterMore.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 TestSystem::TestSystem()
@@ -32,6 +32,6 @@ TestSystem::TestSystem()
 TestSystem::~TestSystem() = default;
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(TestSystem, ignition::gazebo::System)
+IGNITION_ADD_PLUGIN(TestSystem, gz::sim::System)
 
-IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "ignition::gazebo::TestSystem")
+IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")

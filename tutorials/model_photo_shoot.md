@@ -2,16 +2,16 @@
 
 ## Using the model photo shot plugin
 
-Ignition Gazebo offers a model photo taking tool that will take perspective,
+Gazebo offers a model photo taking tool that will take perspective,
 top, front, and both sides pictures of a model. You can test the demo world
-in Ignition Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
+in Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
 running the following command:
 
 ```
 ign gazebo  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
 ```
 
-This will start Ignition Gazebo server, load the model and the plugin, take the
+This will start Gazebo server, load the model and the plugin, take the
 pictures and shutdown after 50 iterations. The pictures can be found at the
 same location where the command was issued.
 
@@ -25,7 +25,7 @@ contains a good example of the different options and other related plugins:
 ```
 <plugin
   filename="ignition-gazebo-physics-system"
-  name="ignition::gazebo::systems::Physics">
+  name="gz::sim::systems::Physics">
 </plugin>
 ```
 
@@ -38,7 +38,7 @@ to random positions.
 ```
 <plugin
   filename="ignition-gazebo-sensors-system"
-  name="ignition::gazebo::systems::Sensors">
+  name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
   <background_color>1, 1, 1</background_color>
 </plugin>
@@ -56,7 +56,7 @@ plugin will also affect the final resulting background color on the images.
   <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Robonaut</uri>
   <plugin
     filename="ignition-gazebo-model-photo-shoot-system"
-    name="ignition::gazebo::systems::ModelPhotoShoot">
+    name="gz::sim::systems::ModelPhotoShoot">
     <translation_data_file>poses.txt</translation_data_file>
     <random_joints_pose>true</random_joints_pose>
   </plugin>

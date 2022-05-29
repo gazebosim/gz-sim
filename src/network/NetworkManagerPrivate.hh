@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIVATE_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKMANAGERPRIVATE_HH_
+#define GZ_SIM_NETWORK_NETWORKMANAGERPRIVATE_HH_
 
 #include <functional>
 #include <memory>
@@ -27,15 +27,15 @@
 #include "PeerInfo.hh"
 #include "PeerTracker.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \class NetworkManagerPrivate NetworkManagerPrivate.hh
     /// gz/sim/NetworkManagerPrivate.hh
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrivate
+    class GZ_GAZEBO_VISIBLE NetworkManagerPrivate
     {
       /// \brief Network Configuration
       public: NetworkConfig config;
@@ -50,10 +50,10 @@ namespace ignition
       public: std::unique_ptr<PeerTracker> tracker;
 
       /// \brief Track connection to "PeerRemoved" Event
-      public: ignition::common::ConnectionPtr peerRemovedConn;
+      public: gz::common::ConnectionPtr peerRemovedConn;
 
       /// \brief Traack connection to "PeerStale" Event
-      public: ignition::common::ConnectionPtr peerStaleConn;
+      public: gz::common::ConnectionPtr peerStaleConn;
 
       /// \brief Function from the SimulationRunner to call for stepping.
       /// It will update the systems.
@@ -66,11 +66,11 @@ namespace ignition
       public: std::atomic<bool> stopReceived {false};
 
       /// \brief Track connection to "events::Stop" Event
-      public: ignition::common::ConnectionPtr stoppingConn;
+      public: gz::common::ConnectionPtr stoppingConn;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGER_HH_
+#endif  // GZ_SIM_NETWORKMANAGER_HH_
 

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#ifndef GZ_SIM_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#define GZ_SIM_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
 
 #include <tuple>
 #include <type_traits>
@@ -29,9 +29,9 @@
 
 #include "gz/sim/Entity.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems::physics_system
 {
   // \brief Helper class that associates Gazebo entities with Physics entities
@@ -94,7 +94,7 @@ namespace systems::physics_system
     /// requested feature.
     public: template <typename ToFeatureList>
             PhysicsEntityPtr<ToFeatureList>
-            EntityCast(gazebo::Entity _entity) const
+            EntityCast(sim::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError

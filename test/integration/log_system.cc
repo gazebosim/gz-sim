@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/pose_v.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <algorithm>
 #include <climits>
@@ -26,36 +26,36 @@
 #include <numeric>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Batch.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/MsgIter.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/QualifiedTime.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Batch.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/MsgIter.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
@@ -263,7 +263,7 @@ class LogSystemTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 {
   // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
@@ -329,11 +329,11 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, recording should take place in the `.ignition` directory
+  // ign.cc, recording should take place in the `.gz` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -354,11 +354,11 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   }
 
   // We should expect to see "auto_default.log"  and "state.tlog"
-  EXPECT_FALSE(ignLogDirectory().empty());
+  EXPECT_FALSE(gzLogDirectory().empty());
   EXPECT_TRUE(common::exists(
-        common::joinPaths(ignLogDirectory(), "auto_default.log")));
+        common::joinPaths(gzLogDirectory(), "auto_default.log")));
   EXPECT_TRUE(common::exists(
-        common::joinPaths(ignLogDirectory(), "state.tlog")));
+        common::joinPaths(gzLogDirectory(), "state.tlog")));
 
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
@@ -370,18 +370,18 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // No path specified on command line (only --record, no --record-path).
   // No path specified in SDF.
   // Run from command line, which should trigger ign.cc, which should initialize
-  // ignLogDirectory() to default timestamp path. Both console and state logs
+  // gzLogDirectory() to default timestamp path. Both console and state logs
   // should be recorded here.
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
       "log");
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
   entryList(logPath, entriesBefore);
 
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -399,7 +399,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::vector<std::string> entriesDiff;
   entryDiff(entriesBefore, entriesAfter, entriesDiff);
   EXPECT_EQ(1ul, entriesDiff.size());
-  // This should be $HOME/.ignition/..., default path
+  // This should be $HOME/.gz/..., default path
   std::string timestampPath = entriesDiff[0];
 
   EXPECT_FALSE(timestampPath.empty());
@@ -416,7 +416,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -433,7 +433,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     "log_record_dbl_pendulum.sdf");
 
   // Test case 1:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // No path specified in C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
@@ -472,10 +472,10 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
+  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
       "log");
 #ifndef __APPLE__
   int nEntries = entryCount(logPath);
@@ -483,10 +483,10 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   entryList(logPath, entriesBefore);
 
   // Test case 2:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
-  // ignLogDirectory because ign.cc is triggered by command line.
+  // gzLogDirectory because ign.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -501,7 +501,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -524,7 +524,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::vector<std::string> entriesDiff;
   entryDiff(entriesBefore, entriesAfter, entriesDiff);
   EXPECT_EQ(1ul, entriesDiff.size());
-  // This should be $HOME/.ignition/..., default path
+  // This should be $HOME/.gz/..., default path
   std::string timestampPath = entriesDiff[0];
 
   EXPECT_FALSE(timestampPath.empty());
@@ -542,7 +542,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 3:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // Empty path is specified via C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
   // state and console logs because ign.cc is not triggered.
@@ -581,7 +581,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 4:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // A different path is specified via C++ API.
   // Should take C++ API path. State log should be stored here. Console log is
   // not initialized because ign.cc is not triggered.
@@ -624,7 +624,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified by --record-path on command line.
   // Both state and console logs should be stored here.
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -646,7 +646,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 6:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // A path is specified by --record-path on command line.
   // Path in SDF should be ignored. Both state and console logs should be
   // stored to --record-path path.
@@ -666,7 +666,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + cliPath + " " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -685,7 +685,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -738,7 +738,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   auto recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("ignition.msgs.StringMsg", recordedIter->Type());
+  EXPECT_EQ("gz.msgs.StringMsg", recordedIter->Type());
   EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
 
   msgs::StringMsg sdfMsg;
@@ -752,7 +752,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+  EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
   EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
   msgs::SerializedStateMap stateMsg;
@@ -779,7 +779,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
           return;
 
         // Get next recorded message
-        EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
+        EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
         EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
         stateMsg.ParseFromString(recordedIter->Data());
 
@@ -848,7 +848,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
   // before terminating. For some reason, when running with `-r` &/or
   // terminating sim w/o pausing causing strange pose behavior
   // when seeking close to end of file followed by rewind. For more details:
-  // https://github.com/ignitionrobotics/ign-gazebo/pull/839
+  // https://github.com/gazebosim/gz-sim/pull/839
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "rolling_shapes_log");
 
@@ -975,8 +975,8 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
-  ignLogInit(this->logDir, "server_console.log");
-  EXPECT_EQ(this->logDir, ignLogDirectory());
+  gzLogInit(this->logDir, "server_console.log");
+  EXPECT_EQ(this->logDir, gzLogDirectory());
 
   // Record something to create some files
   {
@@ -1088,7 +1088,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until ign gazebo is fixed:
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/25
+  // https://github.com/gazebosim/gz-sim/issues/25
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
@@ -1110,6 +1110,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 }
 
 /////////////////////////////////////////////////
+// TODO(chapulina) Record updated log
 TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 {
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
@@ -1496,7 +1497,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1504,7 +1505,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 #ifndef __APPLE__
   // Log resources from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record --record-resources --record-path " + recordPath + " "
       + recordSdfPath;
@@ -1548,7 +1549,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
     recordServer.Run(true, 100, false);
   }
 
-  // Console log is not created because ignLogDirectory() is not initialized,
+  // Console log is not created because gzLogDirectory() is not initialized,
   // as ign.cc is not executed by command line.
   EXPECT_TRUE(common::exists(statePath));
 
@@ -1561,7 +1562,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1583,7 +1584,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1591,7 +1592,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 #ifndef __APPLE__
   // Log only the /clock topic from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers ign.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-topic /clock "
       + "--record-path " + recordPath + " "

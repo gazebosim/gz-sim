@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/shader-param-system/Export.hh>
+#include <ignition/gazebo/config.hh>

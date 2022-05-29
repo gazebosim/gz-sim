@@ -5,7 +5,7 @@ simulations using the
 [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version)
 geodetic system.
 
-Gazebo's simulation is always performed in Cartesian coordinates (good old XYZ).
+Gazebo Sim's simulation is always performed in Cartesian coordinates (good old XYZ).
 Therefore, in order to use spherical coordinates, it's necessary to project
 coordinates expressed in the `WGS84` frame to Cartesian and back.
 
@@ -27,7 +27,7 @@ ENU (East-North-Up) convention, as shown on the image below:
 
 Users can define where the origin of the ENU coordinates sits on the surface
 of the planet in three different ways: through the SDF file, the GUI, or through
-an Ignition Transport service call.
+a Gazebo Transport service call.
 
 Changing the world origin will only affect operations performed afterwards. For
 example, models already in the world will not be moved when the world origin's
@@ -83,8 +83,8 @@ Loading the world above, try calling for example:
 ```.bash
 ign service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 2000 \
 --req "surface_model: EARTH_WGS84, latitude_deg: 35.6, longitude_deg: 140.1, elevation: 10.0"
 ```
@@ -98,7 +98,7 @@ to creating entities.
 
 In order to create an entity at a given spherical coordinate using the
 `/world/<world_name>/create` service, omit the `pose` field from the
-`ignition::msgs::EntityFactory` message and use the `spherical_coordinates`
+`gz::msgs::EntityFactory` message and use the `spherical_coordinates`
 field instead.
 
 For example, you can spawn a sphere into the `spherical_coordinates.sdf` world
@@ -106,8 +106,8 @@ as follows:
 
 ```.bash
 ign service -s /world/spherical_coordinates/create \
---reqtype ignition.msgs.EntityFactory \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
@@ -136,8 +136,8 @@ For example, to move the sphere created above:
 
 ```.bash
 ign service -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'entity: {name: "spawned_model", type: MODEL}, latitude_deg: 35.59990, longitude_deg: 140.09990'
 ```
@@ -145,6 +145,6 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 ## Querying entities' coordinates
 
 When writing plugins, developers can use the
-`ignition::gazebo::sphericalCoordinates` helper function to query the current
+`gz::sim::sphericalCoordinates` helper function to query the current
 coordinates for any entity that has a pose.
 

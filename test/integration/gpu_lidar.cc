@@ -17,14 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 
 #include "plugins/MockSystem.hh"
@@ -32,8 +32,8 @@
 
 #define LASER_TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test GpuLidarTest system
 class GpuLidarTest : public InternalFixture<::testing::Test>
@@ -100,9 +100,9 @@ TEST_F(GpuLidarTest, IGN_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
   double expectedRangeAtMidPointBox1 = 0.45;
 
   // Sensor 1 should see TestBox1
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(0), ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(lastMsg.ranges(0), gz::math::INF_D);
   EXPECT_NEAR(lastMsg.ranges(mid), expectedRangeAtMidPointBox1,
               LASER_TOL);
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(last), ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(lastMsg.ranges(last), gz::math::INF_D);
   EXPECT_EQ("gpu_lidar::gpu_lidar_link::gpu_lidar", lastMsg.frame());
 }

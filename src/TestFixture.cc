@@ -20,8 +20,8 @@
 
 #include "gz/sim/TestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief System that is inserted into the simulation loop to observe the ECM.
 class HelperSystem :
@@ -106,14 +106,14 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-class ignition::gazebo::TestFixturePrivate
+class gz::sim::TestFixturePrivate
 {
   /// \brief Initialize fixture
   /// \param[in] _config Server config
   public: void Init(const ServerConfig &_config);
 
   /// \brief Pointer to underlying server
-  public: std::shared_ptr<gazebo::Server> server{nullptr};
+  public: std::shared_ptr<sim::Server> server{nullptr};
 
   /// \brief Pointer to underlying Helper interface
   public: std::shared_ptr<HelperSystem> helperSystem{nullptr};
@@ -149,7 +149,7 @@ TestFixture::~TestFixture()
 void TestFixturePrivate::Init(const ServerConfig &_config)
 {
   this->helperSystem = std::make_shared<HelperSystem>();
-  this->server = std::make_shared<gazebo::Server>(_config);
+  this->server = std::make_shared<sim::Server>(_config);
 }
 
 //////////////////////////////////////////////////
@@ -157,7 +157,7 @@ TestFixture &TestFixture::Finalize()
 {
   if (this->dataPtr->finalized)
   {
-    ignwarn << "Fixture has already been finalized, this only needs to be done"
+    gzwarn << "Fixture has already been finalized, this only needs to be done"
             << " once." << std::endl;
     return *this;
   }
@@ -208,7 +208,7 @@ TestFixture &TestFixture::OnPostUpdate(std::function<void(
 }
 
 //////////////////////////////////////////////////
-std::shared_ptr<gazebo::Server> TestFixture::Server() const
+std::shared_ptr<sim::Server> TestFixture::Server() const
 {
   return this->dataPtr->server;
 }

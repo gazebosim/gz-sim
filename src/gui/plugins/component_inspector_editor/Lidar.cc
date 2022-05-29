@@ -24,8 +24,8 @@
 #include "Lidar.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Lidar::Lidar(ComponentInspectorEditor *_inspector)
@@ -78,7 +78,7 @@ Q_INVOKABLE void Lidar::OnLidarNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
@@ -96,11 +96,11 @@ Q_INVOKABLE void Lidar::OnLidarNoise(
         lidar->SetLidarNoise(noise);
       }
       else
-        ignerr << "Unable to get the lidar noise data.\n";
+        gzerr << "Unable to get the lidar noise data.\n";
     }
     else
     {
-      ignerr << "Unable to get the lidar component.\n";
+      gzerr << "Unable to get the lidar component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -116,7 +116,7 @@ Q_INVOKABLE void Lidar::OnLidarChange(
     double _verticalScanResolution, double _verticalScanMinAngle,
     double _verticalScanMaxAngle)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
@@ -141,11 +141,11 @@ Q_INVOKABLE void Lidar::OnLidarChange(
         lidar->SetVerticalScanMaxAngle(_verticalScanMaxAngle);
       }
       else
-        ignerr << "Unable to get the lidar data.\n";
+        gzerr << "Unable to get the lidar data.\n";
     }
     else
     {
-      ignerr << "Unable to get the lidar component.\n";
+      gzerr << "Unable to get the lidar component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

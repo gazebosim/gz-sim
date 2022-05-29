@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LogicalAudio.hh>
+#include <ignition/gazebo/config.hh>

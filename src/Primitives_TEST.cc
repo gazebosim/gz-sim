@@ -20,8 +20,8 @@
 #include <gz/sim/Primitives.hh>
 #include <sdf/Root.hh>
 
-using PrimitiveShape = ignition::gazebo::PrimitiveShape;
-using PrimitiveLight = ignition::gazebo::PrimitiveLight;
+using PrimitiveShape = gz::sim::PrimitiveShape;
+using PrimitiveLight = gz::sim::PrimitiveLight;
 
 /////////////////////////////////////////////////
 TEST(Primitives, shapes)
@@ -36,7 +36,7 @@ TEST(Primitives, shapes)
 
   for (auto prim : primitives)
   {
-    auto sdfString = ignition::gazebo::getPrimitiveShape(prim);
+    auto sdfString = gz::sim::getPrimitiveShape(prim);
     ASSERT_FALSE(sdfString.empty());
 
     /// Verify that string contains valid SDF
@@ -57,7 +57,7 @@ TEST(Primitives, lights)
 
   for (auto prim : primitives)
   {
-    auto sdfString = ignition::gazebo::getPrimitiveLight(prim);
+    auto sdfString = gz::sim::getPrimitiveLight(prim);
     ASSERT_FALSE(sdfString.empty());
 
     /// Verify that string contains valid SDF
@@ -70,7 +70,7 @@ TEST(Primitives, lights)
 /////////////////////////////////////////////////
 TEST(Primitives, invalid)
 {
-  auto sdfString = ignition::gazebo::getPrimitive("foobar");
+  auto sdfString = gz::sim::getPrimitive("foobar");
   ASSERT_TRUE(sdfString.empty());
 }
 
@@ -84,7 +84,7 @@ TEST(Primitives, strings)
 
   for (auto prim : primitives)
   {
-    auto sdfString = ignition::gazebo::getPrimitive(prim);
+    auto sdfString = gz::sim::getPrimitive(prim);
     ASSERT_FALSE(sdfString.empty());
 
     /// Verify that string contains valid SDF

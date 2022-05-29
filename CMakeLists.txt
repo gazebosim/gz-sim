@@ -23,7 +23,7 @@ set (CMAKE_CXX_STANDARD 17)
 # Set project-specific options
 #============================================================================
 
-option(ENABLE_PROFILER "Enable Ignition Profiler" FALSE)
+option(ENABLE_PROFILER "Enable Gazebo Profiler" FALSE)
 
 if(ENABLE_PROFILER)
   add_definitions("-DIGN_PROFILER_ENABLE=1")
@@ -201,10 +201,10 @@ else()
 	endif()
 endif()
 # Plugin install dirs
-set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
+set(GZ_SIM_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
-set(IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR
+set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 
@@ -233,7 +233,7 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+# https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
   ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
@@ -256,7 +256,7 @@ if(TARGET doc)
 endif()
 
 # TICKTOCK MASTER HEADER (to bypass IGN_DESIGNATION)
-# TODO(CH3): Remove on tock
+# TODO(CH3): Deprecated. Remove on tock
 configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${IGN_DESIGNATION}.hh
   ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh

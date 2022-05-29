@@ -26,7 +26,7 @@
 using namespace std::chrono_literals;
 
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 bool result;
 // timeout used for services
@@ -42,9 +42,9 @@ float directionZ = -0.9;
 
 void createLight()
 {
-  ignition::msgs::Boolean rep;
+  gz::msgs::Boolean rep;
 //! [create light]
-  ignition::msgs::EntityFactory entityFactoryRequest;
+  gz::msgs::EntityFactory entityFactoryRequest;
 
   entityFactoryRequest.mutable_light()->set_name("point");
   entityFactoryRequest.mutable_light()->set_range(4);
@@ -52,12 +52,12 @@ void createLight()
   entityFactoryRequest.mutable_light()->set_attenuation_constant(0.2);
   entityFactoryRequest.mutable_light()->set_attenuation_quadratic(0.01);
   entityFactoryRequest.mutable_light()->set_cast_shadows(false);
-  entityFactoryRequest.mutable_light()->set_type(ignition::msgs::Light::POINT);
-  ignition::msgs::Set(
+  entityFactoryRequest.mutable_light()->set_type(gz::msgs::Light::POINT);
+  gz::msgs::Set(
     entityFactoryRequest.mutable_light()->mutable_direction(),
-    ignition::math::Vector3d(directionX, directionY, directionZ));
-  ignition::msgs::Set(entityFactoryRequest.mutable_light()->mutable_pose(),
-    ignition::math::Pose3d(0.0, 0, 3.0, 0.0, 0.0, 0.0));
+    gz::math::Vector3d(directionX, directionY, directionZ));
+  gz::msgs::Set(entityFactoryRequest.mutable_light()->mutable_pose(),
+    gz::math::Pose3d(0.0, 0, 3.0, 0.0, 0.0, 0.0));
 //! [create light]
 
   bool executedEntityFactory = node.Request("/world/empty/create",
@@ -94,8 +94,8 @@ void createSphere()
     </model>
   </sdf>)";
 
-  ignition::msgs::EntityFactory req;
-  ignition::msgs::Boolean res;
+  gz::msgs::EntityFactory req;
+  gz::msgs::Boolean res;
   req.set_sdf(modelStr);
 
   bool executed = node.Request("/world/empty/create",
@@ -117,8 +117,8 @@ void createSphere()
 //////////////////////////////////////////////////
 int main(int argc, char **argv)
 {
-  ignition::msgs::Boolean rep;
-  ignition::msgs::Light lightRequest;
+  gz::msgs::Boolean rep;
+  gz::msgs::Light lightRequest;
   auto lightConfigService = "/world/empty/light_config";
 
   createSphere();
@@ -148,16 +148,16 @@ int main(int argc, char **argv)
     lightRequest.set_attenuation_constant(0.2);
     lightRequest.set_attenuation_quadratic(0.01);
     lightRequest.set_cast_shadows(false);
-    lightRequest.set_type(ignition::msgs::Light::POINT);
+    lightRequest.set_type(gz::msgs::Light::POINT);
     // direction field only affects spot / directional lights
-    ignition::msgs::Set(lightRequest.mutable_direction(),
-      ignition::math::Vector3d(directionX, directionY, directionZ));
-    ignition::msgs::Set(lightRequest.mutable_pose(),
-      ignition::math::Pose3d(0.0, -1.5, 3.0, 0.0, 0.0, 0.0));
-    ignition::msgs::Set(lightRequest.mutable_diffuse(),
-      ignition::math::Color(r, g, b, 1));
-    ignition::msgs::Set(lightRequest.mutable_specular(),
-      ignition::math::Color(r, g, b, 1));
+    gz::msgs::Set(lightRequest.mutable_direction(),
+      gz::math::Vector3d(directionX, directionY, directionZ));
+    gz::msgs::Set(lightRequest.mutable_pose(),
+      gz::math::Pose3d(0.0, -1.5, 3.0, 0.0, 0.0, 0.0));
+    gz::msgs::Set(lightRequest.mutable_diffuse(),
+      gz::math::Color(r, g, b, 1));
+    gz::msgs::Set(lightRequest.mutable_specular(),
+      gz::math::Color(r, g, b, 1));
 //! [modify light]
     bool executed = node.Request(lightConfigService, lightRequest, timeout,
         rep, result);

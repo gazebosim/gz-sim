@@ -1,6 +1,6 @@
 \page logicalaudiosensor Logical Audio Sensor
 
-This tutorial will explain how to use the `LogicalAudioSensor` system plugin in Ignition Gazebo.
+This tutorial will explain how to use the `LogicalAudioSensor` system plugin in Gazebo.
 
 The logical audio sensor plugin allows for the usage of logical audio sources and microphones in a simulation environment.
 At the end of each simulation step, microphones check if audio was detected by any of the sources in the world.
@@ -8,13 +8,13 @@ The logical audio plugin does not play actual audio to a device like speakers, b
 
 ## Setup
 
-Let's take a look at [logical_audio_sensor_plugin.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/460d2b1cfbf0addf05a1e61c05e1f7a675a83785/examples/worlds/logical_audio_sensor_plugin.sdf), which defines a simulation world with 4 models (in this case, boxes) that have an audio object attached to them.
+Let's take a look at [logical_audio_sensor_plugin.sdf](https://github.com/gazebosim/gz-sim/blob/460d2b1cfbf0addf05a1e61c05e1f7a675a83785/examples/worlds/logical_audio_sensor_plugin.sdf), which defines a simulation world with 4 models (in this case, boxes) that have an audio object attached to them.
 This world attaches logical audio sources to the `red_box` and `blue_box` models, and attaches logical microphones to the `green_box` and `yellow_box` models.
 
 Let's take a look at the SDF relevant to the source for `red_box` to understand how to define a logical audio source in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>.5 0 0 0 0 0</pose>
@@ -30,7 +30,7 @@ Let's take a look at the SDF relevant to the source for `red_box` to understand 
 ```
 
 As we can see, we use a `<source>` tag to define an audio source.
-An explanation of all of the tags can be found in the [plugin documentation](https://github.com/ignitionrobotics/ign-gazebo/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130), but there are a few important things to point out:
+An explanation of all of the tags can be found in the [plugin documentation](https://github.com/gazebosim/gz-sim/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130), but there are a few important things to point out:
 * `<id>` is used to identify this source when operating on it via services (services will be discussed later).
 Since a model can have multiple sources and microphones attached to it, each source attached to a particular model must have a unique ID.
 This means that no other sources attached to `red_box` can have an ID of 1, but sources attached to other models can have an ID of 1 (assuming that other models don't already have a source with an ID of 1 attached to it).
@@ -45,7 +45,7 @@ This means that this source will play for an infinite amount of simulation time,
 Let's now take a look at the SDF relevant to the microphone for `green_box` to understand how to define a logical microphone in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <microphone>
           <id>1</id>
           <pose>0 .5 0 0 0 0</pose>
@@ -55,7 +55,7 @@ Let's now take a look at the SDF relevant to the microphone for `green_box` to u
 ```
 
 The same rules regarding `<id>` and `<pose>` for a logical audio source also apply to a logical microphone.
-You can also take a look at the [microphone documentation](https://github.com/ignitionrobotics/ign-gazebo/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130) for a detailed explanation of the tags embedded in the `<microphone>` tag.
+You can also take a look at the [microphone documentation](https://github.com/gazebosim/gz-sim/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130) for a detailed explanation of the tags embedded in the `<microphone>` tag.
 
 ## Testing Source and Microphone Behavior
 
@@ -158,7 +158,7 @@ Let's start the source attached to `blue_box`.
 This can be done by running the following command, which calls the "play" service for the source attached to `blue_box`:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/play --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean --timeout 1000 --req 'unused: false'
+ign service -s /model/blue_box/sensor/source_1/play --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look back at the terminal that is displaying the output of `green_box`'s microphone detections, we can see that this microphone is detecting audio from `blue_box`'s source (we see `blue_box` as a part of the `key` field):
@@ -187,7 +187,7 @@ Move `blue_box` back towards its original position, until you see detection mess
 Now, go ahead and stop `blue_box`'s source by running the following command:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/stop --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean --timeout 1000 --req 'unused: false'
+ign service -s /model/blue_box/sensor/source_1/stop --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look at the output for either microphone topic, you'll notice that no new messages are being published, which makes sense since no audio sources are currently playing.

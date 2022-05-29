@@ -42,8 +42,8 @@
 
 #include "gz/sim/Conversions.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -56,8 +56,8 @@ TEST(Conversions, Light)
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetVisualize(true);
-  light.SetDiffuse(ignition::math::Color(0.4f, 0.5f, 0.6f, 1.0));
-  light.SetSpecular(ignition::math::Color(0.8f, 0.9f, 0.1f, 1.0));
+  light.SetDiffuse(gz::math::Color(0.4f, 0.5f, 0.6f, 1.0));
+  light.SetSpecular(gz::math::Color(0.8f, 0.9f, 0.1f, 1.0));
   light.SetAttenuationRange(3.2);
   light.SetConstantAttenuationFactor(0.5);
   light.SetLinearAttenuationFactor(0.1);
@@ -244,10 +244,10 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
-  material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetDiffuse(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(gz::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetEmissive(gz::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
@@ -339,7 +339,7 @@ TEST(Conversions, GeometryBox)
   geometry.SetType(sdf::GeometryType::BOX);
 
   sdf::Box boxShape;
-  boxShape.SetSize(ignition::math::Vector3d(1, 2, 3));
+  boxShape.SetSize(gz::math::Vector3d(1, 2, 3));
   geometry.SetBoxShape(boxShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -430,19 +430,19 @@ TEST(Conversions, GeometryEllipsoid)
   geometry.SetType(sdf::GeometryType::ELLIPSOID);
 
   sdf::Ellipsoid ellipsoidShape;
-  ellipsoidShape.SetRadii(ignition::math::Vector3d(1.2, 3.2, 2.4));
+  ellipsoidShape.SetRadii(gz::math::Vector3d(1.2, 3.2, 2.4));
   geometry.SetEllipsoidShape(ellipsoidShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
   EXPECT_EQ(msgs::Geometry::ELLIPSOID, geometryMsg.type());
   EXPECT_TRUE(geometryMsg.has_ellipsoid());
-  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+  EXPECT_EQ(gz::math::Vector3d(1.2, 3.2, 2.4),
     msgs::Convert(geometryMsg.ellipsoid().radii()));
 
   auto newGeometry = convert<sdf::Geometry>(geometryMsg);
   EXPECT_EQ(sdf::GeometryType::ELLIPSOID, newGeometry.Type());
   ASSERT_NE(nullptr, newGeometry.EllipsoidShape());
-  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+  EXPECT_EQ(gz::math::Vector3d(1.2, 3.2, 2.4),
     newGeometry.EllipsoidShape()->Radii());
 }
 
@@ -453,7 +453,7 @@ TEST(Conversions, GeometryMesh)
   geometry.SetType(sdf::GeometryType::MESH);
 
   sdf::Mesh meshShape;
-  meshShape.SetScale(ignition::math::Vector3d(1, 2, 3));
+  meshShape.SetScale(gz::math::Vector3d(1, 2, 3));
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
@@ -484,8 +484,8 @@ TEST(Conversions, GeometryPlane)
   geometry.SetType(sdf::GeometryType::PLANE);
 
   sdf::Plane planeShape;
-  planeShape.SetSize(ignition::math::Vector2d(1, 2));
-  planeShape.SetNormal(ignition::math::Vector3d::UnitY);
+  planeShape.SetSize(gz::math::Vector2d(1, 2));
+  planeShape.SetNormal(gz::math::Vector3d::UnitY);
   geometry.SetPlaneShape(planeShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -511,8 +511,8 @@ TEST(Conversions, GeometryHeightmap)
 
   sdf::Heightmap heightmap;
   heightmap.SetUri("file://heights.png");
-  heightmap.SetSize(ignition::math::Vector3d(1, 2, 3));
-  heightmap.SetPosition(ignition::math::Vector3d(4, 5, 6));
+  heightmap.SetSize(gz::math::Vector3d(1, 2, 3));
+  heightmap.SetPosition(gz::math::Vector3d(4, 5, 6));
   heightmap.SetUseTerrainPaging(true);
   heightmap.SetSampling(16u);
 
@@ -645,8 +645,8 @@ TEST(Conversions, JointAxis)
 TEST(Conversions, Scene)
 {
   sdf::Scene scene;
-  scene.SetAmbient(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  scene.SetBackground(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetAmbient(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   scene.SetShadows(true);
   scene.SetGrid(true);
   scene.SetOriginVisual(true);
@@ -732,7 +732,7 @@ TEST(CONVERSIONS, MagnetometerSensor)
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -772,7 +772,7 @@ TEST(CONVERSIONS, AltimeterSensor)
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);

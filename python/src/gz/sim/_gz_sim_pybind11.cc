@@ -26,14 +26,14 @@
 #include "World.hh"
 
 PYBIND11_MODULE(gazebo, m) {
-  m.doc() = "Ignition Gazebo Python Library.";
+  m.doc() = "Gazebo Python Library.";
 
-  ignition::gazebo::python::defineGazeboEntityComponentManager(m);
-  ignition::gazebo::python::defineGazeboEventManager(m);
-  ignition::gazebo::python::defineGazeboServer(m);
-  ignition::gazebo::python::defineGazeboServerConfig(m);
-  ignition::gazebo::python::defineGazeboTestFixture(m);
-  ignition::gazebo::python::defineGazeboUpdateInfo(m);
-  ignition::gazebo::python::defineGazeboWorld(m);
-  ignition::gazebo::python::defineGazeboUtil(m);
+  gz::sim::python::defineGazeboEntityComponentManager(m);
+  gz::sim::python::defineGazeboEventManager(m);
+  gz::sim::python::defineGazeboServer(m);
+  gz::sim::python::defineGazeboServerConfig(m);
+  gz::sim::python::defineGazeboTestFixture(m);
+  gz::sim::python::defineGazeboUpdateInfo(m);
+  gz::sim::python::defineGazeboWorld(m);
+  gz::sim::python::defineGazeboUtil(m);
 }
