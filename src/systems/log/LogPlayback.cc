@@ -500,6 +500,13 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     auto msgType = iter->Type();
 
+    // Support ignition.msgs for backwards compatibility, don't remove on tock
+    // so users can use logs across versions
+    if (msgType.find("ignition.msgs") == 0)
+    {
+      msgType.replace(0, 8, "gz");
+    }
+
     if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
@@ -614,9 +621,9 @@ IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::LogPlayback,
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
                           "gz::sim::systems::LogPlayback")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
                           "ignition::gazebo::systems::LogPlayback")

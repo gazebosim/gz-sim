@@ -35,6 +35,3 @@ TestSystem::~TestSystem() = default;
 IGNITION_ADD_PLUGIN(TestSystem, gz::sim::System)
 
 IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")
-
-// TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "ignition::gazebo::TestSystem")

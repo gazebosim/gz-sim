@@ -1110,6 +1110,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 }
 
 /////////////////////////////////////////////////
+// TODO(chapulina) Record updated log
 TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 {
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
