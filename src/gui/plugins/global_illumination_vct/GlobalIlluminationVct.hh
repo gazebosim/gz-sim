@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include "ignition/msgs/laserscan.pb.h"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 #include "ignition/gui/qt.h"
 
@@ -33,10 +32,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
   class GlobalIlluminationVctPrivate;
 
-  /// \brief Visualize the LaserScan message returned by the sensors. Use the
-  /// checkbox to turn visualization of non-hitting rays on or off and
-  /// the textfield to select the message to be visualised. The combobox is
-  /// used to select the type of visual for the sensor data.
+  /// \brief Enable and configure Global Illumination using VCT
+  /// (Voxel Cone Tracing)
   class GlobalIlluminationVct : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
@@ -145,10 +142,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     // Documentation inherited
     public: void Update(const UpdateInfo &,
                         EntityComponentManager &_ecm) override;
-
-    /// \brief Callback function to get data from the message
-    /// \param[in]_msg LidarSensor message
-    public: void OnScan(const msgs::LaserScan &_msg);
 
     /// \brief Load the scene and attach LidarVisual to the scene
     public: void LoadGlobalIlluminationVct();

@@ -81,7 +81,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
   /// \brief Private data class for GlobalIlluminationVct
-  class GlobalIlluminationVctPrivate
+  class IGNITION_GAZEBO_HIDDEN GlobalIlluminationVctPrivate
   {
     /// \brief Transport node
     public: transport::Node node;
@@ -435,6 +435,16 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
 #endif
         this->dataPtr->resetVisual = false;
       }
+
+      if (!this->dataPtr->visualDirty && !this->dataPtr->gi->Enabled() &&
+          this->dataPtr->enabled)
+      {
+        // If we're here, GI was disabled externally. This can happen
+        // if e.g. another GI solution was enabled (only one can be active)
+        this->dataPtr->enabled = false;
+        this->EnabledChanged();
+      }
+
       if (this->dataPtr->visualDirty)
       {
         this->dataPtr->gi->SetResolution(this->dataPtr->resolution);
@@ -662,52 +672,6 @@ void GlobalIlluminationVct::OnTopic(const QString &_topicName)
   }
   this->dataPtr->visualDirty = false;
   ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
-#endif
-}
-
-//////////////////////////////////////////////////
-void GlobalIlluminationVct::OnScan(const msgs::LaserScan &_msg)
-{
-#ifdef VCT_DISABLED
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  if (this->dataPtr->initialized)
-  {
-    this->dataPtr->msg = std::move(_msg);
-    this->dataPtr->lidar->SetVerticalRayCount(
-      this->dataPtr->msg.vertical_count());
-    this->dataPtr->lidar->SetHorizontalRayCount(this->dataPtr->msg.count());
-    this->dataPtr->lidar->SetMinHorizontalAngle(this->dataPtr->msg.angle_min());
-    this->dataPtr->lidar->SetMaxHorizontalAngle(this->dataPtr->msg.angle_max());
-    this->dataPtr->lidar->SetMinVerticalAngle(
-      this->dataPtr->msg.vertical_angle_min());
-    this->dataPtr->lidar->SetMaxVerticalAngle(
-      this->dataPtr->msg.vertical_angle_max());
-
-    this->dataPtr->lidar->SetPoints(std::vector<double>(
-      this->dataPtr->msg.ranges().begin(), this->dataPtr->msg.ranges().end()));
-
-    this->dataPtr->visualDirty = true;
-
-    for (auto data_values : this->dataPtr->msg.header().data())
-    {
-      if (data_values.key() == "frame_id")
-      {
-        if (this->dataPtr->lidarString.compare(
-              common::trimmed(data_values.value(0))) != 0)
-        {
-          this->dataPtr->lidarString = common::trimmed(data_values.value(0));
-          this->dataPtr->lidarEntityDirty = true;
-          this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
-          this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
-          this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
-          this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
-          this->MinRangeChanged();
-          this->MaxRangeChanged();
-          break;
-        }
-      }
-    }
-  }
 #endif
 }
 
