@@ -27,6 +27,7 @@
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
@@ -53,6 +54,12 @@ class ignition::gazebo::systems::ThrusterPrivateData
 
   /// \brief Desired propeller angular velocity in rad / s
   public: double propellerAngVel = 0.0;
+
+  /// \brief Enabled or not
+  public: bool enabled = true;
+
+  /// \brief Model entity
+  public: ignition::gazebo::Entity modelEntity;
 
   /// \brief The link entity which will spin
   public: ignition::gazebo::Entity linkEntity;
@@ -97,13 +104,18 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief Diameter of propeller in m, default: 0.02
   public: double propellerDiameter = 0.02;
 
-  /// \brief callback for handling thrust update
-  public: void OnCmdThrust(const ignition::msgs::Double &_msg);
+  /// \brief Callback for handling thrust update
+  public: void OnCmdThrust(const msgs::Double &_msg);
 
-  /// \brief function which computes angular velocity from thrust
+  /// \brief Function which computes angular velocity from thrust
   /// \param[in] _thrust Thrust in N
   /// \return Angular velocity in rad/s
   public: double ThrustToAngularVec(double _thrust);
+
+  /// \brief Returns a boolean if the battery has sufficient charge to continue
+  /// \return True if battery is charged, false otherwise. If no battery found,
+  /// returns true.
+  public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
 };
 
 /////////////////////////////////////////////////
@@ -115,13 +127,14 @@ Thruster::Thruster():
 
 /////////////////////////////////////////////////
 void Thruster::Configure(
-  const ignition::gazebo::Entity &_entity,
+  const Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  ignition::gazebo::EntityComponentManager &_ecm,
-  ignition::gazebo::EventManager &/*_eventMgr*/)
+  EntityComponentManager &_ecm,
+  EventManager &/*_eventMgr*/)
 {
   // Create model object, to access convenient functions
-  auto model = ignition::gazebo::Model(_entity);
+  this->dataPtr->modelEntity = _entity;
+  auto model = Model(_entity);
   auto modelName = model.Name(_ecm);
 
   // Get namespace
@@ -277,10 +290,10 @@ void Thruster::Configure(
 }
 
 /////////////////////////////////////////////////
-void ThrusterPrivateData::OnCmdThrust(const ignition::msgs::Double &_msg)
+void ThrusterPrivateData::OnCmdThrust(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(mtx);
-  this->thrust = ignition::math::clamp(ignition::math::fixnan(_msg.data()),
+  this->thrust = math::clamp(math::fixnan(_msg.data()),
     this->cmdMin, this->cmdMax);
 
   // Thrust is proportional to the Rotation Rate squared
@@ -304,12 +317,39 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 }
 
 /////////////////////////////////////////////////
+bool ThrusterPrivateData::HasSufficientBattery(
+  const EntityComponentManager &_ecm) const
+{
+  bool result = true;
+  _ecm.Each<components::BatterySoC>([&](
+    const Entity &_entity,
+    const components::BatterySoC *_data
+  ){
+    if(_ecm.ParentEntity(_entity) == this->modelEntity)
+    {
+      if(_data->Data() <= 0)
+      {
+        result = false;
+      }
+    }
+
+    return true;
+  });
+  return result;
+}
+
+/////////////////////////////////////////////////
 void Thruster::PreUpdate(
   const ignition::gazebo::UpdateInfo &_info,
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
+
+  if (!this->dataPtr->enabled)
+  {
+    return;
+  }
 
   ignition::gazebo::Link link(this->dataPtr->linkEntity);
 
@@ -367,10 +407,18 @@ void Thruster::PreUpdate(
     unitVector * torque);
 }
 
+/////////////////////////////////////////////////
+void Thruster::PostUpdate(const UpdateInfo &/*unused*/,
+  const EntityComponentManager &_ecm)
+{
+  this->dataPtr->enabled = this->dataPtr->HasSufficientBattery(_ecm);
+}
+
 IGNITION_ADD_PLUGIN(
   Thruster, System,
   Thruster::ISystemConfigure,
-  Thruster::ISystemPreUpdate)
+  Thruster::ISystemPreUpdate,
+  Thruster::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
 

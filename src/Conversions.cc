@@ -64,6 +64,7 @@
 #include <sdf/NavSat.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
 #include <algorithm>
@@ -242,6 +243,20 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
       blendMsg->set_fade_dist(blendSdf->FadeDistance());
     }
   }
+  else if (_in.Type() == sdf::GeometryType::POLYLINE &&
+      !_in.PolylineShape().empty())
+  {
+    out.set_type(msgs::Geometry::POLYLINE);
+    for (const auto &polyline : _in.PolylineShape())
+    {
+      auto polylineMsg = out.add_polyline();
+      polylineMsg->set_height(polyline.Height());
+      for (const auto &point : polyline.Points())
+      {
+        msgs::Set(polylineMsg->add_point(), point);
+      }
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -356,6 +371,28 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     }
 
     out.SetHeightmapShape(heightmapShape);
+  }
+  else if (_in.type() == msgs::Geometry::POLYLINE && _in.polyline_size() > 0)
+  {
+    out.SetType(sdf::GeometryType::POLYLINE);
+
+    std::vector<sdf::Polyline> polylines;
+
+    for (auto i = 0; i < _in.polyline().size(); ++i)
+    {
+      auto polylineMsg = _in.polyline(i);
+      sdf::Polyline polylineShape;
+      polylineShape.SetHeight(polylineMsg.height());
+
+      for (auto j = 0; j < polylineMsg.point().size(); ++j)
+      {
+        polylineShape.AddPoint(msgs::Convert(polylineMsg.point(j)));
+      }
+
+      polylines.push_back(polylineShape);
+    }
+
+    out.SetPolylineShape(polylines);
   }
   else
   {

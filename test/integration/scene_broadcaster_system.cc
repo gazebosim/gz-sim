@@ -874,6 +874,84 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_GE(receivedStates, 7);
 }
 
+/////////////////////////////////////////////////
+// Tests https://github.com/ignitionrobotics/ign-gazebo/issues/1414
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
+{
+  // Start server
+  std::string sdfStr = R"(
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="world with spaces">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+      <state_hertz>0.4</state_hertz>
+    </plugin>
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+    </scene>
+  </world>
+</sdf>)";
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfString(sdfStr);
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run server
+  server.Run(true, 1, false);
+}
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      common::joinPaths("/", "test", "worlds", "conveyor.sdf"));
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene res;
+
+  EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
+  EXPECT_TRUE(result);
+
+  ASSERT_TRUE(res.has_ambient());
+  EXPECT_EQ(math::Color(1.0, 1.0, 1.0, 1.0), msgs::Convert(res.ambient()));
+
+  ASSERT_TRUE(res.has_background());
+  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1.0), msgs::Convert(res.background()));
+
+  EXPECT_TRUE(res.shadows());
+  EXPECT_FALSE(res.grid());
+  EXPECT_FALSE(res.has_fog());
+  EXPECT_FALSE(res.has_sky());
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));

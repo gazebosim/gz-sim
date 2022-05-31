@@ -1033,6 +1033,78 @@ TEST_P(ServerFixture, AddResourcePaths)
   }
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ResolveResourcePaths)
+{
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
+
+  ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+
+  EXPECT_FALSE(*server.Running(0));
+
+  auto test = std::function<void(const std::string _uri,
+      const std::string &_expected, bool _found)>(
+        [&](const std::string &_uri, const std::string &_expected, bool _found)
+        {
+          transport::Node node;
+          msgs::StringMsg req, res;
+          bool result{false};
+          bool executed{false};
+          int sleep{0};
+          int maxSleep{30};
+
+          req.set_data(_uri);
+          while (!executed && sleep < maxSleep)
+          {
+            igndbg << "Requesting /gazebo/resource_paths/resolve" << std::endl;
+            executed = node.Request("/gazebo/resource_paths/resolve", req, 100,
+                res, result);
+            sleep++;
+          }
+          EXPECT_TRUE(executed);
+          EXPECT_EQ(_found, result);
+          EXPECT_EQ(_expected, res.data()) << "Expected[" << _expected
+            << "] Received[" << res.data() << "]";
+        });
+
+  // Make sure the resource path is clear
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+
+  // An absolute path should return the same absolute path
+  test(PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+
+  // An absolute path, with the file:// prefix, should return the absolute path
+  test(std::string("file://") +
+      PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+
+  // A non-absolute path with no RESOURCE_PATH should not find the resource
+  test(common::joinPaths("test", "worlds", "plugins.sdf"), "", false);
+
+  // Try again, this time with a RESOURCE_PATH
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH", PROJECT_SOURCE_PATH);
+  test(common::joinPaths("test", "worlds", "plugins.sdf"),
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "plugins.sdf"),
+      true);
+  // With the file:// prefix should also work
+  test(std::string("file://") +
+      common::joinPaths("test", "worlds", "plugins.sdf"),
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "plugins.sdf"),
+      true);
+
+  // The model:// URI should not resolve
+  test("model://include_nested/model.sdf", "", false);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
+  // The model:// URI should now resolve because the RESOURCE_PATH has been
+  // updated.
+  test("model://include_nested/model.sdf",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models",
+        "include_nested", "model.sdf"), true);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
