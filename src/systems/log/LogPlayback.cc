@@ -454,6 +454,13 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 }
 
 //////////////////////////////////////////////////
+void LogPlayback::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  LogPlaybackPrivate::started = false;
+  this->dataPtr->Start(_ecm);
+}
+
+//////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogPlayback::Update");
@@ -619,6 +626,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
                     gz::sim::System,
                     LogPlayback::ISystemConfigure,
+                    LogPlayback::ISystemReset,
                     LogPlayback::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
