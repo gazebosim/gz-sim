@@ -1,6 +1,6 @@
 set(TEST_TYPE "BENCHMARK")
 
-# TODO(CH3): Remove on ticktock
+# TODO(CH3): Deprecated. Remove on ticktock
 include(IgnBenchmark OPTIONAL RESULT_VARIABLE IgnBenchmark_FOUND)
 include(GzBenchmark OPTIONAL RESULT_VARIABLE GzBenchmark_FOUND)
 

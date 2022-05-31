@@ -23,8 +23,8 @@
 #include <gz/sim/components/World.hh>
 #include <gz/sim/components/Name.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 // This program will output performance comparison data between

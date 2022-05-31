@@ -41,7 +41,7 @@ int main(int argc, char **argv)
   }
 
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   bool executed{false};
   bool result{false};
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
   // Request and block
   if (type == "graph")
   {
-    ignition::msgs::StringMsg res;
+    gz::msgs::StringMsg res;
     executed = node.Request(service, timeout, res, result);
 
     if (executed && result)
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    ignition::msgs::Scene res;
+    gz::msgs::Scene res;
     executed = node.Request(service, timeout, res, result);
 
     if (executed && result)

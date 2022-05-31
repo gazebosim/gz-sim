@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PYTHON__TEST_FIXTURE_HH_
-#define IGNITION_GAZEBO_PYTHON__TEST_FIXTURE_HH_
+#ifndef GZ_SIM_PYTHON__TEST_FIXTURE_HH_
+#define GZ_SIM_PYTHON__TEST_FIXTURE_HH_
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::TestFixture
+/// Define a pybind11 wrapper for an gz::sim::TestFixture
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
@@ -35,4 +35,4 @@ defineGazeboTestFixture(pybind11::object module);
 }
 }
 
-#endif  // IGNITION_GAZEBO_PYTHON__TEST_FIXTURE_HH_
+#endif  // GZ_SIM_PYTHON__TEST_FIXTURE_HH_

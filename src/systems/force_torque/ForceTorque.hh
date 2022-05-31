@@ -14,19 +14,19 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_FORCE_TORQUE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_FORCE_TORQUE_HH_
+#ifndef GZ_SIM_SYSTEMS_FORCE_TORQUE_HH_
+#define GZ_SIM_SYSTEMS_FORCE_TORQUE_HH_
 
 #include <memory>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
@@ -34,7 +34,7 @@ namespace systems
 
   /// \class ForceTorque ForceTorque.hh gz/sim/systems/ForceTorque.hh
   /// \brief This system manages all Force-Torque sensors in simulation.
-  /// Each FT sensor reports readings over Ignition Transport.
+  /// Each FT sensor reports readings over Gazebo Transport.
   /// \note Regardless of the setting of //sensor/force_torque/frame the point
   /// of application of the force is at the sensor's origin.
   /// //sensor/force_torque/frame only changes the coordinate frame in which the

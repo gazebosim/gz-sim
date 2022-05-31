@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_VELOCITYCONTROL_HH_
+#ifndef GZ_SIM_SYSTEMS_VELOCITYCONTROL_HH_
+#define GZ_SIM_SYSTEMS_VELOCITYCONTROL_HH_
 
 #include <memory>
 #include <optional>
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -64,8 +64,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &/*_info*/,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &/*_info*/,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

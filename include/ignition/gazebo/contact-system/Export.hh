@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/contact-system/Export.hh>
+#include <ignition/gazebo/config.hh>

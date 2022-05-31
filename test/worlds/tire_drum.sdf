@@ -210,7 +210,7 @@
       </joint>
       <plugin
         filename="libignition-gazebo-wheel-slip-system.so"
-        name="ignition::gazebo::systems::WheelSlip">
+        name="gz::sim::systems::WheelSlip">
         <wheel link_name="wheel">
           <wheel_radius>0.1</wheel_radius>
           <slip_compliance_lateral>0.01</slip_compliance_lateral>

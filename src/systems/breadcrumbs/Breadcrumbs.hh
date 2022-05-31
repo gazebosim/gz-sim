@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
+#ifndef GZ_SIM_SYSTEMS_BREADCRUMBS_HH_
+#define GZ_SIM_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
 #include <optional>
@@ -35,12 +35,12 @@
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A system for creating Breadcrumbs in the form of models that can
@@ -61,7 +61,7 @@ namespace systems
   /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
   /// not set, the default topic with the following pattern would be used
   /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. The topic
-  /// type is ignition.msgs.Empty
+  /// type is gz.msgs.Empty
   /// - `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic
   /// will have no effect. If a negative number is set, the maximum deployment
@@ -101,8 +101,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Callback to deployment topic
     private: void OnDeploy(const msgs::Empty &_msg);

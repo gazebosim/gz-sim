@@ -38,18 +38,18 @@
 
 #include "GuiRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(msgs::SerializedStepMap)
 
 /////////////////////////////////////////////////
-class ignition::gazebo::GuiRunner::Implementation
+class gz::sim::GuiRunner::Implementation
 {
   /// \brief Entity-component manager.
-  public: gazebo::EntityComponentManager ecm;
+  public: sim::EntityComponentManager ecm;
 
   /// \brief Transport node.
   public: transport::Node node{};
@@ -82,7 +82,7 @@ class ignition::gazebo::GuiRunner::Implementation
   public: std::mutex systemLoadMutex;
 
   /// \brief Events containing visual plugins to load
-  public: std::vector<std::pair<ignition::gazebo::Entity, sdf::ElementPtr>>
+  public: std::vector<std::pair<gz::sim::Entity, sdf::ElementPtr>>
       visualPlugins;
 
   /// \brief Systems implementing PreUpdate
@@ -119,11 +119,11 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // and add support for accepting uint64_t data in ign-rendering Node's
   // UserData object.
   // todo(anyone) address
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
+  // https://github.com/gazebosim/gz-sim/issues/1134
   // so that an offset is not required
   this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 
-  auto win = ignition::gui::App()->findChild<ignition::gui::MainWindow *>();
+  auto win = gz::gui::App()->findChild<gz::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
@@ -132,7 +132,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
       _worldName + "/state");
   if (this->dataPtr->stateTopic.empty())
   {
-    ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
+    gzerr << "Failed to generate valid topic for world [" << _worldName << "]"
            << std::endl;
     return;
   }
@@ -142,7 +142,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic
+  gzdbg << "Requesting initial state from [" << this->dataPtr->stateTopic
          << "]..." << std::endl;
 
   this->RequestState();
@@ -154,8 +154,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -164,10 +164,10 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  if (_event->type() == gz::gui::events::WorldControl::kType)
   {
     auto worldControlEvent =
-      reinterpret_cast<ignition::gui::events::WorldControl *>(_event);
+      reinterpret_cast<gz::gui::events::WorldControl *>(_event);
     if (worldControlEvent)
     {
       msgs::WorldControlState req;
@@ -184,16 +184,16 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       if (pressedPlay || pressedStepWhilePaused)
         req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
 
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+          [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error sharing WorldControl info with the server.\n";
+              gzerr << "Error sharing WorldControl info with the server.\n";
           };
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::VisualPlugin::kType)
+  else if (_event->type() == gz::sim::gui::events::VisualPlugin::kType)
   {
     auto visualPluginEvent =
       reinterpret_cast<gui::events::VisualPlugin *>(_event);
@@ -216,13 +216,13 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 void GuiRunner::RequestState()
 {
   // set up service for async state response callback
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
   if (reqSrvValid.empty())
   {
-    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+    gzerr << "Failed to generate valid service [" << reqSrv << "]"
            << std::endl;
     return;
   }
@@ -235,11 +235,11 @@ void GuiRunner::RequestState()
     if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
         this))
     {
-      ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
+      gzerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
     }
   }
 
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // Subscribe to periodic updates.
@@ -270,7 +270,7 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   this->dataPtr->node.UnadvertiseSrv(reqSrv);
@@ -310,7 +310,7 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 void GuiRunner::UpdatePlugins()
 {
   // gui plugins
-  auto plugins = ignition::gui::App()->findChildren<GuiSystem *>();
+  auto plugins = gz::gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
@@ -359,7 +359,7 @@ void GuiRunner::LoadSystems()
           sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
               this->dataPtr->eventMgr);
         }
-        igndbg << "Loaded system [" << name
+        gzdbg << "Loaded system [" << name
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
       }

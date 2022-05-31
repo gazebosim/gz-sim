@@ -26,8 +26,8 @@
 #include "ComponentInspectorEditor.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 JointType::JointType(ComponentInspectorEditor *_inspector)
@@ -77,7 +77,7 @@ JointType::JointType(ComponentInspectorEditor *_inspector)
 /////////////////////////////////////////////////
 Q_INVOKABLE void JointType::OnJointType(QString _jointType)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     components::JointType *comp =
@@ -113,11 +113,11 @@ Q_INVOKABLE void JointType::OnJointType(QString _jointType)
     }
     else if (!comp)
     {
-      ignerr << "Unable to get the joint type component.\n";
+      gzerr << "Unable to get the joint type component.\n";
     }
     else
     {
-      ignerr << "Unable to get the joint's parent entity component.\n";
+      gzerr << "Unable to get the joint's parent entity component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

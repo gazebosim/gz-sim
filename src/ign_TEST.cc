@@ -28,7 +28,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
-    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign gazebo -s ");
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/ign gazebo -s ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -55,7 +55,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
@@ -91,7 +91,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
 TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
-  ignition::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
+  gz::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
     " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;

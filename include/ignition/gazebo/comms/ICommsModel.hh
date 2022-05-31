@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/comms/ICommsModel.hh>
+#include <ignition/gazebo/config.hh>

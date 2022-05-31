@@ -14,19 +14,19 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_IMU_HH_
-#define IGNITION_GAZEBO_SYSTEMS_IMU_HH_
+#ifndef GZ_SIM_SYSTEMS_IMU_HH_
+#define GZ_SIM_SYSTEMS_IMU_HH_
 
 #include <memory>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
@@ -35,7 +35,7 @@ namespace systems
   /// \class Imu Imu.hh gz/sim/systems/Imu.hh
   /// \brief This system manages all IMU sensors in simulation.
   /// Each IMU sensor eports vertical position, angular velocity
-  /// and lienar acceleration readings over Ignition Transport.
+  /// and lienar acceleration readings over Gazebo Transport.
   class Imu:
     public System,
     public ISystemPreUpdate,

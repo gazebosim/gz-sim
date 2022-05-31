@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/Conversions.hh>
+#include <ignition/gazebo/config.hh>

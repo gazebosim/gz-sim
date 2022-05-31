@@ -3,7 +3,7 @@
   This world has no GUI configurations of its own.
 
   When loading `ign gazebo default.sdf` for the first time, this will be loaded
-  using the default configuration, saved at `~/.ignition/gazebo/gui.config`.
+  using the default configuration, saved at `~/.gz/sim/gui.config`.
 
   The default configuration can be edited manually, or by choosing
   `Save configuration` from the top-left menu.

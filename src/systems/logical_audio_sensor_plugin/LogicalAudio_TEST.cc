@@ -19,7 +19,7 @@
 
 #include "LogicalAudio.hh"
 
-namespace logical_audio = ignition::gazebo::logical_audio;
+namespace logical_audio = gz::sim::logical_audio;
 
 using AttenuationFunction = logical_audio::AttenuationFunction;
 using AttenuationShape = logical_audio::AttenuationShape;

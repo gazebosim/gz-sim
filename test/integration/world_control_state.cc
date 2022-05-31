@@ -17,21 +17,21 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/serialized_map.pb.h>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class WorldControlState : public InternalFixture<::testing::Test>
@@ -62,11 +62,11 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
       msgs::WorldControlState req;
       req.mutable_state()->CopyFrom(localEcm.State());
 
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb2 =
-          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      std::function<void(const gz::msgs::Boolean &, const bool)> cb2 =
+          [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error sharing WorldControl info with the server.\n";
+              gzerr << "Error sharing WorldControl info with the server.\n";
           };
       node.Request("/world/default/control/state", req, cb2);
     }
@@ -74,17 +74,17 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   };
 
   // Create a system that checks for state changes in the ECM
-  ignition::gazebo::test::Relay testSystem;
+  gz::sim::test::Relay testSystem;
 
-  testSystem.OnUpdate([](const gazebo::UpdateInfo &_info,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
+    sim::EntityComponentManager &_ecm)
     {
       // After the first iteration, there should be an entity with the name
       // "box"
       bool hasBox = false;
-      _ecm.Each<ignition::gazebo::components::Name>(
-        [&](const ignition::gazebo::Entity &,
-            const ignition::gazebo::components::Name *_name)->bool
+      _ecm.Each<gz::sim::components::Name>(
+        [&](const gz::sim::Entity &,
+            const gz::sim::components::Name *_name)->bool
         {
           if (_name->Data() == "box")
           {

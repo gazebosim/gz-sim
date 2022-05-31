@@ -34,8 +34,8 @@
 #include "NetworkManagerSecondary.hh"
 #include "PeerTracker.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 NetworkManagerSecondary::NetworkManagerSecondary(
@@ -50,12 +50,12 @@ NetworkManagerSecondary::NetworkManagerSecondary(
   if (!this->node.Advertise(controlService, &NetworkManagerSecondary::OnControl,
       this))
   {
-    ignerr << "Error advertising PeerControl service [" << controlService
+    gzerr << "Error advertising PeerControl service [" << controlService
            << "]" << std::endl;
   }
   else
   {
-    igndbg << "Advertised PeerControl service on [" << controlService << "]"
+    gzdbg << "Advertised PeerControl service on [" << controlService << "]"
       << std::endl;
   }
 
@@ -105,7 +105,7 @@ void NetworkManagerSecondary::OnStep(
   // Throttle the number of step messages going to the debug output.
   if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)
   {
-    igndbg << "Network iterations: " << _msg.stats().iterations()
+    gzdbg << "Network iterations: " << _msg.stats().iterations()
            << std::endl;
   }
 
@@ -119,7 +119,7 @@ void NetworkManagerSecondary::OnStep(
     {
       this->performers.insert(entityId);
 
-      ignmsg << "Secondary [" << this->Namespace()
+      gzmsg << "Secondary [" << this->Namespace()
              << "] assigned affinity to performer [" << entityId << "]."
              << std::endl;
     }
@@ -132,7 +132,7 @@ void NetworkManagerSecondary::OnStep(
 
       if (this->performers.find(entityId) != this->performers.end())
       {
-        ignmsg << "Secondary [" << this->Namespace()
+        gzmsg << "Secondary [" << this->Namespace()
                << "] unassigned affinity to performer [" << entityId << "]."
                << std::endl;
         this->performers.erase(entityId);
@@ -154,7 +154,7 @@ void NetworkManagerSecondary::OnStep(
     auto parent = this->dataPtr->ecm->Component<components::ParentEntity>(perf);
     if (parent == nullptr)
     {
-      ignerr << "Failed to get parent for performer [" << perf << "]"
+      gzerr << "Failed to get parent for performer [" << perf << "]"
              << std::endl;
       continue;
     }

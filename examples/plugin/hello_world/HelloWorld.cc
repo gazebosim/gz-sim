@@ -15,7 +15,7 @@
  *
 */
 
-// We'll use a string and the ignmsg command below for a brief example.
+// We'll use a string and the gzmsg command below for a brief example.
 // Remove these includes if your plugin doesn't need them.
 #include <string>
 #include <gz/common/Console.hh>
@@ -31,15 +31,15 @@
 // what's in the header.
 IGNITION_ADD_PLUGIN(
     hello_world::HelloWorld,
-    ignition::gazebo::System,
+    gz::sim::System,
     hello_world::HelloWorld::ISystemPostUpdate)
 
 using namespace hello_world;
 
 // Here we implement the PostUpdate function, which is called at every
 // iteration.
-void HelloWorld::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void HelloWorld::PostUpdate(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &/*_ecm*/)
 {
   // This is a simple example of how to get information from UpdateInfo.
   std::string msg = "Hello, world! Simulation is ";
@@ -47,9 +47,9 @@ void HelloWorld::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
     msg += "not ";
   msg += "paused.";
 
-  // Messages printed with ignmsg only show when running with verbosity 3 or
+  // Messages printed with gzmsg only show when running with verbosity 3 or
   // higher (i.e. ign gazebo -v 3)
-  ignmsg << msg << std::endl;
+  gzmsg << msg << std::endl;
 }
 
 

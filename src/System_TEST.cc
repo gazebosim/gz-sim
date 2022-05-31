@@ -19,7 +19,7 @@
 
 #include "gz/sim/System.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(System, Constructor)

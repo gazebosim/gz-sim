@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointPositionLimitsCmd.hh>
+#include <ignition/gazebo/config.hh>

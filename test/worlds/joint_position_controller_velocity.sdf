@@ -6,11 +6,11 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <model name="ground_plane">
@@ -111,7 +111,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        name="gz::sim::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <use_velocity_commands>true</use_velocity_commands>
         <cmd_max>1000</cmd_max>

@@ -16,8 +16,8 @@
 */
 #include "TestVisualSystem.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::TestVisualSystem,
-    ignition::gazebo::System,
-    ignition::gazebo::TestVisualSystem::ISystemConfigure)
+IGNITION_ADD_PLUGIN(gz::sim::TestVisualSystem,
+    gz::sim::System,
+    gz::sim::TestVisualSystem::ISystemConfigure)

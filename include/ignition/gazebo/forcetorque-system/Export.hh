@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/forcetorque-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -19,18 +19,18 @@
 #include <chrono>
 #include <condition_variable>
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/msgs/world_control.pb.h"
-#include "ignition/msgs/world_stats.pb.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/gazebo/Server.hh"
+#include "gz/msgs/world_control.pb.h"
+#include "gz/msgs/world_stats.pb.h"
+#include "gz/transport/Node.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;
@@ -45,8 +45,8 @@ uint64_t testPaused(bool _paused)
   bool paused = !_paused;
   uint64_t iterations = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const gz::msgs::WorldStatistics &)> cb =
+      [&](const gz::msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -68,7 +68,7 @@ class NetworkHandshake : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 {
   ServerConfig serverConfig;
@@ -137,8 +137,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
-      "libignition-gazebo-scene-broadcaster-system.so");
-  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+      "libignition-sim-scene-broadcaster-system.so");
+  primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configPrimary;
@@ -146,7 +146,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   configPrimary.SetUseLevels(true);
   // Can only test one secondary running physics, because running 2 physics in
   // the same process causes a segfault, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/18
+  // https://github.com/gazebosim/gz-sim/issues/18
   configPrimary.SetNetworkSecondaries(1);
   configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");
@@ -158,8 +158,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
-  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetFilename("libignition-sim-physics-system.so");
+  secondaryPluginInfo.SetName("gz::sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configSecondary;
@@ -174,8 +174,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   // Subscribe to pose updates, which should come from the primary
   transport::Node node;
   std::vector<double> zPos;
-  std::function<void(const ignition::msgs::Pose_V &)> cb =
-      [&](const ignition::msgs::Pose_V &_msg)
+  std::function<void(const gz::msgs::Pose_V &)> cb =
+      [&](const gz::msgs::Pose_V &_msg)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {

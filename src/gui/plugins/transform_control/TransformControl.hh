@@ -15,16 +15,16 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_TRANSFORMCONTROL_HH_
-#define IGNITION_GAZEBO_GUI_TRANSFORMCONTROL_HH_
+#ifndef GZ_SIM_GUI_TRANSFORMCONTROL_HH_
+#define GZ_SIM_GUI_TRANSFORMCONTROL_HH_
 
 #include <memory>
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class TransformControlPrivate;
 
@@ -32,7 +32,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive transform mode requests.
-  class TransformControl : public ignition::gui::Plugin
+  class TransformControl : public gz::gui::Plugin
   {
     Q_OBJECT
 

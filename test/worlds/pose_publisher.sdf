@@ -8,11 +8,11 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-imu-system"
-      name="ignition::gazebo::systems::Imu">
+      name="gz::sim::systems::Imu">
     </plugin>
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -259,7 +259,7 @@
 
       <plugin
         filename="ignition-gazebo-pose-publisher-system"
-        name="ignition::gazebo::systems::PosePublisher">
+        name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>true</publish_sensor_pose>
         <publish_collision_pose>false</publish_collision_pose>
@@ -474,7 +474,7 @@
 
       <plugin
         filename="ignition-gazebo-pose-publisher-system"
-        name="ignition::gazebo::systems::PosePublisher">
+        name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>true</publish_sensor_pose>
         <publish_collision_pose>false</publish_collision_pose>
@@ -489,7 +489,7 @@
       <link name="link1"/>
       <plugin
          filename="ignition-gazebo-pose-publisher-system"
-         name="ignition::gazebo::systems::PosePublisher">
+         name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>false</publish_sensor_pose>
         <publish_collision_pose>false</publish_collision_pose>
@@ -503,7 +503,7 @@
       <link name="link1"/>
       <plugin
          filename="ignition-gazebo-pose-publisher-system"
-         name="ignition::gazebo::systems::PosePublisher">
+         name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_sensor_pose>false</publish_sensor_pose>
         <publish_collision_pose>false</publish_collision_pose>

@@ -45,12 +45,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
-class ignition::gazebo::systems::AltimeterPrivate
+class gz::sim::systems::AltimeterPrivate
 {
   /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,
@@ -112,7 +112,7 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -131,7 +131,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -176,7 +176,7 @@ void AltimeterPrivate::AddAltimeter(
       sensors::AltimeterSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -250,7 +250,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update altimeter: " << _entity << ". "
+          gzerr << "Failed to update altimeter: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -270,7 +270,7 @@ void AltimeterPrivate::RemoveAltimeterEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing altimeter sensor for entity ["
+          gzerr << "Internal error, missing altimeter sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -286,4 +286,7 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

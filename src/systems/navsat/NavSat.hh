@@ -14,26 +14,26 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
+#ifndef GZ_SIM_SYSTEMS_NAVSAT_HH_
+#define GZ_SIM_SYSTEMS_NAVSAT_HH_
 
 #include <gz/utils/ImplPtr.hh>
 
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \class NavSat NavSat.hh gz/sim/systems/NavSat.hh
   /// \brief System that handles navigation satellite sensors, such as GPS,
   /// that reports position and velocity in spherical coordinates (latitude /
-  /// longitude) over Ignition Transport.
+  /// longitude) over Gazebo Transport.
   ///
   /// The NavSat sensors rely on the world origin's spherical coordinates
   /// being set, for example through SDF's `<spherical_coordinates>` tag

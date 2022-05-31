@@ -28,12 +28,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/EventManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace comms;
 
 /// \brief Private ICommsModel data class.
-class ignition::gazebo::comms::ICommsModel::Implementation
+class gz::sim::comms::ICommsModel::Implementation
 {
   /// \brief Broker instance.
   public: Broker broker;
@@ -48,7 +48,7 @@ class ignition::gazebo::comms::ICommsModel::Implementation
 
 //////////////////////////////////////////////////
 ICommsModel::ICommsModel()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -70,8 +70,8 @@ void ICommsModel::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ICommsModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm)
+void ICommsModel::PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm)
 {
     IGN_PROFILE("ICommsModel::PreUpdate");
 
@@ -95,7 +95,7 @@ void ICommsModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
       while (this->dataPtr->currentTime < endTime)
       {
-        ignition::gazebo::UpdateInfo info(_info);
+        gz::sim::UpdateInfo info(_info);
         info.dt = std::min(this->dataPtr->timeStep.value(), _info.dt);
         info.simTime = this->dataPtr->currentTime.time_since_epoch();
         this->StepImpl(_info, _ecm);

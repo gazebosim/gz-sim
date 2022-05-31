@@ -32,12 +32,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Thermal data class.
-class ignition::gazebo::systems::ThermalPrivate
+class gz::sim::systems::ThermalPrivate
 {
 };
 
@@ -52,8 +52,8 @@ Thermal::~Thermal() = default;
 //////////////////////////////////////////////////
 void Thermal::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    gazebo::EntityComponentManager &_ecm,
-    gazebo::EventManager & /*_eventMgr*/)
+    sim::EntityComponentManager &_ecm,
+    sim::EventManager & /*_eventMgr*/)
 {
   const std::string temperatureTag = "temperature";
   const std::string heatSignatureTag = "heat_signature";
@@ -62,7 +62,7 @@ void Thermal::Configure(const Entity &_entity,
 
   if (_sdf->HasElement(temperatureTag) && _sdf->HasElement(heatSignatureTag))
   {
-    ignwarn << "Both <" << temperatureTag << "> and <" << heatSignatureTag
+    gzwarn << "Both <" << temperatureTag << "> and <" << heatSignatureTag
            << "> were specified, but the thermal system only uses one. "
            << "<" << heatSignatureTag << "> will be used.\n";
   }
@@ -78,7 +78,7 @@ void Thermal::Configure(const Entity &_entity,
     // make sure the specified heat signature can be found
     if (path.empty())
     {
-      ignerr << "Failed to load thermal system. Heat signature ["
+      gzerr << "Failed to load thermal system. Heat signature ["
         << heatSignature << "] could not be found\n";
       return;
     }
@@ -109,7 +109,7 @@ void Thermal::Configure(const Entity &_entity,
       max = min;
       min = temporary;
     }
-    igndbg << "Thermal plugin, heat signature: using a minimum temperature of "
+    gzdbg << "Thermal plugin, heat signature: using a minimum temperature of "
       << min << " kelvin, and a max temperature of " << max << " kelvin.\n";
 
     components::TemperatureRangeInfo rangeInfo;
@@ -124,7 +124,7 @@ void Thermal::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Failed to load thermal system. "
+    gzerr << "Failed to load thermal system. "
            << "Neither <" << temperatureTag << "> or <" << heatSignatureTag
            << "> were specified.\n";
   }
@@ -135,4 +135,7 @@ IGNITION_ADD_PLUGIN(Thermal, System,
   Thermal::ISystemConfigure
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Thermal, "ignition::gazebo::systems::Thermal")

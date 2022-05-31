@@ -5,18 +5,18 @@
 Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
 each providing access to different parts of the API, like physics, rendering,
-sensors, GUI, etc. Due to Ignition Gazebo's architecture based on an
+sensors, GUI, etc. Due to Gazebo Sim's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
 , plugin interfaces are somewhat different, but more varied and in many cases much
-more powerful. Some plugins in Ignition are systems within Ignition Gazebo,
+more powerful. Some plugins in Ignition are systems within Gazebo,
 while others are specific plugin types from other Ignition libraries.
 
-\note Plugin types other than systems may be added to Ignition Gazebo in the future.
+\note Plugin types other than systems may be added to Gazebo in the future.
 
 For example, plugins which get and set properties of simulation entities would be
-Ignition Gazebo systems. On the other hand, there are now plugin interfaces which didn't
+Gazebo systems. On the other hand, there are now plugin interfaces which didn't
 exist in Gazebo Classic, such as integrating a new physics or rendering engine, and these can
-be also used in projects outside of Ignition Gazebo.
+be also used in projects outside of Gazebo.
 
 Take a look at the comparison below:
 
@@ -30,7 +30,7 @@ Visual | Get/set properties of the visual and its children | Gazebo system | Get
 Sensor | Get/set sensor properties and readings | Gazebo system | Get/set components.
 World / Model | Access physics-engine-specific features | Physics plugin | Loaded by ign-physics
 Visual | Access rendering-engine-specific features | Rendering plugin | Loaded by ign-rendering
-Sensor | Connect to callbacks | Standalone program | Subscribe to Ignition Transport messages.
+Sensor | Connect to callbacks | Standalone program | Subscribe to Gazebo Transport messages.
 All | Connect to simulation events | Gazebo system | Use `PreUpdate`, `Update` and `PostUpdate` callbacks for the update loop, and the event manager for other events.
 GUI | Add an overlay UI | GUI plugin | Support for overlays and docked widgets
 GUI / System | Change the default UI | GUI plugin / SDF | All GUI elements can be removed or configured through SDF
@@ -97,16 +97,16 @@ class MyPlugin : public ModelPlugin
 GZ_REGISTER_MODEL_PLUGIN(MyPlugin)
 ```
 
-On Ignition Gazebo, that would be implemented as follows:
+On Gazebo, that would be implemented as follows:
 
 ```cpp
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/System.hh>
+#include <gz/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
@@ -148,13 +148,13 @@ class MyPlugin
 
 // Register plugin
 IGNITION_ADD_PLUGIN(MyPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
 The example above uses headers like `Model.hh` and `Util.hh`, which offer
@@ -164,16 +164,16 @@ entities and components. Let's take a look at how to do the same just using
 the ECM's API:
 
 ```cpp
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
@@ -230,14 +230,14 @@ class MyPlugin
 };
 
 IGNITION_ADD_PLUGIN(MyPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
-In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
+In summary, the key differences between Gazebo Classic and Gazebo are:
 
 * Plugins must inherit from the `ISystemConfigure` class to be able to override
   the `Configure` callback that gives access to many things, such as the SDF
@@ -249,7 +249,7 @@ In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
 * Plugins don't have direct access to physics objects such as `physics::Model`.
   Instead, they can either deal directly with entities and their components by
   calling functions in the ECM, or using convenient objects such as
-  `ignition::gazebo::Model` which wrap the ECM interface.
+  `gz::sim::Model` which wrap the ECM interface.
 
 All these changes are meant to give plugin developers more flexibility to
 only use the features they need, and several layers of abstraction which

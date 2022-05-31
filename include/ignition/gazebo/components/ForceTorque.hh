@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ForceTorque.hh>
+#include <ignition/gazebo/config.hh>
