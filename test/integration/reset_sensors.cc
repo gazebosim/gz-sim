@@ -24,30 +24,30 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/World.hh"
 
 #include "plugins/MockSystem.hh"
-#include "../helpers/EnvTestFixture.hh"
+#include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
+namespace components = gz::sim::components;
 
 //////////////////////////////////////////////////
 class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
@@ -57,25 +57,25 @@ class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: gz::sim::SystemPluginPtr systemPtr;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 /////////////////////////////////////////////////
 void worldReset()
 {
-  ignition::msgs::WorldControl req;
-  ignition::msgs::Boolean rep;
+  gz::msgs::WorldControl req;
+  gz::msgs::Boolean rep;
   req.mutable_reset()->set_all(true);
   transport::Node node;
 
@@ -94,7 +94,7 @@ void worldReset()
 /// are removed and then added back
 TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "reset_sensors.sdf");
@@ -103,10 +103,29 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 
   sdf::Root root;
   root.Load(sdfFile);
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
+
+  const std::string sensorName = "air_pressure_sensor";
+  auto topic = "world/default/model/box/link/link/"
+      "sensor/air_pressure_sensor/air_pressure";
+
+  // Subscribe to air_pressure topic
+  bool received{false};
+  msgs::FluidPressure msg;
+  msg.Clear();
+  std::function<void(const msgs::FluidPressure &)>  cb =
+      [&received, &msg](const msgs::FluidPressure &_msg)
+  {
+    // Only need one message
+    if (received)
+      return;
+
+    msg = _msg;
+    received = true;
+  };
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
 
   this->mockSystem->configureCallback =
     [&ecm](const Entity &,
@@ -134,6 +153,9 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(0u, this->mockSystem->postUpdateCallCount);
   }
 
+  transport::Node node;
+  node.Subscribe(topic, cb);
+
   // Run so that things will happen in the world
   // In this case, the box should fall some
   server.Run(true, 100, false);
@@ -150,12 +172,16 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(100u, this->mockSystem->preUpdateCallCount);
     EXPECT_EQ(100u, this->mockSystem->updateCallCount);
     EXPECT_EQ(100u, this->mockSystem->postUpdateCallCount);
+    EXPECT_TRUE(received);
   }
+
+  node.Unsubscribe(topic);
+  received = false;
 
   // Validate update info in the reset
   this->mockSystem->resetCallback =
-    [](const gazebo::UpdateInfo &_info,
-       gazebo::EntityComponentManager &)
+    [](const sim::UpdateInfo &_info,
+       sim::EntityComponentManager &)
     {
       EXPECT_EQ(0u, _info.iterations);
       EXPECT_EQ(std::chrono::steady_clock::duration{0}, _info.simTime);
@@ -192,6 +218,8 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(101u, this->mockSystem->postUpdateCallCount);
   }
 
+  node.Subscribe(topic, cb);
+
   server.Run(true, 100, false);
   {
     ASSERT_NE(nullptr, ecm);
@@ -206,5 +234,6 @@ TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(201u, this->mockSystem->preUpdateCallCount);
     EXPECT_EQ(201u, this->mockSystem->updateCallCount);
     EXPECT_EQ(201u, this->mockSystem->postUpdateCallCount);
+    EXPECT_TRUE(received);
   }
 }

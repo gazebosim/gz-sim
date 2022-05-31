@@ -45,12 +45,11 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    SystemInternal ss(system.value());
-    ss.entity = _entity;
+    SystemInternal ss(system.value(), _entity);
     ss.fname = _fname;
     ss.name = _name;
     ss.configureSdf = _sdf;
-    this->AddSystemImpl(ss, ss.entity, ss.configureSdf);
+    this->AddSystemImpl(ss, ss.configureSdf);
     gzdbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -117,7 +116,7 @@ struct PluginInfo {
   std::string name;
   /// \brief SDF element (content of the plugin tag)
   sdf::ElementPtr sdf;
-}
+};
 
 //////////////////////////////////////////////////
 void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
@@ -161,7 +160,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
 
       PluginInfo info = {
-        system.entity, system.fname, system.name,
+        system.parentEntity, system.fname, system.name,
         system.configureSdf->Clone()
       };
 
@@ -175,7 +174,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // to ensure the previous instance is destroyed before the new one is created
   // and configured.
   for (const auto &pluginInfo : pluginsToBeLoaded) {
-    this->LoadPlugin(pluginInfo);
+    this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name,
+        pluginInfo.sdf);
   }
   this->ActivatePendingSystems();
 }
