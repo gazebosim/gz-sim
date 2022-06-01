@@ -836,6 +836,9 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 //////////////////////////////////////////////////
 bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
 {
+  if (!_sensor)
+    return true;
+
   // \todo(iche033) Remove this function once a virtual
   // sensors::RenderingSensor::HasConnections function is available
   {
@@ -863,6 +866,8 @@ bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
     if (s)
       return s->HasConnections();
   }
+  ignwarn << "Unable to check connection count for sensor: " << _sensor->Name()
+          << ". Unknown sensor type." << std::endl;
   return true;
 }
 
