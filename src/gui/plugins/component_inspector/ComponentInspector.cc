@@ -62,6 +62,7 @@
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
@@ -73,6 +74,7 @@
 
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
+#include "SystemPluginInfo.hh"
 
 namespace ignition::gazebo
 {
@@ -114,6 +116,9 @@ namespace ignition::gazebo
 
     /// \brief Handles all components displayed as a 3D pose.
     public: std::unique_ptr<inspector::Pose3d> pose3d;
+
+    /// \brief Handles all system info components.
+    public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
   };
 }
 
@@ -475,6 +480,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Type-specific handlers
   this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
+  this->dataPtr->systemInfo =
+      std::make_unique<inspector::SystemPluginInfo>(this);
 }
 
 //////////////////////////////////////////////////
