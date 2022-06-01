@@ -480,7 +480,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Type-specific handlers
   this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
-  this->dataPtr->systemInfo = std::make_unique<inspector::SystemPluginInfo>(this);
+  this->dataPtr->systemInfo =
+      std::make_unique<inspector::SystemPluginInfo>(this);
 }
 
 //////////////////////////////////////////////////
