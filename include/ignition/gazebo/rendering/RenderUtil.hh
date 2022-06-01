@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/rendering/RenderUtil.hh>
+#include <ignition/gazebo/config.hh>

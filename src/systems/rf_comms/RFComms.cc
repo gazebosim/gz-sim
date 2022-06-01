@@ -35,8 +35,8 @@
 #include "gz/sim/Util.hh"
 #include "RFComms.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Parameters for simple log-normal fading model.
@@ -113,7 +113,7 @@ struct RadioState
   double timeStamp;
 
   /// \brief Pose of the radio.
-  ignition::math::Pose3<double> pose;
+  gz::math::Pose3<double> pose;
 
   /// \brief Recent sent packet history.
   std::list<std::pair<double, uint64_t>> bytesSent;
@@ -146,7 +146,7 @@ struct RFPower
 };
 
 /// \brief Private RFComms data class.
-class ignition::gazebo::systems::RFComms::Implementation
+class gz::sim::systems::RFComms::Implementation
 {
   /// \brief Attempt communication between two nodes.
   ///
@@ -249,7 +249,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
     _txState.bytesSent.pop_front();
   }
 
-  // igndbg << "Bytes sent: " <<  _txState.bytesSentThisEpoch << " + "
+  // gzdbg << "Bytes sent: " <<  _txState.bytesSentThisEpoch << " + "
   //        << _numBytes << " = "
   //        << _txState.bytesSentThisEpoch + _numBytes << std::endl;
 
@@ -260,7 +260,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // Check current epoch bitrate vs capacity and fail to send accordingly
   if (bitsSent > this->radioConfig.capacity * this->epochDuration)
   {
-    ignwarn << "Bitrate limited: " << bitsSent << "bits sent (limit: "
+    gzwarn << "Bitrate limited: " << bitsSent << "bits sent (limit: "
             << this->radioConfig.capacity * this->epochDuration << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
@@ -287,13 +287,13 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   double packetDropProb = 1.0 - exp(_numBytes * log(1 - ber));
 
-  // igndbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
+  // gzdbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
   //           "RX power (dBm): " << rxPower << "\n" <<
   //           "BER: " << ber << "\n" <<
   //           "# Bytes: " << _numBytes << "\n" <<
   //           "PER: " << packetDropProb << std::endl;
 
-  double randDraw = ignition::math::Rand::DblUniform();
+  double randDraw = gz::math::Rand::DblUniform();
   bool packetReceived = randDraw > packetDropProb;
 
   if (!packetReceived)
@@ -307,7 +307,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
     _rxState.bytesReceived.pop_front();
   }
 
-  // igndbg << "bytes received: " << _rxState.bytesReceivedThisEpoch
+  // gzdbg << "bytes received: " << _rxState.bytesReceivedThisEpoch
   //        << " + " << _numBytes
   //       << " = " << _rxState.bytesReceivedThisEpoch + _numBytes << std::endl;
 
@@ -318,7 +318,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // Check current epoch bitrate vs capacity and fail to send accordingly.
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)
   {
-    // ignwarn << "Bitrate limited: " <<  bitsReceived
+    // gzwarn << "Bitrate limited: " <<  bitsReceived
     //         << "bits received (limit: "
     //         << this->radioConfig.capacity * this->epochDuration << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
@@ -333,7 +333,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
 //////////////////////////////////////////////////
 RFComms::RFComms()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -380,10 +380,10 @@ void RFComms::Load(const Entity &/*_entity*/,
         this->dataPtr->radioConfig.noiseFloor).first;
   }
 
-  igndbg << "Range configuration:" << std::endl
+  gzdbg << "Range configuration:" << std::endl
          << this->dataPtr->rangeConfig << std::endl;
 
-  igndbg << "Radio configuration:" << std::endl
+  gzdbg << "Radio configuration:" << std::endl
          << this->dataPtr->radioConfig << std::endl;
 }
 
@@ -400,7 +400,7 @@ void RFComms::Step(
     // Associate entity if needed.
     if (content.entity == kNullEntity)
     {
-      auto entities = gazebo::entitiesFromScopedName(content.modelName, _ecm);
+      auto entities = sim::entitiesFromScopedName(content.modelName, _ecm);
       if (entities.empty())
         continue;
 
@@ -415,7 +415,7 @@ void RFComms::Step(
     else
     {
       // Update radio state.
-      const auto kPose = gazebo::worldPose(content.entity, _ecm);
+      const auto kPose = sim::worldPose(content.entity, _ecm);
       this->dataPtr->radioStates[address].pose = kPose;
       this->dataPtr->radioStates[address].timeStamp =
         std::chrono::duration<double>(_info.simTime).count();
@@ -457,9 +457,13 @@ void RFComms::Step(
 }
 
 IGNITION_ADD_PLUGIN(RFComms,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     comms::ICommsModel::ISystemConfigure,
                     comms::ICommsModel::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(RFComms,
+                          "gz::sim::systems::RFComms")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(RFComms,
                           "ignition::gazebo::systems::RFComms")

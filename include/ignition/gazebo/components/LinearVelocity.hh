@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LinearVelocity.hh>
+#include <ignition/gazebo/config.hh>

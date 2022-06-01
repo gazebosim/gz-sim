@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointVelocityLimitsCmd.hh>
+#include <ignition/gazebo/config.hh>

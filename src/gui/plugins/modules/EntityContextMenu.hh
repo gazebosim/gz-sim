@@ -15,16 +15,16 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
-#define IGNITION_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
+#ifndef GZ_SIM_GUI_ENTITYCONTEXTMENU_HH_
+#define GZ_SIM_GUI_ENTITYCONTEXTMENU_HH_
 
 #include <gz/gui/qt.h>
 #include <QtQml/QQmlExtensionPlugin>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class EntityContextMenuPrivate;
 

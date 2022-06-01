@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 #include "Console.hh"
 
-namespace ignition
+namespace gz
 {
   namespace common
   {
@@ -24,7 +24,7 @@ namespace ignition
     {
       void SetVerbosity(int _verbosity)
       {
-        ignition::common::Console::SetVerbosity(_verbosity);
+        gz::common::Console::SetVerbosity(_verbosity);
       }
     }
   }

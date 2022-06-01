@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_CREATEREMOVE_HH_
-#define GZ_GAZEBO_CREATEREMOVE_HH_
+#ifndef GZ_SIM_CREATEREMOVE_HH_
+#define GZ_SIM_CREATEREMOVE_HH_
 
 #include <memory>
 
@@ -37,12 +37,12 @@
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SdfEntityCreatorPrivate;
     //
@@ -55,7 +55,7 @@ namespace ignition
     /// This class provides wrappers around entities and components
     /// which are more convenient and straight-forward to use than dealing
     /// with the `EntityComponentManager` directly.
-    class IGNITION_GAZEBO_VISIBLE SdfEntityCreator
+    class GZ_GAZEBO_VISIBLE SdfEntityCreator
     {
       /// \brief Constructor
       /// \param[in] _ecm Entity component manager. This class keeps a pointer

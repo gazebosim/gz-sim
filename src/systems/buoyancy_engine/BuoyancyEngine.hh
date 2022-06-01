@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BUOYANCYENGINE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BUOYANCYENGINE_HH_
+#ifndef GZ_SIM_SYSTEMS_BUOYANCYENGINE_HH_
+#define GZ_SIM_SYSTEMS_BUOYANCYENGINE_HH_
 
 #include <gz/sim/System.hh>
 
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   class BuoyancyEnginePrivateData;
@@ -59,10 +59,10 @@ namespace systems
   /// If not defined then there is no surface [optional, float]
   ///
   /// ## Topics
-  /// * Subscribes to a ignition::msgs::Double on `buoyancy_engine` or
+  /// * Subscribes to a gz::msgs::Double on `buoyancy_engine` or
   ///  `/model/{namespace}/buoyancy_engine`. This is the set point for the
   ///  engine.
-  /// * Publishes a ignition::msgs::Double on `buoyancy_engine` or
+  /// * Publishes a gz::msgs::Double on `buoyancy_engine` or
   ///  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
   ///
   /// ## Examples
@@ -72,12 +72,12 @@ namespace systems
   /// ```
   /// Enter the following in a separate terminal:
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.003"
   /// ```
   /// To see the box float up.
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.
@@ -86,25 +86,25 @@ namespace systems
   /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
   /// ```
   class BuoyancyEnginePlugin:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: BuoyancyEnginePlugin();
 
     // Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/
     );
 
     // Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm);
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm);
 
     /// \brief Private data pointer
     private: std::unique_ptr<BuoyancyEnginePrivateData> dataPtr;

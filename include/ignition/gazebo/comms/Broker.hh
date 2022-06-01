@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/comms/Broker.hh>
+#include <ignition/gazebo/config.hh>

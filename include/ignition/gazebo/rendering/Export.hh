@@ -16,3 +16,4 @@
  */
 
 #include <gz/rendering/Export.hh>
+#include <ignition/gazebo/config.hh>

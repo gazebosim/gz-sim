@@ -75,7 +75,7 @@ COMMANDS = { 'model' =>
 }
 
 #
-# Class for the Ignition Gazebo Model command line tools.
+# Class for the Gazebo Model command line tools.
 #
 class Cmd
 

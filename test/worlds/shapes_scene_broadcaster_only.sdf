@@ -8,7 +8,7 @@
 
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
       <!-- Publish at high frequency to test periodic changes -->
       <state_hertz>1000</state_hertz>
     </plugin>

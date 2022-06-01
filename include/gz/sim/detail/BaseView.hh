@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_BASEVIEW_HH_
-#define GZ_GAZEBO_DETAIL_BASEVIEW_HH_
+#ifndef GZ_SIM_DETAIL_BASEVIEW_HH_
+#define GZ_SIM_DETAIL_BASEVIEW_HH_
 
 #include <cstddef>
 #include <set>
@@ -26,12 +26,12 @@
 #include "gz/sim/Types.hh"
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace detail
 {
 /// \brief A key into the map of views
@@ -62,10 +62,10 @@ struct ComponentTypeHasher
 /// use a cache to improve performance.
 ///
 /// Note that symbols for this class are visible because methods from this class
-/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// are used in templated Gz::Sim::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
-/// ignition::gazebo::detail) directly.
-class IGNITION_GAZEBO_VISIBLE BaseView
+/// gz::sim::detail) directly.
+class GZ_GAZEBO_VISIBLE BaseView
 {
   /// \brief Destructor
   public: virtual ~BaseView();
@@ -214,6 +214,6 @@ class IGNITION_GAZEBO_VISIBLE BaseView
 };
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 #endif

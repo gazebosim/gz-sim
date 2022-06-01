@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ParticleEmitter.hh>
+#include <ignition/gazebo/config.hh>

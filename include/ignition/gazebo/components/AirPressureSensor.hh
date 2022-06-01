@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/AirPressureSensor.hh>
+#include <ignition/gazebo/config.hh>

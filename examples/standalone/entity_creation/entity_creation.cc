@@ -22,7 +22,7 @@
 #include <gz/transport/Node.hh>
 
 // Create a transport node.
-ignition::transport::Node node;
+gz::transport::Node node;
 
 // timeout used for services
 constexpr unsigned int timeout = 5000;
@@ -30,9 +30,9 @@ constexpr unsigned int timeout = 5000;
 void createLight()
 {
   bool result;
-  ignition::msgs::Boolean rep;
+  gz::msgs::Boolean rep;
 //! [create light]
-  ignition::msgs::EntityFactory entityFactoryRequest;
+  gz::msgs::EntityFactory entityFactoryRequest;
 
   entityFactoryRequest.mutable_light()->set_name("point");
   entityFactoryRequest.mutable_light()->set_range(4);
@@ -40,12 +40,12 @@ void createLight()
   entityFactoryRequest.mutable_light()->set_attenuation_constant(0.2);
   entityFactoryRequest.mutable_light()->set_attenuation_quadratic(0.01);
   entityFactoryRequest.mutable_light()->set_cast_shadows(false);
-  entityFactoryRequest.mutable_light()->set_type(ignition::msgs::Light::POINT);
-  ignition::msgs::Set(
+  entityFactoryRequest.mutable_light()->set_type(gz::msgs::Light::POINT);
+  gz::msgs::Set(
     entityFactoryRequest.mutable_light()->mutable_direction(),
-    ignition::math::Vector3d(0.5, 0.2, -0.9));
-  ignition::msgs::Set(entityFactoryRequest.mutable_light()->mutable_pose(),
-    ignition::math::Pose3d(0.0, 0, 3.0, 0.0, 0.0, 0.0));
+    gz::math::Vector3d(0.5, 0.2, -0.9));
+  gz::msgs::Set(entityFactoryRequest.mutable_light()->mutable_pose(),
+    gz::math::Pose3d(0.0, 0, 3.0, 0.0, 0.0, 0.0));
 //! [create light]
 
 //! [call service create]
@@ -70,8 +70,8 @@ void createEntityFromStr(const std::string modelStr)
 {
 //! [call service create sphere]
   bool result;
-  ignition::msgs::EntityFactory req;
-  ignition::msgs::Boolean res;
+  gz::msgs::EntityFactory req;
+  gz::msgs::Boolean res;
   req.set_sdf(modelStr);
 
   bool executed = node.Request("/world/empty/create",
@@ -94,12 +94,12 @@ void createEntityFromStr(const std::string modelStr)
 //////////////////////////////////////////////////
 std::string generateLightStr(
   const std::string light_type, const std::string name,
-  const bool cast_shadows, const ignition::math::Pose3d pose,
-  const ignition::math::Color diffuse,
-  const ignition::math::Color specular,
+  const bool cast_shadows, const gz::math::Pose3d pose,
+  const gz::math::Color diffuse,
+  const gz::math::Color specular,
   const double attRange, const double attConstant,
   const double attLinear, const double attQuadratic,
-  const ignition::math::Vector3d direction,
+  const gz::math::Vector3d direction,
   const double spot_inner_angle,
   const double spot_outer_angle,
   const double spot_falloff
@@ -175,11 +175,11 @@ int main(int argc, char **argv)
 
   createEntityFromStr(
     generateLightStr("spot", "spot_light", false,
-      ignition::math::Pose3d(0, 0, 4, 0, 0, 0),
-      ignition::math::Color(0, 0, 1.0, 1.0),
-      ignition::math::Color(0, 0, 1.0, 1.0),
+      gz::math::Pose3d(0, 0, 4, 0, 0, 0),
+      gz::math::Color(0, 0, 1.0, 1.0),
+      gz::math::Color(0, 0, 1.0, 1.0),
       1.0, 0.2, 0.2, 0.001,
-      ignition::math::Vector3d(0.5, 0.2, -0.9),
+      gz::math::Vector3d(0.5, 0.2, -0.9),
       0.15, 0.45, 1.0));
 
   createLight();

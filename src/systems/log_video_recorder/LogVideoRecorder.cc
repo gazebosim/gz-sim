@@ -40,12 +40,12 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::LogVideoRecorderPrivate
+class gz::sim::systems::LogVideoRecorderPrivate
 {
   /// \brief Rewind the log
   public: void Rewind();
@@ -209,7 +209,7 @@ void LogVideoRecorder::Configure(
     std::chrono::milliseconds ms(static_cast<int64_t>(t * 1000.0));
     if (this->dataPtr->startTime > ms)
     {
-      ignerr << "<start_time> cannot be larger than <end_time>" << std::endl;
+      gzerr << "<start_time> cannot be larger than <end_time>" << std::endl;
     }
     else
     {
@@ -282,7 +282,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   {
     if (_info.paused)
     {
-      igndbg << "Warning: Playback is either manually paused or <start_time> "
+      gzdbg << "Warning: Playback is either manually paused or <start_time> "
              << "is smaller than total log playback time!"
              << std::endl;
     }
@@ -339,7 +339,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
     {
       // No more models to record.
       if (this->dataPtr->statusMsg.data().empty())
-        igndbg << "Finish Recording" << std::endl;
+        gzdbg << "Finish Recording" << std::endl;
       this->dataPtr->statusMsg.set_data("end");
       this->dataPtr->statusPub.Publish(this->dataPtr->statusMsg);
 
@@ -365,18 +365,18 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   // rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    igndbg << "Detected Rewind." << std::endl;
+    gzdbg << "Detected Rewind." << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Rewind()
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending rewind request" << std::endl;
+      gzerr << "Error sending rewind request" << std::endl;
   };
 
 
@@ -384,7 +384,7 @@ void LogVideoRecorderPrivate::Rewind()
   req.set_rewind(true);
   if (this->node.Request(this->playbackControlService, req, cb))
   {
-    igndbg << "Rewind Playback " << std::endl;
+    gzdbg << "Rewind Playback " << std::endl;
     this->rewindRequested = true;
   }
 }
@@ -393,38 +393,38 @@ void LogVideoRecorderPrivate::Rewind()
 void LogVideoRecorderPrivate::Play()
 {
   this->eventManager->Emit<events::Pause>(false);
-  igndbg << "Play log " << std::endl;
+  gzdbg << "Play log " << std::endl;
 }
 
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Follow(const std::string &_entity)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending follow request" << std::endl;
+      gzerr << "Error sending follow request" << std::endl;
   };
 
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data(_entity);
   if (this->node.Request(this->followService, req, cb))
   {
-    igndbg << "Following entity: " << _entity << std::endl;
+    gzdbg << "Following entity: " << _entity << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Record(bool _record)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending record request" << std::endl;
+      gzerr << "Error sending record request" << std::endl;
   };
 
-  ignition::msgs::VideoRecord req;
+  gz::msgs::VideoRecord req;
 
   if (_record)
   {
@@ -432,11 +432,11 @@ void LogVideoRecorderPrivate::Record(bool _record)
     req.set_start(true);
     req.set_format(this->videoFormat);
     req.set_save_filename(filename);
-    igndbg << "Recording video " << filename << std::endl;
+    gzdbg << "Recording video " << filename << std::endl;
   }
   else
   {
-    igndbg << "Stopping video recorder" << std::endl;
+    gzdbg << "Stopping video recorder" << std::endl;
     req.set_stop(true);
     this->recordStopRequested = true;
     this->recordStopTime = std::chrono::system_clock::now();
@@ -445,11 +445,15 @@ void LogVideoRecorderPrivate::Record(bool _record)
 }
 
 IGNITION_ADD_PLUGIN(LogVideoRecorder,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     LogVideoRecorder::ISystemConfigure,
                     LogVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+                          "gz::sim::systems::LogVideoRecorder")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "ignition::gazebo::systems::LogVideoRecorder")

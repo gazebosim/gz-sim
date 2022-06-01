@@ -17,7 +17,7 @@
 
 #include "ModelPhotoShootTest.hh"
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 // Test the Model Photo Shoot plugin on the example world.
 TEST_F(ModelPhotoShootTest,

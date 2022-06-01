@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/TestFixture.hh>
+#include <ignition/gazebo/config.hh>

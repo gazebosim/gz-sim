@@ -20,28 +20,28 @@
 #include <sdf/Camera.hh>
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/Temperature.hh"
-#include "ignition/gazebo/components/TemperatureRange.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/Temperature.hh"
+#include "gz/sim/components/TemperatureRange.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Thermal system
 class ThermalTest : public InternalFixture<::testing::Test>
@@ -67,11 +67,11 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
   std::map<std::string, components::TemperatureRangeInfo>
     entityTempRange;
   std::map<std::string, std::string> heatSignatures;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {
@@ -86,7 +86,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 
       _ecm.Each<components::TemperatureRange, components::SourceFilePath,
         components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::TemperatureRange *_tempRange,
               const components::SourceFilePath *_heatSigURI,
               const components::Name *_name) -> bool
@@ -192,11 +192,11 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
   double maxTemp = 0.0;
   std::string name;
   sdf::Sensor sensorSdf;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::ThermalCamera *_sensor,
               const components::Name *_name) -> bool
           {

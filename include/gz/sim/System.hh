@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_SYSTEM_HH_
-#define GZ_GAZEBO_SYSTEM_HH_
+#ifndef GZ_SIM_SYSTEM_HH_
+#define GZ_SIM_SYSTEM_HH_
 
 #include <memory>
 
@@ -27,12 +27,12 @@
 
 #include <sdf/Element.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Namespace for all System plugins. Refer to the System class for
     /// more information about systems.
     namespace systems {}

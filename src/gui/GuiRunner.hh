@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
-#define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
+#ifndef GZ_SIM_GUI_GUIRUNNER_HH_
+#define GZ_SIM_GUI_GUIRUNNER_HH_
 
 #include <gz/msgs/serialized_map.pb.h>
 
@@ -28,15 +28,15 @@
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
+class GZ_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 

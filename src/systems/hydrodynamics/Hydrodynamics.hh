@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
+#ifndef GZ_SIM_SYSTEMS_HYDRODYNAMICS_HH_
+#define GZ_SIM_SYSTEMS_HYDRODYNAMICS_HH_
 
 #include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   class HydrodynamicsPrivateData;
@@ -89,12 +89,12 @@ namespace systems
   /// To control the rudder of the craft run the following
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
-  ///    -m ignition.msgs.Double -p 'data: -0.17'
+  ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
-  /// -m ignition.msgs.Double -p 'data: -31'
+  /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
   ///
@@ -103,7 +103,7 @@ namespace systems
   /// hydrodynamics plugin allows simulation of such currents. We can add
   /// a current simply by publishing the following:
   /// ```
-  /// ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
+  /// ign topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
   /// ```
   /// You should observe your vehicle slowly drift to the side.
   ///
@@ -111,9 +111,9 @@ namespace systems
   /// [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
   ///    United Kingdom: Wiley, 1994.
   class Hydrodynamics:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -123,15 +123,15 @@ namespace systems
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm) override;
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

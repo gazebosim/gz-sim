@@ -23,12 +23,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Holds the physics engine shared library.

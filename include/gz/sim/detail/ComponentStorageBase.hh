@@ -14,25 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
-#define GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#ifndef GZ_SIM_DETAIL_COMPONENTSTORAGEBASE_HH_
+#define GZ_SIM_DETAIL_COMPONENTSTORAGEBASE_HH_
 
 #include "gz/sim/Export.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     //
     /// \brief All component instances of the same type are stored
     /// sequentially in memory. This is a base class for storing components
     /// of a particular type.
-    class IGNITION_GAZEBO_HIDDEN ComponentStorageBase
+    class GZ_GAZEBO_HIDDEN ComponentStorageBase
     {
       /// \brief Constructor
-      public: IGN_DEPRECATED(6) ComponentStorageBase() = default;
+      public: GZ_DEPRECATED(6) ComponentStorageBase() = default;
 
       /// \brief Destructor
       public: virtual ~ComponentStorageBase() = default;
@@ -40,10 +40,10 @@ namespace ignition
 
     /// \brief Templated implementation of component storage.
     template<typename ComponentTypeT>
-    class IGNITION_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
+    class GZ_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
     {
       /// \brief Constructor
-      public: explicit IGN_DEPRECATED(6) ComponentStorage()
+      public: explicit GZ_DEPRECATED(6) ComponentStorage()
               : ComponentStorageBase()
       {
       }

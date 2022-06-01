@@ -8,15 +8,15 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <model name="tile_1">
@@ -43,7 +43,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <disable_physics_time>15</disable_physics_time>
        <allow_renaming>true</allow_renaming>
@@ -94,7 +94,7 @@
       </link>
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
       <performer name="perf1">
         <ref>sphere</ref>
         <geometry>

@@ -17,9 +17,9 @@
 
 syntax = "proto3";
 
-package ignition.gazebo.private_msgs;
+package gz.sim.private_msgs;
 
-import "ignition/msgs/header.proto";
+import "gz/msgs/header.proto";
 
 /// \brief Message to control various aspects of peer execution.
 /// This message is only sent from NetworkPrimary to NetworkSecondary in order
@@ -27,7 +27,7 @@ import "ignition/msgs/header.proto";
 message PeerControl
 {
   /// \brief Optional header data
-  ignition.msgs.Header header = 1;
+  gz.msgs.Header header = 1;
 
   /// \brief Enable simulation on network secondary (True to enable)
   bool enable_sim = 2;

@@ -7,15 +7,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
       <disable_on_drained_battery>true</disable_on_drained_battery>
     </plugin>
@@ -96,7 +96,7 @@
       </model>
 
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>

@@ -9,7 +9,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-joint-controller-system"
-        name="ignition::gazebo::systems::JointController">
+        name="gz::sim::systems::JointController">
         <joint_name>invalid</joint_name>
       </plugin>
     </model>

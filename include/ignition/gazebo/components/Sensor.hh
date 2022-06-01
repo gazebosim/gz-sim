@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Sensor.hh>
+#include <ignition/gazebo/config.hh>

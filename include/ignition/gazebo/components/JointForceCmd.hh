@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointForceCmd.hh>
+#include <ignition/gazebo/config.hh>

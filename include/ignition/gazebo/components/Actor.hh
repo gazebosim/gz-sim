@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Actor.hh>
+#include <ignition/gazebo/config.hh>

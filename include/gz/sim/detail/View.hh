@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_VIEW_HH_
-#define GZ_GAZEBO_DETAIL_VIEW_HH_
+#ifndef GZ_SIM_DETAIL_VIEW_HH_
+#define GZ_SIM_DETAIL_VIEW_HH_
 
 #include <set>
 #include <tuple>
@@ -31,21 +31,21 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/detail/BaseView.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace detail
 {
 /// \brief A view that caches a particular set of component type data.
 ///
 /// Note that symbols for this class are visible because methods from this class
-/// are used in templated Ignition::Gazebo::EntityComponentManager methods.
+/// are used in templated Gz::Sim::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
-/// ignition::gazebo::detail) directly.
-class IGNITION_GAZEBO_VISIBLE View : public BaseView
+/// gz::sim::detail) directly.
+class GZ_GAZEBO_VISIBLE View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
   /// The component types held in this container match the component types that
@@ -185,6 +185,6 @@ void View::AddEntityWithComps(const Entity &_entity, const bool _new,
 }
 }  // namespace detail
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 #endif

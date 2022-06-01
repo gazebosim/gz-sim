@@ -23,8 +23,8 @@
 #include "gz/sim/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for MsgManager class
 class MsgManagerTest : public InternalFixture<::testing::Test>

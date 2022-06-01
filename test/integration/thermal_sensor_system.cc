@@ -20,26 +20,26 @@
 #include <sdf/Camera.hh>
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Temperature.hh"
-#include "ignition/gazebo/components/TemperatureRange.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Temperature.hh"
+#include "gz/sim/components/TemperatureRange.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Thermal system
 class ThermalSensorTest : public InternalFixture<::testing::Test>
@@ -95,11 +95,11 @@ TEST_F(ThermalSensorTest,
   std::string name;
   sdf::Sensor sensorSdf;
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {
@@ -112,11 +112,11 @@ TEST_F(ThermalSensorTest,
             return true;
           });
     });
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const gz::sim::Entity &_id,
               const components::ThermalCamera *_sensor,
               const components::Name *_name) -> bool
           {

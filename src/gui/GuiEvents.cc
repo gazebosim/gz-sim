@@ -17,7 +17,7 @@
 
 #include "gz/sim/gui/GuiEvents.hh"
 
-class ignition::gazebo::gui::events::GuiNewRemovedEntities::Implementation
+class gz::sim::gui::events::GuiNewRemovedEntities::Implementation
 {
   /// \brief Set of newly created entities
   public: std::set<Entity> newEntities;
@@ -26,7 +26,7 @@ class ignition::gazebo::gui::events::GuiNewRemovedEntities::Implementation
   public: std::set<Entity> removedEntities;
 };
 
-class ignition::gazebo::gui::events::NewRemovedEntities::Implementation
+class gz::sim::gui::events::NewRemovedEntities::Implementation
 {
   /// \brief Set of newly created entities
   public: std::set<Entity> newEntities;
@@ -35,7 +35,7 @@ class ignition::gazebo::gui::events::NewRemovedEntities::Implementation
   public: std::set<Entity> removedEntities;
 };
 
-class ignition::gazebo::gui::events::ModelEditorAddEntity::Implementation
+class gz::sim::gui::events::ModelEditorAddEntity::Implementation
 {
   /// \brief Custom data map
   public: QMap<QString, QString> data;
@@ -47,20 +47,20 @@ class ignition::gazebo::gui::events::ModelEditorAddEntity::Implementation
   public: QString type;
 
   /// \breif Parent entity.
-  public: ignition::gazebo::Entity parent;
+  public: gz::sim::Entity parent;
 };
 
-class ignition::gazebo::gui::events::VisualPlugin::Implementation
+class gz::sim::gui::events::VisualPlugin::Implementation
 {
   /// \brief Entity to load the visual plugin for
-  public: ignition::gazebo::Entity entity;
+  public: gz::sim::Entity entity;
 
   /// \brief Sdf element of the visual plugin
   public: sdf::ElementPtr element;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace gui;
 using namespace events;
 
@@ -110,7 +110,7 @@ const std::set<Entity> &NewRemovedEntities::RemovedEntities() const
 
 /////////////////////////////////////////////////
 ModelEditorAddEntity::ModelEditorAddEntity(QString _entity, QString _type,
-    ignition::gazebo::Entity _parent) :
+    gz::sim::Entity _parent) :
   QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->entity = _entity;
@@ -131,7 +131,7 @@ QString ModelEditorAddEntity::EntityType() const
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::Entity ModelEditorAddEntity::ParentEntity() const
+gz::sim::Entity ModelEditorAddEntity::ParentEntity() const
 {
   return this->dataPtr->parent;
 }
@@ -143,7 +143,7 @@ QMap<QString, QString> &ModelEditorAddEntity::Data()
 }
 
 /////////////////////////////////////////////////
-VisualPlugin::VisualPlugin(ignition::gazebo::Entity _entity,
+VisualPlugin::VisualPlugin(gz::sim::Entity _entity,
     const sdf::ElementPtr &_elem) :
     QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
 {
@@ -152,7 +152,7 @@ VisualPlugin::VisualPlugin(ignition::gazebo::Entity _entity,
 }
 
 /////////////////////////////////////////////////
-ignition::gazebo::Entity VisualPlugin::Entity() const
+gz::sim::Entity VisualPlugin::Entity() const
 {
   return this->dataPtr->entity;
 }

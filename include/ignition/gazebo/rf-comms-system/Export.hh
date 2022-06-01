@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/rf-comms-system/Export.hh>
+#include <ignition/gazebo/config.hh>

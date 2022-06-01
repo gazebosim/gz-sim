@@ -25,12 +25,12 @@
 #include "PeerTracker.hh"
 #include "gz/sim/EventManager.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 TEST(PeerTracker, PeerTracker)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   std::atomic<int> peers = 0;
@@ -146,7 +146,7 @@ TEST(PeerTracker, PeerTracker)
 //////////////////////////////////////////////////
 TEST(PeerTracker, IGN_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
   // Tracker with artificially short timeout.
@@ -190,15 +190,15 @@ TEST(PeerTracker, IGN_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
 //////////////////////////////////////////////////
 TEST(PeerTracker, Partitioned)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
-  auto options1 = ignition::transport::NodeOptions();
+  auto options1 = gz::transport::NodeOptions();
   options1.SetPartition("p1");
   auto tracker1 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options1);
 
-  auto options2 = ignition::transport::NodeOptions();
+  auto options2 = gz::transport::NodeOptions();
   options2.SetPartition("p2");
   auto tracker2 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
@@ -238,15 +238,15 @@ TEST(PeerTracker, Partitioned)
 //////////////////////////////////////////////////
 TEST(PeerTracker, Namespaced)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
-  auto options1 = ignition::transport::NodeOptions();
+  auto options1 = gz::transport::NodeOptions();
   options1.SetNameSpace("ns1");
   auto tracker1 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options1);
 
-  auto options2 = ignition::transport::NodeOptions();
+  auto options2 = gz::transport::NodeOptions();
   options2.SetNameSpace("ns2");
   auto tracker2 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr, options2);
@@ -280,14 +280,14 @@ TEST(PeerTracker, Namespaced)
 #ifdef  __linux__
 TEST(PeerTracker, PartitionedEnv)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;
 
-  ignition::common::setenv("IGN_PARTITION", "p1");
+  gz::common::setenv("IGN_PARTITION", "p1");
   auto tracker1 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
-  ignition::common::setenv("IGN_PARTITION", "p2");
+  gz::common::setenv("IGN_PARTITION", "p2");
   auto tracker2 = PeerTracker(
       PeerInfo(NetworkRole::SimulationPrimary), &eventMgr);
 
@@ -298,11 +298,11 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(0u, tracker1.NumPeers());
   EXPECT_EQ(0u, tracker2.NumPeers());
 
-  ignition::common::setenv("IGN_PARTITION", "p1");
+  gz::common::setenv("IGN_PARTITION", "p1");
   auto tracker3 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
-  ignition::common::setenv("IGN_PARTITION", "p2");
+  gz::common::setenv("IGN_PARTITION", "p2");
   auto tracker4 = PeerTracker(
       PeerInfo(NetworkRole::SimulationSecondary), &eventMgr);
 
@@ -316,6 +316,6 @@ TEST(PeerTracker, PartitionedEnv)
   EXPECT_EQ(1u, tracker3.NumPeers());
   EXPECT_EQ(1u, tracker4.NumPeers());
 
-  ignition::common::unsetenv("IGN_PARTITION");
+  gz::common::unsetenv("IGN_PARTITION");
 }
 #endif

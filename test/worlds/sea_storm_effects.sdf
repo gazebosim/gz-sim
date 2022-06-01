@@ -9,16 +9,16 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
 
     <plugin
       filename="ignition-gazebo-wind-effects-system"
-      name="ignition::gazebo::systems::WindEffects">
+      name="gz::sim::systems::WindEffects">
       <force_approximation_scaling_factor>
         <when zle="0">0</when>  <!-- No wind below sea level -->
         <when zgt="0" zlt="5">0.2</when>  <!-- Transition layer -->

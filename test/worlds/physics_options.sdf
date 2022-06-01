@@ -12,7 +12,7 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
   </world>
 </sdf>

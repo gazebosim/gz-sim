@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/PoseCmd.hh>
+#include <ignition/gazebo/config.hh>

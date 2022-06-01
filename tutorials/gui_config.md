@@ -1,9 +1,9 @@
 \page gui_config GUI Configuration
 
-Ignition Gazebo's graphical user interface is powered by
-[Ignition GUI](https://ignitionrobotics.org/libs/gui). Therefore, Gazebo's
+Gazebo Sim's graphical user interface is powered by
+[Gazebo GUI](https://gazebosim.org/libs/gui). Therefore, Gazebo Sim's
 GUI layout can be defined in
-[Ignition GUI configuration files](https://ignitionrobotics.org/api/gui/2.1/config.html).
+[Gazebo GUI configuration files](https://gazebosim.org/api/gui/2.1/config.html).
 These are XML files that describe what plugins to be loaded and with what
 settings.
 
@@ -13,8 +13,8 @@ There are a few places where the GUI configuration can come from:
 
 1. A file passed to the `--gui-config` command line argument
 2. A `<gui>` element inside an SDF file
-3. The default configuration file at `$HOME/.ignition/gazebo/<#>/gui.config` \*,
-   where `<#>` is Gazebo's major version.
+3. The default configuration file at `$HOME/.gz/sim/<#>/gui.config` \*,
+   where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a user chooses a `--gui-config`, the SDF's `<gui>` element is ignored. And
@@ -22,13 +22,13 @@ the default configuration file is only loaded if no configuration is passed
 through the command line or the SDF file.
 
 > \* For log-playback, the default file is
-> `$HOME/.ignition/gazebo/<#>/playback_gui.config`
+> `$HOME/.gz/sim/<#>/playback_gui.config`
 
 ## Try it out
 
 ### Default configuration
 
-Let's try this in practice. First, let's open Ignition Gazebo without passing
+Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
 `ign gazebo`
@@ -40,9 +40,9 @@ You should see an empty world with several plugins loaded by default, such as th
 
 By default, you're loading this file:
 
-`$HOME/.ignition/gazebo/<#>/gui.config`
+`$HOME/.gz/sim/<#>/gui.config`
 
-That file is created the first time you load Ignition Gazebo. Once it is
+That file is created the first time you load Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
 means that you can customize it with your preferences and they will be applied
 every time Ignition is started!
@@ -51,7 +51,7 @@ Let's try customizing it:
 
 1. Open this file with your favorite editor:
 
-    `$HOME/.ignition/gazebo/<#>/gui.config`
+    `$HOME/.gz/sim/<#>/gui.config`
 
 2. Change `material_theme` from `Light` to `Dark`
 
@@ -68,7 +68,7 @@ provided by Ignition (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 
-`rm $HOME/.ignition/gazebo/<#>/gui.config`
+`rm $HOME/.gz/sim/<#>/gui.config`
 
 ### SDF
 
@@ -81,7 +81,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
   <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -169,7 +169,7 @@ hand, we'll create it from the UI.
 3. Gazebo should open with your custom layout.
 
 **Tip**: From the top-left menu, you can choose "Save client configuration" to
-save directly to `$HOME/.ignition/gazebo/<#>/gui.config`.
+save directly to `$HOME/.gz/sim/<#>/gui.config`.
 
 @image html files/gui_config/cmd_line.png
 

@@ -22,24 +22,24 @@
 
 #include "World.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
 void defineGazeboWorld(pybind11::object module)
 {
-  pybind11::class_<ignition::gazebo::World>(module, "World")
-  .def(pybind11::init<ignition::gazebo::Entity>())
+  pybind11::class_<gz::sim::World>(module, "World")
+  .def(pybind11::init<gz::sim::Entity>())
   .def(
-    "model_by_name", &ignition::gazebo::World::ModelByName,
+    "model_by_name", &gz::sim::World::ModelByName,
     "Get the ID of a model entity which is an immediate child of "
     " this world.")
   .def(
-    "gravity", &ignition::gazebo::World::Gravity,
+    "gravity", &gz::sim::World::Gravity,
     "Get the gravity in m/s^2.");
 }
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

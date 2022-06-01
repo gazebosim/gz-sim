@@ -17,7 +17,7 @@ Some of them are listed below and demonstrated in this [example ERB file](https:
 ## Set up Ruby
 
 Firstly, Ruby needs to be installed.
-If you have gone through [Ignition's installation guide](https://ignitionrobotics.org/docs/latest/install), it's most likely you already have Ruby installed.
+If you have gone through [Gazebo Sim's installation guide](https://gazebosim.org/docs/latest/install), it's most likely you already have Ruby installed.
 To check if Ruby is installed, use 
 ```{.sh}
 ruby --version
@@ -102,7 +102,7 @@ Each box model also has a different name and pose to ensure they show up as indi
     %>
 ```
 
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
+[Here](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
 Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
 
@@ -160,7 +160,7 @@ erb my_first_erb.erb > my_first_erb.sdf
 To test if the ERB template works, run the SDF file with the `ign gazebo` command
 
 ```{.sh}
-# run with Ignition Gazebo
+# run with Gazebo
 ign gazebo my_first_erb.sdf
 ```
 

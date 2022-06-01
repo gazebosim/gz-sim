@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/track-controller-system/Export.hh>
+#include <ignition/gazebo/config.hh>

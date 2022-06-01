@@ -60,12 +60,12 @@
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SensorsPrivate
+class gz::sim::systems::SensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
@@ -100,7 +100,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
   /// Useful for detecting when a sensor Entity has been deleted and trigger
-  /// the destruction of the corresponding ignition::sensors Sensor object
+  /// the destruction of the corresponding gz::sensors Sensor object
   public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
@@ -126,7 +126,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: ignition::common::ConnectionPtr stopConn;
+  public: gz::common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
@@ -219,7 +219,7 @@ void SensorsPrivate::WaitForInit()
 {
   while (!this->initialized && this->running)
   {
-    igndbg << "Waiting for init" << std::endl;
+    gzdbg << "Waiting for init" << std::endl;
     std::unique_lock<std::mutex> lock(this->renderMutex);
     // Wait to be ready for initialization or stopped running.
     // We need rendering sensors to be available to initialize.
@@ -231,7 +231,7 @@ void SensorsPrivate::WaitForInit()
     if (this->doInit)
     {
       // Only initialize if there are rendering sensors
-      igndbg << "Initializing render context" << std::endl;
+      gzdbg << "Initializing render context" << std::endl;
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
@@ -245,7 +245,7 @@ void SensorsPrivate::WaitForInit()
     this->updateAvailable = false;
     this->renderCv.notify_one();
   }
-  igndbg << "Rendering Thread initialized" << std::endl;
+  gzdbg << "Rendering Thread initialized" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -346,7 +346,7 @@ void SensorsPrivate::RenderThread()
 {
   IGN_PROFILE_THREAD_NAME("RenderThread");
 
-  igndbg << "SensorsPrivate::RenderThread started" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread started" << std::endl;
 
   // We have to wait for rendering sensors to be available
   this->WaitForInit();
@@ -360,13 +360,13 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
-  igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void SensorsPrivate::Run()
 {
-  igndbg << "SensorsPrivate::Run" << std::endl;
+  gzdbg << "SensorsPrivate::Run" << std::endl;
   this->running = true;
   this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
 }
@@ -374,7 +374,7 @@ void SensorsPrivate::Run()
 //////////////////////////////////////////////////
 void SensorsPrivate::Stop()
 {
-  igndbg << "SensorsPrivate::Stop" << std::endl;
+  gzdbg << "SensorsPrivate::Stop" << std::endl;
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->running = false;
 
@@ -447,7 +447,7 @@ void Sensors::Configure(const Entity &/*_id*/,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  igndbg << "Configuring Sensors system" << std::endl;
+  gzdbg << "Configuring Sensors system" << std::endl;
 
   // Setup rendering
   std::string engineName =
@@ -536,7 +536,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -552,7 +552,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
          _ecm.HasComponentType(components::WideAngleCamera::typeId)))
     {
-      igndbg << "Initialization needed" << std::endl;
+      gzdbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
       this->dataPtr->renderCv.notify_one();
     }
@@ -683,7 +683,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
-    ignerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
+    gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
   }
 
@@ -727,7 +727,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << _sdf.Name()
+    gzerr << "Failed to create sensor [" << _sdf.Name()
            << "]." << std::endl;
     return std::string();
   }
@@ -802,7 +802,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
         std::fabs(this->dataPtr->ambientTemperatureGradient * height);
     thermalSensor->SetAmbientTemperatureRange(tempRange);
 
-    ignmsg << "Setting ambient temperature to "
+    gzmsg << "Setting ambient temperature to "
            << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
            << this->dataPtr->ambientTemperatureGradient << " K/m. "
            << "The resulting temperature range is: " << tempRange
@@ -818,4 +818,7 @@ IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")

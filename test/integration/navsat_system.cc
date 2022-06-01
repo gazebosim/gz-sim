@@ -17,30 +17,30 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/navsat.pb.h>
+#include <gz/msgs/navsat.pb.h>
 #include <mutex>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/NavSat.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/NavSat.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test NavSatTest system
 class NavSatTest : public InternalFixture<::testing::Test>
@@ -71,12 +71,12 @@ TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   bool checkedComponents{false};
   fixture.OnPostUpdate(
     [&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Sensor, components::NavSat, components::Name,
                 components::SensorTopic>(
-          [&](const ignition::gazebo::Entity &,
+          [&](const gz::sim::Entity &,
               const components::Sensor *,
               const components::NavSat *,
               const components::Name *_name,

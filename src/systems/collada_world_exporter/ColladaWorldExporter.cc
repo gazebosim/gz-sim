@@ -50,12 +50,12 @@
 
 #include "ColladaWorldExporter.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 
-class ignition::gazebo::systems::ColladaWorldExporterPrivate
+class gz::sim::systems::ColladaWorldExporterPrivate
 {
   // Default constructor
   public: ColladaWorldExporterPrivate() = default;
@@ -85,7 +85,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
             components::Name,
             components::Geometry,
             components::Transparency>(
-    [&](const ignition::gazebo::Entity &_entity,
+    [&](const gz::sim::Entity &_entity,
         const components::Visual *,
         const components::Name *_name,
         const components::Geometry *_geom,
@@ -94,7 +94,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       std::string name = _name->Data().empty() ? std::to_string(_entity) :
           _name->Data();
 
-      math::Pose3d worldPose = gazebo::worldPose(_entity, _ecm);
+      math::Pose3d worldPose = sim::worldPose(_entity, _ecm);
 
       common::MaterialPtr mat = std::make_shared<common::Material>();
       auto material = _ecm.Component<components::Material>(_entity);
@@ -107,12 +107,12 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       }
       mat->SetTransparency(_transparency->Data());
 
-      const ignition::common::Mesh *mesh;
-      std::weak_ptr<ignition::common::SubMesh> subm;
+      const gz::common::Mesh *mesh;
+      std::weak_ptr<gz::common::SubMesh> subm;
       math::Vector3d scale;
       math::Matrix4d matrix(worldPose);
-      ignition::common::MeshManager *meshManager =
-          ignition::common::MeshManager::Instance();
+      gz::common::MeshManager *meshManager =
+          gz::common::MeshManager::Instance();
 
       auto addSubmeshFunc = [&](int _matIndex)
       {
@@ -210,13 +210,13 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
 
         if (fullPath.empty())
         {
-          ignerr << "Mesh geometry missing uri" << std::endl;
+          gzerr << "Mesh geometry missing uri" << std::endl;
           return true;
         }
         mesh = meshManager->Load(fullPath);
 
         if (!mesh) {
-          ignerr << "mesh not found!" << std::endl;
+          gzerr << "mesh not found!" << std::endl;
           return true;
         }
 
@@ -246,7 +246,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       }
       else
       {
-        ignwarn << "Unsupported geometry type" << std::endl;
+        gzwarn << "Unsupported geometry type" << std::endl;
       }
 
       return true;
@@ -301,7 +301,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
     common::ColladaExporter exporter;
     exporter.Export(&worldMesh, "./" + worldMesh.Name(), true,
                     subMeshMatrix, lights);
-    ignmsg << "The world has been exported into the "
+    gzmsg << "The world has been exported into the "
            << "./" + worldMesh.Name() << " directory." << std::endl;
     this->exported = true;
   }
@@ -327,5 +327,9 @@ IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     System,
                     ColladaWorldExporter::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
+                          "gz::sim::systems::ColladaWorldExporter")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
                           "ignition::gazebo::systems::ColladaWorldExporter")

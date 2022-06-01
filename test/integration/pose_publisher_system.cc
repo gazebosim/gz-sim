@@ -18,19 +18,19 @@
 #include <gtest/gtest.h>
 #include <mutex>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
@@ -38,8 +38,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>
@@ -99,7 +99,7 @@ std::string addDelimiter(const std::vector<std::string> &_name,
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   // Start server
@@ -143,8 +143,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &_info,
+      const sim::EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -191,7 +191,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          gz::math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
            math::secNsecToTimePoint(
              simTimeSecNsec.first,
@@ -240,7 +240,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
   // sort the pose msgs according to timestamp
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
-      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+      const gz::msgs::Pose &_l, const gz::msgs::Pose &_r)
   {
     std::chrono::steady_clock::time_point lt =
       math::secNsecToTimePoint(
@@ -438,8 +438,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps, &staticPoseTimestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &_info,
+      const sim::EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -486,7 +486,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          gz::math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
           math::secNsecToTimePoint(
             simTimeSecNsec.first, simTimeSecNsec.second));

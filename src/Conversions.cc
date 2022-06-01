@@ -73,12 +73,12 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
+using namespace gz;
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Entity_Type gz::sim::convert(const std::string &_in)
 {
   msgs::Entity_Type out = msgs::Entity_Type_NONE;
 
@@ -115,8 +115,8 @@ msgs::Entity_Type ignition::gazebo::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
+GZ_GAZEBO_VISIBLE
+math::Pose3d gz::sim::convert(const msgs::Pose &_in)
 {
   math::Pose3d out(_in.position().x(),
                    _in.position().y(),
@@ -132,8 +132,8 @@ math::Pose3d ignition::gazebo::convert(const msgs::Pose &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Collision gz::sim::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
   out.set_name(_in.Name());
@@ -145,8 +145,8 @@ msgs::Collision ignition::gazebo::convert(const sdf::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Collision gz::sim::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
   out.SetName(_in.name());
@@ -157,8 +157,8 @@ sdf::Collision ignition::gazebo::convert(const msgs::Collision &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
   if (_in.Type() == sdf::GeometryType::BOX && _in.BoxShape())
@@ -244,7 +244,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
   }
   else
   {
-    ignerr << "Geometry type [" << static_cast<int>(_in.Type())
+    gzerr << "Geometry type [" << static_cast<int>(_in.Type())
            << "] not supported" << std::endl;
   }
   return out;
@@ -252,8 +252,8 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
 {
   sdf::Geometry out;
   if (_in.type() == msgs::Geometry::BOX && _in.has_box())
@@ -359,7 +359,7 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
   }
   else
   {
-    ignerr << "Geometry type [" << static_cast<int>(_in.type())
+    gzerr << "Geometry type [" << static_cast<int>(_in.type())
            << "] not supported" << std::endl;
   }
   return out;
@@ -367,8 +367,8 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Material gz::sim::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
@@ -427,8 +427,8 @@ msgs::Material ignition::gazebo::convert(const sdf::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Material gz::sim::convert(const msgs::Material &_in)
 {
   sdf::Material out;
   out.SetAmbient(msgs::Convert(_in.ambient()));
@@ -471,8 +471,8 @@ sdf::Material ignition::gazebo::convert(const msgs::Material &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Actor gz::sim::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
   out.mutable_entity()->set_name(_in.Name());
@@ -511,8 +511,8 @@ msgs::Actor ignition::gazebo::convert(const sdf::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Actor gz::sim::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
   out.SetName(_in.entity().name());
@@ -554,8 +554,8 @@ sdf::Actor ignition::gazebo::convert(const msgs::Actor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Light gz::sim::convert(const sdf::Light &_in)
 {
   msgs::Light out;
   out.set_name(_in.Name());
@@ -586,8 +586,8 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Light gz::sim::convert(const msgs::Light &_in)
 {
   sdf::Light out;
   out.SetName(_in.name());
@@ -618,8 +618,8 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
+GZ_GAZEBO_VISIBLE
+msgs::GUI gz::sim::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
 
@@ -649,7 +649,7 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 
   if (elem->HasElement("camera"))
   {
-    ignwarn << "<gui><camera> can't be converted yet" << std::endl;
+    gzwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
 
   return out;
@@ -657,13 +657,13 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Time ignition::gazebo::convert(
+GZ_GAZEBO_VISIBLE
+msgs::Time gz::sim::convert(
     const std::chrono::steady_clock::duration &_in)
 {
   msgs::Time out;
 
-  auto secNsec = ignition::math::durationToSecNsec(_in);
+  auto secNsec = gz::math::durationToSecNsec(_in);
 
   out.set_sec(secNsec.first);
   out.set_nsec(secNsec.second);
@@ -673,8 +673,8 @@ msgs::Time ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-std::chrono::steady_clock::duration ignition::gazebo::convert(
+GZ_GAZEBO_VISIBLE
+std::chrono::steady_clock::duration gz::sim::convert(
     const msgs::Time &_in)
 {
   return std::chrono::seconds(_in.sec()) + std::chrono::nanoseconds(_in.nsec());
@@ -682,8 +682,8 @@ std::chrono::steady_clock::duration ignition::gazebo::convert(
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 {
   msgs::Inertial out;
   msgs::Set(out.mutable_pose(), _in.Pose());
@@ -699,8 +699,8 @@ msgs::Inertial ignition::gazebo::convert(const math::Inertiald &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
+GZ_GAZEBO_VISIBLE
+math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 {
   math::MassMatrix3d massMatrix;
   massMatrix.SetMass(_in.mass());
@@ -719,8 +719,8 @@ math::Inertiald ignition::gazebo::convert(const msgs::Inertial &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Axis gz::sim::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
@@ -749,13 +749,13 @@ msgs::Axis ignition::gazebo::convert(const sdf::JointAxis &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
+GZ_GAZEBO_VISIBLE
+sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
   sdf::Errors errors = out.SetXyz(msgs::Convert(_in.xyz()));
   for (const auto &err : errors) {
-    ignerr << err.Message() << std::endl;
+    gzerr << err.Message() << std::endl;
   }
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
   out.SetDamping(_in.damping());
@@ -769,8 +769,8 @@ sdf::JointAxis ignition::gazebo::convert(const msgs::Axis &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Scene gz::sim::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;
   // todo(anyone) add Name to sdf::Scene?
@@ -800,8 +800,8 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Scene gz::sim::convert(const msgs::Scene &_in)
 {
   sdf::Scene out;
   // todo(anyone) add SetName to sdf::Scene?
@@ -830,8 +830,8 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
 {
   msgs::Atmosphere out;
   out.set_temperature(_in.Temperature().Kelvin());
@@ -848,8 +848,8 @@ msgs::Atmosphere ignition::gazebo::convert(const sdf::Atmosphere &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Atmosphere ignition::gazebo::convert(const msgs::Atmosphere &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Atmosphere gz::sim::convert(const msgs::Atmosphere &_in)
 {
   sdf::Atmosphere out;
   out.SetTemperature(math::Temperature(_in.temperature()));
@@ -865,17 +865,17 @@ sdf::Atmosphere ignition::gazebo::convert(const msgs::Atmosphere &_in)
 }
 
 //////////////////////////////////////////////////
-void ignition::gazebo::set(msgs::Time *_msg,
+void gz::sim::set(msgs::Time *_msg,
     const std::chrono::steady_clock::duration &_in)
 {
-  auto secNsec = ignition::math::durationToSecNsec(_in);
+  auto secNsec = gz::math::durationToSecNsec(_in);
   _msg->set_sec(secNsec.first);
   _msg->set_nsec(secNsec.second);
 }
 
 //////////////////////////////////////////////////
-void ignition::gazebo::set(msgs::WorldStatistics *_msg,
-    const gazebo::UpdateInfo &_in)
+void gz::sim::set(msgs::WorldStatistics *_msg,
+    const sim::UpdateInfo &_in)
 {
   set(_msg->mutable_sim_time(), _in.simTime);
   set(_msg->mutable_real_time(), _in.realTime);
@@ -886,8 +886,8 @@ void ignition::gazebo::set(msgs::WorldStatistics *_msg,
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Physics gz::sim::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
   out.set_max_step_size(_in.MaxStepSize());
@@ -897,8 +897,8 @@ msgs::Physics ignition::gazebo::convert(const sdf::Physics &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Physics gz::sim::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
   out.SetRealTimeFactor(_in.real_time_factor());
@@ -907,7 +907,7 @@ sdf::Physics ignition::gazebo::convert(const msgs::Physics &_in)
 }
 
 //////////////////////////////////////////////////
-void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
+void gz::sim::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
   {
@@ -934,7 +934,7 @@ void ignition::gazebo::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 }
 
 //////////////////////////////////////////////////
-std::string ignition::gazebo::convert(const sdf::LightType &_in)
+std::string gz::sim::convert(const sdf::LightType &_in)
 {
   if (_in == sdf::LightType::POINT)
   {
@@ -952,7 +952,7 @@ std::string ignition::gazebo::convert(const sdf::LightType &_in)
 }
 
 //////////////////////////////////////////////////
-sdf::LightType ignition::gazebo::convert(const std::string &_in)
+sdf::LightType gz::sim::convert(const std::string &_in)
 {
   std::string inLowerCase = _in;
   std::transform(_in.begin(), _in.end(), inLowerCase.begin(), ::tolower);
@@ -973,8 +973,8 @@ sdf::LightType ignition::gazebo::convert(const std::string &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Noise gz::sim::convert(const msgs::SensorNoise &_in)
 {
   sdf::Noise out;
 
@@ -1006,8 +1006,8 @@ sdf::Noise ignition::gazebo::convert(const msgs::SensorNoise &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
+GZ_GAZEBO_VISIBLE
+msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 {
   msgs::Sensor out;
   out.set_name(_in.Name());
@@ -1023,23 +1023,23 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
       msgs::MagnetometerSensor *sensor = out.mutable_magnetometer();
       if (_in.MagnetometerSensor()->XNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_x_noise(),
+        gz::sim::set(sensor->mutable_x_noise(),
             _in.MagnetometerSensor()->XNoise());
       }
       if (_in.MagnetometerSensor()->YNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_y_noise(),
+        gz::sim::set(sensor->mutable_y_noise(),
             _in.MagnetometerSensor()->YNoise());
       }
       if (_in.MagnetometerSensor()->ZNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_z_noise(),
+        gz::sim::set(sensor->mutable_z_noise(),
             _in.MagnetometerSensor()->ZNoise());
       }
     }
     else
     {
-      ignerr << "Attempting to convert a magnetometer SDF sensor, but the "
+      gzerr << "Attempting to convert a magnetometer SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1070,7 +1070,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a camera SDF sensor, but the "
+      gzerr << "Attempting to convert a camera SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1086,29 +1086,29 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
       if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_position()->mutable_horizontal_noise(),
+        sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
             sdfSensor->HorizontalPositionNoise());
       }
       if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_position()->mutable_vertical_noise(),
+        sim::set(sensor->mutable_position()->mutable_vertical_noise(),
             sdfSensor->VerticalPositionNoise());
 
       }
       if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+        sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
             sdfSensor->HorizontalVelocityNoise());
       }
       if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
-        gazebo::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+        sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
             sdfSensor->VerticalVelocityNoise());
       }
     }
     else
     {
-      ignerr << "Attempting to convert a NavSat SDF sensor, but the "
+      gzerr << "Attempting to convert a NavSat SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1121,19 +1121,19 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
       if (_in.AltimeterSensor()->VerticalPositionNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_vertical_position_noise(),
+        gz::sim::set(sensor->mutable_vertical_position_noise(),
             _in.AltimeterSensor()->VerticalPositionNoise());
       }
       if (_in.AltimeterSensor()->VerticalVelocityNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_vertical_velocity_noise(),
+        gz::sim::set(sensor->mutable_vertical_velocity_noise(),
             _in.AltimeterSensor()->VerticalVelocityNoise());
       }
     }
     else
     {
-      ignerr << "Attempting to convert an altimeter SDF sensor, but the "
+      gzerr << "Attempting to convert an altimeter SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1146,7 +1146,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
       if (_in.AirPressureSensor()->PressureNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_pressure_noise(),
+        gz::sim::set(sensor->mutable_pressure_noise(),
             _in.AirPressureSensor()->PressureNoise());
       }
       sensor->set_reference_altitude(
@@ -1154,7 +1154,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an air pressure SDF sensor, but the "
+      gzerr << "Attempting to convert an air pressure SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1167,38 +1167,38 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
       if (sdfImu->LinearAccelerationXNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_linear_acceleration()->mutable_x_noise(),
             sdfImu->LinearAccelerationXNoise());
       }
       if (sdfImu->LinearAccelerationYNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_linear_acceleration()->mutable_y_noise(),
             sdfImu->LinearAccelerationYNoise());
       }
       if (sdfImu->LinearAccelerationZNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_linear_acceleration()->mutable_z_noise(),
             sdfImu->LinearAccelerationZNoise());
       }
 
       if (sdfImu->AngularVelocityXNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_angular_velocity()->mutable_x_noise(),
             sdfImu->AngularVelocityXNoise());
       }
       if (sdfImu->AngularVelocityYNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_angular_velocity()->mutable_y_noise(),
             sdfImu->AngularVelocityYNoise());
       }
       if (sdfImu->AngularVelocityZNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(
+        gz::sim::set(
             sensor->mutable_angular_velocity()->mutable_z_noise(),
             sdfImu->AngularVelocityZNoise());
       }
@@ -1218,7 +1218,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an IMU SDF sensor, but the "
+      gzerr << "Attempting to convert an IMU SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1232,7 +1232,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
       if (sdfLidar->LidarNoise().Type() != sdf::NoiseType::NONE)
       {
-        ignition::gazebo::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
+        gz::sim::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
       }
       sensor->set_horizontal_samples(sdfLidar->HorizontalScanSamples());
       sensor->set_horizontal_resolution(sdfLidar->HorizontalScanResolution());
@@ -1252,7 +1252,7 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a Lidar SDF sensor, but the "
+      gzerr << "Attempting to convert a Lidar SDF sensor, but the "
         << "sensor pointer is null.\n";
     }
   }
@@ -1261,13 +1261,13 @@ msgs::Sensor ignition::gazebo::convert(const sdf::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
+GZ_GAZEBO_VISIBLE
+sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 {
   sdf::Sensor out;
   out.SetName(_in.name());
   if (!out.SetType(_in.type()))
-    ignerr << "Failed to set the sensor type from [" << _in.type() << "]\n";
+    gzerr << "Failed to set the sensor type from [" << _in.type() << "]\n";
 
   out.SetUpdateRate(_in.update_rate());
   out.SetTopic(_in.topic());
@@ -1279,23 +1279,23 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     {
       if (_in.magnetometer().has_x_noise())
       {
-        sensor.SetXNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetXNoise(gz::sim::convert<sdf::Noise>(
               _in.magnetometer().x_noise()));
       }
       if (_in.magnetometer().has_y_noise())
       {
-        sensor.SetYNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetYNoise(gz::sim::convert<sdf::Noise>(
               _in.magnetometer().y_noise()));
       }
       if (_in.magnetometer().has_z_noise())
       {
-        sensor.SetZNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetZNoise(gz::sim::convert<sdf::Noise>(
               _in.magnetometer().z_noise()));
       }
     }
     else
     {
-      ignerr << "Attempting to convert a magnetometer sensor message, but the "
+      gzerr << "Attempting to convert a magnetometer sensor message, but the "
         << "message does not have a magnetometer nested message.\n";
     }
 
@@ -1331,7 +1331,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert a camera sensor message, but the "
+      gzerr << "Attempting to convert a camera sensor message, but the "
         << "message does not have a camera nested message.\n";
     }
 
@@ -1344,19 +1344,19 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     {
       if (_in.altimeter().has_vertical_position_noise())
       {
-        sensor.SetVerticalPositionNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetVerticalPositionNoise(gz::sim::convert<sdf::Noise>(
               _in.altimeter().vertical_position_noise()));
       }
 
       if (_in.altimeter().has_vertical_velocity_noise())
       {
-        sensor.SetVerticalVelocityNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetVerticalVelocityNoise(gz::sim::convert<sdf::Noise>(
               _in.altimeter().vertical_velocity_noise()));
       }
     }
     else
     {
-      ignerr << "Attempting to convert an altimeter sensor message, but the "
+      gzerr << "Attempting to convert an altimeter sensor message, but the "
         << "message does not have a altimeter nested message.\n";
     }
 
@@ -1369,7 +1369,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     {
       if (_in.air_pressure().has_pressure_noise())
       {
-        sensor.SetPressureNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetPressureNoise(gz::sim::convert<sdf::Noise>(
               _in.air_pressure().pressure_noise()));
       }
 
@@ -1377,7 +1377,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an air pressure sensor message, but the "
+      gzerr << "Attempting to convert an air pressure sensor message, but the "
         << "message does not have an air pressure nested message.\n";
     }
 
@@ -1393,19 +1393,19 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
         if (_in.imu().linear_acceleration().has_x_noise())
         {
           sensor.SetLinearAccelerationXNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().x_noise()));
         }
         if (_in.imu().linear_acceleration().has_y_noise())
         {
           sensor.SetLinearAccelerationYNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().y_noise()));
         }
         if (_in.imu().linear_acceleration().has_z_noise())
         {
           sensor.SetLinearAccelerationZNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().z_noise()));
         }
       }
@@ -1415,19 +1415,19 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
         if (_in.imu().angular_velocity().has_x_noise())
         {
           sensor.SetAngularVelocityXNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().x_noise()));
         }
         if (_in.imu().angular_velocity().has_y_noise())
         {
           sensor.SetAngularVelocityYNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().y_noise()));
         }
         if (_in.imu().angular_velocity().has_z_noise())
         {
           sensor.SetAngularVelocityZNoise(
-              ignition::gazebo::convert<sdf::Noise>(
+              gz::sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().z_noise()));
         }
       }
@@ -1456,7 +1456,7 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an IMU sensor message, but the "
+      gzerr << "Attempting to convert an IMU sensor message, but the "
         << "message does not have an IMU nested message.\n";
     }
 
@@ -1484,13 +1484,13 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
       if (_in.lidar().has_noise())
       {
-        sensor.SetLidarNoise(ignition::gazebo::convert<sdf::Noise>(
+        sensor.SetLidarNoise(gz::sim::convert<sdf::Noise>(
               _in.lidar().noise()));
       }
     }
     else
     {
-      ignerr << "Attempting to convert a lidar sensor message, but the "
+      gzerr << "Attempting to convert a lidar sensor message, but the "
         << "message does not have a lidar nested message.\n";
     }
 
@@ -1501,8 +1501,8 @@ sdf::Sensor ignition::gazebo::convert(const msgs::Sensor &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
+GZ_GAZEBO_VISIBLE
+msgs::WorldStatistics gz::sim::convert(const sim::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
   set(&out, _in);
@@ -1511,10 +1511,10 @@ msgs::WorldStatistics ignition::gazebo::convert(const gazebo::UpdateInfo &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
+GZ_GAZEBO_VISIBLE
+sim::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
 {
-  gazebo::UpdateInfo out;
+  sim::UpdateInfo out;
   out.iterations = _in.iterations();
   out.paused = _in.paused();
   out.simTime = convert<std::chrono::steady_clock::duration>(_in.sim_time());
@@ -1525,8 +1525,8 @@ gazebo::UpdateInfo ignition::gazebo::convert(const msgs::WorldStatistics &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
+GZ_GAZEBO_VISIBLE
+msgs::AxisAlignedBox gz::sim::convert(const math::AxisAlignedBox &_in)
 {
   msgs::AxisAlignedBox out;
   msgs::Set(out.mutable_min_corner(), _in.Min());
@@ -1536,8 +1536,8 @@ msgs::AxisAlignedBox ignition::gazebo::convert(const math::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
+GZ_GAZEBO_VISIBLE
+math::AxisAlignedBox gz::sim::convert(const msgs::AxisAlignedBox &_in)
 {
   math::AxisAlignedBox out;
   out.Min() = msgs::Convert(_in.min_corner());
@@ -1547,8 +1547,8 @@ math::AxisAlignedBox ignition::gazebo::convert(const msgs::AxisAlignedBox &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
+GZ_GAZEBO_VISIBLE
+msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
 {
   msgs::ParticleEmitter out;
   out.set_name(_in.Name());
@@ -1614,8 +1614,8 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
 
 //////////////////////////////////////////////////
 template<>
-IGNITION_GAZEBO_VISIBLE
-sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
+GZ_GAZEBO_VISIBLE
+sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
 {
   sdf::ParticleEmitter out;
   out.SetName(_in.name());

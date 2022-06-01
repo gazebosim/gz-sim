@@ -7,7 +7,7 @@
 
     <plugin
       filename="EventTriggerSystem"
-      name="ignition::gazebo::EventTriggerSystem">
+      name="gz::sim::EventTriggerSystem">
     </plugin>
   </world>
 </sdf>

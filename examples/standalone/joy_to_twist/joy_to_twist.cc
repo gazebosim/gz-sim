@@ -22,25 +22,25 @@
 #include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
 
-ignition::transport::Node::Publisher cmdVelPub;
+gz::transport::Node::Publisher cmdVelPub;
 
 int enableButton;
 int enableTurboButton;
 
-ignition::math::Vector3d axisLinear;
-ignition::math::Vector3d scaleLinear;
-ignition::math::Vector3d scaleLinearTurbo;
+gz::math::Vector3d axisLinear;
+gz::math::Vector3d scaleLinear;
+gz::math::Vector3d scaleLinearTurbo;
 
-ignition::math::Vector3d axisAngular;
-ignition::math::Vector3d scaleAngular;
-ignition::math::Vector3d scaleAngularTurbo;
+gz::math::Vector3d axisAngular;
+gz::math::Vector3d scaleAngular;
+gz::math::Vector3d scaleAngularTurbo;
 
 bool sentDisableMsg;
 
 //////////////////////////////////////////////////
-void OnJoy(const ignition::msgs::Joy &_msg)
+void OnJoy(const gz::msgs::Joy &_msg)
 {
-  ignition::msgs::Twist cmdVelMsg;
+  gz::msgs::Twist cmdVelMsg;
 
   // Turbo mode
   if (enableTurboButton >= 0 && _msg.buttons(enableTurboButton))
@@ -116,10 +116,10 @@ int main(int argc, char **argv)
   auto plugin = sdf->Root()->GetElement("world")->GetElement("plugin");
 
   // Setup transport
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   auto twistTopic = plugin->Get<std::string>("twist_topic", "/cmd_vel").first;
-  cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
+  cmdVelPub = node.Advertise<gz::msgs::Twist>(twistTopic);
 
   auto joyTopic = plugin->Get<std::string>("joy_topic", "/joy").first;
   node.Subscribe("/joy", OnJoy);
@@ -127,18 +127,18 @@ int main(int argc, char **argv)
   enableButton = plugin->Get<int>("enable_button", 0).first;
   enableTurboButton = plugin->Get<int>("enable_turbo_button", -1).first;
 
-  axisLinear  = plugin->Get<ignition::math::Vector3d>("axis_linear",
-      ignition::math::Vector3d::UnitX).first;
-  scaleLinear  = plugin->Get<ignition::math::Vector3d>("scale_linear",
-      ignition::math::Vector3d(0.5, 0, 0)).first;
-  scaleLinearTurbo  = plugin->Get<ignition::math::Vector3d>(
+  axisLinear  = plugin->Get<gz::math::Vector3d>("axis_linear",
+      gz::math::Vector3d::UnitX).first;
+  scaleLinear  = plugin->Get<gz::math::Vector3d>("scale_linear",
+      gz::math::Vector3d(0.5, 0, 0)).first;
+  scaleLinearTurbo  = plugin->Get<gz::math::Vector3d>(
       "scale_linear_turbo", scaleLinear).first;
 
-  axisAngular = plugin->Get<ignition::math::Vector3d>("axis_angular",
-      ignition::math::Vector3d::Zero).first;
-  scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
-      ignition::math::Vector3d(0, 0, 0.5)).first;
-  scaleAngularTurbo  = plugin->Get<ignition::math::Vector3d>(
+  axisAngular = plugin->Get<gz::math::Vector3d>("axis_angular",
+      gz::math::Vector3d::Zero).first;
+  scaleAngular = plugin->Get<gz::math::Vector3d>("scale_angular",
+      gz::math::Vector3d(0, 0, 0.5)).first;
+  scaleAngularTurbo  = plugin->Get<gz::math::Vector3d>(
       "scale_angular_turbo", scaleAngular).first;
 
   sentDisableMsg = false;

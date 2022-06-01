@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Transparency.hh>
+#include <ignition/gazebo/config.hh>

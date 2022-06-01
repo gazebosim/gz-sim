@@ -30,7 +30,7 @@
 #include "gz/sim/Util.hh"
 
 /// \brief Private Broker data class.
-class ignition::gazebo::comms::Broker::Implementation
+class gz::sim::comms::Broker::Implementation
 {
   /// \brief The message manager.
   public: MsgManager data;
@@ -50,19 +50,19 @@ class ignition::gazebo::comms::Broker::Implementation
   /// \brief The current time.
   public: std::chrono::steady_clock::duration time{0};
 
-  /// \brief An Ignition Transport node for communications.
-  public: std::unique_ptr<ignition::transport::Node> node;
+  /// \brief A Gazebo Transport node for communications.
+  public: std::unique_ptr<gz::transport::Node> node;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace comms;
 
 //////////////////////////////////////////////////
 Broker::Broker()
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
-  this->dataPtr->node = std::make_unique<ignition::transport::Node>();
+  this->dataPtr->node = std::make_unique<gz::transport::Node>();
 }
 
 //////////////////////////////////////////////////
@@ -87,7 +87,7 @@ void Broker::Start()
   if (!this->dataPtr->node->Advertise(this->dataPtr->bindSrv,
                                       &Broker::OnBind, this))
   {
-    ignerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
+    gzerr << "Error advertising srv [" << this->dataPtr->bindSrv << "]"
            << std::endl;
     return;
   }
@@ -96,7 +96,7 @@ void Broker::Start()
   if (!this->dataPtr->node->Advertise(this->dataPtr->unbindSrv,
                                       &Broker::OnUnbind, this))
   {
-    ignerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
+    gzerr << "Error advertising srv [" << this->dataPtr->unbindSrv << "]"
            << std::endl;
     return;
   }
@@ -105,16 +105,16 @@ void Broker::Start()
   if (!this->dataPtr->node->Subscribe(this->dataPtr->msgTopic,
                                       &Broker::OnMsg, this))
   {
-    ignerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
+    gzerr << "Error subscribing to topic [" << this->dataPtr->msgTopic << "]"
            << std::endl;
     return;
   }
 
-  igndbg << "Broker services:" << std::endl;
-  igndbg << "  Bind: [" << this->dataPtr->bindSrv << "]" << std::endl;
-  igndbg << "  Unbind: [" << this->dataPtr->unbindSrv << "]" << std::endl;
-  igndbg << "Broker topics:" << std::endl;
-  igndbg << "  Incoming messages: [" << this->dataPtr->msgTopic << "]"
+  gzdbg << "Broker services:" << std::endl;
+  gzdbg << "  Bind: [" << this->dataPtr->bindSrv << "]" << std::endl;
+  gzdbg << "  Unbind: [" << this->dataPtr->unbindSrv << "]" << std::endl;
+  gzdbg << "Broker topics:" << std::endl;
+  gzdbg << "  Incoming messages: [" << this->dataPtr->msgTopic << "]"
          << std::endl;
 }
 
@@ -131,13 +131,13 @@ void Broker::SetTime(const std::chrono::steady_clock::duration &_time)
 }
 
 //////////////////////////////////////////////////
-bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
-                    ignition::msgs::Boolean &/*_rep*/)
+bool Broker::OnBind(const gz::msgs::StringMsg_V &_req,
+                    gz::msgs::Boolean &/*_rep*/)
 {
   auto count = _req.data_size();
   if (count != 3)
   {
-    ignerr << "Receive incorrect number of arguments. "
+    gzerr << "Receive incorrect number of arguments. "
            << "Expecting 3 and receive " << count << std::endl;
     return false;
   }
@@ -151,19 +151,19 @@ bool Broker::OnBind(const ignition::msgs::StringMsg_V &_req,
   if (!this->DataManager().AddSubscriber(address, model, topic))
     return false;
 
-  ignmsg << "Address [" << address << "] bound to model [" << model
+  gzmsg << "Address [" << address << "] bound to model [" << model
          << "] on topic [" << topic << "]" << std::endl;
 
   return true;
 }
 
 //////////////////////////////////////////////////
-void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
+void Broker::OnUnbind(const gz::msgs::StringMsg_V &_req)
 {
   auto count = _req.data_size();
   if (count != 2)
   {
-    ignerr << "Received incorrect number of arguments. "
+    gzerr << "Received incorrect number of arguments. "
            << "Expecting 2 and received " << count << std::endl;
     return;
   }
@@ -174,21 +174,21 @@ void Broker::OnUnbind(const ignition::msgs::StringMsg_V &_req)
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->DataManager().RemoveSubscriber(address, topic);
 
-  ignmsg << "Address [" << address << "] unbound on topic ["
+  gzmsg << "Address [" << address << "] unbound on topic ["
          << topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void Broker::OnMsg(const ignition::msgs::Dataframe &_msg)
+void Broker::OnMsg(const gz::msgs::Dataframe &_msg)
 {
   // Place the message in the outbound queue of the sender.
-  auto msgPtr = std::make_shared<ignition::msgs::Dataframe>(_msg);
+  auto msgPtr = std::make_shared<gz::msgs::Dataframe>(_msg);
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Stamp the time.
   msgPtr->mutable_header()->mutable_stamp()->CopyFrom(
-      gazebo::convert<msgs::Time>(this->dataPtr->time));
+      sim::convert<msgs::Time>(this->dataPtr->time));
 
   this->DataManager().AddOutbound(_msg.src_address(), msgPtr);
 }

@@ -32,15 +32,15 @@
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointPositionControllerPrivate
+class gz::sim::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
-  public: void OnCmdPos(const ignition::msgs::Double &_msg);
+  public: void OnCmdPos(const gz::msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   public: Model model{kNullEntity};
 
   /// \brief Position PID controller.
-  public: ignition::math::PID posPid;
+  public: gz::math::PID posPid;
 
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
@@ -96,7 +96,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointPositionController plugin should be attached to a model "
+    gzerr << "JointPositionController plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -106,7 +106,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName == "")
   {
-    ignerr << "JointPositionController found an empty jointName parameter. "
+    gzerr << "JointPositionController found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -182,7 +182,7 @@ void JointPositionController::Configure(const Entity &_entity,
       "/" + std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
+    gzerr << "Failed to create topic for joint [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
@@ -193,7 +193,7 @@ void JointPositionController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
              << "]" << " for joint [" << this->dataPtr->jointName
              << "]" << std::endl;
       return;
@@ -202,31 +202,31 @@ void JointPositionController::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(
       topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
 
-  igndbg << "[JointPositionController] system parameters:" << std::endl;
-  igndbg << "p_gain: ["     << p         << "]"            << std::endl;
-  igndbg << "i_gain: ["     << i         << "]"            << std::endl;
-  igndbg << "d_gain: ["     << d         << "]"            << std::endl;
-  igndbg << "i_max: ["      << iMax      << "]"            << std::endl;
-  igndbg << "i_min: ["      << iMin      << "]"            << std::endl;
-  igndbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
-  igndbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
-  igndbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
-  igndbg << "Topic: ["      << topic     << "]"            << std::endl;
-  igndbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
+  gzdbg << "[JointPositionController] system parameters:" << std::endl;
+  gzdbg << "p_gain: ["     << p         << "]"            << std::endl;
+  gzdbg << "i_gain: ["     << i         << "]"            << std::endl;
+  gzdbg << "d_gain: ["     << d         << "]"            << std::endl;
+  gzdbg << "i_max: ["      << iMax      << "]"            << std::endl;
+  gzdbg << "i_min: ["      << iMin      << "]"            << std::endl;
+  gzdbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
+  gzdbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
+  gzdbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
+  gzdbg << "Topic: ["      << topic     << "]"            << std::endl;
+  gzdbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
          << std::endl;
 }
 
 //////////////////////////////////////////////////
 void JointPositionController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointPositionController::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -244,7 +244,7 @@ void JointPositionController::PreUpdate(
   {
     static bool warned = false;
     if(!warned)
-      ignerr << "Could not find joint with name ["
+      gzerr << "Could not find joint with name ["
         << this->dataPtr->jointName <<"]\n";
     warned = true;
     return;
@@ -273,7 +273,7 @@ void JointPositionController::PreUpdate(
     static std::unordered_set<Entity> reported;
     if (reported.find(this->dataPtr->jointEntity) == reported.end())
     {
-      ignerr << "[JointPositionController]: Detected an invalid <joint_index> "
+      gzerr << "[JointPositionController]: Detected an invalid <joint_index> "
              << "parameter. The index specified is ["
              << this->dataPtr->jointIndex << "] but joint ["
              << this->dataPtr->jointName << "] only has ["
@@ -357,9 +357,13 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointPositionController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+                          "gz::sim::systems::JointPositionController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
                           "ignition::gazebo::systems::JointPositionController")

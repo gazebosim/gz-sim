@@ -3,7 +3,7 @@
   <world name="gravity">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="falling">

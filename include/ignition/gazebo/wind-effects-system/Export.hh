@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/wind-effects-system/Export.hh>
+#include <ignition/gazebo/config.hh>

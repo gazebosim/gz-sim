@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/RenderEngineServerPlugin.hh>
+#include <ignition/gazebo/config.hh>

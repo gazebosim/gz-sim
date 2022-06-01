@@ -97,11 +97,11 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Private data class.
-class ignition::gazebo::RenderUtilPrivate
+class gz::sim::RenderUtilPrivate
 {
   /// True if the rendering component is initialized
   public: bool initialized = false;
@@ -228,7 +228,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine{nullptr};
+  public: gz::rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -345,7 +345,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: std::unordered_map<Entity, int> entityLabel;
 
   /// \brief A map of entity ids and wire boxes
-  public: std::unordered_map<Entity, ignition::rendering::WireBoxPtr> wireBoxes;
+  public: std::unordered_map<Entity, gz::rendering::WireBoxPtr> wireBoxes;
 
   /// \brief A map of entity ids and trajectory pose updates.
   public: std::unordered_map<Entity, math::Pose3d> trajectoryPoses;
@@ -371,7 +371,7 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Callback function for creating sensors.
   /// The function args are: entity id, sensor sdf, and parent name.
   /// The function returns the id of the rendering sensor created.
-  public: std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+  public: std::function<std::string(const sim::Entity &, const sdf::Sensor &,
           const std::string &)> createSensorCb;
 
   /// \brief Light equality comparison function.
@@ -407,7 +407,7 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Callback function for removing sensors.
   /// The function arg is the entity id
-  public: std::function<void(const gazebo::Entity &)> removeSensorCb;
+  public: std::function<void(const sim::Entity &)> removeSensorCb;
 
   /// \brief Currently selected entities, organized by order of selection.
   public: std::vector<Entity> selectedEntities;
@@ -834,7 +834,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing inertia must be a model or link"
              << std::endl;
       continue;
@@ -858,7 +858,7 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing center of mass must be a model or link"
              << std::endl;
       continue;
@@ -906,7 +906,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing joints must be a model"
              << std::endl;
       continue;
@@ -936,7 +936,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing wireframe must be a model or link"
              << std::endl;
       continue;
@@ -961,7 +961,7 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing as transparent must be a model or link"
              << std::endl;
       continue;
@@ -993,7 +993,7 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing collision must be a model or link"
              << std::endl;
       continue;
@@ -1235,7 +1235,7 @@ void RenderUtil::Update()
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
         if (!parentNode)
         {
-          ignerr << "Failed to create sensor with name[" << dataSdf.Name()
+          gzerr << "Failed to create sensor with name[" << dataSdf.Name()
                  << "] for entity [" << entity
                  << "]. Parent not found with ID[" << parent << "]."
                  << std::endl;
@@ -1247,7 +1247,7 @@ void RenderUtil::Update()
         // Add to the system's scene manager
         if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
         {
-          ignerr << "Failed to create sensor [" << sensorName << "]"
+          gzerr << "Failed to create sensor [" << sensorName << "]"
                  << std::endl;
         }
       }
@@ -1299,7 +1299,7 @@ void RenderUtil::Update()
         auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
         if (!actorMesh || !actorVisual)
         {
-          ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
+          gzerr << "Actor with Entity ID '" << tf.first << "'. not found. "
                  << "Skipping skeleton animation update." << std::endl;
           continue;
         }
@@ -2501,7 +2501,7 @@ void RenderUtil::Init()
   if (nullptr != this->dataPtr->scene)
     return;
 
-  ignition::common::SystemPaths pluginPath;
+  gz::common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
 
@@ -2514,7 +2514,7 @@ void RenderUtil::Init()
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
-    ignerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
+    gzerr << "Engine [" << this->dataPtr->engineName << "] is not supported. "
            << "Loading OGRE2 instead." << std::endl;
     this->dataPtr->engine = rendering::engine("ogre2", params);
   }
@@ -2524,7 +2524,7 @@ void RenderUtil::Init()
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
   if (!this->dataPtr->scene)
   {
-    igndbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
+    gzdbg << "Create scene [" << this->dataPtr->sceneName << "]" << std::endl;
     this->dataPtr->scene =
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)
@@ -2580,7 +2580,7 @@ void RenderUtil::ShowGrid()
   rendering::GridPtr gridGeom = this->dataPtr->scene->CreateGrid();
   if (!gridGeom)
   {
-    ignwarn << "Failed to create grid for scene ["
+    gzwarn << "Failed to create grid for scene ["
       << this->dataPtr->scene->Name() << "] on engine ["
         << this->dataPtr->scene->Engine()->Name() << "]"
           << std::endl;
@@ -2647,7 +2647,7 @@ void RenderUtil::SetWinID(const std::string &_winID)
 
 /////////////////////////////////////////////////
 void RenderUtil::SetEnableSensors(bool _enable,
-    std::function<std::string(const gazebo::Entity &, const sdf::Sensor &,
+    std::function<std::string(const sim::Entity &, const sdf::Sensor &,
       const std::string &)> _createSensorCb)
 {
   this->dataPtr->enableSensors = _enable;
@@ -2656,7 +2656,7 @@ void RenderUtil::SetEnableSensors(bool _enable,
 
 /////////////////////////////////////////////////
 void RenderUtil::SetRemoveSensorCb(
-    std::function<void(const gazebo::Entity &)> _removeSensorCb)
+    std::function<void(const sim::Entity &)> _removeSensorCb)
 {
   this->dataPtr->removeSensorCb = std::move(_removeSensorCb);
 }
@@ -2777,7 +2777,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBox->SetBox(aabb);
 
     // Create visual and add wire box
-    ignition::rendering::VisualPtr wireBoxVis =
+    gz::rendering::VisualPtr wireBoxVis =
       this->scene->CreateVisual();
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
@@ -2787,12 +2787,12 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
 
     // Add wire box to map for setting visibility
     this->wireBoxes.insert(
-        std::pair<Entity, ignition::rendering::WireBoxPtr>(entityId, wireBox));
+        std::pair<Entity, gz::rendering::WireBoxPtr>(entityId, wireBox));
   }
   else
   {
-    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
-    ignition::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
+    gz::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    gz::math::AxisAlignedBox aabb = vis->LocalBoundingBox();
     wireBox->SetBox(aabb);
     auto visParent = wireBox->Parent();
     if (visParent)
@@ -2811,7 +2811,7 @@ void RenderUtilPrivate::LowlightNode(const rendering::NodePtr &_node)
     entityId = std::get<uint64_t>(vis->UserData("gazebo-entity"));
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox =
+    gz::rendering::WireBoxPtr wireBox =
       this->wireBoxes[entityId];
     auto visParent = wireBox->Parent();
     if (visParent)
@@ -2863,7 +2863,7 @@ void RenderUtilPrivate::UpdateLights(
 
       if (!light.second.is_light_off())
       {
-        if (!ignition::math::equal(
+        if (!gz::math::equal(
             l->Intensity(),
             static_cast<double>(light.second.intensity())))
         {
@@ -2886,25 +2886,25 @@ void RenderUtilPrivate::UpdateLights(
           l->SetSpecularColor(msgs::Convert(light.second.specular()));
         }
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationRange(),
           static_cast<double>(light.second.range())))
       {
         l->SetAttenuationRange(light.second.range());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationLinear(),
           static_cast<double>(light.second.attenuation_linear())))
       {
         l->SetAttenuationLinear(light.second.attenuation_linear());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationConstant(),
           static_cast<double>(light.second.attenuation_constant())))
       {
         l->SetAttenuationConstant(light.second.attenuation_constant());
       }
-      if (!ignition::math::equal(
+      if (!gz::math::equal(
           l->AttenuationQuadratic(),
           static_cast<double>(light.second.attenuation_quadratic())))
       {
@@ -2943,7 +2943,7 @@ void RenderUtilPrivate::UpdateLights(
           lSpotLight->SetInnerAngle(light.second.spot_inner_angle());
         if (lSpotLight->OuterAngle() != light.second.spot_outer_angle())
           lSpotLight->SetOuterAngle(light.second.spot_outer_angle());
-        if (!ignition::math::equal(
+        if (!gz::math::equal(
             lSpotLight->Falloff(),
             static_cast<double>(light.second.spot_falloff())))
         {
@@ -2974,7 +2974,7 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
       }
       else
       {
-        ignwarn << "Unable to set thermal camera temperature linear resolution."
+        gzwarn << "Unable to set thermal camera temperature linear resolution."
                 << " Value must be greater than 0. Using the default value: "
                 << camera->LinearResolution() << ". " << std::endl;
       }
@@ -2987,7 +2987,7 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
       }
       else
       {
-        ignwarn << "Unable to set thermal camera temperature range."
+        gzwarn << "Unable to set thermal camera temperature range."
                 << "Max temperature must be greater or equal to min. "
                 << "Using the default values : [" << camera->MinTemperature()
                 << ", " << camera->MaxTemperature() << "]." << std::endl;
@@ -3010,7 +3010,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
         it.first);
     if (!actorMesh || !actorVisual || !actorSkel)
     {
-      ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
+      gzerr << "Actor with Entity ID '" << it.first << "'. not found. "
              << "Skipping skeleton animation update." << std::endl;
       continue;
     }
@@ -3018,7 +3018,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
     const AnimationUpdateData &animData = it.second;
     if (!animData.valid)
     {
-      ignerr << "invalid animation update data" << std::endl;
+      gzerr << "invalid animation update data" << std::endl;
       continue;
     }
     // Enable skeleton animation
@@ -3142,7 +3142,7 @@ void RenderUtil::HideWireboxes(const Entity &_entity)
   auto wireBoxIt = this->dataPtr->wireBoxes.find(_entity);
   if (wireBoxIt != this->dataPtr->wireBoxes.end())
   {
-    ignition::rendering::WireBoxPtr wireBox = wireBoxIt->second;
+    gz::rendering::WireBoxPtr wireBox = wireBoxIt->second;
     auto visParent = wireBox->Parent();
     if (visParent)
       visParent->SetVisible(false);
@@ -3192,7 +3192,7 @@ void RenderUtil::ViewInertia(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(inertiaVisualId);
     if (inertiaVisual == nullptr)
     {
-      ignerr << "Could not find inertia visual for entity [" << inertiaLink
+      gzerr << "Could not find inertia visual for entity [" << inertiaLink
              << "]" << std::endl;
       continue;
     }
@@ -3251,7 +3251,7 @@ void RenderUtil::ViewCOM(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(comVisualId);
     if (comVisual == nullptr)
     {
-      ignerr << "Could not find center of mass visual for entity ["
+      gzerr << "Could not find center of mass visual for entity ["
              << inertiaLink
              << "]" << std::endl;
       continue;
@@ -3337,7 +3337,7 @@ void RenderUtil::ViewJoints(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(jointEntity);
     if (jointVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << jointEntity
+      gzerr << "Could not find visual for entity [" << jointEntity
              << "]" << std::endl;
       continue;
     }
@@ -3407,7 +3407,7 @@ void RenderUtil::ViewTransparent(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(visEntity);
     if (transparentVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << visEntity
+      gzerr << "Could not find visual for entity [" << visEntity
              << "]" << std::endl;
       continue;
     }
@@ -3479,7 +3479,7 @@ void RenderUtil::ViewWireframes(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(visEntity);
     if (wireframeVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << visEntity
+      gzerr << "Could not find visual for entity [" << visEntity
              << "]" << std::endl;
       continue;
     }
@@ -3549,7 +3549,7 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
         this->dataPtr->sceneManager.VisualById(colEntity);
     if (colVisual == nullptr)
     {
-      ignerr << "Could not find collision visual for entity [" << colEntity
+      gzerr << "Could not find collision visual for entity [" << colEntity
              << "]" << std::endl;
       continue;
     }

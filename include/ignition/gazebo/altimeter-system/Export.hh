@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/altimeter-system/Export.hh>
+#include <ignition/gazebo/config.hh>

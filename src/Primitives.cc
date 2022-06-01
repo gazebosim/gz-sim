@@ -19,8 +19,8 @@
 #include <gz/common/Console.hh>
 #include "gz/sim/Primitives.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 constexpr const char * kBoxSdf = R"(<?xml version="1.0"?>
@@ -293,7 +293,7 @@ constexpr const char *kSpotSdf = R"(<?xml version="1.0"?>
 )";
 
 /////////////////////////////////////////////////
-std::string ignition::gazebo::getPrimitiveShape(const PrimitiveShape &_type)
+std::string gz::sim::getPrimitiveShape(const PrimitiveShape &_type)
 {
   switch(_type)
   {
@@ -313,7 +313,7 @@ std::string ignition::gazebo::getPrimitiveShape(const PrimitiveShape &_type)
 }
 
 /////////////////////////////////////////////////
-std::string ignition::gazebo::getPrimitiveLight(const PrimitiveLight &_type)
+std::string gz::sim::getPrimitiveLight(const PrimitiveLight &_type)
 {
   switch(_type)
   {
@@ -329,7 +329,7 @@ std::string ignition::gazebo::getPrimitiveLight(const PrimitiveLight &_type)
 }
 
 /////////////////////////////////////////////////
-std::string ignition::gazebo::getPrimitive(const std::string &_typeName)
+std::string gz::sim::getPrimitive(const std::string &_typeName)
 {
   std::string type = common::lowercase(_typeName);
 
@@ -350,15 +350,15 @@ std::string ignition::gazebo::getPrimitive(const std::string &_typeName)
   else if (type == "spot")
     return getPrimitiveLight(PrimitiveLight::kSpot);
 
-  ignwarn << "Invalid model string " << type << "\n";
-  ignwarn << "The valid options are:\n";
-  ignwarn << " - box\n";
-  ignwarn << " - sphere\n";
-  ignwarn << " - cylinder\n";
-  ignwarn << " - capsule\n";
-  ignwarn << " - ellipsoid\n";
-  ignwarn << " - point\n";
-  ignwarn << " - directional\n";
-  ignwarn << " - spot\n";
+  gzwarn << "Invalid model string " << type << "\n";
+  gzwarn << "The valid options are:\n";
+  gzwarn << " - box\n";
+  gzwarn << " - sphere\n";
+  gzwarn << " - cylinder\n";
+  gzwarn << " - capsule\n";
+  gzwarn << " - ellipsoid\n";
+  gzwarn << " - point\n";
+  gzwarn << " - directional\n";
+  gzwarn << " - spot\n";
   return "";
 }

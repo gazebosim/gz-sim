@@ -30,17 +30,17 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/World.hh"
 
-class ignition::gazebo::WorldPrivate
+class gz::sim::WorldPrivate
 {
   /// \brief Id of world entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
-World::World(gazebo::Entity _entity)
+World::World(sim::Entity _entity)
   : dataPtr(std::make_unique<WorldPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -140,7 +140,7 @@ Entity World::LightByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
   // Can't use components::Light in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id),
       components::Name(_name));
@@ -158,7 +158,7 @@ Entity World::ActorByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
   // Can't use components::Actor in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id),
       components::Name(_name));
@@ -185,11 +185,11 @@ Entity World::ModelByName(const EntityComponentManager &_ecm,
 std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
 {
   // Can't use components::Light in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Light>(entity))
@@ -202,11 +202,11 @@ std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
 std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
 {
   // Can't use components::Actor in EntityByComponents, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/376
+  // https://github.com/gazebosim/gz-sim/issues/376
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Actor>(entity))

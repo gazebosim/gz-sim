@@ -24,12 +24,12 @@
 #include <gz/sim/config.hh>
 #include <gz/math/Vector3.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains a list of contacts.

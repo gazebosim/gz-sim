@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointVelocityCmd.hh>
+#include <ignition/gazebo/config.hh>

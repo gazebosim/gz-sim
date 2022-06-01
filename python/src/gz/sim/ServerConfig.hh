@@ -15,25 +15,25 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
-#define IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
+#ifndef GZ_SIM_PYTHON__SERVER_CONFIG_HH_
+#define GZ_SIM_PYTHON__SERVER_CONFIG_HH_
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::ServerConfig
+/// Define a pybind11 wrapper for an gz::sim::ServerConfig
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
 defineGazeboServerConfig(pybind11::object module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_PYTHON__SERVER_CONFIG_HH_
+#endif  // GZ_SIM_PYTHON__SERVER_CONFIG_HH_

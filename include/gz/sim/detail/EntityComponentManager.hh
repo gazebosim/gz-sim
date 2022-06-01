@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
-#define GZ_GAZEBO_DETAIL_ENTITYCOMPONENTMANAGER_HH_
+#ifndef GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
+#define GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
 #include <cstring>
 #include <map>
@@ -32,12 +32,12 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
@@ -65,7 +65,7 @@ namespace traits
 /// equality operator.
 /// If `DataType` doesn't have an equality operator defined, it will return
 /// false.
-/// For doubles, `ignition::math::equal` will be used.
+/// For doubles, `gz::math::equal` will be used.
 template<typename DataType>
 auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {
@@ -94,7 +94,7 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
   {
     if (!comp)
     {
-      ignerr << "Internal error. Failure to create a component of type "
+      gzerr << "Internal error. Failure to create a component of type "
         << ComponentTypeT::typeId << " for entity " << _entity
         << ". This should never happen!\n";
       return comp;
@@ -190,7 +190,7 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::First() const
 {
-  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+  gzwarn << "EntityComponentManager::First is now deprecated and will always "
     << "return nullptr.\n";
   return nullptr;
 }
@@ -199,7 +199,7 @@ const ComponentTypeT *EntityComponentManager::First() const
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::First()
 {
-  ignwarn << "EntityComponentManager::First is now deprecated and will always "
+  gzwarn << "EntityComponentManager::First is now deprecated and will always "
     << "return nullptr.\n";
   return nullptr;
 }
@@ -554,7 +554,7 @@ detail::View *EntityComponentManager::FindView() const
       auto mutexPtr = baseViewMutexPair.second;
       if (nullptr == mutexPtr)
       {
-        ignerr << "Internal error: requested to lock a view, but no mutex "
+        gzerr << "Internal error: requested to lock a view, but no mutex "
           << "exists for this view. This should never happen!" << std::endl;
         return view;
       }

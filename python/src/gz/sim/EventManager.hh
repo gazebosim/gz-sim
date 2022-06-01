@@ -15,25 +15,25 @@
  */
 
 
-#ifndef IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HH_
-#define IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HH_
+#ifndef GZ_SIM_PYTHON__EVENT_MANAGER_HH_
+#define GZ_SIM_PYTHON__EVENT_MANAGER_HH_
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an ignition::gazebo::EventManager
+/// Define a pybind11 wrapper for an gz::sim::EventManager
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
 defineGazeboEventManager(pybind11::object module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_PYTHON__EVENT_MANAGER_HH_
+#endif  // GZ_SIM_PYTHON__EVENT_MANAGER_HH_

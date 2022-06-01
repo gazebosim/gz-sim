@@ -1,17 +1,17 @@
 \page meshtofuel Importing a Mesh to Fuel
 
-This tutorial will explain how to import a mesh to the [Ignition Fuel](https://app.ignitionrobotics.org) web application.
-Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Ignition GUI.
+This tutorial will explain how to import a mesh to the [Gazebo Fuel](https://app.gazebosim.org) web application.
+Adding models and/or worlds to Fuel will make your content readily available to the open source robotics simulation community, and easier to use with the Gazebo GUI.
 
 ## Prerequisites
 
 To import meshes to Fuel, you need to have a user account.
-Go to [app.ignitionrobotics.org](https://app.ignitionrobotics.org) and click Login in the top right corner of the screen, then click Sign Up.
+Go to [app.gazebosim.org](https://app.gazebosim.org) and click Login in the top right corner of the screen, then click Sign Up.
 Once you verify your email address, your account will be ready.
 
 You'll need a mesh ready before trying to import to Fuel.
 There are several ways to acquire a mesh. <!--point cloud to mesh tutorial, cad to mesh tutorial-->
-To save time, we'll use this [Electrical Box model](https://app.ignitionrobotics.org/openrobotics/fuel/models/Electrical%20Box) that you can download from Fuel.
+To save time, we'll use this [Electrical Box model](https://app.gazebosim.org/openrobotics/fuel/models/Electrical%20Box) that you can download from Fuel.
 
 ## Model Directory Structure
 
@@ -126,17 +126,17 @@ Click the `Add folders` button, or drag and drop the `Electrical Box` folder you
 All the files in your model description will be listed there.
 Press `Upload`, and the "Fuel Model Info" page for your model will open.
 
-![Electrical Box Test](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/mesh_to_fuel/model_info2.png)
+![Electrical Box Test](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mesh_to_fuel/model_info2.png)
 
 You can always delete a model by clicking the "Edit model" button and then selecting "Delete model" at the bottom of the page
 
-![Delete model](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/mesh_to_fuel/delete2.png)
+![Delete model](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mesh_to_fuel/delete2.png)
 
 ## Include the Model in a World
 
 With your mesh successfully uploaded to Fuel, you can now easily include it in a world SDF file.
 
-Copy [this example world code](https://github.com/ignitionrobotics/ign-gazebo/raw/main/examples/worlds/import_mesh.sdf) into a text editor and save it as `import_mesh.sdf`.
+Copy [this example world code](https://github.com/gazebosim/gz-sim/raw/main/examples/worlds/import_mesh.sdf) into a text editor and save it as `import_mesh.sdf`.
 This is a simple world SDF file, which you can learn more about on the [SDF website](http://sdformat.org/).
 
 Scroll all the way to the bottom of the file until you see the `include` tag section following the `<!-- mesh -->` comment line.
@@ -144,7 +144,7 @@ Scroll all the way to the bottom of the file until you see the `include` tag sec
 ```xml
 <?xml version="1.0" ?>
 <!--
-  Demo world to show how to include a model from Ignition Fuel.
+  Demo world to show how to include a model from Gazebo Fuel.
 -->
 <sdf version="1.6">
   <world name="fuel">
@@ -182,4 +182,4 @@ To launch the world and see your mesh, run Ignition from inside the directory wh
 ign gazebo import_mesh.sdf
 ```
 
-![Launch sample world with mesh](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/mesh_to_fuel/launch_world2.png)
+![Launch sample world with mesh](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mesh_to_fuel/launch_world2.png)

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_IGN_HH_
-#define IGNITION_GAZEBO_IGN_HH_
+#ifndef GZ_SIM_IGN_HH_
+#define GZ_SIM_IGN_HH_
 
 #include "gz/sim/Export.hh"
 
@@ -66,7 +66,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_recordTopics, int _headless);
 
 /// \brief External hook to run simulation GUI.
-/// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _guiConfig Path to Gazebo GUI configuration file.
 /// \param[in] _renderEngine --render-engine-gui option
 /// \return 0 if successful, 1 if not.
 extern "C" int runGui(const char *_guiConfig, const char *_renderEngine);

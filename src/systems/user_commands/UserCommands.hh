@@ -14,25 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
+#ifndef GZ_SIM_SYSTEMS_USERCOMMANDS_HH_
+#define GZ_SIM_SYSTEMS_USERCOMMANDS_HH_
 
 #include <memory>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
   class UserCommandsPrivate;
 
-  /// \brief This system provides an Ignition Transport interface to execute
+  /// \brief This system provides a Gazebo Transport interface to execute
   /// commands while simulation is running.
   ///
   /// \todo(louise) In the future, an interface undo/redo commands will also
@@ -41,8 +41,8 @@ namespace systems
   /// # Spawn entity
   ///
   /// * **Service**: `/world/<world name>/create`
-  /// * **Request type*: ignition.msgs.EntityFactory
-  /// * **Response type*: ignition.msgs.Boolean
+  /// * **Request type*: gz.msgs.EntityFactory
+  /// * **Response type*: gz.msgs.Boolean
   ///
   /// # Spawn multiple entities
   ///
@@ -50,24 +50,24 @@ namespace systems
   /// thereby eliminating simulation steps between entity spawn times.
   ///
   /// * **Service**: `/world/<world name>/create_multiple`
-  /// * **Request type*: ignition.msgs.EntityFactory_V
-  /// * **Response type*: ignition.msgs.Boolean
+  /// * **Request type*: gz.msgs.EntityFactory_V
+  /// * **Response type*: gz.msgs.Boolean
   ///
   /// # Set entity pose
   ///
   /// This service set the pose of entities
   ///
   /// * **Service**: `/world/<world name>/set_pose`
-  /// * **Request type*: ignition.msgs.Pose
-  /// * **Response type*: ignition.msgs.Boolean
+  /// * **Request type*: gz.msgs.Pose
+  /// * **Response type*: gz.msgs.Boolean
   ///
   /// # Set multiple entity poses
   ///
   /// This service set the pose of multiple entities
   ///
   /// * **Service**: `/world/<world name>/set_pose_vector`
-  /// * **Request type*: ignition.msgs.Pose_V
-  /// * **Response type*: ignition.msgs.Boolean
+  /// * **Request type*: gz.msgs.Pose_V
+  /// * **Response type*: gz.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf
   class UserCommands final:
