@@ -46,7 +46,7 @@ namespace serializers
       sdf::ElementPtr modelElem = _model.Element();
       if (!modelElem)
       {
-        gzerr << "Unable to serialize sdf::Model" << std::endl;
+        gzwarn << "Unable to serialize sdf::Model" << std::endl;
         return _out;
       }
 
