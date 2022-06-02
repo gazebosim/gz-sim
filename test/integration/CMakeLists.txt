@@ -88,8 +88,8 @@ set(tests_needing_display
   sensors_system.cc
   sensors_system_battery.cc
   shader_param_system.cc
-  thermal_system.cc
   thermal_sensor_system.cc
+  thermal_system.cc
   wide_angle_camera.cc
 )
 
@@ -129,7 +129,12 @@ ign_build_tests(TYPE INTEGRATION
 # For INTEGRATION_physics_system, we need to check what version of DART is
 # available so that we can disable tests that are unsupported by the particular
 # version of physics engine
-ign_find_package(DART QUIET)
+cmake_policy(PUSH)
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+ign_find_package(DART CONFIG)
+cmake_policy(POP)
 if (DART_FOUND)
   # Only adding include directories, no need to link against DART to check version
   target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})

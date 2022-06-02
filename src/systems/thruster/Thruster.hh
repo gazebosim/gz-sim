@@ -106,7 +106,8 @@ namespace systems
   class Thruster:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: Thruster();
@@ -122,6 +123,10 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+        const EntityComponentManager &_ecm);
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;

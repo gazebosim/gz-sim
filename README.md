@@ -123,7 +123,7 @@ export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
 
 This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
-# Documentation
+# Documentation
 
 See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 

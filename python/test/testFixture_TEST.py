@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import time
 import unittest
 
 from ignition.common import set_verbosity
@@ -39,7 +38,7 @@ class TestTestFixture(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             global pre_iterations
             pre_iterations += 1
-            world_e = world_entity(_ecm);
+            world_e = world_entity(_ecm)
             self.assertEqual(1, world_e)
             w = World(world_e)
             v = w.gravity(_ecm)
@@ -55,10 +54,7 @@ class TestTestFixture(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(False, 1000, False)
-
-        while(server.is_running()):
-            time.sleep(0.1)
+        server.run(True, 1000, False)
 
         self.assertEqual(1000, pre_iterations)
         self.assertEqual(1000, iterations)
