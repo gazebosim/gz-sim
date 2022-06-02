@@ -278,19 +278,23 @@ class TestInertial(unittest.TestCase):
         self.Diagonalize(12, Vector3d(4.125, 5.5, 4.375),
                          Vector3d(-math.sqrt(3), -math.sqrt(3)/2, 3.0)*0.25)
 
-    def test_addition(self):
-        # Add two half-cubes together
+    def test_addition_subtraction(self):
+        # Add two half-cubes together and
+        # Subtract one half-cube from a full cube
         mass = 12.0
         size = Vector3d(1, 1, 1)
         cubeMM3 = MassMatrix3d()
         self.assertTrue(cubeMM3.set_from_box(mass, size))
         cube = Inertiald(cubeMM3, Pose3d.ZERO)
         half = MassMatrix3d()
-        self.assertTrue(half.set_from_box(0.5*mass, Vector3d(0.5, 1, 1)))
+        half_size = Vector3d(0.5, 1, 1)
+        self.assertTrue(half.set_from_box(0.5*mass, half_size))
         left = Inertiald(half, Pose3d(-0.25, 0, 0, 0, 0, 0))
         right = Inertiald(half, Pose3d(0.25, 0, 0, 0, 0, 0))
         self.assertEqual(cube, left + right)
         self.assertEqual(cube, right + left)
+        self.assertEqual(right, cube - left)
+        self.assertEqual(left, cube - right)
 
         # test += operator
         tmp = left
@@ -303,36 +307,46 @@ class TestInertial(unittest.TestCase):
         tmp += left
         self.assertTrue(cube == tmp)
 
+        #  test -= operator
+        tmp = copy.copy(cube)
+        tmp -= right
+        self.assertTrue(left == tmp)
+
+        tmp = copy.copy(cube)
+        tmp -= left
+        self.assertTrue(right == tmp)
+
         # Test equivalent_box
         left = Inertiald(half, Pose3d(-0.25, 0, 0, 0, 0, 0))
         right = Inertiald(half, Pose3d(0.25, 0, 0, 0, 0, 0))
+
         size2 = Vector3d()
         rot2 = Quaterniond()
-
-        # TODO(chapulina) Restore original test after migrating to pybind11
         inertial_sum = (left + right)
-        mm = MassMatrix3d(inertial_sum.mass_matrix().mass(),
-                          inertial_sum.mass_matrix().diagonal_moments(),
-                          inertial_sum.mass_matrix().off_diagonal_moments())
-        self.assertTrue(mm.equivalent_box(size2, rot2))
-        # self.assertTrue((left + right).mass_matrix().equivalent_box(size2, rot2))
+        self.assertTrue((left + right).mass_matrix().equivalent_box(size2, rot2))
         self.assertEqual(size, size2)
         self.assertEqual(rot2, Quaterniond.IDENTITY)
 
         size2 = Vector3d()
         rot2 = Quaterniond()
-
-        # TODO(chapulina) Restore original test after migrating to pybind11
-        inertial_sum = (right + left)
-        mm = MassMatrix3d(inertial_sum.mass_matrix().mass(),
-                          inertial_sum.mass_matrix().diagonal_moments(),
-                          inertial_sum.mass_matrix().off_diagonal_moments())
-        self.assertTrue(mm.equivalent_box(size2, rot2))
-        # self.assertTrue((right + left).mass_matrix().equivalent_box(size2, rot2))
+        self.assertTrue((right + left).mass_matrix().equivalent_box(size2, rot2))
         self.assertEqual(size, size2)
         self.assertEqual(rot2, Quaterniond.IDENTITY)
 
-        # Add two rotated half-cubes together
+        size2 = Vector3d()
+        rot2 = Quaterniond()
+        self.assertTrue((cube - right).mass_matrix().equivalent_box(size2, rot2))
+        self.assertEqual(half_size, size2)
+        self.assertEqual(rot2, Quaterniond.IDENTITY)
+
+        size2 = Vector3d()
+        rot2 = Quaterniond()
+        self.assertTrue((cube - left).mass_matrix().equivalent_box(size2, rot2))
+        self.assertEqual(half_size, size2)
+        self.assertEqual(rot2, Quaterniond.IDENTITY)
+
+        # Add two rotated half-cubes together and
+        # Subtract a rotated half-cube from rotated full-cube
         mass = 12.0
         size = Vector3d(1, 1, 1)
         cubeMM3 = MassMatrix3d()
@@ -349,61 +363,67 @@ class TestInertial(unittest.TestCase):
         # but mass, center of mass, and base-frame MOI should match
         self.assertNotEqual(cube, left + right)
         self.assertNotEqual(cube, right + left)
-
-        # TODO(chapulina) Restore original tests after migrating to pybind11
-        inertial_sum = (left + right)
-        mm = MassMatrix3d(inertial_sum.mass_matrix().mass(),
-                          inertial_sum.mass_matrix().diagonal_moments(),
-                          inertial_sum.mass_matrix().off_diagonal_moments())
-        self.assertEqual(cubeMM3.mass(), mm.mass())
-        # self.assertEqual(cubeMM3.mass(), (left + right).mass_matrix().mass())
-        inertial_sum = (right + left)
-        mm = MassMatrix3d(inertial_sum.mass_matrix().mass(),
-                          inertial_sum.mass_matrix().diagonal_moments(),
-                          inertial_sum.mass_matrix().off_diagonal_moments())
-        self.assertEqual(cubeMM3.mass(), mm.mass())
-        # self.assertEqual(cubeMM3.mass(), (right + left).mass_matrix().mass())
+        self.assertEqual(cubeMM3.mass(), (left + right).mass_matrix().mass())
+        self.assertEqual(cubeMM3.mass(), (right + left).mass_matrix().mass())
         self.assertEqual(cube.pose().pos(), (left + right).pose().pos())
         self.assertEqual(cube.pose().pos(), (right + left).pose().pos())
         self.assertEqual(cube.moi(), (left + right).moi())
         self.assertEqual(cube.moi(), (right + left).moi())
+        # -operator
+        self.assertNotEqual(left, cube - right)
+        self.assertNotEqual(right, cube - left)
+        self.assertEqual(left.mass_matrix().mass(), (cube - right).mass_matrix().mass())
+        self.assertEqual(right.mass_matrix().mass(), (cube - left).mass_matrix().mass())
+        self.assertEqual(left.pose().pos(), (cube - right).pose().pos())
+        self.assertEqual(right.pose().pos(), (cube - left).pose().pos())
+        self.assertEqual(left.moi(), (cube - right).moi())
+        self.assertEqual(right.moi(), (cube - left).moi())
 
+        # Add eight cubes together into larger cube and
+        # Subtract seven cubes from larger cube
         mass = 12.0
         size = Vector3d(1, 1, 1)
         cubeMM3 = MassMatrix3d()
         self.assertTrue(cubeMM3.set_from_box(mass, size))
-        addedCube = Inertiald(
+        sevenCubes = Inertiald(
           Inertiald(cubeMM3, Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(-0.5,  0.5, -0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(0.5,  -0.5, -0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(0.5,   0.5, -0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(-0.5, -0.5, 0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(-0.5,  0.5, 0.5, 0, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,   0.5, 0.5, 0, 0, 0)))
+          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, 0)))
+        lastCube = Inertiald(cubeMM3, Pose3d(0.5,   0.5, 0.5, 0, 0, 0))
+        addedCube = sevenCubes + lastCube
 
         trueCubeMM3 = MassMatrix3d()
         self.assertTrue(trueCubeMM3.set_from_box(mass * 8, size * 2))
         self.assertEqual(addedCube, Inertiald(trueCubeMM3, Pose3d.ZERO))
+        self.assertEqual(lastCube, addedCube - sevenCubes)
+        self.assertEqual(sevenCubes, addedCube - lastCube)
 
-        # Add eight rotated cubes together into larger cube
+        # Add eight rotated cubes together into larger cube and
+        # Subtract seven rotated cubes from larger cube
         mass = 12.0
         size = Vector3d(1, 1, 1)
         cubeMM3 = MassMatrix3d()
         self.assertTrue(cubeMM3.set_from_box(mass, size))
-        addedCube = Inertiald(
+        sevenCubes = Inertiald(
           Inertiald(cubeMM3, Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(-0.5,  0.5, -0.5, math.pi/2, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(0.5,  -0.5, -0.5, 0, math.pi/2, 0)) +
           Inertiald(cubeMM3, Pose3d(0.5,   0.5, -0.5, 0, 0, math.pi/2)) +
           Inertiald(cubeMM3, Pose3d(-0.5, -0.5, 0.5, math.pi, 0, 0)) +
           Inertiald(cubeMM3, Pose3d(-0.5,  0.5, 0.5, 0, math.pi, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, math.pi)) +
-          Inertiald(cubeMM3, Pose3d(0.5,   0.5, 0.5, 0, 0, 0)))
+          Inertiald(cubeMM3, Pose3d(0.5,  -0.5, 0.5, 0, 0, math.pi)))
+        lastCube = Inertiald(cubeMM3, Pose3d(0.5,   0.5, 0.5, 0, 0, 0))
+        addedCube = sevenCubes + lastCube
 
         trueCubeMM3 = MassMatrix3d()
         self.assertTrue(trueCubeMM3.set_from_box(mass * 8, size * 2))
         self.assertEqual(addedCube, Inertiald(trueCubeMM3, Pose3d.ZERO))
+        self.assertEqual(lastCube, addedCube - sevenCubes)
+        self.assertEqual(sevenCubes, addedCube - lastCube)
 
         # Add two cubes with diagonal corners touching at one point
         #           ┌---------┐
@@ -434,9 +454,9 @@ class TestInertial(unittest.TestCase):
             Vector3d.ZERO,
             cubeMM3.off_diagonal_moments())
 
-        diagonalCubes = Inertiald(
-          Inertiald(cubeMM3, Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
-          Inertiald(cubeMM3, Pose3d(0.5,  0.5, 0.5, 0, 0, 0)))
+        cube1 = Inertiald(cubeMM3, Pose3d(-0.5, -0.5, -0.5, 0, 0, 0))
+        cube2 = Inertiald(cubeMM3, Pose3d(0.5,  0.5, 0.5, 0, 0, 0))
+        diagonalCubes = cube1 + cube2
 
         # lumped mass = 6 + 6 = 12
         # lumped center of mass at (0, 0, 0)
@@ -467,6 +487,23 @@ class TestInertial(unittest.TestCase):
         self.assertEqual(
             Vector3d(-3, -3, -3),
             diagonalCubes.mass_matrix().off_diagonal_moments())
+        # -operator
+        self.assertEqual(cube1.pose(), (diagonalCubes - cube2).pose())
+        self.assertEqual(cube2.pose(), (diagonalCubes - cube1).pose())
+        self.assertEqual(mass, (diagonalCubes - cube2).mass_matrix().mass())
+        self.assertEqual(mass, (diagonalCubes - cube1).mass_matrix().mass())
+        self.assertEqual(
+            cubeMM3.diagonal_moments(),
+            (diagonalCubes - cube2).mass_matrix().diagonal_moments())
+        self.assertEqual(
+            cubeMM3.diagonal_moments(),
+            (diagonalCubes - cube1).mass_matrix().diagonal_moments())
+        self.assertEqual(
+            cubeMM3.off_diagonal_moments(),
+            (diagonalCubes - cube2).mass_matrix().off_diagonal_moments())
+        self.assertEqual(
+            cubeMM3.off_diagonal_moments(),
+            (diagonalCubes - cube1).mass_matrix().off_diagonal_moments())
 
     def test_addition_invalid(self):
         # inertias all zero
@@ -511,12 +548,55 @@ class TestInertial(unittest.TestCase):
         tmp += i
         self.assertEqual(tmp, i)
 
-        # TODO(chapulina) Fix tests after migrating to pybind11
-        # self.assertTrue((i + i0).mass_matrix().is_positive())
-        # self.assertTrue((i0 + i).mass_matrix().is_positive())
-        # self.assertTrue((i + i0).mass_matrix().is_valid())
-        # self.assertTrue((i0 + i).mass_matrix().is_valid())
+        self.assertTrue((i + i0).mass_matrix().is_positive())
+        self.assertTrue((i0 + i).mass_matrix().is_positive())
+        self.assertTrue((i + i0).mass_matrix().is_valid())
+        self.assertTrue((i0 + i).mass_matrix().is_valid())
 
+    def test_subtraction_invalid(self):
+        mass = 12.0
+        m1 = MassMatrix3d()
+        m2 = MassMatrix3d()
+        self.assertTrue(m1.set_from_box(0.5*mass, Vector3d(0.5, 1, 1)))
+        self.assertTrue(m1.is_positive())
+        self.assertTrue(m1.is_valid())
+        self.assertTrue(m2.set_from_box(0.5*mass, Vector3d(0.5, 0.25, 0.25)))
+        self.assertTrue(m2.is_positive())
+        self.assertTrue(m2.is_valid())
+
+        # two inertials with i2 having higher mass than i1
+        i1 = Inertiald(m1, Pose3d(-0.25, 0, 0, 0, 0, 0))
+        i2 = Inertiald(m2, Pose3d(0.25, 0, 0, 0, 0, 0))
+
+        # expect subtraction to equal left argument
+        self.assertEqual(i1, i1 - i2)
+        tmp = copy.copy(i1)
+        tmp -= i2
+        self.assertEqual(tmp, i1)
+
+        # one inertial with zero inertias should not affect the subtraction
+        m1 = MassMatrix3d(mass, Vector3d(2, 3, 4), Vector3d(0.1, 0.2, 0.3))
+        m2 = MassMatrix3d(0.0, Vector3d.ZERO, Vector3d.ZERO)
+        self.assertTrue(m1.is_positive())
+        self.assertTrue(m1.is_valid())
+        self.assertFalse(m2.is_positive())
+        self.assertTrue(m2.is_near_positive())
+        self.assertTrue(m2.is_valid())
+
+        # i2 with zero inertia
+        i1 = Inertiald(m1, Pose3d(-1, 0, 0, 0, 0, 0))
+        i2 = Inertiald(m2, Pose3d(1, 0, 0, 0, 0, 0))
+
+        # expect i2 to not affect the subtraction
+        self.assertEqual(i1, i1 - i2)
+        tmp = copy.copy(i1)
+        tmp -= i2
+        self.assertEqual(tmp, i1)
+
+        self.assertTrue((i1 - i2).mass_matrix().is_positive())
+        self.assertFalse((i2 - i1).mass_matrix().is_positive())
+        self.assertTrue((i1 - i2).mass_matrix().is_valid())
+        self.assertTrue((i2 - i1).mass_matrix().is_valid())
 
 if __name__ == '__main__':
     unittest.main()

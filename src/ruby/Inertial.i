@@ -61,7 +61,11 @@ namespace gz
 
       public: Inertial<T> &operator+=(const Inertial<T> &_inertial);
 
+      public: Inertial<T> &operator-=(const Inertial<T> &_inertial);
+
       public: const Inertial<T> operator+(const Inertial<T> &_inertial) const;
+
+      public: const Inertial<T> operator-(const Inertial<T> &_inertial) const;
     };
     %template(Inertiald) Inertial<double>;
 
