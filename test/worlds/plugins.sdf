@@ -1,6 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin
       filename="TestWorldSystem"
       name="ignition::gazebo::TestWorldSystem">
@@ -21,6 +25,13 @@
             <sensor_key>456</sensor_key>
           </plugin>
         </sensor>
+        <visual name="visual">
+          <plugin
+            filename="TestVisualSystem"
+            name="ignition::gazebo::TestVisualSystem">
+            <sensor_key>890</sensor_key>
+          </plugin>
+        </visual>
       </link>
     </model>
   </world>

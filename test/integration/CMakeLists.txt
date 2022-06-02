@@ -19,6 +19,7 @@ set(tests
   events.cc
   examples_build.cc
   follow_actor_system.cc
+  force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
   imu_system.cc
@@ -35,22 +36,31 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   model.cc
+  model_photo_shoot_default_joints.cc
+  model_photo_shoot_random_joints.cc
   multicopter.cc
   multiple_servers.cc
+  navsat_system.cc
   nested_model_physics.cc
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
   particle_emitter2.cc
+  perfect_comms.cc
   performer_detector.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  rf_comms.cc
+  recreate_entities.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  spherical_coordinates.cc
+  thruster.cc
   touch_plugin.cc
+  tracked_vehicle_system.cc
   triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
@@ -58,18 +68,29 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
+  world_control_state.cc
 )
+
+# elevator system causes compile erros on windows
+if (NOT WIN32)
+  list(APPEND tests elevator_system.cc)
+endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_sensor_background.cc
   camera_video_record_system.cc
   depth_camera.cc
+  distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
-  thermal_system.cc
+  sensors_system_battery.cc
+  shader_param_system.cc
   thermal_sensor_system.cc
+  thermal_system.cc
+  triggered_camera.cc
 )
 
 # Add systems that need a valid display here.
@@ -103,3 +124,44 @@ ign_build_tests(TYPE INTEGRATION
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
 )
+
+
+# For INTEGRATION_physics_system, we need to check what version of DART is
+# available so that we can disable tests that are unsupported by the particular
+# version of physics engine
+cmake_policy(PUSH)
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+ign_find_package(DART CONFIG)
+cmake_policy(POP)
+if (DART_FOUND)
+  # Only adding include directories, no need to link against DART to check version
+  target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
+  target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
+endif()
+
+target_link_libraries(INTEGRATION_tracked_vehicle_system
+  ignition-physics${IGN_PHYSICS_VER}::core
+  ignition-plugin${IGN_PLUGIN_VER}::loader
+)
+
+target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
+  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+)
+
+# The default timeout (240s) doesn't seem to be enough for this test.
+set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+
+if(TARGET INTEGRATION_examples_build)
+  set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
+endif()
+
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
+endif()

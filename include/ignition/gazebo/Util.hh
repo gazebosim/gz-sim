@@ -210,6 +210,25 @@ namespace ignition
         const EntityComponentManager &_ecm,
         bool _excludeWorld = true);
 
+    /// \brief Convert an SDF world filename string, such as "shapes.sdf", to
+    /// full system file path.
+    /// The provided SDF filename may be a Fuel URI, relative path, name
+    /// of an installed Gazebo world filename, or an absolute path.
+    /// \param[in] _sdfFile An SDF world filename such as:
+    ///    1. "shapes.sdf" - This is referencing an installed world file.
+    ///    2. "../shapes.sdf" - This is referencing a relative world file.
+    ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
+    ///       file.
+    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf"
+    /// This is referencing a Fuel URI. This will download the world file.
+    /// \param[in] _fuelResourceCache Path to a Fuel resource cache, if
+    /// known.
+    /// \return Full path to the SDF world file. An empty string is returned
+    /// if the file could not be found.
+    std::string IGNITION_GAZEBO_VISIBLE resolveSdfWorldFile(
+        const std::string &_sdfFilename,
+        const std::string &_fuelResourceCache = "");
+
     /// \brief Helper function to "enable" a component (i.e. create it if it
     /// doesn't exist) or "disable" a component (i.e. remove it if it exists).
     /// \param[in] _ecm Mutable reference to the ECM
@@ -238,6 +257,15 @@ namespace ignition
       return changed;
     }
 
+    /// \brief Get the spherical coordinates for an entity.
+    /// \param[in] _entity Entity whose coordinates we want.
+    /// \param[in] _ecm Entity component manager
+    /// \return The entity's latitude (deg), longitude (deg) and elevation (m).
+    /// If the entity doesn't have a pose, or the world's spherical coordinates
+    /// haven't been defined, this will return nullopt.
+    std::optional<math::Vector3d> IGNITION_GAZEBO_VISIBLE sphericalCoordinates(
+        Entity _entity, const EntityComponentManager &_ecm);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
 
@@ -251,7 +279,6 @@ namespace ignition
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
-
     }
   }
 }

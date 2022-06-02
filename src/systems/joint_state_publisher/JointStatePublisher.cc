@@ -24,13 +24,17 @@
 
 #include <ignition/plugin/Register.hh>
 
+#include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointForce.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -89,6 +93,14 @@ void JointStatePublisher::Configure(
       this->CreateComponents(_ecm, joint);
     }
   }
+
+  // Advertise the state topic
+  // Sets to provided topic if available
+  if (_sdf->HasElement("topic"))
+  {
+    this->topic = _sdf->Get<std::string>("topic");
+  }
+
 }
 
 //////////////////////////////////////////////////
@@ -142,11 +154,28 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       worldName = _ecm.Component<components::Name>(
           parentEntity->Data())->Data();
 
-      // Advertise the state topic
-      std::string topic = std::string("/world/") + worldName + "/model/"
-        + this->model.Name(_ecm) + "/joint_state";
+      // if topic not set it will be empty
+      std::vector<std::string> topics;
+      // this helps avoid unecesarry invalid topic error
+      if (!this->topic.empty())
+      {
+        topics.push_back(this->topic);
+      }
+      std::string topicStr =
+          topicFromScopedName(this->model.Entity(), _ecm, false) +
+          "/joint_state";
+      topics.push_back(topicStr);
+
+      this->topic = validTopic(topics);
+      if (this->topic.empty())
+      {
+        ignerr << "No valid topics for JointStatePublisher could be found."
+          << "Make sure World/Model name does'nt contain invalid characters.\n";
+        return;
+      }
+
       this->modelPub = std::make_unique<transport::Node::Publisher>(
-          this->node.Advertise<msgs::Model>(topic));
+          this->node.Advertise<msgs::Model>(this->topic));
     }
   }
 
@@ -184,6 +213,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
     if (pose)
       msgs::Set(jointMsg->mutable_pose(), pose->Data());
 
+    auto child = _ecm.Component<components::ChildLinkName>(joint);
+    if (child)
+    {
+      jointMsg->set_child(child->Data());
+    }
+
+    auto parent = _ecm.Component<components::ParentLinkName>(joint);
+    if (parent)
+    {
+      jointMsg->set_parent(parent->Data());
+    }
+
     // Set the joint position
     const auto *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
@@ -194,6 +235,19 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         if (i == 0)
         {
           jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
+          auto jointAxis = _ecm.Component<components::JointAxis>(joint);
+          if (jointAxis)
+          {
+            msgs::Set(
+              jointMsg->mutable_axis1()->mutable_xyz(),
+              jointAxis->Data().Xyz());
+            jointMsg->mutable_axis1()->set_limit_upper(
+              jointAxis->Data().Upper());
+            jointMsg->mutable_axis1()->set_limit_lower(
+              jointAxis->Data().Lower());
+            jointMsg->mutable_axis1()->set_damping(
+              jointAxis->Data().Damping());
+          }
         }
         else if (i == 1)
         {

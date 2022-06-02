@@ -1,13 +1,9 @@
 <?xml version="1.0" ?>
-<!--
-  Note: For now, this file must be loaded from ign-gazebo's root folder so the
-  mesh's relative path is correct.
--->
 <sdf version="1.6">
   <world name="gpu_lidar_sensor">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"

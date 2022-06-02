@@ -25,8 +25,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <QQmlProperty>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/MeshManager.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/common/Uuid.hh>
 
@@ -43,6 +45,7 @@
 #include <ignition/rendering/Camera.hh>
 #include <ignition/rendering/RenderingIface.hh>
 #include <ignition/rendering/RayQuery.hh>
+#include <ignition/rendering/Utils.hh>
 #include <ignition/rendering/Visual.hh>
 #include <ignition/rendering/Scene.hh>
 
@@ -69,25 +72,13 @@ namespace ignition::gazebo
     /// \return True on success, false if failure
     public: bool GeneratePreview(const sdf::Root &_sdf);
 
+    /// \brief Generate a preview of a resource.
+    /// \param[in] _sdf The name of the resource to be previewed.
+    /// \return True on success, false if failure
+    public: bool GeneratePreview(const std::string &_name);
+
     /// \brief Handle placement requests
     public: void HandlePlacement();
-
-    /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
-    /// ray cast from the given 2D screen coordinates.
-    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
-    /// \param[in] _camera User camera
-    /// \param[in] _rayQuery Ray query for mouse clicks
-    /// \param[in] _offset Offset along the plane normal
-    /// \return 3D coordinates of a point in the 3D scene.
-    math::Vector3d ScreenToPlane(
-      const math::Vector2i &_screenPos,
-      const rendering::CameraPtr &_camera,
-      const rendering::RayQueryPtr &_rayQuery,
-      const float offset = 0.0);
-
-    /// \brief Generate a unique entity id.
-    /// \return The unique entity id
-    Entity UniqueId();
 
     /// \brief Ignition communication node.
     public: transport::Node node;
@@ -105,6 +96,9 @@ namespace ignition::gazebo
 
     /// \brief Path of an SDF file, to be used with plugins that spawn entities.
     public: std::string spawnSdfPath;
+
+    /// \brief The name of a resource to clone
+    public: std::string spawnCloneName;
 
     /// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene{nullptr};
@@ -149,6 +143,9 @@ namespace ignition::gazebo
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief Text for popup error message
+    public: QString errorPopupText;
   };
 }
 
@@ -171,6 +168,17 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Spawn";
 
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one Spawn plugin is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
+
   // World name from window, to construct default topics and services
   auto worldNames = gui::worldNames();
   if (!worldNames.empty())
@@ -178,34 +186,6 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 
   ignition::gui::App()->findChild
     <ignition::gui::MainWindow *>()->installEventFilter(this);
-}
-
-
-// TODO(ahcorde): Replace this when this function is on ign-rendering6
-/////////////////////////////////////////////////
-math::Vector3d SpawnPrivate::ScreenToPlane(
-    const math::Vector2i &_screenPos,
-    const rendering::CameraPtr &_camera,
-    const rendering::RayQueryPtr &_rayQuery,
-    const float offset)
-{
-  // Normalize point on the image
-  double width = _camera->ImageWidth();
-  double height = _camera->ImageHeight();
-
-  double nx = 2.0 * _screenPos.X() / width - 1.0;
-  double ny = 1.0 - 2.0 * _screenPos.Y() / height;
-
-  // Make a ray query
-  _rayQuery->SetFromCamera(
-      _camera, math::Vector2d(nx, ny));
-
-  math::Planed plane(math::Vector3d(0, 0, 1), offset);
-
-  math::Vector3d origin = _rayQuery->Origin();
-  math::Vector3d direction = _rayQuery->Direction();
-  double distance = plane.Distance(origin, direction);
-  return origin + direction * distance;
 }
 
 /////////////////////////////////////////////////
@@ -216,7 +196,7 @@ void SpawnPrivate::HandlePlacement()
 
   if (this->spawnPreview && this->hoverDirty)
   {
-    math::Vector3d pos = this->ScreenToPlane(
+    math::Vector3d pos = ignition::rendering::screenToPlane(
       this->mouseHoverPos, this->camera, this->rayQuery);
     pos.Z(this->spawnPreview->WorldPosition().Z());
     this->spawnPreview->SetWorldPosition(pos);
@@ -236,7 +216,7 @@ void SpawnPrivate::HandlePlacement()
       if (!_result)
         ignerr << "Error creating entity" << std::endl;
     };
-    math::Vector3d pos = this->ScreenToPlane(
+    math::Vector3d pos = ignition::rendering::screenToPlane(
       this->mouseEvent.Pos(), this->camera, this->rayQuery);
     pos.Z(pose.Pos().Z());
     msgs::EntityFactory req;
@@ -247,6 +227,10 @@ void SpawnPrivate::HandlePlacement()
     else if (!this->spawnSdfPath.empty())
     {
       req.set_sdf_filename(this->spawnSdfPath);
+    }
+    else if (!this->spawnCloneName.empty())
+    {
+      req.set_clone_name(this->spawnCloneName);
     }
     else
     {
@@ -274,20 +258,8 @@ void SpawnPrivate::HandlePlacement()
     this->mouseDirty = false;
     this->spawnSdfString.clear();
     this->spawnSdfPath.clear();
+    this->spawnCloneName.clear();
   }
-}
-
-/////////////////////////////////////////////////
-Entity SpawnPrivate::UniqueId()
-{
-  auto timeout = 100000u;
-  for (auto i = 0u; i < timeout; ++i)
-  {
-    Entity id = std::numeric_limits<uint64_t>::max() - i;
-    if (!this->sceneManager.HasEntity(id))
-      return id;
-  }
-  return kNullEntity;
 }
 
 /////////////////////////////////////////////////
@@ -306,19 +278,17 @@ void SpawnPrivate::OnRender()
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         this->scene->NodeByIndex(i));
-      if (cam)
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
       {
-        if (std::get<bool>(cam->UserData("user-camera")))
-        {
-          this->camera = cam;
+        this->camera = cam;
 
-          // Ray Query
-          this->rayQuery = this->camera->Scene()->CreateRayQuery();
+        // Ray Query
+        this->rayQuery = this->camera->Scene()->CreateRayQuery();
 
-          igndbg << "Spawn plugin is using camera ["
-                 << this->camera->Name() << "]" << std::endl;
-          break;
-        }
+        igndbg << "Spawn plugin is using camera ["
+               << this->camera->Name() << "]" << std::endl;
+        break;
       }
     }
   }
@@ -327,6 +297,8 @@ void SpawnPrivate::OnRender()
   IGN_PROFILE("IgnRenderer::Render Spawn");
   if (this->generatePreview)
   {
+    bool cloningResource = false;
+
     // Generate spawn preview
     rendering::VisualPtr rootVis = this->scene->RootVisual();
     sdf::Root root;
@@ -338,11 +310,20 @@ void SpawnPrivate::OnRender()
     {
       root.Load(this->spawnSdfPath);
     }
+    else if (!this->spawnCloneName.empty())
+    {
+      this->isPlacing = this->GeneratePreview(this->spawnCloneName);
+      cloningResource = true;
+    }
     else
     {
-      ignwarn << "Failed to spawn: no SDF string or path" << std::endl;
+      ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
+              << "to clone" << std::endl;
     }
-    this->isPlacing = this->GeneratePreview(root);
+
+    if (!cloningResource)
+      this->isPlacing = this->GeneratePreview(root);
+
     this->generatePreview = false;
   }
 
@@ -389,7 +370,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     sdf::Model model = *(_sdf.Model());
     this->spawnPreviewPose = model.RawPose();
     model.SetName(common::Uuid().String());
-    Entity modelId = this->UniqueId();
+    Entity modelId = this->sceneManager.UniqueId();
     if (kNullEntity == modelId)
     {
       this->TerminateSpawnPreview();
@@ -403,7 +384,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     {
       sdf::Link link = *(model.LinkByIndex(j));
       link.SetName(common::Uuid().String());
-      Entity linkId = this->UniqueId();
+      Entity linkId = this->sceneManager.UniqueId();
       if (!linkId)
       {
         this->TerminateSpawnPreview();
@@ -415,7 +396,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
       {
         sdf::Visual visual = *(link.VisualByIndex(k));
         visual.SetName(common::Uuid().String());
-        Entity visualId = this->UniqueId();
+        Entity visualId = this->sceneManager.UniqueId();
         if (!visualId)
         {
           this->TerminateSpawnPreview();
@@ -432,26 +413,64 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
     sdf::Light light = *(_sdf.Light());
     this->spawnPreviewPose = light.RawPose();
     light.SetName(common::Uuid().String());
-    Entity lightVisualId = this->UniqueId();
+    Entity lightVisualId = this->sceneManager.UniqueId();
     if (!lightVisualId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
-    Entity lightId = this->UniqueId();
+    Entity lightId = this->sceneManager.UniqueId();
     if (!lightId)
     {
       this->TerminateSpawnPreview();
       return false;
     }
     this->spawnPreview = this->sceneManager.CreateLight(
-          lightId, light, this->sceneManager.WorldId());
+          lightId, light, light.Name(), this->sceneManager.WorldId());
     this->sceneManager.CreateLightVisual(
-        lightVisualId, light, lightId);
+        lightVisualId, light, light.Name(), lightId);
 
     this->previewIds.push_back(lightId);
     this->previewIds.push_back(lightVisualId);
   }
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool SpawnPrivate::GeneratePreview(const std::string &_name)
+{
+  // Terminate any pre-existing spawned entities
+  this->TerminateSpawnPreview();
+
+  Entity visualId = this->sceneManager.UniqueId();
+  if (!visualId)
+  {
+    this->TerminateSpawnPreview();
+    return false;
+  }
+
+  auto visualChildrenPair = this->sceneManager.CopyVisual(visualId, _name,
+      this->sceneManager.WorldId());
+  if (!visualChildrenPair.first)
+  {
+    ignerr << "Copying a visual named " << _name << "failed.\n";
+    return false;
+  }
+
+  this->spawnPreview = visualChildrenPair.first;
+  this->spawnPreviewPose = this->spawnPreview->WorldPose();
+
+  // save the copied chiled IDs before saving the copied parent visual ID in
+  // order to ensure that the child visuals get deleted before the parent visual
+  // (since the SceneManager::RemoveEntity call in this->TerminateSpawnPreview()
+  // isn't recursive, deleting the parent visual before the child visuals could
+  // result in dangling child visuals)
+  const auto &visualChildIds = visualChildrenPair.second;
+  for (auto reverse_it = visualChildIds.rbegin();
+      reverse_it != visualChildIds.rend(); ++reverse_it)
+    this->previewIds.push_back(*reverse_it);
+  this->previewIds.push_back(visualId);
+
   return true;
 }
 
@@ -492,6 +511,16 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
     this->dataPtr->generatePreview = true;
   }
+  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  {
+    auto spawnCloneEvent =
+      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+    if (spawnCloneEvent)
+    {
+      this->dataPtr->spawnCloneName = spawnCloneEvent->Name();
+      this->dataPtr->generatePreview = true;
+    }
+  }
   else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
   {
     ignition::gui::events::KeyReleaseOnScene *_e =
@@ -501,8 +530,119 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->escapeReleased = true;
     }
   }
+  else if (_event->type() == ignition::gui::events::DropOnScene::kType)
+  {
+    auto dropOnSceneEvent =
+      reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
+    if (dropOnSceneEvent)
+    {
+      this->OnDropped(dropOnSceneEvent);
+    }
+  }
 
   return QObject::eventFilter(_obj, _event);
+}
+
+/////////////////////////////////////////////////
+void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
+{
+  if (nullptr == _event || nullptr == this->dataPtr->camera ||
+      nullptr == this->dataPtr->rayQuery)
+  {
+    return;
+  }
+
+  if (_event->DropText().empty())
+  {
+    this->SetErrorPopupText("Dropped empty entity URI.");
+    return;
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &_res, const bool _result)
+  {
+    if (!_result || !_res.data())
+      ignerr << "Error creating dropped entity." << std::endl;
+  };
+
+  math::Vector3d pos = ignition::rendering::screenToScene(
+    _event->Mouse(),
+    this->dataPtr->camera,
+    this->dataPtr->rayQuery);
+
+  msgs::EntityFactory req;
+  std::string dropStr = _event->DropText();
+
+  // Local meshes
+  if (QUrl(QString::fromStdString(dropStr)).isLocalFile())
+  {
+    // mesh to sdf model
+    common::rtrim(dropStr);
+
+    if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
+    {
+      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+      this->SetErrorPopupText(errTxt);
+      return;
+    }
+
+    // Fixes whitespace
+    dropStr = common::replaceAll(dropStr, "%20", " ");
+
+    std::string filename = common::basename(dropStr);
+    std::vector<std::string> splitName = common::split(filename, ".");
+
+    std::string sdf = "<?xml version='1.0'?>"
+      "<sdf version='" + std::string(SDF_PROTOCOL_VERSION) + "'>"
+        "<model name='" + splitName[0] + "'>"
+          "<link name='link'>"
+            "<visual name='visual'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</visual>"
+            "<collision name='collision'>"
+              "<geometry>"
+                "<mesh>"
+                  "<uri>" + dropStr + "</uri>"
+                "</mesh>"
+              "</geometry>"
+            "</collision>"
+          "</link>"
+        "</model>"
+      "</sdf>";
+
+    req.set_sdf(sdf);
+  }
+  // Resource from fuel
+  else
+  {
+    req.set_sdf_filename(dropStr);
+  }
+
+  req.set_allow_renaming(true);
+  msgs::Set(req.mutable_pose(),
+      math::Pose3d(pos.X(), pos.Y(), pos.Z(), 1, 0, 0, 0));
+
+  this->dataPtr->node.Request("/world/" + this->dataPtr->worldName + "/create",
+      req, cb);
+}
+
+/////////////////////////////////////////////////
+QString Spawn::ErrorPopupText() const
+{
+  return this->dataPtr->errorPopupText;
+}
+
+/////////////////////////////////////////////////
+void Spawn::SetErrorPopupText(const QString &_errorTxt)
+{
+  this->dataPtr->errorPopupText = _errorTxt;
+  this->ErrorPopupTextChanged();
+  this->popupError();
 }
 
 // Register this plugin

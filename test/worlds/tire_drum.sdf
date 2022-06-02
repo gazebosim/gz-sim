@@ -9,10 +9,9 @@
           <sor>1.0</sor>
         </solver>
       </ode>
+      <real_time_factor>0</real_time_factor>
     </physics>
 
-
-    
     <model name="tire">
       <pose>0 0 0.5  0 0 0</pose>
 
@@ -222,7 +221,7 @@
     </model>
 
 
-    
+
     <model name="drum">
       <pose>0 0 -4.0  1.5707963267948966 0 0</pose>
 

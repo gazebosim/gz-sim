@@ -26,8 +26,6 @@
 
 #include <ignition/fuel_tools/Interface.hh>
 
-#include <ignition/gui/Application.hh>
-
 #include "ignition/gazebo/Util.hh"
 #include "SimulationRunner.hh"
 
@@ -99,6 +97,10 @@ ServerPrivate::~ServerPrivate()
   if (this->runThread.joinable())
   {
     this->runThread.join();
+  }
+  if (this->stopThread && this->stopThread->joinable())
+  {
+    this->stopThread->join();
   }
 }
 
@@ -354,6 +356,21 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
+  // Advertise a service that returns the full path, on the Gazebo server's
+  // host machine, based on a provided URI.
+  std::string resolvePathService{"/gazebo/resource_paths/resolve"};
+  if (this->node.Advertise(resolvePathService,
+      &ServerPrivate::ResourcePathsResolveService, this))
+  {
+    ignmsg << "Resource path resolve service on [" << resolvePathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
+
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
@@ -367,6 +384,19 @@ void ServerPrivate::SetupTransport()
     ignerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
+
+  std::string serverControlService{"/server_control"};
+  if (this->node.Advertise(serverControlService,
+                           &ServerPrivate::ServerControlService, this))
+  {
+    ignmsg << "Server control service on [" << serverControlService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise ["
+           << serverControlService << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -379,6 +409,49 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
   for (const auto &name : this->worldNames)
   {
     _res.add_data(name);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ServerControlService(
+  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+{
+  _res.set_data(false);
+
+  if (_req.stop())
+  {
+    if (!this->stopThread)
+    {
+      this->stopThread = std::make_shared<std::thread>([this]{
+        ignlog << "Stopping Gazebo" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        this->Stop();
+      });
+    }
+    _res.set_data(true);
+  }
+
+  // TODO(chapulina): implement world cloning
+  if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
+  {
+    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement adding a new world
+  if (_req.new_world())
+  {
+    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement loading a world
+  if (!_req.open_filename().empty())
+  {
+    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    _res.set_data(false);
   }
 
   return true;
@@ -425,6 +498,64 @@ bool ServerPrivate::ResourcePathsService(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ResourcePathsResolveService(
+    const ignition::msgs::StringMsg &_req,
+    ignition::msgs::StringMsg &_res)
+{
+  // Get the request
+  std::string req = _req.data();
+
+  // Handle the case where the request is already a valid path
+  if (common::exists(req))
+  {
+    _res.set_data(req);
+    return true;
+  }
+
+  // Try Fuel
+  std::string path =
+      fuel_tools::fetchResourceWithClient(req, *this->fuelClient.get());
+  if (!path.empty() && common::exists(path))
+  {
+    _res.set_data(path);
+    return true;
+  }
+
+  // Check for the file:// prefix.
+  std::string prefix = "file://";
+  if (req.find(prefix) == 0)
+  {
+    req = req.substr(prefix.size());
+    // Check to see if the path exists
+    if (common::exists(req))
+    {
+      _res.set_data(req);
+      return true;
+    }
+  }
+
+  // Check for the model:// prefix
+  prefix = "model://";
+  if (req.find(prefix) == 0)
+    req = req.substr(prefix.size());
+
+  // Checkout resource paths
+  std::vector<std::string> gzPaths = resourcePaths();
+  for (const std::string &gzPath : gzPaths)
+  {
+    std::string fullPath = common::joinPaths(gzPath, req);
+    if (common::exists(fullPath))
+    {
+      _res.set_data(fullPath);
+      return true;
+    }
+  }
+
+  // Otherwise the resource could not be found
+  return false;
 }
 
 //////////////////////////////////////////////////

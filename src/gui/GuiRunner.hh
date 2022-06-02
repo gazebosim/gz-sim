@@ -25,6 +25,7 @@
 #include <ignition/utils/ImplPtr.hh>
 
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
@@ -46,6 +47,12 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \brief Destructor
   public: ~GuiRunner() override;
 
+  /// \brief Get the event manager for the gui
+  public: EventManager &GuiEventManager() const;
+
+  // Documentation inherited
+  protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
   /// \brief Callback when a plugin has been added.
   /// This function has no effect and is left here for ABI compatibility.
   /// \param[in] _objectName Plugin's object name.
@@ -58,9 +65,24 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \param[in] _res Response containing new state.
   private: void OnStateAsyncService(const msgs::SerializedStepMap &_res);
 
-  /// \brief Callback when a new state is received from the server.
+  /// \brief Callback when a new state is received from the server. Actual
+  /// updating of the ECM is delegated to OnStateQt
   /// \param[in] _msg New state message.
   private: void OnState(const msgs::SerializedStepMap &_msg);
+
+  /// \brief Called by the Qt thread to update the ECM with new state
+  /// \param[in] _msg New state message.
+  private: Q_INVOKABLE void OnStateQt(const msgs::SerializedStepMap &_msg);
+
+  /// \brief Update the plugins.
+  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
+  private: Q_INVOKABLE void UpdatePlugins();
+
+  /// \brief Load systems
+  private: void LoadSystems();
+
+  /// \brief Update systems
+  private: void UpdateSystems();
 
   /// \brief Pointer to private data.
   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)

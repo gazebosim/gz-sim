@@ -22,6 +22,7 @@
 #include <memory>
 #include <vector>
 
+#include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
 namespace ignition
@@ -50,14 +51,14 @@ namespace gazebo
     /// \param[in] _parentEntity Parent entity. By default, kNullEntity, which
     /// means it's a root entity.
     /// \param[in] _type Entity type
-    public slots: void AddEntity(unsigned int _entity,
+    public slots: void AddEntity(Entity _entity,
         const QString &_entityName,
-        unsigned int _parentEntity = kNullEntity,
+        Entity _parentEntity = kNullEntity,
         const QString &_type = QString());
 
     /// \brief Remove an entity from the tree.
     /// \param[in] _entity Entity to be removed
-    public slots: void RemoveEntity(unsigned int _entity);
+    public slots: void RemoveEntity(Entity _entity);
 
     /// \brief Get the entity type of a tree item at specified index
     /// \param[in] _index Model index
@@ -72,7 +73,7 @@ namespace gazebo
     /// \brief Get the entity ID of a tree item at specified index
     /// \param[in] _index Model index
     /// \return Entity ID
-    public: Q_INVOKABLE unsigned int EntityId(const QModelIndex &_index) const;
+    public: Q_INVOKABLE Entity EntityId(const QModelIndex &_index) const;
 
     /// \brief Keep track of which item corresponds to which entity.
     private: std::map<Entity, QStandardItem *> entityItems;
@@ -81,15 +82,17 @@ namespace gazebo
     struct EntityInfo
     {
       /// \brief Entity ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
-      unsigned int entity;
+      Entity entity;
 
       /// \brief Entity name
       QString name;
 
       /// \brief Parent ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
-      unsigned int parentEntity;
+      Entity parentEntity;
 
       /// \brief Entity type
       QString type;
@@ -123,11 +126,19 @@ namespace gazebo
     /// \brief Callback when an entity has been selected. This should be
     /// called from QML.
     /// \param[in] _entity Entity being selected.
-    public: Q_INVOKABLE void OnEntitySelectedFromQml(unsigned int _entity);
+    public: Q_INVOKABLE void OnEntitySelectedFromQml(Entity _entity);
 
     /// \brief Callback when all entities have been deselected.
     /// This should be called from QML.
     public: Q_INVOKABLE void DeselectAllEntities();
+
+    /// \brief Callback to insert a new entity
+    /// \param[in] _type Type of entity to insert
+    public: Q_INVOKABLE void OnInsertEntity(const QString &_type);
+
+    /// \brief Callback to insert a new entity
+    /// \param[in] _mesh Mesh file to create a model from.
+    public: Q_INVOKABLE void OnLoadMesh(const QString &_mesh);
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

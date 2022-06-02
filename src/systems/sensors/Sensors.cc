@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -42,10 +43,12 @@
 #include <ignition/sensors/Manager.hh>
 
 #include "ignition/gazebo/components/Atmosphere.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/BoundingBoxCamera.hh"
 #include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
@@ -93,7 +96,6 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
-  // TODO(anyone) Remove element when sensor is deleted
   public: std::map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
@@ -182,6 +184,40 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Stop the rendering thread
   public: void Stop();
+
+  /// \brief Update battery state of sensors in model
+  /// \param[in] _ecm Entity component manager
+  public: void UpdateBatteryState(const EntityComponentManager &_ecm);
+
+  /// \brief Check if sensor has subscribers
+  /// \param[in] _sensor Sensor to check
+  /// \return True if the sensor has subscribers, false otherwise
+  public: bool HasConnections(sensors::RenderingSensor *_sensor) const;
+
+  /// \brief Use to optionally set the background color.
+  public: std::optional<math::Color> backgroundColor;
+
+  /// \brief Use to optionally set the ambient light.
+  public: std::optional<math::Color> ambientLight;
+
+  /// \brief A map between model entity ids in the ECM to its battery state
+  /// True means has charge, false means drained
+  public: std::unordered_map<Entity, bool> modelBatteryState;
+
+  /// \brief A map between model entity ids in the ECM to whether its battery
+  /// state has changed.
+  /// True means has charge, false means drained
+  public: std::unordered_map<Entity, bool> modelBatteryStateChanged;
+
+  /// \brief A map of sensor ids to their active state
+  public: std::map<sensors::SensorId, bool> sensorStateChanged;
+
+  /// \brief Disable sensors if parent model's battery is drained
+  /// Affects sensors that are in nested models
+  public: bool disableOnDrainedBattery = false;
+
+  /// \brief Mutex to protect access to sensorStateChanged
+  public: std::mutex sensorStateMutex;
 };
 
 //////////////////////////////////////////////////
@@ -202,6 +238,10 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       igndbg << "Initializing render context" << std::endl;
+      if (this->backgroundColor)
+        this->renderUtil.SetBackgroundColor(*this->backgroundColor);
+      if (this->ambientLight)
+        this->renderUtil.SetAmbientLight(*this->ambientLight);
       this->renderUtil.Init();
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
@@ -235,9 +275,25 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
-
   if (!this->activeSensors.empty())
   {
+    // disable sensors that are out of battery or re-enable sensors that are
+    // being charged
+    if (this->disableOnDrainedBattery)
+    {
+      std::unique_lock<std::mutex> lock2(this->sensorStateMutex);
+      for (const auto &sensorIt : this->sensorStateChanged)
+      {
+        sensors::Sensor *s =
+            this->sensorManager.Sensor(sensorIt.first);
+        if (s)
+        {
+          s->SetActive(sensorIt.second);
+        }
+      }
+      this->sensorStateChanged.clear();
+    }
+
     this->sensorMaskMutex.lock();
     // Check the active sensors against masked sensors.
     //
@@ -260,6 +316,7 @@ void SensorsPrivate::RunOnce()
     {
       IGN_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
+      this->scene->SetTime(this->updateTime);
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -267,10 +324,32 @@ void SensorsPrivate::RunOnce()
       this->scene->PreRender();
     }
 
+    // disable sensors that have no subscribers to prevent doing unnecessary
+    // work
+    std::unordered_set<sensors::RenderingSensor *> tmpDisabledSensors;
+    this->sensorMaskMutex.lock();
+    for (auto id : this->sensorIds)
+    {
+      sensors::Sensor *s = this->sensorManager.Sensor(id);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      if (rs->IsActive() && !this->HasConnections(rs))
+      {
+        rs->SetActive(false);
+        tmpDisabledSensors.insert(rs);
+      }
+    }
+    this->sensorMaskMutex.unlock();
+
     {
       // publish data
       IGN_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+    }
+
+    // re-enble sensors
+    for (auto &rs : tmpDisabledSensors)
+    {
+      rs->SetActive(true);
     }
 
     {
@@ -363,6 +442,17 @@ void Sensors::RemoveSensor(const Entity &_entity)
         this->dataPtr->activeSensors.erase(activeSensorIt);
       }
     }
+
+    // update cameras list
+    for (auto &it : this->dataPtr->cameras)
+    {
+      if (it.second->Id() == idIter->second)
+      {
+        this->dataPtr->cameras.erase(it.first);
+        break;
+      }
+    }
+
     this->dataPtr->sensorIds.erase(idIter->second);
     this->dataPtr->sensorManager.Remove(idIter->second);
     this->dataPtr->entityToIdMap.erase(idIter);
@@ -387,16 +477,31 @@ void Sensors::Configure(const Entity &/*_id*/,
     EventManager &_eventMgr)
 {
   igndbg << "Configuring Sensors system" << std::endl;
+
   // Setup rendering
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
+
+  // get whether or not to disable sensor when model battery is drained
+  this->dataPtr->disableOnDrainedBattery =
+      _sdf->Get<bool>("disable_on_drained_battery",
+     this->dataPtr-> disableOnDrainedBattery).first;
+
+  // Get the background color, if specified.
+  if (_sdf->HasElement("background_color"))
+    this->dataPtr->backgroundColor = _sdf->Get<math::Color>("background_color");
+
+  // Get the ambient light, if specified.
+  if (_sdf->HasElement("ambient_light"))
+    this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    this->dataPtr->renderUtil.SetRemoveSensorCb(
+  this->dataPtr->renderUtil.SetRemoveSensorCb(
       std::bind(&Sensors::RemoveSensor, this, std::placeholders::_1));
+  this->dataPtr->renderUtil.SetEventManager(&_eventMgr);
 
   // parse sensor-specific data
   auto worldEntity = _ecm.EntityByComponents(components::World());
@@ -444,6 +549,7 @@ void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Sensors::Update");
+  std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
@@ -464,20 +570,21 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
-       _ecm.HasComponentType(components::BoundingBoxCamera::typeId)
-       ))
   {
-    igndbg << "Initialization needed" << std::endl;
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    this->dataPtr->doInit = true;
-    this->dataPtr->renderCv.notify_one();
+    if (!this->dataPtr->initialized &&
+        (_ecm.HasComponentType(components::Camera::typeId) ||
+         _ecm.HasComponentType(components::DepthCamera::typeId) ||
+         _ecm.HasComponentType(components::GpuLidar::typeId) ||
+         _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+         _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+         _ecm.HasComponentType(components::BoundingBoxCamera::typeId)))
+    {
+      igndbg << "Initialization needed" << std::endl;
+      this->dataPtr->doInit = true;
+      this->dataPtr->renderCv.notify_one();
+    }
   }
 
   if (this->dataPtr->running && this->dataPtr->initialized)
@@ -518,6 +625,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     if (!activeSensors.empty() ||
         this->dataPtr->renderUtil.PendingSensors() > 0)
     {
+      if (this->dataPtr->disableOnDrainedBattery)
+        this->dataPtr->UpdateBatteryState(_ecm);
+
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       this->dataPtr->renderCv.wait(lock, [this] {
         return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
@@ -533,6 +643,67 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->renderCv.notify_one();
     }
   }
+}
+
+
+//////////////////////////////////////////////////
+void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)
+{
+  // Battery state
+  _ecm.Each<components::BatterySoC>(
+      [&](const Entity & _entity, const components::BatterySoC *_bat)
+      {
+        bool hasCharge = _bat->Data() > 0;
+        auto stateIt =
+          this->modelBatteryState.find(_ecm.ParentEntity(_entity));
+        if (stateIt != this->modelBatteryState.end())
+        {
+          // detect a change in battery charge state
+          if (stateIt->second != hasCharge)
+          {
+            this->modelBatteryStateChanged[_ecm.ParentEntity(_entity)] =
+                hasCharge;
+          }
+        }
+        this->modelBatteryState[_ecm.ParentEntity(_entity)] = hasCharge;
+        return true;
+      });
+
+  // disable sensor if parent model is out of battery or re-enable sensor
+  // if battery is charging
+  for (const auto & modelIt : this->modelBatteryStateChanged)
+  {
+    // check if sensor is part of this model
+    for (const auto & sensorIt : this->entityToIdMap)
+    {
+      // parent link
+      auto parentLinkComp =
+          _ecm.Component<components::ParentEntity>(sensorIt.first);
+      if (!parentLinkComp)
+        continue;
+
+      // parent model
+      auto parentModelComp = _ecm.Component<components::ParentEntity>(
+          parentLinkComp->Data());
+      if (!parentModelComp)
+        continue;
+
+      // keep going up the tree in case sensor is in a nested model
+      while (parentModelComp)
+      {
+        auto parentEnt = parentModelComp->Data();
+        if (parentEnt == modelIt.first)
+        {
+          std::unique_lock<std::mutex> lock(this->sensorStateMutex);
+          // sensor is part of model - update its active state
+          this->sensorStateChanged[sensorIt.second] = modelIt.second;
+          break;
+        }
+        parentModelComp = _ecm.Component<components::ParentEntity>(parentEnt);
+      }
+    }
+  }
+  this->modelBatteryStateChanged.clear();
 }
 
 //////////////////////////////////////////////////
@@ -668,6 +839,49 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   return sensor->Name();
+}
+
+//////////////////////////////////////////////////
+bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
+{
+  if (!_sensor)
+    return true;
+
+  // \todo(iche033) Remove this function once a virtual
+  // sensors::RenderingSensor::HasConnections function is available
+  {
+    auto s = dynamic_cast<sensors::DepthCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::GpuLidarSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::SegmentationCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::BoundingBoxCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::ThermalCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::CameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  ignwarn << "Unable to check connection count for sensor: " << _sensor->Name()
+          << ". Unknown sensor type." << std::endl;
+  return true;
 }
 
 IGNITION_ADD_PLUGIN(Sensors, System,

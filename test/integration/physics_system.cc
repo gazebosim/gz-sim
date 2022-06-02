@@ -21,9 +21,13 @@
 #include <string>
 #include <vector>
 
+#ifdef HAVE_DART
+#include <dart/config.hpp>
+#endif
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/msgs/Utility.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -45,10 +49,15 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
+#include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointPosition.hh"
+#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
 #include "ignition/gazebo/components/JointPositionReset.hh"
 #include "ignition/gazebo/components/JointVelocity.hh"
+#include "ignition/gazebo/components/JointVelocityCmd.hh"
+#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
 #include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
@@ -74,6 +83,20 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 {
 };
 
+class PhysicsSystemFixtureWithDart6_10 : public PhysicsSystemFixture
+{
+  protected: void SetUp() override
+  {
+#ifndef HAVE_DART
+    GTEST_SKIP();
+#elif !DART_VERSION_AT_LEAST(6, 10, 0)
+    GTEST_SKIP();
+#endif
+
+    PhysicsSystemFixture::SetUp();
+  }
+};
+
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 {
@@ -95,8 +118,9 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
   // TODO(addisu) add useful EXPECT calls
 }
 
-/////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, FallingObject)
+////////////////////////////////////////////////
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -165,7 +189,7 @@ TEST_F(PhysicsSystemFixture, FallingObject)
 // This tests whether links with fixed joints keep their relative transforms
 // after physics. For that to work properly, the canonical link implementation
 // must be correct.
-TEST_F(PhysicsSystemFixture, CanonicalLink)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -236,7 +260,8 @@ TEST_F(PhysicsSystemFixture, CanonicalLink)
 
 /////////////////////////////////////////////////
 // Same as the CanonicalLink test, but with a non-default canonical link
-TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -291,7 +316,7 @@ TEST_F(PhysicsSystemFixture, NonDefaultCanonicalLink)
 
 /////////////////////////////////////////////////
 // Test physics integration with revolute joints
-TEST_F(PhysicsSystemFixture, RevoluteJoint)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -370,7 +395,7 @@ TEST_F(PhysicsSystemFixture, RevoluteJoint)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, CreateRuntime)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
   ignition::gazebo::ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -453,7 +478,8 @@ TEST_F(PhysicsSystemFixture, CreateRuntime)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -538,7 +564,8 @@ TEST_F(PhysicsSystemFixture, SetFrictionCoefficient)
 
 /////////////////////////////////////////////////
 /// Test that joint position reported by the physics system include all axes
-TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -617,7 +644,8 @@ TEST_F(PhysicsSystemFixture, MultiAxisJointPosition)
 
 /////////////////////////////////////////////////
 /// Test joint position reset component
-TEST_F(PhysicsSystemFixture, ResetPositionComponent)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -716,7 +744,8 @@ TEST_F(PhysicsSystemFixture, ResetPositionComponent)
 
 /////////////////////////////////////////////////
 /// Test joint veocity reset component
-TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -813,7 +842,382 @@ TEST_F(PhysicsSystemFixture, ResetVelocityComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, GetBoundingBox)
+/// Test joint position limit command component
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string rotatingJointName{"j2"};
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  size_t iteration = 0u;
+
+  // The system is not in equilibrium at the beginning, so normally, joint j2
+  // would move. For the first 50 ms, we set position limits to 1e-6 so that
+  // it can't freely move, and we check it did not. For the other 50 ms, we
+  // remove the position limit and check that the joint has moved at least by
+  // 1e-2. Between times 30 and 40 ms we also add a 100 N force to the joint to
+  // check that the limit is held even in presence of force commands. Between
+  // times 40 and 50 ms, we add a velocity command to check that velocity
+  // commands do not break the positional limit.
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            if (iteration == 0u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
+              EXPECT_EQ(nullptr, limitComp);
+              _ecm.CreateComponent(_entity,
+                components::JointPositionLimitsCmd ({{-1e-6, 1e-6}}));
+              _ecm.CreateComponent(_entity, components::JointPosition());
+            }
+            else if (iteration == 50u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e6, 1e6}};
+              }
+            }
+            else
+            {
+              auto limitComp =
+                _ecm.Component<components::JointPositionLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                EXPECT_EQ(0u, limitComp->Data().size());
+              }
+              if (iteration >= 30u && iteration < 40u)
+              {
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
+              }
+              else if (iteration >= 40u && iteration < 50u)
+              {
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
+              }
+            }
+            ++iteration;
+          }
+          return true;
+        });
+    });
+
+  std::vector<double> positions;
+
+  testSystem.OnPostUpdate([&](
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint,
+                components::Name,
+                components::JointPosition>(
+        [&](const ignition::gazebo::Entity &,
+            const components::Joint *,
+            const components::Name *_name,
+            const components::JointPosition *_pos)
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            positions.push_back(_pos->Data()[0]);
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 100, false);
+
+  ASSERT_EQ(positions.size(), 100ul);
+  // The 1e-6 limit is slightly overcome, but not very much
+  EXPECT_NEAR(positions[0], positions[20], 2e-5);
+  EXPECT_NEAR(positions[0], positions[30], 3e-5);
+  EXPECT_NEAR(positions[0], positions[40], 3e-5);
+  EXPECT_NEAR(positions[0], positions[49], 3e-5);
+  EXPECT_LT(std::abs(positions[50]) + 1e-2, std::abs(positions[99]));
+}
+
+/////////////////////////////////////////////////
+/// Test joint velocity limit command component
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string rotatingJointName{"j2"};
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  size_t iteration = 0u;
+
+  // The system is not in equilibrium at the beginning, so normally, joint j2
+  // would move. For the first 50 ms, we set velocity limits to 0.1 so that
+  // it can't move very fast, and we check it does not. For the other 50 ms, we
+  // remove the velocity limit and check that the joint has moved faster.
+  // Between times 30 and 40 ms we also add a 100 N force to the joint to
+  // check that the limit is held even in presence of force commands. Between
+  // times 40 and 50 ms, we add a velocity command to check that velocity
+  // commands do not break the velocity limit.
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            if (iteration == 0u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
+              EXPECT_EQ(nullptr, limitComp);
+              _ecm.CreateComponent(_entity,
+                components::JointVelocityLimitsCmd ({{-0.1, 0.1}}));
+              _ecm.CreateComponent(_entity, components::JointVelocity());
+            }
+            else if (iteration == 50u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e6, 1e6}};
+              }
+            }
+            else
+            {
+              auto limitComp =
+                _ecm.Component<components::JointVelocityLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                EXPECT_EQ(0u, limitComp->Data().size());
+              }
+              if (iteration >= 30u && iteration < 40u)
+              {
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
+              }
+              else if (iteration >= 40u && iteration < 50u)
+              {
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
+              }
+            }
+            ++iteration;
+          }
+          return true;
+        });
+    });
+
+  std::vector<double> velocities;
+
+  testSystem.OnPostUpdate([&](
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint,
+                components::Name,
+                components::JointVelocity>(
+        [&](const ignition::gazebo::Entity &,
+            const components::Joint *,
+            const components::Name *_name,
+            const components::JointVelocity *_vel)
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            velocities.push_back(_vel->Data()[0]);
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 100, false);
+
+  ASSERT_EQ(velocities.size(), 100ul);
+  // The 0.1 limit is slightly overcome, but not very much
+  EXPECT_NEAR(0.1, velocities[20], 1e-2);
+  EXPECT_NEAR(0.1, velocities[30], 1e-2);
+  EXPECT_NEAR(0.1, velocities[40], 1e-2);
+  EXPECT_NEAR(0.1, velocities[49], 1e-2);
+  EXPECT_LT(0.5, std::abs(velocities[99]));
+}
+
+
+/////////////////////////////////////////////////
+/// Test joint effort limit command component
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
+{
+  ignition::gazebo::ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint_equilibrium.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  gazebo::Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string rotatingJointName{"j2"};
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  size_t iteration = 0u;
+
+  // The system is in equilibrium at the beginning.
+  // For the first 50 ms, we set effort limits to 1e-6 so that
+  // it can't move, and we check it does not. For the other 50 ms, we
+  // remove the effort limit and check that the joint has moved.
+  // Between times 30 and 40 ms we also add a 100 N force to the joint to
+  // check that the limit is held even in presence of force commands. Between
+  // times 40 and 50 ms, we add a velocity command to check that velocity
+  // commands do not break the effort limit.
+
+  testSystem.OnPreUpdate(
+    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const ignition::gazebo::Entity &_entity,
+            const components::Joint *, components::Name *_name) -> bool
+        {
+          if (_name->Data() == rotatingJointName)
+          {
+            if (iteration == 0u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
+              EXPECT_EQ(nullptr, limitComp);
+              _ecm.CreateComponent(_entity,
+                components::JointEffortLimitsCmd ({{-1e-6, 1e-6}}));
+              _ecm.CreateComponent(_entity, components::JointPosition());
+            }
+            else if (iteration == 50u)
+            {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                limitComp->Data() = {{-1e9, 1e9}};
+              }
+            }
+            else
+            {
+              auto limitComp =
+                _ecm.Component<components::JointEffortLimitsCmd>(_entity);
+              EXPECT_NE(nullptr, limitComp);
+              if (limitComp)
+              {
+                EXPECT_EQ(0u, limitComp->Data().size());
+              }
+              if (iteration >= 30u && iteration < 40u)
+              {
+                _ecm.SetComponentData<components::JointForceCmd>(
+                  _entity, {100.0});
+              }
+              else if (iteration >= 40u && iteration < 50u)
+              {
+                _ecm.SetComponentData<components::JointVelocityCmd>(
+                  _entity, {1.0});
+              }
+              else if (iteration >= 50u)
+              {
+                _ecm.Component<components::JointForceCmd>(_entity)->Data() =
+                  {1000.0};
+              }
+            }
+            ++iteration;
+          }
+          return true;
+        });
+    });
+
+  std::vector<double> positions;
+
+  testSystem.OnPostUpdate([&](
+    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    {
+    _ecm.Each<components::Joint,
+    components::Name,
+    components::JointPosition>(
+      [&](const ignition::gazebo::Entity &,
+        const components::Joint *,
+        const components::Name *_name,
+        const components::JointPosition *_pos)
+        {
+        if (_name->Data() == rotatingJointName)
+        {
+          positions.push_back(_pos->Data()[0]);
+        }
+        return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 100, false);
+
+  ASSERT_EQ(positions.size(), 100ul);
+  // The 1e-6 limit is slightly overcome, but not very much
+  EXPECT_NEAR(positions[0], positions[20], 2e-5);
+  EXPECT_NEAR(positions[0], positions[30], 3e-5);
+  EXPECT_NEAR(positions[0], positions[40], 3e-5);
+  EXPECT_NEAR(positions[0], positions[49], 3e-5);
+  EXPECT_LT(std::abs(positions[50]) + 1e-2, std::abs(positions[99]));
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -884,7 +1288,7 @@ TEST_F(PhysicsSystemFixture, GetBoundingBox)
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, NestedModel)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -989,7 +1393,8 @@ TEST_F(PhysicsSystemFixture, NestedModel)
 }
 
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
@@ -1131,7 +1536,8 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelDartsim)
 }
 
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
@@ -1273,7 +1679,8 @@ TEST_F(PhysicsSystemFixture, IncludeNestedModelTPE)
 }
 
 // This tests whether the poses of nested models are updated correctly
-TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1374,7 +1781,8 @@ TEST_F(PhysicsSystemFixture, NestedModelIndividualCanonicalLinks)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, DefaultPhysicsOptions)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1460,7 +1868,8 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
 /////////////////////////////////////////////////
 // This tests whether pose updates are correct for a model whose canonical link
 // changes, but other links do not
-TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1587,7 +1996,7 @@ TEST_F(PhysicsSystemFixture, MovingCanonicalLinkOnly)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, Heightmap)
+TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
@@ -1668,7 +2077,8 @@ TEST_F(PhysicsSystemFixture, Heightmap)
 
 /////////////////////////////////////////////////
 // Joint force
-TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
+TEST_F(PhysicsSystemFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
 {
   common::Console::SetVerbosity(4);
   ignition::gazebo::ServerConfig serverConfig;
@@ -1785,4 +2195,72 @@ TEST_F(PhysicsSystemFixture, JointTransmittedWrench)
     EXPECT_NEAR(-0.2 * kGravity * kWeightMass, wrench.torque().y(), 1e-3);
     EXPECT_NEAR(0.0, wrench.torque().z(), 1e-3);
   }
+}
+
+/////////////////////////////////////////////////
+// Test that joint velocity limit is applied
+TEST_F(PhysicsSystemFixtureWithDart6_10,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+          "/test/worlds/joint_velocity_limit.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  auto server = std::make_unique<Server>(serverConfig);
+  EXPECT_FALSE(server->Running());
+  EXPECT_FALSE(*server->Running(0));
+
+  server->SetUpdatePeriod(1ns);
+
+  test::Relay testSystem;
+
+  const std::size_t nIters{600};
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      {
+        // Create components, if they don't exist on the first iteration
+        if (_info.iterations == 1)
+        {
+          for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
+          {
+            if (!_ecm.Component<components::JointVelocity>(e))
+            {
+              _ecm.CreateComponent(e, components::JointVelocity());
+            }
+          }
+        }
+      });
+
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        // At nIters iterations, check angular velocity of each of the joints
+        if (_info.iterations == nIters)
+        {
+          int count = 0;
+          for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
+          {
+            auto *jointVel = _ecm.Component<components::JointVelocity>(e);
+            EXPECT_NE(nullptr, jointVel);
+            EXPECT_FALSE(jointVel->Data().empty());
+            if (jointVel->Data().size() > 0)
+            {
+              ++count;
+              // Joint velocity should lie between
+              // - (kVelocityLimit + kTolerance) and
+              // + (kVelocityLimit + kTolerance)
+              const double kVelocityLimit = 1.0;
+              const double kTolerance = 1e-6;
+              EXPECT_NEAR(jointVel->Data()[0], 0, kVelocityLimit + kTolerance);
+            }
+          }
+          EXPECT_EQ(count, 2);
+        }
+      });
+
+  server->AddSystem(testSystem.systemPtr);
+  server->Run(true, nIters, false);
 }

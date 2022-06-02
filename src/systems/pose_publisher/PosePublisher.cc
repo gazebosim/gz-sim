@@ -111,6 +111,9 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// \brief True to publish nested model pose
   public: bool publishNestedModelPose = false;
 
+  /// \brief True to publish model pose
+  public: bool publishModelPose = false;
+
   /// \brief Frequency of pose publications in Hz. A negative frequency
   /// publishes as fast as possible (i.e, at the rate of the simulation step)
   public: double updateFrequency = -1;
@@ -197,6 +200,12 @@ void PosePublisher::Configure(const Entity &_entity,
     _sdf->Get<bool>("publish_nested_model_pose",
         this->dataPtr->publishNestedModelPose).first;
 
+  // for backward compatibility, publish_model_pose will be set to the
+  // same value as publish_nested_model_pose if it is not specified.
+  this->dataPtr->publishModelPose =
+    _sdf->Get<bool>("publish_model_pose",
+        this->dataPtr->publishNestedModelPose).first;
+
   this->dataPtr->publishVisualPose =
     _sdf->Get<bool>("publish_visual_pose",
         this->dataPtr->publishVisualPose).first;
@@ -242,6 +251,13 @@ void PosePublisher::Configure(const Entity &_entity,
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
   std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
+  poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
+  if (poseTopic.empty())
+  {
+    poseTopic = "/pose";
+    ignerr << "Empty pose topic generated for pose_publisher system. "
+           << "Setting to " << poseTopic << std::endl;
+  }
   std::string staticPoseTopic = poseTopic + "_static";
 
   if (this->dataPtr->usePoseV)
@@ -364,17 +380,35 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
     visited.push_back(entity);
 
     auto link = _ecm.Component<components::Link>(entity);
-    auto nestedModel = _ecm.Component<components::Model>(entity);
     auto visual = _ecm.Component<components::Visual>(entity);
     auto collision = _ecm.Component<components::Collision>(entity);
     auto sensor = _ecm.Component<components::Sensor>(entity);
     auto joint = _ecm.Component<components::Joint>(entity);
 
+    auto isModel = _ecm.Component<components::Model>(entity);
+    auto parent = _ecm.Component<components::ParentEntity>(entity);
+
     bool fillPose = (link && this->publishLinkPose) ||
-        (nestedModel && this->publishNestedModelPose) ||
         (visual && this->publishVisualPose) ||
         (collision && this->publishCollisionPose) ||
         (sensor && this->publishSensorPose);
+
+    // for backward compatibility, top level model pose will be published
+    // if publishNestedModelPose is set to true unless the user explicity
+    // disables this by setting publishModelPose to false
+    if (isModel)
+    {
+      if (parent)
+      {
+        auto nestedModel = _ecm.Component<components::Model>(parent->Data());
+        if (nestedModel)
+          fillPose = this->publishNestedModelPose;
+      }
+      if (!fillPose)
+      {
+        fillPose = this->publishNestedModelPose && this->publishModelPose;
+      }
+    }
 
     if (fillPose)
     {
@@ -386,7 +420,6 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
       childFrame =
         removeParentScope(scopedName(entity, _ecm, "::", false), "::");
 
-      auto parent = _ecm.Component<components::ParentEntity>(entity);
       if (parent)
       {
         auto parentName = _ecm.Component<components::Name>(parent->Data());

@@ -5,6 +5,11 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.1 to 6.2
+
+* If no `<namespace>` is given to the `Thruster` plugin, the namespace now
+  defaults to the model name, instead of an empty string.
+
 ## Ignition Gazebo 5.x to 6.x
 
 * The ParticleEmitter system is deprecated. Please use the ParticleEmitter2
@@ -46,6 +51,32 @@ since pose information is being logged in the `changed_state` topic.
       is now deprecated. `ComponentKey` has also been deprecated, so usage of
       this type is discouraged (see the **Deprecated** section above for more
       information about how to replace usage of `ComponentKey`).
+
+* The `GzScene3D` GUI plugin is being deprecated in favor of `MinimalScene`. In
+  order to get the same functionality as `GzScene3D`, users need to add the
+  following plugins:
+      + `MinimalScene`: base rendering functionality
+      + `GzSceneManager`: adds / removes / moves entities in the scene
+      + `EntityContextMenuPlugin`: right-click menu
+      + `InteractiveViewControl`: orbit controls
+      + `CameraTracking`: Move to, follow, set camera pose
+      + `MarkerManager`: Enables the use of markers
+      + `SelectEntities`: Select entities clicking on the scene
+      + `Spawn`: Functionality to spawn entities into the scene via GUI
+      + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
+
+    Moreover, legacy mode needs to be turned off for the following plugins
+    for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
+      + `TransformControl`: Translate and rotate
+      + `ViewAndle`: Move camera to preset angles
+
+* The `gui.config` and `server.config` files are now located in a versioned
+  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+
+## Ignition Gazebo 5.2 to 5.3
+
+* If no `<namespace>` is given to the `Thruster` plugin, the namespace now
+  defaults to the model name, instead of an empty string.
 
 ## Ignition Gazebo 4.x to 5.x
 
@@ -103,6 +134,10 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * `rendering::SceneManager`
     * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
     * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
+
+## Ignition Gazebo 3.12.0 to 3.X.X
+
+* Some sensors will only have the `SensorTopic` component after the 1st iteration.
 
 ## Ignition Gazebo 2.x to 3.x
 

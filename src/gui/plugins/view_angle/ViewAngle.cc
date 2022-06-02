@@ -66,6 +66,18 @@ namespace ignition::gazebo
     /// \brief gui camera pose
     public: math::Pose3d camPose;
 
+    /// \brief GUI camera near/far clipping distance (QList order is near, far)
+    public: QList<double> camClipDist{0.0, 0.0};
+
+    /// \brief Flag indicating if there is a new camera clipping distance
+    /// coming from qml side
+    public: bool newCamClipDist = false;
+
+    /// \brief Checks if there is new camera clipping distance from gui camera,
+    /// used to update qml side
+    /// \return True if there is a new clipping distance from gui camera
+    public: bool UpdateQtCamClipDist();
+
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
 
@@ -92,7 +104,7 @@ namespace ignition::gazebo
 
     /// \brief Enable legacy features for plugin to work with GzScene3D.
     /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{true};
+    public: bool legacy{false};
   };
 }
 
@@ -146,6 +158,12 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == ignition::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+
+    // updates qml cam clip distance spin boxes if changed
+    if (this->dataPtr->UpdateQtCamClipDist())
+    {
+      this->CamClipDistChanged();
+    }
   }
   else if (_event->type() ==
            ignition::gazebo::gui::events::EntitiesSelected::kType)
@@ -284,6 +302,20 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 }
 
 /////////////////////////////////////////////////
+QList<double> ViewAngle::CamClipDist() const
+{
+  return this->dataPtr->camClipDist;
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetCamClipDist(double _near, double _far)
+{
+  this->dataPtr->camClipDist[0] = _near;
+  this->dataPtr->camClipDist[1] = _far;
+  this->dataPtr->newCamClipDist = true;
+}
+
+/////////////////////////////////////////////////
 void ViewAnglePrivate::OnRender()
 {
   if (!this->camera)
@@ -310,6 +342,7 @@ void ViewAnglePrivate::OnRender()
         if (isUserCamera)
         {
           this->camera = cam;
+          this->moveToHelper.SetInitCameraPose(this->camera->WorldPose());
           igndbg << "ViewAngle plugin is moving camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
@@ -394,6 +427,14 @@ void ViewAnglePrivate::OnRender()
       this->prevMoveToTime = now;
     }
   }
+
+  // Camera clipping plane distance
+  if (this->newCamClipDist)
+  {
+    this->camera->SetNearClipPlane(this->camClipDist[0]);
+    this->camera->SetFarClipPlane(this->camClipDist[1]);
+    this->newCamClipDist = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -401,6 +442,24 @@ void ViewAnglePrivate::OnComplete()
 {
   this->viewingAngle = false;
   this->moveToPoseValue.reset();
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtCamClipDist()
+{
+  bool updated = false;
+  if (std::abs(this->camera->NearClipPlane() - this->camClipDist[0]) > 0.0001)
+  {
+    this->camClipDist[0] = this->camera->NearClipPlane();
+    updated = true;
+  }
+
+  if (std::abs(this->camera->FarClipPlane() - this->camClipDist[1]) > 0.0001)
+  {
+    this->camClipDist[1] = this->camera->FarClipPlane();
+    updated = true;
+  }
+  return updated;
 }
 
 // Register this plugin

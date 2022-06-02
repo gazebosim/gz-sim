@@ -17,12 +17,8 @@ Features:
 * Spawn entities through GUI
 * View angles
 * View collisions, wireframe, transparent, CoM, etc
-
-Missing for parity with GzScene3D:
-
 * Context menu
 * Drag and drop from Fuel / meshes
-* ...
 
 -->
 <sdf version="1.6">
@@ -43,15 +39,23 @@ Missing for parity with GzScene3D:
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_clip>
+          <near>0.25</near>
+          <far>25000</far>
+        </camera_clip>
       </plugin>
 
       <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
         <ignition-gui>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
@@ -61,10 +65,6 @@ Missing for parity with GzScene3D:
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
         <ignition-gui>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
@@ -74,10 +74,6 @@ Missing for parity with GzScene3D:
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
         <ignition-gui>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
@@ -87,7 +83,16 @@ Missing for parity with GzScene3D:
       </plugin>
       <plugin filename="MarkerManager" name="Marker manager">
         <ignition-gui>
-          <anchors target="3D View">
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="SelectEntities" name="Select Entities">
+        <ignition-gui>
+          <anchors target="Select entities">
             <line own="right" target="right"/>
             <line own="top" target="top"/>
           </anchors>
@@ -98,7 +103,17 @@ Missing for parity with GzScene3D:
           <property key="showTitleBar" type="bool">false</property>
         </ignition-gui>
       </plugin>
-      <plugin filename="SelectEntities" name="Select Entities">
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename="Spawn" name="Spawn Entities">
         <ignition-gui>
           <anchors target="Select entities">
             <line own="right" target="right"/>
@@ -132,21 +147,8 @@ Missing for parity with GzScene3D:
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
+        <use_event>true</use_event>
 
-      </plugin>
-
-      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
-        <ignition-gui>
-          <anchors target="Select entities">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
       </plugin>
 
       <!-- World statistics -->
@@ -170,20 +172,6 @@ Missing for parity with GzScene3D:
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-      </plugin>
-
-      <plugin filename="Spawn" name="Spawn Entities">
-        <ignition-gui>
-          <anchors target="Select entities">
-            <line own="right" target="right"/>
-            <line own="top" target="top"/>
-          </anchors>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
       </plugin>
 
       <!-- Insert simple shapes -->

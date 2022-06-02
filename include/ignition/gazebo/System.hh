@@ -82,7 +82,7 @@ namespace ignition
     /// \class ISystemConfigure ISystem.hh ignition/gazebo/System.hh
     /// \brief Interface for a system that implements optional configuration
     ///
-    /// Configure is called after the system is instatiated and all entities
+    /// Configure is called after the system is instantiated and all entities
     /// and components are loaded from the corresponding SDF world, and before
     /// simulation begins exectution.
     class ISystemConfigure {

@@ -40,7 +40,7 @@
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -51,10 +51,45 @@
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>0.35 0.23 0.94 0 0.05 -2.53</camera_pose>
-
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -75,10 +110,7 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
-        <service>/world/optical_tactile_plugin/control</service>
-        <stats_topic>/world/optical_tactile_plugin/stats</stats_topic>
-        <service>/world/depth_camera_sensor/control</service>
-        <stats_topic>/world/depth_camera_sensor/stats</stats_topic>
+        <use_event>true</use_event>
 
       </plugin>
 
@@ -103,8 +135,30 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
-        <topic>/world/optical_tactile_plugin/stats</topic>
-        <topic>/world/depth_camera_sensor/stats</topic>
+      </plugin>
+
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <ignition-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </ignition-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <ignition-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename="MarkerManager" name="Marker manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
@@ -112,30 +166,6 @@
           <property key="state" type="string">docked</property>
         </ignition-gui>
       </plugin>
-
-       <!-- Transform Control -->
-      <plugin filename="TransformControl" name="Transform Control">
-        <ignition-gui>
-          <property key="x" type="double">0</property>
-          <property key="y" type="double">0</property>
-          <property key="width" type="double">263</property>
-          <property key="height" type="double">50</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-          <property key="cardBackground" type="string">#03a9f4</property>
-        </ignition-gui>
-      </plugin>
-
-      <!-- Entity tree -->
-      <plugin filename="EntityTree" name="Entity tree">
-        <ignition-gui>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-      </plugin>
-      <plugin filename="ComponentInspector" name="Component inspector">
-      </plugin>
-
     </gui>
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

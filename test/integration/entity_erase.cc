@@ -19,6 +19,8 @@
 
 #include <optional>
 
+#include <ignition/utilities/ExtraTestMacros.hh>
+
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
@@ -32,7 +34,9 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(PhysicsSystemFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
 {
   ignition::gazebo::ServerConfig serverConfig;
 

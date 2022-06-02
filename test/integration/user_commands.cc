@@ -25,6 +25,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
@@ -32,7 +33,9 @@
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/WheelSlipCmd.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -49,12 +52,13 @@ class UserCommandsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Create)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
 {
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/empty.sdf";
+    "/test/worlds/empty.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -328,7 +332,7 @@ TEST_F(UserCommandsTest, Create)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Remove)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 {
   // Start server
   ServerConfig serverConfig;
@@ -516,7 +520,7 @@ TEST_F(UserCommandsTest, Remove)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Pose)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 {
   // Start server
   ServerConfig serverConfig;
@@ -688,8 +692,84 @@ TEST_F(UserCommandsTest, Pose)
   EXPECT_NEAR(500.0, poseComp->Data().Pos().Y(), 0.2);
 }
 
+
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Light)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/shapes.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Entity move by name
+  msgs::Pose_V req;
+
+  auto poseBoxMsg = req.add_pose();
+  poseBoxMsg->set_name("box");
+  poseBoxMsg->mutable_position()->set_y(123.0);
+
+  auto poseSphereMsg = req.add_pose();
+  poseSphereMsg->set_name("sphere");
+  poseSphereMsg->mutable_position()->set_y(456.0);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/default/set_pose_vector"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Box entity
+  auto boxEntity = ecm->EntityByComponents(components::Name("box"));
+  EXPECT_NE(kNullEntity, boxEntity);
+
+  // Check entity has not been moved yet
+  auto poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1), poseComp->Data());
+
+  // Run an iteration and check it was moved
+  server.Run(true, 1, false);
+
+  poseComp = ecm->Component<components::Pose>(boxEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(123.0, poseComp->Data().Pos().Y(), 0.2);
+
+  auto sphereEntity = ecm->EntityByComponents(components::Name("sphere"));
+  EXPECT_NE(kNullEntity, sphereEntity);
+
+  poseComp = ecm->Component<components::Pose>(sphereEntity);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_NEAR(456, poseComp->Data().Pos().Y(), 0.2);
+}
+
+/////////////////////////////////////////////////
+// https://github.com/ignitionrobotics/ign-gazebo/issues/634
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server
   ServerConfig serverConfig;
@@ -755,6 +835,14 @@ TEST_F(UserCommandsTest, Light)
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
+
+  // todo(ahcorde) Use the field is_light_off in light.proto from
+  // Garden on.
+  auto header = req.mutable_header()->add_data();
+  header->set_key("isLightOn");
+  std::string *value = header->add_value();
+  *value = std::to_string(true);
+
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
@@ -919,10 +1007,29 @@ TEST_F(UserCommandsTest, Light)
   EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
   EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);
+
+  // Test light_config topic
+  const std::string lightTopic = "/world/lights_command/light_config";
+
+  msgs::Light lightMsg;
+  lightMsg.set_name("spot");
+  ignition::msgs::Set(lightMsg.mutable_diffuse(),
+    ignition::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+  // Publish light config
+  auto pub = node.Advertise<msgs::Light>(lightTopic);
+  pub.Publish(lightMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  IGN_SLEEP_MS(10);
+
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+    spotLightComp->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, Physics)
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 {
   // Start server
   ServerConfig serverConfig;
@@ -956,7 +1063,7 @@ TEST_F(UserCommandsTest, Physics)
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
-  EXPECT_DOUBLE_EQ(1.0, physicsComp->Data().RealTimeFactor());
+  EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
 
   // Set physics properties
   msgs::Physics req;
@@ -999,3 +1106,103 @@ TEST_F(UserCommandsTest, Physics)
   EXPECT_DOUBLE_EQ(0.123, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(4.567, physicsComp->Data().RealTimeFactor());
 }
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/trisphere_cycle_wheel_slip.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
+                             gazebo::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  ASSERT_NE(nullptr, ecm);
+
+  // Check that the physics properties are the ones specified in the sdf
+  auto worldEntity = ecm->EntityByComponents(components::World());
+  ASSERT_NE(kNullEntity, worldEntity);
+  Entity tc0 = ecm->EntityByComponents(
+    components::Name("trisphere_cycle0"));
+  ASSERT_NE(kNullEntity, tc0);
+  Entity tc1 = ecm->EntityByComponents(
+    components::Name("trisphere_cycle1"));
+  ASSERT_NE(kNullEntity, tc1);
+
+  Model tcModel0{tc0};
+  Model tcModel1{tc1};
+  Entity wf0 = tcModel0.LinkByName(*ecm, "wheel_front");
+  ASSERT_NE(kNullEntity, wf0);
+  Entity wrl0 = tcModel0.LinkByName(*ecm, "wheel_rear_left");
+  ASSERT_NE(kNullEntity, wrl0);
+  Entity wrf0 = tcModel0.LinkByName(*ecm, "wheel_rear_right");
+  ASSERT_NE(kNullEntity, wrf0);
+  Entity wf1 = tcModel1.LinkByName(*ecm, "wheel_front");
+  ASSERT_NE(kNullEntity, wf1);
+  Entity wrl1 = tcModel1.LinkByName(*ecm, "wheel_rear_left");
+  ASSERT_NE(kNullEntity, wrl1);
+  Entity wrf1 = tcModel1.LinkByName(*ecm, "wheel_rear_right");
+  ASSERT_NE(kNullEntity, wrf1);
+
+  Entity links[] = {wf0, wrl0, wrf0, wf1, wrl1, wrf1};
+  for (auto link : links) {
+    EXPECT_EQ(nullptr, ecm->Component<components::WheelSlipCmd>(link));
+  }
+
+  // modify wheel slip parameters of one link of model 0
+  msgs::WheelSlipParametersCmd req;
+  auto * entityMsg = req.mutable_entity();
+  entityMsg->set_name("trisphere_cycle0::wheel_front");
+  entityMsg->set_type(msgs::Entity::LINK);
+  req.set_slip_compliance_lateral(1);
+  req.set_slip_compliance_longitudinal(1);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/wheel_slip/wheel_slip"};
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the WheelSlipCmd component is created
+  // and processed.
+  // The second one is just to check everything went fine.
+  server.Run(true, 2, false);
+
+  // modify wheel slip parameters of one link of model 1
+  entityMsg->set_name("trisphere_cycle1");
+  entityMsg->set_type(msgs::Entity::MODEL);
+  req.set_slip_compliance_lateral(2);
+  req.set_slip_compliance_longitudinal(1);
+
+  result = false;
+  res = msgs::Boolean{};
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run two iterations, in the first one the WheelSlipCmd component is created
+  // and processed.
+  // The second one is just to check everything went fine.
+  server.Run(true, 3, false);}

@@ -21,6 +21,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
@@ -127,6 +129,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::VisualPtr CreateLink(Entity _id,
         const sdf::Link &_link, Entity _parentId = 0);
 
+    /// \brief Filter a node and its children according to specific criteria.
+    /// \param[in] _node The name of the node where filtering should start.
+    /// \param[in] _filter Callback function that defines how _node and its
+    /// children should be filtered. The function parameter is a node. The
+    /// callback returns true if the node should be filtered; false otherwise.
+    /// \return A list of filtered nodes in top level order. This list can
+    /// contain _node itself, or child nodes of _node. An empty list means no
+    /// nodes were filtered.
+    public: std::vector<rendering::NodePtr> Filter(const std::string &_node,
+                std::function<bool(
+                  const rendering::NodePtr _nodeToFilter)> _filter) const;
+
+    /// \brief Copy a visual that currently exists in the scene
+    /// \param[in] _id Unique visual id of the copied visual
+    /// \param[in] _visual Name of the visual to copy
+    /// \param[in] _parentId Parent id of the copied visual
+    /// \return A pair with the first element being the copied visual object,
+    /// and the second element being a list of the entity IDs for the copied
+    /// visual's children, in level order. If copying the visual failed, the
+    /// first element will be nullptr. If the copied visual has no children, the
+    /// second element will be empty.
+    public: std::pair<rendering::VisualPtr, std::vector<Entity>> CopyVisual(
+                Entity _id, const std::string &_visual, Entity _parentId = 0);
+
     /// \brief Create a visual
     /// \param[in] _id Unique visual id
     /// \param[in] _visual Visual sdf dom
@@ -177,26 +203,30 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
+    /// \param[in] _name Actor's name
     /// \param[in] _parentId Parent id
     /// \return Actor object created from the sdf dom
     public: rendering::VisualPtr CreateActor(Entity _id,
-        const sdf::Actor &_actor, Entity _parentId = 0);
+        const sdf::Actor &_actor, const std::string &_name,
+        Entity _parentId = 0);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::LightPtr CreateLight(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a light
     /// \param[in] _id Unique light id
     /// \param[in] _light Light sdf dom
+    /// \param[in] _name Light's name
     /// \param[in] _parentId Parent id
     /// \return Light object created from the sdf dom
     public: rendering::VisualPtr CreateLightVisual(Entity _id,
-        const sdf::Light &_light, Entity _parentId);
+        const sdf::Light &_light, const std::string &_name, Entity _parentId);
 
     /// \brief Create a particle emitter.
     /// \param[in] _id Unique particle emitter id
@@ -285,7 +315,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// is the ancestor which is a direct child to the root visual.
     /// Usually, this will be a model or a light.
     /// \param[in] _visual Child visual
-    /// \return Top level visual containining this visual
+    /// \return Top level visual containing this visual
     public: rendering::VisualPtr TopLevelVisual(
         const rendering::VisualPtr &_visual) const;
 
@@ -293,7 +323,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// is the ancestor which is a direct child to the root visual.
     /// Usually, this will be a model or a light.
     /// \param[in] _node Child node
-    /// \return Top level node containining this node
+    /// \return Top level node containing this node
     public: rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
 
@@ -311,6 +341,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// according to its child.
     /// \param[in] _jointId Joint visual id.
     public: void UpdateJointParentPose(Entity _jointId);
+
+    /// \brief Create a unique entity ID
+    /// \return A unique entity ID. kNullEntity is returned if no unique entity
+    /// IDs are available
+    public: Entity UniqueId() const;
 
     /// \internal
     /// \brief Pointer to private data class

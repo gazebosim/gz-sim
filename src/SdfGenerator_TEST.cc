@@ -21,6 +21,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Interface.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
@@ -117,6 +118,43 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
                  << "'";
         }
       }
+      else if (valA->GetTypeName() == "double")
+      {
+        double dblA, dblB;
+        valA->Get(dblA);
+        valB->Get(dblB);
+        if (!math::equal(dblA, dblB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as double: '" << dblA << "' vs '"
+                 << dblB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "float")
+      {
+        float fltA, fltB;
+        valA->Get(fltA);
+        valB->Get(fltB);
+        if (!math::equal(fltA, fltB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as float: '" << fltA << "' vs '"
+                 << fltB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "bool")
+      {
+        bool boolA, boolB;
+        valA->Get(boolA);
+        valB->Get(boolB);
+        if (boolA != boolB)
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as bool: '" << boolA << "' vs '"
+                 << boolB << "'";
+        }
+
+      }
       else if (valA->GetAsString() != valB->GetAsString())
       {
         return testing::AssertionFailure()
@@ -148,6 +186,27 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
 
     if (!result)
     {
+      // Ignore missing pose values if the pose is zero.
+      sdf::ParamPtr childValA = childElemA->GetValue();
+      if (childValA->GetTypeName() == "pose")
+      {
+        math::Pose3d childValPose;
+        childValA->Get(childValPose);
+        if (childValPose == math::Pose3d::Zero)
+          return testing::AssertionSuccess();
+      }
+      else if (childValA->GetTypeName() == "bool")
+      {
+        bool childValBool;
+        childValA->Get(childValBool);
+        if (!childValBool && (childElemA->GetName() == "static" ||
+            childElemA->GetName() == "self_collide" ||
+            childElemA->GetName() == "enable_wind" ))
+        {
+          return testing::AssertionSuccess();
+        }
+      }
+
       return testing::AssertionFailure()
              << "No matching child element in element B for child element '"
              << childElemA->GetName() << "' in element A";
@@ -163,15 +222,15 @@ TEST(CompareElements, CompareWithDuplicateElements)
   const std::string m1Sdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
   const std::string m1CompTestSdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
+      <pose>0 1 0 0 0 0</pose>
     </model>
   </sdf>
   )";
@@ -271,7 +330,7 @@ class ModelElementFixture : public ElementUpdateFixture
 
     auto elem = std::make_shared<sdf::Element>();
     sdf::initFile("model.sdf", elem);
-    updateModelElement(elem, this->ecm, model);
+    EXPECT_TRUE(updateModelElement(elem, this->ecm, model));
     return elem;
   }
 
@@ -585,7 +644,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/";
+      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
@@ -834,7 +893,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ElementUpdateFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";
@@ -914,6 +975,76 @@ TEST_F(GenerateWorldFixture, ModelsInline)
     newRoot.LoadSdfString(*worldStr);
     EXPECT_TRUE(isSubset(newRoot.Element(), this->root.Element()));
     EXPECT_TRUE(isSubset(this->root.Element(), newRoot.Element()));
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_F(GenerateWorldFixture, PoseWithAttributes)
+{
+  const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
+                          "/test/worlds/models/relative_resource_uri";
+
+  std::string worldSdf = R"(
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="test_pose_attributes">
+    <include>
+      <uri>)" + includeUri + R"(</uri>
+      <pose degrees="true">1 2 3 90 0 0</pose>
+      <name>model1</name>
+    </include>
+    <include>
+      <uri>)" + includeUri + R"(</uri>
+      <pose rotation_format="quat_xyzw">1 2 3 0 0 0 1</pose>
+      <name>model2</name>
+    </include>
+  </world>
+</sdf>
+  )";
+
+  this->LoadWorldString(worldSdf);
+  Entity worldEntity = this->ecm.EntityByComponents(components::World());
+
+  auto testPoses = [](const std::string &_worldStr)
+  {
+    sdf::Root newRoot;
+    sdf::Errors errors = newRoot.LoadSdfString(_worldStr);
+    EXPECT_TRUE(errors.empty()) << errors;
+    auto newWorld = newRoot.WorldByIndex(0);
+    ASSERT_NE(nullptr, newWorld);
+    {
+      auto model = newWorld->ModelByIndex(0);
+      ASSERT_NE(nullptr, model);
+      // Check that the generated element has the new pose
+      EXPECT_EQ(math::Pose3d(1, 2, 3, IGN_PI_2, 0, 0), model->RawPose());
+    }
+    {
+      auto model = newWorld->ModelByIndex(1);
+      ASSERT_NE(nullptr, model);
+      // Check that the generated element has the new pose
+      EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), model->RawPose());
+    }
+  };
+
+  // Test with models included models expanded
+  {
+    this->sdfGenConfig.mutable_global_entity_gen_config()
+      ->mutable_expand_include_tags()
+      ->set_data(true);
+
+    auto worldStr = sdf_generator::generateWorld(
+        this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
+    ASSERT_TRUE(worldStr.has_value());
+    SCOPED_TRACE("Included models expanded");
+    testPoses(*worldStr);
+  }
+
+  // Test with models included models not expanded
+  {
+    auto worldStr = sdf_generator::generateWorld(this->ecm, worldEntity);
+    ASSERT_TRUE(worldStr.has_value());
+    SCOPED_TRACE("Included models not expanded");
+    testPoses(*worldStr);
   }
 }
 

@@ -127,7 +127,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       EXPECT_EQ("default", _name->Data());
       EXPECT_DOUBLE_EQ(0.001, _physics->Data().MaxStepSize());
-      EXPECT_DOUBLE_EQ(1.0, _physics->Data().RealTimeFactor());
+      EXPECT_DOUBLE_EQ(0.0, _physics->Data().RealTimeFactor());
 
       worldCount++;
 

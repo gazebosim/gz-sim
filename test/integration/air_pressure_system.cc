@@ -22,6 +22,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -41,7 +42,8 @@ class AirPressureTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(AirPressureTest, AirPressure)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 {
   // Start server
   ServerConfig serverConfig;
@@ -62,7 +64,7 @@ TEST_F(AirPressureTest, AirPressure)
 
   // Create a system that checks sensor topic
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
+  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
                               const gazebo::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::AirPressureSensor, components::Name>(
@@ -75,6 +77,10 @@ TEST_F(AirPressureTest, AirPressure)
               auto sensorComp = _ecm.Component<components::Sensor>(_entity);
               EXPECT_NE(nullptr, sensorComp);
 
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
               auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
               EXPECT_NE(nullptr, topicComp);
               if (topicComp)

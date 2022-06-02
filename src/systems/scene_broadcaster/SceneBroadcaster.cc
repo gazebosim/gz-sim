@@ -19,8 +19,10 @@
 
 #include <ignition/msgs/scene.pb.h>
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <map>
 #include <string>
 #include <unordered_set>
 
@@ -29,21 +31,41 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
+#include "ignition/gazebo/components/AirPressureSensor.hh"
+#include "ignition/gazebo/components/Altimeter.hh"
+#include "ignition/gazebo/components/Camera.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/ContactSensor.hh"
+#include "ignition/gazebo/components/DepthCamera.hh"
 #include "ignition/gazebo/components/Geometry.hh"
+#include "ignition/gazebo/components/GpuLidar.hh"
+#include "ignition/gazebo/components/Imu.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
+#include "ignition/gazebo/components/Lidar.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/LogicalCamera.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
+
+#include <sdf/Camera.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
+#include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
 
@@ -199,15 +221,27 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
 
-  /// \brief Period to publish state, defaults to 60 Hz.
-  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
-      statePublishPeriod{std::chrono::milliseconds(1000/60)};
+  /// \brief Period to publish state while paused and running. The key for
+  /// the map is used to store the publish period when paused and not
+  /// paused. The not-paused (a.ka. running) period has a key=false and a
+  /// default update rate of 60Hz. The paused period has a key=true and a
+  /// default update rate of 30Hz.
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
 };
 
 //////////////////////////////////////////////////
@@ -236,10 +270,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
+
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    ignerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
@@ -259,8 +308,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -284,10 +337,10 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
     _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-    jumpBackInTime;
+    jumpBackInTime || _manager.HasRemovedComponents();
   auto now = std::chrono::system_clock::now();
-  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod);
+  bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod[_info.paused]);
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
@@ -298,13 +351,18 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
-    // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
+    // Publish full state if it has been explicitly requested
+    if (this->dataPtr->stateServiceRequest)
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just periodic change components
-    else
+    // Publish the changed state if a change occurred to the ECS
+    else if (changeEvent)
+    {
+      _manager.ChangedState(*this->dataPtr->stepMsg.mutable_state());
+    }
+    // Otherwise publish just periodic change components when running
+    else if (!_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
       auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
@@ -567,6 +625,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -766,6 +825,169 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         sensorMsg->set_name(_nameComp->Data());
         sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
+        auto altimeterComp = _manager.Component<components::Altimeter>(_entity);
+        if (altimeterComp)
+        {
+          sensorMsg->set_type("altimeter");
+        }
+        auto airPressureComp = _manager.Component<
+          components::AirPressureSensor>(_entity);
+        if (airPressureComp)
+        {
+          sensorMsg->set_type("air_pressure");
+        }
+        auto cameraComp = _manager.Component<components::Camera>(_entity);
+        if (cameraComp)
+        {
+          sensorMsg->set_type("camera");
+          msgs::CameraSensor * cameraSensorMsg = sensorMsg->mutable_camera();
+          const auto * camera = cameraComp->Data().CameraSensor();
+          if (camera)
+          {
+            cameraSensorMsg->set_horizontal_fov(
+              camera->HorizontalFov().Radian());
+            cameraSensorMsg->mutable_image_size()->set_x(camera->ImageWidth());
+            cameraSensorMsg->mutable_image_size()->set_y(camera->ImageHeight());
+            cameraSensorMsg->set_image_format(camera->PixelFormatStr());
+            cameraSensorMsg->set_near_clip(camera->NearClip());
+            cameraSensorMsg->set_far_clip(camera->FarClip());
+            msgs::Distortion *distortionMsg =
+              cameraSensorMsg->mutable_distortion();
+            if (distortionMsg)
+            {
+              distortionMsg->mutable_center()->set_x(
+                camera->DistortionCenter().X());
+              distortionMsg->mutable_center()->set_y(
+                camera->DistortionCenter().Y());
+              distortionMsg->set_k1(camera->DistortionK1());
+              distortionMsg->set_k2(camera->DistortionK2());
+              distortionMsg->set_k3(camera->DistortionK3());
+              distortionMsg->set_p1(camera->DistortionP1());
+              distortionMsg->set_p2(camera->DistortionP2());
+            }
+          }
+        }
+        auto contactSensorComp = _manager.Component<
+          components::ContactSensor>(_entity);
+        if (contactSensorComp)
+        {
+          sensorMsg->set_type("contact_sensor");
+        }
+        auto depthCameraSensorComp = _manager.Component<
+          components::DepthCamera>(_entity);
+        if (depthCameraSensorComp)
+        {
+          sensorMsg->set_type("depth_camera");
+        }
+        auto gpuLidarComp = _manager.Component<components::GpuLidar>(_entity);
+        if (gpuLidarComp)
+        {
+          sensorMsg->set_type("gpu_lidar");
+          msgs::LidarSensor * lidarSensorMsg = sensorMsg->mutable_lidar();
+          const auto * lidar = gpuLidarComp->Data().LidarSensor();
+
+          if (lidar && lidarSensorMsg)
+          {
+            lidarSensorMsg->set_horizontal_samples(
+              lidar->HorizontalScanSamples());
+            lidarSensorMsg->set_horizontal_resolution(
+              lidar->HorizontalScanResolution());
+            lidarSensorMsg->set_horizontal_min_angle(
+              lidar->HorizontalScanMinAngle().Radian());
+            lidarSensorMsg->set_horizontal_max_angle(
+              lidar->HorizontalScanMaxAngle().Radian());
+            lidarSensorMsg->set_vertical_samples(lidar->VerticalScanSamples());
+            lidarSensorMsg->set_vertical_resolution(
+              lidar->VerticalScanResolution());
+            lidarSensorMsg->set_vertical_min_angle(
+              lidar->VerticalScanMinAngle().Radian());
+            lidarSensorMsg->set_vertical_max_angle(
+              lidar->VerticalScanMaxAngle().Radian());
+            lidarSensorMsg->set_range_min(lidar->RangeMin());
+            lidarSensorMsg->set_range_max(lidar->RangeMax());
+            lidarSensorMsg->set_range_resolution(lidar->RangeResolution());
+            msgs::SensorNoise *sensorNoise = lidarSensorMsg->mutable_noise();
+            if (sensorNoise)
+            {
+              const auto noise = lidar->LidarNoise();
+              switch(noise.Type())
+              {
+                case sdf::NoiseType::GAUSSIAN:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN);
+                  break;
+                case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+                  break;
+                default:
+                  sensorNoise->set_type(msgs::SensorNoise::NONE);
+              }
+              sensorNoise->set_mean(noise.Mean());
+              sensorNoise->set_stddev(noise.StdDev());
+              sensorNoise->set_bias_mean(noise.BiasMean());
+              sensorNoise->set_bias_stddev(noise.BiasStdDev());
+              sensorNoise->set_precision(noise.Precision());
+              sensorNoise->set_dynamic_bias_stddev(noise.DynamicBiasStdDev());
+              sensorNoise->set_dynamic_bias_correlation_time(
+                noise.DynamicBiasCorrelationTime());
+            }
+          }
+        }
+        auto imuComp = _manager.Component<components::Imu>(_entity);
+        if (imuComp)
+        {
+          sensorMsg->set_type("imu");
+          msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
+          const auto * imu = imuComp->Data().ImuSensor();
+
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
+              imu->LinearAccelerationXNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
+              imu->LinearAccelerationYNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
+              imu->LinearAccelerationZNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_x_noise(),
+              imu->AngularVelocityXNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_y_noise(),
+              imu->AngularVelocityYNoise());
+          ignition::gazebo::set(
+              imuMsg->mutable_angular_velocity()->mutable_z_noise(),
+              imu->AngularVelocityZNoise());
+        }
+        auto laserRetroComp = _manager.Component<
+          components::LaserRetro>(_entity);
+        if (laserRetroComp)
+        {
+          sensorMsg->set_type("laser_retro");
+        }
+        auto lidarComp = _manager.Component<components::Lidar>(_entity);
+        if (lidarComp)
+        {
+          sensorMsg->set_type("lidar");
+        }
+        auto logicalCamera = _manager.Component<
+          components::LogicalCamera>(_entity);
+        if (logicalCamera)
+        {
+          sensorMsg->set_type("logical_camera");
+        }
+        auto rgbdCameraComp = _manager.Component<
+          components::RgbdCamera>(_entity);
+        if (rgbdCameraComp)
+        {
+          sensorMsg->set_type("rgbd_camera");
+        }
+        auto thermalCameraComp = _manager.Component<
+          components::ThermalCamera>(_entity);
+        if (thermalCameraComp)
+        {
+          sensorMsg->set_type("thermal_camera");
+        }
+
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
@@ -801,6 +1023,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 

@@ -14,7 +14,8 @@ There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
 2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
-3. The default configuration file at `$HOME/.ignition/gazebo/server.config` \*
+3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
+   where `<#>` is Gazebo's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
@@ -23,7 +24,7 @@ file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
 > \* For log-playback, the default file is
-> `$HOME/.ignition/gazebo/playback_gui.config`
+> `$HOME/.ignition/gazebo/<#>/playback_server.config`
 
 ## Try it out
 
@@ -48,7 +49,7 @@ broadcaster is loaded.
 
 By default, you're loading this file:
 
-`$HOME/.ignition/gazebo/server.config`
+`$HOME/.ignition/gazebo/<#>/server.config`
 
 That file is created the first time you load Ignition Gazebo. Once it is
 created, Ignition will never write to it again unless you delete it. This
@@ -59,7 +60,7 @@ Let's try customizing it:
 
 1. Open this file with your favorite editor:
 
-    `$HOME/.ignition/gazebo/server.config`
+    `$HOME/.ignition/gazebo/<#>/server.config`
 
 2. Remove the `<plugin>` block for the physics system
 
@@ -77,7 +78,7 @@ provided by Ignition (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 
-`rm $HOME/.ignition/gazebo/server.config`
+`rm $HOME/.ignition/gazebo/<#>/server.config`
 
 ### SDF
 

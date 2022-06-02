@@ -18,6 +18,7 @@
 #define IGNITION_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
 
+    /// \brief Helper function to create visuals for new entities created in
+    /// ECM. This function is intended to be used by other GUI plugins when
+    /// new entities are created on the GUI side.
+    /// \param[in] _ecm Const reference to the entity component manager
+    /// \param[in] _entities Entities to create visuals for.
+    public: void CreateVisualsForEntities(const EntityComponentManager &_ecm,
+                                          const std::set<Entity> &_entities);
+
     /// \brief Set the rendering engine to use
     /// \param[in] _engineName Name of the rendering engine.
     public: void SetEngineName(const std::string &_engineName);
@@ -104,11 +113,13 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _scene Pointer to the scene.
     public: void SetScene(const rendering::ScenePtr &_scene);
 
-    /// \brief Set background color of render window
+    /// \brief Set background color of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _color Color of render window background
     public: void SetBackgroundColor(const math::Color &_color);
 
-    /// \brief Set ambient light of render window
+    /// \brief Set ambient light of render window. This will override
+    /// other sources, such as from SDF.
     /// \param[in] _ambient Color of ambient light
     public: void SetAmbientLight(const math::Color &_ambient);
 
@@ -122,6 +133,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether to use the current GL context
     /// \param[in] _enable True to use the current GL context
     public: void SetUseCurrentGLContext(bool _enable);
+
+    /// \brief Set the Window ID
+    /// \param[in] _winID Window ID
+    public: void SetWinID(const std::string &_winID);
 
     /// \brief Set whether to create rendering sensors
     /// \param[in] _enable True to create rendering sensors
@@ -198,6 +213,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Set whether the transform controls are currently being dragged.
     /// \param[in] _active True if active.
     public: void SetTransformActive(bool _active);
+
+    /// \brief Set the event manager to use
+    /// \param[in] _mgr Event manager to set to.
+    public: void SetEventManager(EventManager *_mgr);
 
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;

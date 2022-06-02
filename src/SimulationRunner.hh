@@ -27,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -38,6 +39,7 @@
 #include <ignition/common/Event.hh>
 #include <ignition/common/WorkerPool.hh>
 #include <ignition/math/Stopwatch.hh>
+#include <ignition/msgs.hh>
 #include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
@@ -46,14 +48,14 @@
 #include "ignition/gazebo/EventManager.hh"
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
 #include "ignition/gazebo/Types.hh"
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "SystemManager.hh"
 #include "Barrier.hh"
+#include "WorldControl.hh"
 
 using namespace std::chrono_literals;
 
@@ -65,93 +67,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
-
-    /// \brief Helper struct to control world time. It's used to hold
-    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
-    struct WorldControl
-    {
-      /// \brief True to pause simulation.
-      // cppcheck-suppress unusedStructMember
-      bool pause{false};  // NOLINT
-
-      /// \biref Run a given number of simulation iterations.
-      // cppcheck-suppress unusedStructMember
-      uint64_t multiStep{0u};  // NOLINT
-
-      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
-      /// real time and iterations.
-      // cppcheck-suppress unusedStructMember
-      bool rewind{false};  // NOLINT
-
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
-
-      /// \brief Sim time to jump to. A negative value means don't seek.
-      /// Seeking changes sim time but doesn't affect real time.
-      /// It also resets iterations back to zero.
-      std::chrono::steady_clock::duration seek{-1};
-    };
-
-    /// \brief Class to hold systems internally. It supports systems loaded
-    /// from plugins, as well as systems created at runtime.
-    class SystemInternal
-    {
-      /// \brief Constructor
-      /// \param[in] _systemPlugin A system loaded from a plugin.
-      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
-              : systemPlugin(std::move(_systemPlugin)),
-                system(systemPlugin->QueryInterface<System>()),
-                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
-                preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
-                update(systemPlugin->QueryInterface<ISystemUpdate>()),
-                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
-      {
-      }
-
-      /// \brief Constructor
-      /// \param[in] _system Pointer to a system.
-      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
-              : systemShared(_system),
-                system(_system.get()),
-                configure(dynamic_cast<ISystemConfigure *>(_system.get())),
-                preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
-                update(dynamic_cast<ISystemUpdate *>(_system.get())),
-                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get()))
-      {
-      }
-
-      /// \brief Plugin object. This manages the lifecycle of the instantiated
-      /// class as well as the shared library.
-      /// This will be null if the system wasn't loaded from a plugin.
-      public: SystemPluginPtr systemPlugin;
-
-      /// \brief Pointer to a system.
-      /// This will be null if the system wasn't loaded from a pointer.
-      public: std::shared_ptr<System> systemShared{nullptr};
-
-      /// \brief Access this system via the `System` interface
-      public: System *system = nullptr;
-
-      /// \brief Access this system via the ISystemConfigure interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemConfigure *configure = nullptr;
-
-      /// \brief Access this system via the ISystemPreUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPreUpdate *preupdate = nullptr;
-
-      /// \brief Access this system via the ISystemUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemUpdate *update = nullptr;
-
-      /// \brief Access this system via the ISystemPostUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPostUpdate *postupdate = nullptr;
-
-      /// \brief Vector of queries and callbacks
-      public: std::vector<EntityQueryCallback> updates;
-    };
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
@@ -291,6 +206,17 @@ namespace ignition
       /// \return True if the simulation runner is paused, false otherwise.
       public: bool Paused() const;
 
+      /// \brief Set if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \param[in] _step True if stepping based on WorldControl info, false
+      /// otherwise
+      public: void SetStepping(bool _step);
+
+      /// \brief Get if the simulation runner is stepping based on WorldControl
+      /// info
+      /// \return True if stepping based on WorldControl info, false otherwise
+      public: bool Stepping() const;
+
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
       /// pause. A negative number or a time less than the current simulation
@@ -370,6 +296,16 @@ namespace ignition
       private: bool OnWorldControl(const msgs::WorldControl &_req,
                                          msgs::Boolean &_res);
 
+      /// \brief World control state service callback. This function stores the
+      /// the request which will then be processed by the ProcessMessages
+      /// function.
+      /// \param[in] _req Request from client, currently handling play / pause
+      /// and multistep. This also may contain SerializedState information.
+      /// \param[out] _res Response to client, true if successful.
+      /// \return True for success
+      private: bool OnWorldControlState(const msgs::WorldControlState &_req,
+                                         msgs::Boolean &_res);
+
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
@@ -434,15 +370,17 @@ namespace ignition
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
-      /// \brief Implementation for AddSystem functions. This only adds systems
-      /// to a queue, the actual addition is performed by `AddSystemToRunner` at
-      /// the appropriate time.
-      /// \param[in] _system Generic representation of a system.
-      /// \param[in] _entity Entity received from AddSystem.
-      /// \param[in] _sdf SDF received from AddSystem.
-      private: void AddSystemImpl(SystemInternal _system,
-        std::optional<Entity> _entity = std::nullopt,
-        std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
+      /// \brief Process entities with the components::Recreate component.
+      /// Put in a request to make them as removed
+      private: void ProcessRecreateEntitiesRemove();
+
+      /// \brief Process entities with the components::Recreate component.
+      /// Reccreate the entities by cloning from the original ones.
+      private: void ProcessRecreateEntitiesCreate();
+
+      /// \brief Process the new world state message, if it is present.
+      /// See the newWorldControlState variable below.
+      private: void ProcessNewWorldControlState();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -451,28 +389,16 @@ namespace ignition
       /// server is in the run state.
       private: std::atomic<bool> running{false};
 
-      /// \brief All the systems.
-      private: std::vector<SystemInternal> systems;
-
-      /// \brief Pending systems to be added to systems.
-      private: std::vector<SystemInternal> pendingSystems;
-
-      /// \brief Mutex to protect pendingSystems
-      private: mutable std::mutex pendingSystemsMutex;
-
-      /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure *> systemsConfigure;
-
-      /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
-
-      /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
-
-      /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+      /// \brief Manager of all systems.
+      /// Note: must be before EntityComponentManager
+      /// Note: must be before EventMgr
+      /// Because systems have access to the ECM and Events, they need to be
+      /// cleanly stopped and destructed before destroying the event manager
+      /// and entity component manager.
+      private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all events.
+      /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
 
       /// \brief Manager of all components.
@@ -503,12 +429,6 @@ namespace ignition
 
       /// \brief List of real times used to compute averages.
       private: std::list<std::chrono::steady_clock::duration> realTimes;
-
-      /// \brief System loader, for loading system plugins.
-      private: SystemLoaderPtr systemLoader;
-
-      /// \brief Mutex to protect systemLoader
-      private: std::mutex systemLoaderMutex;
 
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};
@@ -600,6 +520,17 @@ namespace ignition
 
       /// \brief True if Server::RunOnce triggered a blocking paused step
       private: bool blockingPausedStepPending{false};
+
+      /// \brief Whether the simulation runner is currently stepping based on
+      /// WorldControl info (true) or not (false)
+      private: bool stepping{false};
+
+      /// \brief A set of entities that need to be recreated
+      private: std::set<Entity> entitiesToRecreate;
+
+      /// \brief Holds new world state information so that it can be processed
+      /// at the appropriate time.
+      private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
       friend class LevelManager;
     };

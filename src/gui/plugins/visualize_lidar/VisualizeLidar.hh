@@ -90,6 +90,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _type Index of selected visual type
     public: Q_INVOKABLE void UpdateType(int _type);
 
+    /// \brief Set lidar visualization size
+    /// \param[in] _size Size of lidar visualization
+    public: Q_INVOKABLE void UpdateSize(int _size);
+
     /// \brief Get the topic list as a string
     /// \return Message type
     public: Q_INVOKABLE QStringList TopicList() const;

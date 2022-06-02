@@ -21,14 +21,18 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <ignition/math/Pose3.hh>
+
+#include <sdf/Material.hh>
+#include <sdf/Physics.hh>
+
 #include <ignition/math/Vector3.hh>
+#include <ignition/transport/Node.hh>
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
-#include "ignition/gazebo/components/Physics.hh"
+#include "Types.hh"
 
 #include <ignition/msgs/light.pb.h>
 
@@ -67,12 +71,6 @@ namespace gazebo
   template<>
   void setData(QStandardItem *_item, const std::string &_data);
 
-  /// \brief Specialized to set pose data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data);
-
   /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
   /// \param[in] _data Data to set.
@@ -90,6 +88,12 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const sdf::Physics &_data);
+
+  /// \brief Specialized to set Spherical Coordinates data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const math::SphericalCoordinates &_data);
 
   /// \brief Specialized to set boolean data.
   /// \param[in] _item Item whose data will be set.
@@ -114,6 +118,13 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::ostream &_data);
+
+  /// \brief Specialized to set material data.
+  /// \param[in] _item Item whose data will be set.
+  /// \param[in] _data Data to set.
+  template<>
+  void setData(QStandardItem *_item, const sdf::Material &_data);
+
 
   /// \brief Set the unit of a given item.
   /// \param[in] _item Item whose unit will be set.
@@ -164,8 +175,8 @@ namespace gazebo
 
     /// \brief Entity
     Q_PROPERTY(
-      int entity
-      READ Entity
+      Entity entity
+      READ GetEntity
       WRITE SetEntity
       NOTIFY EntityChanged
     )
@@ -213,15 +224,12 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when pose changes.
-    /// \param[in] _x X
-    /// \param[in] _y Y
-    /// \param[in] _z Z
-    /// \param[in] _roll Roll
-    /// \param[in] _pitch Pitch
-    /// \param[in] _yaw Yaw
-    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
+    /// \brief Add a callback that's called whenever there are updates from the
+    /// ECM to the view, for a given component type.
+    /// \param[in] _id The component type id
+    /// \param[in] _cb Function that's called when there are updates.
+    public: void AddUpdateViewCb(ComponentTypeId _id,
+                inspector::UpdateViewCb _cb);
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
@@ -245,6 +253,8 @@ namespace gazebo
     /// \param[in] _falloff Falloff of the spotlight
     /// \param[in] _intensity Intensity of the light
     /// \param[in] _type light type
+    /// \param[in] _isLightOn is light on
+    /// \param[in] _visualizeVisual is visual enabled
     public: Q_INVOKABLE void OnLight(
       double _rSpecular, double _gSpecular, double _bSpecular,
       double _aSpecular, double _rDiffuse, double _gDiffuse,
@@ -252,13 +262,53 @@ namespace gazebo
       double _attLinear, double _attConstant, double _attQuadratic,
       bool _castShadows, double _directionX, double _directionY,
       double _directionZ, double _innerAngle, double _outerAngle,
-      double _falloff, double _intensity, int _type);
+      double _falloff, double _intensity, int _type, bool _isLightOn,
+      bool _visualizeVisual);
 
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
     /// \param[in] _realTimeFactor real time factor
     public: Q_INVOKABLE void OnPhysics(double _stepSize,
         double _realTimeFactor);
+
+    // \brief Callback in Qt thread when material color changes for a visual
+    /// \param[in] _rAmbient ambient red
+    /// \param[in] _gAmbient ambient green
+    /// \param[in] _bAmbient ambient blue
+    /// \param[in] _aAmbient ambient alpha
+    /// \param[in] _rDiffuse diffuse red
+    /// \param[in] _gDiffuse diffuse green
+    /// \param[in] _bDiffuse diffuse blue
+    /// \param[in] _aDiffuse diffuse alpha
+    /// \param[in] _rSpecular specular red
+    /// \param[in] _gSpecular specular green
+    /// \param[in] _bSpecular specular blue
+    /// \param[in] _aSpecular specular alpha
+    /// \param[in] _rEmissive emissive red
+    /// \param[in] _gEmissive emissive green
+    /// \param[in] _bEmissive emissive blue
+    /// \param[in] _aEmissive emissive alpha
+    /// \param[in] _type if type is not empty, opens QColorDialog.
+    /// The possible types are ambient, diffuse, specular, or emissive.
+    /// \param[in] _currColor used for QColorDialog to show the current color
+    /// in the open dialog.
+    public: Q_INVOKABLE void OnMaterialColor(
+      double _rAmbient, double _gAmbient, double _bAmbient,
+      double _aAmbient, double _rDiffuse, double _gDiffuse,
+      double _bDiffuse, double _aDiffuse, double _rSpecular,
+      double _gSpecular, double _bSpecular, double _aSpecular,
+      double _rEmissive, double _gEmissive, double _bEmissive,
+      double _aEmissive, QString _type, QColor _currColor);
+
+    /// \brief Callback in Qt thread when spherical coordinates change.
+    /// \param[in] _surface Surface model
+    /// \param[in] _latitude Latitude in degrees
+    /// \param[in] _longitude Longitude in degrees
+    /// \param[in] _elevation Elevation in meters
+    /// \param[in] _heading Heading in degrees
+    public: Q_INVOKABLE void OnSphericalCoordinates(QString _surface,
+        double _latitude, double _longitude, double _elevation,
+        double _heading);
 
     /// \brief Get whether the entity is a nested model or not
     /// \return True if the entity is a nested model, false otherwise
@@ -272,11 +322,11 @@ namespace gazebo
 
     /// \brief Get the entity currently inspected.
     /// \return Entity ID.
-    public: Q_INVOKABLE int Entity() const;
+    public: Q_INVOKABLE Entity GetEntity() const;
 
     /// \brief Set the entity currently inspected.
     /// \param[in] _entity Entity ID.
-    public: Q_INVOKABLE void SetEntity(const int &_entity);
+    public: Q_INVOKABLE void SetEntity(const Entity &_entity);
 
     /// \brief Notify that entity has changed.
     signals: void EntityChanged();
@@ -313,6 +363,14 @@ namespace gazebo
 
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
+
+    /// \brief Name of world entity
+    /// \return World name
+    public: const std::string &WorldName() const;
+
+    /// \brief Node for communication
+    /// \return Transport node
+    public: transport::Node &TransportNode();
 
     /// \internal
     /// \brief Pointer to private data.

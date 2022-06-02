@@ -33,7 +33,7 @@ namespace systems
   class OdometryPublisherPrivate;
 
   /// \brief Odometry Publisher which can be attached to any entity in
-  /// order to periodically publish 2D odometry data in the form of
+  /// order to periodically publish 2D or 3D odometry data in the form of
   /// ignition::msgs::Odometry messages.
   ///
   /// # System Parameters
@@ -52,6 +52,26 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
+  ///
+  /// `<odom_covariance_topic>`: Custom topic on which this system will publish
+  /// odometry with covariance messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/odometry_with_covariance`.
+  ///
+  /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
+  /// dimensional spaces are supported. This element is optional, and the
+  /// default value is 2.
+  ///
+  /// `<xyz_offset>`: Position offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  /// message.
+  ///
+  /// `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  ///  message.
+  ///
+  /// `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
+  /// to pose and twist messages. This element is optional, and the default
+  /// value is 0.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,

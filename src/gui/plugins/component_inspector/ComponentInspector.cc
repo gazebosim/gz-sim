@@ -16,23 +16,27 @@
 */
 
 #include <iostream>
+#include <list>
 #include <regex>
+#include <QColorDialog>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
+#include "ignition/gazebo/components/BatterySoC.hh"
 #include "ignition/gazebo/components/CastShadows.hh"
+#include "ignition/gazebo/components/CenterOfVolume.hh"
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Joint.hh"
+#include "ignition/gazebo/components/LaserRetro.hh"
 #include "ignition/gazebo/components/Level.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
@@ -42,6 +46,7 @@
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
@@ -50,21 +55,26 @@
 #include "ignition/gazebo/components/PerformerAffinity.hh"
 #include "ignition/gazebo/components/Physics.hh"
 #include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
 #include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
 #include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
+#include "ignition/gazebo/components/ThreadPitch.hh"
+#include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
+#include "Pose3d.hh"
+#include "SystemPluginInfo.hh"
 
 namespace ignition::gazebo
 {
@@ -99,30 +109,21 @@ namespace ignition::gazebo
 
     /// \brief Transport node for making command requests
     public: transport::Node node;
+
+    /// \brief A map of component types to the function used to update it.
+    public: std::map<ComponentTypeId, inspector::UpdateViewCb>
+        updateViewCbs;
+
+    /// \brief Handles all components displayed as a 3D pose.
+    public: std::unique_ptr<inspector::Pose3d> pose3d;
+
+    /// \brief Handles all system info components.
+    public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
   };
 }
 
 using namespace ignition;
 using namespace gazebo;
-
-//////////////////////////////////////////////////
-template<>
-void ignition::gazebo::setData(QStandardItem *_item, const math::Pose3d &_data)
-{
-  if (nullptr == _item)
-    return;
-
-  _item->setData(QString("Pose3d"),
-      ComponentsModel::RoleNames().key("dataType"));
-  _item->setData(QList({
-    QVariant(_data.Pos().X()),
-    QVariant(_data.Pos().Y()),
-    QVariant(_data.Pos().Z()),
-    QVariant(_data.Rot().Roll()),
-    QVariant(_data.Rot().Pitch()),
-    QVariant(_data.Rot().Yaw())
-  }), ComponentsModel::RoleNames().key("data"));
-}
 
 //////////////////////////////////////////////////
 template<>
@@ -143,6 +144,36 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
   else if (_data.type() == msgs::Light::DIRECTIONAL)
   {
     lightType = 2;
+  }
+
+  bool visualizeVisual = true;
+  for (int i = 0; i < _data.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _data.header().data(i).value_size(); ++j)
+    {
+      if (_data.header().data(i).key() ==
+          "visualizeVisual")
+      {
+        visualizeVisual = ignition::math::parseInt(
+          _data.header().data(i).value(0));
+      }
+    }
+  }
+
+  bool isLightOn = true;
+  for (int i = 0; i < _data.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _data.header().data(i).value_size(); ++j)
+    {
+      if (_data.header().data(i).key() ==
+          "isLightOn")
+      {
+        isLightOn = ignition::math::parseInt(
+          _data.header().data(i).value(0));
+      }
+    }
   }
 
   _item->setData(QString("Light"),
@@ -168,7 +199,9 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
     QVariant(_data.spot_outer_angle()),
     QVariant(_data.spot_falloff()),
     QVariant(_data.intensity()),
-    QVariant(lightType)
+    QVariant(lightType),
+    QVariant(isLightOn),
+    QVariant(visualizeVisual)
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -242,6 +275,13 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
+void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
+{
+  setData(_item, static_cast<int>(_data));
+}
+
+//////////////////////////////////////////////////
+template<>
 void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
@@ -264,6 +304,59 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
   _item->setData(QList({
     QVariant(_data.MaxStepSize()),
     QVariant(_data.RealTimeFactor())
+  }), ComponentsModel::RoleNames().key("data"));
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const sdf::Material &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("Material"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(_data.Ambient().R() * 255),
+    QVariant(_data.Ambient().G() * 255),
+    QVariant(_data.Ambient().B() * 255),
+    QVariant(_data.Ambient().A() * 255),
+    QVariant(_data.Diffuse().R() * 255),
+    QVariant(_data.Diffuse().G() * 255),
+    QVariant(_data.Diffuse().B() * 255),
+    QVariant(_data.Diffuse().A() * 255),
+    QVariant(_data.Specular().R() * 255),
+    QVariant(_data.Specular().G() * 255),
+    QVariant(_data.Specular().B() * 255),
+    QVariant(_data.Specular().A() * 255),
+    QVariant(_data.Emissive().R() * 255),
+    QVariant(_data.Emissive().G() * 255),
+    QVariant(_data.Emissive().B() * 255),
+    QVariant(_data.Emissive().A() * 255)
+  }), ComponentsModel::RoleNames().key("data"));
+
+  // TODO(anyone) Only shows colors of material,
+  // need to add others (e.g., pbr)
+}
+
+//////////////////////////////////////////////////
+template<>
+void ignition::gazebo::setData(QStandardItem *_item,
+    const math::SphericalCoordinates &_data)
+{
+  if (nullptr == _item)
+    return;
+
+  _item->setData(QString("SphericalCoordinates"),
+      ComponentsModel::RoleNames().key("dataType"));
+  _item->setData(QList({
+    QVariant(QString::fromStdString(math::SphericalCoordinates::Convert(
+        _data.Surface()))),
+    QVariant(_data.LatitudeReference().Degree()),
+    QVariant(_data.LongitudeReference().Degree()),
+    QVariant(_data.ElevationReference()),
+    QVariant(_data.HeadingOffset().Degree()),
   }), ComponentsModel::RoleNames().key("data"));
 }
 
@@ -366,6 +459,7 @@ ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
   qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<Entity>("Entity");
 }
 
 /////////////////////////////////////////////////
@@ -383,6 +477,11 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   // Connect model
   this->Context()->setContextProperty(
       "ComponentsModel", &this->dataPtr->componentsModel);
+
+  // Type-specific handlers
+  this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
+  this->dataPtr->systemInfo =
+      std::make_unique<inspector::SystemPluginInfo>(this);
 }
 
 //////////////////////////////////////////////////
@@ -482,12 +581,7 @@ void ComponentInspector::Update(const UpdateInfo &,
     // Add component to list
     else
     {
-      // TODO(louise) Blocking here is not the best idea
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "AddComponentType",
-          Qt::BlockingQueuedConnection,
-          Q_RETURN_ARG(QStandardItem *, item),
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      item = this->dataPtr->componentsModel.AddComponentType(typeId);
     }
 
     item->setData(QString::number(this->dataPtr->entity),
@@ -528,12 +622,29 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::BatterySoC::typeId)
+    {
+      auto comp = _ecm.Component<components::BatterySoC>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::CastShadows::typeId)
     {
       auto comp = _ecm.Component<components::CastShadows>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
+    }
+    else if (typeId == components::CenterOfVolume::typeId)
+    {
+      auto comp = _ecm.Component<components::CenterOfVolume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
     }
     else if (typeId == components::ChildLinkName::typeId)
     {
@@ -550,6 +661,12 @@ void ComponentInspector::Update(const UpdateInfo &,
         setData(item, comp->Data());
         setUnit(item, "m/s\u00B2");
       }
+    }
+    else if (typeId == components::LaserRetro::typeId)
+    {
+      auto comp = _ecm.Component<components::LaserRetro>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LinearAcceleration::typeId)
     {
@@ -648,12 +765,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Pose::typeId)
-    {
-      auto comp = _ecm.Component<components::Pose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
-    }
     else if (typeId == components::RenderEngineGuiPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
@@ -695,6 +806,40 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::SphericalCoordinates::typeId)
+    {
+      auto comp = _ecm.Component<components::SphericalCoordinates>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::ThreadPitch::typeId)
+    {
+      auto comp = _ecm.Component<components::ThreadPitch>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m");
+      }
+    }
+    else if (typeId == components::Transparency::typeId)
+    {
+      auto comp = _ecm.Component<components::Transparency>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::Volume::typeId)
+    {
+      auto comp = _ecm.Component<components::Volume>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "m\u00B3");
+      }
+    }
     else if (typeId == components::WindMode::typeId)
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
@@ -709,6 +854,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         setData(item, comp->Data());
         setUnit(item, "rad/s\u00B2");
+      }
+    }
+    else if (typeId == components::WorldAngularVelocity::typeId)
+    {
+      auto comp = _ecm.Component<components::WorldAngularVelocity>(
+          this->dataPtr->entity);
+      if (comp)
+      {
+        setData(item, comp->Data());
+        setUnit(item, "rad/s");
       }
     }
     else if (typeId == components::WorldLinearVelocity::typeId)
@@ -731,33 +886,48 @@ void ComponentInspector::Update(const UpdateInfo &,
         setUnit(item, "m/s");
       }
     }
-    else if (typeId == components::WorldPose::typeId)
+    else if (this->dataPtr->updateViewCbs.find(typeId) !=
+          this->dataPtr->updateViewCbs.end())
     {
-      auto comp = _ecm.Component<components::WorldPose>(this->dataPtr->entity);
-      if (comp)
-        setData(item, comp->Data());
+      this->dataPtr->updateViewCbs[typeId](_ecm, item);
     }
-    else if (typeId == components::WorldPoseCmd::typeId)
+    else if (typeId == components::Material::typeId)
     {
-      auto comp = _ecm.Component<components::WorldPoseCmd>(
-          this->dataPtr->entity);
+      auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
       if (comp)
+      {
+        this->SetType("material");
         setData(item, comp->Data());
+      }
     }
   }
 
-  // Remove components no longer present
+  // Remove components no longer present - list items to remove
+  std::list<ignition::gazebo::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
     if (componentTypes.find(typeId) == componentTypes.end())
     {
-      QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-          "RemoveComponentType",
-          Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+      itemsToRemove.push_back(typeId);
     }
   }
+
+  // Remove components in list
+  for (auto typeId : itemsToRemove)
+  {
+    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
+        "RemoveComponentType",
+        Qt::QueuedConnection,
+        Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+  }
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::AddUpdateViewCb(ComponentTypeId _id,
+    inspector::UpdateViewCb _cb)
+{
+  this->dataPtr->updateViewCbs[_id] = _cb;
 }
 
 /////////////////////////////////////////////////
@@ -790,13 +960,13 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-int ComponentInspector::Entity() const
+Entity ComponentInspector::GetEntity() const
 {
   return this->dataPtr->entity;
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::SetEntity(const int &_entity)
+void ComponentInspector::SetEntity(const Entity &_entity)
 {
   // If nothing is selected, display world properties
   if (_entity == kNullEntity)
@@ -850,33 +1020,14 @@ void ComponentInspector::SetPaused(bool _paused)
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnPose(double _x, double _y, double _z, double _roll,
-    double _pitch, double _yaw)
-{
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
-  {
-    if (!_result)
-        ignerr << "Error setting pose" << std::endl;
-  };
-
-  ignition::msgs::Pose req;
-  req.set_id(this->dataPtr->entity);
-  msgs::Set(req.mutable_position(), math::Vector3d(_x, _y, _z));
-  msgs::Set(req.mutable_orientation(), math::Quaterniond(_roll, _pitch, _yaw));
-  auto poseCmdService = "/world/" + this->dataPtr->worldName
-      + "/set_pose";
-  this->dataPtr->node.Request(poseCmdService, req, cb);
-}
-
-/////////////////////////////////////////////////
 void ComponentInspector::OnLight(
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _attRange, double _attLinear, double _attConstant,
   double _attQuadratic, bool _castShadows, double _directionX,
   double _directionY, double _directionZ, double _innerAngle,
-  double _outerAngle, double _falloff, double _intensity, int _type)
+  double _outerAngle, double _falloff, double _intensity, int _type,
+  bool _isLightOn, bool _visualizeVisual)
 {
   std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
       [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
@@ -886,6 +1037,23 @@ void ComponentInspector::OnLight(
   };
 
   ignition::msgs::Light req;
+  {
+    // todo(ahcorde) Use the field is_light_off in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("isLightOn");
+    std::string *value = header->add_value();
+    *value = std::to_string(_isLightOn);
+  }
+  {
+    // todo(ahcorde) Use the field visualize_visual in light.proto from
+    // Garden on.
+    auto header = req.mutable_header()->add_data();
+    header->set_key("visualizeVisual");
+    std::string *value = header->add_value();
+    *value = std::to_string(_visualizeVisual);
+  }
+
   req.set_name(this->dataPtr->entityName);
   req.set_id(this->dataPtr->entity);
   ignition::msgs::Set(req.mutable_diffuse(),
@@ -955,9 +1123,149 @@ void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 }
 
 /////////////////////////////////////////////////
+void ComponentInspector::OnMaterialColor(
+  double _rAmbient, double _gAmbient, double _bAmbient, double _aAmbient,
+  double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
+  double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
+  double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive,
+  QString _type, QColor _currColor)
+{
+  // when type is not empty, open qt color dialog
+  std::string type = _type.toStdString();
+  if (!type.empty())
+  {
+    QColor newColor = QColorDialog::getColor(
+        _currColor, nullptr, "Pick a color",
+        {QColorDialog::DontUseNativeDialog, QColorDialog::ShowAlphaChannel});
+
+    // returns if the user hits cancel
+    if (!newColor.isValid())
+      return;
+
+    if (type == "ambient")
+    {
+      _rAmbient = newColor.red();
+      _gAmbient = newColor.green();
+      _bAmbient = newColor.blue();
+      _aAmbient = newColor.alpha();
+    }
+    else if (type == "diffuse")
+    {
+      _rDiffuse = newColor.red();
+      _gDiffuse = newColor.green();
+      _bDiffuse = newColor.blue();
+      _aDiffuse = newColor.alpha();
+    }
+    else if (type == "specular")
+    {
+      _rSpecular = newColor.red();
+      _gSpecular = newColor.green();
+      _bSpecular = newColor.blue();
+      _aSpecular = newColor.alpha();
+    }
+    else if (type == "emissive")
+    {
+      _rEmissive = newColor.red();
+      _gEmissive = newColor.green();
+      _bEmissive = newColor.blue();
+      _aEmissive = newColor.alpha();
+    }
+    else
+    {
+      ignerr << "Invalid material type: " << type << std::endl;
+      return;
+    }
+  }
+
+  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
+      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting material color configuration"
+             << " on visual" << std::endl;
+  };
+
+  msgs::Visual req;
+  req.set_id(this->dataPtr->entity);
+
+  msgs::Set(req.mutable_material()->mutable_ambient(),
+    math::Color(_rAmbient / 255.0, _gAmbient / 255.0,
+      _bAmbient / 255.0, _aAmbient / 255.0));
+  msgs::Set(req.mutable_material()->mutable_diffuse(),
+    math::Color(_rDiffuse / 255.0, _gDiffuse / 255.0,
+      _bDiffuse / 255.0, _aDiffuse / 255.0));
+  msgs::Set(req.mutable_material()->mutable_specular(),
+    math::Color(_rSpecular / 255.0, _gSpecular / 255.0,
+      _bSpecular / 255.0, _aSpecular / 255.0));
+  msgs::Set(req.mutable_material()->mutable_emissive(),
+    math::Color(_rEmissive / 255.0, _gEmissive / 255.0,
+      _bEmissive / 255.0, _aEmissive / 255.0));
+
+  auto materialCmdService = "/world/" + this->dataPtr->worldName
+      + "/visual_config";
+  materialCmdService = transport::TopicUtils::AsValidTopic(materialCmdService);
+  if (materialCmdService.empty())
+  {
+    ignerr << "Invalid material command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(materialCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnSphericalCoordinates(QString _surface,
+    double _latitude, double _longitude, double _elevation,
+    double _heading)
+{
+  if (_surface != QString("EARTH_WGS84"))
+  {
+    ignerr << "Surface [" << _surface.toStdString() << "] not supported."
+           << std::endl;
+    return;
+  }
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting spherical coordinates." << std::endl;
+  };
+
+  msgs::SphericalCoordinates req;
+  req.set_surface_model(msgs::SphericalCoordinates::EARTH_WGS84);
+  req.set_latitude_deg(_latitude);
+  req.set_longitude_deg(_longitude);
+  req.set_elevation(_elevation);
+  req.set_heading_deg(_heading);
+
+  auto sphericalCoordsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_spherical_coordinates";
+  sphericalCoordsCmdService =
+      transport::TopicUtils::AsValidTopic(sphericalCoordsCmdService);
+  if (sphericalCoordsCmdService.empty())
+  {
+    ignerr << "Invalid spherical coordinates service" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(sphericalCoordsCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
 bool ComponentInspector::NestedModel() const
 {
   return this->dataPtr->nestedModel;
+}
+
+/////////////////////////////////////////////////
+const std::string &ComponentInspector::WorldName() const
+{
+  return this->dataPtr->worldName;
+}
+
+/////////////////////////////////////////////////
+transport::Node &ComponentInspector::TransportNode()
+{
+  return this->dataPtr->node;
 }
 
 // Register this plugin

@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/ContactSensor.hh"
 #include "ignition/gazebo/components/CustomSensor.hh"
 #include "ignition/gazebo/components/DepthCamera.hh"
+#include "ignition/gazebo/components/ForceTorque.hh"
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/GpuLidar.hh"
 #include "ignition/gazebo/components/Gravity.hh"
@@ -57,6 +58,7 @@
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/NavSat.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include <ignition/gazebo/components/ParticleEmitter.hh>
@@ -68,6 +70,7 @@
 #include "ignition/gazebo/components/SelfCollide.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
+#include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
@@ -237,6 +240,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   {
     this->dataPtr->ecm->CreateComponent(worldEntity,
         components::Atmosphere(*_world->Atmosphere()));
+  }
+
+  // spherical coordinates
+  if (_world->SphericalCoordinates())
+  {
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
   // Models
@@ -441,7 +451,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
              << canonicalLinkPair.second << "\n";
     }
   }
-  else
+  else if(!isStatic)
   {
     ignerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
@@ -581,6 +591,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
+  return this->CreateEntities(_joint, false);
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
+    bool _resolved)
+{
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
@@ -591,6 +608,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
       components::Joint());
   this->dataPtr->ecm->CreateComponent(jointEntity,
       components::JointType(_joint->Type()));
+
+  // Sensors
+  for (uint64_t sensorIndex = 0; sensorIndex < _joint->SensorCount();
+      ++sensorIndex)
+  {
+    auto sensor = _joint->SensorByIndex(sensorIndex);
+    auto sensorEntity = this->CreateEntities(sensor);
+
+    this->SetParent(sensorEntity, jointEntity);
+  }
 
   if (_joint->Axis(0))
   {
@@ -627,34 +654,54 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::ThreadPitch(_joint->ThreadPitch()));
 
-  std::string resolvedParentLinkName;
-  const auto resolveParentErrors =
-    _joint->ResolveParentLink(resolvedParentLinkName);
-  if (!resolveParentErrors.empty())
-  {
-    ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
-           << "' with parent name '" << _joint->ParentLinkName() << "'"
-           << std::endl;
 
-    return kNullEntity;
+  std::string resolvedParentLinkName;
+  if (_resolved)
+  {
+    resolvedParentLinkName = _joint->ParentLinkName();
+  }
+  else
+  {
+
+    const auto resolveParentErrors =
+      _joint->ResolveParentLink(resolvedParentLinkName);
+    if (!resolveParentErrors.empty())
+    {
+      ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
+             << "' with parent name '" << _joint->ParentLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveParentErrors)
+      {
+        ignerr << error << std::endl;
+      }
+
+      return kNullEntity;
+    }
   }
   this->dataPtr->ecm->CreateComponent(
       jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
-  const auto resolveChildErrors =
-    _joint->ResolveChildLink(resolvedChildLinkName);
-  if (!resolveChildErrors.empty())
+  if (_resolved)
   {
-    ignerr << "Failed to resolve child link for joint '" << _joint->Name()
-           << "' with child name '" << _joint->ChildLinkName() << "'"
-           << std::endl;
-    for (const auto &error : resolveChildErrors)
+    resolvedChildLinkName = _joint->ChildLinkName();
+  }
+  else
+  {
+    const auto resolveChildErrors =
+      _joint->ResolveChildLink(resolvedChildLinkName);
+    if (!resolveChildErrors.empty())
     {
-      ignerr << error << std::endl;
-    }
+      ignerr << "Failed to resolve child link for joint '" << _joint->Name()
+             << "' with child name '" << _joint->ChildLinkName() << "'"
+             << std::endl;
+      for (const auto &error : resolveChildErrors)
+      {
+        ignerr << error << std::endl;
+      }
 
-    return kNullEntity;
+      return kNullEntity;
+    }
   }
 
   this->dataPtr->ecm->CreateComponent(
@@ -701,6 +748,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   {
     this->dataPtr->ecm->CreateComponent(visualEntity,
         components::Material(*_visual->Material()));
+  }
+
+  // store the plugin in a component
+  if (_visual->Element())
+  {
+    sdf::ElementPtr pluginElem =  _visual->Element()->FindElement("plugin");
+    if (pluginElem)
+    {
+      this->dataPtr->ecm->CreateComponent(visualEntity,
+          components::VisualPlugin(pluginElem));
+    }
   }
 
   // Keep track of visuals so we can load their plugins after loading the
@@ -836,6 +894,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }
+  else if (_sensor->Type() == sdf::SensorType::GPS ||
+           _sensor->Type() == sdf::SensorType::NAVSAT)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::NavSat(*_sensor));
+
+    // Create components to be filled by physics.
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
   else if (_sensor->Type() == sdf::SensorType::IMU)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
@@ -848,6 +916,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
             components::AngularVelocity(math::Vector3d::Zero));
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::LinearAcceleration(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::FORCE_TORQUE)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::ForceTorque(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::LOGICAL_CAMERA)
   {

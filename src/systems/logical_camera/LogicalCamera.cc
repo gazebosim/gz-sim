@@ -22,6 +22,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include <ignition/common/Profiler.hh>
@@ -59,9 +60,28 @@ class ignition::gazebo::systems::LogicalCameraPrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
+  /// True if the rendering component is initialized
+  public: bool initialized = false;
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity of the IMU
+  /// \param[in] _logicalCamera LogicalCamera component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddLogicalCamera(
+    const EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::LogicalCamera *_logicalCamera,
+    const components::ParentEntity *_parent);
+
   /// \brief Create logicalCamera sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateLogicalCameraEntities(EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update logicalCamera sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -87,7 +107,21 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogicalCamera::PreUpdate");
-  this->dataPtr->CreateLogicalCameraEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -104,17 +138,36 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
+  this->dataPtr->CreateSensors(_ecm);
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the LogicalCameraPrivate::UpdateLogicalCameras
+    // function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->UpdateLogicalCameras(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Update sensor
-      auto time = math::durationToSecNsec(_info.simTime);
-      dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          math::secNsecToDuration(time.first, time.second), false);
+      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
     }
   }
 
@@ -122,54 +175,77 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void LogicalCameraPrivate::CreateLogicalCameraEntities(
-    EntityComponentManager &_ecm)
+void LogicalCameraPrivate::AddLogicalCamera(
+  const EntityComponentManager &_ecm,
+  const Entity _entity,
+  const components::LogicalCamera *_logicalCamera,
+  const components::ParentEntity *_parent)
+{
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  auto data = _logicalCamera->Data()->Clone();
+  data->GetAttribute("name")->Set(sensorScopedName);
+  // check topic
+  if (!data->HasElement("topic"))
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/logical_camera";
+    data->GetElement("topic")->Set(topic);
+  }
+  std::unique_ptr<sensors::LogicalCameraSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::LogicalCameraSensor>(data);
+  if (nullptr == sensor)
+  {
+    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+    return;
+  }
+
+  // set sensor parent
+  std::string parentName = _ecm.Component<components::Name>(
+      _parent->Data())->Data();
+  sensor->SetParent(parentName);
+
+  // set sensor world pose
+  math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
+  sensor->SetPose(sensorWorldPose);
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
-  // Create logicalCameras
-  _ecm.EachNew<components::LogicalCamera, components::ParentEntity>(
-    [&](const Entity &_entity,
-        const components::LogicalCamera *_logicalCamera,
-        const components::ParentEntity *_parent)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        auto data = _logicalCamera->Data()->Clone();
-        data->GetAttribute("name")->Set(sensorScopedName);
-        // check topic
-        if (!data->HasElement("topic"))
+  if (!this->initialized)
+  {
+    // Create logicalCameras
+    _ecm.Each<components::LogicalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::LogicalCamera *_logicalCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          std::string topic = scopedName(_entity, _ecm) + "/logical_camera";
-          data->GetElement("topic")->Set(topic);
-        }
-        std::unique_ptr<sensors::LogicalCameraSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::LogicalCameraSensor>(data);
-        if (nullptr == sensor)
-        {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
+          this->AddLogicalCamera(_ecm, _entity, _logicalCamera, _parent);
           return true;
-        }
+        });
+    this->initialized = true;
 
-        // set sensor parent
-        std::string parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-
-        // set sensor world pose
-        math::Pose3d sensorWorldPose = worldPose(_entity, _ecm);
-        sensor->SetPose(sensorWorldPose);
-
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
-
-        return true;
-      });
+  }
+  else
+  {
+    // Create logicalCameras
+    _ecm.EachNew<components::LogicalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::LogicalCamera *_logicalCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddLogicalCamera(_ecm, _entity, _logicalCamera, _parent);
+          return true;
+        });
+  }
 }
 
 //////////////////////////////////////////////////

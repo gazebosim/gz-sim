@@ -65,6 +65,15 @@ namespace ignition::gazebo
     /// \brief View collisions service name
     public: std::string viewCollisionsService;
 
+    /// \brief View frames service name
+    public: std::string viewFramesService;
+
+    /// \brief Copy service name
+    public: std::string copyService;
+
+    /// \brief Paste service name
+    public: std::string pasteService;
+
     /// \brief Name of world.
     public: std::string worldName;
   };
@@ -111,6 +120,15 @@ EntityContextMenu::EntityContextMenu()
 
   // For view collisions service requests
   this->dataPtr->viewCollisionsService = "/gui/view/collisions";
+
+  // For view frames service requests
+  this->dataPtr->viewFramesService = "/gui/view/frames";
+
+  // For copy service requests
+  this->dataPtr->copyService = "/gui/copy";
+
+  // For paste service requests
+  this->dataPtr->pasteService = "/gui/paste";
 }
 
 /////////////////////////////////////////////////
@@ -217,6 +235,23 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
     ignition::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCollisionsService, req, cb);
+  }
+  else if (request == "view_frames")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->viewFramesService, req, cb);
+  }
+  else if (request == "copy")
+  {
+    ignition::msgs::StringMsg req;
+    req.set_data(_data.toStdString());
+    this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
+  }
+  else if (request == "paste")
+  {
+    ignition::msgs::Empty req;
+    this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else
   {

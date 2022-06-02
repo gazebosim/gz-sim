@@ -178,7 +178,7 @@ namespace ignition::gazebo
 
     /// \brief Enable legacy features for plugin to work with GzScene3D.
     /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{true};
+    public: bool legacy{false};
   };
 }
 
@@ -385,6 +385,20 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->mouseEvent = _e->Mouse();
     this->dataPtr->mouseDirty = true;
   }
+  else if (_event->type() == ignition::gui::events::MousePressOnScene::kType)
+  {
+    auto event =
+        static_cast<ignition::gui::events::MousePressOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
+  else if (_event->type() == ignition::gui::events::DragOnScene::kType)
+  {
+    auto event =
+        static_cast<ignition::gui::events::DragOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
   else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
   {
     ignition::gui::events::KeyPressOnScene *_e =
@@ -507,15 +521,13 @@ void TransformControlPrivate::HandleTransform()
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         this->scene->NodeByIndex(i));
-      if (cam)
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
       {
-        if (std::get<bool>(cam->UserData("user-camera")))
-        {
-          this->camera = cam;
-          igndbg << "TransformControl plugin is using camera ["
-                 << this->camera->Name() << "]" << std::endl;
-          break;
-        }
+        this->camera = cam;
+        igndbg << "TransformControl plugin is using camera ["
+               << this->camera->Name() << "]" << std::endl;
+        break;
       }
     }
 
@@ -534,7 +546,8 @@ void TransformControlPrivate::HandleTransform()
   {
     if (this->transformControl.Node())
     {
-      try {
+      try
+      {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(0));
       }
@@ -590,8 +603,10 @@ void TransformControlPrivate::HandleTransform()
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
-          if (this->transformControl.Node()){
-            try {
+          if (this->transformControl.Node())
+          {
+            try
+            {
               this->transformControl.Node()->SetUserData(
                 "pause-update", static_cast<int>(1));
             }
@@ -623,7 +638,8 @@ void TransformControlPrivate::HandleTransform()
           {
             if (this->transformControl.Node())
             {
-              try {
+              try
+              {
                 this->transformControl.Node()->SetUserData(
                   "pause-update", static_cast<int>(0));
               }
@@ -712,7 +728,8 @@ void TransformControlPrivate::HandleTransform()
               if (topClickedNode == topClickedVisual)
               {
                 this->transformControl.Attach(topClickedVisual);
-                try {
+                try
+                {
                   topClickedVisual->SetUserData(
                     "pause-update", static_cast<int>(1));
                 }
@@ -724,7 +741,8 @@ void TransformControlPrivate::HandleTransform()
               else
               {
                 this->transformControl.Detach();
-                try {
+                try
+                {
                   topClickedVisual->SetUserData(
                     "pause-update", static_cast<int>(0));
                 }
@@ -746,7 +764,8 @@ void TransformControlPrivate::HandleTransform()
       && this->transformControl.Active())
   {
     if (this->transformControl.Node()){
-      try {
+      try
+      {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(1));
       } catch (std::bad_variant_access &)
@@ -780,7 +799,8 @@ void TransformControlPrivate::HandleTransform()
       {
         auto visual = this->scene->VisualByIndex(i);
         auto entityId = kNullEntity;
-        try {
+        try
+        {
           entityId = static_cast<unsigned int>(
             std::get<int>(visual->UserData("gazebo-entity")));
         }

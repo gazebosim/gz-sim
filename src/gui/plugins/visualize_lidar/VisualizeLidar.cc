@@ -291,8 +291,13 @@ void VisualizeLidar::Update(const UpdateInfo &,
           for (auto child : children)
           {
             std::string nextstring = lidarURIVec[i+1];
+            auto comp = _ecm.Component<components::Name>(child);
+            if (!comp)
+            {
+              continue;
+            }
             std::string childname = std::string(
-                            _ecm.Component<components::Name>(child)->Data());
+                            comp->Data());
             if (nextstring.compare(childname) == 0)
             {
               parent = child;
@@ -362,6 +367,13 @@ void VisualizeLidar::UpdateType(int _type)
       break;
   }
   this->dataPtr->lidar->SetType(this->dataPtr->visualType);
+}
+
+//////////////////////////////////////////////////
+void VisualizeLidar::UpdateSize(int _size)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->lidar->SetSize(_size);
 }
 
 //////////////////////////////////////////////////

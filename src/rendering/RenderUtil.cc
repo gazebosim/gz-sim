@@ -86,9 +86,11 @@
 #include "ignition/gazebo/components/Transparency.hh"
 #include "ignition/gazebo/components/Visibility.hh"
 #include "ignition/gazebo/components/Visual.hh"
+#include "ignition/gazebo/components/VisualCmd.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 #include "ignition/gazebo/rendering/MarkerManager.hh"
@@ -106,7 +108,24 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief Create rendering entities
   /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
   public: void CreateRenderingEntities(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
+
+  /// \brief Create rendering entities during the first update. This
+  /// is called by CreateRenderingEntities. This calls _ecm.Each
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
+  /// \TODO(anyone) Combine with CreateEntitiesRuntime
+  public: void CreateEntitiesFirstUpdate(const EntityComponentManager &_ecm,
+      const UpdateInfo &_info);
+
+  /// \brief Create rendering entities during subsequent updates. This
+  /// is called by CreateRenderingEntities. This calls _ecm.EachNew
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _info Update information
+  /// \TODO(anyone) Combine with CreateEntitiesFirstUpdate
+  public: void CreateEntitiesRuntime(const EntityComponentManager &_ecm,
       const UpdateInfo &_info);
 
   /// \brief Remove rendering entities
@@ -117,6 +136,67 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Update rendering entities
   /// \param[in] _ecm The entity-component manager
   public: void UpdateRenderingEntities(const EntityComponentManager &_ecm);
+
+  /// \breif Helper function to add new sensors
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Sensor entity
+  /// \param[in] _sdfData Sensor data
+  /// \param[in] _parent Parent entity
+  /// \param[in] _topicSuffix Suffix for sensor topic
+  public: void AddNewSensor(
+      const EntityComponentManager &_ecm, Entity _entity,
+      const sdf::Sensor &_sdfData, Entity _parent,
+      const std::string &_topicSuffix);
+
+  /// \brief Helper function to create a visual for a link entity
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to create the visual for
+  /// \param[in] _name Name component
+  /// \param[in] _pose Pose component
+  /// \param[in] _parent ParentEntity component
+  public: void CreateLink(
+      const EntityComponentManager &_ecm,
+      const Entity &_entity,
+      const components::Name *_name,
+      const components::Pose *_pose,
+      const components::ParentEntity *_parent);
+
+  /// \brief Helper function to create a visual for a visual entity
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to create the visual for
+  /// \param[in] _name Name component
+  /// \param[in] _pose Pose component
+  /// \param[in] _geom Geometry component
+  /// \param[in] _castShadows CastShadows component
+  /// \param[in] _transparency Transparency component
+  /// \param[in] _visibilityFlags VisibilityFlags component
+  /// \param[in] _parent ParentEntity component
+  public: void CreateVisual(
+      const EntityComponentManager &_ecm,
+      const Entity &_entity,
+      const components::Name *_name,
+      const components::Pose *_pose,
+      const components::Geometry *_geom,
+      const components::CastShadows *_castShadows,
+      const components::Transparency *_transparency,
+      const components::VisibilityFlags *_visibilityFlags,
+      const components::ParentEntity *_parent);
+
+  /// \brief Helper function to create a visual for a light entity
+  /// \param[in] _ecm The entity-component manager
+  /// \param[in] _entity Entity to create the visual for
+  /// \param[in] _light Light component
+  /// \param[in] _name Name component
+  /// \param[in] _parent ParentEntity component
+  public: void CreateLight(
+      const EntityComponentManager &_ecm,
+      const Entity &_entity,
+      const components::Light *_light,
+      const components::Name *_name,
+      const components::ParentEntity *_parent);
+
+  /// \brief Event manager used for emitting render / scene events
+  public: EventManager *eventManager{nullptr};
 
   /// \brief Total time elapsed in simulation. This will not increase while
   /// paused.
@@ -131,11 +211,15 @@ class ignition::gazebo::RenderUtilPrivate
   //// \brief True to enable sky in the scene
   public: bool skyEnabled = false;
 
-  /// \brief Scene background color
-  public: math::Color backgroundColor = math::Color::Black;
+  /// \brief Scene background color. This is optional because a <scene> is
+  /// always present, which has a default background color value. This
+  /// backgroundColor variable is used to override the <scene> value.
+  public: std::optional<math::Color> backgroundColor = math::Color::Black;
 
-  /// \brief Ambient color
-  public: math::Color ambientLight = math::Color(1.0, 1.0, 1.0, 1.0);
+  /// \brief Ambient color. This is optional because an <scene> is always
+  /// present, which has a default ambient light value. This ambientLight
+  /// variable is used to override the <scene> value.
+  public: std::optional<math::Color> ambientLight;
 
   /// \brief Scene manager
   public: SceneManager sceneManager;
@@ -153,6 +237,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief Flag to indicate if the current GL context should be used
   public: bool useCurrentGLContext = false;
 
+  /// \brief Window ID handle
+  public: std::string winID = "";
+
   /// \brief New scenes to be created
   public: std::vector<sdf::Scene> newScenes;
 
@@ -165,31 +252,33 @@ class ignition::gazebo::RenderUtilPrivate
       newModels;
 
   /// \brief New links to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Link, Entity>> newLinks;
 
   /// \brief New visuals to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Visual, Entity>> newVisuals;
 
   /// \brief New actors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Actor, Entity>> newActors;
+  /// [0] entity id, [1] SDF DOM, [2] actor name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Actor, std::string, Entity>>
+          newActors;
 
   /// \brief New lights to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
-  public: std::vector<std::tuple<Entity, sdf::Light, Entity>> newLights;
+  /// [0] entity id, [1] SDF DOM, [2] light name, [3] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Light, std::string, Entity>>
+          newLights;
 
   /// \brief A map of entity light ids and light visuals
   public: std::map<Entity, Entity> matchLightWithVisuals;
 
   /// \brief New sensors to be created. The elements in the tuple are:
-  /// [0] entity id, [1], SDF DOM, [2] parent entity id
+  /// [0] entity id, [1] SDF DOM, [2] parent entity id
   public: std::vector<std::tuple<Entity, sdf::Sensor, Entity>>
       newSensors;
 
   /// \brief New particle emitter to be created. The elements in the tuple are:
-  /// [0] entity id, [1], particle emitter, [2] parent entity id
+  /// [0] entity id, [1] particle emitter, [2] parent entity id
   public: std::vector<std::tuple<Entity, msgs::ParticleEmitter, Entity>>
       newParticleEmitters;
 
@@ -214,6 +303,25 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and light updates.
   public: std::vector<Entity> entityLightsCmdToDelete;
+
+  /// \brief A map of entity ids and visual updates.
+  public: std::map<Entity, msgs::Visual> entityVisuals;
+
+  /// \brief A vector of entity ids of VisualCmds to delete
+  public: std::vector<Entity> entityVisualsCmdToDelete;
+
+  /// \brief Visual material equality comparision function
+  /// TODO(anyone) Currently only checks for material colors equality,
+  /// need to extend to others (e.g., PbrMaterial)
+  public: std::function<bool(const sdf::Material &, const sdf::Material &)>
+          materialEql { [](const sdf::Material &_a, const sdf::Material &_b)
+            {
+              return
+                _a.Ambient() == _b.Ambient() &&
+                _a.Diffuse() == _b.Diffuse() &&
+                _a.Specular() == _b.Specular() &&
+                _a.Emissive() == _b.Emissive();
+            }};
 
   /// \brief A map of entity ids and actor transforms.
   public: std::map<Entity, std::map<std::string, math::Matrix4d>>
@@ -271,6 +379,7 @@ class ignition::gazebo::RenderUtilPrivate
           lightEql { [](const sdf::Light &_a, const sdf::Light &_b)
             {
              return
+                _a.Visualize() == _b.Visualize() &&
                 _a.Type() == _b.Type() &&
                 _a.Name() == _b.Name() &&
                 _a.Diffuse() == _b.Diffuse() &&
@@ -615,6 +724,41 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         }
         return true;
       });
+
+  // visual commands
+  {
+    auto olderEntityVisualsCmdToDelete
+        = std::move(this->dataPtr->entityVisualsCmdToDelete);
+    this->dataPtr->entityVisualsCmdToDelete.clear();
+
+    // TODO(anyone) Currently only updates material colors,
+    // need to extend to others
+    _ecm.Each<components::VisualCmd>(
+      [&](const Entity &_entity,
+          const components::VisualCmd *_visualCmd) -> bool
+      {
+        this->dataPtr->entityVisuals[_entity] = _visualCmd->Data();
+        this->dataPtr->entityVisualsCmdToDelete.push_back(_entity);
+
+        auto materialComp = _ecm.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          msgs::Material materialMsg = _visualCmd->Data().material();
+          sdf::Material sdfMaterial = convert<sdf::Material>(materialMsg);
+
+          auto state =
+              materialComp->SetData(sdfMaterial, this->dataPtr->materialEql) ?
+              ComponentState::OneTimeChange : ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Material::typeId, state);
+        }
+        return true;
+      });
+
+    for (const auto entity : olderEntityVisualsCmdToDelete)
+    {
+      _ecm.RemoveComponent<components::VisualCmd>(entity);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -744,7 +888,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
       std::stack<Entity> modelStack;
       modelStack.push(entity);
 
-      std::vector<Entity> childLinks, childModels;
+      std::vector<Entity> childModels;
       while (!modelStack.empty())
       {
         Entity model = modelStack.top();
@@ -888,6 +1032,8 @@ void RenderUtil::Update()
     return;
 
   this->dataPtr->updateMutex.lock();
+
+  this->dataPtr->scene->SetTime(this->dataPtr->simTime);
   auto newScenes = std::move(this->dataPtr->newScenes);
   auto newModels = std::move(this->dataPtr->newModels);
   auto newLinks = std::move(this->dataPtr->newLinks);
@@ -900,6 +1046,7 @@ void RenderUtil::Update()
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
+  auto entityVisuals = std::move(this->dataPtr->entityVisuals);
   auto updateJointParentPoses =
     std::move(this->dataPtr->updateJointParentPoses);
   auto trajectoryPoses = std::move(this->dataPtr->trajectoryPoses);
@@ -928,6 +1075,7 @@ void RenderUtil::Update()
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
+  this->dataPtr->entityVisuals.clear();
   this->dataPtr->updateJointParentPoses.clear();
   this->dataPtr->trajectoryPoses.clear();
   this->dataPtr->actorTransforms.clear();
@@ -956,8 +1104,16 @@ void RenderUtil::Update()
   // extend the sensor system to support mutliple scenes in the future
   for (auto &scene : newScenes)
   {
-    this->dataPtr->scene->SetAmbientLight(scene.Ambient());
-    this->dataPtr->scene->SetBackgroundColor(scene.Background());
+    // Only set the ambient color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->ambientLight)
+      this->dataPtr->scene->SetAmbientLight(scene.Ambient());
+
+    // Only set the background color if the RenderUtil::SetBackgroundColor
+    // was not called.
+    if (!this->dataPtr->backgroundColor)
+      this->dataPtr->scene->SetBackgroundColor(scene.Background());
+
     if (scene.Grid() && !this->dataPtr->enableSensors)
       this->ShowGrid();
     if (scene.Sky())
@@ -1025,13 +1181,14 @@ void RenderUtil::Update()
     for (const auto &actor : newActors)
     {
       this->dataPtr->sceneManager.CreateActor(
-          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor));
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
+          std::get<3>(actor));
     }
 
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(
-          std::get<0>(light), std::get<1>(light), std::get<2>(light));
+      this->dataPtr->sceneManager.CreateLight(std::get<0>(light),
+          std::get<1>(light), std::get<2>(light), std::get<3>(light));
 
       // TODO(anyone) This needs to be updated for when sensors and GUI use
       // the same scene
@@ -1046,7 +1203,7 @@ void RenderUtil::Update()
           {
             rendering::VisualPtr lightVisual =
               this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<0>(light));
+                id, std::get<1>(light), std::get<2>(light), std::get<0>(light));
             this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
             break;
           }
@@ -1168,7 +1325,7 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(trajPose + globalPose);
+        actorVisual->SetLocalPose(globalPose * trajPose);
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -1374,6 +1531,69 @@ void RenderUtil::Update()
   }
 
   this->dataPtr->UpdateThermalCamera(thermalCameraData);
+
+  // update visuals
+  // TODO(anyone) currently updates material colors of visual only,
+  // need to extend to other updates
+  {
+    IGN_PROFILE("RenderUtil::Update Visuals");
+    for (const auto &visual : entityVisuals)
+    {
+      if (!visual.second.has_material())
+        continue;
+
+      auto node = this->dataPtr->sceneManager.NodeById(visual.first);
+      if (!node)
+        continue;
+
+      auto vis = std::dynamic_pointer_cast<rendering::Visual>(node);
+      if (vis)
+      {
+        msgs::Material matMsg = visual.second.material();
+
+        // Geometry material
+        for (auto g = 0u; g < vis->GeometryCount(); ++g)
+        {
+          rendering::GeometryPtr geom = vis->GeometryByIndex(g);
+          rendering::MaterialPtr geomMat = geom->Material();
+          if (!geomMat)
+            continue;
+
+          math::Color color;
+          if (matMsg.has_ambient())
+          {
+            color = msgs::Convert(matMsg.ambient());
+            if (geomMat->Ambient() != color)
+              geomMat->SetAmbient(color);
+          }
+
+          if (matMsg.has_diffuse())
+          {
+            color = msgs::Convert(matMsg.diffuse());
+            if (geomMat->Diffuse() != color)
+              geomMat->SetDiffuse(color);
+          }
+
+          if (matMsg.has_specular())
+          {
+            color = msgs::Convert(matMsg.specular());
+            if (geomMat->Specular() != color)
+              geomMat->SetSpecular(color);
+          }
+
+          if (matMsg.has_emissive())
+          {
+            color = msgs::Convert(matMsg.emissive());
+            if (geomMat->Emissive() != color)
+              geomMat->SetEmissive(color);
+          }
+        }
+      }
+    }
+  }
+
+  if (this->dataPtr->eventManager)
+    this->dataPtr->eventManager->Emit<events::SceneUpdate>();
 }
 
 //////////////////////////////////////////////////
@@ -1381,24 +1601,44 @@ void RenderUtilPrivate::CreateRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
-  auto addNewSensor = [&_ecm, this](Entity _entity, const sdf::Sensor &_sdfData,
-                                    Entity _parent,
-                                    const std::string &_topicSuffix)
-  {
-    sdf::Sensor sdfDataCopy(_sdfData);
-    std::string sensorScopedName =
-        removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-    sdfDataCopy.SetName(sensorScopedName);
-    // check topic
-    if (sdfDataCopy.Topic().empty())
-    {
-      sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
-    }
-    this->newSensors.push_back(
-        std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
-    this->sensorEntities.insert(_entity);
-  };
 
+  // Treat all pre-existent entities as new at startup
+  // TODO(anyone) Combine the two CreateEntities functions below to reduce
+  // duplicate code
+  if (!this->initialized)
+  {
+    this->CreateEntitiesFirstUpdate(_ecm, _info);
+    this->initialized = true;
+  }
+  else
+  {
+    this->CreateEntitiesRuntime(_ecm, _info);
+  }
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
+    Entity _entity, const sdf::Sensor &_sdfData, Entity _parent,
+    const std::string &_topicSuffix)
+{
+  sdf::Sensor sdfDataCopy(_sdfData);
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdfDataCopy.SetName(sensorScopedName);
+  // check topic
+  if (sdfDataCopy.Topic().empty())
+  {
+    sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
+  }
+  this->newSensors.push_back(
+      std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
+  this->sensorEntities.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateEntitiesFirstUpdate(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+{
   const std::string cameraSuffix{"/image"};
   const std::string depthCameraSuffix{"/depth_image"};
   const std::string rgbdCameraSuffix{""};
@@ -1407,645 +1647,511 @@ void RenderUtilPrivate::CreateRenderingEntities(
   const std::string segmentationCameraSuffix{"/segmentation"};
   const std::string boundingBoxCameraSuffix{"/boundingbox"};
 
-  // Treat all pre-existent entities as new at startup
-  // TODO(anyone) refactor Each and EachNew below to reduce duplicate code
-  if (!this->initialized)
+  // Get all the new worlds
+  // TODO(anyone) Only one scene is supported for now
+  // extend the sensor system to support mutliple scenes in the future
+  _ecm.Each<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *_scene)->bool
+      {
+        this->sceneManager.SetWorldId(_entity);
+        const sdf::Scene &sceneSdf = _scene->Data();
+        this->newScenes.push_back(sceneSdf);
+        return true;
+      });
+
+
+  _ecm.Each<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetRawPose(_pose->Data());
+        this->newModels.push_back(std::make_tuple(_entity, model,
+            _parent->Data(), _info.iterations));
+        this->modelToModelEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  _ecm.Each<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        this->CreateLink(_ecm, _entity, _name, _pose, _parent);
+        return true;
+      });
+
+  // visuals
+  _ecm.Each<components::Visual, components::Name, components::Pose,
+            components::Geometry,
+            components::CastShadows,
+            components::Transparency,
+            components::VisibilityFlags,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Visual *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::CastShadows *_castShadows,
+          const components::Transparency *_transparency,
+          const components::VisibilityFlags *_visibilityFlags,
+          const components::ParentEntity *_parent)->bool
+      {
+        this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
+            _transparency, _visibilityFlags, _parent);
+        return true;
+      });
+
+  // actors
+  _ecm.Each<components::Actor, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Actor *_actor,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newActors.push_back(std::make_tuple(_entity, _actor->Data(),
+            _name->Data(), _parent->Data()));
+
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
+        {
+          this->entityLabel[_entity] = label->Data();
+        }
+
+        return true;
+      });
+
+  // lights
+  _ecm.Each<components::Light, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Light *_light,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->CreateLight(_ecm, _entity, _light, _name, _parent);
+        return true;
+      });
+
+  // inertials
+  _ecm.Each<components::Inertial, components::Pose>(
+      [&](const Entity &_entity,
+          const components::Inertial *_inrElement,
+          const components::Pose *) -> bool
+      {
+        this->entityInertials[_entity] = _inrElement->Data();
+        return true;
+      });
+
+  // collisions
+  _ecm.Each<components::Collision, components::Name, components::Pose,
+            components::Geometry, components::CollisionElement,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Collision *,
+          const components::Name *,
+          const components::Pose *,
+          const components::Geometry *,
+          const components::CollisionElement *_collElement,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->entityCollisions[_entity] = _collElement->Data();
+        this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.Each<components::Joint, components::Name, components::JointType,
+              components::Pose, components::ParentEntity,
+              components::ParentLinkName, components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint * /* _joint */,
+          const components::Name *_name,
+          const components::JointType *_jointType,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parentModel,
+          const components::ParentLinkName *_parentLinkName,
+          const components::ChildLinkName *_childLinkName) -> bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetRawPose(_pose->Data());
+
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
+
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
+        {
+          joint.SetAxis(0, jointAxis->Data());
+        }
+        if (jointAxis2)
+        {
+          joint.SetAxis(1, jointAxis2->Data());
+        }
+
+        this->entityJoints[_entity] = joint;
+        this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+        return true;
+      });
+
+  // particle emitters
+  _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newParticleEmitters.push_back(
+            std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+        return true;
+      });
+
+  if (this->enableSensors)
   {
-    // Get all the new worlds
-    // TODO(anyone) Only one scene is supported for now
-    // extend the sensor system to support mutliple scenes in the future
-    _ecm.Each<components::World, components::Scene>(
-        [&](const Entity & _entity,
-          const components::World *,
-          const components::Scene *_scene)->bool
+    // Create cameras
+    _ecm.Each<components::Camera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Camera *_camera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->sceneManager.SetWorldId(_entity);
-          const sdf::Scene &sceneSdf = _scene->Data();
-          this->newScenes.push_back(sceneSdf);
+          this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
+                       cameraSuffix);
           return true;
         });
 
-
-    _ecm.Each<components::Model, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Model *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+    // Create depth cameras
+    _ecm.Each<components::DepthCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::DepthCamera *_depthCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
-          this->modelToModelEntities[_parent->Data()].push_back(_entity);
+          this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
+              _parent->Data(), depthCameraSuffix);
           return true;
         });
 
-    _ecm.Each<components::Link, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Link *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+    // Create rgbd cameras
+    _ecm.Each<components::RgbdCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *_rgbdCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
-          // used for collsions
-          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-          // used for joints
-          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
-              _entity;
+          this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
+              _parent->Data(), rgbdCameraSuffix);
           return true;
         });
 
-    // visuals
-    _ecm.Each<components::Visual, components::Name, components::Pose,
-              components::Geometry,
-              components::CastShadows,
-              components::Transparency,
-              components::VisibilityFlags,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Visual *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::Geometry *_geom,
-            const components::CastShadows *_castShadows,
-            const components::Transparency *_transparency,
-            const components::VisibilityFlags *_visibilityFlags,
-            const components::ParentEntity *_parent)->bool
+    // Create gpu lidar
+    _ecm.Each<components::GpuLidar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuLidar *_gpuLidar,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetRawPose(_pose->Data());
-          visual.SetGeom(_geom->Data());
-          visual.SetCastShadows(_castShadows->Data());
-          visual.SetTransparency(_transparency->Data());
-          visual.SetVisibilityFlags(_visibilityFlags->Data());
-
-          // Optional components
-          auto material = _ecm.Component<components::Material>(_entity);
-          if (material != nullptr)
-          {
-            visual.SetMaterial(material->Data());
-          }
-
-          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-          if (laserRetro != nullptr)
-          {
-            visual.SetLaserRetro(laserRetro->Data());
-          }
-
-          // set label
-          auto label = _ecm.Component<components::SemanticLabel>(_entity);
-          if (label != nullptr)
-          {
-            this->entityLabel[_entity] = label->Data();
-          }
-
-          if (auto temp = _ecm.Component<components::Temperature>(_entity))
-          {
-            // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
-          }
-          else
-          {
-            // entity doesn't have a uniform temperature. Check if it has
-            // a heat signature with an associated temperature range
-            auto heatSignature =
-              _ecm.Component<components::SourceFilePath>(_entity);
-            auto tempRange =
-               _ecm.Component<components::TemperatureRange>(_entity);
-            if (heatSignature && tempRange)
-            {
-              this->entityTemp[_entity] =
-                std::make_tuple<float, float, std::string>(
-                    tempRange->Data().min.Kelvin(),
-                    tempRange->Data().max.Kelvin(),
-                    std::string(heatSignature->Data()));
-            }
-          }
-
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
-
-          this->linkToVisualEntities[_parent->Data()].push_back(_entity);
+          this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
+                       gpuLidarSuffix);
           return true;
         });
 
-    // actors
-    _ecm.Each<components::Actor, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Actor *_actor,
-            const components::ParentEntity *_parent) -> bool
+    // Create thermal camera
+    _ecm.Each<components::ThermalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ThermalCamera *_thermalCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
-
-          // set label
-          auto label = _ecm.Component<components::SemanticLabel>(_entity);
-          if (label != nullptr)
-          {
-            this->entityLabel[_entity] = label->Data();
-          }
-
+          this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
+              _parent->Data(), thermalCameraSuffix);
           return true;
         });
 
-    // lights
-    _ecm.Each<components::Light, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Light *_light,
-            const components::ParentEntity *_parent) -> bool
+    // Create segmentation cameras
+    _ecm.Each<components::SegmentationCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::SegmentationCamera *_segmentationCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
+            _parent->Data(), segmentationCameraSuffix);
           return true;
         });
-
-    // inertials
-    _ecm.Each<components::Inertial, components::Pose>(
-        [&](const Entity &_entity,
-            const components::Inertial *_inrElement,
-            const components::Pose *) -> bool
-        {
-          this->entityInertials[_entity] = _inrElement->Data();
-          return true;
-        });
-
-    // collisions
-    _ecm.Each<components::Collision, components::Name, components::Pose,
-              components::Geometry, components::CollisionElement,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Collision *,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::CollisionElement *_collElement,
-            const components::ParentEntity *_parent) -> bool
-        {
-          this->entityCollisions[_entity] = _collElement->Data();
-          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
-
-    // joints
-    _ecm.Each<components::Joint, components::Name, components::JointType,
-                components::Pose, components::ParentEntity,
-                components::ParentLinkName, components::ChildLinkName>(
-        [&](const Entity &_entity,
-            const components::Joint * /* _joint */,
-            const components::Name *_name,
-            const components::JointType *_jointType,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parentModel,
-            const components::ParentLinkName *_parentLinkName,
-            const components::ChildLinkName *_childLinkName) -> bool
-        {
-          sdf::Joint joint;
-          joint.SetName(_name->Data());
-          joint.SetType(_jointType->Data());
-          joint.SetRawPose(_pose->Data());
-
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
-
-          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
-          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
-
-          if (jointAxis)
-          {
-            joint.SetAxis(0, jointAxis->Data());
-          }
-          if (jointAxis2)
-          {
-            joint.SetAxis(1, jointAxis2->Data());
-          }
-
-          this->entityJoints[_entity] = joint;
-          this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
-          return true;
-        });
-
-    // particle emitters
-    _ecm.Each<components::ParticleEmitter, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ParticleEmitter *_emitter,
-            const components::ParentEntity *_parent) -> bool
-        {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
-          return true;
-        });
-
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.Each<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.Each<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create rgbd cameras
-      _ecm.Each<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.Each<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.Each<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-
-      // Create segmentation cameras
-      _ecm.Each<components::SegmentationCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::SegmentationCamera *_segmentationCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _segmentationCamera->Data(),
-              _parent->Data(), segmentationCameraSuffix);
-            return true;
-          });
-
-      // Create bounding box cameras
-      _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::BoundingBoxCamera *_boundingBoxCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _boundingBoxCamera->Data(),
-              _parent->Data(), boundingBoxCameraSuffix);
-            return true;
-          });
-    }
-    this->initialized = true;
   }
-  else
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateEntitiesRuntime(
+    const EntityComponentManager &_ecm, const UpdateInfo &_info)
+{
+  const std::string cameraSuffix{"/image"};
+  const std::string depthCameraSuffix{"/depth_image"};
+  const std::string rgbdCameraSuffix{""};
+  const std::string thermalCameraSuffix{"/image"};
+  const std::string gpuLidarSuffix{"/scan"};
+  const std::string segmentationCameraSuffix{"/segmentation"};
+
+  // Get all the new worlds
+  // TODO(anyone) Only one scene is supported for now
+  // extend the sensor system to support mutliple scenes in the future
+  _ecm.EachNew<components::World, components::Scene>(
+      [&](const Entity & _entity,
+        const components::World *,
+        const components::Scene *_scene)->bool
+      {
+        this->sceneManager.SetWorldId(_entity);
+        const sdf::Scene &sceneSdf = _scene->Data();
+        this->newScenes.push_back(sceneSdf);
+        return true;
+      });
+
+  _ecm.EachNew<components::Model, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        sdf::Model model;
+        model.SetName(_name->Data());
+        model.SetRawPose(_pose->Data());
+        this->newModels.push_back(std::make_tuple(_entity, model,
+            _parent->Data(), _info.iterations));
+        this->modelToModelEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  _ecm.EachNew<components::Link, components::Name, components::Pose,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
+      {
+        this->CreateLink(_ecm, _entity, _name, _pose, _parent);
+        return true;
+      });
+
+  // visuals
+  _ecm.EachNew<components::Visual, components::Name, components::Pose,
+            components::Geometry,
+            components::CastShadows,
+            components::Transparency,
+            components::VisibilityFlags,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Visual *,
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::Geometry *_geom,
+          const components::CastShadows *_castShadows,
+          const components::Transparency *_transparency,
+          const components::VisibilityFlags *_visibilityFlags,
+          const components::ParentEntity *_parent)->bool
+      {
+        this->CreateVisual(_ecm, _entity, _name, _pose, _geom, _castShadows,
+            _transparency, _visibilityFlags, _parent);
+        return true;
+      });
+
+  // actors
+  _ecm.EachNew<components::Actor, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Actor *_actor,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newActors.push_back(
+            std::make_tuple(_entity, _actor->Data(), _name->Data(),
+              _parent->Data()));
+
+        // set label
+        auto label = _ecm.Component<components::SemanticLabel>(_entity);
+        if (label != nullptr)
+        {
+          this->entityLabel[_entity] = label->Data();
+        }
+
+        return true;
+      });
+
+  // lights
+  _ecm.EachNew<components::Light, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Light *_light,
+          const components::Name *_name,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->CreateLight(_ecm, _entity, _light, _name, _parent);
+        return true;
+      });
+
+  // inertials
+  _ecm.EachNew<components::Inertial, components::Pose>(
+      [&](const Entity &_entity,
+          const components::Inertial *_inrElement,
+          const components::Pose *) -> bool
+      {
+        this->entityInertials[_entity] = _inrElement->Data();
+        return true;
+      });
+
+  // collisions
+  _ecm.EachNew<components::Collision, components::Name, components::Pose,
+            components::Geometry, components::CollisionElement,
+            components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Collision *,
+          const components::Name *,
+          const components::Pose *,
+          const components::Geometry *,
+          const components::CollisionElement *_collElement,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->entityCollisions[_entity] = _collElement->Data();
+        this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
+        return true;
+      });
+
+  // joints
+  _ecm.EachNew<components::Joint, components::Name, components::JointType,
+              components::Pose, components::ParentEntity,
+              components::ParentLinkName, components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint * /* _joint */,
+          const components::Name *_name,
+          const components::JointType *_jointType,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parentModel,
+          const components::ParentLinkName *_parentLinkName,
+          const components::ChildLinkName *_childLinkName) -> bool
+      {
+        sdf::Joint joint;
+        joint.SetName(_name->Data());
+        joint.SetType(_jointType->Data());
+        joint.SetRawPose(_pose->Data());
+
+        joint.SetParentLinkName(_parentLinkName->Data());
+        joint.SetChildLinkName(_childLinkName->Data());
+
+        auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+        auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+        if (jointAxis)
+        {
+          joint.SetAxis(0, jointAxis->Data());
+        }
+        if (jointAxis2)
+        {
+          joint.SetAxis(1, jointAxis2->Data());
+        }
+
+        this->entityJoints[_entity] = joint;
+        this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
+        return true;
+      });
+
+  // particle emitters
+  _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitter,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newParticleEmitters.push_back(
+            std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+        return true;
+      });
+
+  if (this->enableSensors)
   {
-    // Get all the new worlds
-    // TODO(anyone) Only one scene is supported for now
-    // extend the sensor system to support mutliple scenes in the future
-    _ecm.EachNew<components::World, components::Scene>(
-        [&](const Entity & _entity,
-          const components::World *,
-          const components::Scene *_scene)->bool
+    // Create cameras
+    _ecm.EachNew<components::Camera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Camera *_camera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->sceneManager.SetWorldId(_entity);
-          const sdf::Scene &sceneSdf = _scene->Data();
-          this->newScenes.push_back(sceneSdf);
+          this->AddNewSensor(_ecm, _entity, _camera->Data(), _parent->Data(),
+                       cameraSuffix);
           return true;
         });
 
-    _ecm.EachNew<components::Model, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Model *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+    // Create depth cameras
+    _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::DepthCamera *_depthCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Model model;
-          model.SetName(_name->Data());
-          model.SetRawPose(_pose->Data());
-          this->newModels.push_back(
-              std::make_tuple(_entity, model, _parent->Data(),
-              _info.iterations));
-          this->modelToModelEntities[_parent->Data()].push_back(_entity);
+          this->AddNewSensor(_ecm, _entity, _depthCamera->Data(),
+              _parent->Data(), depthCameraSuffix);
           return true;
         });
 
-    _ecm.EachNew<components::Link, components::Name, components::Pose,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Link *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parent)->bool
+    // Create RGBD cameras
+    _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::RgbdCamera *_rgbdCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Link link;
-          link.SetName(_name->Data());
-          link.SetRawPose(_pose->Data());
-          this->newLinks.push_back(
-              std::make_tuple(_entity, link, _parent->Data()));
-          // used for collsions
-          this->modelToLinkEntities[_parent->Data()].push_back(_entity);
-          // used for joints
-          this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
-              _entity;
+          this->AddNewSensor(_ecm, _entity, _rgbdCamera->Data(),
+              _parent->Data(), rgbdCameraSuffix);
           return true;
         });
 
-    // visuals
-    _ecm.EachNew<components::Visual, components::Name, components::Pose,
-              components::Geometry,
-              components::CastShadows,
-              components::Transparency,
-              components::VisibilityFlags,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Visual *,
-            const components::Name *_name,
-            const components::Pose *_pose,
-            const components::Geometry *_geom,
-            const components::CastShadows *_castShadows,
-            const components::Transparency *_transparency,
-            const components::VisibilityFlags *_visibilityFlags,
-            const components::ParentEntity *_parent)->bool
+    // Create gpu lidar
+    _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::GpuLidar *_gpuLidar,
+          const components::ParentEntity *_parent)->bool
         {
-          sdf::Visual visual;
-          visual.SetName(_name->Data());
-          visual.SetRawPose(_pose->Data());
-          visual.SetGeom(_geom->Data());
-          visual.SetCastShadows(_castShadows->Data());
-          visual.SetTransparency(_transparency->Data());
-          visual.SetVisibilityFlags(_visibilityFlags->Data());
-
-          // Optional components
-          auto material = _ecm.Component<components::Material>(_entity);
-          if (material != nullptr)
-          {
-            visual.SetMaterial(material->Data());
-          }
-
-          auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
-          if (laserRetro != nullptr)
-          {
-            visual.SetLaserRetro(laserRetro->Data());
-          }
-
-          // set label
-          auto label = _ecm.Component<components::SemanticLabel>(_entity);
-          if (label != nullptr)
-          {
-            this->entityLabel[_entity] = label->Data();
-          }
-
-          if (auto temp = _ecm.Component<components::Temperature>(_entity))
-          {
-            // get the uniform temperature for the entity
-            this->entityTemp[_entity] =
-              std::make_tuple<float, float, std::string>(
-                  temp->Data().Kelvin(), 0.0, "");
-          }
-          else
-          {
-            // entity doesn't have a uniform temperature. Check if it has
-            // a heat signature with an associated temperature range
-            auto heatSignature =
-              _ecm.Component<components::SourceFilePath>(_entity);
-            auto tempRange =
-               _ecm.Component<components::TemperatureRange>(_entity);
-            if (heatSignature && tempRange)
-            {
-              this->entityTemp[_entity] =
-                std::make_tuple<float, float, std::string>(
-                    tempRange->Data().min.Kelvin(),
-                    tempRange->Data().max.Kelvin(),
-                    std::string(heatSignature->Data()));
-            }
-          }
-
-          this->newVisuals.push_back(
-              std::make_tuple(_entity, visual, _parent->Data()));
-
-          this->linkToVisualEntities[_parent->Data()].push_back(_entity);
+          this->AddNewSensor(_ecm, _entity, _gpuLidar->Data(), _parent->Data(),
+                       gpuLidarSuffix);
           return true;
         });
 
-    // actors
-    _ecm.EachNew<components::Actor, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Actor *_actor,
-            const components::ParentEntity *_parent) -> bool
+    // Create thermal camera
+    _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ThermalCamera *_thermalCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newActors.push_back(
-              std::make_tuple(_entity, _actor->Data(), _parent->Data()));
-
-          // set label
-          auto label = _ecm.Component<components::SemanticLabel>(_entity);
-          if (label != nullptr)
-          {
-            this->entityLabel[_entity] = label->Data();
-          }
-
+          this->AddNewSensor(_ecm, _entity, _thermalCamera->Data(),
+              _parent->Data(), thermalCameraSuffix);
           return true;
         });
 
-    // lights
-    _ecm.EachNew<components::Light, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Light *_light,
-            const components::ParentEntity *_parent) -> bool
+    // Create segmentation cameras
+    _ecm.EachNew<components::SegmentationCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::SegmentationCamera *_segmentationCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->newLights.push_back(
-              std::make_tuple(_entity, _light->Data(), _parent->Data()));
+          this->AddNewSensor(_ecm, _entity, _segmentationCamera->Data(),
+            _parent->Data(), segmentationCameraSuffix);
           return true;
         });
 
-    // inertials
-    _ecm.EachNew<components::Inertial, components::Pose>(
-        [&](const Entity &_entity,
-            const components::Inertial *_inrElement,
-            const components::Pose *) -> bool
+    // Create bounding box cameras
+    _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
         {
-          this->entityInertials[_entity] = _inrElement->Data();
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
           return true;
         });
-
-    // collisions
-    _ecm.EachNew<components::Collision, components::Name, components::Pose,
-              components::Geometry, components::CollisionElement,
-              components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Collision *,
-            const components::Name *,
-            const components::Pose *,
-            const components::Geometry *,
-            const components::CollisionElement *_collElement,
-            const components::ParentEntity *_parent) -> bool
-        {
-          this->entityCollisions[_entity] = _collElement->Data();
-          this->linkToCollisionEntities[_parent->Data()].push_back(_entity);
-          return true;
-        });
-
-    // joints
-    _ecm.EachNew<components::Joint, components::Name, components::JointType,
-                components::Pose, components::ParentEntity,
-                components::ParentLinkName, components::ChildLinkName>(
-        [&](const Entity &_entity,
-            const components::Joint * /* _joint */,
-            const components::Name *_name,
-            const components::JointType *_jointType,
-            const components::Pose *_pose,
-            const components::ParentEntity *_parentModel,
-            const components::ParentLinkName *_parentLinkName,
-            const components::ChildLinkName *_childLinkName) -> bool
-        {
-          sdf::Joint joint;
-          joint.SetName(_name->Data());
-          joint.SetType(_jointType->Data());
-          joint.SetRawPose(_pose->Data());
-
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
-
-          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
-          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
-
-          if (jointAxis)
-          {
-            joint.SetAxis(0, jointAxis->Data());
-          }
-          if (jointAxis2)
-          {
-            joint.SetAxis(1, jointAxis2->Data());
-          }
-
-          this->entityJoints[_entity] = joint;
-          this->modelToJointEntities[_parentModel->Data()].push_back(_entity);
-          return true;
-        });
-
-    // particle emitters
-    _ecm.EachNew<components::ParticleEmitter, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ParticleEmitter *_emitter,
-            const components::ParentEntity *_parent) -> bool
-        {
-          this->newParticleEmitters.push_back(
-              std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
-          return true;
-        });
-
-    if (this->enableSensors)
-    {
-      // Create cameras
-      _ecm.EachNew<components::Camera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::Camera *_camera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _camera->Data(), _parent->Data(),
-                         cameraSuffix);
-            return true;
-          });
-
-      // Create depth cameras
-      _ecm.EachNew<components::DepthCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::DepthCamera *_depthCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _depthCamera->Data(), _parent->Data(),
-                         depthCameraSuffix);
-            return true;
-          });
-
-      // Create RGBD cameras
-      _ecm.EachNew<components::RgbdCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::RgbdCamera *_rgbdCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _rgbdCamera->Data(), _parent->Data(),
-                         rgbdCameraSuffix);
-            return true;
-          });
-
-      // Create gpu lidar
-      _ecm.EachNew<components::GpuLidar, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::GpuLidar *_gpuLidar,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _gpuLidar->Data(), _parent->Data(),
-                         gpuLidarSuffix);
-            return true;
-          });
-
-      // Create thermal camera
-      _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::ThermalCamera *_thermalCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _thermalCamera->Data(), _parent->Data(),
-                         thermalCameraSuffix);
-            return true;
-          });
-
-      // Create segmentation cameras
-      _ecm.EachNew<components::SegmentationCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::SegmentationCamera *_segmentationCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _segmentationCamera->Data(),
-              _parent->Data(), segmentationCameraSuffix);
-            return true;
-          });
-
-      // Create bounding box cameras
-      _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
-        [&](const Entity &_entity,
-            const components::BoundingBoxCamera *_boundingBoxCamera,
-            const components::ParentEntity *_parent)->bool
-          {
-            addNewSensor(_entity, _boundingBoxCamera->Data(),
-              _parent->Data(), boundingBoxCameraSuffix);
-            return true;
-          });
-    }
   }
 }
 
@@ -2394,6 +2500,7 @@ void RenderUtil::Init()
     params["useCurrentGLContext"] = "1";
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
+  params["winID"] = this->dataPtr->winID;
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {
@@ -2412,11 +2519,29 @@ void RenderUtil::Init()
         this->dataPtr->engine->CreateScene(this->dataPtr->sceneName);
     if (this->dataPtr->scene)
     {
-      this->dataPtr->scene->SetAmbientLight(this->dataPtr->ambientLight);
-      this->dataPtr->scene->SetBackgroundColor(this->dataPtr->backgroundColor);
+      if (this->dataPtr->ambientLight)
+      {
+        this->dataPtr->scene->SetAmbientLight(
+            *this->dataPtr->ambientLight);
+      }
+
+      if (this->dataPtr->backgroundColor)
+      {
+        this->dataPtr->scene->SetBackgroundColor(
+            *this->dataPtr->backgroundColor);
+      }
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
+
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone) Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
+
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
     this->dataPtr->markerManager.SetTopic("/sensors/marker");
@@ -2491,6 +2616,13 @@ void RenderUtil::SetSceneName(const std::string &_name)
 void RenderUtil::SetScene(const rendering::ScenePtr &_scene)
 {
   this->dataPtr->scene = _scene;
+  {
+    // HACK: Tell ign-rendering6 to listen to SetTime calls
+    // TODO(anyone) Remove this when linked against ign-rendering7
+    this->dataPtr->scene->SetTime(std::chrono::nanoseconds(-1));
+    IGN_ASSERT(this->dataPtr->scene->Time() != std::chrono::nanoseconds(-1),
+               "Please remove this snippet after merging with ign-rendering7");
+  }
   this->dataPtr->sceneManager.SetScene(_scene);
   this->dataPtr->engine = _scene == nullptr ? nullptr : _scene->Engine();
 }
@@ -2511,6 +2643,12 @@ void RenderUtil::SetSkyEnabled(bool _enabled)
 void RenderUtil::SetUseCurrentGLContext(bool _enable)
 {
   this->dataPtr->useCurrentGLContext = _enable;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetWinID(const std::string &_winID)
+{
+  this->dataPtr->winID = _winID;
 }
 
 /////////////////////////////////////////////////
@@ -2650,6 +2788,7 @@ void RenderUtilPrivate::HighlightNode(const rendering::NodePtr &_node)
     wireBoxVis->SetInheritScale(false);
     wireBoxVis->AddGeometry(wireBox);
     wireBoxVis->SetMaterial(white, false);
+    wireBoxVis->SetUserData("gui-only", static_cast<bool>(true));
     vis->AddChild(wireBoxVis);
 
     // Add wire box to map for setting visibility
@@ -2722,6 +2861,59 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
+      // todo(ahcorde) Use the field visualize_visual in light.proto from
+      // Garden on.
+      bool visualizeVisual = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
+      {
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "visualizeVisual")
+          {
+            visualizeVisual = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      rendering::VisualPtr lightVisual =
+          this->sceneManager.VisualById(
+            this->matchLightWithVisuals[light.first]);
+      if (lightVisual)
+        lightVisual->SetVisible(visualizeVisual);
+
+      // todo(ahcorde) Use the field is_light_off in light.proto from
+      // Garden on.
+      bool isLightOn = true;
+      for (int i = 0; i < light.second.header().data_size(); ++i)
+      {
+        for (int j = 0;
+            j < light.second.header().data(i).value_size(); ++j)
+        {
+          if (light.second.header().data(i).key() ==
+              "isLightOn")
+          {
+            isLightOn = ignition::math::parseInt(
+              light.second.header().data(i).value(0));
+          }
+        }
+      }
+
+      if (isLightOn)
+      {
+        if (!ignition::math::equal(
+            l->Intensity(),
+            static_cast<double>(light.second.intensity())))
+        {
+          l->SetIntensity(light.second.intensity());
+        }
+      }
+      else
+      {
+        l->SetIntensity(0);
+      }
       if (light.second.has_diffuse())
       {
         if (l->DiffuseColor() != msgs::Convert(light.second.diffuse()))
@@ -2940,7 +3132,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(trajPose + globalPose);
+    actorVisual->SetLocalPose(globalPose * trajPose);
   }
 }
 
@@ -3410,4 +3602,154 @@ void RenderUtil::ViewCollisions(const Entity &_entity)
       this->HideWireboxes(colEntity);
     }
   }
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::CreateVisualsForEntities(
+    const EntityComponentManager &_ecm,
+    const std::set<Entity> &_entities)
+{
+  for (auto const &ent : _entities)
+  {
+    auto linkComp = _ecm.Component<components::Link>(ent);
+    if (linkComp)
+    {
+      this->dataPtr->CreateLink(_ecm, ent,
+          _ecm.Component<components::Name>(ent),
+          _ecm.Component<components::Pose>(ent),
+          _ecm.Component<components::ParentEntity>(ent));
+      continue;
+    }
+
+    auto visualComp = _ecm.Component<components::Visual>(ent);
+    if (visualComp)
+    {
+      this->dataPtr->CreateVisual(_ecm, ent,
+          _ecm.Component<components::Name>(ent),
+          _ecm.Component<components::Pose>(ent),
+          _ecm.Component<components::Geometry>(ent),
+          _ecm.Component<components::CastShadows>(ent),
+          _ecm.Component<components::Transparency>(ent),
+          _ecm.Component<components::VisibilityFlags>(ent),
+          _ecm.Component<components::ParentEntity>(ent));
+      continue;
+    }
+    auto lightComp = _ecm.Component<components::Light>(ent);
+    if (lightComp)
+    {
+      this->dataPtr->CreateLight(_ecm, ent,
+        _ecm.Component<components::Light>(ent),
+        _ecm.Component<components::Name>(ent),
+        _ecm.Component<components::ParentEntity>(ent));
+      continue;
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::CreateLink(
+    const EntityComponentManager &/*_ecm*/,
+    const Entity &_entity,
+    const components::Name *_name,
+    const components::Pose *_pose,
+    const components::ParentEntity *_parent)
+{
+   sdf::Link link;
+   link.SetName(_name->Data());
+   link.SetRawPose(_pose->Data());
+   this->newLinks.push_back(
+       std::make_tuple(_entity, link, _parent->Data()));
+   // used for collsions
+   this->modelToLinkEntities[_parent->Data()].push_back(_entity);
+   // used for joints
+   this->matchLinksWithEntities[_parent->Data()][_name->Data()] =
+       _entity;
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::CreateVisual(
+    const EntityComponentManager &_ecm,
+    const Entity &_entity,
+    const components::Name *_name,
+    const components::Pose *_pose,
+    const components::Geometry *_geom,
+    const components::CastShadows *_castShadows,
+    const components::Transparency *_transparency,
+    const components::VisibilityFlags *_visibilityFlags,
+    const components::ParentEntity *_parent)
+{
+  sdf::Visual visual;
+  visual.SetName(_name->Data());
+  visual.SetRawPose(_pose->Data());
+  visual.SetGeom(_geom->Data());
+  visual.SetCastShadows(_castShadows->Data());
+  visual.SetTransparency(_transparency->Data());
+  visual.SetVisibilityFlags(_visibilityFlags->Data());
+
+  // Optional components
+  auto material = _ecm.Component<components::Material>(_entity);
+  if (material != nullptr)
+  {
+    visual.SetMaterial(material->Data());
+  }
+
+  auto laserRetro = _ecm.Component<components::LaserRetro>(_entity);
+  if (laserRetro != nullptr)
+  {
+    visual.SetLaserRetro(laserRetro->Data());
+  }
+
+  // set label
+  auto label = _ecm.Component<components::SemanticLabel>(_entity);
+  if (label != nullptr)
+  {
+    this->entityLabel[_entity] = label->Data();
+  }
+
+  if (auto temp = _ecm.Component<components::Temperature>(_entity))
+  {
+    // get the uniform temperature for the entity
+    this->entityTemp[_entity] = std::make_tuple
+        <float, float, std::string>(temp->Data().Kelvin(), 0.0, "");
+  }
+  else
+  {
+    // entity doesn't have a uniform temperature. Check if it has
+    // a heat signature with an associated temperature range
+    auto heatSignature =
+      _ecm.Component<components::SourceFilePath>(_entity);
+    auto tempRange =
+       _ecm.Component<components::TemperatureRange>(_entity);
+    if (heatSignature && tempRange)
+    {
+      this->entityTemp[_entity] =
+        std::make_tuple<float, float, std::string>(
+            tempRange->Data().min.Kelvin(),
+            tempRange->Data().max.Kelvin(),
+            std::string(heatSignature->Data()));
+    }
+  }
+
+  this->newVisuals.push_back(
+      std::make_tuple(_entity, visual, _parent->Data()));
+
+  this->linkToVisualEntities[_parent->Data()].push_back(_entity);
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::CreateLight(
+    const EntityComponentManager &/*_ecm*/,
+    const Entity &_entity,
+    const components::Light *_light,
+    const components::Name *_name,
+    const components::ParentEntity *_parent)
+{
+  this->newLights.push_back(std::make_tuple(_entity, _light->Data(),
+      _name->Data(), _parent->Data()));
+}
+
+//////////////////////////////////////////////////
+void RenderUtil::SetEventManager(EventManager *_mgr)
+{
+  this->dataPtr->eventManager = _mgr;
 }
