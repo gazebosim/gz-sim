@@ -842,6 +842,11 @@ bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
   // \todo(iche033) Remove this function once a virtual
   // sensors::RenderingSensor::HasConnections function is available
   {
+    auto s = dynamic_cast<sensors::RgbdCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
     auto s = dynamic_cast<sensors::DepthCameraSensor *>(_sensor);
     if (s)
       return s->HasConnections();
