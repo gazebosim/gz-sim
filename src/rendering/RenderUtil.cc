@@ -1887,6 +1887,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
             _parent->Data(), segmentationCameraSuffix);
           return true;
         });
+
+    // Create bounding box cameras
+    _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
+          return true;
+        });
   }
 }
 
@@ -1900,6 +1911,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
