@@ -1,21 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Demo world with a widget displaying images coming from a bounding box camera sensor.
+  Demo world with widgets displaying images coming from a bounding box camera sensor.
 -->
 <sdf version="1.6">
   <world name="boundingbox_sensor">
-    <physics name="1ms" type="ignored">
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
-    </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
-      <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
@@ -25,17 +16,16 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
-    <scene>
-      <ambient>1.0 1.0 1.0</ambient>
-      <background>0.8 0.8 0.8</background>
-      <grid>true</grid>
-    </scene>
+    <plugin
+      filename="ignition-gazebo-sensors-system"
+      name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
 
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <ignition-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -49,6 +39,42 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <ignition-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <ignition-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </ignition-gui>
+      </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
         <ignition-gui>
@@ -69,6 +95,7 @@
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
+        <use_event>true</use_event>
 
       </plugin>
 
@@ -95,17 +122,33 @@
         <iterations>true</iterations>
       </plugin>
 
-      <plugin filename="ImageDisplay" name="Image Display 2">
-        <topic>boxes_image</topic>
+      <plugin filename="ImageDisplay" name="Full 2D">
+        <topic>boxes_full_2d_image</topic>
         <ignition-gui>
+          <title>Full 2D</title>
           <property key="state" type="string">docked</property>
           <property type="double" key="height">400</property>
           <property type="double" key="width">600</property>
         </ignition-gui>
       </plugin>
 
-      <plugin filename="TransformControl" name="Transform Control">
+      <plugin filename="ImageDisplay" name="Visible 2D">
+        <topic>boxes_visible_2d_image</topic>
         <ignition-gui>
+          <title>Visible 2D</title>
+          <property key="state" type="string">docked</property>
+          <property type="double" key="height">400</property>
+          <property type="double" key="width">600</property>
+        </ignition-gui>
+      </plugin>
+
+      <plugin filename="ImageDisplay" name="3D">
+        <topic>boxes_3d_image</topic>
+        <ignition-gui>
+          <title>3D</title>
+          <property key="state" type="string">docked</property>
+          <property type="double" key="height">400</property>
+          <property type="double" key="width">600</property>
         </ignition-gui>
       </plugin>
 
@@ -289,8 +332,8 @@
           </geometry>
         </visual>
 
-        <sensor name="boundingbox_sensor" type="boundingbox_camera">
-          <topic>boxes</topic>
+        <sensor name="full_2d" type="boundingbox_camera">
+          <topic>boxes_full_2d</topic>
           <camera>
             <box_type>full_2d</box_type>
             <horizontal_fov>1.047</horizontal_fov>
@@ -303,7 +346,51 @@
               <far>10</far>
             </clip>
             <save enabled="true">
-              <path>boundingBox_data</path>
+              <path>bounding_box_full_2d_data</path>
+            </save>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+
+        <sensor name="visible_2d" type="boundingbox_camera">
+          <topic>boxes_visible_2d</topic>
+          <camera>
+            <box_type>visible_2d</box_type>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>800</width>
+              <height>600</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10</far>
+            </clip>
+            <save enabled="true">
+              <path>bounding_box_visible_2d_data</path>
+            </save>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+
+        <sensor name="3d" type="boundingbox_camera">
+          <topic>boxes_3d</topic>
+          <camera>
+            <box_type>3d</box_type>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>800</width>
+              <height>600</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10</far>
+            </clip>
+            <save enabled="true">
+              <path>bounding_box_3d_data</path>
             </save>
           </camera>
           <always_on>1</always_on>
