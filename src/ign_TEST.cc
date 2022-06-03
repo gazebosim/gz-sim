@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <string>
+#include <ignition/common/Filesystem.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -195,8 +196,9 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, output.find("--versions")) << output;
 
   // Flags in bash completion
-  std::ifstream scriptFile(std::string(PROJECT_SOURCE_PATH) +
-    "/src/cmd/gazebo.bash_completion.sh");
+  std::string scriptPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "src", "cmd", "gazebo.bash_completion.sh");
+  std::ifstream scriptFile(scriptPath);
   std::string script((std::istreambuf_iterator<char>(scriptFile)),
       std::istreambuf_iterator<char>());
 
