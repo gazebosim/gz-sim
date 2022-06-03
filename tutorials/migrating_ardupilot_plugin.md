@@ -37,8 +37,8 @@ to ArduPilot, which computes motor commands and sends them to the plugin, which
 passes them onto the vehicle via internal simulation APIs.
 
 To be clear, this structure is pre-existing and widely used in UAV simulation.
-Our contribution in this tutorial is port the plugin from Gazebo to Gazebo,
-preserving the rest of the setup.
+Our contribution in this tutorial is port the plugin from Gazebo classic to
+Gazebo, preserving the rest of the setup.
 
 ## Structure of the migration
 
@@ -380,28 +380,6 @@ void imuCb(const gz::msgs::IMU &_msg)
   imuMsg = _msg;
   imuMsgValid = true;
 }
-```
-
-### Console logging
-
-Throughout the code, we replace the following output streams from the old code:
-
-```cpp
-// OLD
-gzdbg << ... ;
-gzlog << ... ;
-gzwarn << ... ;
-gzerr << ... ;
-```
-
-with their Gazebo equivalents:
-
-```cpp
-// NEW
-gzdbg << ... ;
-gzlog << ... ;
-gzwarn << ... ;
-gzerr << ... ;
 ```
 
 ### Plugin interface: Configure()

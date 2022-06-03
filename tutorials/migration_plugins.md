@@ -8,7 +8,7 @@ each providing access to different parts of the API, like physics, rendering,
 sensors, GUI, etc. Due to Gazebo Sim's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
 , plugin interfaces are somewhat different, but more varied and in many cases much
-more powerful. Some plugins in Gazebo are systems within Gazebo,
+more powerful. Some plugins in Gazebo are systems within Sim,
 while others are specific plugin types from other Gazebo libraries.
 
 \note Plugin types other than systems may be added to Gazebo in the future.
