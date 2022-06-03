@@ -100,7 +100,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
-  /// \brief The ignition transport node
+  /// \brief The Gazebo Transport node
   public: transport::Node node;
 
   /// \brief Ocean current experienced by this body

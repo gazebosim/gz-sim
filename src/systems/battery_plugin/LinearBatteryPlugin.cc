@@ -157,7 +157,7 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Battery state of charge message publisher

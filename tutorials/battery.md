@@ -99,7 +99,7 @@ this value assumes no battery load while charging. If the battery is under load,
 it will take a longer time to recharge.
 
 * `<recharge_by_topic>`: If true, the start/stop signals for recharging the
-battery will also be available via topics. The regular Ignition services will
+battery will also be available via topics. The regular Gazebo services will
 still be available.
 
 By default, two Gazebo Transport services are available for managing charging:

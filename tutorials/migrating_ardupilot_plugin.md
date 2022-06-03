@@ -7,7 +7,7 @@ to Gazebo. In this tutorial we offer as a case
 study the migration of one particular `ModelPlugin`,
 [ardupilot_gazebo](https://github.com/khancyr/ardupilot_gazebo). We hope that
 this example provides useful tips to others who are migrating their existing
-plugins from classic to Ignition.
+plugins from classic to Gazebo.
 
 The complete, migrated version of the `ardupilot_gazebo` plugin covered in this tutorial
 can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/ignition).
@@ -37,7 +37,7 @@ to ArduPilot, which computes motor commands and sends them to the plugin, which
 passes them onto the vehicle via internal simulation APIs.
 
 To be clear, this structure is pre-existing and widely used in UAV simulation.
-Our contribution in this tutorial is port the plugin from Gazebo to Ignition,
+Our contribution in this tutorial is port the plugin from Gazebo to Gazebo,
 preserving the rest of the setup.
 
 ## Structure of the migration
@@ -65,7 +65,7 @@ The old code includes these Gazebo classic headers:
 ```
 
 In the new code, we still need `<sdf/sdf.hh>`, because the underlying [SDFormat
-library](http://sdformat.org/) is used by both classic and Ignition. But in place of the `<gazebo/...>` headers, we'll pull in one from Ignition:
+library](http://sdformat.org/) is used by both classic and Gazebo. But in place of the `<gazebo/...>` headers, we'll pull in one from Gazebo:
 
 ```cpp
 // NEW
@@ -103,7 +103,7 @@ class GAZEBO_VISIBLE ArduPilotPlugin : public ModelPlugin
 
 In the new code, we use multiple inheritance to declare that our plugin will
 act as a *system* (in the entity-component-system, or ECS, pattern used by
-Ignition), and further which interfaces of a system it will use (we also update
+Gazebo), and further which interfaces of a system it will use (we also update
 the symbol visibility macro):
 
 ```cpp
@@ -203,9 +203,9 @@ The old code includes these Gazebo-related headers:
 ```
 
 Like we did in `ArduPilotPlugin.hh`, we'll keep `<sdf/sdf.hh>`. The others are
-replaced with Ignition equivalents, and where possible we narrow the inclusion
+replaced with Gazebo equivalents, and where possible we narrow the inclusion
 to exactly what we need. We start by enumerating those *components* (part of the
-ECS pattern used by Ignition) that we're using:
+ECS pattern used by Gazebo) that we're using:
 
 ```cpp
 // NEW
@@ -220,7 +220,7 @@ ECS pattern used by Ignition) that we're using:
 #include <gz/sim/components/Pose.hh>
 ```
 
-To better understand the ECS pattern as it is used in Ignition, it's helpful to
+To better understand the ECS pattern as it is used in Gazebo, it's helpful to
 learn about the EntityComponentManager (ECM), which is responsible for managing
 the ECS graph. A great resource to understand the logic under the hood of the
 ECM is the `SdfEntityCreator` class
@@ -394,7 +394,7 @@ gzwarn << ... ;
 gzerr << ... ;
 ```
 
-with their Ignition equivalents:
+with their Gazebo equivalents:
 
 ```cpp
 // NEW
@@ -738,7 +738,7 @@ IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
 
 Compared to the code changes, the updates in the CMake configuration are pretty
 minor and primarily result from the fact that the formerly monolithic Gazebo
-project is now a set of Ignition libraries.
+project is now a set of Gazebo libraries.
 
 In the old code we retrieve all the required build configuration by finding the Gazebo package:
 
@@ -747,7 +747,7 @@ In the old code we retrieve all the required build configuration by finding the 
 find_package(gazebo REQUIRED)
 ```
 
-In the new code we explicitly reference each Ignition package that we use:
+In the new code we explicitly reference each Gazebo package that we use:
 
 ```
 # NEW
@@ -774,7 +774,7 @@ link_libraries(
 )
 ```
 
-Whereas in the new code we refer to build configuration from each Ignition package:
+Whereas in the new code we refer to build configuration from each Gazebo package:
 
 ```
 include_directories(
@@ -872,8 +872,8 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 ## What's next
 
 You should be able to apply the same general changes covered in this tutorial
-to your Gazebo plugins to migrate them to Ignition.
+to your Gazebo plugins to migrate them to Gazebo.
 
 Check out [these
 instructions](https://github.com/gerkey/ardupilot_gazebo/tree/ignition#using-with-ignition)
-if you'd like to learn more about using ardupilot_gazebo with Ignition.
+if you'd like to learn more about using ardupilot_gazebo with Gazebo.

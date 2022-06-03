@@ -145,7 +145,7 @@ extern "C" int runServer(const char *_sdfString,
 
   serverConfig.SetLogRecordPath(recordPathMod);
 
-  gzmsg << "Ignition Gazebo Server v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo Sim Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -214,7 +214,7 @@ extern "C" int runGui(const char *_guiConfig)
     sigKilled = true;
   });
 
-  gzmsg << "Ignition Gazebo GUI    v" << GZ_SIM_VERSION_FULL
+  gzmsg << "Gazebo Sim GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   int argc = 0;

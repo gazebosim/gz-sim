@@ -290,7 +290,7 @@ namespace gz
     /// \brief Specialized conversion from a steady clock duration to a time
     /// message.
     /// \param[in] _in Steady clock duration.
-    /// \return Ignition time message.
+    /// \return Gazebo time message.
     template<>
     msgs::Time convert(const std::chrono::steady_clock::duration &_in);
 

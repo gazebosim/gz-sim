@@ -203,7 +203,7 @@ namespace systems
     /// \brief Topic for enable commands.
     private: std::string enableSubTopic{"enable"};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Holds the rotor velocities computed by the controller. This is

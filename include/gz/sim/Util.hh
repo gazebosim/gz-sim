@@ -160,7 +160,7 @@ namespace gz
     std::vector<std::string> GZ_GAZEBO_VISIBLE resourcePaths();
 
     /// \brief Add resource paths based on latest environment variables.
-    /// This will update the SDF and Ignition environment variables, and
+    /// This will update the SDF and Gazebo environment variables, and
     /// optionally add more paths to the list.
     /// \param[in] _paths Optional paths to add.
     void GZ_GAZEBO_VISIBLE addResourcePaths(

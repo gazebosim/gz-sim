@@ -1,7 +1,7 @@
 \page underwater_vehicles Underwater vehicles
 # Simulating Autnomous Underwater Vehicles
 
-Ignition now supports basic simulation of underwater vehicles.
+Gazebo now supports basic simulation of underwater vehicles.
 This capability is based on the equations described in Fossen's ["Guidance and
 Control of Ocean Vehicles"](https://www.wiley.com/en-sg/Guidance+and+Control+of+Ocean+Vehicles-p-9780471941132).
 This tutorial will guide you through the steps you
@@ -18,7 +18,7 @@ a body can be seen in the following diagram:
 ![force diagram](https://raw.githubusercontent.com/gazebosim/gz-sim/ign-gazebo5/tutorials/files/underwater/MBARI%20forces.png)
 
 # Setting up the buoyancy plugin
-The buoyancy plugin in ignition uses the collision mesh to calculate the volume
+The buoyancy plugin in Gazebo uses the collision mesh to calculate the volume
 of the vehicle. Additionally, it needs to know the density of the fluid in which
 it is moving. By default this is set to 1000kgm^-3. However, in real life this
 may vary depending on many factors like depth, salinity of water etc. To add
@@ -95,7 +95,7 @@ name="gz::sim::systems::Hydrodynamics">
 
 # Control surfaces
 Just like aeroplanes, an underwater vehicle may also use fins for stability and
-control. Fortunately, Ignition already has a version of the LiftDrag plugin. In
+control. Fortunately, Gazebo already has a version of the LiftDrag plugin. In
 this tutorial, we will simply add two liftdrag plugins to the rudder and
 elevator of MBARI's Tethys. For more info about the liftdrag plugin inluding
 what the parameters mean you may look

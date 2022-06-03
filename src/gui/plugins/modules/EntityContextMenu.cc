@@ -35,7 +35,7 @@ namespace gz::sim
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Move to service name

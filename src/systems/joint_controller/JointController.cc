@@ -41,7 +41,7 @@ class gz::sim::systems::JointControllerPrivate
   /// \param[in] _msg Velocity message
   public: void OnCmdVel(const gz::msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity

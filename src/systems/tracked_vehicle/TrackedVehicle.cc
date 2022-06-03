@@ -80,7 +80,7 @@ class gz::sim::systems::TrackedVehiclePrivate
   public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief The link of the vehicle body (should be between left and right
