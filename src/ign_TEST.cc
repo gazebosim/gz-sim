@@ -196,7 +196,8 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, output.find("--versions")) << output;
 
   // Flags in bash completion
-  std::string scriptPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  std::string scriptPath = ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
     "src", "cmd", "gazebo.bash_completion.sh");
   std::ifstream scriptFile(scriptPath);
   std::string script((std::istreambuf_iterator<char>(scriptFile)),
