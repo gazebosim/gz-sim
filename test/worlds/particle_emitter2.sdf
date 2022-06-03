@@ -11,6 +11,10 @@
       filename="ignition-gazebo-particle-emitter2-system"
       name="ignition::gazebo::systems::ParticleEmitter2">
     </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+  </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
