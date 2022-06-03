@@ -251,7 +251,7 @@ void Hydrodynamics::Configure(
 
   if (!_sdf->HasElement("link_name"))
   {
-    gzerr << "You musk specify a <link_name> for the hydrodynamic"
+    gzerr << "You must specify a <link_name> for the hydrodynamic"
       << " plugin to act upon";
     return;
   }

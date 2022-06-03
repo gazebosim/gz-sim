@@ -35,6 +35,7 @@ void defineGazeboServer(pybind11::object module)
   .def(pybind11::init<gz::sim::ServerConfig &>())
   .def(
     "run", &gz::sim::Server::Run,
+    pybind11::call_guard<pybind11::gil_scoped_release>(),
     "Run the server. By default this is a non-blocking call, "
     " which means the server runs simulation in a separate thread. Pass "
     " in true to the _blocking argument to run the server in the current "
