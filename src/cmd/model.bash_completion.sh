@@ -20,41 +20,25 @@
 # This is a per-library function definition, used in conjunction with the
 # top-level entry point in ign-tools.
 
-# TODO(anyone): In Garden+, replace `gazebo` in function name to align with
-# subcommand, for ign-tools/etc/ign.bash_completion.sh to find this function.
-function _gz_gazebo
+GZ_MODEL_WORDLIST="
+  --list
+  -m --model
+  -p --pose
+  -l --link
+  -j --joint
+  -h --help
+  --force-version
+  --versions
+"
+
+function _gz_model
 {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
     # NOTE: In Fortress+, add --headless-rendering.
     # Update ../ign_TEST.cc accordingly.
-    COMPREPLY=($(compgen -W "
-      -g
-      --iterations
-      --levels
-      --network-role
-      --network-secondaries
-      --record
-      --record-path
-      --record-resources
-      --record-topic
-      --log-overwrite
-      --log-compress
-      --playback
-      -r
-      -s
-      -v --verbose
-      --gui-config
-      --physics-engine
-      --render-engine
-      --render-engine-gui
-      --render-engine-server
-      --version
-      -z
-      -h --help
-      --force-version
-      --versions
-      " -- "${COMP_WORDS[COMP_CWORD]}" ))
+    COMPREPLY=($(compgen -W "$GZ_MODEL_WORDLIST" \
+      -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
   else
     # Just use bash default auto-complete, because we never have two
@@ -63,4 +47,11 @@ function _gz_gazebo
     COMPREPLY=($(compgen -o default -- "${COMP_WORDS[COMP_CWORD]}"))
     return
   fi
+}
+
+function _gz_model_flags
+{
+  for word in $GZ_MODEL_WORDLIST; do
+    echo "$word"
+  done
 }

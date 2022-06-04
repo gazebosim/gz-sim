@@ -31,6 +31,8 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
     std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign gazebo -s ");
+static const std::string kIgnModelCommand(
+    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -228,4 +230,36 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   EXPECT_NE(std::string::npos, script.find("--help")) << script;
   EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
   EXPECT_NE(std::string::npos, script.find("--versions")) << script;
+}
+
+//////////////////////////////////////////////////
+/// \brief Check --help message and bash completion script for consistent flags
+TEST(CmdLine, ModelHelpVsCompletionFlags)
+{
+  // Flags in help message
+  std::string helpOutput = customExecStr(kIgnModelCommand + " --help");
+
+  // Call the output function in the bash completion script
+  std::string scriptPath = ignition::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "src", "cmd", "model.bash_completion.sh");
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/model.bash_completion.sh; _gz_model_flags\""
+  std::string cmd = "bash -c \". " + scriptPath + "; _gz_model_flags\"";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+  std::string scriptOutput = customExecStr(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (std::string flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
