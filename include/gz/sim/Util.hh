@@ -156,7 +156,7 @@ namespace gz
         const std::string &_filePath);
 
     /// \brief Get resource paths based on latest environment variables.
-    /// \return All paths in the IGN_GAZEBO_RESOURCE_PATH variable.
+    /// \return All paths in the GZ_SIM_RESOURCE_PATH variable.
     std::vector<std::string> GZ_GAZEBO_VISIBLE resourcePaths();
 
     /// \brief Add resource paths based on latest environment variables.
@@ -267,18 +267,18 @@ namespace gz
         Entity _entity, const EntityComponentManager &_ecm);
 
     /// \brief Environment variable holding resource paths.
-    const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+    const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
 
     /// \brief Environment variable used by SDFormat to find URIs inside
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
     /// \brief Environment variable holding server config paths.
-    const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
+    const std::string kServerConfigPathEnv{"GZ_SIM_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
-    const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
+    const std::string kRenderPluginPathEnv{"GZ_SIM_RENDER_ENGINE_PATH"};
     }
   }
 }

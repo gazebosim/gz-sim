@@ -62,7 +62,7 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 // \todo(anyone) Enable tests for OSX once command line works there
 #ifndef __APPLE__
 static const std::string kIgnCommand(
-  "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
+  "GZ_SIM_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
   kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
 #endif
 
@@ -1523,7 +1523,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".gz", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1558,7 +1558,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".gz", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
