@@ -21,9 +21,6 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
-//Rectangle {
-//  Layout.columnSpan: 6
-//  Layout.fillWidth: true
 GridLayout {
   columns: 6
   columnSpacing: 10
@@ -35,6 +32,8 @@ GridLayout {
   anchors.right: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
+
+  property var cascadePtr
 
   function isPowerOf2(n) {
     return (n & n-1) === 0;
@@ -84,7 +83,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinX
-    value: GlobalIlluminationVct.resolutionX
+    value: cascadePtr.resolutionX
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -93,7 +92,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionX = value;
+      cascadePtr.resolutionX = value;
     }
   }
   IgnSpinBox {
@@ -102,7 +101,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinY
-    value: GlobalIlluminationVct.resolutionY
+    value: cascadePtr.resolutionY
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -111,7 +110,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionY = value;
+      cascadePtr.resolutionY = value;
     }
   }
   IgnSpinBox {
@@ -120,7 +119,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinZ
-    value: GlobalIlluminationVct.resolutionZ
+    value: cascadePtr.resolutionZ
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -129,7 +128,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionZ = value;
+      cascadePtr.resolutionZ = value;
     }
   }
 
@@ -144,36 +143,36 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountX
-    value: GlobalIlluminationCiVct.octantCountX
+    value: cascadePtr.octantCountX
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationCiVct.octantCountX = value
+      cascadePtr.octantCountX = value
     }
   }
   IgnSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountY
-    value: GlobalIlluminationCiVct.octantCountY
+    value: cascadePtr.octantCountY
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationCiVct.octantCountY = value
+      cascadePtr.octantCountY = value
     }
   }
   IgnSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountZ
-    value: GlobalIlluminationCiVct.octantCountZ
+    value: cascadePtr.octantCountZ
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationCiVct.octantCountZ = value
+      cascadePtr.octantCountZ = value
     }
   }
 
@@ -188,17 +187,16 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: thinWallCounter
-    value: GlobalIlluminationCiVct.thinWallCounter
+    value: cascadePtr.thinWallCounter
     minimumValue: 0
     maximumValue: 5
     decimals: 2
     stepSize: 0.1
     onValueChanged: {
-      GlobalIlluminationCiVct.thinWallCounter = value
+      cascadePtr.thinWallCounter = value
     }
   }
 }
-//}
 
 /*##^##
 Designer {

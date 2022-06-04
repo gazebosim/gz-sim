@@ -19,13 +19,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
-//import QtQuick.Controls.Styles 1.4
-//import CiVctCascadePrivate 1.0
 import "qrc:/qml"
-
-/*
-import "qrc:/ComponentInspector"
-import "qrc:/"*/
 
 GridLayout {
   id: mainGridLayout
@@ -37,52 +31,16 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
-  function isPowerOf2(n) {
-    return (n & n-1) === 0;
-  }
-
-  // Returns the closest power of 2, rounding down if need to.
-  //  floorPowerOf2( 4 ) = 4
-  //  floorPowerOf2( 5 ) = 4
-  function floorPowerOf2(n) {
-    return 1 << (31 - Math.clz32(n));
-  }
-
-  // Returns the closest power of 2, rounding up if need to.
-  //  floorPowerOf2( 4 ) = 4
-  //  floorPowerOf2( 5 ) = 8
-  function ceilPowerOf2(n) {
-      if (isPowerOf2(n)) {
-        return n;
-      }
-    return 1 << (31 - Math.clz32(n) + 1);
-  }
-
-  function nearestPowerOf2(n, oldValue=undefined) {
-    if (oldValue === undefined) {
-      return floorPowerOf2(n);
-    }
-    else {
-      if (oldValue <= n) {
-        return ceilPowerOf2(n);
-      }
-      else {
-        return floorPowerOf2(n);
-      }
-    }
-  }
-
   Button {
     id: addCascade
     text: qsTr("Add Cascade")
     Layout.columnSpan: 6
     Layout.fillWidth: true
     onClicked: {
-      // cascade = GlobalIlluminationCiVct.AddCascade()
+      var cascade = GlobalIlluminationCiVct.AddCascade()
       var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
-      var cascadeObj = cascadeComponent.createObject(mainGridLayout);
-      //cascadeObj.width = Qt.binding( function() {return mainGridLayout.width});
-      //mainGridLayout.add
+      var cascadeObj = cascadeComponent.createObject(mainGridLayout,
+                                                     { "cascadePtr":cascade });
     }
   }
 

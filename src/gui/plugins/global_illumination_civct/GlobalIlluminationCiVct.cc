@@ -718,12 +718,17 @@ QObject *GlobalIlluminationCiVct::AddCascade()
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
   rendering::CiVctCascade const *ref = nullptr;
-  if(!this->dataPtr->cascades.empty())
+  if (!this->dataPtr->cascades.empty())
     ref = this->dataPtr->cascades.back()->cascade.get();
 
   this->dataPtr->cascades.push_back(
     std::unique_ptr<CiVctCascadePrivate>(new CiVctCascadePrivate(
       this->dataPtr->serviceMutex, this->dataPtr->gi->AddCascade(ref))));
+
+  if (!ref)
+  {
+    this->dataPtr->cascades.back()->cascade->SetThinWallCounter(1.0f);
+  }
 
   return this->dataPtr->cascades.back().get();
 }

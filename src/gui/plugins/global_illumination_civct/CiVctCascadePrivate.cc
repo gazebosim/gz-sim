@@ -138,14 +138,13 @@ uint32_t CiVctCascadePrivate::OctantCountZ() const
 /////////////////////////////////////////////////
 void CiVctCascadePrivate::SetThinWallCounter(const float _thinWallCounter)
 {
-  // std::lock_guard<std::mutex> lock(this->serviceMutex);
-  // this->cascade->SetThinWallCounter(_thinWallCounter);
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  this->cascade->SetThinWallCounter(_thinWallCounter);
 }
 
 /////////////////////////////////////////////////
 float CiVctCascadePrivate::ThinWallCounter() const
 {
-  // std::lock_guard<std::mutex> lock(this->serviceMutex);
-  // return this->cascade->ThinWallCounter();
-  return 7.0f;
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  return this->cascade->ThinWallCounter();
 }
