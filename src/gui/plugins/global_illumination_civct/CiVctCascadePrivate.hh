@@ -54,6 +54,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     Q_OBJECT
 
     Q_PROPERTY(
+      float areaHalfSizeX
+      READ AreaHalfSizeX
+      WRITE SetAreaHalfSizeX
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      float areaHalfSizeY
+      READ AreaHalfSizeY
+      WRITE SetAreaHalfSizeY
+      NOTIFY SettingsChanged
+    )
+    Q_PROPERTY(
+      float areaHalfSizeZ
+      READ AreaHalfSizeZ
+      WRITE SetAreaHalfSizeZ
+      NOTIFY SettingsChanged
+    )
+
+    Q_PROPERTY(
       int resolutionX
       READ ResolutionX
       WRITE SetResolutionX
@@ -117,76 +136,112 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: Q_INVOKABLE void UpdateOctantCount(int _axis, uint32_t _count)
         EXCLUDES(serviceMutex);
 
+    /// \brief Set the area half size
+    /// \param[in] _axis Axis (width, height, depth). In range [0; 3)
+    /// \param[in] _res New size for that axis
+    public: Q_INVOKABLE void UpdateAreaHalfSize(int _axis, float _halfSize)
+        EXCLUDES(serviceMutex);
+
     /// \brief Notify various properties may have changed
     signals: void SettingsChanged();
 
-    /// \brief See rendering::CiVctCascadePrivate::SetResolution
+    /// \brief See rendering::CiVctCascade::SetAreaHalfSize
+    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeX(const float _x)
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// \return See rendering::CiVctCascade::AreaHalfSize
+    public: Q_INVOKABLE float AreaHalfSizeX() const
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::SetAreaHalfSize
+    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeY(const float _x)
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// \return See rendering::CiVctCascade::AreaHalfSize
+    public: Q_INVOKABLE float AreaHalfSizeY() const
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::SetAreaHalfSize
+    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeZ(const float _x)
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// \return See rendering::CiVctCascade::AreaHalfSize
+    public: Q_INVOKABLE float AreaHalfSizeZ() const
+        EXCLUDES(serviceMutex);
+
+    /// \brief See rendering::CiVctCascade::SetResolution
     /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionX(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::Resolution
-    /// \return See rendering::CiVctCascadePrivate::Resolution
+    /// \brief See rendering::CiVctCascade::Resolution
+    /// \return See rendering::CiVctCascade::Resolution
     public: Q_INVOKABLE uint32_t ResolutionX() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetResolution
+    /// \brief See rendering::CiVctCascade::SetResolution
     /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionY(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::Resolution
-    /// \return See rendering::CiVctCascadePrivate::Resolution
+    /// \brief See rendering::CiVctCascade::Resolution
+    /// \return See rendering::CiVctCascade::Resolution
     public: Q_INVOKABLE uint32_t ResolutionY() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetResolution
+    /// \brief See rendering::CiVctCascade::SetResolution
     /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionZ(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::Resolution
-    /// \return See rendering::CiVctCascadePrivate::Resolution
+    /// \brief See rendering::CiVctCascade::Resolution
+    /// \return See rendering::CiVctCascade::Resolution
     public: Q_INVOKABLE uint32_t ResolutionZ() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetOctantCount
+    /// \brief See rendering::CiVctCascade::SetOctantCount
     /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
     public: Q_INVOKABLE void SetOctantCountX(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::OctantCount
-    /// \return See rendering::CiVctCascadePrivate::OctantCount
+    /// \brief See rendering::CiVctCascade::OctantCount
+    /// \return See rendering::CiVctCascade::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountX() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetOctantCount
+    /// \brief See rendering::CiVctCascade::SetOctantCount
     /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
     public: Q_INVOKABLE void SetOctantCountY(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::OctantCount
-    /// \return See rendering::CiVctCascadePrivate::OctantCount
+    /// \brief See rendering::CiVctCascade::OctantCount
+    /// \return See rendering::CiVctCascade::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountY() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetOctantCount
+    /// \brief See rendering::CiVctCascade::SetOctantCount
     /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
     public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::OctantCount
-    /// \return See rendering::CiVctCascadePrivate::OctantCount
+    /// \brief See rendering::CiVctCascade::OctantCount
+    /// \return See rendering::CiVctCascade::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountZ() const
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::SetThinWallCounter
+    /// \brief See rendering::CiVctCascade::SetThinWallCounter
     /// \param[in] _enabled See CiVctCascadePrivate::SetThinWallCounter
     public: Q_INVOKABLE void SetThinWallCounter(const float _thinWallCounter)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascadePrivate::ThinWallCounter
-    /// \return See rendering::CiVctCascadePrivate::ThinWallCounter
+    /// \brief See rendering::CiVctCascade::ThinWallCounter
+    /// \return See rendering::CiVctCascade::ThinWallCounter
     public: Q_INVOKABLE float ThinWallCounter() const EXCLUDES(serviceMutex);
 
     private: rendering::CiVctCascadePtr cascade PT_GUARDED_BY(serviceMutex);

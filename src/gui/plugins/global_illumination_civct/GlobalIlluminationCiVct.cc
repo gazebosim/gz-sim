@@ -804,7 +804,16 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 
   if (!ref)
   {
+    this->dataPtr->cascades.back()->cascade->SetAreaHalfSize(
+      ignition::math::Vector3d(5.0, 5.0, 5.0));
     this->dataPtr->cascades.back()->cascade->SetThinWallCounter(1.0f);
+  }
+  else
+  {
+    this->dataPtr->cascades.back()->cascade->SetAreaHalfSize(
+      this->dataPtr->cascades[this->dataPtr->cascades.size() - 1u]
+        ->cascade->AreaHalfSize() *
+      2.0);
   }
 
   return this->dataPtr->cascades.back().get();

@@ -196,6 +196,46 @@ GridLayout {
       cascadePtr.thinWallCounter = value
     }
   }
+
+  Text {
+    Layout.columnSpan: 6
+    color: "dimgrey"
+    text: qsTr("AreaHalfSize")
+  }
+
+  IgnSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: areaHalfSizeX
+    value: cascadePtr.areaHalfSizeX
+    minimumValue: 0.01
+    decimals: 2
+    onEditingFinished: {
+      cascadePtr.areaHalfSizeX = value
+    }
+  }
+  IgnSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: areaHalfSizeY
+    value: cascadePtr.areaHalfSizeY
+    minimumValue: 0.01
+    decimals: 2
+    onEditingFinished: {
+      cascadePtr.areaHalfSizeY = value
+    }
+  }
+  IgnSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: areaHalfSizeZ
+    value: cascadePtr.areaHalfSizeZ
+    minimumValue: 0.01
+    decimals: 2
+    onEditingFinished: {
+      cascadePtr.areaHalfSizeZ = value
+    }
+  }
 }
 
 /*##^##

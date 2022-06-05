@@ -58,6 +58,54 @@ void CiVctCascadePrivate::UpdateOctantCount(int _axis, uint32_t _count)
 }
 
 /////////////////////////////////////////////////
+void CiVctCascadePrivate::UpdateAreaHalfSize(int _axis, float _halfSize)
+{
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  math::Vector3d areaHalfSize = this->cascade->AreaHalfSize();
+  areaHalfSize[(size_t)_axis] = static_cast<double>(_halfSize);
+  this->cascade->SetAreaHalfSize(areaHalfSize);
+}
+
+/////////////////////////////////////////////////
+void CiVctCascadePrivate::SetAreaHalfSizeX(const float _x)
+{
+  this->UpdateAreaHalfSize(0, _x);
+}
+
+/////////////////////////////////////////////////
+float CiVctCascadePrivate::AreaHalfSizeX() const
+{
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  return static_cast<float>(this->cascade->AreaHalfSize().X());
+}
+
+/////////////////////////////////////////////////
+void CiVctCascadePrivate::SetAreaHalfSizeY(const float _x)
+{
+  this->UpdateAreaHalfSize(1, _x);
+}
+
+/////////////////////////////////////////////////
+float CiVctCascadePrivate::AreaHalfSizeY() const
+{
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  return static_cast<float>(this->cascade->AreaHalfSize().Y());
+}
+
+/////////////////////////////////////////////////
+void CiVctCascadePrivate::SetAreaHalfSizeZ(const float _x)
+{
+  this->UpdateAreaHalfSize(2, _x);
+}
+
+/////////////////////////////////////////////////
+float CiVctCascadePrivate::AreaHalfSizeZ() const
+{
+  std::lock_guard<std::mutex> lock(this->serviceMutex);
+  return static_cast<float>(this->cascade->AreaHalfSize().Z());
+}
+
+/////////////////////////////////////////////////
 void CiVctCascadePrivate::SetResolutionX(const uint32_t _res)
 {
   this->UpdateResolution(0, _res);
