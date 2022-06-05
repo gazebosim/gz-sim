@@ -31,16 +31,33 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
+  property var cascades: []
+
+  Button {
+    id: removeCascade
+    text: qsTr("Remove Cascade")
+    Layout.columnSpan: 3
+    Layout.fillWidth: true
+    onClicked: {
+      if(cascades.length > 0) {
+        //mainGridLayout.height = 400 + 400 * (cascades.length + 1)
+        cascades[cascades.length - 1].destroy()
+        cascades.pop();
+        GlobalIlluminationCiVct.PopCascade()
+      }
+    }
+  }
   Button {
     id: addCascade
     text: qsTr("Add Cascade")
-    Layout.columnSpan: 6
+    Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
       var cascade = GlobalIlluminationCiVct.AddCascade()
       var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
       var cascadeObj = cascadeComponent.createObject(mainGridLayout,
                                                      { "cascadePtr":cascade });
+      cascades.push(cascadeObj)
     }
   }
 
@@ -119,6 +136,37 @@ GridLayout {
       }
       GlobalIlluminationCiVct.debugVisualizationMode = currentIndex
     }
+  }
+
+  RoundButton {
+    Layout.columnSpan: 1
+    text: "\u21bb"
+    Material.background: Material.primary
+    onClicked: {
+      combo.currentIndex = 0
+      GlobalIlluminationCiVct.OnRefreshCameras();
+    }
+    ToolTip.visible: hovered
+    ToolTip.delay: tooltipDelay
+    ToolTip.timeout: tooltipTimeout
+    ToolTip.text: qsTr("Refresh list all available cameras")
+  }
+
+  ComboBox {
+    Layout.columnSpan: 5
+    id: combo
+    Layout.fillWidth: true
+    model: GlobalIlluminationCiVct.cameraList
+    currentIndex: 0
+    onCurrentIndexChanged: {
+      if (currentIndex < 0)
+        return;
+      GlobalIlluminationCiVct.OnCamareBind(textAt(currentIndex));
+    }
+    ToolTip.visible: hovered
+    ToolTip.delay: tooltipDelay
+    ToolTip.timeout: tooltipTimeout
+    ToolTip.text: qsTr("Camera around which all cascades are centered from")
   }
 }
 

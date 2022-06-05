@@ -49,6 +49,7 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
+#include "ignition/rendering/Camera.hh"
 #include "ignition/rendering/GlobalIlluminationCiVct.hh"
 #include "ignition/rendering/LidarVisual.hh"
 #include "ignition/rendering/RenderEngine.hh"
@@ -81,7 +82,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: transport::Node node;
 
     /// \brief Scene Pointer
-    public: rendering::ScenePtr scene;
+    public: rendering::ScenePtr scene GUARDED_BY(serviceMutex);
 
     /// \brief Each cascade created by GI.
     /// We directly access the data in CiVctCascade from UI thread
@@ -113,6 +114,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief See rendering::GlobalIlluminationCiVct::DebugVisualizationMode
     public: uint32_t debugVisMode GUARDED_BY(
       serviceMutex){ rendering::GlobalIlluminationCiVct::DVM_None };
+
+    /// \brief Camera from where the CIVCT cascades are centered around
+    public: rendering::CameraPtr bindCamera GUARDED_BY(serviceMutex){ nullptr };
+
+    /// \brief Available cameras for binding
+    public: QStringList availableCameras;
 
 #ifdef VCT_DISABLED
     /// \brief URI sequence to the lidar link
@@ -434,13 +441,27 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
         this->dataPtr->gi->SetBounceCount(this->dataPtr->bounceCount);
         this->dataPtr->gi->SetHighQuality(this->dataPtr->highQuality);
 
-        // Ogre-Next may crash if some of the settings above are
-        // changed while visualizing is enabled.
-        this->dataPtr->gi->SetDebugVisualization(
-          rendering::GlobalIlluminationCiVct::DVM_None);
+        if (this->dataPtr->gi->Started())
+        {
+          // Ogre-Next may crash if some of the settings above are
+          // changed while visualizing is enabled.
+          this->dataPtr->gi->SetDebugVisualization(
+            rendering::GlobalIlluminationCiVct::DVM_None);
+        }
 
         if (this->dataPtr->enabled)
         {
+          if (!this->dataPtr->gi->Started())
+          {
+            this->dataPtr->gi->Bind(this->dataPtr->bindCamera);
+            this->dataPtr->gi->Start(this->dataPtr->bounceCount,
+                                     this->dataPtr->anisotropic);
+          }
+          else
+          {
+            this->dataPtr->gi->NewSettings(this->dataPtr->bounceCount,
+                                           this->dataPtr->anisotropic);
+          }
           this->dataPtr->gi->Build();
           this->dataPtr->scene->SetActiveGlobalIllumination(this->dataPtr->gi);
         }
@@ -449,11 +470,14 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
           this->dataPtr->scene->SetActiveGlobalIllumination(nullptr);
         }
 
-        // Restore debug visualization to desired.
-        this->dataPtr->gi->SetDebugVisualization(
-          static_cast<
-            rendering::GlobalIlluminationCiVct::DebugVisualizationMode>(
-            this->dataPtr->debugVisMode));
+        if (this->dataPtr->gi->Started())
+        {
+          // Restore debug visualization to desired.
+          this->dataPtr->gi->SetDebugVisualization(
+            static_cast<
+              rendering::GlobalIlluminationCiVct::DebugVisualizationMode>(
+              this->dataPtr->debugVisMode));
+        }
 
 #ifdef VCT_DISABLED
         this->dataPtr->lidar->SetWorldPose(this->dataPtr->lidarPose);
@@ -713,6 +737,58 @@ uint32_t GlobalIlluminationCiVct::DebugVisualizationMode() const
 }
 
 //////////////////////////////////////////////////
+void GlobalIlluminationCiVct::OnCamareBind(const QString &_cameraName)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+
+  auto scene = this->dataPtr->scene.get();
+  rendering::SensorPtr sensor = scene->SensorByName(_cameraName.toStdString());
+  rendering::CameraPtr asCamera =
+    std::dynamic_pointer_cast<rendering::Camera>(sensor);
+
+  if (asCamera)
+  {
+    this->dataPtr->bindCamera = asCamera;
+  }
+  else
+  {
+    this->CameraListChanged();
+  }
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationCiVct::OnRefreshCameras()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+
+  auto scene = this->dataPtr->scene.get();
+  const unsigned int sensorCount = scene->SensorCount();
+  for (unsigned int i = 0u; i < sensorCount; ++i)
+  {
+    rendering::SensorPtr sensor = scene->SensorByIndex(i);
+    rendering::CameraPtr asCamera =
+      std::dynamic_pointer_cast<rendering::Camera>(sensor);
+
+    if (asCamera)
+    {
+      this->dataPtr->availableCameras.push_back(
+        QString::fromStdString(asCamera->Name()));
+
+      if (!this->dataPtr->bindCamera)
+        this->dataPtr->bindCamera = asCamera;
+    }
+  }
+
+  this->CameraListChanged();
+}
+
+//////////////////////////////////////////////////
+QStringList GlobalIlluminationCiVct::CameraList()
+{
+  return this->dataPtr->availableCameras;
+}
+
+//////////////////////////////////////////////////
 QObject *GlobalIlluminationCiVct::AddCascade()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -721,9 +797,10 @@ QObject *GlobalIlluminationCiVct::AddCascade()
   if (!this->dataPtr->cascades.empty())
     ref = this->dataPtr->cascades.back()->cascade.get();
 
-  this->dataPtr->cascades.push_back(
-    std::unique_ptr<CiVctCascadePrivate>(new CiVctCascadePrivate(
-      this->dataPtr->serviceMutex, this->dataPtr->gi->AddCascade(ref))));
+  auto cascadeRendering = this->dataPtr->gi->AddCascade(ref);
+
+  this->dataPtr->cascades.push_back(std::unique_ptr<CiVctCascadePrivate>(
+    new CiVctCascadePrivate(this->dataPtr->serviceMutex, cascadeRendering)));
 
   if (!ref)
   {
@@ -731,6 +808,16 @@ QObject *GlobalIlluminationCiVct::AddCascade()
   }
 
   return this->dataPtr->cascades.back().get();
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationCiVct::PopCascade()
+{
+  if (!this->dataPtr->cascades.empty())
+  {
+    this->dataPtr->cascades.pop_back();
+    this->dataPtr->gi->PopCascade();
+  }
 }
 
 //////////////////////////////////////////////////

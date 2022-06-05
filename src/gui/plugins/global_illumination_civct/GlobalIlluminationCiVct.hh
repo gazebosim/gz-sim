@@ -78,6 +78,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
       NOTIFY DebugVisualizationModeChanged
     )
 
+    Q_PROPERTY(
+      QStringList cameraList
+      READ CameraList
+      NOTIFY CameraListChanged
+    )
+
     /// \brief Constructor
     public: GlobalIlluminationCiVct();
 
@@ -126,6 +132,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Notify debug visualization has changed
     signals: void DebugVisualizationModeChanged();
 
+    /// \brief Notify camera list has changed
+    signals: void CameraListChanged();
+
     /// \brief See rendering::GlobalIlluminationCiVct::SetBounceCount
     /// \param[in] _enabled See GlobalIlluminationCiVct::SetBounceCount
     public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);
@@ -159,9 +168,21 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \return See rendering::GlobalIlluminationCiVct::DebugVisualizationMode
     public: Q_INVOKABLE uint32_t DebugVisualizationMode() const;
 
+    /// \brief Binds the given camera as active for the center of all cascades
+    public: Q_INVOKABLE void OnCamareBind(const QString &_cameraName);
+
+    /// \brief Populates available cameras
+    public: Q_INVOKABLE void OnRefreshCameras();
+
+    /// \brief Populates available cameras
+    public: Q_INVOKABLE QStringList CameraList();
+
     /// \brief Adds a new cascade based on the previous one (if there's any)
     /// \return A CiVctCascade ptr to be used by QML
     public: Q_INVOKABLE QObject* AddCascade();
+
+    /// \brief Pops the last created cascade
+    public: Q_INVOKABLE void PopCascade();
 
     /// \brief Retrieves an existing cascade
     /// \return A CiVctCascade ptr to be used by QML
