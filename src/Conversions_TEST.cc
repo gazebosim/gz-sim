@@ -244,11 +244,11 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetDiffuse(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(gz::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetShininess(0.5);
-  material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetEmissive(gz::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
