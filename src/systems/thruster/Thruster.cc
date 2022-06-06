@@ -27,6 +27,7 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
@@ -63,6 +64,12 @@ class gz::sim::systems::ThrusterPrivateData
 
   /// \brief Desired propeller angular velocity in rad / s
   public: double propellerAngVel = 0.0;
+
+  /// \brief Enabled or not
+  public: bool enabled = true;
+
+  /// \brief Model entity
+  public: Entity modelEntity;
 
   /// \brief The link entity which will spin
   public: Entity linkEntity;
@@ -110,21 +117,26 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Diameter of propeller in m, default: 0.02
   public: double propellerDiameter = 0.02;
 
-  /// \brief callback for handling thrust update
-  public: void OnCmdThrust(const gz::msgs::Double &_msg);
+  /// \brief Callback for handling thrust update
+  public: void OnCmdThrust(const msgs::Double &_msg);
 
   /// \brief callback for handling angular velocity update
   public: void OnCmdAngVel(const gz::msgs::Double &_msg);
 
-  /// \brief function which computes angular velocity from thrust
+  /// \brief Function which computes angular velocity from thrust
   /// \param[in] _thrust Thrust in N
   /// \return Angular velocity in rad/s
   public: double ThrustToAngularVec(double _thrust);
 
-  /// \brief function which computers thrust from angular velocity
+  /// \brief Function which computers thrust from angular velocity
   /// \param[in] _angVel Angular Velocity in rad/s
   /// \return Thrust in Newtons
   public: double AngularVelToThrust(double _angVel);
+
+  /// \brief Returns a boolean if the battery has sufficient charge to continue
+  /// \return True if battery is charged, false otherwise. If no battery found,
+  /// returns true.
+  public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
 };
 
 /////////////////////////////////////////////////
@@ -142,6 +154,7 @@ void Thruster::Configure(
   gz::sim::EventManager &/*_eventMgr*/)
 {
   // Create model object, to access convenient functions
+  this->dataPtr->modelEntity = _entity;
   auto model = gz::sim::Model(_entity);
   auto modelName = model.Name(_ecm);
 
@@ -386,12 +399,39 @@ double ThrusterPrivateData::AngularVelToThrust(double _angVel)
 }
 
 /////////////////////////////////////////////////
+bool ThrusterPrivateData::HasSufficientBattery(
+  const EntityComponentManager &_ecm) const
+{
+  bool result = true;
+  _ecm.Each<components::BatterySoC>([&](
+    const Entity &_entity,
+    const components::BatterySoC *_data
+  ){
+    if(_ecm.ParentEntity(_entity) == this->modelEntity)
+    {
+      if(_data->Data() <= 0)
+      {
+        result = false;
+      }
+    }
+
+    return true;
+  });
+  return result;
+}
+
+/////////////////////////////////////////////////
 void Thruster::PreUpdate(
   const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
+
+  if (!this->dataPtr->enabled)
+  {
+    return;
+  }
 
   gz::sim::Link link(this->dataPtr->linkEntity);
 
@@ -460,10 +500,18 @@ void Thruster::PreUpdate(
     unitVector * torque);
 }
 
+/////////////////////////////////////////////////
+void Thruster::PostUpdate(const UpdateInfo &/*unused*/,
+  const EntityComponentManager &_ecm)
+{
+  this->dataPtr->enabled = this->dataPtr->HasSufficientBattery(_ecm);
+}
+
 IGNITION_ADD_PLUGIN(
   Thruster, System,
   Thruster::ISystemConfigure,
-  Thruster::ISystemPreUpdate)
+  Thruster::ISystemPreUpdate,
+  Thruster::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")
 

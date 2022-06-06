@@ -51,6 +51,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/ThermalCamera.hh"
@@ -63,6 +64,7 @@
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
@@ -224,15 +226,22 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// paused. The not-paused (a.ka. running) period has a key=false and a
   /// default update rate of 60Hz. The paused period has a key=true and a
   /// default update rate of 30Hz.
-  public: std::map<bool, std::chrono::duration<int64_t, std::ratio<1, 1000>>>
-      statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
-                         {true,  std::chrono::milliseconds(1000/30)}};
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
 };
 
 //////////////////////////////////////////////////
@@ -261,16 +270,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod[false] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
 
-  // Set the paused update rate to half of the running update rate.
-  this->dataPtr->statePublishPeriod[true] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000 /
-        static_cast<int>(std::max(stateHerz.first * 0.5, 1.0))));
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    gzerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
@@ -290,8 +308,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -603,6 +625,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -1000,6 +1023,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 

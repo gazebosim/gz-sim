@@ -37,9 +37,7 @@ fixture.finalize()
   - **Step 5**: Run the server
 
 ```python
-server.run(False, 1000, False)
-while(server.is_running()):
-    time.sleep(0.1)
+server.run(True, 1000, False)
 ```
 
 # Run the example

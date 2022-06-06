@@ -1,0 +1,233 @@
+<?xml version="1.0" ?>
+<!--
+
+  Demo of polyline geometries for collisions and visuals.
+
+-->
+<sdf version="1.6">
+  <world name="polylines">
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="triangle">
+      <pose>-5 0 5 0 1.57 0</pose>
+      <link name="link">
+        <inertial>
+          <pose>0 0 0.5 0 0 0</pose>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.1666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1666</iyy>
+            <iyz>0</iyz>
+            <izz>0.1666</izz>
+          </inertia>
+        </inertial>
+
+        <collision name="collision">
+          <geometry>
+            <polyline>
+              <point>-0.5 -0.5</point>
+              <point>-0.5 0.5</point>
+              <point>0.5 0.5</point>
+              <point>0 0</point>
+              <point>0.5 -0.5</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+        </collision>
+
+        <visual name="triangle">
+          <geometry>
+            <polyline>
+              <point>-0.5 -0.5</point>
+              <point>-0.5 0.5</point>
+              <point>0.5 0.5</point>
+              <point>0 0</point>
+              <point>0.5 -0.5</point>
+              <height>1</height>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>1.0 0 0 1</ambient>
+            <diffuse>1.0 0 0 1</diffuse>
+            <specular>1.0 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pentagon">
+      <pose>-5 -3 5 0 1.3 0</pose>
+      <link name="polyLine2">
+        <inertial>
+          <pose>0 0 2 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <polyline>
+              <point>-0.3 0.5</point>
+              <point>0.3 0.3</point>
+              <point>0.3 -0.3</point>
+              <point>-0.3 -0.5</point>
+              <point>-0.5 0</point>
+              <height>4</height>
+            </polyline>
+          </geometry>
+        </collision>
+
+        <visual name="polyLineGeom2">
+          <geometry>
+            <polyline>
+              <point>-0.3 0.5</point>
+              <point>0.3 0.3</point>
+              <point>0.3 -0.3</point>
+              <point>-0.3 -0.5</point>
+              <point>-0.5 0</point>
+              <height>4</height>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0 1.0 0 1</ambient>
+            <diffuse>0 1.0 0 1</diffuse>
+            <specular>0 1.0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cube">
+      <pose>-5 2 5 0 1.57 0</pose>
+      <link name="polyLine2">
+        <inertial>
+          <pose>0.5 0.5 0.75 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <polyline>
+              <point>0 0</point>
+              <point>0 1</point>
+              <point>1 1</point>
+              <point>1 0 </point>
+              <height>1.5</height>
+            </polyline>
+          </geometry>
+        </collision>
+
+        <visual name="polyLineGeom2">
+          <geometry>
+            <polyline>
+              <point>0 0</point>
+              <point>0 1</point>
+              <point>1 1</point>
+              <point>1 0 </point>
+              <height>1.5</height>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>0 1.0 1.0 1</ambient>
+            <diffuse>0 1.0 1.0 1</diffuse>
+            <specular>0 1.0 1.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="letter">
+      <pose>-5 2 5 0 1.57 0</pose>
+      <link name="link">
+        <inertial>
+          <pose>2.2 1.5 0.5 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <polyline>
+              <point>2.27467 1.0967</point>
+              <point>1.81094 2.35418</point>
+              <point>2.74009 2.35418</point>
+              <height>1.0</height>
+            </polyline>
+            <polyline>
+              <point>2.08173 0.7599</point>
+              <point>2.4693 0.7599</point>
+              <point>3.4323 3.28672</point>
+              <point>3.07689 3.28672</point>
+              <point>2.84672 2.63851</point>
+              <point>1.7077 2.63851</point>
+              <point>1.47753 3.28672</point>
+              <point>1.11704 3.28672</point>
+              <height>1.0</height>
+            </polyline>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <polyline>
+              <point>2.27467 1.0967</point>
+              <point>1.81094 2.35418</point>
+              <point>2.74009 2.35418</point>
+              <height>1.0</height>
+            </polyline>
+            <polyline>
+              <point>2.08173 0.7599</point>
+              <point>2.4693 0.7599</point>
+              <point>3.4323 3.28672</point>
+              <point>3.07689 3.28672</point>
+              <point>2.84672 2.63851</point>
+              <point>1.7077 2.63851</point>
+              <point>1.47753 3.28672</point>
+              <point>1.11704 3.28672</point>
+              <height>1.0</height>
+            </polyline>
+          </geometry>
+          <material>
+            <ambient>1.0 0 1.0 1</ambient>
+            <diffuse>1.0 0 1.0 1</diffuse>
+            <specular>1.0 0 1.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -62,6 +62,7 @@
 #include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/components/ThreadPitch.hh"
 #include "gz/sim/components/Transparency.hh"
 #include "gz/sim/components/Visual.hh"
@@ -73,6 +74,7 @@
 
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
+#include "SystemPluginInfo.hh"
 
 namespace gz::sim
 {
@@ -114,6 +116,9 @@ namespace gz::sim
 
     /// \brief Handles all components displayed as a 3D pose.
     public: std::unique_ptr<inspector::Pose3d> pose3d;
+
+    /// \brief Handles all system info components.
+    public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
   };
 }
 
@@ -445,6 +450,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 
   // Type-specific handlers
   this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
+  this->dataPtr->systemInfo =
+      std::make_unique<inspector::SystemPluginInfo>(this);
 }
 
 //////////////////////////////////////////////////

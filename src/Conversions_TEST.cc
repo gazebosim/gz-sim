@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Element.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
@@ -33,6 +34,7 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
@@ -570,6 +572,40 @@ TEST(Conversions, GeometryHeightmap)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, GeometryPolyline)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::POLYLINE);
+
+  sdf::Polyline polylineShape;
+  polylineShape.SetHeight(1.23);
+  polylineShape.AddPoint({4.5, 6.7});
+  polylineShape.AddPoint({8.9, 10.11});
+  geometry.SetPolylineShape({polylineShape});
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::POLYLINE, geometryMsg.type());
+  ASSERT_EQ(1, geometryMsg.polyline_size());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.polyline(0).height());
+  ASSERT_EQ(2, geometryMsg.polyline(0).point_size());
+  EXPECT_DOUBLE_EQ(4.5, geometryMsg.polyline(0).point(0).x());
+  EXPECT_DOUBLE_EQ(6.7, geometryMsg.polyline(0).point(0).y());
+  EXPECT_DOUBLE_EQ(8.9, geometryMsg.polyline(0).point(1).x());
+  EXPECT_DOUBLE_EQ(10.11, geometryMsg.polyline(0).point(1).y());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::POLYLINE, newGeometry.Type());
+  ASSERT_FALSE(newGeometry.PolylineShape().empty());
+  ASSERT_EQ(1u, newGeometry.PolylineShape().size());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.PolylineShape()[0].Height());
+  ASSERT_EQ(2u, newGeometry.PolylineShape()[0].PointCount());
+  EXPECT_DOUBLE_EQ(4.5, newGeometry.PolylineShape()[0].PointByIndex(0)->X());
+  EXPECT_DOUBLE_EQ(6.7, newGeometry.PolylineShape()[0].PointByIndex(0)->Y());
+  EXPECT_DOUBLE_EQ(8.9, newGeometry.PolylineShape()[0].PointByIndex(1)->X());
+  EXPECT_DOUBLE_EQ(10.11, newGeometry.PolylineShape()[0].PointByIndex(1)->Y());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Inertial)
 {
   math::MassMatrix3d massMatrix;
@@ -725,7 +761,7 @@ TEST(Conversions, Atmosphere)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, MagnetometerSensor)
+TEST(Conversions, MagnetometerSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
@@ -765,7 +801,7 @@ TEST(CONVERSIONS, MagnetometerSensor)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, AltimeterSensor)
+TEST(Conversions, AltimeterSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
@@ -1029,4 +1065,52 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, PluginElement)
+{
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "  <plugin filename='plum' name='peach'>"
+      "    <avocado>0.5</avocado>"
+      "  </plugin>"
+      "</world></sdf>");
+
+  auto world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  auto worldElem = world->Element();
+  ASSERT_NE(nullptr, worldElem);
+
+  auto pluginElem = worldElem->GetElement("plugin");
+  ASSERT_NE(nullptr, pluginElem);
+
+  auto pluginMsg = convert<msgs::Plugin>(*(pluginElem.get()));
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Plugin)
+{
+  sdf::Plugin pluginSdf;
+  pluginSdf.SetName("peach");
+  pluginSdf.SetFilename("plum");
+
+  auto content = std::make_shared<sdf::Element>();
+  content->SetName("avocado");
+  content->AddValue("double", "0.5", false, "");
+  pluginSdf.InsertContent(content);
+
+  auto pluginMsg = convert<msgs::Plugin>(pluginSdf);
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos) << pluginMsg.innerxml();
 }
