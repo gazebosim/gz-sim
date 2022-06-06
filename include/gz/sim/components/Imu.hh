@@ -38,7 +38,7 @@ namespace components
   /// sdf::IMU, information.
   using Imu = Component<sdf::Sensor, class ImuTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Imu", Imu)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Imu", Imu)
 }
 }
 }

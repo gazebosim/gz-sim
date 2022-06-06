@@ -111,7 +111,7 @@ ForceTorque::~ForceTorque() = default;
 void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PreUpdate");
+  GZ_PROFILE("ForceTorque::PreUpdate");
   this->dataPtr->CreateForceTorqueEntities(_ecm);
 }
 
@@ -119,7 +119,7 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 void ForceTorque::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PostUpdate");
+  GZ_PROFILE("ForceTorque::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -276,7 +276,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::Update");
+  GZ_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque>(
       [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
@@ -343,7 +343,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 void ForceTorquePrivate::RemoveForceTorqueEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
+  GZ_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
   _ecm.EachRemoved<components::ForceTorque>(
     [&](const Entity &_entity,
         const components::ForceTorque *)->bool
@@ -362,12 +362,12 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(ForceTorque, System,
+GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPreUpdate,
   ForceTorque::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")

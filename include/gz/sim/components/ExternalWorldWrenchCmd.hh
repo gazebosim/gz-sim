@@ -41,7 +41,7 @@ namespace components
   using ExternalWorldWrenchCmd =
       Component<msgs::Wrench, class ExternalWorldWrenchCmdTag,
       serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
                                 ExternalWorldWrenchCmd)
 }
 }

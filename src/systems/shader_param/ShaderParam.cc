@@ -136,7 +136,7 @@ void ShaderParam::Configure(const Entity &_entity,
                EntityComponentManager &_ecm,
                EventManager &_eventMgr)
 {
-  IGN_PROFILE("ShaderParam::Configure");
+  GZ_PROFILE("ShaderParam::Configure");
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
   auto sdf = const_cast<sdf::Element *>(_sdf.get());
@@ -252,7 +252,7 @@ void ShaderParam::PreUpdate(
   const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &)
 {
-  IGN_PROFILE("ShaderParam::PreUpdate");
+  GZ_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime = _info.simTime;
 }
@@ -485,14 +485,14 @@ void ShaderParamPrivate::OnUpdate()
   }
 }
 
-IGNITION_ADD_PLUGIN(ShaderParam,
+GZ_ADD_PLUGIN(ShaderParam,
                     gz::sim::System,
                     ShaderParam::ISystemConfigure,
                     ShaderParam::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
+GZ_ADD_PLUGIN_ALIAS(ShaderParam,
   "gz::sim::systems::ShaderParam")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
+GZ_ADD_PLUGIN_ALIAS(ShaderParam,
   "ignition::gazebo::systems::ShaderParam")

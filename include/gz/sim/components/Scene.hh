@@ -43,7 +43,7 @@ namespace components
   /// \brief This component holds scene properties of the world.
   using Scene =
       Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.Scene", Scene)
 }
 }

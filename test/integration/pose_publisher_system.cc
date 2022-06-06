@@ -100,7 +100,7 @@ std::string addDelimiter(const std::vector<std::string> &_name,
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -322,7 +322,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
+TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -387,7 +387,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
+TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -644,7 +644,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 
 /////////////////////////////////////////////////
 TEST_F(PosePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPoseUpdateFrequency))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPoseUpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -712,7 +712,7 @@ TEST_F(PosePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(PosePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelLoadPlugin))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelLoadPlugin))
 {
   // Start server
   ServerConfig serverConfig;

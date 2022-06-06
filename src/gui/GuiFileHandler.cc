@@ -33,7 +33,7 @@ using namespace sim::gui;
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
                                  QObject *_config)
 {
-  IGN_PROFILE("GuiFileHandler::SaveWorldAs");
+  GZ_PROFILE("GuiFileHandler::SaveWorldAs");
   QUrl url(_fileUrl);
 
   bool status = false;

@@ -53,7 +53,7 @@ class UserCommandsTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 {
   // Start server
   ServerConfig serverConfig;
@@ -332,7 +332,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 {
   // Start server
   ServerConfig serverConfig;
@@ -520,7 +520,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 {
   // Start server
   ServerConfig serverConfig;
@@ -685,7 +685,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   server.Run(false, 1, true);
 
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   poseComp = ecm->Component<components::Pose>(boxEntity);
   ASSERT_NE(nullptr, poseComp);
@@ -694,7 +694,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 {
   // Start server
   ServerConfig serverConfig;
@@ -769,7 +769,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 
 /////////////////////////////////////////////////
 // https://github.com/gazebosim/gz-sim/issues/634
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server
   ServerConfig serverConfig;
@@ -846,7 +846,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check point light entity has been edited using the service
   pointLightComp = ecm->Component<components::Light>(pointLightEntity);
@@ -916,7 +916,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check directional light entity has been edited using the service
   directionalLightComp =
@@ -995,7 +995,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check spot light entity has been edited using the service
   spotLightComp = ecm->Component<components::Light>(spotLightEntity);
@@ -1032,14 +1032,14 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
     spotLightComp->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 {
   // Start server
   ServerConfig serverConfig;
@@ -1118,7 +1118,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
 {
   // Start server
   ServerConfig serverConfig;

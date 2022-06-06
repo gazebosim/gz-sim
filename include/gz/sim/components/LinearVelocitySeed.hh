@@ -36,7 +36,7 @@ namespace components
   /// by applying transformations and adding noise.
   using LinearVelocitySeed =
       Component<math::Vector3d, class LinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LinearVelocitySeed",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LinearVelocitySeed",
                                 LinearVelocitySeed)
 
   /// \brief A component type that contains linear velocity seed of an entity in
@@ -45,7 +45,7 @@ namespace components
   /// noise.
   using WorldLinearVelocitySeed =
       Component<math::Vector3d, class WorldLinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldLinearVelocitySeed",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldLinearVelocitySeed",
                                 WorldLinearVelocitySeed)
 }
 }

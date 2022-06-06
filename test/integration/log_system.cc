@@ -264,7 +264,7 @@ class LogSystemTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 {
   // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
@@ -315,7 +315,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -327,9 +327,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Change environment variable so that test files aren't written to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
@@ -416,13 +416,13 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
 // Logging behavior when a path is specified either via the C++ API, SDF, or
 // the command line.
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -470,9 +470,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 
   // Change environment variable so that test files aren't written to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
@@ -685,13 +685,13 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -841,7 +841,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
 {
   // TODO(anyone) when re-recording state.tlog file, do not run
   // `ign gazebo --record rolling_shapes.sdf` with `-r` flag and pause sim
@@ -961,7 +961,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1111,7 +1111,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
 /////////////////////////////////////////////////
 // TODO(chapulina) Record updated log
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 {
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "levels_log");
@@ -1250,7 +1250,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1356,7 +1356,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1402,7 +1402,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 {
 #ifndef __APPLE__
   // Create temp directory to store log
@@ -1482,7 +1482,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1495,9 +1495,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Change environment variable so that downloaded fuel files aren't written
   // to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1562,14 +1562,14 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1582,9 +1582,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   // Change environment variable so that downloaded fuel files aren't written
   // to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");

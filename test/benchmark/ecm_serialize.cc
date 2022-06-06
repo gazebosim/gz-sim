@@ -41,24 +41,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
 using UIntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
     UIntComponent)
 
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
     components::Component<std::string, class StringComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
     StringComponent)
 
 using BoolComponent = components::Component<bool, class BoolComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
     BoolComponent)
 }
 }

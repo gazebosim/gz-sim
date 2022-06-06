@@ -612,5 +612,5 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::gui::SelectEntities,
+GZ_ADD_PLUGIN(gz::sim::gui::SelectEntities,
                     gz::gui::Plugin)

@@ -36,7 +36,7 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
 {
   gz::sim::ServerConfig serverConfig;
 

@@ -549,7 +549,7 @@ class OdometryPublisherTest
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -558,7 +558,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) +
@@ -567,7 +567,7 @@ TEST_P(OdometryPublisherTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
       gz::common::joinPaths(PROJECT_SOURCE_PATH,
@@ -576,7 +576,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -587,7 +587,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +
@@ -599,7 +599,7 @@ TEST_P(OdometryPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
 {
   TestOffsetTags(
       std::string(PROJECT_SOURCE_PATH) +
@@ -609,7 +609,7 @@ TEST_P(OdometryPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
 {
   TestGaussianNoise(
       std::string(PROJECT_SOURCE_PATH) +

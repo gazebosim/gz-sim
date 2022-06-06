@@ -54,7 +54,7 @@ class RecreateEntitiesFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities))
 {
   // Start server
   ServerConfig serverConfig;
@@ -324,7 +324,7 @@ TEST_F(RecreateEntitiesFixture,
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_Joints))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_Joints))
 {
   // Start server
   ServerConfig serverConfig;
@@ -483,7 +483,7 @@ TEST_F(RecreateEntitiesFixture,
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_WorldJoint))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_WorldJoint))
 {
   // Start server
   ServerConfig serverConfig;

@@ -61,7 +61,7 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
   EXPECT_TRUE(server2.Run(false, 500, false));
 
   while (*server1.IterationCount() < iters1 || *server2.IterationCount() < 500)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_EQ(iters1, *server1.IterationCount());
   EXPECT_EQ(500u, *server2.IterationCount());
@@ -94,7 +94,7 @@ TEST_P(MultipleServers, TwoServersMixedBlocking)
   server2.Run(true, 1000, false);
 
   while (*server1.IterationCount() < 10)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_EQ(10u, *server1.IterationCount());
   EXPECT_EQ(1000u, *server2.IterationCount());

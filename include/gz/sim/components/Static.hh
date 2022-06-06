@@ -32,7 +32,7 @@ namespace components
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = Component<bool, class StaticTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Static", Static)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
 }
 }
 }

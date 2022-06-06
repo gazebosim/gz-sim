@@ -167,7 +167,7 @@ void CommsEndpoint::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("CommsEndpoint::PreUpdate");
+  GZ_PROFILE("CommsEndpoint::PreUpdate");
 
   if (this->dataPtr->bound)
     return;
@@ -184,14 +184,14 @@ void CommsEndpoint::PreUpdate(
   this->dataPtr->Bind();
 }
 
-IGNITION_ADD_PLUGIN(CommsEndpoint,
+GZ_ADD_PLUGIN(CommsEndpoint,
                     gz::sim::System,
                     CommsEndpoint::ISystemConfigure,
                     CommsEndpoint::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(CommsEndpoint,
+GZ_ADD_PLUGIN_ALIAS(CommsEndpoint,
                           "gz::sim::systems::CommsEndpoint")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(CommsEndpoint,
+GZ_ADD_PLUGIN_ALIAS(CommsEndpoint,
                           "ignition::gazebo::systems::CommsEndpoint")

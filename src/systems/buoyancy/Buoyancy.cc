@@ -340,7 +340,7 @@ void Buoyancy::Configure(const Entity &_entity,
 void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Buoyancy::PreUpdate");
+  GZ_PROFILE("Buoyancy::PreUpdate");
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
       this->dataPtr->world);
   if (!gravity)
@@ -580,14 +580,14 @@ bool Buoyancy::IsEnabled(Entity _entity,
   return false;
 }
 
-IGNITION_ADD_PLUGIN(Buoyancy,
+GZ_ADD_PLUGIN(Buoyancy,
                     gz::sim::System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "ignition::gazebo::systems::Buoyancy")

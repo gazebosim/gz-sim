@@ -38,7 +38,7 @@ class JointStatePublisherTest
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -90,7 +90,7 @@ TEST_F(JointStatePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -147,7 +147,7 @@ TEST_F(JointStatePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedJointPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedJointPublisher))
 {
   // Start server
   ServerConfig serverConfig;

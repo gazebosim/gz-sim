@@ -56,11 +56,11 @@ void Null::PostUpdate(const UpdateInfo &/*_info*/,
 {
 }
 
-IGNITION_ADD_PLUGIN(Null,
+GZ_ADD_PLUGIN(Null,
                     gz::sim::System,
                     Null::ISystemConfigure,
                     Null::ISystemPreUpdate,
                     Null::ISystemUpdate,
                     Null::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Null, "gz::sim::systems::Null")
+GZ_ADD_PLUGIN_ALIAS(Null, "gz::sim::systems::Null")
