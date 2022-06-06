@@ -15,7 +15,7 @@ From this directory, run the following to compile:
 
 ## Execute Instructions
 
-From the `build` directory, run Ignition and the example controller:
+From the `build` directory, run Gazebo Sim and the example controller:
 
     ign gazebo -r ../../../worlds/multi_lrauv_race.sdf
     ./multi_lrauv_race

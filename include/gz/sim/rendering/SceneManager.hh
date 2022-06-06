@@ -243,7 +243,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
         const msgs::ParticleEmitter &_emitter);
 
-    /// \brief Ignition sensors is the one responsible for adding sensors
+    /// \brief Gazebo Sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo

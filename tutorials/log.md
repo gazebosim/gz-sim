@@ -1,6 +1,6 @@
 \page log Logging
 
-Ignition records two types of information to files:
+Gazebo records two types of information to files:
 
 * Console messages
     * From the server process only, not the GUI

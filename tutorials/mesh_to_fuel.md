@@ -176,7 +176,7 @@ The syntax for including any model from Fuel is:
 
 ### Launch World
 
-To launch the world and see your mesh, run Ignition from inside the directory where you saved `import_mesh.sdf`:
+To launch the world and see your mesh, run Gazebo from inside the directory where you saved `import_mesh.sdf`:
 
 ```bash
 ign gazebo import_mesh.sdf

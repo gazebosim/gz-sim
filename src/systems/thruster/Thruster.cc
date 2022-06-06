@@ -85,7 +85,7 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Propeller koint entity
   public: Entity jointEntity;
 
-  /// \brief ignition node for handling transport
+  /// \brief Gazebo node for handling transport
   public: transport::Node node;
 
   /// \brief Publisher for feedback of data

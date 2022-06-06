@@ -60,7 +60,7 @@ class gz::sim::systems::TrajectoryFollowerPrivate
   /// \brief A mutex to protect the paused member.
   public: std::mutex mutex;
 
-  /// \brief Ignition transport node.
+  /// \brief Gazebo transport node.
   public: transport::Node node;
 
   /// \brief Topic name to pause/resume the trajectory.

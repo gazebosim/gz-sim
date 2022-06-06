@@ -52,7 +52,7 @@ namespace gz::sim
     /// \brief Initialize rendering and transport.
     public: void Initialize();
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Pointer to the camera being recorded

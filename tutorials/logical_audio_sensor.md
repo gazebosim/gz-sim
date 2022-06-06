@@ -138,7 +138,7 @@ Since the source attached to `red_box` was defined in the SDF file using `<play_
 ### Starting/Stopping Audio Sources
 
 Now that we've discussed how to observe microphone detections, let's see how we can modify the state of a logical audio source.
-Logical audio sources can be started/stopped manually through Ignition services.
+Logical audio sources can be started/stopped manually through Gazebo services.
 To see which services to call in order to start/stop a service, open a new terminal and run the following command (make sure the simulator is still running):
 
 ```

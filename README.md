@@ -69,7 +69,7 @@ accurate models available through
 [Gazebo Fuel](https://app.gazebosim.org/fuel). You can also build a
 new model using [SDF](http://sdformat.org).
 
-* **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
+* **TCP/IP Transport**: Run simulation on remote servers and interface to
 Gazebo Sim through socket-based message passing using
 [Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
@@ -100,7 +100,7 @@ In the event that the installation is a mix of Debian and from source, command
 line tools from `ign-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
-`GZ_CONFIG_PATH` to point to the location of the Ignition library installation,
+`GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
 export GZ_CONFIG_PATH=/usr/local/share/ignition
@@ -109,7 +109,7 @@ export GZ_CONFIG_PATH=/usr/local/share/ignition
 However, that environment variable only takes a single path, which means if the
 installations from source are in different locations, only one can be specified.
 
-Another workaround for working with multiple Ignition libraries on the command
+Another workaround for working with multiple Gazebo libraries on the command
 line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.gz/tools/configs -p

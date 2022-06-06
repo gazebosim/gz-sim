@@ -327,7 +327,7 @@ namespace gz::sim
       rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Keep track of world ID, which is equivalent to the scene's

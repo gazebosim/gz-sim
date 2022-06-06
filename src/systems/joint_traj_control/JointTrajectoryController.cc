@@ -279,7 +279,7 @@ class gz::sim::systems::JointTrajectoryControllerPrivate
   /// components
   public: void Reset();
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Publisher of the progress for currently followed trajectory

@@ -52,7 +52,7 @@ namespace gz::sim
 {
   class AlignToolPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief The service call string for requesting a new pose for an entity.
@@ -387,7 +387,7 @@ void AlignTool::Align()
     (relativeVisual = selectedList.front()) :
     (relativeVisual = selectedList.back());
 
-  // Callback function for ignition node request
+  // Callback function for Gazebo node request
   std::function<void(const gz::msgs::Boolean &, const bool)> cb =
       [](const gz::msgs::Boolean &/* _rep*/, const bool _result)
   {

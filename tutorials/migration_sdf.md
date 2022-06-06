@@ -24,7 +24,7 @@ nested models. These are some of the SDF tags that take URIs:
 
 * `<include><uri>`
 * `<mesh><uri>`
-* `<material><pbr><...><*_map>` (only on Ignition)
+* `<material><pbr><...><*_map>` (only on Gazebo)
 * `<actor><skin><filename>`
 * `<actor><animation><filename>`
 
@@ -104,7 +104,7 @@ For example, this world can be loaded into both simulators:
 ```
 
 \note The actor's vertical pose will be different on both simulators.
-      That's because a hardcoded offset was removed on Ignition and
+      That's because a hardcoded offset was removed on Gazebo and
       maintained on Gazebo classic for backwards compatibility.
 
 ### Path relative to the SDF file
@@ -210,7 +210,7 @@ plugin, the user can refer to it as follows:
 </model>
 ```
 
-On Ignition, that would be:
+On Gazebo, that would be:
 
 ```
 <model ...>
@@ -221,7 +221,7 @@ On Ignition, that would be:
 </model>
 ```
 
-Note that besides the different file name, Ignition also requires the C++ class
+Note that besides the different file name, Gazebo also requires the C++ class
 to be defined in the `name` attribute.
 
 Also keep in mind that plugins that offer similar functionality may accept
@@ -258,7 +258,7 @@ and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct pl
 ### Default plugins
 
 Gazebo is more modular than Gazebo classic, so most features are optional.
-For example, by default, Ignition will load all the system plugins defined on
+For example, by default, Gazebo will load all the system plugins defined on
 the `~/.gz/sim/<#>/server.config` file and all GUI plugins defined on the
 `~/.gz/sim/<#>/gui.config` file. But the user can always remove plugins from
 those files, or choose different ones by adding `<plugin>` tags to the SDF file.
@@ -266,13 +266,13 @@ those files, or choose different ones by adding `<plugin>` tags to the SDF file.
 and the [GUI configuration tutorial](gui_config.html)).
 
 This is important to keep in mind when migrating your SDF files, because files
-that worked on Gazebo classic may need more plugins on Ignition.
+that worked on Gazebo classic may need more plugins on Gazebo.
 
 ## Materials
 
-Ignition does not support Ogre material files like Classic does, because Ignition
+Gazebo does not support Ogre material files like Classic does, because Gazebo
 Gazebo can be used with multiple rendering engines. Therefore, materials defined
-within a `<script>` aren't supported on Ignition, for example:
+within a `<script>` aren't supported on Gazebo, for example:
 
 ```
         <material>
@@ -326,7 +326,7 @@ this works for both simulators. Some examples:
 * [COLLADA](https://app.gazebosim.org/OpenRobotics/fuel/models/Lamp%20Post)
 
 For primitive shapes or even meshes, you can pass the texture as the albedo map. If you
-want the model to be compatible with both Classic and Ignition, you can specify both
+want the model to be compatible with both Classic and Gazebo, you can specify both
 the script and the albedo map.
 
 ```

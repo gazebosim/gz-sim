@@ -1,8 +1,8 @@
 \page tutorials Tutorials
 
-Welcome to the Ignition @IGN_DESIGNATION_CAP@ tutorials. These tutorials
+Welcome to the Gazebo @IGN_DESIGNATION_CAP@ tutorials. These tutorials
 will guide you through the process of understanding the capabilities of the
-Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
+Gazebo @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 
 
 **Tutorials**
@@ -13,7 +13,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
-* \subpage resources "Finding resources": The different ways in which Ignition looks for files.
+* \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
 * \subpage entity_creation "Entity creation": Insert models or lights using services.
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage physics "Physics engines": Loading different physics engines.

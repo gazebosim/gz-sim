@@ -75,7 +75,7 @@ class gz::sim::systems::CommsEndpoint::Implementation
   /// \brief Last simulation time we tried to bind.
   public: std::chrono::steady_clock::duration lastBindRequestTime{-2};
 
-  /// \brief The ignition transport node.
+  /// \brief The Gazebo Transport node.
   public: std::unique_ptr<gz::transport::Node> node;
 };
 
