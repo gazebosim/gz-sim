@@ -582,7 +582,7 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
+  GZ_ASSERT(_battery != nullptr, "common::Battery is null.");
 
   if (fabs(_battery->Voltage()) < 1e-3 && !this->dataPtr->startCharging)
     return 0.0;

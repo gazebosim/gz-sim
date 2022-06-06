@@ -554,7 +554,7 @@ void PosePublisherPrivate::PublishPoses(
     // frame_id: parent entity name
     // child_frame_id = entity name
     // pose is the transform from frame_id to child_frame_id
-    IGN_ASSERT(msg != nullptr, "Pose msg is null");
+    GZ_ASSERT(msg != nullptr, "Pose msg is null");
     auto header = msg->mutable_header();
 
     header->mutable_stamp()->CopyFrom(_stampMsg);
