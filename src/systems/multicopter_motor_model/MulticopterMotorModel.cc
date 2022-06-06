@@ -626,10 +626,11 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // is equivalent to use WorldPose().Rot().
       Link parentLink(this->parentLinkEntity);
       const auto parentWorldPose = parentLink.WorldPose(_ecm);
-      // The tansformation from the parent_link to the link_.
+      // The transformation from the parent_link to the link_.
       // Pose poseDifference =
-      //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
-      Pose poseDifference = *worldPose - *parentWorldPose;
+      //  parent_links.at(0)->GetWorldCoGPose().Inverse()
+      //  * link_->GetWorldCoGPose()
+      Pose poseDifference = (*parentWorldPose).Inverse() * (*worldPose);
       Vector3 dragTorque(
           0, 0, -this->turningDirection * thrust * this->momentConstant);
       // Transforming the drag torque into the parent frame to handle
