@@ -232,97 +232,42 @@ Rectangle {
             Layout.column: 6
           }
 
-          // Ambient
-          Text {
-            text: " Ambient"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            Layout.row: 2
-            Layout.column: 1
+          Loader {
+            id: ambientLoader
+            source: "GzColor.qml"
           }
-          // Ambient color dialog
-          Button {
-            id: ambientButton
-            Layout.row: 2
-            Layout.column: 2
-            ToolTip.text: "Open color dialog"
-            ToolTip.visible: hovered
-            ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            background: Rectangle {
-              implicitWidth: 40
-              implicitHeight: 40
-              radius: 5
-              border.color: getButtonColor(0, false)
-              border.width: 2
-              color: getButtonColor(0, true)
-            }
-            onClicked: {
-              sendMaterialColor("ambient", getButtonColor(0, true))
-            }
+
+          Binding {
+            target : ambientLoader.item
+            property : "colorName"
+            value: "TestName"
           }
-          // Ambient red
-          Item {
-            Layout.row: 2
-            Layout.column: 3
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: rAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[0]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                rAmbientItem = rAmbientLoader.item
-              }
-            }
+
+          Binding {
+            target : ambientLoader.item
+            property : "r"
+            value: model.data[0]
           }
-          // Ambient green
-          Item {
-            Layout.row: 2
-            Layout.column: 4
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[1]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                gAmbientItem = gAmbientLoader.item
-              }
-            }
+          Binding {
+            target : ambientLoader.item
+            property : "g"
+            value: model.data[1]
           }
-          // Ambient blue
-          Item {
-            Layout.row: 2
-            Layout.column: 5
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[2]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                bAmbientItem = bAmbientLoader.item
-              }
-            }
+          Binding {
+            target : ambientLoader.item
+            property : "b"
+            value: model.data[2]
           }
-          // Ambient alpha
-          Item {
-            Layout.row: 2
-            Layout.column: 6
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[3]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                aAmbientItem = aAmbientLoader.item
-              }
-            }
-          } // end Ambient
+          Binding {
+            target : ambientLoader.item
+            property : "a"
+            value: model.data[3]
+          }
+
+          Connections {
+            target : ambientLoader.item
+            onColorSet: sendMaterialColor("ambient", getButtonColor(0, true))
+          }
 
           // Diffuse
           Text {
