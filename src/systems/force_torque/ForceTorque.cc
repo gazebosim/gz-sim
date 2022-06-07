@@ -150,6 +150,7 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     // Enable JointTransmittedWrench to get force-torque measurements
     auto jointEntity =
         _ecm.Component<components::ParentEntity>(entity)->Data();
+    gzwarn << "Adding JointTransmittedWrench to: " << jointEntity << std::endl;
     _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
   }
   this->dataPtr->newSensors.clear();
@@ -268,7 +269,7 @@ void ForceTorquePrivate::AddForceTorque(
   auto jointParentLinkEntity =
       this->GetLinkFromScopedName(_ecm, jointParentName, modelEntity);
 
-  if (kNullEntity == jointParentLinkEntity )
+  if (kNullEntity == jointParentLinkEntity)
   {
     gzerr << "Parent link with name [" << jointParentName
            << "] of joint with name [" << jointName
@@ -361,8 +362,13 @@ void ForceTorquePrivate::UpdateForceTorques(const EntityComponentManager &_ecm)
             return true;
           }
 
+          // Appropriate components haven't been populated by physics yet
           auto jointWrench = _ecm.Component<components::JointTransmittedWrench>(
               jointLinkIt->second.joint);
+          if (nullptr == jointWrench)
+          {
+            return true;
+          }
 
           // Notation:
           // X_WJ: Pose of joint in world
