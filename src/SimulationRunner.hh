@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 #define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
 
+#include <ignition/msgs/entity_plugin_v.pb.h>
 #include <ignition/msgs/gui.pb.h>
 #include <ignition/msgs/log_playback_control.pb.h>
 #include <ignition/msgs/sdf_generator_config.pb.h>
@@ -316,6 +317,14 @@ namespace ignition
       /// \return True if successful.
       private: bool GuiInfoService(ignition::msgs::GUI &_res);
 
+
+      /// \brief Callback for entity add system service.
+      /// \param[out] _res Response containing a boolean value indicating if
+      /// service request is received or not
+      /// \return True if request received.
+      private: bool EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res);
+
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
@@ -376,6 +385,10 @@ namespace ignition
       /// \brief Process the new world state message, if it is present.
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
+
+      /// \brief Process systems that need to be added to entities
+      /// Put in a request to make them as removed
+      private: void ProcessEntitySystems();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -526,6 +539,12 @@ namespace ignition
       /// \brief Holds new world state information so that it can be processed
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
+
+      /// \brief A list of entity systems to add
+      private: std::vector<msgs::EntityPlugin_V> systemsToAdd;
+
+      /// \brief Mutex to protect systemsToAdd list
+      private: std::mutex systemsMsgMutex;
 
       friend class LevelManager;
     };
