@@ -118,7 +118,6 @@ configure_file(
   "model.yaml.in"
   "${CMAKE_BINARY_DIR}/test/conf/model${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
 
-
 #===============================================================================
 # Bash completion
 
