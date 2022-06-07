@@ -396,7 +396,7 @@ namespace components
     } \
   }; \
   static GzSimComponents##_classname\
-    IgnitionGazeboComponentsInitializer##_classname;
+    GzSimComponentsInitializer##_classname;
 }
 }
 }
