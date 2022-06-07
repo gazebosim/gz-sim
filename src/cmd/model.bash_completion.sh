@@ -20,7 +20,7 @@
 # This is a per-library function definition, used in conjunction with the
 # top-level entry point in ign-tools.
 
-GZ_MODEL_WORDLIST="
+GZ_MODEL_COMPLETION_LIST="
   --list
   -m --model
   -p --pose
@@ -37,7 +37,7 @@ function _gz_model
     # Specify options (-*) word list for this subcommand
     # NOTE: In Fortress+, add --headless-rendering.
     # Update ../ign_TEST.cc accordingly.
-    COMPREPLY=($(compgen -W "$GZ_MODEL_WORDLIST" \
+    COMPREPLY=($(compgen -W "$GZ_MODEL_COMPLETION_LIST" \
       -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
   else
@@ -51,7 +51,7 @@ function _gz_model
 
 function _gz_model_flags
 {
-  for word in $GZ_MODEL_WORDLIST; do
+  for word in $GZ_MODEL_COMPLETION_LIST; do
     echo "$word"
   done
 }
