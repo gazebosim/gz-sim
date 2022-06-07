@@ -566,7 +566,7 @@ class gz::sim::systems::UserCommandsPrivate
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Object holding several interfaces that can be used by any command.

@@ -473,7 +473,7 @@
     * [Pull request #1067](https://github.com/gazebosim/gz-sim/pull/1067)
     * [Pull request #1064](https://github.com/gazebosim/gz-sim/pull/1064)
 
-1. Fix non desired window opening alongside ignition GUI
+1. Fix non desired window opening alongside Gazebo GUI
     * [Pull request #1063](https://github.com/gazebosim/gz-sim/pull/1063)
 
 1. Documentation
@@ -538,7 +538,7 @@
 1. Add a flag to force headless rendering mode
     * [Pull request #701](https://github.com/gazebosim/gz-sim/pull/701)
 
-1. Remove unused ignition gui header
+1. Remove unused Gazebo GUI header
     * [Pull request #1026](https://github.com/gazebosim/gz-sim/pull/1026)
 
 1. Adds velocity control to JointPositionController.
@@ -851,7 +851,7 @@
 1. bump version and update changelog
     * [Pull request #1029](https://github.com/gazebosim/gz-sim/pull/1029)
 
-1. Remove unused ignition gui header
+1. Remove unused Gazebo GUI header
     * [Pull request #1026](https://github.com/gazebosim/gz-sim/pull/1026)
 
 1. Collada world exporter now exporting lights
@@ -3297,7 +3297,7 @@
 1. Add systems to queue before actually adding them to runner
     * [BitBucket pull request 241](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/241)
 
-1. Added a docker image that uses the ignition meta package
+1. Added a docker image that uses the Gazebo meta package
     * [BitBucket pull request 237](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/237)
 
 1. Move some design docs to tutorials

@@ -190,17 +190,20 @@ void ThrusterTest::TestWorld(const std::string &_world,
   pub.Publish(msg);
 
   // Check movement
-  for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
-      ++sleep)
+  if (_namespace != "lowbattery")
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    fixture.Server()->Run(true, 100, false);
-  }
-  EXPECT_LT(sleep, maxSleep);
-  EXPECT_LT(5.0, modelPoses.back().Pos().X());
+    for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
+        ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      fixture.Server()->Run(true, 100, false);
+    }
+    EXPECT_LT(sleep, maxSleep);
+    EXPECT_LT(5.0, modelPoses.back().Pos().X());
 
-  EXPECT_EQ(100u * sleep, modelPoses.size());
-  EXPECT_EQ(100u * sleep, propellerAngVels.size());
+    EXPECT_EQ(100u * sleep, modelPoses.size());
+    EXPECT_EQ(100u * sleep, propellerAngVels.size());
+  }
 
   // F = m * a
   // s = a * t^2 / 2
@@ -209,6 +212,14 @@ void ThrusterTest::TestWorld(const std::string &_world,
   double xTol{1e-2};
   for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
+    if (_namespace == "lowbattery" && i > 545)
+    {
+      // Battery discharged should not accelerate
+      EXPECT_NEAR(modelPoses[i-1].Pos().X() - modelPoses[i-2].Pos().X(),
+        modelPoses[i].Pos().X() - modelPoses[i-1].Pos().X(), 1e-6);
+      continue;
+    }
+
     auto pose = modelPoses[i];
     auto time = dt * i;
     EXPECT_NEAR(force * time * time / (2 * _mass), pose.Pos().X(), xTol);
@@ -219,7 +230,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     // The joint velocity command adds some roll to the body which the PID
     // wrench doesn't
-    if (_namespace == "custom")
+    if (_namespace == "custom" || _namespace == "lowbattery")
       EXPECT_NEAR(0.0, pose.Rot().Roll(), 0.1);
     else
       EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
@@ -232,7 +243,14 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // It takes a few iterations to reach the speed
     if (i > 25)
     {
-      EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+      if (_namespace == "lowbattery" && i > 545)
+      {
+        EXPECT_NEAR(0.0, angVel.X(), _baseTol);
+      }
+      else
+      {
+        EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+      }
     }
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
@@ -292,3 +310,14 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_battery.sdf");
+
+  // Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "lowbattery", 0.005, 950, 0.25, 1e-2);
+}
+

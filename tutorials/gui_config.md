@@ -43,9 +43,9 @@ By default, you're loading this file:
 `$HOME/.gz/sim/<#>/gui.config`
 
 That file is created the first time you load Gazebo. Once it is
-created, Ignition will never write to it again unless you delete it. This
+created, Gazebo will never write to it again unless you delete it. This
 means that you can customize it with your preferences and they will be applied
-every time Ignition is started!
+every time Gazebo is started!
 
 Let's try customizing it:
 
@@ -64,7 +64,7 @@ Note how the UI is now in dark mode!
 @image html files/gui_config/dark_gui.png
 
 You'll often want to restore default settings or to use the latest default
-provided by Ignition (when you update to a newer version for example). In
+provided by Gazebo (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 

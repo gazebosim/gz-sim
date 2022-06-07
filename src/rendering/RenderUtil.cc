@@ -1032,6 +1032,8 @@ void RenderUtil::Update()
     return;
 
   this->dataPtr->updateMutex.lock();
+
+  this->dataPtr->scene->SetTime(this->dataPtr->simTime);
   auto newScenes = std::move(this->dataPtr->newScenes);
   auto newModels = std::move(this->dataPtr->newModels);
   auto newLinks = std::move(this->dataPtr->newLinks);
@@ -2542,6 +2544,7 @@ void RenderUtil::Init()
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
   }
+
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
     this->dataPtr->markerManager.SetTopic("/sensors/marker");

@@ -267,7 +267,7 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
       return out;
     };
 
-    // Configure SDF to fetch assets from ignition fuel.
+    // Configure SDF to fetch assets from Gazebo Fuel.
     sdf::setFindCallback(fuelCb);
     creator = std::make_unique<SdfEntityCreator>(this->ecm, this->evm);
   }

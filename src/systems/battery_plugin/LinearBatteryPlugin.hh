@@ -53,7 +53,7 @@ namespace systems
   /// - `<enable_recharge>` If true, the battery can be recharged
   /// - `<recharge_by_topic>` If true, the start/stop signals for recharging the
   ///                     battery will also be available via topics. The
-  ///                     regular Ignition services will still be available.
+  ///                     regular Gazebo services will still be available.
   /// - `<charging_time>` Hours taken to fully charge the battery.
   ///                 (Required if `<enable_recharge>` is set to true)
   /// - `<fix_issue_225>` True to change the battery behavior to fix some issues

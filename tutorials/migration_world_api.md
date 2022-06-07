@@ -12,7 +12,7 @@ functions from the
 [sim::physics::World](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html)
 class.
 
-If you're trying to use some API which doesn't have an equivalent on Ignition
+If you're trying to use some API which doesn't have an equivalent on Gazebo
 yet, feel free to
 [ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
@@ -46,11 +46,11 @@ directly. The functions presented here exist for convenience and readability.
 ### Properties
 
 Most of Gazebo-classic's World API is related to setting and getting
-properties. These functions are great candidates to have equivalents on Ignition
+properties. These functions are great candidates to have equivalents on Gazebo
 Gazebo, because the Entity-Component-System architecture is perfect for setting
 components (properties) into entities such as worlds.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Atmosphere | `gz::sim::World::Atmosphere`
 AtmosphereEnabled | TODO
@@ -96,10 +96,10 @@ These APIs deal with reading information related to child / parent
 relationships.
 
 The main difference in these APIs across Gazebo generations is that
-on classic, they deal with shared pointers to entities, while on Ignition,
+on classic, they deal with shared pointers to entities, while on Gazebo,
 they deal with entity IDs.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 BaseByName | Use type-specific `gz::sim::World::*ByName`
 EntityByName | Use type-specific `gz::sim::World::*ByName`
@@ -117,7 +117,7 @@ PrintEntityTree | Use scene graph service
 These functions deal with modifying the entity tree, attaching children to new
 parents.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Clear | TODO
 ClearModels | TODO
@@ -133,7 +133,7 @@ These functions aren't related to the state of a model, but perform some
 processing related to the model's lifecycle, like initializing, updating or
 terminating it.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Fini | N/A
 Init | N/A
@@ -157,7 +157,7 @@ _SetSensorsInitialized | N/A
 Miscelaneous functions that don't fit the other categories. Most of them involve
 logic that should be performed from within a system.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 EntityBelowPoint | Requires a system
 ModelBelowPoint | Requires a system

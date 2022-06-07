@@ -88,7 +88,7 @@ namespace gz::sim
     rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Mutex to protect mode

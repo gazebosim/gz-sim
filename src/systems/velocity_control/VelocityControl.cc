@@ -62,7 +62,7 @@ class gz::sim::systems::VelocityControlPrivate
   public: void UpdateLinkVelocity(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Model interface

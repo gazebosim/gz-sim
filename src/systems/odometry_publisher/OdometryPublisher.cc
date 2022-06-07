@@ -52,7 +52,7 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Model interface

@@ -112,7 +112,7 @@ namespace systems
   ///       (representing 0% to 100%).
   ///       If no volume threshold is specified, 0.0 will be used.
   ///
-  /// Sources can be started and stopped via Ignition service calls.
+  /// Sources can be started and stopped via Gazebo service calls.
   /// If a source is successfully created, the following services will be
   /// created for the source (`<PREFIX>` is the scoped name for the source - see
   /// gz::sim::scopedName for more details - and `<id>` is the value
@@ -124,7 +124,7 @@ namespace systems
   ///         * Stops playing the source with the specified ID.
   ///           If the source is already stopped, nothing happens.
   ///
-  /// Microphone detection information can be retrieved via Ignition topics.
+  /// Microphone detection information can be retrieved via Gazebo topics.
   /// Whenever a microphone detects a source, it publishes a message to the
   /// `<PREFIX>/mic_<id>/detection` topic, where `<PREFIX>` is the scoped name
   /// for the microphone - see gz::sim::scopedName for more details -

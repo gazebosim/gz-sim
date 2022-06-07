@@ -8,8 +8,8 @@ each providing access to different parts of the API, like physics, rendering,
 sensors, GUI, etc. Due to Gazebo Sim's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
 , plugin interfaces are somewhat different, but more varied and in many cases much
-more powerful. Some plugins in Ignition are systems within Gazebo,
-while others are specific plugin types from other Ignition libraries.
+more powerful. Some plugins in Gazebo are systems within Sim,
+while others are specific plugin types from other Gazebo libraries.
 
 \note Plugin types other than systems may be added to Gazebo in the future.
 
@@ -22,7 +22,7 @@ Take a look at the comparison below:
 
 ---
 
-Classic plugin | Features | Ignition equivalent | Differences
+Classic plugin | Features | Gazebo equivalent | Differences
 ------------- | -------- | ------------------- | -----------
 World | Get/set properties of the world and its children | Gazebo system | Get/set components.
 Model | Get/set properties of the model and its children | Gazebo system | Get/set components.
@@ -41,7 +41,7 @@ System | Access command line arguments | TBD | -
 Another key difference is that systems will be able to access all entity
 properties at once, despite the entity type. So while in Gazebo Classic you may
 need 3 different plugins to interact with physics, rendering and sensors, on
-Ignition you could, for example, set a camera's visual color, its velocity and
+Gazebo you could, for example, set a camera's visual color, its velocity and
 frame rate, all from a single plugin.
 
 ## Plugin interfaces
