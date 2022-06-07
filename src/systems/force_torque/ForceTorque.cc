@@ -18,6 +18,7 @@
 #include "ForceTorque.hh"
 
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <string>
 
@@ -75,6 +76,14 @@ class gz::sim::systems::ForceTorquePrivate
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
+  /// True if the sensor is initialized
+  public: bool initialized = false;
+
   /// \brief Get the link entity identified by the given scoped name
   /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _name Scoped name of the link
@@ -84,13 +93,25 @@ class gz::sim::systems::ForceTorquePrivate
   public: Entity GetLinkFromScopedName(const EntityComponentManager &_ecm,
                                        const std::string &_name,
                                        Entity _parentModel) const;
-  /// \brief Create FT sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateForceTorqueEntities(EntityComponentManager &_ecm);
+
+  /// \brief Create sensor
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity of the force-torque sensor
+  /// \param[in] _forceTorque ForceTorqueSensor component.
+  /// \param[in] _parent Parent entity component.
+  public: void AddForceTorque(
+    const EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::ForceTorque *_forceTorque,
+    const components::ParentEntity *_parent);
+
+  /// \brief Create force-torque sensor
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update FT sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void Update(const EntityComponentManager &_ecm);
+  public: void UpdateForceTorques(const EntityComponentManager &_ecm);
 
   /// \brief Remove FT sensors if their entities have been removed from
   /// simulation.
@@ -112,7 +133,26 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ForceTorque::PreUpdate");
-  this->dataPtr->CreateForceTorqueEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      gzerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+    // Enable JointTransmittedWrench to get force-torque measurements
+    auto jointEntity =
+        _ecm.Component<components::ParentEntity>(entity)->Data();
+    _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -128,6 +168,8 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateSensors(_ecm);
 
   // Only update and publish if not paused.
   if (!_info.paused)
@@ -150,7 +192,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
-    this->dataPtr->Update(_ecm);
+    this->dataPtr->UpdateForceTorques(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -178,105 +220,133 @@ Entity ForceTorquePrivate::GetLinkFromScopedName(
 }
 
 //////////////////////////////////////////////////
-void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
+void ForceTorquePrivate::AddForceTorque(
+    const EntityComponentManager &_ecm,
+    const Entity _entity,
+    const components::ForceTorque *_forceTorque,
+    const components::ParentEntity *_parent)
 {
-  // Create FT Sensors
-  _ecm.EachNew<components::ForceTorque>(
-    [&](const Entity &_entity,
-        const components::ForceTorque *_ft)->bool
-      {
-        // create sensor
-        std::string sensorScopedName =
-            removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _ft->Data();
-        data.SetName(sensorScopedName);
-        // check topic
-        if (data.Topic().empty())
-        {
-          std::string topic = scopedName(_entity, _ecm) + "/forcetorque";
-          data.SetTopic(topic);
-        }
-        std::unique_ptr<sensors::ForceTorqueSensor> sensor =
-            this->sensorFactory.CreateSensor<
-            sensors::ForceTorqueSensor>(data);
-        if (nullptr == sensor)
-        {
-          gzerr << "Failed to create sensor [" << sensorScopedName << "]"
-                 << std::endl;
-          return true;
-        }
+  // create sensor
+  std::string sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  sdf::Sensor data = _forceTorque->Data();
+  data.SetName(sensorScopedName);
+  // check topic
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/forcetorque";
+    data.SetTopic(topic);
+  }
+  std::unique_ptr<sensors::ForceTorqueSensor> sensor =
+      this->sensorFactory.CreateSensor<
+      sensors::ForceTorqueSensor>(data);
+  if (nullptr == sensor)
+  {
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
+           << std::endl;
+  }
 
-        auto jointEntity =
-            _ecm.Component<components::ParentEntity>(_entity)->Data();
-        const std::string jointName =
-            _ecm.Component<components::Name>(jointEntity)->Data();
+  auto jointEntity = _parent->Data();
+  const std::string jointName =
+      _ecm.Component<components::Name>(jointEntity)->Data();
 
-        // Set topic
-        _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-        // Parent has to be a joint
-        if (!_ecm.EntityHasComponentType(jointEntity,
-                                         components::Joint::typeId))
-        {
-          gzerr << "Parent entity of sensor [" << sensorScopedName
-                 << "] must be a joint. Failed to create sensor." << std::endl;
-          return true;
-        }
-        _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
+  // Parent has to be a joint
+  if (!_ecm.EntityHasComponentType(jointEntity,
+                                   components::Joint::typeId))
+  {
+    gzerr << "Parent entity of sensor [" << sensorScopedName
+           << "] must be a joint. Failed to create sensor." << std::endl;
+    return;
+  }
 
-        const auto modelEntity =
-            _ecm.Component<components::ParentEntity>(jointEntity)->Data();
+  const auto modelEntity =
+      _ecm.Component<components::ParentEntity>(jointEntity)->Data();
 
-        // Find the joint parent and child links
-        const auto jointParentName =
-            _ecm.Component<components::ParentLinkName>(jointEntity)->Data();
-        auto jointParentLinkEntity =
-            this->GetLinkFromScopedName(_ecm, jointParentName, modelEntity);
-        if (kNullEntity == jointParentLinkEntity )
-        {
-          gzerr << "Parent link with name [" << jointParentName
-                 << "] of joint with name [" << jointName
-                 << "] not found. Failed to create sensor [" << sensorScopedName
-                 << "]" << std::endl;
-          return true;
-        }
+  // Find the joint parent and child links
+  const auto jointParentName =
+      _ecm.Component<components::ParentLinkName>(jointEntity)->Data();
+  auto jointParentLinkEntity =
+      this->GetLinkFromScopedName(_ecm, jointParentName, modelEntity);
 
-        const auto jointChildName =
-            _ecm.Component<components::ChildLinkName>(jointEntity)->Data();
-        auto jointChildLinkEntity =
-            this->GetLinkFromScopedName(_ecm, jointChildName, modelEntity);
-        if (kNullEntity == jointChildLinkEntity)
-        {
-          gzerr << "Child link with name [" << jointChildName
-                 << "] of joint with name [" << jointName
-                 << "] not found. Failed to create sensor [" << sensorScopedName
-                 << "]" << std::endl;
-          return true;
-        }
+  if (kNullEntity == jointParentLinkEntity )
+  {
+    gzerr << "Parent link with name [" << jointParentName
+           << "] of joint with name [" << jointName
+           << "] not found. Failed to create sensor [" << sensorScopedName
+           << "]" << std::endl;
+    return;
+  }
 
-        SensorJointAndLinks sensorJointLinkEntry;
-        sensorJointLinkEntry.joint = jointEntity;
-        sensorJointLinkEntry.jointParentLink = jointParentLinkEntity;
-        sensorJointLinkEntry.jointChildLink = jointChildLinkEntity;
-        this->sensorJointLinkMap[_entity] = sensorJointLinkEntry;
+  const auto jointChildName =
+      _ecm.Component<components::ChildLinkName>(jointEntity)->Data();
+  auto jointChildLinkEntity =
+      this->GetLinkFromScopedName(_ecm, jointChildName, modelEntity);
+  if (kNullEntity == jointChildLinkEntity)
+  {
+    gzerr << "Child link with name [" << jointChildName
+           << "] of joint with name [" << jointName
+           << "] not found. Failed to create sensor [" << sensorScopedName
+           << "]" << std::endl;
+    return;
+  }
 
-        auto sensorIt = this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor))).first;
+  SensorJointAndLinks sensorJointLinkEntry;
+  sensorJointLinkEntry.joint = jointEntity;
+  sensorJointLinkEntry.jointParentLink = jointParentLinkEntity;
+  sensorJointLinkEntry.jointChildLink = jointChildLinkEntity;
+  this->sensorJointLinkMap[_entity] = sensorJointLinkEntry;
 
-        const auto X_WC = worldPose(jointChildLinkEntity, _ecm);
-        const auto X_CJ = _ecm.Component<components::Pose>(jointEntity)->Data();
-        const auto X_WJ = X_WC * X_CJ;
-        const auto X_JS = _ecm.Component<components::Pose>(_entity)->Data();
-        const auto X_WS = X_WJ * X_JS;
-        const auto X_SC = X_WS.Inverse() * X_WC;
-        sensorIt->second->SetRotationChildInSensor(X_SC.Rot());
-        return true;
-      });
+  auto sensorIt = this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor))).first;
+
+  const auto X_WC = worldPose(jointChildLinkEntity, _ecm);
+  const auto X_CJ = _ecm.Component<components::Pose>(jointEntity)->Data();
+  const auto X_WJ = X_WC * X_CJ;
+  const auto X_JS = _ecm.Component<components::Pose>(_entity)->Data();
+  const auto X_WS = X_WJ * X_JS;
+  const auto X_SC = X_WS.Inverse() * X_WC;
+  sensorIt->second->SetRotationChildInSensor(X_SC.Rot());
+
+  this->entitySensorMap.insert(
+      std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
 }
 
 //////////////////////////////////////////////////
-void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
+void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::Update");
+  IGN_PROFILE("ForceTorquePrivate::CreateSensors");
+  if (!this->initialized)
+  {
+    // Create air pressure sensors
+    _ecm.Each<components::ForceTorque, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ForceTorque *_forceTorque,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddForceTorque(_ecm, _entity, _forceTorque, _parent);
+          return true;
+        });
+    this->initialized = true;
+  }
+  else
+  {
+    // Create air pressure sensors
+    _ecm.EachNew<components::ForceTorque, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::ForceTorque *_forceTorque,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddForceTorque(_ecm, _entity, _forceTorque, _parent);
+          return true;
+        });
+  }
+}
+
+//////////////////////////////////////////////////
+void ForceTorquePrivate::UpdateForceTorques(const EntityComponentManager &_ecm)
+{
+  IGN_PROFILE("ForceTorquePrivate::UpdateForceTorques");
   _ecm.Each<components::ForceTorque>(
       [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
