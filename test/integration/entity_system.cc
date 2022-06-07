@@ -41,7 +41,6 @@ class EntitySystemTest : public InternalFixture<::testing::TestWithParam<int>>
 {
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
-  /// \param[in] _odomTopic Odometry topic.
   protected: void TestPublishCmd(const std::string &_sdfFile,
                                  const std::string &_cmdVelTopic)
   {

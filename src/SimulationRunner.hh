@@ -386,8 +386,7 @@ namespace ignition
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
 
-      /// \brief Process systems that need to be added to entities
-      /// Put in a request to make them as removed
+      /// \brief Process system messages and add systems to entities
       private: void ProcessEntitySystems();
 
       /// \brief This is used to indicate that a stop event has been received.
