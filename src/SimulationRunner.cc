@@ -1482,8 +1482,6 @@ void SimulationRunner::ProcessEntitySystems()
       if (sdf::readString(tmp.str(), pluginSDF))
       {
         this->LoadPlugin(entity, fname, name, pluginSDF);
-        std::cerr << "================add plugin " << std::endl;
-        std::cerr << pluginSDF->ToString("") << std::endl;
       }
       else
       {
