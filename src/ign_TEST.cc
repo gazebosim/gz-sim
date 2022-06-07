@@ -170,66 +170,31 @@ TEST(CmdLine, ResourcePath)
 TEST(CmdLine, GazeboHelpVsCompletionFlags)
 {
   // Flags in help message
-  std::string output = customExecStr(kIgnCommand + " gazebo --help");
-  EXPECT_NE(std::string::npos, output.find("-g")) << output;
-  EXPECT_NE(std::string::npos, output.find("--iterations")) << output;
-  EXPECT_NE(std::string::npos, output.find("--levels")) << output;
-  EXPECT_NE(std::string::npos, output.find("--network-role")) << output;
-  EXPECT_NE(std::string::npos, output.find("--network-secondaries")) << output;
-  EXPECT_NE(std::string::npos, output.find("--record")) << output;
-  EXPECT_NE(std::string::npos, output.find("--record-path")) << output;
-  EXPECT_NE(std::string::npos, output.find("--record-resources")) << output;
-  EXPECT_NE(std::string::npos, output.find("--record-topic")) << output;
-  EXPECT_NE(std::string::npos, output.find("--log-overwrite")) << output;
-  EXPECT_NE(std::string::npos, output.find("--log-compress")) << output;
-  EXPECT_NE(std::string::npos, output.find("--playback")) << output;
-  EXPECT_NE(std::string::npos, output.find("-r")) << output;
-  EXPECT_NE(std::string::npos, output.find("-s")) << output;
-  EXPECT_NE(std::string::npos, output.find("--verbose")) << output;
-  EXPECT_NE(std::string::npos, output.find("--gui-config")) << output;
-  EXPECT_NE(std::string::npos, output.find("--physics-engine")) << output;
-  EXPECT_NE(std::string::npos, output.find("--render-engine")) << output;
-  EXPECT_NE(std::string::npos, output.find("--render-engine-gui")) << output;
-  EXPECT_NE(std::string::npos, output.find("--render-engine-server")) << output;
-  EXPECT_NE(std::string::npos, output.find("--version")) << output;
-  EXPECT_NE(std::string::npos, output.find("-z")) << output;
-  EXPECT_NE(std::string::npos, output.find("--help")) << output;
-  EXPECT_NE(std::string::npos, output.find("--force-version")) << output;
-  EXPECT_NE(std::string::npos, output.find("--versions")) << output;
+  std::string helpOutput = customExecStr(kIgnCommand + " gazebo --help");
 
-  // Flags in bash completion
+  // Call the output function in the bash completion script
   std::string scriptPath = ignition::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH),
     "src", "cmd", "gazebo.bash_completion.sh");
-  std::ifstream scriptFile(scriptPath);
-  std::string script((std::istreambuf_iterator<char>(scriptFile)),
-      std::istreambuf_iterator<char>());
 
-  EXPECT_NE(std::string::npos, script.find("-g")) << script;
-  EXPECT_NE(std::string::npos, script.find("--iterations")) << script;
-  EXPECT_NE(std::string::npos, script.find("--levels")) << script;
-  EXPECT_NE(std::string::npos, script.find("--network-role")) << script;
-  EXPECT_NE(std::string::npos, script.find("--network-secondaries")) << script;
-  EXPECT_NE(std::string::npos, script.find("--record")) << script;
-  EXPECT_NE(std::string::npos, script.find("--record-path")) << script;
-  EXPECT_NE(std::string::npos, script.find("--record-resources")) << script;
-  EXPECT_NE(std::string::npos, script.find("--record-topic")) << script;
-  EXPECT_NE(std::string::npos, script.find("--log-overwrite")) << script;
-  EXPECT_NE(std::string::npos, script.find("--log-compress")) << script;
-  EXPECT_NE(std::string::npos, script.find("--playback")) << script;
-  EXPECT_NE(std::string::npos, script.find("-r")) << script;
-  EXPECT_NE(std::string::npos, script.find("-s")) << script;
-  EXPECT_NE(std::string::npos, script.find("--verbose")) << script;
-  EXPECT_NE(std::string::npos, script.find("--gui-config")) << script;
-  EXPECT_NE(std::string::npos, script.find("--physics-engine")) << script;
-  EXPECT_NE(std::string::npos, script.find("--render-engine")) << script;
-  EXPECT_NE(std::string::npos, script.find("--render-engine-gui")) << script;
-  EXPECT_NE(std::string::npos, script.find("--render-engine-server")) << script;
-  EXPECT_NE(std::string::npos, script.find("--version")) << script;
-  EXPECT_NE(std::string::npos, script.find("-z")) << script;
-  EXPECT_NE(std::string::npos, script.find("--help")) << script;
-  EXPECT_NE(std::string::npos, script.find("--force-version")) << script;
-  EXPECT_NE(std::string::npos, script.find("--versions")) << script;
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/gazebo.bash_completion.sh; _gz_sim_flags\""
+  std::string cmd = "bash -c \". " + scriptPath + "; _gz_sim_flags\"";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+  std::string scriptOutput = customExecStr(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (std::string flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }
 
 //////////////////////////////////////////////////
