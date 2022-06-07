@@ -116,7 +116,7 @@ namespace systems
     /// \brief Set to true after initialization with valid parameters
     private: bool initialized{false};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Model interface

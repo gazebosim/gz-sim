@@ -112,7 +112,7 @@ class gz::sim::systems::LogRecordPrivate
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
 
-  /// \brief Ignition transport recorder
+  /// \brief Gazebo transport recorder
   public: transport::log::Recorder recorder;
 
   /// \brief Directory in which to place log file

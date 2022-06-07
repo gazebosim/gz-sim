@@ -74,7 +74,7 @@ class gz::sim::systems::AckermannSteeringPrivate
   public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Entity of the left joint

@@ -103,7 +103,7 @@ namespace systems
     /// \brief Whether detachment has been requested
     private: std::atomic<bool> detachRequested{false};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Whether all parameters are valid and the system can proceed

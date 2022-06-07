@@ -125,7 +125,7 @@ class gz::sim::systems::TrackControllerPrivate
   public: EventManager* eventManager;
   /// \brief Connection to CollectContactSurfaceProperties event.
   public: common::ConnectionPtr eventConnection;
-  /// \brief Ignition transport node.
+  /// \brief Gazebo transport node.
   public: transport::Node node;
 
   /// \brief The model this plugin is attached to.

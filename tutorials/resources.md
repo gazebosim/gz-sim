@@ -12,9 +12,9 @@ runtime. Typically, plugins are scoped to perform a narrow set of features.
 For example, the `diff_drive` plugin, provided by Gazebo, implements
 a differential drive controller for mobile robots.
 
-Ignition relies on plugins for rendering, physics simulation, sensor data
+Gazebo relies on plugins for rendering, physics simulation, sensor data
 generation, and many of the capabilities. The following sections describe
-how Ignition finds and loads different types of plugins.
+how Gazebo finds and loads different types of plugins.
 
 ### System Plugins
 
@@ -36,7 +36,7 @@ System plugins may be loaded through:
   when instantiating the
   [Server](https://gazebosim.org/api/gazebo/4.6/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
 
-Ignition will look for system plugins on the following paths, in order:
+Gazebo will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.gz/sim/plugins`
@@ -56,7 +56,7 @@ GUI plugins may be loaded through:
     * `<plugin>`
 * The plugin menu on the top-right of the screen.
 
-Ignition will look for GUI plugins on the following paths, in order:
+Gazebo will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
 2. [GUI plugins that are installed with Gazebo](https://github.com/gazebosim/gz-sim/tree/main/src/gui/plugins)
@@ -83,7 +83,7 @@ built as plugins that are loaded at run time using
 
 At the moment, Gazebo Rendering will only look for render engine plugin
 shared libraries installed within its `<install_prefix>/lib` directory.
-Likewise, the resources used by these engines are located in Ignition
+Likewise, the resources used by these engines are located in Gazebo
 Rendering's `<install_prefix>/share` directory.
 
 ### Sensors
@@ -114,7 +114,7 @@ Top-level entities such as models, lights and actors may be loaded through:
   [SdfEntityCreator](https://gazebosim.org/api/gazebo/4.6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
   or directly creating components and entities.
 
-Ignition will look for URIs (path / URL) in the following, in order:
+Gazebo will look for URIs (path / URL) in the following, in order:
 
 1. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if
    path is URI, scheme is stripped)
@@ -135,7 +135,7 @@ Mesh files may be loaded through:
     * `<actor><skin><filename>`
     * `<actor><animation><filename>`
 
-Ignition will look for URIs (path / URL) in the following, in order:
+Gazebo will look for URIs (path / URL) in the following, in order:
 
 1. Current running path / absolute path
 2. All paths on the `IGN_GAZEBO_RESOURCE_PATH`\* environment variable (if path

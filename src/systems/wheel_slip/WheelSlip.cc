@@ -50,7 +50,7 @@ class gz::sim::systems::WheelSlipPrivate
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
   public: void Update(EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Joint Entity

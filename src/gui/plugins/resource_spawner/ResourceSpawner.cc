@@ -45,7 +45,7 @@ namespace gz::sim
 {
   class ResourceSpawnerPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief The grid model that the qml gridview reflects

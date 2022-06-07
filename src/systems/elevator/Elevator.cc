@@ -115,7 +115,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   /// \param[in] _msg Message that carries the floor level target
   public: void OnCmdMsg(const msgs::Int32 &_msg);
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Model to which this system belongs

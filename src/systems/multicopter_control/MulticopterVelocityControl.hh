@@ -185,6 +185,13 @@ namespace systems
                  gz::sim::EntityComponentManager &_ecm,
                  const Eigen::VectorXd &_vels);
 
+    /// \brief Get the vehicle inertial from child links and nested models
+    /// \param[in] _ecm Immutable reference to the EntityComponentManager
+    /// \param[in] _entity Model entity to get inertial for
+    private: math::Inertiald VehicleInertial(
+                 const EntityComponentManager &_ecm,
+                 Entity _entity);
+
     /// \brief Model interface
     private: Model model{kNullEntity};
 
@@ -203,7 +210,7 @@ namespace systems
     /// \brief Topic for enable commands.
     private: std::string enableSubTopic{"enable"};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Holds the rotor velocities computed by the controller. This is

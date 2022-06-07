@@ -43,7 +43,7 @@ namespace gz::sim
 {
   class PlaybackScrubberPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief The start time of the log file

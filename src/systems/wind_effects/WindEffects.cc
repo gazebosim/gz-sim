@@ -299,7 +299,7 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief Noise added to Z axis.
   public: sensors::NoisePtr noiseVertical;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Set during Load to true if the configuration for the plugin is

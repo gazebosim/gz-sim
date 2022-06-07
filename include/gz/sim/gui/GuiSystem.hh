@@ -46,7 +46,7 @@ namespace sim
     Q_OBJECT
 
     /// \brief Update callback called every time the system is stepped.
-    /// This is called at an Ignition transport thread, so any interaction
+    /// This is called at a Gazebo Transport thread, so any interaction
     /// with Qt should be done through signals and slots.
     /// \param[in] _info Current simulation information, such as time.
     /// \param[in] _ecm Mutable reference to the ECM, so the system can read

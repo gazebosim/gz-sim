@@ -80,7 +80,7 @@ namespace gz::sim
     /// \brief Handle placement requests
     public: void HandlePlacement();
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Flag for indicating whether the preview needs to be generated.

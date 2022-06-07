@@ -6,7 +6,7 @@
 
 if [ $# -lt 1 ]
 then
-    echo "Usage: $0 <docker image> [optional arguments to ign-gazebo]"
+    echo "Usage: $0 <docker image> [optional arguments to gz-sim]"
     exit 1
 fi
 

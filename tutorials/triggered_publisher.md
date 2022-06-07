@@ -59,7 +59,7 @@ specifies the topic of the output and the actual data to be published. The data
 is expressed in the human-readable form of Google Protobuf messages. This is
 the same format used by `ign topic` for publishing messages.
 
-Since the `TriggeredPublisher` only deals with Ignition topics, it can be
+Since the `TriggeredPublisher` only deals with Gazebo topics, it can be
 anywhere a `<plugin>` tag is allowed. For this example, we will put it under
 `<world>`.
 

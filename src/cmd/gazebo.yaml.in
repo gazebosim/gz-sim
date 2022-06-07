@@ -1,4 +1,4 @@
---- # Subcommands available inside ignition gazebo
+--- # Subcommands available inside Gazebo Sim
 format: 1.0.0
 library_name: ignition-gazebo-ign
 library_version: @PROJECT_VERSION_FULL@

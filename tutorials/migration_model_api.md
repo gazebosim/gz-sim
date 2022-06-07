@@ -12,7 +12,7 @@ functions from the
 [sim::physics::Model](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Model.html)
 class.
 
-If you're trying to use some API which doesn't have an equivalent on Ignition
+If you're trying to use some API which doesn't have an equivalent on Gazebo
 yet, feel free to
 [ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
@@ -47,13 +47,13 @@ directly. The functions presented here exist for convenience and readability.
 ### Properties
 
 Most of Gazebo-classic's Model API is related to setting and getting
-properties. These functions are great candidates to have equivalents on Ignition
+properties. These functions are great candidates to have equivalents on Gazebo
 Gazebo, because the Entity-Component-System architecture is perfect for setting
 components (properties) into entities such as models.
 
 ---
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 AddType | `ecm.CreateComponent<Type>(entity, Type())`
 BoundingBox | TODO
@@ -134,12 +134,12 @@ These APIs deal with reading information related to child / parent
 relationships.
 
 The main difference in these APIs across Gazebo generations is that
-on classic, they deal with shared pointers to entities, while on Ignition,
+on classic, they deal with shared pointers to entities, while on Gazebo,
 they deal with entity IDs.
 
 ---
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 GetByName | Use type-specific `gz::sim::Model::*ByName`
 GetChild | Use type-specific `gz::sim::Model::*ByName`
@@ -170,7 +170,7 @@ parents.
 
 ---
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 AddChild | TODO
 AttachStaticModel | TODO
@@ -194,7 +194,7 @@ terminating it.
 
 ---
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Fini | N/A
 Init | N/A
@@ -214,7 +214,7 @@ logic that should be performed from within a system.
 
 ---
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 GetJointController | Use this system: `gz::sim::systems::JointController`
 GetNearestEntityBelow | Requires a system
