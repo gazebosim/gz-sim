@@ -71,7 +71,7 @@ namespace gui
       const char *_renderEngine = nullptr);
 
 }  // namespace gui
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 
