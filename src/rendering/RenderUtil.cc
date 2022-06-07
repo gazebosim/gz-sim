@@ -2507,10 +2507,10 @@ void RenderUtil::Init()
 
   // TODO(CH3): Deprecated. Remove on tock.
   std::string result;
-  if (!env(kRenderPluginPathEnv, result))
+  if (!gz::common::env(kRenderPluginPathEnv, result))
   {
     // Try deprecated env var if proper env var not populated
-    if (env(kRenderPluginPathEnvDeprecated, result))
+    if (gz::common::env(kRenderPluginPathEnvDeprecated, result))
     {
       gzwarn << "Finding plugins using deprecated IGN_ prefixed environment "
              << "variable [" << kRenderPluginPathEnvDeprecated
