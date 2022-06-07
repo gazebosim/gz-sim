@@ -180,7 +180,6 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   // Equivalent to:
   // sh -c "bash -c \". /path/to/gazebo.bash_completion.sh; _gz_sim_flags\""
   std::string cmd = "bash -c \". " + scriptPath + "; _gz_sim_flags\"";
-  std::cout << "Running command [" << cmd << "]" << std::endl;
   std::string scriptOutput = customExecStr(cmd);
 
   // Tokenize script output
@@ -212,7 +211,6 @@ TEST(CmdLine, ModelHelpVsCompletionFlags)
   // Equivalent to:
   // sh -c "bash -c \". /path/to/model.bash_completion.sh; _gz_model_flags\""
   std::string cmd = "bash -c \". " + scriptPath + "; _gz_model_flags\"";
-  std::cout << "Running command [" << cmd << "]" << std::endl;
   std::string scriptOutput = customExecStr(cmd);
 
   // Tokenize script output
