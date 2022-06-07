@@ -317,8 +317,9 @@ namespace ignition
       /// \return True if successful.
       private: bool GuiInfoService(ignition::msgs::GUI &_res);
 
-
       /// \brief Callback for entity add system service.
+      /// \param[in] _req Request message containing the entity id and plugins
+      /// to add to that entity
       /// \param[out] _res Response containing a boolean value indicating if
       /// service request is received or not
       /// \return True if request received.
