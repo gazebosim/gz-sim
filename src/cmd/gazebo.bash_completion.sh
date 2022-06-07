@@ -54,7 +54,7 @@ function _gz_gazebo
 {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
-    # NOTE: In Fortress+, add --headless-rendering.
+    # TODO(anyone): In Fortress+, add --headless-rendering.
     # Update ../ign_TEST.cc accordingly.
     COMPREPLY=($(compgen -W "$GZ_SIM_COMPLETION_LIST" \
       -- "${COMP_WORDS[COMP_CWORD]}" ))
