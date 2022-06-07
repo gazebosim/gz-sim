@@ -35,8 +35,6 @@ function _gz_model
 {
   if [[ ${COMP_WORDS[COMP_CWORD]} == -* ]]; then
     # Specify options (-*) word list for this subcommand
-    # NOTE: In Fortress+, add --headless-rendering.
-    # Update ../ign_TEST.cc accordingly.
     COMPREPLY=($(compgen -W "$GZ_MODEL_COMPLETION_LIST" \
       -- "${COMP_WORDS[COMP_CWORD]}" ))
     return
