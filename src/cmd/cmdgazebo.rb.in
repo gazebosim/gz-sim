@@ -353,11 +353,11 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
     end
 
     # Read the library version.
-    Importer.extern 'char *ignitionGazeboVersion()'
+    Importer.extern 'char *gzSimVersion()'
     begin
-      plugin_version = Importer.ignitionGazeboVersion.to_s
+      plugin_version = Importer.gzSimVersion.to_s
     rescue DLError
-      puts "Library error: Problem running 'ignitionGazeboVersion()' from #{plugin}."
+      puts "Library error: Problem running 'gzSimVersion()' from #{plugin}."
       exit(-1)
     end
 

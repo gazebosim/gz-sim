@@ -35,9 +35,14 @@
 #include "gz/sim/gui/Gui.hh"
 
 //////////////////////////////////////////////////
-extern "C" char *ignitionGazeboVersion()
+extern "C" char *gzSimVersion()
 {
   return strdup(GZ_SIM_VERSION_FULL);
+}
+
+extern "C" char *ignitionGazeboVersion()
+{
+  return gzSimVersion();
 }
 
 //////////////////////////////////////////////////
