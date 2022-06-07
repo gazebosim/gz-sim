@@ -1036,9 +1036,9 @@ TEST_P(ServerFixture, AddResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResolveResourcePaths)
 {
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  common::setenv("GZ_SIM_RESOURCE_PATH", "");
   common::setenv("SDF_PATH", "");
-  common::setenv("IGN_FILE_PATH", "");
+  common::setenv("GZ_FILE_PATH", "");
 
   ServerConfig serverConfig;
   Server server(serverConfig);
@@ -1071,7 +1071,7 @@ TEST_P(ServerFixture, ResolveResourcePaths)
         });
 
   // Make sure the resource path is clear
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  common::setenv("GZ_SIM_RESOURCE_PATH", "");
 
   // An absolute path should return the same absolute path
   test(PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
@@ -1084,7 +1084,7 @@ TEST_P(ServerFixture, ResolveResourcePaths)
   test(common::joinPaths("test", "worlds", "plugins.sdf"), "", false);
 
   // Try again, this time with a RESOURCE_PATH
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH", PROJECT_SOURCE_PATH);
+  common::setenv("GZ_SIM_RESOURCE_PATH", PROJECT_SOURCE_PATH);
   test(common::joinPaths("test", "worlds", "plugins.sdf"),
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "plugins.sdf"),
       true);
@@ -1096,7 +1096,7 @@ TEST_P(ServerFixture, ResolveResourcePaths)
 
   // The model:// URI should not resolve
   test("model://include_nested/model.sdf", "", false);
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
   // The model:// URI should now resolve because the RESOURCE_PATH has been
   // updated.

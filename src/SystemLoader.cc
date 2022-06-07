@@ -57,7 +57,7 @@ class gz::sim::SystemLoaderPrivate
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
 
     // TODO(CH3): Deprecated. Remove on tock.
-    systemPaths.AddPluginPaths(homePath + "/.ignition/sim/plugins");
+    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
 
     systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 

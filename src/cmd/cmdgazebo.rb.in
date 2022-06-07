@@ -154,12 +154,12 @@ COMMANDS = { 'gazebo' =>
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
-  "  GZ_SIM_RESOURCE_PATH    Colon separated paths used to locate      \n"\
+  "  GZ_SIM_RESOURCE_PATH         Colon separated paths used to locate      \n"\
   " resources such as worlds and models.                                 \n\n"\
   "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
   "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
-  "  GZ_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
+  "  GZ_GUI_PLUGIN_PATH           Colon separated paths used to locate GUI       \n"\
   " plugins.                                                               \n"\
 }
 
@@ -397,6 +397,17 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
         # variable, then the configuration path from the launch library.
         else
           resourcePathEnv = ENV['GZ_SIM_RESOURCE_PATH']
+
+          if resourcePathEnv.nil?
+            resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+
+            if !resourcePathEnv.nil?
+              puts "
+Using deprecated environment variable [IGN_GAZEBO_RESOURCE_PATH].
+Please use [GZ_SIM_RESOURCE_PATH] instead."
+            end
+          end
+
           if !resourcePathEnv.nil?
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
