@@ -80,7 +80,7 @@ class gz::sim::systems::SceneBroadcasterPrivate
   public: using SceneGraphType = math::graph::DirectedGraph<
           std::shared_ptr<google::protobuf::Message>, bool>;
 
-  /// \brief Setup Ignition transport services and publishers
+  /// \brief Setup Gazebo Transport services and publishers
   /// \param[in] _worldName Name of world.
   public: void SetupTransport(const std::string &_worldName);
 

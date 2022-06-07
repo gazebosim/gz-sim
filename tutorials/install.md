@@ -3,8 +3,8 @@
 # Install
 
 These instructions are for installing only Gazebo. If you're interested
-in using all the Ignition libraries, not only Igniton Gazebo, check out this
-[Ignition installation](https://gazebosim.org/docs/latest/install).
+in using all the Gazebo libraries, not only Igniton Gazebo, check out this
+[Gazebo installation](https://gazebosim.org/docs/latest/install).
 
 We recommend following the binary install instructions to get up and running as
 quickly and painlessly as possible.
@@ -64,7 +64,7 @@ feature which hasn't been released yet.
   sudo apt install -y build-essential cmake g++-8 git gnupg lsb-release wget
   ```
 
-2. Enable the Ignition software repositories:
+2. Enable the Gazebo software repositories:
   ```
   sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
   wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
@@ -76,7 +76,7 @@ feature which hasn't been released yet.
   git clone https://github.com/gazebosim/gz-sim -b ign-gazebo<#>
   ```
 
-4. Install package dependencies (including other Ignition libraries):
+4. Install package dependencies (including other Gazebo libraries):
   ```
   sudo apt -y install \
     $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | tr '\n' ' '))

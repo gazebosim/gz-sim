@@ -39,7 +39,7 @@ using namespace systems;
 class gz::sim::systems::BuoyancyEnginePrivateData
 {
   /// \brief Callback for incoming commands
-  /// \param[in] _volumeSetPoint - ignition message containing the desired
+  /// \param[in] _volumeSetPoint - Gazebo message containing the desired
   /// volume (in m^3) to fill/drain bladder to.
   public: void OnCmdBuoyancyEngine(
     const gz::msgs::Double &_volumeSetPoint);

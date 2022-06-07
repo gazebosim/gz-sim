@@ -134,7 +134,7 @@ namespace systems
     /// \brief Detector region. Only a box geometry is supported
     private: math::AxisAlignedBox detectorGeometry;
 
-    /// \brief Ignition communication publisher.
+    /// \brief Gazebo communication publisher.
     private: transport::Node::Publisher pub;
 
     /// \brief Whether the system has been initialized

@@ -216,7 +216,7 @@ namespace systems
     /// \brief List of outputs
     private: std::vector<OutputInfo> outputInfo;
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Counter that tells the publisher how many times to publish

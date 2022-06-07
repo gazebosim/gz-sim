@@ -58,7 +58,7 @@ class gz::sim::systems::KineticEnergyMonitorPrivate
   /// \brief Kinetic energy threshold.
   public: double keThreshold {7.0};
 
-  /// \brief Ignition communication publisher.
+  /// \brief Gazebo communication publisher.
   public: transport::Node::Publisher pub;
 
   /// \brief The model this plugin is attached to.

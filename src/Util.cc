@@ -404,7 +404,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
     sdfPaths = common::Split(sdfPathCStr, ':');
   }
 
-  // Ignition file paths (for <uri>s)
+  // Gazebo file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
   std::vector<std::string> ignPaths;
   char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());

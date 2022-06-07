@@ -42,7 +42,7 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \param[in] _msg Position message
   public: void OnCmdPos(const gz::msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity

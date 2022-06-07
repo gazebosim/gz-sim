@@ -81,7 +81,7 @@ class gz::sim::systems::PosePublisherPrivate
       const msgs::Time &_stampMsg,
       transport::Node::Publisher &_publisher);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief publisher for pose data

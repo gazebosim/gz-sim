@@ -37,7 +37,7 @@ class gz::sim::systems::ApplyJointForcePrivate
   /// \param[in] _msg Joint force message
   public: void OnCmdForce(const gz::msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity

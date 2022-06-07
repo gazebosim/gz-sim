@@ -44,13 +44,13 @@ class gz::sim::MarkerManagerPrivate
   /// \return True if the marker was processed successfully.
   public: bool ProcessMarkerMsg(const gz::msgs::Marker &_msg);
 
-  /// \brief Converts an ignition msg render type to ignition rendering
+  /// \brief Converts an Gazebo msg render type to Gazebo Sim Rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
   public: gz::rendering::MarkerType MsgToType(
                     const gz::msgs::Marker &_msg);
 
-  /// \brief Converts an ignition msg material to ignition rendering
+  /// \brief Converts an Gazebo msg material to Gazebo Sim Rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.
@@ -108,7 +108,7 @@ class gz::sim::MarkerManagerPrivate
   /// \brief Pointer to the scene
   public: rendering::ScenePtr scene;
 
-  /// \brief Ignition node
+  /// \brief Gazebo node
   public: gz::transport::Node node;
 
   /// \brief Sim time according to UpdateInfo in RenderUtil

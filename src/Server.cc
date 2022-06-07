@@ -63,7 +63,7 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
-  // Configure SDF to fetch assets from ignition fuel.
+  // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,

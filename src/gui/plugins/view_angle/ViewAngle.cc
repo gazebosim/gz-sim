@@ -48,7 +48,7 @@ namespace gz::sim
     /// \brief Callback when an animation is complete
     private: void OnComplete();
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Mutex to protect angle mode

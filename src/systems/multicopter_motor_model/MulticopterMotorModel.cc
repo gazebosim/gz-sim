@@ -214,7 +214,7 @@ class gz::sim::systems::MulticopterMotorModelPrivate
   /// \brief Mutex to protect recvdActuatorsMsg.
   public: std::mutex recvdActuatorsMsgMutex;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 };
 
