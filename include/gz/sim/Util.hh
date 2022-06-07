@@ -279,6 +279,11 @@ namespace gz
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"GZ_SIM_RENDER_ENGINE_PATH"};
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    const std::string kResourcePathEnvDeprecated{"IGN_GAZEBO_RESOURCE_PATH"};
+    const std::string kRenderPluginPathEnvDeprecated{
+      "IGN_GAZEBO_RENDER_ENGINE_PATH"};
     }
   }
 }
