@@ -454,7 +454,7 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+void LogPlayback::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   LogPlaybackPrivate::started = false;
   this->dataPtr->Start(_ecm);

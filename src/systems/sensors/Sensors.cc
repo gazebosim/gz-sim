@@ -533,7 +533,19 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     for (auto id : this->dataPtr->sensorIds)
     {
       sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+
+      if (nullptr == s)
+      {
+        continue;
+      }
+
       auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+
+      if (nullptr == rs)
+      {
+        continue;
+      }
+
       rs->SetNextDataUpdateTime(_info.simTime);
     }
   }
@@ -578,9 +590,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-    auto time = math::durationToSecNsec(_info.simTime);
-    auto t = math::secNsecToDuration(time.first, time.second);
-
     std::vector<sensors::RenderingSensor *> activeSensors;
 
     {
@@ -588,12 +597,23 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       for (auto id : this->dataPtr->sensorIds)
       {
         sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+
+        if (nullptr == s)
+        {
+          continue;
+        }
+
         auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+
+        if (nullptr == rs)
+        {
+          continue;
+        }
 
         auto it = this->dataPtr->sensorMask.find(id);
         if (it != this->dataPtr->sensorMask.end())
         {
-          if (it->second <= t)
+          if (it->second <= _info.simTime)
           {
             this->dataPtr->sensorMask.erase(it);
           }
@@ -603,7 +623,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
           }
         }
 
-        if (rs && rs->NextDataUpdateTime() <= t)
+        if (rs && rs->NextDataUpdateTime() <= _info.simTime)
         {
           activeSensors.push_back(rs);
         }
@@ -626,13 +646,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       }
 
       this->dataPtr->activeSensors = std::move(activeSensors);
-      this->dataPtr->updateTime = t;
+      this->dataPtr->updateTime = _info.simTime;
       this->dataPtr->updateAvailable = true;
       this->dataPtr->renderCv.notify_one();
     }
   }
 }
-
 
 //////////////////////////////////////////////////
 void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)

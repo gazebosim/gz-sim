@@ -110,7 +110,7 @@ size_t SystemManager::ActivatePendingSystems()
 struct PluginInfo {
   /// \brief Entity plugin is attached to
   Entity entity;
-  /// \brief  Filename of the plugin library
+  /// \brief Filename of the plugin library
   std::string fname;
   /// \brief Name of the plugin
   std::string name;
@@ -154,10 +154,9 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       if (nullptr != system.systemShared)
       {
         ignwarn << "Systems not created from plugins cannot be correctly "
-          << " reset without implementing ISystemReset interface.\n";
+                << " reset without implementing ISystemReset interface.\n";
           continue;
       }
-
 
       PluginInfo info = {
         system.parentEntity, system.fname, system.name,
