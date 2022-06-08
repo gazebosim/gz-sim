@@ -23,6 +23,9 @@
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Actor.hh"

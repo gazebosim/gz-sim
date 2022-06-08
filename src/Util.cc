@@ -18,6 +18,10 @@
 #include <gz/common/Filesystem.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 

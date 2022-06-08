@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <queue>
 #include <unordered_map>
 
 #include <sdf/Box.hh>
@@ -43,6 +44,15 @@
 #include <gz/common/SkeletonAnimation.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Uuid.hh>
+
+#include <gz/math/Color.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 
 #include <gz/msgs/Utility.hh>
 

@@ -214,7 +214,7 @@ class gz::sim::RenderUtilPrivate
   /// \brief Scene background color. This is optional because a <scene> is
   /// always present, which has a default background color value. This
   /// backgroundColor variable is used to override the <scene> value.
-  public: std::optional<math::Color> backgroundColor = math::Color::Black;
+  public: std::optional<math::Color> backgroundColor;
 
   /// \brief Ambient color. This is optional because an <scene> is always
   /// present, which has a default ambient light value. This ambientLight
