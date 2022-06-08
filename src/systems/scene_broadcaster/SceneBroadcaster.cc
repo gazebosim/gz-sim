@@ -51,6 +51,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
@@ -63,6 +64,7 @@
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
@@ -236,6 +238,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
 };
 
 //////////////////////////////////////////////////
@@ -302,8 +308,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -615,6 +625,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -1012,6 +1023,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
