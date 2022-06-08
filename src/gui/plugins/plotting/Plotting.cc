@@ -17,6 +17,9 @@
 
 #include "Plotting.hh"
 
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/AngularAcceleration.hh"
