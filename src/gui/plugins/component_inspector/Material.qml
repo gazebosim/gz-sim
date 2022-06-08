@@ -40,10 +40,10 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property var rAmbientItem: {}
-  property var gAmbientItem: {}
-  property var bAmbientItem: {}
-  property var aAmbientItem: {}
+  property double rAmbientItem
+  property double gAmbientItem
+  property double bAmbientItem
+  property double aAmbientItem
 
   // Loaded items for diffuse red, green, blue, alpha
   property var rDiffuseItem: {}
@@ -66,10 +66,10 @@ Rectangle {
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
     componentInspector.onMaterialColor(
-      rAmbientItem.value,
-      gAmbientItem.value,
-      bAmbientItem.value,
-      aAmbientItem.value,
+      rAmbientItem,
+      gAmbientItem,
+      bAmbientItem,
+      aAmbientItem,
       rDiffuseItem.value,
       gDiffuseItem.value,
       bDiffuseItem.value,
@@ -128,6 +128,14 @@ Rectangle {
         sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
       }
     }
+  }
+
+  Component {
+    id: colorMaterial 
+      GzColor { 
+        id: gzcolor
+        textVisible: false
+      }
   }
 
   Column {
@@ -202,74 +210,46 @@ Rectangle {
           width: parent.width
           columns: 6
 
-          // rgba headers
-          Text {
-            text: "Red    "
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 3
-          }
-          Text {
-            text: "Green"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 4
-          }
-          Text {
-            text: "Blue  "
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 5
-          }
-          Text {
-            text: "Alpha"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 6
-          }
-
-          Loader {
-            id: ambientLoader
-            source: "GzColor.qml"
-          }
-
-          Binding {
-            target : ambientLoader.item
-            property : "colorName"
-            value: "TestName"
+          // Ambient
+          Item {
+            Layout.row: 0
+            Layout.columnSpan: 6
+            Layout.fillWidth: true
+            height: 70
+            Loader {
+              id: ambientLoader
+              anchors.fill: parent
+              sourceComponent: colorMaterial
+              onLoaded: {
+                rAmbientItem = ambientLoader.item.r
+                gAmbientItem = ambientLoader.item.g
+                bAmbientItem = ambientLoader.item.b
+                aAmbientItem = ambientLoader.item.a * 255.0
+              }
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "textVisible"
+              value: true
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "colorName"
+              value: "Ambient"
+            }
+            Connections { 
+              target : ambientLoader.item 
+              onColorSet: { 
+                rAmbientItem = ambientLoader.item.r
+                gAmbientItem = ambientLoader.item.g
+                bAmbientItem = ambientLoader.item.b
+                aAmbientItem = ambientLoader.item.a * 255.0
+                sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
+              }
+            } 
           }
 
-          Binding {
-            target : ambientLoader.item
-            property : "r"
-            value: model.data[0]
-          }
-          Binding {
-            target : ambientLoader.item
-            property : "g"
-            value: model.data[1]
-          }
-          Binding {
-            target : ambientLoader.item
-            property : "b"
-            value: model.data[2]
-          }
-          Binding {
-            target : ambientLoader.item
-            property : "a"
-            value: model.data[3]
-          }
-
-          Connections {
-            target : ambientLoader.item
-            onColorSet: sendMaterialColor("ambient", getButtonColor(0, true))
-          }
-
-          // Diffuse
+// Diffuse
           Text {
             text: " Diffuse"
             color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
@@ -344,6 +324,7 @@ Rectangle {
               }
             }
           }
+
           // Diffuse alpha
           Item {
             Layout.row: 3
