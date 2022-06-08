@@ -20,6 +20,7 @@
 #include <string>
 
 #include <gz/common/Console.hh>
+#include <gz/math/Rand.hh>
 #include <gz/math/eigen3/Conversions.hh>
 
 #include <gz/sim/components/ChildLinkName.hh>

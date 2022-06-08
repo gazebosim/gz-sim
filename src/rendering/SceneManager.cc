@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <unordered_map>
+#include <queue>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>

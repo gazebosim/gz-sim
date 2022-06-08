@@ -27,6 +27,7 @@
 #include <sdf/Joint.hh>
 
 #include <gz/math/Vector3.hh>
+#include <gz/math/SphericalCoordinates.hh>
 
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/gui/GuiSystem.hh>

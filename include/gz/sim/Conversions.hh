@@ -40,6 +40,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/math/Inertial.hh>
+#include <gz/math/AxisAlignedBox.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Collision.hh>
