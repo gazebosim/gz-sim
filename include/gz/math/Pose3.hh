@@ -210,9 +210,9 @@ namespace gz
       /// A is the transform from O to P in frame O
       /// then -A is transform from P to O specified in frame P
       /// \return The resulting pose.
-      public: inline Pose3<T> operator-() const
+      public: GZ_DEPRECATED(7) Pose3<T> operator-() const
       {
-        return Pose3<T>() - *this;
+        return this->Inverse();
       }
 
       /// \brief Subtraction operator.
@@ -221,7 +221,7 @@ namespace gz
       /// B - A is the transform from P to Q in frame P
       /// \param[in] _pose Pose3<T> to subtract from this one.
       /// \return The resulting pose.
-      public: inline Pose3<T> operator-(const Pose3<T> &_pose) const
+      public: GZ_DEPRECATED(7) Pose3<T> operator-(const Pose3<T> &_pose) const
       {
         return Pose3<T>(this->CoordPositionSub(_pose),
           this->CoordRotationSub(_pose.q));
@@ -231,7 +231,8 @@ namespace gz
       /// \param[in] _pose Pose3<T> to subtract from this one
       /// \sa operator-(const Pose3<T> &_pose) const.
       /// \return The resulting pose
-      public: const Pose3<T> &operator-=(const Pose3<T> &_pose)
+      public: GZ_DEPRECATED(7) const Pose3<T> &
+              operator-=(const Pose3<T> &_pose)
       {
         this->p = this->CoordPositionSub(_pose);
         this->q = this->CoordRotationSub(_pose.q);

@@ -33,6 +33,11 @@ release will remove the deprecated code.
     + The addition operators `+` and `+=` are deprecated in favor of multiplication
       operators `*` and `*=`, though the order of operands is reversed
       (A + B = B * A).
+    + The unitary negation operator `-` is deprecated in favor of the
+      `Inverse()` method.
+    + The subtraction operators `-` and `-=` are deprecated in favor of multiplication
+      by an inverse, though the order of operands is reversed
+      (A - B = B.Inverse() * A).
 
 1. **Quaternion.hh**
     + ***Deprecation:*** public: void Axis(T, T, T, T)
