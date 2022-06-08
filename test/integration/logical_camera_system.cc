@@ -181,7 +181,7 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   EXPECT_EQ(sensor1Pose, gz::msgs::Convert(img1.pose()));
   EXPECT_EQ(1, img1.model().size());
   EXPECT_EQ(boxName, img1.model(0).name());
-  gz::math::Pose3d boxPoseCamera1Frame = boxPose - sensor1Pose;
+  gz::math::Pose3d boxPoseCamera1Frame = sensor1Pose.Inverse() * boxPose;
   EXPECT_EQ(boxPoseCamera1Frame, gz::msgs::Convert(img1.model(0).pose()));
   mutex.unlock();
 
@@ -192,7 +192,7 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   EXPECT_EQ(sensor2Pose, gz::msgs::Convert(img2.pose()));
   EXPECT_EQ(1, img2.model().size());
   EXPECT_EQ(boxName, img2.model(0).name());
-  gz::math::Pose3d boxPoseCamera2Frame = boxPose - sensor2Pose;
+  gz::math::Pose3d boxPoseCamera2Frame = sensor2Pose.Inverse() * boxPose;
   EXPECT_EQ(boxPoseCamera2Frame, gz::msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
 }
