@@ -19,17 +19,17 @@
 
 #include <string>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 std::mutex mutex;
@@ -80,10 +80,10 @@ TEST_F(CameraSensorBackgroundFixture,
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_scene_background.sdf");
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
