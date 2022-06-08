@@ -71,6 +71,7 @@
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/SphericalCoordinates.hh"
 #include "ignition/gazebo/components/Static.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
 #include "ignition/gazebo/components/Transparency.hh"
@@ -757,7 +758,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   if (!_visual->Plugins().empty())
   {
     this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::VisualPlugins(_visual->Plugins()));
+        components::SystemPluginInfo(
+          convert<msgs::Plugin_V>(_visual->Plugins())));
   }
 
   // Keep track of visuals so we can load their plugins after loading the
