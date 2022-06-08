@@ -145,18 +145,30 @@ if (DART_FOUND)
   # Only adding include directories, no need to link against DART to check version
   target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
   target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
+
+  target_link_libraries(INTEGRATION_physics_system
+    gz-math${GZ_MATH_VER}::eigen3
+  )
 endif()
 
 target_link_libraries(INTEGRATION_tracked_vehicle_system
-  ignition-physics${IGN_PHYSICS_VER}::core
-  ignition-plugin${IGN_PLUGIN_VER}::loader
+  gz-physics${GZ_PHYSICS_VER}::core
+  gz-plugin${GZ_PLUGIN_VER}::loader
 )
 
 target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
-  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
 )
 target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
-  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+)
+
+target_link_libraries(INTEGRATION_log_system
+  gz-transport${GZ_TRANSPORT_VER}::log
+)
+
+target_link_libraries(INTEGRATION_collada_world_exporter
+  gz-common${GZ_COMMON_VER}::graphics
 )
 
 # The default timeout (240s) doesn't seem to be enough for this test.
@@ -168,6 +180,6 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
   target_link_libraries(INTEGRATION_sensors_system
-    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()

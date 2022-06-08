@@ -21,8 +21,8 @@ add_executable(
 
 target_link_libraries(
   PERFORMANCE_sdf_runner
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 

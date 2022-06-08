@@ -22,7 +22,7 @@ Add the libraries to the correct paths:
 
 ~~~
 cd examples/plugin/rendering_plugins
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 

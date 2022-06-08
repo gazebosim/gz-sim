@@ -749,7 +749,7 @@ void Physics::Configure(const Entity &_entity,
   // 3. Use DART by default
   if (pluginLib.empty())
   {
-    pluginLib = "libignition-physics-dartsim-plugin.so";
+    pluginLib = "gz-physics-dartsim-plugin";
   }
 
   // Update component

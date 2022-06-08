@@ -239,12 +239,12 @@ system:
   <plugins>
     <plugin entity_name="*"
             entity_type="world"
-            filename="ignition-gazebo-scene-broadcaster-system"
+            filename="gz-sim-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
-            filename="ignition-gazebo-sensors-system"
+            filename="gz-sim-sensors-system"
             name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>

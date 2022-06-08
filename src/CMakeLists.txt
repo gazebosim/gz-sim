@@ -45,9 +45,9 @@ gz_add_component(gz
 target_link_libraries(${gz_lib_target}
   PRIVATE
     ${PROJECT_LIBRARY_TARGET_NAME}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 
 set (sources
@@ -145,17 +145,17 @@ endif()
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  ignition-math${IGN_MATH_VER}
-  ignition-plugin${IGN_PLUGIN_VER}::core
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-common${IGN_COMMON_VER}::profiler
-  ignition-fuel_tools${IGN_FUEL_TOOLS_VER}::ignition-fuel_tools${IGN_FUEL_TOOLS_VER}
-  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
-  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+  gz-math${GZ_MATH_VER}
+  gz-plugin${GZ_PLUGIN_VER}::core
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::profiler
+  gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
+  gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::loader
+  gz-plugin${GZ_PLUGIN_VER}::loader
 )
 if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
@@ -184,7 +184,7 @@ gz_build_tests(TYPE UNIT
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}
 )
 
 # Command line tests need extra settings

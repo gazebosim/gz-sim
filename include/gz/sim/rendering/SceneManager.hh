@@ -94,7 +94,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
   };
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class GZ_GAZEBO_RENDERING_VISIBLE SceneManager
+  class GZ_SIM_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
