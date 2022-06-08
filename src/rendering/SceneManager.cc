@@ -18,6 +18,7 @@
 
 #include <map>
 #include <memory>
+#include <queue>
 #include <unordered_map>
 
 #include <sdf/Box.hh>

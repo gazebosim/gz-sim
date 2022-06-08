@@ -21,6 +21,7 @@
 #include <mutex>
 #include <string>
 
+#include <gz/math/Rand.hh>
 #include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 

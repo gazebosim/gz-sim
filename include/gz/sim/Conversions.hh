@@ -39,6 +39,7 @@
 #include <string>
 
 #include <gz/common/Console.hh>
+#include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Inertial.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
