@@ -30,6 +30,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
+#include <gz/math/Rand.hh>
 #include <gz/math/RollingMean.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
@@ -95,7 +96,7 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: math::Pose3d lastUpdatePose{0, 0, 0, 0, 0, 0};
 
   /// \brief Current timestamp.
-  public: math::clock::time_point lastUpdateTime;
+  public: std::chrono::steady_clock::time_point lastUpdateTime;
 
   /// \brief Allow specifying constant xyz and rpy offsets
   public: gz::math::Pose3d offset = {0, 0, 0, 0, 0, 0};

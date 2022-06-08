@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <random>
 
 #include <gz/sim/components/Light.hh>
 #include <gz/sim/components/LightCmd.hh>
