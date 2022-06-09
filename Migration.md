@@ -17,6 +17,15 @@ release will remove the deprecated code.
   Use `gz/...` instead.
 * Configuration and log files are stored under `$HOME/.gz/sim` instead of
   `$HOME/.ignition/gazebo`
+* The following `IGN_` prefixed environment variables are deprecated and will be removed in future versions.
+  Use the `GZ_` prefixed versions instead!
+  * `IGN_GAZEBO_RENDER_ENGINE_PATH` -> `GZ_SIM_RENDER_ENGINE_PATH`
+  * `IGN_GAZEBO_PHYSICS_ENGINE_PATH` -> `GZ_SIM_PHYSICS_ENGINE_PATH`
+  * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` -> `GZ_SIM_SYSTEM_PLUGIN_PATH`
+  * `IGN_DEBUG_COMPONENT_FACTORY` -> `GZ_DEBUG_COMPONENT_FACTORY`
+  * `IGN_GAZEBO_RESOURCE_PATH` -> `GZ_SIM_RESOURCE_PATH`
+  * `IGN_GAZEBO_SERVER_CONFIG_PATH` -> `GZ_SIM_SERVER_CONFIG_PATH`
+
 
 ## Gazebo Sim 6.1 to 6.2
 

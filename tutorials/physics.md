@@ -20,7 +20,7 @@ installed with Gazebo Physics. At the moment, that's only DART
 (`ignition-physics-dartsim-plugin`).
 
 If you've created a custom engine plugin, you can tell Gazebo where to find it
-by setting the `IGN_GAZEBO_PHYSICS_ENGINE_PATH` environment variable to the
+by setting the `GZ_SIM_PHYSICS_ENGINE_PATH` environment variable to the
 directory where the plugin's shared library can be found.
 
 For example, if you've created the following physics engine shared library on
@@ -30,13 +30,13 @@ Linux:
 
 You should set the variable as follows:
 
-`export IGN_GAZEBO_PHYSICS_ENGINE_PATH=/home/physics_engines`
+`export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines`
 
 
 If you have several libraries installed in different paths, you can add more
 paths, for example:
 
-`export IGN_GAZEBO_PHYSICS_ENGINE_PATH=/home/physics_engines:/home/more_engines`
+`export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines:/home/more_engines`
 
 ## Tell Gazebo what engine to load
 
@@ -99,7 +99,7 @@ may support them. The default physics engine, DART, supports all these options.
 ## Troubleshooting
 
 > Failed to find plugin [libCustomEngine.so]. Have you checked the
-> IGN_GAZEBO_PHYSICS_ENGINE_PATH environment variable?
+> GZ_SIM_PHYSICS_ENGINE_PATH environment variable?
 
 Gazebo can't find out where `libCustomEngine.so` is located.
 
@@ -126,4 +126,3 @@ Be sure to implement all the necessary features.
 
 Some engines were found in that library, but none of them could be loaded. Check
 that the the engines implement all the necessary features.
-

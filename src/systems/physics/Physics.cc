@@ -440,7 +440,9 @@ class gz::sim::systems::PhysicsPrivate
           }};
 
   /// \brief Environment variable which holds paths to look for engine plugins
-  public: std::string pluginPathEnv = "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
+  public: std::string pluginPathEnv = "GZ_SIM_PHYSICS_ENGINE_PATH";
+  public: std::string pluginPathEnvDeprecated = \
+    "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
 
   //////////////////////////////////////////////////
   ////////////// Optional Features /////////////////
@@ -780,10 +782,27 @@ void Physics::Configure(const Entity &_entity,
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())
   {
-    gzerr << "Failed to find plugin [" << pluginLib
-           << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-           << " environment variable?" << std::endl;
-    return;
+    // Try deprecated environment variable
+    // TODO(CH3): Deprecated. Remove on tock.
+    common::SystemPaths systemPathsDep;
+    systemPathsDep.SetPluginPathEnv(this->dataPtr->pluginPathEnvDeprecated);
+    pathToLib = systemPathsDep.FindSharedLibrary(pluginLib);
+
+    if (pathToLib.empty())
+    {
+      gzerr << "Failed to find plugin [" << pluginLib
+      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+      << " environment variable?" << std::endl;
+
+      return;
+    }
+    else
+    {
+      gzwarn << "Found plugin [" << pluginLib
+             << "] using deprecated environment variable ["
+             << this->dataPtr->pluginPathEnvDeprecated << "]. Please use ["
+             << this->dataPtr->pluginPathEnv << "] instead." << std::endl;
+    }
   }
 
   // Load engine plugin

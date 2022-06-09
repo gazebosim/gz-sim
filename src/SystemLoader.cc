@@ -55,18 +55,38 @@ class gz::sim::SystemLoaderPrivate
     std::string homePath;
     gz::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
+
     systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
-      // We assume gz::sim corresponds to the levels feature
-      if (_name != "gz::sim")
+      // Try deprecated environment variable
+      // TODO(CH3): Deprecated. Remove on tock.
+      common::SystemPaths systemPathsDep;
+      systemPathsDep.SetPluginPathEnv(pluginPathEnvDeprecated);
+      pathToLib = systemPathsDep.FindSharedLibrary(_filename);
+
+      if (pathToLib.empty())
       {
-        gzerr << "Failed to load system plugin [" << _filename <<
-                  "] : couldn't find shared library." << std::endl;
+        // We assume gz::sim corresponds to the levels feature
+        if (_name != "gz::sim")
+        {
+          gzerr << "Failed to load system plugin [" << _filename <<
+                    "] : couldn't find shared library." << std::endl;
+        }
+        return false;
       }
-      return false;
+      else
+      {
+        gzwarn << "Found plugin [" << _filename
+               << "] using deprecated environment variable ["
+               << pluginPathEnvDeprecated << "]. Please use ["
+               << pluginPathEnv << "] instead." << std::endl;
+      }
     }
 
     auto pluginNames = this->loader.LoadLib(pathToLib);
@@ -110,7 +130,8 @@ class gz::sim::SystemLoaderPrivate
   }
 
   // Default plugin search path environment variable
-  public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
+  public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
+  public: std::string pluginPathEnvDeprecated{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
   public: gz::plugin::Loader loader;

@@ -37,7 +37,7 @@ TEST_P(FuelCachedServer, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
+  common::setenv("GZ_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =

@@ -26,7 +26,7 @@ Before starting Gazebo, we must make sure it can find the plugin by doing:
 
 ~~~
 cd ign-gazebo/examples/plugins/hello_world
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then load the example world:
