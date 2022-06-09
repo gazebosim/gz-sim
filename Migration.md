@@ -31,9 +31,6 @@ release will remove the deprecated code.
   * `IGN_GAZEBO_PLUGIN_INSTALL_DIR`
   * `IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR`
   * `IGN_GAZEBO_WORLD_INSTALL_DIR`
-* `ignitionGazeboVersion()` is deprecated and will be removed in future versions.
-  Please use `gzSimVersion()` instead.
-
 
 ## Gazebo Sim 6.1 to 6.2
 

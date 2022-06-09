@@ -40,11 +40,6 @@ extern "C" char *gzSimVersion()
   return strdup(GZ_SIM_VERSION_FULL);
 }
 
-extern "C" char *ignitionGazeboVersion()
-{
-  return gzSimVersion();
-}
-
 //////////////////////////////////////////////////
 extern "C" char *gazeboVersionHeader()
 {

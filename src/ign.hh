@@ -22,7 +22,6 @@
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
 extern "C" char *gzSimVersion();
-extern "C" char GZ_DEPRECATED(7) *ignitionGazeboVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
