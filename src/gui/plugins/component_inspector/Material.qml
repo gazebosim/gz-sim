@@ -40,28 +40,28 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property double rAmbientItem
-  property double gAmbientItem
-  property double bAmbientItem
-  property double aAmbientItem
+  property double rAmbientItem: ambientLoader.item.r
+  property double gAmbientItem: ambientLoader.item.g
+  property double bAmbientItem: ambientLoader.item.b
+  property double aAmbientItem: ambientLoader.item.a
 
   // Loaded items for diffuse red, green, blue, alpha
-  property double rDiffuseItem
-  property double gDiffuseItem
-  property double bDiffuseItem
-  property double aDiffuseItem
+  property double rDiffuseItem: diffuseLoader.item.r
+  property double gDiffuseItem: diffuseLoader.item.g
+  property double bDiffuseItem: diffuseLoader.item.b
+  property double aDiffuseItem: diffuseLoader.item.a
 
   // Loaded items for specular red, green, blue, alpha
-  property double rSpecularItem
-  property double gSpecularItem
-  property double bSpecularItem
-  property double aSpecularItem
+  property double rSpecularItem: specularLoader.item.r
+  property double gSpecularItem: specularLoader.item.g
+  property double bSpecularItem: specularLoader.item.b
+  property double aSpecularItem: specularLoader.item.a
 
   // Loaded items for emissive red, green, blue, alpha
-  property double rEmissiveItem
-  property double gEmissiveItem
-  property double bEmissiveItem
-  property double aEmissiveItem
+  property double rEmissiveItem: emissiveLoader.item.r
+  property double gEmissiveItem: emissiveLoader.item.g
+  property double bEmissiveItem: emissiveLoader.item.b
+  property double aEmissiveItem: emissiveLoader.item.a
 
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
@@ -225,10 +225,6 @@ Rectangle {
                 ambientLoader.item.g = model.data[1]
                 ambientLoader.item.b = model.data[2]
                 ambientLoader.item.a = model.data[3] / 255.0
-                rAmbientItem: ambientLoader.item.r
-                gAmbientItem: ambientLoader.item.g
-                bAmbientItem: ambientLoader.item.b
-                aAmbientItem: ambientLoader.item.a
               }
             }
             Binding {
@@ -264,10 +260,6 @@ Rectangle {
                 diffuseLoader.item.g = model.data[5]
                 diffuseLoader.item.b = model.data[6]
                 diffuseLoader.item.a = model.data[7] / 255.0
-                rDiffuseItem: diffuseLoader.item.r
-                gDiffuseItem: diffuseLoader.item.g
-                bDiffuseItem: diffuseLoader.item.b
-                aDiffuseItem: diffuseLoader.item.a
               }
             }
             Binding {
@@ -298,10 +290,6 @@ Rectangle {
                 specularLoader.item.g = model.data[9]
                 specularLoader.item.b = model.data[10]
                 specularLoader.item.a = model.data[11] / 255.0
-                rSpecularItem: specularLoader.item.r
-                gSpecularItem: specularLoader.item.g
-                bSpecularItem: specularLoader.item.b
-                aSpecularItem: specularLoader.item.a
               }
             }
             Binding {
@@ -332,10 +320,6 @@ Rectangle {
                 emissiveLoader.item.g = model.data[13]
                 emissiveLoader.item.b = model.data[14]
                 emissiveLoader.item.a = model.data[15] / 255.0
-                rEmissiveItem: emissiveLoader.item.r
-                gEmissiveItem: emissiveLoader.item.g
-                bEmissiveItem: emissiveLoader.item.b
-                aEmissiveItem: emissiveLoader.item.a
               }
             }
             Binding {
