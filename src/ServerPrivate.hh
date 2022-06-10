@@ -122,9 +122,10 @@ namespace gz
       /// string and return value of false will be used if the resource could
       /// not be found.
       ///
-      /// Fuel will be checked and then the GZ_GAZEBO_RESOURCE_PATH environment
-      /// variable paths. This service will not check for files relative to
-      /// working directory of the Gazebo server.
+      /// Gazebo Fuel will be checked first, and then paths from the
+      /// GZ_GAZEBO_RESOURCE_PATH environment variable. This service will
+      /// not check for files relative to the working directory of the Gazebo
+      /// server.
       ///
       /// \param[in] _req Request filled with a resource URI to resolve.
       /// Example values could be:

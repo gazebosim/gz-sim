@@ -1618,7 +1618,24 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     std::string absolutePath = systemPaths.FindFile(path);
 
     if (!absolutePath.empty())
+    {
       out.mutable_color_range_image()->set_data(absolutePath);
+    }
+    // TODO(CH3): Deprecated. Remove on tock.
+    else
+    {
+      systemPaths.SetFilePathEnv(kResourcePathEnvDeprecated);
+      absolutePath = systemPaths.FindFile(path);
+
+      if (!absolutePath.empty())
+      {
+        out.mutable_color_range_image()->set_data(absolutePath);
+        gzwarn << "Using deprecated environment variable ["
+               << kResourcePathEnvDeprecated
+               << "] to find resources. Please use ["
+               << kResourcePathEnv <<" instead." << std::endl;
+      }
+    }
   }
 
   /// \todo(nkoenig) Modify the particle_emitter.proto file to
