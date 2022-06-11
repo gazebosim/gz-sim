@@ -57,13 +57,6 @@
 #include "ignition/rendering/Scene.hh"
 
 #include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-
-#include "ignition/msgs/laserscan.pb.h"
 
 #include "Tsa.hh"
 
@@ -226,6 +219,11 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
       rendering::GlobalIlluminationBase::STATIC_VISUALS);
     this->dataPtr->scene = scene;
     this->dataPtr->initialized = true;
+
+    // Ensure we initialize with valid settings so the user
+    // can just Enable us immediately.
+    emit qmlAddCascade();
+    this->OnRefreshCamerasImpl();
   }
 }
 
@@ -580,8 +578,11 @@ bool GlobalIlluminationCiVct::Anisotropic() const
 void GlobalIlluminationCiVct::SetDebugVisualizationMode(const uint32_t _visMode)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->debugVisMode = _visMode;
-  this->dataPtr->debugVisualizationDirty = true;
+  if (this->dataPtr->debugVisMode != _visMode)
+  {
+    this->dataPtr->debugVisMode = _visMode;
+    this->dataPtr->debugVisualizationDirty = true;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -612,10 +613,9 @@ void GlobalIlluminationCiVct::OnCamareBind(const QString &_cameraName)
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationCiVct::OnRefreshCameras()
+void GlobalIlluminationCiVct::OnRefreshCamerasImpl()
+  REQUIRES(this->dataPtr->serviceMutex)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-
   auto scene = this->dataPtr->scene.get();
   const unsigned int sensorCount = scene->SensorCount();
   for (unsigned int i = 0u; i < sensorCount; ++i)
@@ -635,6 +635,13 @@ void GlobalIlluminationCiVct::OnRefreshCameras()
   }
 
   this->CameraListChanged();
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationCiVct::OnRefreshCameras()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->OnRefreshCamerasImpl();
 }
 
 //////////////////////////////////////////////////

@@ -33,6 +33,21 @@ GridLayout {
 
   property var cascades: []
 
+  function addCascade() {
+    var cascade = GlobalIlluminationCiVct.AddCascade()
+    var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
+    var cascadeObj = cascadeComponent.createObject(mainGridLayout,
+                                                   { "cascadePtr":cascade });
+    cascades.push(cascadeObj)
+  }
+
+  Connections {
+      target: GlobalIlluminationCiVct
+      function onQmlAddCascade() {
+        addCascade()
+      }
+  }
+
   Button {
     id: removeCascade
     text: qsTr("Remove Cascade")
@@ -53,11 +68,7 @@ GridLayout {
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
-      var cascade = GlobalIlluminationCiVct.AddCascade()
-      var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
-      var cascadeObj = cascadeComponent.createObject(mainGridLayout,
-                                                     { "cascadePtr":cascade });
-      cascades.push(cascadeObj)
+      addCascade()
     }
   }
 

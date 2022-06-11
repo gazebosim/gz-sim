@@ -129,6 +129,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Notify camera list has changed
     signals: void CameraListChanged();
 
+    /// \brief Tells QML to add a cascade from UI thread. MUST start lowercase.
+    signals: void qmlAddCascade();
+
     /// \brief See rendering::GlobalIlluminationCiVct::SetBounceCount
     /// \param[in] _enabled See GlobalIlluminationCiVct::SetBounceCount
     public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);
@@ -164,6 +167,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Binds the given camera as active for the center of all cascades
     public: Q_INVOKABLE void OnCamareBind(const QString &_cameraName);
+
+    /// \brief See OnRefreshCameras. Does not lock.
+    private: void OnRefreshCamerasImpl();
 
     /// \brief Populates available cameras
     public: Q_INVOKABLE void OnRefreshCameras();
