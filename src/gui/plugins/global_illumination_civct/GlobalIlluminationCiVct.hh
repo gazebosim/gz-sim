@@ -96,10 +96,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     // Documentation Inherited
     public: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
-    // Documentation inherited
-    public: void Update(const UpdateInfo &,
-                        EntityComponentManager &_ecm) override;
-
     /// \brief Load the scene and attach LidarVisual to the scene
     public: void LoadGlobalIlluminationCiVct();
 
@@ -107,14 +103,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \param[in] _mode Index of selected debug visualization mode
     public: Q_INVOKABLE void UpdateDebugVisualizationMode(int _mode);
 
-    /// \brief Set topic to subscribe for LidarSensor data
-    /// \param[in] _topicName Name of selected topic
-    public: Q_INVOKABLE void OnTopic(const QString &_topicName);
-
     /// \brief See rendering::GlobalIlluminationCiVct::SetEnabled &
     /// rendering::Scene::SetActiveGlobalIllumination
     /// \param[in] _enabled See GlobalIlluminationCiVct::SetEnabled
-    public: Q_INVOKABLE void SetEnabled(const bool _enabled);
+    /// \return The new setting. We may fail to enable if settings are invalid
+    /// See ValidSettings()
+    public: Q_INVOKABLE bool SetEnabled(const bool _enabled);
 
     /// \brief See rendering::GlobalIlluminationCiVct::Enabled
     /// \return See rendering::GlobalIlluminationCiVct::Enabled
@@ -187,6 +181,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Retrieves an existing cascade
     /// \return A CiVctCascade ptr to be used by QML
     public: Q_INVOKABLE QObject* GetCascade(int _idx) const;
+
+    /// \brief Returns true if current UI settings are valid.
+    /// Not all settings are valid, e.g.
+    ///   - Not having any cascade
+    ///   - Not having a camera bound
+    ///   - etc
+    /// \return Returns true if settings are valid.
+    private: bool ValidSettings() const;
 
     /// \internal
     /// \brief Pointer to private data

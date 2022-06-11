@@ -51,7 +51,6 @@
 
 #include "ignition/rendering/Camera.hh"
 #include "ignition/rendering/GlobalIlluminationCiVct.hh"
-#include "ignition/rendering/LidarVisual.hh"
 #include "ignition/rendering/RenderEngine.hh"
 #include "ignition/rendering/RenderTypes.hh"
 #include "ignition/rendering/RenderingIface.hh"
@@ -121,31 +120,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Available cameras for binding
     public: QStringList availableCameras;
 
-#ifdef VCT_DISABLED
-    /// \brief URI sequence to the lidar link
-    public: std::string lidarString{""};
-
-    /// \brief Pose of the lidar visual
-    public: math::Pose3d lidarPose{math::Pose3d::Zero};
-
-    /// \brief Topic name to subscribe
-    public: std::string topicName{""};
-#endif
-
-#ifdef VCT_DISABLED
-    /// \brief Entity representing the sensor in the world
-    public: gazebo::Entity lidarEntity;
-#endif
-
     /// \brief Mutex for variable mutated by the checkbox and spinboxes
     /// callbacks.
     public: std::mutex serviceMutex;
 
     /// \brief Initialization flag
     public: bool initialized{false};
-
-    /// \brief Reset visual flag
-    public: bool resetVisual{false};
 
     /// \brief GI visual display dirty flag
     public: bool visualDirty GUARDED_BY(serviceMutex){false};
@@ -156,9 +136,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief GI debug visualization is dirty. Only used by GUI.
     /// Not in simulation.
     public: bool debugVisualizationDirty GUARDED_BY(serviceMutex){false};
-
-    /// \brief lidar sensor entity dirty flag
-    public: bool lidarEntityDirty{true};
   };
 }
 }
@@ -228,7 +205,7 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
     return;
   }
 
-  // Create lidar visual
+  // Create visual
   igndbg << "Creating GlobalIlluminationCiVct" << std::endl;
 
   auto root = scene->RootVisual();
@@ -419,14 +396,6 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
 
     if (this->dataPtr->gi)
     {
-      if (this->dataPtr->resetVisual)
-      {
-#ifdef VCT_DISABLED
-        this->dataPtr->lidar->ClearPoints();
-#endif
-        this->dataPtr->resetVisual = false;
-      }
-
       if (!this->dataPtr->visualDirty && !this->dataPtr->gi->Enabled() &&
           this->dataPtr->enabled)
       {
@@ -479,10 +448,6 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
               this->dataPtr->debugVisMode));
         }
 
-#ifdef VCT_DISABLED
-        this->dataPtr->lidar->SetWorldPose(this->dataPtr->lidarPose);
-        this->dataPtr->lidar->Update();
-#endif
         this->dataPtr->visualDirty = false;
         this->dataPtr->lightingDirty = false;
         this->dataPtr->debugVisualizationDirty = false;
@@ -528,92 +493,6 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationCiVct::Update(const UpdateInfo &,
-                                     EntityComponentManager &_ecm)
-{
-  IGN_PROFILE("GlobalIlluminationCiVct::Update");
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-
-  if (this->dataPtr->lidarEntityDirty)
-  {
-#ifdef VCT_DISABLED
-    auto lidarURIVec = common::split(common::trimmed(this->dataPtr->gi), "::");
-    if (lidarURIVec.size() > 0)
-    {
-      auto baseEntity =
-        _ecm.EntityByComponents(components::Name(lidarURIVec[0]));
-      if (!baseEntity)
-      {
-        ignerr << "Error entity " << lidarURIVec[0]
-               << " doesn't exist and cannot be used to set lidar visual pose"
-               << std::endl;
-        return;
-      }
-      else
-      {
-        auto parent = baseEntity;
-        bool success = false;
-        for (size_t i = 0u; i < lidarURIVec.size() - 1; i++)
-        {
-          auto children =
-            _ecm.EntitiesByComponents(components::ParentEntity(parent));
-          bool foundChild = false;
-          for (auto child : children)
-          {
-            std::string nextstring = lidarURIVec[i + 1];
-            auto comp = _ecm.Component<components::Name>(child);
-            if (!comp)
-            {
-              continue;
-            }
-            std::string childname = std::string(comp->Data());
-            if (nextstring.compare(childname) == 0)
-            {
-              parent = child;
-              foundChild = true;
-              if (i + 1 == lidarURIVec.size() - 1)
-              {
-                success = true;
-              }
-              break;
-            }
-          }
-          if (!foundChild)
-          {
-            ignerr << "The entity could not be found."
-                   << "Error displaying lidar visual" << std::endl;
-            return;
-          }
-        }
-        if (success)
-        {
-#  ifdef VCT_DISABLED
-          this->dataPtr->lidarEntity = parent;
-#  endif
-          this->dataPtr->lidarEntityDirty = false;
-        }
-      }
-    }
-#endif
-  }
-
-  // Only update lidarPose if the lidarEntity exists and the lidar is
-  // initialized and the sensor message is yet to arrive.
-  //
-  // If we update the worldpose on the physics thread **after** the sensor
-  // data arrives, the visual is offset from the obstacle if the sensor is
-  // moving fast.
-  if (!this->dataPtr->lidarEntityDirty && this->dataPtr->initialized &&
-      !this->dataPtr->visualDirty)
-  {
-#ifdef VCT_DISABLED
-    this->dataPtr->lidarPose = worldPose(this->dataPtr->lidarEntity, _ecm);
-#endif
-  }
-}
-
-//////////////////////////////////////////////////
 void GlobalIlluminationCiVct::UpdateDebugVisualizationMode(int _mode)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -633,40 +512,16 @@ void GlobalIlluminationCiVct::UpdateDebugVisualizationMode(int _mode)
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationCiVct::OnTopic(const QString &_topicName)
+bool GlobalIlluminationCiVct::SetEnabled(const bool _enabled)
 {
-#ifdef VCT_DISABLED
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  if (!this->dataPtr->topicName.empty() &&
-      !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
-  {
-    ignerr << "Unable to unsubscribe from topic [" << this->dataPtr->topicName
-           << "]" << std::endl;
-  }
-  this->dataPtr->topicName = _topicName.toStdString();
+  if (_enabled && !this->ValidSettings())
+    return false;
 
-  // Reset visualization
-  this->dataPtr->resetVisual = true;
-
-  // Create new subscription
-  if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
-                                     &GlobalIlluminationCiVct::OnScan, this))
-  {
-    ignerr << "Unable to subscribe to topic [" << this->dataPtr->topicName
-           << "]\n";
-    return;
-  }
-  this->dataPtr->visualDirty = false;
-  ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
-#endif
-}
-
-//////////////////////////////////////////////////
-void GlobalIlluminationCiVct::SetEnabled(const bool _enabled)
-{
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->enabled = _enabled;
   this->dataPtr->visualDirty = true;
+
+  return _enabled;
 }
 
 //////////////////////////////////////////////////
@@ -822,6 +677,7 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 //////////////////////////////////////////////////
 void GlobalIlluminationCiVct::PopCascade()
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (!this->dataPtr->cascades.empty())
   {
     this->dataPtr->cascades.pop_back();
@@ -834,6 +690,24 @@ QObject *GlobalIlluminationCiVct::GetCascade(int _idx) const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->cascades[(size_t)_idx].get();
+}
+
+//////////////////////////////////////////////////
+bool GlobalIlluminationCiVct::ValidSettings() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+
+  if (this->dataPtr->cascades.empty())
+  {
+    return false;
+  }
+
+  if (this->dataPtr->bindCamera == nullptr)
+  {
+    return false;
+  }
+
+  return true;
 }
 
 // Register this plugin

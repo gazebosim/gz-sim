@@ -70,6 +70,8 @@ GridLayout {
     checked: GlobalIlluminationCiVct.enabled
     onToggled: {
       GlobalIlluminationCiVct.enabled = checked
+      // We may have failed to enable
+      checked = GlobalIlluminationCiVct.enabled
     }
   }
 
