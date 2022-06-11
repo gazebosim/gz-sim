@@ -27,8 +27,10 @@ using namespace ignition;
 using namespace gazebo;
 
 CiVctCascadePrivate::CiVctCascadePrivate(std::mutex &_serviceMutex,
+                                         GlobalIlluminationCiVct &_creator,
                                          rendering::CiVctCascadePtr _cascade) :
   cascade(_cascade),
+  creator(_creator),
   serviceMutex(_serviceMutex)
 {
 }
@@ -40,6 +42,9 @@ CiVctCascadePrivate::~CiVctCascadePrivate()
 
 void CiVctCascadePrivate::UpdateResolution(int _axis, uint32_t _res)
 {
+  if (!this->creator.CascadesEditable())
+    return;
+
   std::lock_guard<std::mutex> lock(this->serviceMutex);
   uint32_t resolution[3];
   memcpy(resolution, this->cascade->Resolution(), sizeof(resolution));
@@ -60,6 +65,9 @@ void CiVctCascadePrivate::UpdateOctantCount(int _axis, uint32_t _count)
 /////////////////////////////////////////////////
 void CiVctCascadePrivate::UpdateAreaHalfSize(int _axis, float _halfSize)
 {
+  if (!this->creator.CascadesEditable())
+    return;
+
   std::lock_guard<std::mutex> lock(this->serviceMutex);
   math::Vector3d areaHalfSize = this->cascade->AreaHalfSize();
   areaHalfSize[(size_t)_axis] = static_cast<double>(_halfSize);

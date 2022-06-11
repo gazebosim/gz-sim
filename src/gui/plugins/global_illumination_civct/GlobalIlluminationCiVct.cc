@@ -675,8 +675,9 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 
   auto cascadeRendering = this->dataPtr->gi->AddCascade(ref);
 
-  this->dataPtr->cascades.push_back(std::unique_ptr<CiVctCascadePrivate>(
-    new CiVctCascadePrivate(this->dataPtr->serviceMutex, cascadeRendering)));
+  this->dataPtr->cascades.push_back(
+    std::unique_ptr<CiVctCascadePrivate>(new CiVctCascadePrivate(
+      this->dataPtr->serviceMutex, *this, cascadeRendering)));
 
   if (!ref)
   {

@@ -84,6 +84,7 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinX
     value: cascadePtr.resolutionX
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -102,6 +103,7 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinY
     value: cascadePtr.resolutionY
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -120,6 +122,7 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinZ
     value: cascadePtr.resolutionZ
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -208,7 +211,9 @@ GridLayout {
     Layout.fillWidth: true
     id: areaHalfSizeX
     value: cascadePtr.areaHalfSizeX
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 0.01
+    maximumValue: 100000
     decimals: 2
     onEditingFinished: {
       cascadePtr.areaHalfSizeX = value
@@ -219,7 +224,9 @@ GridLayout {
     Layout.fillWidth: true
     id: areaHalfSizeY
     value: cascadePtr.areaHalfSizeY
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 0.01
+    maximumValue: 100000
     decimals: 2
     onEditingFinished: {
       cascadePtr.areaHalfSizeY = value
@@ -230,7 +237,9 @@ GridLayout {
     Layout.fillWidth: true
     id: areaHalfSizeZ
     value: cascadePtr.areaHalfSizeZ
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     minimumValue: 0.01
+    maximumValue: 100000
     decimals: 2
     onEditingFinished: {
       cascadePtr.areaHalfSizeZ = value

@@ -46,7 +46,10 @@ namespace gazebo
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 {
-  /// \brief TBD
+  class GlobalIlluminationCiVct;
+
+  /// \brief Cascade container for QML to control all of its settings,
+  /// per cascade
   class IGNITION_GAZEBO_HIDDEN CiVctCascadePrivate : public QObject
   {
     friend class GlobalIlluminationCiVct;
@@ -119,6 +122,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     /// \brief Constructor
     public: CiVctCascadePrivate(std::mutex &_serviceMutex,
+                                GlobalIlluminationCiVct &_creator,
                                 rendering::CiVctCascadePtr _cascade);
 
     /// \brief Destructor
@@ -244,7 +248,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \return See rendering::CiVctCascade::ThinWallCounter
     public: Q_INVOKABLE float ThinWallCounter() const EXCLUDES(serviceMutex);
 
+    /// \brief Cascade under under control where all settings are stored
     private: rendering::CiVctCascadePtr cascade PT_GUARDED_BY(serviceMutex);
+
+    /// \brief Our creator, to avoid updating settings when it's not
+    /// safe to do so
+    private: GlobalIlluminationCiVct &creator PT_GUARDED_BY(serviceMutex);
 
     /// \brief Mutex for variable mutated by the checkbox and spinboxes
     /// callbacks.
