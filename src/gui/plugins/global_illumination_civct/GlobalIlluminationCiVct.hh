@@ -51,6 +51,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     )
 
     Q_PROPERTY(
+      bool cascadesEditable
+      READ CascadesEditable
+      NOTIFY CascadesEditableChanged
+    )
+
+    Q_PROPERTY(
       int bounceCount
       READ BounceCount
       WRITE SetBounceCount
@@ -114,8 +120,16 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \return See rendering::GlobalIlluminationCiVct::Enabled
     public: Q_INVOKABLE bool Enabled() const;
 
+    /// \brief Returns true when it's possible to add/remove cascades
+    /// False when it's not.
+    /// \return True if cascades can be added/removed
+    public: Q_INVOKABLE bool CascadesEditable() const;
+
     /// \brief Notify this property has changed
     signals: void EnabledChanged();
+
+    /// \brief Notify this property has changed
+    signals: void CascadesEditableChanged();
 
     /// \brief Notify various properties may have changed
     signals: void SettingsChanged();

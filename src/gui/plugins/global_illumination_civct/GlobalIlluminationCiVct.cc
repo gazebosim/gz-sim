@@ -423,6 +423,7 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
             this->dataPtr->gi->Bind(this->dataPtr->bindCamera);
             this->dataPtr->gi->Start(this->dataPtr->bounceCount,
                                      this->dataPtr->anisotropic);
+            this->CascadesEditableChanged();
           }
           else
           {
@@ -527,6 +528,13 @@ bool GlobalIlluminationCiVct::Enabled() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->enabled;
+}
+
+//////////////////////////////////////////////////
+bool GlobalIlluminationCiVct::CascadesEditable() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  return !this->dataPtr->gi || !this->dataPtr->gi->Started();
 }
 
 //////////////////////////////////////////////////
@@ -655,6 +663,9 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
+  if (this->dataPtr->gi && this->dataPtr->gi->Started())
+    return nullptr;
+
   rendering::CiVctCascade const *ref = nullptr;
   if (!this->dataPtr->cascades.empty())
     ref = this->dataPtr->cascades.back()->cascade.get();
@@ -687,6 +698,9 @@ void GlobalIlluminationCiVct::PopCascade()
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (!this->dataPtr->cascades.empty())
   {
+    if (this->dataPtr->gi && this->dataPtr->gi->Started())
+      return;
+
     this->dataPtr->cascades.pop_back();
     this->dataPtr->gi->PopCascade();
   }

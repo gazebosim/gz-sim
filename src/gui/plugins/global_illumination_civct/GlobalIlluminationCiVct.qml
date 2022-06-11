@@ -51,6 +51,7 @@ GridLayout {
   Button {
     id: removeCascade
     text: qsTr("Remove Cascade")
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
@@ -65,6 +66,7 @@ GridLayout {
   Button {
     id: addCascade
     text: qsTr("Add Cascade")
+    enabled: GlobalIlluminationCiVct.cascadesEditable
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
