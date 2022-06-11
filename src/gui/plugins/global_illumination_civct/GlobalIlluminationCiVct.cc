@@ -474,10 +474,13 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
       }
       else if (this->dataPtr->debugVisualizationDirty)
       {
-        this->dataPtr->gi->SetDebugVisualization(
-          static_cast<
-            rendering::GlobalIlluminationCiVct::DebugVisualizationMode>(
-            this->dataPtr->debugVisMode));
+        if (this->dataPtr->gi->Started())
+        {
+          this->dataPtr->gi->SetDebugVisualization(
+            static_cast<
+              rendering::GlobalIlluminationCiVct::DebugVisualizationMode>(
+              this->dataPtr->debugVisMode));
+        }
         this->dataPtr->debugVisualizationDirty = false;
       }
     }

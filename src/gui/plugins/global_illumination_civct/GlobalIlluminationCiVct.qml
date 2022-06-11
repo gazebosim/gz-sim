@@ -44,7 +44,7 @@ GridLayout {
   Connections {
       target: GlobalIlluminationCiVct
       function onQmlAddCascade() {
-        addCascade()
+        mainGridLayout.addCascade()
       }
   }
 
