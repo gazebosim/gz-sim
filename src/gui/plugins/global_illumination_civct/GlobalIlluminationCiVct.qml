@@ -70,7 +70,7 @@ GridLayout {
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
-      addCascade()
+      mainGridLayout.addCascade()
     }
   }
 
