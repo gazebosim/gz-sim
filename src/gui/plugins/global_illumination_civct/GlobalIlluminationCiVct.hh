@@ -202,6 +202,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \return A CiVctCascade ptr to be used by QML
     public: Q_INVOKABLE QObject* GetCascade(int _idx) const;
 
+    /// \brief Disables this GI solution and makes cascades editable again
+    public: Q_INVOKABLE void ResetCascades();
+
     /// \brief Returns true if current UI settings are valid.
     /// Not all settings are valid, e.g.
     ///   - Not having any cascade

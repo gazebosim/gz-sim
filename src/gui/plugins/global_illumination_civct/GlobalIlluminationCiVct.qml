@@ -71,6 +71,15 @@ GridLayout {
     Layout.fillWidth: true
     onClicked: {
       mainGridLayout.addCascade()
+
+  Button {
+    id: resetCascades
+    text: qsTr("Reset Cascades")
+    enabled: !GlobalIlluminationCiVct.cascadesEditable
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    onClicked: {
+      GlobalIlluminationCiVct.ResetCascades()
     }
   }
 
@@ -83,8 +92,6 @@ GridLayout {
     checked: GlobalIlluminationCiVct.enabled
     onToggled: {
       GlobalIlluminationCiVct.enabled = checked
-      // We may have failed to enable
-      checked = GlobalIlluminationCiVct.enabled
     }
   }
 

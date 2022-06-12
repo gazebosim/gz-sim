@@ -91,6 +91,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Toggles this GI on/off. Only one can be active at the same time.
     public: bool enabled GUARDED_BY(serviceMutex){false};
 
+    /// \brief See GlobalIlluminationCiVct::ResetCascades.
+    public: bool resetRequested GUARDED_BY(serviceMutex){false};
+
     /// \brief See rendering::GlobalIlluminationCiVct::SetResolution
     public: uint32_t resolution[3] GUARDED_BY(serviceMutex){16u, 16u, 16u};
 
@@ -483,6 +486,21 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
         }
         this->dataPtr->debugVisualizationDirty = false;
       }
+
+      if (this->dataPtr->resetRequested)
+      {
+        if (this->dataPtr->gi->Enabled())
+        {
+          this->dataPtr->scene->SetActiveGlobalIllumination(nullptr);
+          this->dataPtr->enabled = false;
+          this->EnabledChanged();
+        }
+
+        this->dataPtr->gi->Reset();
+        this->CascadesEditableChanged();
+
+        this->dataPtr->resetRequested = false;
+      }
     }
     else
     {
@@ -517,7 +535,10 @@ void GlobalIlluminationCiVct::UpdateDebugVisualizationMode(int _mode)
 bool GlobalIlluminationCiVct::SetEnabled(const bool _enabled)
 {
   if (_enabled && !this->ValidSettings())
+  {
+    this->EnabledChanged();
     return false;
+  }
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->enabled = _enabled;
@@ -715,6 +736,13 @@ QObject *GlobalIlluminationCiVct::GetCascade(int _idx) const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   return this->dataPtr->cascades[(size_t)_idx].get();
+}
+
+//////////////////////////////////////////////////
+void GlobalIlluminationCiVct::ResetCascades()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->resetRequested = true;
 }
 
 //////////////////////////////////////////////////
