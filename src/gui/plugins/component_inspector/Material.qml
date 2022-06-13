@@ -220,12 +220,6 @@ Rectangle {
               id: ambientLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                ambientLoader.item.r = model.data[0]
-                ambientLoader.item.g = model.data[1]
-                ambientLoader.item.b = model.data[2]
-                ambientLoader.item.a = model.data[3] / 255.0
-              }
             }
             Binding {
               target: ambientLoader.item
@@ -236,6 +230,26 @@ Rectangle {
               target: ambientLoader.item
               property: "colorName"
               value: "Ambient"
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "r"
+              value: model.data[0]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "g"
+              value: model.data[1]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "b"
+              value: model.data[2]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "a"
+              value: model.data[3] / 255.0
             }
             Connections { 
               target : ambientLoader.item 
@@ -255,17 +269,31 @@ Rectangle {
               id: diffuseLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                diffuseLoader.item.r = model.data[4]
-                diffuseLoader.item.g = model.data[5]
-                diffuseLoader.item.b = model.data[6]
-                diffuseLoader.item.a = model.data[7] / 255.0
-              }
             }
             Binding {
               target: diffuseLoader.item
               property: "colorName"
               value: "Diffuse  "
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "r"
+              value: model.data[4]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "g"
+              value: model.data[5]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "b"
+              value: model.data[6]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "a"
+              value: model.data[7] / 255.0
             }
             Connections { 
               target : diffuseLoader.item 
@@ -285,17 +313,31 @@ Rectangle {
               id: specularLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                specularLoader.item.r = model.data[8]
-                specularLoader.item.g = model.data[9]
-                specularLoader.item.b = model.data[10]
-                specularLoader.item.a = model.data[11] / 255.0
-              }
             }
             Binding {
               target: specularLoader.item
               property: "colorName"
               value: "Specular"
+            }
+            Binding {
+              target: specularLoader.item
+              property: "r"
+              value: model.data[8]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "g"
+              value: model.data[9]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "b"
+              value: model.data[10]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "a"
+              value: model.data[11] / 255.0
             }
             Connections { 
               target : specularLoader.item 
@@ -315,17 +357,31 @@ Rectangle {
               id: emissiveLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                emissiveLoader.item.r = model.data[12]
-                emissiveLoader.item.g = model.data[13]
-                emissiveLoader.item.b = model.data[14]
-                emissiveLoader.item.a = model.data[15] / 255.0
-              }
             }
             Binding {
               target: emissiveLoader.item
               property: "colorName"
               value: "Emissive"
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "r"
+              value: model.data[12]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "g"
+              value: model.data[13]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "b"
+              value: model.data[14]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "a"
+              value: model.data[15] / 255.0
             }
             Connections { 
               target : emissiveLoader.item 
