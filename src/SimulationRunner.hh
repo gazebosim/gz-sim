@@ -113,7 +113,7 @@ namespace ignition
       /// SDF of the entire world.
       public: void AddSystem(const SystemPluginPtr &_system,
           std::optional<Entity> _entity = std::nullopt,
-          std::optional<std::shared_ptr<const sdf::Element>> _sdf =
+          std::optional<std::shared_ptr<sdf::Element>> _sdf =
               std::nullopt);
 
       /// \brief Add system after the simulation runner has been instantiated
@@ -127,7 +127,7 @@ namespace ignition
       /// world.
       public: void AddSystem(const std::shared_ptr<System> &_system,
           std::optional<Entity> _entity = std::nullopt,
-          std::optional<std::shared_ptr<const sdf::Element>> _sdf =
+          std::optional<std::shared_ptr<sdf::Element>> _sdf =
               std::nullopt);
 
       /// \brief Update all the systems

@@ -9,7 +9,7 @@ project(ignition-gazebo6 VERSION 6.9.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
+find_package(ignition-cmake2 2.12.0 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -147,7 +147,7 @@ set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED)
+ign_find_package(ignition-rendering6 REQUIRED VERSION 6.3)
 set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------

@@ -194,18 +194,19 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::VisualSdfPlugin::kType)
+      ignition::gazebo::gui::events::VisualPlugins::kType)
   {
     auto visualPluginEvent =
-      reinterpret_cast<gui::events::VisualSdfPlugin *>(_event);
+      reinterpret_cast<gui::events::VisualPlugins *>(_event);
     if (visualPluginEvent)
     {
       std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
 
       Entity entity = visualPluginEvent->Entity();
-      sdf::Plugin plugin = visualPluginEvent->Plugin();
-      this->dataPtr->visualPlugins.push_back(
-         std::make_pair(entity, plugin));
+      for (const sdf::Plugin &plugin : visualPluginEvent->Plugins())
+      {
+        this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
+      }
     }
   }
   else if (_event->type() == ignition::gazebo::gui::events::VisualPlugin::kType)

@@ -69,7 +69,7 @@ namespace ignition
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple `<plugin>` tags.
-      /// Makre sure that you don't also connecto to the LoadPlugins event.
+      /// Makre sure that you don't also connect to the LoadPlugins event.
       using LoadSdfPlugins = common::EventT<void(Entity, sdf::Plugins),
           struct LoadPluginsTag>;
 

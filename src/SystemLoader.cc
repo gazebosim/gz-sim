@@ -41,8 +41,8 @@ class ignition::gazebo::SystemLoaderPrivate
   public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
-  public: bool InstantiateSystemPlugin(const sdf::Plugin &_plugin,
-              ignition::plugin::PluginPtr &_ignPlugin)
+  public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
+              ignition::plugin::PluginPtr &_gzPlugin)
   {
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
@@ -55,13 +55,13 @@ class ignition::gazebo::SystemLoaderPrivate
     systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
-    auto pathToLib = systemPaths.FindSharedLibrary(_plugin.Filename());
+    auto pathToLib = systemPaths.FindSharedLibrary(_sdfPlugin.Filename());
     if (pathToLib.empty())
     {
       // We assume ignition::gazebo corresponds to the levels feature
-      if (_plugin.Name() != "ignition::gazebo")
+      if (_sdfPlugin.Name() != "ignition::gazebo")
       {
-        ignerr << "Failed to load system plugin [" << _plugin.Filename() <<
+        ignerr << "Failed to load system plugin [" << _sdfPlugin.Filename() <<
                   "] : couldn't find shared library." << std::endl;
       }
       return false;
@@ -70,7 +70,7 @@ class ignition::gazebo::SystemLoaderPrivate
     auto pluginNames = this->loader.LoadLib(pathToLib);
     if (pluginNames.empty())
     {
-      ignerr << "Failed to load system plugin [" << _plugin.Filename() <<
+      ignerr << "Failed to load system plugin [" << _sdfPlugin.Filename() <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -79,31 +79,31 @@ class ignition::gazebo::SystemLoaderPrivate
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      ignerr << "Failed to load system plugin [" << _plugin.Filename() <<
+      ignerr << "Failed to load system plugin [" << _sdfPlugin.Filename() <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
     }
 
-    _ignPlugin = this->loader.Instantiate(_plugin.Name());
-    if (!_ignPlugin)
+    _gzPlugin = this->loader.Instantiate(_sdfPlugin.Name());
+    if (!_gzPlugin)
     {
-      ignerr << "Failed to load system plugin [" << _plugin.Name() <<
-        "] : could not instantiate from library [" << _plugin.Filename() <<
+      ignerr << "Failed to load system plugin [" << _sdfPlugin.Name() <<
+        "] : could not instantiate from library [" << _sdfPlugin.Filename() <<
         "] from path [" << pathToLib << "]." << std::endl;
       return false;
     }
 
-    if (!_ignPlugin->HasInterface<System>())
+    if (!_gzPlugin->HasInterface<System>())
     {
-      ignerr << "Failed to load system plugin [" << _plugin.Name() <<
-        "] : system not found in library  [" << _plugin.Filename() <<
+      ignerr << "Failed to load system plugin [" << _sdfPlugin.Name() <<
+        "] : system not found in library  [" << _sdfPlugin.Filename() <<
         "] from path [" << pathToLib << "]." << std::endl;
 
       return false;
     }
 
-    this->systemPluginsAdded.insert(_ignPlugin);
+    this->systemPluginsAdded.insert(_gzPlugin);
     return true;
   }
 

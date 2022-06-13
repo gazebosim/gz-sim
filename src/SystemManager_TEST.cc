@@ -21,6 +21,7 @@
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/Types.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 #include "SystemManager.hh"
@@ -94,7 +95,7 @@ TEST(SystemManager, AddSystemNoEcm)
 
   auto configSystem = std::make_shared<SystemWithConfigure>();
   Entity configEntity{123u};
-  systemMgr.AddSystem(configSystem, configEntity, nullptr);
+  systemMgr.AddSystem(configSystem, configEntity, sdf::Plugin());
 
   // SystemManager without an ECM/EventmManager will mean no config occurs
   EXPECT_EQ(0, configSystem->configured);
@@ -120,7 +121,7 @@ TEST(SystemManager, AddSystemNoEcm)
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
   Entity updateEntity{456u};
-  systemMgr.AddSystem(updateSystem, updateEntity, nullptr);
+  systemMgr.AddSystem(updateSystem, updateEntity, sdf::Plugin());
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
   EXPECT_EQ(2u, systemMgr.TotalCount());
@@ -160,7 +161,7 @@ TEST(SystemManager, AddSystemEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
   auto configSystem = std::make_shared<SystemWithConfigure>();
-  systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+  systemMgr.AddSystem(configSystem, kNullEntity, sdf::Plugin());
 
   // Configure called during AddSystem
   EXPECT_EQ(1, configSystem->configured);
@@ -183,7 +184,7 @@ TEST(SystemManager, AddSystemEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
-  systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
+  systemMgr.AddSystem(updateSystem, kNullEntity, sdf::Plugin());
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
   EXPECT_EQ(2u, systemMgr.TotalCount());
@@ -200,5 +201,64 @@ TEST(SystemManager, AddSystemEcm)
   EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, AddSystemWithInfo)
+{
+  auto loader = std::make_shared<SystemLoader>();
+
+  EntityComponentManager ecm;
+  auto entity = ecm.CreateEntity();
+  EXPECT_NE(kNullEntity, entity);
+
+  auto eventManager = EventManager();
+
+  SystemManager systemMgr(loader, &ecm, &eventManager);
+
+  // No element, no SystemPluginInfo component
+  auto configSystem = std::make_shared<SystemWithConfigure>();
+  systemMgr.AddSystem(configSystem, entity, sdf::Plugin());
+
+  // Element becomes SystemPluginInfo component
+  auto pluginElem = std::make_shared<sdf::Element>();
+  sdf::initFile("plugin.sdf", pluginElem);
+  sdf::readString("<?xml version='1.0'?><sdf version='1.6'>"
+      "  <plugin filename='plum' name='peach'>"
+      "    <avocado>0.5</avocado>"
+      "  </plugin>"
+      "</sdf>", pluginElem);
+
+  auto updateSystem = std::make_shared<SystemWithUpdates>();
+  sdf::Plugin plugin;
+  plugin.Load(pluginElem);
+  systemMgr.AddSystem(updateSystem, entity, plugin);
+
+  int entityCount{0};
+  ecm.Each<components::SystemPluginInfo>(
+      [&](const Entity &_entity,
+          const components::SystemPluginInfo *_systemInfoComp) -> bool
+      {
+        EXPECT_EQ(entity, _entity);
+
+        EXPECT_NE(nullptr, _systemInfoComp);
+        if (nullptr == _systemInfoComp)
+          return true;
+
+        auto pluginsMsg = _systemInfoComp->Data();
+        EXPECT_EQ(1, pluginsMsg.plugins().size());
+        if (1u != pluginsMsg.plugins().size())
+          return true;
+
+        auto pluginMsg = pluginsMsg.plugins(0);
+        EXPECT_EQ("plum", pluginMsg.filename());
+        EXPECT_EQ("peach", pluginMsg.name());
+        EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+            std::string::npos);
+
+        entityCount++;
+        return true;
+      });
+  EXPECT_EQ(1, entityCount);
 }
 

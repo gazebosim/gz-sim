@@ -36,6 +36,7 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
@@ -137,35 +138,45 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   std::map<Entity, sdf::Plugins> plugins;
   if (!this->dataPtr->initializedVisualPlugins)
   {
-    _ecm.Each<components::Visual, components::VisualPlugins>(
+    _ecm.Each<components::Visual, components::SystemPluginInfo>(
         [&](const Entity &_entity,
             const components::Visual *,
-            const components::VisualPlugins *_plugins)->bool
+            const components::SystemPluginInfo *_plugins)->bool
     {
+      sdf::Plugins convertedPlugins = convert<sdf::Plugins>(_plugins->Data());
       plugins[_entity].insert(plugins[_entity].end(),
-          _plugins->Data().begin(), _plugins->Data().end());
+          convertedPlugins.begin(), convertedPlugins.end());
       return true;
     });
     this->dataPtr->initializedVisualPlugins = true;
   }
   else
   {
-    _ecm.EachNew<components::Visual, components::VisualPlugins>(
+    _ecm.EachNew<components::Visual, components::SystemPluginInfo>(
         [&](const Entity &_entity,
             const components::Visual *,
-            const components::VisualPlugins *_plugins)->bool
+            const components::SystemPluginInfo *_plugins)->bool
     {
+      sdf::Plugins convertedPlugins = convert<sdf::Plugins>(_plugins->Data());
       plugins[_entity].insert(plugins[_entity].end(),
-          _plugins->Data().begin(), _plugins->Data().end());
+          convertedPlugins.begin(), convertedPlugins.end());
       return true;
     });
   }
   for (const auto &it : plugins)
   {
-    for (const sdf::Plugin plugin : it.second)
+    // Send the new VisualPlugins event
+    ignition::gazebo::gui::events::VisualPlugins visualPluginsEvent(
+        it.first, it.second);
+    ignition::gui::App()->sendEvent(
+        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        &visualPluginsEvent);
+
+    // Send the old VisualPlugin event
+    for (const sdf::Plugin &plugin : it.second)
     {
-      ignition::gazebo::gui::events::VisualSdfPlugin visualPluginEvent(
-          it.first, plugin);
+      ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
+          it.first, plugin.ToElement());
       ignition::gui::App()->sendEvent(
           ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
           &visualPluginEvent);

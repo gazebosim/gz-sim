@@ -459,22 +459,26 @@ void SimulationRunner::PublishStats()
 //////////////////////////////////////////////////
 void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<Entity> _entity,
-      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+      std::optional<std::shared_ptr<sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
   auto sdf = _sdf.value_or(this->sdfWorld->Element());
-  this->systemMgr->AddSystem(_system, entity, sdf);
+  sdf::Plugin plugin;
+  plugin.Load(sdf);
+  this->systemMgr->AddSystem(_system, entity, plugin);
 }
 
 //////////////////////////////////////////////////
 void SimulationRunner::AddSystem(
       const std::shared_ptr<System> &_system,
       std::optional<Entity> _entity,
-      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+      std::optional<std::shared_ptr<sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
   auto sdf = _sdf.value_or(this->sdfWorld->Element());
-  this->systemMgr->AddSystem(_system, entity, sdf);
+  sdf::Plugin plugin;
+  plugin.Load(sdf);
+  this->systemMgr->AddSystem(_system, entity, plugin);
 }
 
 /////////////////////////////////////////////////
@@ -992,7 +996,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 void SimulationRunner::LoadPlugins(const Entity _entity,
     const sdf::Plugins &_plugins)
 {
-  for (const sdf::Plugin plugin : _plugins)
+  for (const sdf::Plugin &plugin : _plugins)
   {
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not

@@ -15,6 +15,8 @@
  *
 */
 
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "SystemManager.hh"
 
 using namespace ignition;
@@ -67,7 +69,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
   if (system)
   {
     this->AddSystemImpl(SystemInternal(system.value(), _entity, _plugin),
-        _plugin.ToElement());
+        _plugin);
     igndbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -123,7 +125,7 @@ size_t SystemManager::ActivatePendingSystems()
 //////////////////////////////////////////////////
 void SystemManager::AddSystem(const SystemPluginPtr &_system,
       Entity _entity,
-      std::shared_ptr<const sdf::Element> _sdf)
+      const sdf::Plugin &_sdf)
 {
   this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
 }
@@ -132,7 +134,7 @@ void SystemManager::AddSystem(const SystemPluginPtr &_system,
 void SystemManager::AddSystem(
       const std::shared_ptr<System> &_system,
       Entity _entity,
-      std::shared_ptr<const sdf::Element> _sdf)
+      const sdf::Plugin &_sdf)
 {
   this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
 }
@@ -140,12 +142,33 @@ void SystemManager::AddSystem(
 //////////////////////////////////////////////////
 void SystemManager::AddSystemImpl(
       SystemInternal _system,
-      std::shared_ptr<const sdf::Element> _sdf)
+      const sdf::Plugin &_sdf)
 {
+  // Add component
+  if (this->entityCompMgr && kNullEntity != _system.parentEntity)
+  {
+    msgs::Plugin_V systemInfoMsg;
+    auto systemInfoComp =
+        this->entityCompMgr->Component<components::SystemPluginInfo>(
+        _system.parentEntity);
+    if (systemInfoComp)
+    {
+      systemInfoMsg = systemInfoComp->Data();
+    }
+
+    auto pluginMsg = systemInfoMsg.add_plugins();
+    pluginMsg->CopyFrom(convert<msgs::Plugin>(_sdf));
+
+    this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
+        _system.parentEntity, systemInfoMsg);
+    this->entityCompMgr->SetChanged(_system.parentEntity,
+        components::SystemPluginInfo::typeId);
+  }
+
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
-    _system.configure->Configure(_system.parentEntity, _sdf,
+    _system.configure->Configure(_system.parentEntity, _sdf.ToElement(),
                                  *this->entityCompMgr,
                                  *this->eventMgr);
   }
@@ -182,16 +205,15 @@ const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 //////////////////////////////////////////////////
 std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
 {
+  auto checkEntity = [&](const SystemInternal &_system)
+      {
+        return _system.parentEntity == _entity;
+      };
+
   std::vector<SystemInternal> result;
-  for (auto system : this->systems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
-  for (auto system : this->pendingSystems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
+  std::copy_if(this->systems.begin(), this->systems.end(),
+      std::back_inserter(result), checkEntity);
+  std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
+      std::back_inserter(result), checkEntity);
   return result;
 }

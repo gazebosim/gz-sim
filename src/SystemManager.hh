@@ -73,7 +73,7 @@ namespace ignition
       /// \param[in] _sdf Pointer to the SDF of the entity.
       public: void AddSystem(const SystemPluginPtr &_system,
                              Entity _entity,
-                             std::shared_ptr<const sdf::Element> _sdf);
+                             const sdf::Plugin &_sdf);
 
       /// \brief Add a system to the manager
       /// \param[in] _system SystemPluginPtr to be added
@@ -81,7 +81,7 @@ namespace ignition
       /// \param[in] _sdf Pointer to the SDF of the entity.
       public: void AddSystem(const std::shared_ptr<System> &_system,
                              Entity _entity,
-                             std::shared_ptr<const sdf::Element> _sdf);
+                             const sdf::Plugin &_sdf);
 
       /// \brief Get the count of currently active systems.
       /// \return The active systems count.
@@ -125,7 +125,7 @@ namespace ignition
       /// \param[in] _system Generic representation of a system.
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
-                                  std::shared_ptr<const sdf::Element> _sdf);
+                                  const sdf::Plugin &_sdf);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
