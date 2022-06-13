@@ -23,7 +23,6 @@
 #include <cstdint>
 #include <ostream>
 #include <limits>
-#include <regex>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -361,11 +360,7 @@ namespace gz
     template<typename T>
     inline T max(const std::vector<T> &_values)
     {
-      T max = std::numeric_limits<T>::min();
-      for (unsigned int i = 0; i < _values.size(); ++i)
-        if (_values[i] > max)
-          max = _values[i];
-      return max;
+      return *std::max_element(std::begin(_values), std::end(_values));
     }
 
     /// \brief Get the minimum value of vector of values.
@@ -374,11 +369,7 @@ namespace gz
     template<typename T>
     inline T min(const std::vector<T> &_values)
     {
-      T min = std::numeric_limits<T>::max();
-      for (unsigned int i = 0; i < _values.size(); ++i)
-        if (_values[i] < min)
-          min = _values[i];
-      return min;
+      return *std::min_element(std::begin(_values), std::end(_values));
     }
 
     /// \brief Check if two values are equal, within a tolerance.
@@ -437,9 +428,8 @@ namespace gz
     template<typename T>
     inline void sort2(T &_a, T &_b)
     {
-      using std::swap;
       if (_b < _a)
-        swap(_a, _b);
+        std::swap(_a, _b);
     }
 
     /// \brief Sort three numbers, such that _a <= _b <= _c.
@@ -573,77 +563,21 @@ namespace gz
     /// \brief Parse string into an integer.
     /// \param[in] _input The input string.
     /// \return An integer, or NAN_I if unable to parse the input.
-    inline int parseInt(const std::string &_input)
-    {
-      // Return NAN_I if it is empty
-      if (_input.empty())
-      {
-        return NAN_I;
-      }
-      // Return 0 if it is all spaces
-      else if (_input.find_first_not_of(' ') == std::string::npos)
-      {
-        return 0;
-      }
-
-      // Otherwise try standard library
-      try
-      {
-        return std::stoi(_input);
-      }
-      // if that fails, return NAN_I
-      catch(...)
-      {
-        return NAN_I;
-      }
-    }
+    int IGNITION_MATH_VISIBLE parseInt(const std::string &_input);
 
     /// \brief parse string into float.
     /// \param [in] _input The string.
     /// \return A floating point number (can be NaN) or NAN_D if the
     /// _input could not be parsed.
-    inline double parseFloat(const std::string &_input)
-    {
-      // Return NAN_D if it is empty
-      if (_input.empty())
-      {
-        return NAN_D;
-      }
-      // Return 0 if it is all spaces
-      else if (_input.find_first_not_of(' ') == std::string::npos)
-      {
-        return 0;
-      }
-
-      // Otherwise try standard library
-      try
-      {
-        return std::stod(_input);
-      }
-      // if that fails, return NAN_D
-      catch(...)
-      {
-        return NAN_D;
-      }
-    }
+    double IGNITION_MATH_VISIBLE parseFloat(const std::string &_input);
 
     /// \brief Convert a std::chrono::steady_clock::time_point to a seconds and
     /// nanoseconds pair.
     /// \param[in] _time The time point to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
-    inline std::pair<int64_t, int64_t> timePointToSecNsec(
-        const std::chrono::steady_clock::time_point &_time)
-    {
-      auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        _time.time_since_epoch());
-      auto now_s = std::chrono::duration_cast<std::chrono::seconds>(
-        _time.time_since_epoch());
-      int64_t seconds = now_s.count();
-      int64_t nanoseconds = std::chrono::duration_cast
-        <std::chrono::nanoseconds>(now_ns - now_s).count();
-      return {seconds, nanoseconds};
-    }
+    std::pair<int64_t, int64_t> IGNITION_MATH_VISIBLE timePointToSecNsec(
+        const std::chrono::steady_clock::time_point &_time);
 
     /// \brief Convert seconds and nanoseconds to
     /// std::chrono::steady_clock::time_point.
@@ -651,16 +585,9 @@ namespace gz
     /// \param[in] _nanosec The nanoseconds to convert.
     /// \return A std::chrono::steady_clock::time_point based on the number of
     /// seconds and the number of nanoseconds.
-    inline std::chrono::steady_clock::time_point secNsecToTimePoint(
-        const uint64_t &_sec, const uint64_t &_nanosec)
-    {
-      auto duration = std::chrono::seconds(_sec) + std::chrono::nanoseconds(
-        _nanosec);
-      std::chrono::steady_clock::time_point result;
-      using std::chrono::duration_cast;
-      result += duration_cast<std::chrono::steady_clock::duration>(duration);
-      return result;
-    }
+    std::chrono::steady_clock::time_point IGNITION_MATH_VISIBLE
+      secNsecToTimePoint(
+        const uint64_t &_sec, const uint64_t &_nanosec);
 
     /// \brief Convert seconds and nanoseconds to
     /// std::chrono::steady_clock::duration.
@@ -668,25 +595,16 @@ namespace gz
     /// \param[in] _nanosec The nanoseconds to convert.
     /// \return A std::chrono::steady_clock::duration based on the number of
     /// seconds and the number of nanoseconds.
-    inline std::chrono::steady_clock::duration secNsecToDuration(
-        const uint64_t &_sec, const uint64_t &_nanosec)
-    {
-      return std::chrono::seconds(_sec) + std::chrono::nanoseconds(
-        _nanosec);
-    }
+    std::chrono::steady_clock::duration IGNITION_MATH_VISIBLE secNsecToDuration(
+        const uint64_t &_sec, const uint64_t &_nanosec);
 
     /// \brief Convert a std::chrono::steady_clock::duration to a seconds and
     /// nanoseconds pair.
     /// \param[in] _dur The duration to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
-    inline std::pair<int64_t, int64_t> durationToSecNsec(
-        const std::chrono::steady_clock::duration &_dur)
-    {
-      auto s = std::chrono::duration_cast<std::chrono::seconds>(_dur);
-      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_dur-s);
-      return {s.count(), ns.count()};
-    }
+    std::pair<int64_t, int64_t> IGNITION_MATH_VISIBLE durationToSecNsec(
+        const std::chrono::steady_clock::duration &_dur);
 
     // TODO(anyone): Replace this with std::chrono::days.
     /// This will exist in C++-20
@@ -723,75 +641,6 @@ namespace gz
     std::string GZ_MATH_VISIBLE durationToString(
         const std::chrono::steady_clock::duration &_duration);
 
-    /// \brief Check if the given string represents a time.
-    /// An example time string is "0 00:00:00.000", which has the format
-    /// "DAYS HOURS:MINUTES:SECONDS.MILLISECONDS"
-    /// \return True if the regex was able to split the string otherwise False
-    inline bool isTimeString(const std::string &_timeString)
-    {
-      std::smatch matches;
-
-      // The following regex takes a time string in the general format of
-      // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
-      // provided, it is assumed to be seconds
-      static const std::regex time_regex(
-          "^([0-9]+ ){0,1}"                       // day:
-                                                  // Any positive integer
-
-          "(?:([1-9]:|[0-1][0-9]:|2[0-3]:){0,1}"  // hour:
-                                                  // 1 - 9:
-                                                  // 01 - 19:
-                                                  // 20 - 23:
-
-          "([0-9]:|[0-5][0-9]:)){0,1}"            // minute:
-                                                  // 0 - 9:
-                                                  // 00 - 59:
-
-          "(?:([0-9]|[0-5][0-9]){0,1}"            // second:
-                                                  // 0 - 9
-                                                  // 00 - 59
-
-          "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
-                                                  // .0 - .9
-                                                  // .00 - .99
-                                                  // .000 - 0.999
-
-      // `matches` should always be a size of 6 as there are 6 matching
-      // groups in the regex.
-      // 1. The whole regex
-      // 2. The days
-      // 3. The hours
-      // 4. The minutes
-      // 5. The seconds
-      // 6. The milliseconds
-      // Note that the space will remain in the day match, the colon
-      // will remain in the hour and minute matches, and the period will
-      // remain in the millisecond match
-      if (!std::regex_search(_timeString, matches, time_regex) ||
-          matches.size() != 6)
-        return false;
-
-      std::string dayString = matches[1];
-
-      // Days are the only unbounded number, so check first to see if stoi
-      // runs successfully
-      if (!dayString.empty())
-      {
-        // Erase the space
-        dayString.erase(dayString.length() - 1);
-        try
-        {
-          std::stoi(dayString);
-        }
-        catch (const std::out_of_range &)
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
     /// \brief Split a std::chrono::steady_clock::duration to a string
     /// \param[in] _timeString The string to convert in general format
     /// \param[out] numberDays number of days in the string
@@ -805,6 +654,17 @@ namespace gz
         uint64_t & numberDays, uint64_t & numberHours,
         uint64_t & numberMinutes, uint64_t & numberSeconds,
         uint64_t & numberMilliseconds);
+
+    /// \brief Check if the given string represents a time.
+    /// An example time string is "0 00:00:00.000", which has the format
+    /// "DAYS HOURS:MINUTES:SECONDS.MILLISECONDS"
+    /// \return True if the regex was able to split the string otherwise False
+    inline bool isTimeString(const std::string &_timeString)
+    {
+      // These will be thrown away, just for making the function call
+      uint64_t d, h, m, s, ms;
+      return splitTimeBasedOnTimeRegex(_timeString, d, h, m, s, ms);
+    }
 
     /// \brief Convert a string to a std::chrono::steady_clock::duration
     /// \param[in] _timeString The string to convert in general format

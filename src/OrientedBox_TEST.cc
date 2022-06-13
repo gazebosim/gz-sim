@@ -15,7 +15,6 @@
  *
 */
 #include <gtest/gtest.h>
-#include <cmath>
 
 #include "gz/math/Angle.hh"
 #include "gz/math/OrientedBox.hh"

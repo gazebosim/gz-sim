@@ -20,12 +20,108 @@
 #include <regex>
 #include <sstream>
 
+#include <gz/utils/NeverDestroyed.hh>
+
 namespace gz
 {
   namespace math
   {
     inline namespace GZ_MATH_VERSION_NAMESPACE
     {
+    /////////////////////////////////////////////
+    int parseInt(const std::string &_input)
+    {
+      // Return NAN_I if it is empty
+      if (_input.empty())
+      {
+        return NAN_I;
+      }
+      // Return 0 if it is all spaces
+      else if (_input.find_first_not_of(' ') == std::string::npos)
+      {
+        return 0;
+      }
+
+      // Otherwise try standard library
+      try
+      {
+        return std::stoi(_input);
+      }
+      // if that fails, return NAN_I
+      catch(...)
+      {
+        return NAN_I;
+      }
+    }
+
+    /////////////////////////////////////////////
+    double parseFloat(const std::string &_input)
+    {
+      // Return NAN_D if it is empty
+      if (_input.empty())
+      {
+        return NAN_D;
+      }
+      // Return 0 if it is all spaces
+      else if (_input.find_first_not_of(' ') == std::string::npos)
+      {
+        return 0;
+      }
+
+      // Otherwise try standard library
+      try
+      {
+        return std::stod(_input);
+      }
+      // if that fails, return NAN_D
+      catch(...)
+      {
+        return NAN_D;
+      }
+    }
+
+    /////////////////////////////////////////////
+    std::pair<int64_t, int64_t> timePointToSecNsec(
+        const std::chrono::steady_clock::time_point &_time)
+    {
+      auto now_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        _time.time_since_epoch());
+      auto now_s = std::chrono::duration_cast<std::chrono::seconds>(
+        _time.time_since_epoch());
+      int64_t seconds = now_s.count();
+      int64_t nanoseconds = std::chrono::duration_cast
+        <std::chrono::nanoseconds>(now_ns - now_s).count();
+      return {seconds, nanoseconds};
+    }
+
+    /////////////////////////////////////////////
+    std::chrono::steady_clock::time_point secNsecToTimePoint(
+        const uint64_t &_sec, const uint64_t &_nanosec)
+    {
+      auto duration = std::chrono::seconds(_sec) + std::chrono::nanoseconds(
+        _nanosec);
+      std::chrono::steady_clock::time_point result;
+      using std::chrono::duration_cast;
+      result += duration_cast<std::chrono::steady_clock::duration>(duration);
+      return result;
+    }
+
+    /////////////////////////////////////////////
+    std::chrono::steady_clock::duration secNsecToDuration(
+        const uint64_t &_sec, const uint64_t &_nanosec)
+    {
+      return std::chrono::seconds(_sec) + std::chrono::nanoseconds(
+        _nanosec);
+    }
+
+    /////////////////////////////////////////////
+    std::pair<int64_t, int64_t> durationToSecNsec(
+        const std::chrono::steady_clock::duration &_dur)
+    {
+      auto s = std::chrono::duration_cast<std::chrono::seconds>(_dur);
+      auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(_dur-s);
+      return {s.count(), ns.count()};
+    }
 
     /////////////////////////////////////////////
     std::string timePointToString(
@@ -85,10 +181,8 @@ namespace gz
     {
       // The following regex takes a time string in the general format of
       // "dd hh:mm:ss.nnn" where n is milliseconds, if just one number is
-      // provided, it is assumed to be seconds.  We construct upon first use
-      // and never destroy it, in order to avoid the [Static Initialization
-      // Order Fiasco](https://en.cppreference.com/w/cpp/language/siof).
-      static const std::regex * const kTimeRegex = new std::regex(
+      // provided, it is assumed to be seconds.
+      static const gz::utils::NeverDestroyed<std::regex> timeRegex {
           "^([0-9]+ ){0,1}"                       // day:
                                                   // Any positive integer
 
@@ -105,7 +199,7 @@ namespace gz
                                                   // 0 - 9
                                                   // 00 - 59
 
-          "(\\.[0-9]{1,3}){0,1})$");              // millisecond:
+          "(\\.[0-9]{1,3}){0,1})$"};              // millisecond:
                                                   // .0 - .9
                                                   // .00 - .99
                                                   // .000 - 0.999
@@ -124,7 +218,7 @@ namespace gz
       // Note that the space will remain in the day match, the colon
       // will remain in the hour and minute matches, and the period will
       // remain in the millisecond match
-      if (!std::regex_search(_timeString, matches, *kTimeRegex) ||
+      if (!std::regex_search(_timeString, matches, timeRegex.Access()) ||
           matches.size() != 6)
         return false;
 

@@ -16,7 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-#include <string>
 
 #include "gz/math/graph/Graph.hh"
 #include "gz/math/graph/GraphAlgorithms.hh"

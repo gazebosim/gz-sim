@@ -16,7 +16,6 @@
 */
 #include <gtest/gtest.h>
 #include <cmath>
-#include <iostream>
 
 #include "gz/math/Sphere.hh"
 

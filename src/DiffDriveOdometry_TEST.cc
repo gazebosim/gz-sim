@@ -16,7 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-#include <thread>
 
 #include "gz/math/Angle.hh"
 #include "gz/math/Helpers.hh"

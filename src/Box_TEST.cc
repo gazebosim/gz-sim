@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
+
 #include <gtest/gtest.h>
-#include <cmath>
 
 #include "gz/math/Box.hh"
 

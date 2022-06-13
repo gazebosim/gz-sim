@@ -73,7 +73,7 @@ namespace gz
       const T &_pos
       )
     {
-      assert(abs(_a.position - _b.position) > 0);
+      assert(std::abs(_a.position - _b.position) > 0);
       assert(_a.index < _lst.size());
       assert(_b.index < _lst.size());
 
@@ -149,7 +149,8 @@ namespace gz
         _a[_start_index].position);
       auto planeScalar = planeNormal.Dot(_a[_start_index].position);
       assert(
-        !(abs(planeNormal.Dot(_a[_start_index + 3].position) - planeScalar) > 0)
+        !(std::abs(
+            planeNormal.Dot(_a[_start_index + 3].position) - planeScalar) > 0)
         );
       #endif
 
@@ -167,8 +168,6 @@ namespace gz
       // Project point onto second line
       auto n2 = _a[_start_index + 2];
       auto n3 = _a[_start_index + 3];
-      auto proj2 = n3.position-n2.position;
-      auto unitProj2 = proj2.Normalized();
       auto pos2 =
         (_pos - n2.position).Dot(unitProj1) * unitProj1 + n2.position;
       linres.push_back(LinearInterpolate(n2, n3, _lst, pos2, _default));

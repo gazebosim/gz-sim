@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include <cmath>
+#include <iosfwd>
 
-#include "gz/math/Helpers.hh"
 #include "gz/math/Angle.hh"
+#include "gz/math/Helpers.hh"
 
 using namespace gz;
 

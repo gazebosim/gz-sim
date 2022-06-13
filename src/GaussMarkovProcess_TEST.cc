@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include "gz/math/GaussMarkovProcess.hh"
-#include "gz/math/Helpers.hh"
 #include "gz/math/Rand.hh"
 
 using namespace gz;
