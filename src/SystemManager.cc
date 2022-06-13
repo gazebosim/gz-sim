@@ -68,8 +68,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystemImpl(SystemInternal(system.value(), _entity, _plugin),
-        _plugin);
+    this->AddSystemImpl(SystemInternal(system.value(), _entity, _plugin));
     igndbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -127,7 +126,7 @@ void SystemManager::AddSystem(const SystemPluginPtr &_system,
       Entity _entity,
       const sdf::Plugin &_sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
+  this->AddSystemImpl(SystemInternal(_system, _entity, _sdf));
 }
 
 //////////////////////////////////////////////////
@@ -136,13 +135,12 @@ void SystemManager::AddSystem(
       Entity _entity,
       const sdf::Plugin &_sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system, _entity), _sdf);
+  this->AddSystemImpl(SystemInternal(_system, _entity, _sdf));
 }
 
 //////////////////////////////////////////////////
 void SystemManager::AddSystemImpl(
-      SystemInternal _system,
-      const sdf::Plugin &_sdf)
+      SystemInternal _system)
 {
   // Add component
   if (this->entityCompMgr && kNullEntity != _system.parentEntity)
@@ -157,7 +155,8 @@ void SystemManager::AddSystemImpl(
     }
 
     auto pluginMsg = systemInfoMsg.add_plugins();
-    pluginMsg->CopyFrom(convert<msgs::Plugin>(_sdf));
+    if (_system.sdfPlugin)
+      pluginMsg->CopyFrom(convert<msgs::Plugin>(*_system.sdfPlugin));
 
     this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
         _system.parentEntity, systemInfoMsg);
@@ -168,7 +167,11 @@ void SystemManager::AddSystemImpl(
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
-    _system.configure->Configure(_system.parentEntity, _sdf.ToElement(),
+    sdf::ElementPtr elemPtr;
+    if (_system.sdfPlugin)
+      elemPtr = _system.sdfPlugin->ToElement();
+    _system.configure->Configure(_system.parentEntity,
+                                 elemPtr,
                                  *this->entityCompMgr,
                                  *this->eventMgr);
   }

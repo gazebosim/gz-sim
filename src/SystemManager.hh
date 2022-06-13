@@ -123,9 +123,7 @@ namespace ignition
       /// to a queue, the actual addition is performed by `AddSystemToRunner` at
       /// the appropriate time.
       /// \param[in] _system Generic representation of a system.
-      /// \param[in] _sdf SDF received from AddSystem.
-      private: void AddSystemImpl(SystemInternal _system,
-                                  const sdf::Plugin &_sdf);
+      private: void AddSystemImpl(SystemInternal _system);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;

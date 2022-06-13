@@ -71,6 +71,24 @@ namespace ignition
       /// \brief Constructor
       /// \param[in] _systemPlugin A system loaded from a plugin.
       /// \param[in] _entity The entity that this system is attached to.
+      /// \param[in] _plugin The SDF plugin associated with the system.
+      public: explicit SystemInternal(const std::shared_ptr<System> &_system,
+          Entity _entity, const sdf::Plugin &_plugin)
+              : systemShared(_system),
+                system(_system.get()),
+                configure(dynamic_cast<ISystemConfigure *>(_system.get())),
+                preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
+                update(dynamic_cast<ISystemUpdate *>(_system.get())),
+                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get())),
+                parentEntity(_entity),
+                sdfPlugin(_plugin)
+      {
+      }
+
+      /// \brief Constructor
+      /// \param[in] _systemPlugin A system loaded from a plugin.
+      /// \param[in] _entity The entity that this system is attached to.
+      /// \param[in] _plugin The SDF plugin associated with the system.
       public: explicit SystemInternal(SystemPluginPtr _systemPlugin,
           Entity _entity, const sdf::Plugin &_plugin)
               : systemPlugin(std::move(_systemPlugin)),
