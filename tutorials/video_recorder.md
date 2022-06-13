@@ -10,7 +10,7 @@ plugin to open the Video Recorder tool. Alternatively, launch the demo world in
 Gazebo that already has this plugin included in the GUI.
 
 ```
-ign gazebo -v 4 video_record_dbl_pendulum.sdf
+gz sim -v 4 video_record_dbl_pendulum.sdf
 ```
 
 In this plugin, you should see a single button with a video recorder icon.

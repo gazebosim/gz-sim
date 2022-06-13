@@ -4,10 +4,10 @@
 
   Listen to sensor readings:
 
-    Altimeter: ign topic -e -t /altimeter
-    Imu: ign topic -e -t /imu
-    Magnetometer: ign topic -e -t /magnetometer
-    Air pressure: ign topic -e -t /air_pressure
+    Altimeter: gz topic -e -t /altimeter
+    Imu: gz topic -e -t /imu
+    Magnetometer: gz topic -e -t /magnetometer
+    Air pressure: gz topic -e -t /air_pressure
 -->
 <sdf version="1.6">
   <world name="sensors">

@@ -64,7 +64,7 @@ Let's use the SDF file introduced above (`logical_audio_sensor_plugin.sdf`) to s
 Start a simulation that uses this SDF file by running the following command in a terminal:
 
 ```
-ign gazebo logical_audio_sensor_plugin.sdf
+gz sim logical_audio_sensor_plugin.sdf
 ```
 
 You should see a something like this:
@@ -77,7 +77,7 @@ If a logical microphone can detect a source, it will publish a message to a dete
 With the simulator still running, open a new terminal and run the following command to see which microphone detection topics are available:
 
 ```
-ign topic -l
+gz topic -l
 ```
 
 You should see the following detection topics as a part of the output (the `_1` suffix is the ID assigned to the microphones in the SDF):
@@ -91,7 +91,7 @@ Let's see if the microphone attached to `yellow_box` can hear anything.
 Run the following command:
 
 ```
-ign topic -e -t /model/yellow_box/sensor/mic_1/detection
+gz topic -e -t /model/yellow_box/sensor/mic_1/detection
 ```
 
 You'll notice that this command produces no output.
@@ -101,7 +101,7 @@ Now, let's see if the microphone attached to `green_box` can hear anything.
 Modify the command you just ran to look like this:
 
 ```
-ign topic -e -t /model/green_box/sensor/mic_1/detection
+gz topic -e -t /model/green_box/sensor/mic_1/detection
 ```
 
 You'll notice an output that looks like the following:
@@ -142,7 +142,7 @@ Logical audio sources can be started/stopped manually through Gazebo services.
 To see which services to call in order to start/stop a service, open a new terminal and run the following command (make sure the simulator is still running):
 
 ```
-ign service -l
+gz service -l
 ```
 
 If you look through the list of available services, you should see the following audio source services (the `_1` suffix is the ID assigned to the sources in the SDF):
@@ -158,7 +158,7 @@ Let's start the source attached to `blue_box`.
 This can be done by running the following command, which calls the "play" service for the source attached to `blue_box`:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/play --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
+gz service -s /model/blue_box/sensor/source_1/play --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look back at the terminal that is displaying the output of `green_box`'s microphone detections, we can see that this microphone is detecting audio from `blue_box`'s source (we see `blue_box` as a part of the `key` field):
@@ -187,7 +187,7 @@ Move `blue_box` back towards its original position, until you see detection mess
 Now, go ahead and stop `blue_box`'s source by running the following command:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/stop --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
+gz service -s /model/blue_box/sensor/source_1/stop --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look at the output for either microphone topic, you'll notice that no new messages are being published, which makes sense since no audio sources are currently playing.

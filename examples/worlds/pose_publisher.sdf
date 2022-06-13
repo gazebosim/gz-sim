@@ -4,7 +4,7 @@
 
   Try listening to topic:
 
-    ign topic -e -t "/model/double_pendulum_with_base/pose"
+    gz topic -e -t "/model/double_pendulum_with_base/pose"
 -->
 <sdf version="1.6">
   <world name="pose_publisher">

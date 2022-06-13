@@ -17,7 +17,7 @@ loader.
 
 2. Run the world using
 ```
-ign gazebo -v 4 -s -r --iterations 1 WORLD_FILE_NAME
+gz sim -v 4 -s -r --iterations 1 WORLD_FILE_NAME
 ```
 
 3. A subdirectory, named after the world, has been created in the current working directory. Within this subdirectory is the mesh and materials for the world.

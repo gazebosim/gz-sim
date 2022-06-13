@@ -21,7 +21,7 @@ This will generate the `external_ecm` executable under `build`.
 
 Start a simulation, for example:
 
-    ign gazebo shapes.sdf
+    gz sim shapes.sdf
 
 On another terminal, run the `external_ecm` executable, passing the name of the
 running world you want to inspect:

@@ -19,9 +19,9 @@ file(GENERATE
   INPUT  "${cmd_script_configured}")
 
 # Install the ruby command line library in an unversioned location.
-install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
+install(FILES ${cmd_script_generated} DESTINATION lib/ruby/gz)
 
-set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
+set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate a configuration file.
 # Note that the major version of the library is included in the name.
@@ -51,10 +51,10 @@ file(GENERATE
   OUTPUT "${cmd_model_script_generated}"
   INPUT  "${cmd_model_script_configured}")
 
-install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/ignition)
+install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/gz)
 
 # Used for the installed version.
-set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdmodel${PROJECT_VERSION_MAJOR}")
+set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
 
 set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
 configure_file(
@@ -68,7 +68,7 @@ install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_IN
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdgazebo0.rb
-set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
 # Set the library_location variable to the relative path to the library file
@@ -86,7 +86,7 @@ file(GENERATE
 
 # Used only for internal testing.
 set(gz_library_path
-  "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
+  "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate a configuration file for internal testing.
 # Note that the major version of the library is included in the name.
@@ -98,7 +98,7 @@ configure_file(
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
-set(cmd_model_ruby_test_dir "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition")
+set(cmd_model_ruby_test_dir "${CMAKE_BINARY_DIR}/test/lib/ruby/gz")
 set(cmd_model_script_generated_test "${cmd_model_ruby_test_dir}/cmdmodel${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_model_script_configured_test "${cmd_model_script_generated_test}.configured")
 

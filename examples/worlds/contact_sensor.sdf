@@ -5,7 +5,7 @@ Gazebo contact sensor example
 
 Run the following to print out contacts,
 
-  ign topic -e -t "/contact_example"
+  gz topic -e -t "/contact_example"
 -->
 
   <world name="contact_sensor">

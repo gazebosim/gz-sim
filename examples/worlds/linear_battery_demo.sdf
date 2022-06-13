@@ -6,27 +6,27 @@
 
   It's recommended to run this demo at a high RTF, so it's faster to observe the battery drain:
 
-      ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+      gz sim -v 4 linear_battery_demo.sdf -z 1000000
 
   Move both vehicles:
 
-      ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
-      ign topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
 
   Listen to battery state of charge:
-      ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
+      gz topic -e -t /model/vehicle_blue/battery/linear_battery/state
 
   Recharge the battery using a service (default):
-      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
+      gz service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
 
   Recharge the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m gz.msgs.Boolean -p 'data:true'
+      gz topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m gz.msgs.Boolean -p 'data:true'
 
   Stop recharging the battery using a service (default):
-      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
+      gz service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
 
   Stop recharging the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m gz.msgs.Boolean -p 'data:true'
+      gz topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m gz.msgs.Boolean -p 'data:true'
 
   After the battery runs out, no force is applied to the joints in the blue vehicle.
   It eventually comes to a stop due to friction in its joints. Had there been no joint friction,

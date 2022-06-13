@@ -4,7 +4,7 @@
   a retro value of ~ 500
 
   You can echo lidar messages using:
-    ign topic -e -t /lidar
+    gz topic -e -t /lidar
   and see the intensities of the points corresponding to the blue box filled
   with ~ 500 values
 -->

@@ -5,7 +5,7 @@ This example helps illustrate the interaction of the MinimalScene with other GUI
 
 1. Load this world
 
-        ign gazebo empty_gui.sdf
+        gz sim empty_gui.sdf
 
     The entire screen will be grey, because there's no scene manager populating it with
 

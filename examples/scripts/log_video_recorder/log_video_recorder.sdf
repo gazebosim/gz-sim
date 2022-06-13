@@ -4,7 +4,7 @@
 
   This world is to be used with the log playback and log video recorder system.
   Change the log playback path to the directory containing state.tlog before
-  launching the world. Videos will be created in the directory where ign gazebo
+  launching the world. Videos will be created in the directory where gz sim
   is run. A string message will be published to /log_video_recorder/status when
   recording is finished.
 -->

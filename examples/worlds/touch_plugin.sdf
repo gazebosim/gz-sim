@@ -7,7 +7,7 @@ least one link on the model on which this plugin is attached.
 The plugin's parameters are documented in src/systems/touchplugin/TouchPlugin.hh
 
 If the plugin is not enabled by default send this command to enable
-  ign service -s /white_touches_only_green/enable \
+  gz service -s /white_touches_only_green/enable \
   --reqtype gz.msgs.Boolean \
   --reptype gz.msgs.Empty \
   --timeout 3000 \
@@ -15,7 +15,7 @@ If the plugin is not enabled by default send this command to enable
 
 The output of the plugin is via
 
-  ign topic -e -t /white_touches_only_green/touched
+  gz topic -e -t /white_touches_only_green/touched
 
 -->
 

@@ -68,7 +68,7 @@ For the example above, you can load it like this:
 Alternatively, you can choose a plugin from the command line using the
 `--physics-engine` option, for example:
 
-`ign gazebo --physics-engine CustomEngine`
+`gz sim --physics-engine CustomEngine`
 
 ### From C++ API
 

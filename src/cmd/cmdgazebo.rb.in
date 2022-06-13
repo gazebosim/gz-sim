@@ -39,10 +39,10 @@ COMMON_OPTIONS =
                "                                                    \n"        +
                '  --versions                 Show the available versions.'
 
-COMMANDS = { 'gazebo' =>
+COMMANDS = { 'sim' =>
   "Run and manage Gazebo simulations.                                              \n"\
   "                                                                                \n"\
-  "  ign gazebo [options] [file]                                                   \n"\
+  "  gz sim [options] [file]                                                       \n"\
   "                                                                                \n"\
   "                                                                                \n"\
   "Available Options:                                                              \n"\
@@ -118,49 +118,49 @@ COMMANDS = { 'gazebo' =>
   "                               The default verbosity is 1, use -v without       \n"\
   "                               arguments for level 3.                           \n"\
   "\n"\
-  "  --gui-config [arg]           Gazebo GUI configuration file to load.         \n"\
+  "  --gui-config [arg]           Gazebo GUI configuration file to load.           \n"\
   "                               If no config is given, the configuration in      \n"\
   "                               the SDF file is used. And if that's not          \n"\
   "                               provided, the default installed config is        \n"\
   "                               used.                                            \n"\
   "\n"\
-  "  --physics-engine [arg]       Gazebo Physics engine plugin to load.          \n"\
+  "  --physics-engine [arg]       Gazebo Physics engine plugin to load.            \n"\
   "                               Gazebo will use DART by default.                 \n"\
   "                               (ignition-physics-dartsim-plugin)                \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               GZ_SIM_PHYSICS_ENGINE_PATH.                  \n"\
+  "                               GZ_SIM_PHYSICS_ENGINE_PATH.                      \n"\
   "\n"\
-  "  --render-engine [arg]        Gazebo Rendering engine plugin to load for     \n"\
+  "  --render-engine [arg]        Gazebo Rendering engine plugin to load for       \n"\
   "                               both the server and the GUI. Gazebo will use     \n"\
   "                               OGRE2 by default. (ogre2)                        \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                       \n"\
   "\n"\
-  "  --render-engine-gui [arg]    Gazebo Rendering engine plugin to load for     \n"\
+  "  --render-engine-gui [arg]    Gazebo Rendering engine plugin to load for       \n"\
   "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                       \n"\
   "\n"\
-  "  --render-engine-server [arg] Gazebo Rendering engine plugin to load for     \n"\
+  "  --render-engine-server [arg] Gazebo Rendering engine plugin to load for       \n"\
   "                               the server. Gazebo will use OGRE2 by default.    \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                       \n"\
   "\n"\
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
   "  -z [arg]                     Update rate in Hertz.                            \n"\
   "\n"+
   COMMON_OPTIONS + "\n\n" +
-  "Environment variables:                                                  \n"\
-  "  GZ_SIM_RESOURCE_PATH         Colon separated paths used to locate      \n"\
-  " resources such as worlds and models.                                 \n\n"\
-  "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
-  " locate system plugins.                                               \n\n"\
-  "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
-  "  GZ_GUI_PLUGIN_PATH           Colon separated paths used to locate GUI       \n"\
-  " plugins.                                                               \n"\
+  "Environment variables:                                                          \n"\
+  "  GZ_SIM_RESOURCE_PATH         Colon separated paths used to locate             \n"\
+  " resources such as worlds and models.                                         \n\n"\
+  "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to                    \n"\
+  " locate system plugins.                                                       \n\n"\
+  "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file.             \n\n"\
+  "  GZ_GUI_PLUGIN_PATH           Colon separated paths used to locate GUI         \n"\
+  " plugins.                                                                       \n"\
 }
 
 #
@@ -225,6 +225,12 @@ class Cmd
     }
 
     usage = COMMANDS[args[0]]
+
+    # TODO(CH3): Deprecated. Remove on tock.
+    # Print deprecation warning
+    if args[0] == 'gazebo'
+      puts 'The `gazebo` verb is deprecated. Please use `sim` instead.'
+    end
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = usage
@@ -311,7 +317,7 @@ class Cmd
 
     # SDF file as positional argument
     filename = args.pop
-    if filename and filename != 'gazebo'
+    if filename and filename != 'sim' and filename != 'gazebo'
       options['file'] = filename
     end
 
@@ -459,7 +465,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       if options['server'] == 0 && options['gui'] == 0
 
         if plugin.end_with? ".dylib"
-          puts "`ign gazebo` currently only works with the -s argument on macOS.
+          puts "`gz sim` currently only works with the -s argument on macOS.
 See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
@@ -467,7 +473,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
-          Process.setproctitle('ign gazebo server')
+          Process.setproctitle('gz sim server')
           Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['levels'], options['network_role'],
             options['network_secondaries'], options['record'],
@@ -482,7 +488,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
-          Process.setproctitle('ign gazebo gui')
+          Process.setproctitle('gz sim gui')
           Importer.runGui(options['gui_config'], options['render_engine_gui'])
         end
 
@@ -516,7 +522,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
       # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dylib"
-          puts "`ign gazebo` currently only works with the -s argument on macOS.
+          puts "`gz sim` currently only works with the -s argument on macOS.
 See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end

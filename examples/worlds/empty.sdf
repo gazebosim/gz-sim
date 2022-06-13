@@ -2,7 +2,7 @@
 <!--
   Try inserting a model:
 
-ign service -s /world/empty/create \
+gz service -s /world/empty/create \
 --reqtype gz.msgs.EntityFactory \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -26,7 +26,7 @@ ign service -s /world/empty/create \
 
   Then try deleting it:
 
-ign service -s /world/empty/remove \
+gz service -s /world/empty/remove \
 --reqtype gz.msgs.Entity \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -34,7 +34,7 @@ ign service -s /world/empty/remove \
 
   Try inserting a light:
 
-ign service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 300 --req 'sdf: '\
+gz service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.msgs.Boolean --timeout 300 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
 '<sdf version=\"1.6\">'\
 '<light name=\"spawned_light\" type=\"directional\">'\
@@ -44,7 +44,7 @@ ign service -s /world/empty/create --reqtype gz.msgs.EntityFactory --reptype gz.
 
   Then try deleting it:
 
-ign service -s /world/empty/remove \
+gz service -s /world/empty/remove \
 --reqtype gz.msgs.Entity \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -52,7 +52,7 @@ ign service -s /world/empty/remove \
 
   Insert a light using a message and allow_renaming:
 
-ign service -s /world/empty/create \
+gz service -s /world/empty/create \
 --reqtype gz.msgs.EntityFactory \
 --reptype gz.msgs.Boolean \
 --timeout 300 \

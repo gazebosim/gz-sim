@@ -50,11 +50,11 @@ that can be controlled using a joystick. You can run it as follows:
         cd examples/standalone/joy_to_twist
         ./joy_to_twist ../joy_to_twist.sdf
 
-1. Finally, on a 3rd terminal, run `ign gazebo` with the vehicle that will
+1. Finally, on a 3rd terminal, run `gz sim` with the vehicle that will
    consume the twist messages:
 
         cd examples/worlds
-        ign gazebo -v 4 diff_drive.sdf
+        gz sim -v 4 diff_drive.sdf
 
 1. Now hold your joystick's A button (or equivalent) and move the directional
    stick to control the vehicle.

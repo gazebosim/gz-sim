@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
   You can echo lidar messages using:
-    ign topic -e -t /lidar
+    gz topic -e -t /lidar
 -->
 <sdf version="1.6">
   <world name="visualize_lidar_world">
