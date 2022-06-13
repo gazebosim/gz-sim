@@ -41,7 +41,7 @@ extern "C" char *gzSimVersion()
 }
 
 //////////////////////////////////////////////////
-extern "C" char *gazeboVersionHeader()
+extern "C" char *simVersionHeader()
 {
   return strdup(GZ_SIM_VERSION_HEADER);
 }

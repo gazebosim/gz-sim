@@ -25,7 +25,7 @@ extern "C" char *gzSimVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
-extern "C" char *gazeboVersionHeader();
+extern "C" char *simVersionHeader();
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4

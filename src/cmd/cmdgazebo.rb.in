@@ -377,8 +377,8 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       Importer.extern 'const char *findFuelResource(const char *)'
 
       if options.key?('version')
-        Importer.extern 'char *gazeboVersionHeader()'
-        puts Importer.gazeboVersionHeader.to_s
+        Importer.extern 'char *simVersionHeader()'
+        puts Importer.simVersionHeader.to_s
         exit
       end
 
