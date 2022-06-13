@@ -13,13 +13,13 @@ a simulation.
 There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
-2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
+2. File path defined by the `GZ_SIM_SERVER_CONFIG_PATH` environment variable.
 3. The default configuration file at `$HOME/.gz/sim/<#>/server.config` \*,
    where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
-`IGN_GAZEBO_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
+`GZ_SIM_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
 file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
@@ -254,7 +254,7 @@ system:
 
 And point the environment variable to that file:
 
-`export IGN_GAZEBO_SERVER_CONFIG_PATH=$HOME/.gz/sim/rendering_sensors_server.config`
+`export GZ_SIM_SERVER_CONFIG_PATH=$HOME/.gz/sim/rendering_sensors_server.config`
 
 Now when we launch the simulation again, refreshing the image display will
 show the camera topic, and we can see the camera data.
@@ -263,4 +263,3 @@ the background color is the default grey, instead of the blue color set on the
 GUI `GzScene` plugin.
 
 @image html files/server_config/camera_env.gif
-

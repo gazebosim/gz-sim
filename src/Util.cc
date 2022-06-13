@@ -18,6 +18,10 @@
 #include <gz/common/Filesystem.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
@@ -383,6 +387,19 @@ std::vector<std::string> resourcePaths()
   {
     gzPaths = common::Split(gzPathCStr, ':');
   }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else
+  {
+    gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
+    if (gzPathCStr && *gzPathCStr != '\0')
+    {
+      gzwarn << "Using deprecated environment variable ["
+             << kResourcePathEnvDeprecated
+             << "] to find resources. Please use ["
+             << kResourcePathEnv <<" instead." << std::endl;
+      gzPaths = common::Split(gzPathCStr, ':');
+    }
+  }
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -419,6 +436,19 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, ':');
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else
+  {
+    gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
+    if (gzPathCStr && *gzPathCStr != '\0')
+    {
+      gzwarn << "Using deprecated environment variable ["
+             << kResourcePathEnvDeprecated
+             << "] to find resources. Please use ["
+             << kResourcePathEnv <<" instead." << std::endl;
+      gzPaths = common::Split(gzPathCStr, ':');
+    }
   }
 
   // Add new paths to gzPaths
@@ -463,6 +493,9 @@ void addResourcePaths(const std::vector<std::string> &_paths)
     gzPathsStr += ':' + path;
 
   gz::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  gz::common::setenv(kResourcePathEnvDeprecated.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call

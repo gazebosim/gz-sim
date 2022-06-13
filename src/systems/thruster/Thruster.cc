@@ -21,6 +21,9 @@
 #include <gz/msgs/double.pb.h>
 
 #include <gz/math/Helpers.hh>
+#include <gz/math/PID.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
 #include <gz/plugin/Register.hh>
 

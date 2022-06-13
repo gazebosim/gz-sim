@@ -48,10 +48,10 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   common::Console::SetVerbosity(4);
   gzdbg << "Start test" << std::endl;
 
-  gz::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
   gz::common::setenv("SDF_PATH", "");
-  gz::common::setenv("IGN_FILE_PATH", "");
+  gz::common::setenv("GZ_FILE_PATH", "");
   gzdbg << "Environment set" << std::endl;
 
   transport::Node node;
@@ -101,7 +101,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   EXPECT_TRUE(pathsCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "GZ_FILE_PATH"})
   {
     gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
@@ -147,7 +147,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   EXPECT_TRUE(topicCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "GZ_FILE_PATH"})
   {
     gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
@@ -167,4 +167,3 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
     EXPECT_EQ("/new/path", paths[3]);
   }
 }
-

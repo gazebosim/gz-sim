@@ -41,7 +41,7 @@ class ComponentTest : public InternalFixture<::testing::Test>
   protected: void SetUp() override
   {
     InternalFixture::SetUp();
-    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
+    common::setenv("GZ_DEBUG_COMPONENT_FACTORY", "true");
   }
 };
 
