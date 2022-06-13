@@ -322,7 +322,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
 
-
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
 

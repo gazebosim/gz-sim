@@ -178,10 +178,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // If we have reached this point and no world systems have been loaded, then
   // load a default set of systems.
-  // if (this->systemMgr->TotalByEntity(
-  //     worldEntity(this->entityCompMgr)).empty())
   if (_world->Plugins().empty() && this->serverConfig.Plugins().empty())
   {
+    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
