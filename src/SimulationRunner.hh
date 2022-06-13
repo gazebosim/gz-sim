@@ -280,11 +280,12 @@ namespace gz
 
       /// \brief Get the step size;
       /// \return Step size.
-      public: const gz::math::clock::duration &StepSize() const;
+      public: const std::chrono::steady_clock::duration &StepSize() const;
 
       /// \brief Set the step size;
       /// \param[in] _step Step size.
-      public: void SetStepSize(const gz::math::clock::duration &_step);
+      public: void SetStepSize(
+          const std::chrono::steady_clock::duration &_step);
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -456,7 +457,7 @@ namespace gz
       private: gz::math::Stopwatch realTimeWatch;
 
       /// \brief Step size
-      private: gz::math::clock::duration stepSize{10ms};
+      private: std::chrono::steady_clock::duration stepSize{10ms};
 
       /// \brief Desired real time factor
       private: double desiredRtf{1.0};

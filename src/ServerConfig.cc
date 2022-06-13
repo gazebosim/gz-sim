@@ -873,8 +873,21 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   // 1. Check contents of environment variable
   std::string envConfig;
   bool configSet = gz::common::env(sim::kServerConfigPathEnv,
-                                         envConfig,
-                                         true);
+                                   envConfig,
+                                   true);
+
+  if (!configSet)
+  {
+    configSet = gz::common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
+                                envConfig,
+                                true);
+    if (configSet)
+    {
+      gzwarn << "Config path found using deprecated environment variable "
+             << "[IGN_GAZEBO_SERVER_CONFIG_PATH]. Please use "
+             << "[GZ_SIM_SERVER_CONFIG_PATH] instead" << std::endl;
+    }
+  }
 
   if (configSet)
   {

@@ -319,7 +319,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 {
   std::string path =
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models");
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH", path);
+  common::setenv("GZ_SIM_RESOURCE_PATH", path);
 
   this->LoadWorld("test/worlds/model_nested_include.sdf");
 

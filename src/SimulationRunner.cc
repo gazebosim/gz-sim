@@ -1354,13 +1354,14 @@ SimulationRunner::UpdatePeriod() const
 }
 
 /////////////////////////////////////////////////
-const gz::math::clock::duration &SimulationRunner::StepSize() const
+const std::chrono::steady_clock::duration &SimulationRunner::StepSize() const
 {
   return this->stepSize;
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::SetStepSize(const gz::math::clock::duration &_step)
+void SimulationRunner::SetStepSize(
+    const std::chrono::steady_clock::duration &_step)
 {
   this->stepSize = _step;
 }

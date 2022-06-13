@@ -214,7 +214,7 @@ class gz::sim::RenderUtilPrivate
   /// \brief Scene background color. This is optional because a <scene> is
   /// always present, which has a default background color value. This
   /// backgroundColor variable is used to override the <scene> value.
-  public: std::optional<math::Color> backgroundColor = math::Color::Black;
+  public: std::optional<math::Color> backgroundColor;
 
   /// \brief Ambient color. This is optional because an <scene> is always
   /// present, which has a default ambient light value. This ambientLight
@@ -2504,7 +2504,27 @@ void RenderUtil::Init()
     return;
 
   gz::common::SystemPaths pluginPath;
-  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+
+  // TODO(CH3): Deprecated. Remove on tock.
+  std::string result;
+  if (!gz::common::env(kRenderPluginPathEnv, result))
+  {
+    // Try deprecated env var if proper env var not populated
+    if (gz::common::env(kRenderPluginPathEnvDeprecated, result))
+    {
+      gzwarn << "Finding plugins using deprecated IGN_ prefixed environment "
+             << "variable [" << kRenderPluginPathEnvDeprecated
+             << "]. Please use [" << kRenderPluginPathEnv
+             << "] instead." << std::endl;
+      pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+    }
+  }
+  else
+  {
+    // Preserve this one.
+    pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+  }
+
   rendering::setPluginPaths(pluginPath.PluginPaths());
 
   std::map<std::string, std::string> params;

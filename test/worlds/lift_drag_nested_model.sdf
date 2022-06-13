@@ -76,7 +76,7 @@
         </visual>
       </link>
 
-      <!-- The IGN_GAZEBO_RESOURCE_PATH environment variable must be set properly for these includes to work -->
+      <!-- The GZ_SIM_RESOURCE_PATH environment variable must be set properly for these includes to work -->
       <include>
         <uri>file://lift_drag_wing</uri>
         <name>wing_1</name>
