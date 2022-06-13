@@ -27,6 +27,8 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/fuel_tools/WorldIdentifier.hh>
+#include <ignition/msgs.hh>
+#include <ignition/transport.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -123,9 +125,44 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  // ignition::transport::Node node;
+  // bool quickSetupClosed{false};
+  // std::string startingWorld{""};
+  // std::condition_variable cv;
+  // std::mutex mutex;
+
+  // // Create a subscriber just so we can check when the message has propagated
+  // std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
+  //     [&quickSetupClosed, &mutex](const auto &_msg)
+  //     {
+  //       ignerr << " Recived " << std::endl; 
+  //       quickSetupClosed = true;
+  //     };
+  
+  // std::thread waiting([&node, &topicCb, &quickSetupClosed, &mutex]()
+  // {
+  //   ignerr<< "hellow from thread";
+  //   node.Subscribe("/gazebo/starting_world", topicCb);
+    
+  //   while (!quickSetupClosed)
+  //   {
+  //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  //     ignerr<< "Not DONEEEE" << std::endl;
+  //   }
+
+  //   ignerr<< "DonE!!!!!!!!!!!! out" << std::endl;
+
+  // });
+  
+
+  // std::unique_lock<std::mutex> lk(waitMutex);
+  // waitConditionVariable.wait(lk, [quickSetupClosed]{return quickSetupClosed==true;});
+  // quickSetupClosed = true;
+  // if (!quickSetupClosed)
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   // Path for logs
+  ignition::gazebo::ServerConfig serverConfig;
   std::string recordPathMod = serverConfig.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates

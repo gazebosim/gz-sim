@@ -2,6 +2,7 @@
   <qresource prefix="Gazebo/">
     <file>World.qml</file>
     <file>QuickSetup.qml</file>
+    <file>start_dialog.qml</file>
     <file>GazeboDrawer.qml</file>
     <file>images/actor.png</file>
     <file>images/collision.png</file>
