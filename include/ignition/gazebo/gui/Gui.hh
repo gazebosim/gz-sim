@@ -67,7 +67,8 @@ namespace gui
 
   IGNITION_GAZEBO_GUI_VISIBLE
   void createQuickSetup(
-      int &_argc, char **_argv);
+      int &_argc, char **_argv, const char *_guiConfig,
+      const char *_defaultGuiConfig = nullptr);
 
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

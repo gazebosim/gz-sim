@@ -45,7 +45,8 @@ namespace gui
 
 //////////////////////////////////////////////////
 void createQuickSetup(
-    int &_argc, char **_argv)
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig)
 {
   ignition::transport::Node node;
   ignition::common::SignalHandler sigHandler;
@@ -55,8 +56,7 @@ void createQuickSetup(
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
-         << std::endl;
+  ignmsg << "Ignition Gazebo Quick setup menu" << std::endl;
 
   // Set auto scaling factor for HiDPI displays
   if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
@@ -65,6 +65,36 @@ void createQuickSetup(
   }
 
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
+
+  app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
+  std::string defaultGuiConfigName = "gui.config";
+
+  // Set default config file for Gazebo
+  std::string defaultConfig;
+  if (nullptr == _defaultGuiConfig)
+  {
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    // Quick setup menu is not shown during playback
+    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
+    {
+      return;
+    }
+    ignition::common::env(IGN_HOMEDIR, defaultConfig);
+    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
+        "gazebo", defaultGuiConfigName);
+  }
+  else
+  {
+    defaultConfig = _defaultGuiConfig;
+  }
+
+  app->SetDefaultConfigPath(defaultConfig);
+
+  // TODO (mh) show quick setup by default  
+  // if (!app->ShowQuickSetup()){
+  //   return;
+  // }
 
   auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
   quickSetupHandler->setParent(app->Engine());
@@ -168,10 +198,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   app->SetDefaultConfigPath(defaultConfig);
-
-  // After dialog is shut, display the main window
-  igndbg << "Dialog closed, open main window" << std::endl;
-
 
   if (!app->InitializeMainWindow())
       ignerr << "Failed to initialize main window." << std::endl;
@@ -353,7 +379,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  gazebo::gui::createQuickSetup(_argc, _argv);
+  gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig);
   auto mainApp = gazebo::gui::createGui(_argc, _argv, _guiConfig);
   if (nullptr != mainApp)
   {
