@@ -53,6 +53,7 @@ set(tests
   rf_comms.cc
   recreate_entities.cc
   reset.cc
+  reset_detachable_joint.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
