@@ -40,7 +40,13 @@ import Qt.labs.folderlistmodel 2.1
         console.log(fileURL_)
         console.log(fileName)
         console.log(fileIsDir)
-        TmpIface.OnLoadWorldFromDir(fileURL)
+        QuickSetupHandler.SetStartingWorld(fileURL_)
+        quickSetup.close()
+      }
+
+      function getWorlds(){
+        console.log(QuickSetupHandler.getWorldsPath())
+        return "file:///home/m/repos/citadel/install/share/ignition/ignition-gazebo3/worlds/"
       }
 
       function getThumbnail(fileURL, fileIsDir){
@@ -76,20 +82,35 @@ import Qt.labs.folderlistmodel 2.1
                     showDirs: true
                     showFiles: true
                     showDirsFirst: true
-                    folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/"
+                    // folder: quickSetup.getWorlds()
+                    folder: "file:///home/m/repos/citadel/install/share/ignition/ignition-gazebo3/worlds/"
                     nameFilters: [ "*.sdf" ]
                 }
 
-                model: folderModel
-                delegate: World {
-                  width: parent.width
-                  height: 100
-                  id: filePath
-                  // text: filePath
-                  text: fileName
-                  source: quickSetup.getThumbnail(fileURL, fileIsDir)
-                  onClicked: quickSetup.loadWorld(fileName, fileURL, fileIsDir)
+                // model: folderModel
+                // delegate: World {
+                //   width: parent.width
+                //   height: 100
+                //   id: filePath
+                //   // text: filePath
+                //   text: fileName
+                //   source: QuickSetupHandler.getThumbnail(fileURL, fileIsDir)
+                //   onClicked: quickSetup.loadWorld(fileName, fileURL, fileIsDir)
+                // }
+
+              model: folderModel
+              delegate: Button {
+                width: parent.width
+                height: 50
+                text: fileName
+                onClicked: {
+                  quickSetup.loadWorld(fileName, fileURL, fileIsDir)
                 }
+                background: Rectangle {
+                    color: fileIsDir ? "orange" : "gray"
+                    border.color: "black"
+                }
+            }
 
                 ScrollIndicator.vertical: ScrollIndicator {
                   active: true;
@@ -102,12 +123,13 @@ import Qt.labs.folderlistmodel 2.1
           }
           Column{
             CheckBox {
+              id: checkBox
               text: "Don't show again"
               Layout.fillWidth: true
-              // checked: sdfGenConfig.saveFuelModelVersion
-              onClicked: {
-                sdfGenConfig.saveFuelModelVersion = checked
-            }
+              checked: false
+            //   onClicked: {
+            //     QuickSetupHandler.onShowAgain(checkBox.checked);
+            // }
           }
           Button {
             id: closeButton
@@ -118,7 +140,7 @@ import Qt.labs.folderlistmodel 2.1
             Layout.leftMargin: 10
 
             onClicked: {
-              quickSetup.close();
+              QuickSetupHandler.OnSkip();
             }
 
             Material.background: Material.primary

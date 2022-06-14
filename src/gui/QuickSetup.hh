@@ -42,17 +42,33 @@ class QuickSetupHandler : public QObject
 
   /// \brief Get version information
   /// \return Version information in rich text format
-  Q_INVOKABLE QString getVersionInformation();
+  Q_INVOKABLE std::string getVersionInformation();
+
+  /// \brief Get worlds path
+  /// \return worlds directory path
+  Q_INVOKABLE std::string getWorldsPath();
 
   /// \brief Function called from QML when user clicks on a link
   /// \param[in] _url Url to web page.
-  Q_INVOKABLE void openURL(QString _url);
+  Q_INVOKABLE void SetStartingWorld(QString _url);
+
+  std::string GetStartingWorld();
+  
+  /// \brief Callback in Qt thread when skip button is clicked.
+  Q_INVOKABLE void OnSkip();
+
+  /// \brief Callback when checkbox is clicked.
+  /// \param[in] _checked indicates show quick setup dialog again or not
+  Q_INVOKABLE void OnShowAgain(bool _checked);
 
   /// \brief Version information and links to online resources
   private: std::string aboutText;
 
-  /// \brief Callback in Qt thread when skip button is clicked.
-  public: Q_INVOKABLE void OnSkip();
+  private: std::string worldsPath;
+
+  private: bool showAgain;
+
+  private: std::string startingWorld;
 };
 }
 }
