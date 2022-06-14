@@ -155,8 +155,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       // from a plugin, because there isn't access to the constructor.
       if (nullptr != system.systemShared)
       {
-        ignwarn << "Systems not created from plugins cannot be correctly "
-                << " reset without implementing ISystemReset interface.\n";
+        ignwarn << "System created in-memory without ISystemReset detected: "
+                << system.name << " reset may not work correctly\n";
         continue;
       }
       PluginInfo info = {
