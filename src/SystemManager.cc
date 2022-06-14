@@ -137,7 +137,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
   std::vector<PluginInfo> pluginsToBeLoaded;
 
-  for (auto& system : this->systems)
+  for (auto &system : this->systems)
   {
     if (nullptr != system.reset)
     {
@@ -157,9 +157,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         ignwarn << "Systems not created from plugins cannot be correctly "
                 << " reset without implementing ISystemReset interface.\n";
-          continue;
+        continue;
       }
-
       PluginInfo info = {
         system.parentEntity, system.fname, system.name,
         system.configureSdf->Clone()
@@ -174,7 +173,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // Load plugins which do not implement reset after clearing this->systems
   // to ensure the previous instance is destroyed before the new one is created
   // and configured.
-  for (const auto &pluginInfo : pluginsToBeLoaded) {
+  for (const auto &pluginInfo : pluginsToBeLoaded)
+  {
     this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name,
         pluginInfo.sdf);
   }

@@ -106,7 +106,7 @@ namespace gz
       /// \param[in] _ecm Version of the ECM reset to an initial state
       public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
-      /// \brief Get an vector of all systems implementing "Configure"
+      /// \brief Get a vector of all systems implementing "Configure"
       /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
