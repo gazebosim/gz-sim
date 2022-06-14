@@ -190,7 +190,7 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   EXPECT_GT(flags.size(), 0u);
 
   // Match each flag in script output with help message
-  for (std::string flag : flags)
+  for (const auto &flag : flags)
   {
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
   }
@@ -221,7 +221,7 @@ TEST(CmdLine, ModelHelpVsCompletionFlags)
   EXPECT_GT(flags.size(), 0u);
 
   // Match each flag in script output with help message
-  for (std::string flag : flags)
+  for (const auto &flag : flags)
   {
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
   }
