@@ -40,10 +40,6 @@ class QuickSetupHandler : public QObject
   /// \brief Constructor
   public: QuickSetupHandler();
 
-  /// \brief Get version information
-  /// \return Version information in rich text format
-  Q_INVOKABLE std::string getVersionInformation();
-
   /// \brief Get worlds path
   /// \return worlds directory path
   Q_INVOKABLE std::string getWorldsPath();
@@ -60,9 +56,6 @@ class QuickSetupHandler : public QObject
   /// \brief Callback when checkbox is clicked.
   /// \param[in] _checked indicates show quick setup dialog again or not
   Q_INVOKABLE void OnShowAgain(bool _checked);
-
-  /// \brief Version information and links to online resources
-  private: std::string aboutText;
 
   private: std::string worldsPath;
 

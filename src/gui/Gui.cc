@@ -18,7 +18,6 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Filesystem.hh>
-#include <QProcess>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -119,7 +118,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUIv" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo GUI   v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
@@ -204,13 +203,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     ignerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
-  }
-
-  for (auto it = win->children().begin(); it != win->children().end(); ++it) {
-    // if the current index is needed:
-    // auto i = std::distance(v.begin(), it); 
-    ignwarn << "*it.objectName()" << std::endl;
-    // access element as *it
   }
 
   // Get list of worlds
