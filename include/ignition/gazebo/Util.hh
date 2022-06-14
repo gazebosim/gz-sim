@@ -155,8 +155,6 @@ namespace ignition
     std::string IGNITION_GAZEBO_VISIBLE asFullPath(const std::string &_uri,
         const std::string &_filePath);
 
-    std::string getFilesInDir(const std::string &_dirPath);
-  
     /// \brief Get resource paths based on latest environment variables.
     /// \return All paths in the IGN_GAZEBO_RESOURCE_PATH variable.
     std::vector<std::string> IGNITION_GAZEBO_VISIBLE resourcePaths();

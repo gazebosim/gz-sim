@@ -388,43 +388,6 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
 }
 
 //////////////////////////////////////////////////
-std::string getFilesInDir(const std::string &_dirPath)
-{
-  // No path, return empty
-  if (_dirPath.empty())
-  {
-    return "";
-  }
-
-#ifdef __APPLE__
-  // const std::string absPrefix = "/";
-  // // Not a relative path, return unmodified
-  // if (_uri.find("://") != std::string::npos ||
-  //     _uri.compare(0, absPrefix.size(), absPrefix) == 0)
-  // {
-  //   return _uri;
-  // }
-  for (const auto & entry : directory_iterator(_dirPath))
-    std::cout << entry.path() << std::endl;
-#else
-  // Not a relative path, return unmodified
-  #if (defined(_MSVC_LANG))
-    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-      using namespace std::filesystem;
-    #else
-      using namespace std::experimental::filesystem;
-    #endif
-  #elif __GNUC__ < 8
-    using namespace std::experimental::filesystem;
-  #else
-    using namespace std::filesystem;
-  #endif
-  for (const auto & entry : directory_iterator(_dirPath))
-    std::cout << entry.path() << std::endl;
-#endif
-}
-
-//////////////////////////////////////////////////
 std::vector<std::string> resourcePaths()
 {
   std::vector<std::string> gzPaths;
