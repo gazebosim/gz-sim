@@ -454,10 +454,13 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 }
 
 //////////////////////////////////////////////////
-void LogPlayback::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
+void LogPlayback::Reset(const UpdateInfo &, EntityComponentManager &)
 {
-  LogPlaybackPrivate::started = false;
-  this->dataPtr->Start(_ecm);
+  // In this case, Reset is a noop
+  // LogPlayback already has handling for jumps in time as part of the 
+  // Update method.
+  // Leaving this function implemented but empty prevents the SystemManager 
+  // from trying to destroy and recreate the plugin.
 }
 
 //////////////////////////////////////////////////
