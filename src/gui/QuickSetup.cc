@@ -39,10 +39,10 @@ QuickSetupHandler::QuickSetupHandler()
   // Worlds installed with ign-gazebo
   systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
 
-  worldsPath = "file://";
+  // TODO (mh) use Qt.resolvedUrl(filePath) instead of appending
+  // worldsPath = "file://";
   for (const std::string &filePath : systemPaths.FilePaths())
   {
-    ignerr << filePath << std::endl;
     if(filePath.find("world") !=std::string::npos){
       worldsPath += filePath;
     }
@@ -50,10 +50,10 @@ QuickSetupHandler::QuickSetupHandler()
 }
 
 /////////////////////////////////////////////////
-std::string QuickSetupHandler::getWorldsPath()
+QString QuickSetupHandler::getWorldsPath()
 {
-  ignerr << this->worldsPath; 
-  return this->worldsPath;
+  ignerr<< this->worldsPath;
+  return QString::fromUtf8(this->worldsPath.c_str());
 }
 
 std::string QuickSetupHandler::GetStartingWorld()

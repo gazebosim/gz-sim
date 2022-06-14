@@ -45,8 +45,7 @@ import Qt.labs.folderlistmodel 2.1
       }
 
       function getWorlds(){
-        console.log(QuickSetupHandler.getWorldsPath())
-        return "file:///home/m/repos/citadel/install/share/ignition/ignition-gazebo3/worlds/"
+        return "file://"+QuickSetupHandler.getWorldsPath()
       }
 
       function getThumbnail(fileURL, fileIsDir){
@@ -82,8 +81,7 @@ import Qt.labs.folderlistmodel 2.1
                     showDirs: true
                     showFiles: true
                     showDirsFirst: true
-                    // folder: quickSetup.getWorlds()
-                    folder: "file:///home/m/repos/citadel/install/share/ignition/ignition-gazebo3/worlds/"
+                    folder: quickSetup.getWorlds()
                     nameFilters: [ "*.sdf" ]
                 }
 

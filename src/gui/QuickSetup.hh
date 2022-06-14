@@ -42,7 +42,7 @@ class QuickSetupHandler : public QObject
 
   /// \brief Get worlds path
   /// \return worlds directory path
-  Q_INVOKABLE std::string getWorldsPath();
+  Q_INVOKABLE QString getWorldsPath();
 
   /// \brief Function called from QML when user clicks on a link
   /// \param[in] _url Url to web page.
