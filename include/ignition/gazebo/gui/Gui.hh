@@ -65,6 +65,10 @@ namespace gui
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
+  IGNITION_GAZEBO_GUI_VISIBLE
+  void createQuickSetup(
+      int &_argc, char **_argv);
+
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo

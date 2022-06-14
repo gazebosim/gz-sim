@@ -18,6 +18,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
 #include <ignition/common/Filesystem.hh>
+#include <QProcess>
 
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
@@ -44,10 +45,10 @@ namespace gui
 {
 
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
-    int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+void createQuickSetup(
+    int &_argc, char **_argv)
 {
+  ignition::transport::Node node;
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -64,8 +65,71 @@ std::unique_ptr<ignition::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  // Initialize Qt app
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
+
+  auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
+  quickSetupHandler->setParent(app->Engine());
+
+  auto dialog = new ignition::gui::Dialog();
+  dialog->QuickWindow();
+
+  auto context = new QQmlContext(app->Engine()->rootContext());
+  context->setContextProperty("QuickSetupHandler", quickSetupHandler);
+
+  std::string qmlFile("qrc:/Gazebo/QuickSetup.qml");
+
+  QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
+      QString(QString::fromStdString(qmlFile)));
+
+  auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
+  dialogItem->setParentItem(dialog->RootItem());
+
+  // Run qt application and show quick dialog
+  if (nullptr != app)
+  {
+    app->exec();
+    igndbg << "Shutting quick setup dialog" << std::endl;
+  }
+
+  // When the dialog is closes, publish the selected starting world path
+  ignition::transport::Node::Publisher startingWorldPub;
+  startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
+  msgs::StringMsg_V msg;
+  msg.add_data(quickSetupHandler->GetStartingWorld());
+  
+  if(startingWorldPub.ThrottledUpdateReady())
+  {
+    for (auto i = 0; i < 5; ++i)
+    {
+      startingWorldPub.Publish(msg);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+{
+  ignition::common::SignalHandler sigHandler;
+  bool sigKilled = false;
+  sigHandler.AddCallback([&](const int /*_sig*/)
+  {
+    sigKilled = true;
+  });
+
+  ignmsg << "Ignition Gazebo GUIv" << IGNITION_GAZEBO_VERSION_FULL
+         << std::endl;
+
+  // Set auto scaling factor for HiDPI displays
+  if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
+  {
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
+  }
+
+  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
+
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Temporary transport interface
@@ -74,9 +138,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
-
-  auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
-  quickSetupHandler->setParent(app->Engine());
 
   auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
@@ -108,39 +169,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   app->SetDefaultConfigPath(defaultConfig);
-  auto dialog = new ignition::gui::Dialog();
-  dialog->QuickWindow();
-
-  std::string qmlFile("qrc:/Gazebo/start_dialog.qml");
-  if (!QFile(QString::fromStdString(qmlFile)).exists())
-  {
-    ignerr << "Can't find [" << qmlFile
-           << "]. Are you sure it was added to the .qrc file?" << std::endl;
-  }
-  QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
-      QString(QString::fromStdString(qmlFile)));
-  if (dialogComponent.isError())
-  {
-    std::stringstream errors;
-    errors << "Failed to instantiate QML file [" << qmlFile << "]."
-           << std::endl;
-    for (auto error : dialogComponent.errors())
-    {
-      errors << "* " << error.toString().toStdString() << std::endl;
-    }
-    ignerr << errors.str();
-  }
-
-  auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create());
-  if (!dialogItem)
-  {
-    ignerr << "Failed to instantiate QML file [" << qmlFile << "]." << std::endl
-           << "Are you sure the file is valid QML? "
-           << "You can check with the `qmlscene` tool" << std::endl;
-  }
-
-  dialogItem->setParentItem(dialog->RootItem());
-  app->exec();
 
   // After dialog is shut, display the main window
   igndbg << "Dialog closed, open main window" << std::endl;
@@ -157,7 +185,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("TmpIface", tmp);
   context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
-  context->setContextProperty("QuickSetupHandler", quickSetupHandler);
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
@@ -328,53 +355,19 @@ std::unique_ptr<ignition::gui::Application> createGui(
       return nullptr;
     }
   }
-
-
-  // Create a subscriber just so we can check when the message has propagated
-  bool topicCalled{false};
-
-  // node.Advertise("/gazebo/starting_world", 1000, 5);
-  // ignerr << "Worlds advertised" << std::endl;
-
-  std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
-      [&topicCalled](const auto &_msg)
-      {
-        igndbg << " Recived FROM GUI " << std::endl; 
-        topicCalled = true;
-      };
-  node.Subscribe("/gazebo/starting_world", topicCb);
-
-  ignition::transport::Node::Publisher startingWorldPub;
-  startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
-  msgs::StringMsg_V msg;
-  msg.add_data("empty");
-  
-  if(startingWorldPub.ThrottledUpdateReady())
-  {
-    for (auto i = 0; i < 10; ++i)
-    {
-      startingWorldPub.Publish(msg);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      // False afterwards, because targeting 1 msg/second.
-      // EXPECT_FALSE(pub.ThrottledUpdateReady());
-
-      // Rate: 10 msgs/sec.
-    }
-  }
-  startingWorldPub.Publish(msg);
-
   return app;
 }
 
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
-  if (nullptr != app)
+  gazebo::gui::createQuickSetup(_argc, _argv);
+  auto mainApp = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  if (nullptr != mainApp)
   {
     // Run main window.
     // This blocks until the window is closed or we receive a SIGINT
-    // app->exec();
+    mainApp->exec();
     igndbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
