@@ -102,7 +102,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";

@@ -28,7 +28,7 @@ namespace sim
 {
 namespace python
 {
-void defineGazeboServer(pybind11::object module)
+void defineSimServer(pybind11::object module)
 {
   pybind11::class_<gz::sim::Server,
     std::shared_ptr<gz::sim::Server>>(module, "Server")

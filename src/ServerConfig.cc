@@ -596,7 +596,7 @@ ServerConfig::LogPlaybackPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "gz::sim::systems::LogPlayback";
-  auto pluginFilename = "ignition-gazebo-log-system";
+  auto pluginFilename = "gz-sim-log-system";
 
   sdf::ElementPtr playbackElem;
   playbackElem = std::make_shared<sdf::Element>();
@@ -626,7 +626,7 @@ ServerConfig::LogRecordPlugin() const
   auto entityName = "*";
   auto entityType = "world";
   auto pluginName = "gz::sim::systems::LogRecord";
-  auto pluginFilename = "ignition-gazebo-log-system";
+  auto pluginFilename = "gz-sim-log-system";
 
   sdf::ElementPtr recordElem;
 

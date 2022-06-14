@@ -30,8 +30,8 @@ PYBIND11_MODULE(gazebo, m) {
 
   gz::sim::python::defineGazeboEntityComponentManager(m);
   gz::sim::python::defineGazeboEventManager(m);
-  gz::sim::python::defineGazeboServer(m);
-  gz::sim::python::defineGazeboServerConfig(m);
+  gz::sim::python::defineSimServer(m);
+  gz::sim::python::defineSimServerConfig(m);
   gz::sim::python::defineGazeboTestFixture(m);
   gz::sim::python::defineGazeboUpdateInfo(m);
   gz::sim::python::defineGazeboWorld(m);
