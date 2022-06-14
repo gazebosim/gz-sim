@@ -565,17 +565,11 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
       if (nullptr == s)
       {
+        ignwarn << "Sensor removed before reset: " << id << "\n";
         continue;
       }
 
-      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-
-      if (nullptr == rs)
-      {
-        continue;
-      }
-
-      rs->SetNextDataUpdateTime(_info.simTime);
+      s->SetNextDataUpdateTime(_info.simTime);
     }
   }
 }
