@@ -151,7 +151,7 @@ Rectangle {
     id: colorMaterial 
       GzColor { 
         id: gzcolor
-        textVisible: false
+        onColorSet: sendLight()
       }
   }
 
@@ -354,79 +354,140 @@ Rectangle {
           }
         }
 
-        // Specular
-        Item {
-          Layout.row: 0
-          Layout.columnSpan: 6
-          Layout.fillWidth: true
-          height: 70
-          Loader {
-            id: specularLoader
-            anchors.fill: parent
-            sourceComponent: colorMaterial
-            onLoaded: {
-              specularLoader.item.r = model.data[0] * 255
-              specularLoader.item.g = model.data[1] * 255
-              specularLoader.item.b = model.data[2] * 255
-              specularLoader.item.a = model.data[3]
-              rSpecularItem: specularLoader.item.r
-              gSpecularItem: specularLoader.item.g
-              bSpecularItem: specularLoader.item.b
-              aSpecularItem: specularLoader.item.a
-            }
+        RowLayout {
+          // Color
+          Text {
+            Layout.columnSpan: 6
+            text: "Color"
+            color: "dimgrey"
+            font.bold: true
           }
-          Binding {
-            target: specularLoader.item
-            property: "textVisible"
-            value: true
-          }
-          Binding {
-            target: specularLoader.item
-            property: "colorName"
-            value: "Specular"
-          }
-          Connections { 
-            target: specularLoader.item
-            onColorSet: { 
-              sendLight()
-            }
-          } 
         }
 
-        // Diffuse
-        Item {
-          Layout.row: 0
-          Layout.columnSpan: 6
-          Layout.fillWidth: true
-          height: 70
-          Loader {
-            id: diffuseLoader
-            anchors.fill: parent
-            sourceComponent: colorMaterial
-            onLoaded: {
-              diffuseLoader.item.r = model.data[4] * 255
-              diffuseLoader.item.g = model.data[5] * 255
-              diffuseLoader.item.b = model.data[6] * 255
-              diffuseLoader.item.a = model.data[7]
-              rDiffuseItem: diffuseLoader.item.r
-              gDiffuseItem: diffuseLoader.item.g
-              bDiffuseItem: diffuseLoader.item.b
-              aDiffuseItem: diffuseLoader.item.a
+        RowLayout { 
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: specularText.width + indentation*3
+
+            Text {
+              id : specularText
+              Layout.columnSpan: 2
+              text: ' Specular'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
             }
           }
-          Binding {
-            target: diffuseLoader.item
-            property: "colorName"
-            value: "Diffuse"
-          }
-          Connections { 
-            target: diffuseLoader.item
-            onColorSet: { 
-              sendLight()
+
+          // Specular
+          Item {
+            Layout.fillWidth: true
+            Layout.bottomMargin: 10
+            height: 40
+            Loader {
+              id: specularLoader
+              anchors.fill: parent
+              sourceComponent: colorMaterial
+              onLoaded: {
+                rSpecularItem: specularLoader.item.r
+                gSpecularItem: specularLoader.item.g
+                bSpecularItem: specularLoader.item.b
+                aSpecularItem: specularLoader.item.a
+              }
             }
-          } 
+            Binding {
+              target: specularLoader.item
+              property: "r"
+              value: model.data[0] * 255
+            }
+            Binding {
+              target: specularLoader.item
+              property: "g"
+              value: model.data[1] * 255
+            }
+            Binding {
+              target: specularLoader.item
+              property: "b"
+              value: model.data[2] * 255
+            }
+            Binding {
+              target: specularLoader.item
+              property: "a"
+              value: model.data[3]
+            }
+            Connections { 
+              target: specularLoader.item
+              onColorSet: { 
+                sendLight()
+              }
+            } 
+          }
+
+          // Diffuse
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: diffuseText.width + indentation*3
+
+            Text {
+              id : diffuseText
+              Layout.columnSpan: 2
+              text: ' Diffuse'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
+
+          // Specular
+          Item {
+            Layout.fillWidth: true
+            Layout.bottomMargin: 10
+            height: 40
+            Loader {
+              id: diffuseLoader
+              anchors.fill: parent
+              sourceComponent: colorMaterial
+              onLoaded: {
+                rDiffuseItem: diffuseLoader.item.r
+                gDiffuseItem: diffuseLoader.item.g
+                bDiffuseItem: diffuseLoader.item.b
+                aDiffuseItem: diffuseLoader.item.a
+              }
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "r"
+              value: model.data[4] * 255
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "g"
+              value: model.data[5] * 255
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "b"
+              value: model.data[6] * 255
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "a"
+              value: model.data[7]
+            }
+            Connections { 
+              target: diffuseLoader.item
+              onColorSet: { 
+                sendLight()
+              }
+            } 
+          }
         }
 
+        
         RowLayout {
           Text {
             Layout.columnSpan: 6
