@@ -125,41 +125,24 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics)
 {
-  // ignition::transport::Node node;
-  // bool quickSetupClosed{false};
-  // std::string startingWorld{""};
-  // std::condition_variable cv;
-  // std::mutex mutex;
+  ignition::transport::Node node;
+  std::string starting_world_path{""};
+  std::condition_variable condition;
+  std::mutex mutex;  
 
-  // // Create a subscriber just so we can check when the message has propagated
-  // std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
-  //     [&quickSetupClosed, &mutex](const auto &_msg)
-  //     {
-  //       ignerr << " Recived " << std::endl; 
-  //       quickSetupClosed = true;
-  //     };
-  
-  // std::thread waiting([&node, &topicCb, &quickSetupClosed, &mutex]()
-  // {
-  //   ignerr<< "hellow from thread";
-  //   node.Subscribe("/gazebo/starting_world", topicCb);
-    
-  //   while (!quickSetupClosed)
-  //   {
-  //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //     ignerr<< "Not DONEEEE" << std::endl;
-  //   }
+  // Create a subscriber just so we can check when the message has propagated
+  std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
+      [&starting_world_path, &mutex, &condition](const auto &_msg)
+      {
+        std::unique_lock<std::mutex> lock(mutex);
+        starting_world_path = _msg.data(0);
+        starting_world_path = starting_world_path.erase(0,7);
+        condition.notify_all();
+      };
 
-  //   ignerr<< "DonE!!!!!!!!!!!! out" << std::endl;
-
-  // });
-  
-
-  // std::unique_lock<std::mutex> lk(waitMutex);
-  // waitConditionVariable.wait(lk, [quickSetupClosed]{return quickSetupClosed==true;});
-  // quickSetupClosed = true;
-  // if (!quickSetupClosed)
-  //   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  std::unique_lock<std::mutex> lock(mutex);
+  node.Subscribe("/gazebo/starting_world", topicCb);
+  condition.wait(lock);
 
   // Path for logs
   ignition::gazebo::ServerConfig serverConfig;
@@ -338,7 +321,13 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
-  serverConfig.SetSdfFile(_file);
+  if(!starting_world_path.empty()){
+    serverConfig.SetSdfFile(starting_world_path);
+  }
+  else
+  {
+    serverConfig.SetSdfFile(_file);
+  }
 
   // Set the update rate.
   if (_hz > 0.0)
