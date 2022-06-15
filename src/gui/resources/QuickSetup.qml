@@ -27,18 +27,6 @@ import Qt.labs.folderlistmodel 2.1
  * Quick Setup
  */
 
-ApplicationWindow
-{
-  title: qsTr("Quick Setup")
-  width: 1200
-  height: 1000
-  minimumWidth: 300
-  minimumHeight: 300
-  visible: true
-  id: window
-  objectName: "window"
-  font.family: "Roboto"
-
   Rectangle {
       // width: 420
       // height: 400
@@ -49,7 +37,7 @@ ApplicationWindow
         console.log(fileName)
         console.log(fileIsDir)
         QuickSetupHandler.SetStartingWorld(fileURL_)
-        window.close()
+        // window.close()
       }
 
       function getWorlds(){
@@ -75,10 +63,11 @@ ApplicationWindow
             Label {
             text: "Worlds"
             }
+
           Rectangle {
-          width: 100
-          height: 300
-          color: "transparent"
+            width: 100
+            height: 300
+            color: "transparent"
 
 
               ListView {
@@ -105,18 +94,18 @@ ApplicationWindow
                 // }
 
               model: folderModel
-              delegate: Button {
-                width: parent.width
-                height: 50
-                text: fileName
-                onClicked: {
-                  quickSetup.loadWorld(fileName, fileURL, fileIsDir)
-                }
-                background: Rectangle {
-                    color: fileIsDir ? "orange" : "gray"
-                    border.color: "black"
-                }
-            }
+                delegate: Button {
+                  width: parent.width
+                  height: 50
+                  text: fileName
+                  onClicked: {
+                    quickSetup.loadWorld(fileName, fileURL, fileIsDir)
+                  }
+                  background: Rectangle {
+                      color: fileIsDir ? "orange" : "gray"
+                      border.color: "black"
+                  }
+              }
 
                 ScrollIndicator.vertical: ScrollIndicator {
                   active: true;
@@ -127,6 +116,7 @@ ApplicationWindow
               }
             }
           }
+
           Column{
             CheckBox {
               id: checkBox
@@ -137,6 +127,7 @@ ApplicationWindow
             //     QuickSetupHandler.onShowAgain(checkBox.checked);
             // }
           }
+
           Button {
             id: closeButton
             visible: true
@@ -147,7 +138,6 @@ ApplicationWindow
 
             onClicked: {
               window.close();
-              QuickSetupHandler.OnSkip();
             }
 
             Material.background: Material.primary
@@ -161,4 +151,3 @@ ApplicationWindow
 
     }
   }
-}
