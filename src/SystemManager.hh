@@ -112,13 +112,20 @@ namespace ignition
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
+      /// \brief Implementation for AddSystem functions that takes an SDF
+      /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
+      /// \param[in] _system Generic representation of a system.
+      /// \param[in] _sdf SDF element.
+      private: void AddSystemImpl(SystemInternal _system,
+                                  std::shared_ptr<const sdf::Element> _sdf);
+
       /// \brief Implementation for AddSystem functions. This only adds systems
       /// to a queue, the actual addition is performed by `AddSystemToRunner` at
       /// the appropriate time.
       /// \param[in] _system Generic representation of a system.
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
-                                  std::shared_ptr<const sdf::Element> _sdf);
+                                  const sdf::Plugin &_sdf);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
