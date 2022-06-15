@@ -40,16 +40,16 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded item for specular RGBA
-  property double rSpecularItem
-  property double gSpecularItem
-  property double bSpecularItem
-  property double aSpecularItem
+  property double rSpecularItem: specularLoader.item.r
+  property double gSpecularItem: specularLoader.item.g
+  property double bSpecularItem: specularLoader.item.b
+  property double aSpecularItem: specularLoader.item.a
 
   // Loaded item for diffuse red
-  property double rDiffuseItem
-  property double gDiffuseItem
-  property double bDiffuseItem
-  property double aDiffuseItem
+  property double rDiffuseItem: diffuseLoader.item.r
+  property double gDiffuseItem: diffuseLoader.item.g
+  property double bDiffuseItem: diffuseLoader.item.b
+  property double aDiffuseItem: diffuseLoader.item.a
 
   // Loaded item for attenuation range
   property var attRangeItem: {}
@@ -363,8 +363,9 @@ Rectangle {
             font.bold: true
           }
         }
-
-        RowLayout { 
+        
+        RowLayout {
+          // Specular
           Rectangle {
             color: "transparent"
             height: 50
@@ -390,12 +391,6 @@ Rectangle {
               id: specularLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                rSpecularItem: specularLoader.item.r
-                gSpecularItem: specularLoader.item.g
-                bSpecularItem: specularLoader.item.b
-                aSpecularItem: specularLoader.item.a
-              }
             }
             Binding {
               target: specularLoader.item
@@ -422,7 +417,7 @@ Rectangle {
               onColorSet: { 
                 sendLight()
               }
-            } 
+            }
           }
 
           // Diffuse
@@ -442,7 +437,7 @@ Rectangle {
             }
           }
 
-          // Specular
+          // Diffuse
           Item {
             Layout.fillWidth: true
             Layout.bottomMargin: 10
@@ -451,12 +446,6 @@ Rectangle {
               id: diffuseLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-              onLoaded: {
-                rDiffuseItem: diffuseLoader.item.r
-                gDiffuseItem: diffuseLoader.item.g
-                bDiffuseItem: diffuseLoader.item.b
-                aDiffuseItem: diffuseLoader.item.a
-              }
             }
             Binding {
               target: diffuseLoader.item
@@ -483,7 +472,7 @@ Rectangle {
               onColorSet: { 
                 sendLight()
               }
-            } 
+            }
           }
         }
 

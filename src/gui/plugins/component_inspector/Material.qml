@@ -134,7 +134,7 @@ Rectangle {
     id: colorMaterial 
       GzColor { 
         id: gzcolor
-        textVisible: false
+        onColorSet: sendMaterialColor("", Qt.rgba(0, 0, 0, 0)) 
       }
   }
 
@@ -206,30 +206,44 @@ Rectangle {
         width: parent.width
         spacing: 20
 
-        GridLayout {
-          width: parent.width
-          columns: 6
+
+        RowLayout {
+          // Color
+          Text {
+            Layout.columnSpan: 6
+            text: "Color"
+            color: "dimgrey"
+            font.bold: true
+          }
+        }
+
+        RowLayout {
+          // Ambient
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: ambientText.width + indentation*3
+
+            Text {
+              id : ambientText
+              Layout.columnSpan: 2
+              text: ' Ambient'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
+          }
 
           // Ambient
           Item {
-            Layout.row: 0
-            Layout.columnSpan: 6
             Layout.fillWidth: true
-            height: 70
+            Layout.bottomMargin: 10
+            height: 40
             Loader {
               id: ambientLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-            }
-            Binding {
-              target: ambientLoader.item
-              property: "textVisible"
-              value: true
-            }
-            Binding {
-              target: ambientLoader.item
-              property: "colorName"
-              value: "Ambient"
             }
             Binding {
               target: ambientLoader.item
@@ -252,28 +266,39 @@ Rectangle {
               value: model.data[3] / 255.0
             }
             Connections { 
-              target : ambientLoader.item 
+              target: ambientLoader.item
               onColorSet: { 
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
-            } 
+            }
+          }
+
+          // Diffuse
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: diffuseText.width + indentation*3
+
+            Text {
+              id : diffuseText
+              Layout.columnSpan: 2
+              text: ' Diffuse'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
 
           // Diffuse
           Item {
-            Layout.row: 1
-            Layout.columnSpan: 6
             Layout.fillWidth: true
-            height: 70
+            Layout.bottomMargin: 10
+            height: 40
             Loader {
               id: diffuseLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-            }
-            Binding {
-              target: diffuseLoader.item
-              property: "colorName"
-              value: "Diffuse  "
             }
             Binding {
               target: diffuseLoader.item
@@ -296,28 +321,41 @@ Rectangle {
               value: model.data[7] / 255.0
             }
             Connections { 
-              target : diffuseLoader.item 
+              target: diffuseLoader.item
               onColorSet: { 
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
-            } 
+            }
+          }
+        }
+
+        RowLayout {
+          // Specular
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: specularText.width + indentation*3
+
+            Text {
+              id : specularText
+              Layout.columnSpan: 2
+              text: ' Specular'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
 
           // Specular
           Item {
-            Layout.row: 2
-            Layout.columnSpan: 6
             Layout.fillWidth: true
-            height: 70
+            Layout.bottomMargin: 10
+            height: 40
             Loader {
               id: specularLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-            }
-            Binding {
-              target: specularLoader.item
-              property: "colorName"
-              value: "Specular"
             }
             Binding {
               target: specularLoader.item
@@ -340,28 +378,39 @@ Rectangle {
               value: model.data[11] / 255.0
             }
             Connections { 
-              target : specularLoader.item 
+              target: specularLoader.item
               onColorSet: { 
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
-            } 
+            }
+          }
+
+          // Emissive
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: emissiveText.width + indentation*3
+
+            Text {
+              id : emissiveText
+              Layout.columnSpan: 2
+              text: 'Emissive'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
 
           // Emissive
           Item {
-            Layout.row: 3
-            Layout.columnSpan: 6
             Layout.fillWidth: true
-            height: 70
+            Layout.bottomMargin: 10
+            height: 40
             Loader {
               id: emissiveLoader
               anchors.fill: parent
               sourceComponent: colorMaterial
-            }
-            Binding {
-              target: emissiveLoader.item
-              property: "colorName"
-              value: "Emissive"
             }
             Binding {
               target: emissiveLoader.item
@@ -384,13 +433,13 @@ Rectangle {
               value: model.data[15] / 255.0
             }
             Connections { 
-              target : emissiveLoader.item 
+              target: emissiveLoader.item
               onColorSet: { 
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
-            } 
-          } // end Emissive
-        } // end GridLayout
+            }
+          }
+        } // end RowLayout
       } // end ColumnLayout (id: grid)
     } // Rectangle (id: content)
   }
