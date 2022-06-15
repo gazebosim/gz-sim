@@ -396,6 +396,8 @@ void SensorsPrivate::RenderThread()
     this->RunOnce();
   }
 
+  this->eventManager->Emit<events::RenderTeardown>();
+
   // clean up before exiting
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
