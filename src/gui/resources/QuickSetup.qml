@@ -26,14 +26,22 @@ import Qt.labs.folderlistmodel 2.1
 /**
  * Quick Setup
  */
-// Item{
-//   // id: quickSetup
-//   x: Math.round((parent.width - width) / 2)
-//   y: Math.round((parent.height - height) / 2)
+
+ApplicationWindow
+{
+  title: qsTr("Quick Setup")
+  width: 1200
+  height: 1000
+  minimumWidth: 300
+  minimumHeight: 300
+  visible: true
+  id: window
+  objectName: "window"
+  font.family: "Roboto"
 
   Rectangle {
-      width: 420
-      height: 400
+      // width: 420
+      // height: 400
       id: quickSetup
 
       function loadWorld(fileName, fileURL_, fileIsDir){
@@ -41,7 +49,7 @@ import Qt.labs.folderlistmodel 2.1
         console.log(fileName)
         console.log(fileIsDir)
         QuickSetupHandler.SetStartingWorld(fileURL_)
-        quickSetup.close()
+        window.close()
       }
 
       function getWorlds(){
@@ -138,6 +146,7 @@ import Qt.labs.folderlistmodel 2.1
             Layout.leftMargin: 10
 
             onClicked: {
+              window.close();
               QuickSetupHandler.OnSkip();
             }
 
@@ -152,4 +161,4 @@ import Qt.labs.folderlistmodel 2.1
 
     }
   }
-// }
+}
