@@ -30,6 +30,12 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr)
 {
+  this->node = std::make_unique<transport::Node>();
+  std::string entitySystemService{"/entity/system/add"};
+  this->node->Advertise(entitySystemService,
+      &SystemManager::EntitySystemAddService, this);
+  ignmsg << "Serving entity system service on ["
+         << "/" << entitySystemService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -195,3 +201,35 @@ std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
       std::back_inserter(result), checkEntity);
   return result;
 }
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  this->systemsToAdd.push_back(_req);
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+void SystemManager::ProcessPendingEntitySystems()
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  for (auto &req : this->systemsToAdd)
+  {
+    Entity entity = req.entity().id();
+
+    for (auto &pluginMsg : req.plugins())
+    {
+      std::string fname = pluginMsg.filename();
+      std::string name = pluginMsg.name();
+      std::string innerxml = pluginMsg.innerxml();
+      sdf::Plugin pluginSDF(fname, name, innerxml);
+      this->LoadPlugin(entity, pluginSDF);
+    }
+  }
+  this->systemsToAdd.clear();
+}
+
+

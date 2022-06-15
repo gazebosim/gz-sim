@@ -237,12 +237,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   ignmsg << "Serving world SDF generation service on [" << opts.NameSpace()
          << "/" << genWorldSdfService << "]" << std::endl;
-
-  std::string entitySystemService{"entity/system/add"};
-  this->node->Advertise(entitySystemService,
-      &SimulationRunner::EntitySystemAddService, this);
-  ignmsg << "Serving entity system service on [" << opts.NameSpace()
-         << "/" << entitySystemService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -814,7 +808,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesRemove();
 
   // handle systems that need to be added
-  this->ProcessEntitySystems();
+  this->systemMgr->ProcessPendingEntitySystems();
 
   // Update all the systems.
   this->UpdateSystems();
@@ -1444,53 +1438,6 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
     return true;
   }
   return false;
-}
-
-//////////////////////////////////////////////////
-bool SimulationRunner::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
-                                              msgs::Boolean &_res)
-{
-  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
-  this->systemsToAdd.push_back(_req);
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::ProcessEntitySystems()
-{
-  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
-  for (auto &req : this->systemsToAdd)
-  {
-    Entity entity = req.entity().id();
-
-    for (auto &pluginMsg : req.plugins())
-    {
-      std::string fname = pluginMsg.filename();
-      std::string name = pluginMsg.name();
-      std::string innerxml = pluginMsg.innerxml();
-
-      // Use the SDF parser to read all the inner xml.
-      sdf::ElementPtr pluginSDF(new sdf::Element);
-      sdf::initFile("plugin.sdf", pluginSDF);
-      std::stringstream tmp;
-      tmp << "<sdf version='" << SDF_VERSION << "'>";
-      tmp << "<plugin name='" << name << "' filename='" << fname << "'>";
-      tmp << innerxml;
-      tmp << "</plugin></sdf>";
-
-      if (sdf::readString(tmp.str(), pluginSDF))
-      {
-        this->LoadPlugin(entity, fname, name, pluginSDF);
-      }
-      else
-      {
-        ignerr << "Error reading Plugin SDF. Unable to parse Innerxml:\n"
-               << innerxml << std::endl;
-      }
-    }
-  }
-  this->systemsToAdd.clear();
 }
 
 

@@ -17,11 +17,14 @@
 #ifndef IGNITION_GAZEBO_SYSTEMMANAGER_HH_
 #define IGNITION_GAZEBO_SYSTEMMANAGER_HH_
 
+#include <ignition/msgs/entity_plugin_v.pb.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 
 #include <sdf/Plugin.hh>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
@@ -110,6 +113,9 @@ namespace ignition
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
+      /// \brief Process system messages and add systems to entities
+      public: void ProcessPendingEntitySystems();
+
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
       /// \param[in] _system Generic representation of a system.
@@ -124,6 +130,15 @@ namespace ignition
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
                                   const sdf::Plugin &_sdf);
+
+      /// \brief Callback for entity add system service.
+      /// \param[in] _req Request message containing the entity id and plugins
+      /// to add to that entity
+      /// \param[out] _res Response containing a boolean value indicating if
+      /// service request is received or not
+      /// \return True if request received.
+      private: bool EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
@@ -157,6 +172,15 @@ namespace ignition
 
       /// \brief Pointer to associated event manager
       private: EventManager *eventMgr;
+
+      /// \brief A list of entity systems to add
+      private: std::vector<msgs::EntityPlugin_V> systemsToAdd;
+
+      /// \brief Mutex to protect systemsToAdd list
+      private: std::mutex systemsMsgMutex;
+
+      /// \brief Node for communication.
+      private: std::unique_ptr<transport::Node> node{nullptr};
     };
     }
   }  // namespace gazebo
