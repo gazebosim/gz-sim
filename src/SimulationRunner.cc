@@ -1440,7 +1440,6 @@ bool SimulationRunner::GenerateWorldSdf(const msgs::SdfGeneratorConfig &_req,
   return false;
 }
 
-
 //////////////////////////////////////////////////
 void SimulationRunner::SetFuelUriMap(
     const std::unordered_map<std::string, std::string> &_map)
