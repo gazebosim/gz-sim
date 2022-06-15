@@ -220,6 +220,13 @@ void SystemManager::ProcessPendingEntitySystems()
   {
     Entity entity = req.entity().id();
 
+    if (req.plugins().empty())
+    {
+      ignwarn << "Unable to add plugins to Entity: '" << entity
+              << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
     for (auto &pluginMsg : req.plugins())
     {
       std::string fname = pluginMsg.filename();
@@ -231,5 +238,3 @@ void SystemManager::ProcessPendingEntitySystems()
   }
   this->systemsToAdd.clear();
 }
-
-
