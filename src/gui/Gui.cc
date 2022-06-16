@@ -89,9 +89,9 @@ std::string createQuickSetup(
   app->SetDefaultConfigPath(defaultConfig);
 
   // TODO (mh) show quick setup by default  
-  // if (!app->ShowQuickSetup()){
-  //   return;
-  // }
+  if (!app->ShowQuickSetup()){
+    return "";
+  }
 
   auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
   quickSetupHandler->setParent(app->Engine());
