@@ -5,4 +5,4 @@ set(tests
 
 link_directories(${PROJECT_BINARY_DIR}/test)
 
-ign_build_tests(TYPE REGRESSION SOURCES ${tests})
+gz_build_tests(TYPE REGRESSION SOURCES ${tests})

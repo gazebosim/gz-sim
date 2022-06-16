@@ -1,2 +1,1 @@
-
-ign_install_all_headers(COMPONENT eigen3)
+gz_install_all_headers(COMPONENT eigen3)

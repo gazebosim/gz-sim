@@ -16,7 +16,7 @@ find_package(ignition-cmake3 REQUIRED)
 #============================================================================
 set (c++standard 17)
 set (CMAKE_CXX_STANDARD 17)
-ign_configure_project(
+gz_configure_project(
   REPLACE_IGNITION_INCLUDE_PATH gz/math
   VERSION_SUFFIX pre1)
 
@@ -42,12 +42,12 @@ option(USE_DIST_PACKAGES_FOR_PYTHON
 
 #--------------------------------------
 # Find ignition-utils
-ign_find_package(ignition-utils2 REQUIRED)
+gz_find_package(ignition-utils2 REQUIRED)
 set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find eigen3
-ign_find_package(
+gz_find_package(
   EIGEN3
   REQUIRED_BY eigen3
   PRETTY eigen3
@@ -105,14 +105,14 @@ set(FAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/fake/install")
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS
+gz_configure_build(QUIT_IF_BUILD_ERRORS
   COMPONENTS eigen3)
 
 
 #============================================================================
 # Create package information
 #============================================================================
-ign_create_packages()
+gz_create_packages()
 
 #============================================================================
 # Configure documentation
@@ -120,6 +120,6 @@ ign_create_packages()
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
 
-ign_create_docs(
+gz_create_docs(
   API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
   TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md")

@@ -1,6 +1,6 @@
 set(TEST_TYPE "INTEGRATION")
 
-ign_get_sources(tests)
+gz_get_sources(tests)
 
 # Test symbols having the right name on linux only
 if (UNIX AND NOT APPLE)
@@ -9,7 +9,7 @@ if (UNIX AND NOT APPLE)
     COMMAND bash ${CMAKE_CURRENT_BINARY_DIR}/all_symbols_have_version.bash $<TARGET_FILE:${PROJECT_LIBRARY_TARGET_NAME}>)
 endif()
 
-ign_build_tests(TYPE INTEGRATION SOURCES ${tests})
+gz_build_tests(TYPE INTEGRATION SOURCES ${tests})
 
 if(TARGET INTEGRATION_ExamplesBuild_TEST)
   add_dependencies(INTEGRATION_ExamplesBuild_TEST FAKE_INSTALL)
