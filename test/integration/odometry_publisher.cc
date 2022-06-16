@@ -333,7 +333,7 @@ class OdometryPublisherTest
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    ASSERT_NE(maxSleep, sleep);
+    EXPECT_NE(maxSleep, sleep);
 
     // Odom for 3s
     ASSERT_FALSE(odomPoses.empty());
@@ -611,7 +611,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
   TestMovement3d(
       ignition::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
-      "/model/X3/odometry", "/model/X3/tf", "X3/odom", "X3/base_footprint");
+      "/model/X3/odometry", "/model/X3/pose", "X3/odom", "X3/base_footprint");
 }
 
 /////////////////////////////////////////////////
