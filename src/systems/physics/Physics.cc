@@ -752,6 +752,14 @@ void Physics::Configure(const Entity &_entity,
     pluginLib = "gz-physics-dartsim-plugin";
   }
 
+  // Deprecated: accept ignition-prefixed engines
+  if (pluginLib.find("ignition") != std::string::npos)
+  {
+    auto msg = "Trying to load deprecated plugin [" + pluginLib + "]. Use [";
+    pluginLib.replace(0, 8, "gz");
+    gzwarn << msg << pluginLib << "] instead." << std::endl;
+  }
+
   // Update component
   if (!engineComp)
   {
