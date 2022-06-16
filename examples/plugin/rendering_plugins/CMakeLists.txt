@@ -24,7 +24,7 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    ignition-gui7::ignition-gui7
+    gz-gui7::gz-gui7
     gz-rendering7::gz-rendering7
 )
 

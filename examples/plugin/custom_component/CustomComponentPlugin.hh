@@ -36,7 +36,7 @@ using CustomComponent =
 
 // Use this macro to register a component. Give it a unique name across the
 // entire simulation.
-GZ_SIM_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
+IGN_GAZEBO_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
 
 class CustomComponentPlugin :
   public gz::sim::System,
