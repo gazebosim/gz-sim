@@ -123,31 +123,35 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics)
+    const char *_file, const char *_recordTopics, int _waitGui)
 {
-  ignition::transport::Node node;
   std::string starting_world_path{""};
-  std::condition_variable condition;
-  std::mutex mutex;  
 
-  // Create a subscriber just so we can check when the message has propagated
-  std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
-      [&starting_world_path, &mutex, &condition](const auto &_msg)
-      {
-        std::unique_lock<std::mutex> lock(mutex);
-        starting_world_path = _msg.data(0);
-        starting_world_path = starting_world_path.erase(0,7);
-        condition.notify_all();
-      };
+  // Lock until the starting world is received from Gui
+  if (_waitGui==1)
+  {
+    ignition::transport::Node node;
+    std::condition_variable condition;
+    std::mutex mutex;
 
+    // Create a subscriber just so we can check when the message has propagated
+    std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
+        [&starting_world_path, &mutex, &condition](const auto &_msg)
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          starting_world_path = _msg.data(0);
+          // starting_world_path = starting_world_path.erase(0,7);
+          condition.notify_all();
+        };
 
-  std::unique_lock<std::mutex> lock(mutex);
-  node.Subscribe("/gazebo/starting_world", topicCb);
-  condition.wait(lock);
-  igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
-  node.Unsubscribe("/gazebo/starting_world");
-  ignmsg << "Received world [" << starting_world_path << "] from the GUI."
-        << std::endl;
+    std::unique_lock<std::mutex> lock(mutex);
+    node.Subscribe("/gazebo/starting_world", topicCb);
+    condition.wait(lock);
+    igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
+    node.Unsubscribe("/gazebo/starting_world");
+    ignmsg << "Received world [" << starting_world_path << "] from the GUI."
+          << std::endl;
+  }
 
   // Path for logs
   ignition::gazebo::ServerConfig serverConfig;
@@ -326,13 +330,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       return -1;
     }
   }
-  if(!starting_world_path.empty()){
+
+  if(_waitGui==0)
     serverConfig.SetSdfFile(starting_world_path);
-  }
   else
-  {
     serverConfig.SetSdfFile(_file);
-  }
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -395,7 +397,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig, const char *_file, int _waitGui)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -408,5 +410,5 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig);
+  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, _file, _waitGui);
 }

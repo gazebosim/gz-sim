@@ -42,7 +42,7 @@ namespace gui
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
-                                     const char *_guiConfig);
+                                     const char *_guiConfig, const char*_file, int _waitGui);
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
@@ -66,7 +66,7 @@ namespace gui
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
   IGNITION_GAZEBO_GUI_VISIBLE
-  void createQuickSetup(
+  std::string createQuickSetup(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr);
 

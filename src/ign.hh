@@ -62,12 +62,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics);
+    const char *_recordTopics, int _waitGui);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
 /// \return 0 if successful, 1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig, const char *_file, int _waitGui);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

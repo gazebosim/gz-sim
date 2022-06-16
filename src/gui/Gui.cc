@@ -44,11 +44,10 @@ namespace gui
 {
 
 //////////////////////////////////////////////////
-void createQuickSetup(
+std::string createQuickSetup(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig)
 {
-  ignition::transport::Node node;
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -73,12 +72,10 @@ void createQuickSetup(
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
   {
-    // The playback flag (and not the gui-config flag) was
-    // specified from the command line
     // Quick setup menu is not shown during playback
     if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
     {
-      return;
+      return "";
     }
     ignition::common::env(IGN_HOMEDIR, defaultConfig);
     defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
@@ -120,20 +117,7 @@ void createQuickSetup(
     igndbg << "Shutting quick setup dialog" << std::endl;
   }
 
-  // When the dialog is closes, publish the selected starting world path
-  ignition::transport::Node::Publisher startingWorldPub;
-  startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
-  msgs::StringMsg_V msg;
-  msg.add_data(quickSetupHandler->GetStartingWorld());
-  
-  if(startingWorldPub.ThrottledUpdateReady())
-  {
-    for (auto i = 0; i < 5; ++i)
-    {
-      startingWorldPub.Publish(msg);
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
+  return quickSetupHandler->GetStartingWorld();
 }
 
 //////////////////////////////////////////////////
@@ -377,9 +361,33 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig)
+int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, int _waitGui)
 {
-  gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig);
+  ignition::transport::Node node;
+  ignition::transport::Node::Publisher startingWorldPub;
+  startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
+  msgs::StringMsg_V msg;
+
+  // Don't show quick start menu if a file is set as a command line arg
+    // When the quick start dialog is closed, publish the selected starting world path
+  if(strlen(_file) == 0 && _waitGui == 1){
+    msg.add_data(gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig).erase(0,7));
+  }
+  else{
+    msg.add_data(_file);
+  }
+
+  // Notify the server with the starting world path if specified
+  if(startingWorldPub.ThrottledUpdateReady())
+  {
+    for (auto i = 0; i < 5; ++i)
+    {
+      startingWorldPub.Publish(msg);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+
+  // Start gazebo main GUI application
   auto mainApp = gazebo::gui::createGui(_argc, _argv, _guiConfig);
   if (nullptr != mainApp)
   {
