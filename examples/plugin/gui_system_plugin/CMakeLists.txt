@@ -8,7 +8,7 @@ project(GuiSystemPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gazebo7 REQUIRED COMPONENTS gui)
+find_package(gz-sim7 REQUIRED COMPONENTS gui)
 
 QT5_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
 

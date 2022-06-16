@@ -32,7 +32,7 @@ target_link_libraries(${GUI_PLUGIN}
 set(SERVER_PLUGIN RenderingServerPlugin)
 
 find_package(gz-plugin2 REQUIRED COMPONENTS register)
-find_package(gz-gazebo7 REQUIRED)
+find_package(gz-sim7 REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
 set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)

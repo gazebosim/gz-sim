@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 project(ign-gazebo-each-performance)
 
-find_package(gz-gazebo7 QUIET REQUIRED)
+find_package(gz-sim7 QUIET REQUIRED)
 
 add_executable(each each.cc)
 target_link_libraries(each

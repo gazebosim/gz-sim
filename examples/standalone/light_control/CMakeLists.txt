@@ -5,7 +5,7 @@ project(ign-gazebo-light-control)
 find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
-find_package(gz-gazebo7 REQUIRED)
+find_package(gz-sim7 REQUIRED)
 set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 
 add_executable(light_control light_control.cc)

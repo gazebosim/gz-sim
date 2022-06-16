@@ -7,7 +7,7 @@ project(CustomComponentPlugin)
 find_package(gz-plugin2 REQUIRED COMPONENTS register)
 set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
-find_package(gz-gazebo7 REQUIRED)
+find_package(gz-sim7 REQUIRED)
 add_library(CustomComponentPlugin SHARED
   CustomComponentPlugin.cc
 )
