@@ -21,6 +21,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
+import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.1
 
 /**
@@ -37,7 +38,7 @@ import Qt.labs.folderlistmodel 2.1
         console.log(fileName)
         console.log(fileIsDir)
         QuickSetupHandler.SetStartingWorld(fileURL_)
-        // window.close()
+        quickSetup.Window.window.close()
       }
 
       function getWorlds(){
@@ -137,7 +138,7 @@ import Qt.labs.folderlistmodel 2.1
             Layout.leftMargin: 10
 
             onClicked: {
-              window.close();
+              quickSetup.Window.window.close()
             }
 
             Material.background: Material.primary
