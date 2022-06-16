@@ -25,13 +25,16 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
                              EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr)
+                             EventManager *_eventMgr,
+                             const std::string &_namespace)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr)
 {
-  this->node = std::make_unique<transport::Node>();
-  std::string entitySystemService{"/entity/system/add"};
+  transport::NodeOptions opts;
+  opts.SetNameSpace(_namespace);
+  this->node = std::make_unique<transport::Node>(opts);
+  std::string entitySystemService{"entity/system/add"};
   this->node->Advertise(entitySystemService,
       &SystemManager::EntitySystemAddService, this);
   ignmsg << "Serving entity system service on ["

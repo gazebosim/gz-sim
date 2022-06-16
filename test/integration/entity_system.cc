@@ -128,7 +128,7 @@ class EntitySystemTest : public InternalFixture<::testing::TestWithParam<int>>
     msgs::Boolean res;
     bool result;
     unsigned int timeout = 5000;
-    std::string service{"/entity/system/add"};
+    std::string service{"/world/diff_drive/entity/system/add"};
 
     EXPECT_TRUE(node.Request(service, req, timeout, res, result));
     EXPECT_TRUE(result);

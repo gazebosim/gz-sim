@@ -51,9 +51,11 @@ namespace ignition
       ///  be used when configuring new systems
       /// \param[in] _eventMgr Pointer to the event manager to be used when
       ///  configuring new systems
+      /// \param[in] _namespace Namespace to use for the transport node
       public: explicit SystemManager(const SystemLoaderPtr &_systemLoader,
                             EntityComponentManager *_entityCompMgr = nullptr,
-                            EventManager *_eventMgr = nullptr);
+                            EventManager *_eventMgr = nullptr,
+                            const std::string &_namespace = std::string());
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
