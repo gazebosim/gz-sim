@@ -96,7 +96,7 @@ function(gz_add_gui_plugin plugin_name)
     # Plugin symbols failing to resolve on Windows:
     # error LNK2001: unresolved external symbol
     if(NOT WIN32)
-      ign_build_tests(TYPE UNIT
+      gz_build_tests(TYPE UNIT
         SOURCES
           ${gz_add_gui_plugin_TEST_SOURCES}
         LIB_DEPS
