@@ -331,7 +331,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
   }
 
-  if(_waitGui==0)
+  if(_waitGui==1)
     serverConfig.SetSdfFile(starting_world_path);
   else
     serverConfig.SetSdfFile(_file);
