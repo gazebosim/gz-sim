@@ -211,7 +211,7 @@ void Server::Init()
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with ign-gazebo
-    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     std::string filePath = systemPaths.FindFile(
       this->dataPtr->config.SdfFile());

@@ -221,11 +221,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   Entity worldEntity = kNullEntity;
-  this->dataPtr->ecm->Each<ignition::gazebo::components::Name,
-            ignition::gazebo::components::World>(
-    [&](const ignition::gazebo::Entity &_entity,
-        const ignition::gazebo::components::Name *_name,
-        const ignition::gazebo::components::World *)->bool
+  this->dataPtr->ecm->Each<gz::sim::components::Name,
+            gz::sim::components::World>(
+    [&](const gz::sim::Entity &_entity,
+        const gz::sim::components::Name *_name,
+        const gz::sim::components::World *)->bool
   {
     if (_world->Name() == _name->Data())
     {
