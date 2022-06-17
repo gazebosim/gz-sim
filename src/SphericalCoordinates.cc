@@ -255,8 +255,8 @@ gz::math::Vector3d SphericalCoordinates::SphericalFromLocalPosition(
 {
   gz::math::Vector3d result =
     this->PositionTransform(_xyz, LOCAL, SPHERICAL);
-  result.X(IGN_RTOD(result.X()));
-  result.Y(IGN_RTOD(result.Y()));
+  result.X(GZ_RTOD(result.X()));
+  result.Y(GZ_RTOD(result.Y()));
   return result;
 }
 
@@ -265,8 +265,8 @@ gz::math::Vector3d SphericalCoordinates::LocalFromSphericalPosition(
     const gz::math::Vector3d &_xyz) const
 {
   gz::math::Vector3d result = _xyz;
-  result.X(IGN_DTOR(result.X()));
-  result.Y(IGN_DTOR(result.Y()));
+  result.X(GZ_DTOR(result.X()));
+  result.Y(GZ_DTOR(result.Y()));
   return this->PositionTransform(result, SPHERICAL, LOCAL);
 }
 

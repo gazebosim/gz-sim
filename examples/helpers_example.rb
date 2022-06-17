@@ -22,13 +22,13 @@
 #
 require 'ignition/math'
 
-printf("The volume of a sphere with r=2 is %f.\n", IGN_SPHERE_VOLUME(2))
+printf("The volume of a sphere with r=2 is %f.\n", GZ_SPHERE_VOLUME(2))
 
 printf("The volume of a cylinder with r=4 and l=5 is %f.\n",
-       IGN_CYLINDER_VOLUME(4, 5))
+       GZ_CYLINDER_VOLUME(4, 5))
 
 printf("The volume of a box with x=1, y=2, and z=3 is %f.\n",
-   IGN_BOX_VOLUME(1, 2, 3))
+   GZ_BOX_VOLUME(1, 2, 3))
 
 printf("The result of clamping 2.4 to the range [1,2] is %f.\n",
   Gz::Math::Clamp(2.4, 1, 2))

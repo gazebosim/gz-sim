@@ -53,9 +53,9 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  double roll = IGN_DTOR(strToDouble(argv[1]));
-  double pitch = IGN_DTOR(strToDouble(argv[2]));
-  double yaw = IGN_DTOR(strToDouble(argv[3]));
+  double roll = GZ_DTOR(strToDouble(argv[1]));
+  double pitch = GZ_DTOR(strToDouble(argv[2]));
+  double yaw = GZ_DTOR(strToDouble(argv[3]));
 
   std::cout << "Converting Euler angles:\n";
   printf(" roll  % .6f radians\n"
@@ -65,9 +65,9 @@ int main(int argc, char **argv)
   printf(" roll  % 12.6f degrees\n"
          " pitch % 12.6f degrees\n"
          " yaw   % 12.6f degrees\n",
-          IGN_RTOD(roll),
-          IGN_RTOD(pitch),
-          IGN_RTOD(yaw));
+          GZ_RTOD(roll),
+          GZ_RTOD(pitch),
+          GZ_RTOD(yaw));
 
 //![constructor]
   gz::math::Quaterniond q(roll, pitch, yaw);

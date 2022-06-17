@@ -178,24 +178,24 @@ void helpDefineMathMassMatrix3(py::module &m, const std::string &typestr)
        "Verify that principal moments are positive")
   .def("is_valid",
        &Class::IsValid,
-       py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
+       py::arg("_tolerance") = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
        "Verify that inertia values are positive semi-definite "
        "and satisfy the triangle inequality.")
   .def("epsilon",
        py::overload_cast<const gz::math::Vector3<T>&, const T>
         (&Class::Epsilon),
-       py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
+       py::arg("_tolerance") = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
        "Get an epsilon value that represents the amount of "
        "acceptable error in a MassMatrix3. The epsilon value "
        "is related to machine precision multiplied by the largest possible "
        "moment of inertia.")
   .def("is_positive",
        &Class::IsPositive,
-       py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
+       py::arg("_tolerance") = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
        "Verify that inertia values are positive definite")
   .def("is_near_positive",
        &Class::IsNearPositive,
-       py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
+       py::arg("_tolerance") = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
        "Verify that inertia values are positive semidefinite")
   .def(py::self != py::self)
   .def(py::self == py::self);

@@ -23,10 +23,10 @@ from ignition.math import Vector3d
 from ignition.math import Matrix3d
 from ignition.math import Quaterniond
 
-IGN_PI = 3.14159265358979323846
-IGN_PI_2 = 1.57079632679489661923
-IGN_PI_4 = 0.78539816339744830962
-IGN_SQRT2 = 1.41421356237309504880
+GZ_PI = 3.14159265358979323846
+GZ_PI_2 = 1.57079632679489661923
+GZ_PI_4 = 0.78539816339744830962
+GZ_SQRT2 = 1.41421356237309504880
 
 
 def equal(a, b, error):
@@ -254,7 +254,7 @@ class TestMassMatrix(unittest.TestCase):
         Ixxyyzz = Vector3d(2.0, 2.0, 2.0)
         Ixyxzyz = Vector3d(-1.0, 0, -1.0)
         m = MassMatrix3d(1.0, Ixxyyzz, Ixyxzyz)
-        Ieigen = Vector3d(2-IGN_SQRT2, 2, 2+IGN_SQRT2)
+        Ieigen = Vector3d(2-GZ_SQRT2, 2, 2+GZ_SQRT2)
         self.assertEqual(m.principal_moments(), Ieigen)
         self.assertTrue(m.is_positive())
         self.assertFalse(m.is_valid())
@@ -264,7 +264,7 @@ class TestMassMatrix(unittest.TestCase):
         Ixxyyzz = Vector3d(4.0, 4.0, 4.0)
         Ixyxzyz = Vector3d(-1.0, 0, -1.0)
         m = MassMatrix3d(1.0, Ixxyyzz, Ixyxzyz)
-        Ieigen = Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2)
+        Ieigen = Vector3d(4-GZ_SQRT2, 4, 4+GZ_SQRT2)
         self.assertEqual(m.principal_moments(), Ieigen)
         self.assertTrue(m.is_positive())
         self.assertTrue(m.is_valid())
@@ -453,44 +453,44 @@ class TestMassMatrix(unittest.TestCase):
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 5, 5),
             Vector3d(4.5, 4.75, 4.75),
-            Vector3d(-IGN_SQRT2, IGN_SQRT2, 1) * 0.25)
+            Vector3d(-GZ_SQRT2, GZ_SQRT2, 1) * 0.25)
         # Rotated by [-45, 45, 0] degrees
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 5, 5),
             Vector3d(4.5, 4.75, 4.75),
-            Vector3d(IGN_SQRT2, IGN_SQRT2, -1) * 0.25)
+            Vector3d(GZ_SQRT2, GZ_SQRT2, -1) * 0.25)
         # Rotated by [45, -45, 0] degrees
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 5, 5),
             Vector3d(4.5, 4.75, 4.75),
-            Vector3d(IGN_SQRT2, -IGN_SQRT2, 1) * 0.25)
+            Vector3d(GZ_SQRT2, -GZ_SQRT2, 1) * 0.25)
         # Rotated by [-45, -45, 0] degrees
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 5, 5),
             Vector3d(4.5, 4.75, 4.75),
-            Vector3d(-IGN_SQRT2, -IGN_SQRT2, -1) * 0.25)
+            Vector3d(-GZ_SQRT2, -GZ_SQRT2, -1) * 0.25)
 
         # Principal moments: [4, 4, 5]
         # Rotated by [45, 45, 45] degrees
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5),
             Vector3d(4.5, 4.25, 4.25),
-            Vector3d(-IGN_SQRT2, IGN_SQRT2, -1) * 0.25)
+            Vector3d(-GZ_SQRT2, GZ_SQRT2, -1) * 0.25)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5),
             Vector3d(4.5, 4.25, 4.25),
-            Vector3d(IGN_SQRT2, IGN_SQRT2, 1) * 0.25)
+            Vector3d(GZ_SQRT2, GZ_SQRT2, 1) * 0.25)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5),
             Vector3d(4.5, 4.25, 4.25),
-            Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1) * 0.25)
+            Vector3d(-GZ_SQRT2, -GZ_SQRT2, 1) * 0.25)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5),
             Vector3d(4.5, 4.25, 4.25),
-            Vector3d(IGN_SQRT2, -IGN_SQRT2, -1) * 0.25)
+            Vector3d(GZ_SQRT2, -GZ_SQRT2, -1) * 0.25)
 
         # Principal moments [4e-9, 4e-9, 5e-9]
         # Rotated by [45, 45, 45] degrees
@@ -498,22 +498,22 @@ class TestMassMatrix(unittest.TestCase):
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5) * 1e-9,
             Vector3d(4.5, 4.25, 4.25) * 1e-9,
-            Vector3d(-IGN_SQRT2, IGN_SQRT2, -1) * 0.25e-9, 1e-15)
+            Vector3d(-GZ_SQRT2, GZ_SQRT2, -1) * 0.25e-9, 1e-15)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5) * 1e-9,
             Vector3d(4.5, 4.25, 4.25) * 1e-9,
-            Vector3d(IGN_SQRT2, IGN_SQRT2, 1) * 0.25e-9)
+            Vector3d(GZ_SQRT2, GZ_SQRT2, 1) * 0.25e-9)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5) * 1e-9,
             Vector3d(4.5, 4.25, 4.25) * 1e-9,
-            Vector3d(-IGN_SQRT2, -IGN_SQRT2, 1) * 0.25e-9)
+            Vector3d(-GZ_SQRT2, -GZ_SQRT2, 1) * 0.25e-9)
         # different rotation
         self.verify_non_diagonal_moments_and_axes(
             Vector3d(4, 4, 5) * 1e-9,
             Vector3d(4.5, 4.25, 4.25) * 1e-9,
-            Vector3d(IGN_SQRT2, -IGN_SQRT2, -1) * 0.25e-9, 1e-15)
+            Vector3d(GZ_SQRT2, -GZ_SQRT2, -1) * 0.25e-9, 1e-15)
 
         # Principal moments [4, 4, 6]
         # rotate by 30, 60, 0 degrees
@@ -587,12 +587,12 @@ class TestMassMatrix(unittest.TestCase):
 
         # Tri-diagonal matrix with identical diagonal terms
         self.verify_non_diagonal_moments_and_axes(
-            Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2),
+            Vector3d(4-GZ_SQRT2, 4, 4+GZ_SQRT2),
             Vector3d(4.0, 4.0, 4.0),
             Vector3d(-1.0, 0, -1.0))
         # small magnitude, use tolerance of 1e-15
         self.verify_non_diagonal_moments_and_axes(
-            Vector3d(4-IGN_SQRT2, 4, 4+IGN_SQRT2) * 1e-9,
+            Vector3d(4-GZ_SQRT2, 4, 4+GZ_SQRT2) * 1e-9,
             Vector3d(4.0, 4.0, 4.0) * 1e-9,
             Vector3d(-1.0, 0, -1.0) * 1e-9, 1e-15)
 
@@ -710,7 +710,7 @@ class TestMassMatrix(unittest.TestCase):
         rot = Quaterniond()
         self.assertTrue(m.equivalent_box(size, rot, -1e-6))
         self.assertEqual(size, Vector3d(9, 4, 1))
-        self.assertEqual(rot, Quaterniond(0, 0, IGN_PI/2))
+        self.assertEqual(rot, Quaterniond(0, 0, GZ_PI/2))
 
         m2 = MassMatrix3d()
         self.assertTrue(m2.set_from_box(mass, size, rot))
@@ -726,8 +726,8 @@ class TestMassMatrix(unittest.TestCase):
         self.assertTrue(m.equivalent_box(size, rot))
         self.assertEqual(size, Vector3d(9, 4, 1))
         # There are multiple correct rotations due to box symmetry
-        self.assertTrue(rot == Quaterniond(0, 0, IGN_PI/4) or
-                        rot == Quaterniond(IGN_PI, 0, IGN_PI/4))
+        self.assertTrue(rot == Quaterniond(0, 0, GZ_PI/4) or
+                        rot == Quaterniond(GZ_PI, 0, GZ_PI/4))
 
         m2 = MassMatrix3d()
         self.assertTrue(m2.set_from_box(mass, size, rot))
@@ -778,7 +778,7 @@ class TestMassMatrix(unittest.TestCase):
         self.assertEqual(m.diagonal_moments(), ixxyyzz)
         self.assertEqual(m.off_diagonal_moments(), Vector3d.ZERO)
 
-        density = mass / (IGN_PI * radius * radius * length)
+        density = mass / (GZ_PI * radius * radius * length)
         mat = Material(density)
         self.assertEqual(density, mat.density())
         m1 = MassMatrix3d()
@@ -813,7 +813,7 @@ class TestMassMatrix(unittest.TestCase):
         self.assertEqual(m.diagonal_moments(), ixxyyzz)
         self.assertEqual(m.off_diagonal_moments(), Vector3d.ZERO)
 
-        density = mass / ((4.0/3.0) * IGN_PI * math.pow(radius, 3))
+        density = mass / ((4.0/3.0) * GZ_PI * math.pow(radius, 3))
         mat = Material(density)
         self.assertEqual(density, mat.density())
         m1 = MassMatrix3d()

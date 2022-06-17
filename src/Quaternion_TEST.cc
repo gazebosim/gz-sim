@@ -128,11 +128,11 @@ TEST(QuaternionTest, ConstructEuler)
   // There are an infinite number of equivalent Euler angle
   // representations when pitch = PI/2, so rather than comparing Euler
   // angles, we will compare quaternions.
-  for (double pitch : { -IGN_PI_2, IGN_PI_2 })
+  for (double pitch : { -GZ_PI_2, GZ_PI_2 })
   {
-    for (double roll = 0; roll < 2 * IGN_PI + 0.1; roll += IGN_PI_4)
+    for (double roll = 0; roll < 2 * GZ_PI + 0.1; roll += GZ_PI_4)
     {
-      for (double yaw = 0; yaw < 2 * IGN_PI + 0.1; yaw += IGN_PI_4)
+      for (double yaw = 0; yaw < 2 * GZ_PI + 0.1; yaw += GZ_PI_4)
       {
         math::Quaterniond q_orig(roll, pitch, yaw);
         math::Quaterniond q_derived(q_orig.Euler());
@@ -145,7 +145,7 @@ TEST(QuaternionTest, ConstructEuler)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, ConstructAxisAngle)
 {
-  math::Quaterniond q1(math::Vector3d(0, 0, 1), IGN_PI);
+  math::Quaterniond q1(math::Vector3d(0, 0, 1), GZ_PI);
   EXPECT_TRUE(math::equal(q1.X(), 0.0));
   EXPECT_TRUE(math::equal(q1.Y(), 0.0));
   EXPECT_TRUE(math::equal(q1.Z(), 1.0));
@@ -273,7 +273,7 @@ TEST(QuaternionTest, Integrate)
   // expect no change.
   {
     const math::Quaterniond q(0.5, 0.5, 0.5, 0.5);
-    const double fourPi = 4 * IGN_PI;
+    const double fourPi = 4 * GZ_PI;
     math::Quaterniond qX = q.Integrate(math::Vector3d::UnitX, fourPi);
     math::Quaterniond qY = q.Integrate(math::Vector3d::UnitY, fourPi);
     math::Quaterniond qZ = q.Integrate(math::Vector3d::UnitZ, fourPi);
@@ -286,7 +286,7 @@ TEST(QuaternionTest, Integrate)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, MathLog)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
 
   EXPECT_EQ(q.Log(), math::Quaterniond(0, -1.02593, 0.162491, 1.02593));
 
@@ -298,7 +298,7 @@ TEST(QuaternionTest, MathLog)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, MathExp)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
 
   EXPECT_EQ(q.Exp(),
             math::Quaterniond(0.545456, -0.588972, 0.093284, 0.588972));
@@ -314,7 +314,7 @@ TEST(QuaternionTest, MathExp)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, MathInvert)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
 
   q.Invert();
   EXPECT_EQ(q, math::Quaterniond(0.110616, 0.698401, -0.110616, -0.698401));
@@ -323,29 +323,29 @@ TEST(QuaternionTest, MathInvert)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, MathAxis)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
 
-IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   // Deprecated in ign-math7
-  q.Axis(0, 1, 0, IGN_PI);
+  q.Axis(0, 1, 0, GZ_PI);
   EXPECT_EQ(q, math::Quaterniond(6.12303e-17, 0, 1, 0));
 
   // Deprecated in ign-math7
-  q.Axis(1, 0, 0, IGN_PI);
+  q.Axis(1, 0, 0, GZ_PI);
   EXPECT_EQ(q, math::Quaterniond(0, 1, 0, 0));
-IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
-  q.SetFromAxisAngle(0, 1, 0, IGN_PI);
+  q.SetFromAxisAngle(0, 1, 0, GZ_PI);
   EXPECT_EQ(q, math::Quaterniond(6.12303e-17, 0, 1, 0));
 
-  q.SetFromAxisAngle(math::Vector3d(1, 0, 0), IGN_PI);
+  q.SetFromAxisAngle(math::Vector3d(1, 0, 0), GZ_PI);
   EXPECT_EQ(q, math::Quaterniond(0, 1, 0, 0));
 }
 
 /////////////////////////////////////////////////
 TEST(QuaternionTest, MathSet)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
 
   q.Set(1, 2, 3, 4);
   EXPECT_TRUE(math::equal(q.W(), 1.0));
@@ -375,7 +375,7 @@ TEST(QuaternionTest, MathNormalize)
 /////////////////////////////////////////////////
 TEST(QuaternionTest, Math)
 {
-  math::Quaterniond q(IGN_PI*0.1, IGN_PI*0.5, IGN_PI);
+  math::Quaterniond q(GZ_PI*0.1, GZ_PI*0.5, GZ_PI);
   EXPECT_TRUE(q == math::Quaterniond(0.110616, -0.698401, 0.110616, 0.698401));
 
   q.Set(1, 2, 3, 4);
@@ -455,7 +455,7 @@ TEST(QuaternionTest, Math)
   EXPECT_TRUE(math::equal(angle, 0.0, 1e-3));
   {
     // simple 180 rotation about yaw, should result in x and y flipping signs
-    q = math::Quaterniond(0, 0, IGN_PI);
+    q = math::Quaterniond(0, 0, GZ_PI);
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
@@ -470,7 +470,7 @@ TEST(QuaternionTest, Math)
   {
     // simple  90 rotation about yaw, should map x to y, y to -x
     // simple -90 rotation about yaw, should map x to -y, y to x
-    q = math::Quaterniond(0, 0, 0.5*IGN_PI);
+    q = math::Quaterniond(0, 0, 0.5*GZ_PI);
     math::Vector3d v = math::Vector3d(1, 2, 3);
     math::Vector3d r1 = q.RotateVector(v);
     math::Vector3d r2 = q.RotateVectorReverse(v);
@@ -491,7 +491,7 @@ TEST(QuaternionTest, Math)
   // Test RPY fixed-body-frame convention:
   // Rotate each unit vector in roll and pitch
   {
-    q = math::Quaterniond(IGN_PI/2.0, IGN_PI/2.0, 0);
+    q = math::Quaterniond(GZ_PI/2.0, GZ_PI/2.0, 0);
     math::Vector3d v1(1, 0, 0);
     math::Vector3d r1 = q.RotateVector(v1);
     // 90 degrees about X does nothing,
@@ -514,7 +514,7 @@ TEST(QuaternionTest, Math)
   {
     // now try a harder case (axis[1,2,3], rotation[0.3*pi])
     // verified with octave
-    q.SetFromAxisAngle(math::Vector3d(1, 2, 3), 0.3*IGN_PI);
+    q.SetFromAxisAngle(math::Vector3d(1, 2, 3), 0.3*GZ_PI);
     std::cout << "[" << q.W() << ", " << q.X() << ", "
       << q.Y() << ", " << q.Z() << "]\n";
     std::cout << " x [" << q.Inverse().XAxis() << "]\n";

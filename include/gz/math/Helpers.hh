@@ -34,49 +34,53 @@
 /// \brief The default tolerance value used by MassMatrix3::IsValid(),
 /// MassMatrix3::IsPositive(), and MassMatrix3::ValidMoments()
 template <typename T>
+constexpr T GZ_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
+
+// TODO(CH3): Deprecated. Remove on tock.
+template <typename T>
 constexpr T IGN_MASSMATRIX3_DEFAULT_TOLERANCE = T(10);
 
-/// \brief Define IGN_PI, IGN_PI_2, and IGN_PI_4.
+/// \brief Define GZ_PI, GZ_PI_2, and GZ_PI_4.
 /// This was put here for Windows support.
 #ifdef M_PI
-#define IGN_PI M_PI
-#define IGN_PI_2 M_PI_2
-#define IGN_PI_4 M_PI_4
-#define IGN_SQRT2 M_SQRT2
+#define GZ_PI M_PI
+#define GZ_PI_2 M_PI_2
+#define GZ_PI_4 M_PI_4
+#define GZ_SQRT2 M_SQRT2
 #else
-#define IGN_PI   3.14159265358979323846
-#define IGN_PI_2 1.57079632679489661923
-#define IGN_PI_4 0.78539816339744830962
-#define IGN_SQRT2 1.41421356237309504880
+#define GZ_PI   3.14159265358979323846
+#define GZ_PI_2 1.57079632679489661923
+#define GZ_PI_4 0.78539816339744830962
+#define GZ_SQRT2 1.41421356237309504880
 #endif
 
-/// \brief Define IGN_FP_VOLATILE for FP equality comparisons
+/// \brief Define GZ_FP_VOLATILE for FP equality comparisons
 /// Use volatile parameters when checking floating point equality on
 /// the 387 math coprocessor to work around bugs from the 387 extra precision
 #if defined __FLT_EVAL_METHOD__  &&  __FLT_EVAL_METHOD__ == 2
-#define IGN_FP_VOLATILE volatile
+#define GZ_FP_VOLATILE volatile
 #else
-#define IGN_FP_VOLATILE
+#define GZ_FP_VOLATILE
 #endif
 
 /// \brief Compute sphere volume
 /// \param[in] _radius Sphere radius
-#define IGN_SPHERE_VOLUME(_radius) (4.0*IGN_PI*std::pow(_radius, 3)/3.0)
+#define GZ_SPHERE_VOLUME(_radius) (4.0*GZ_PI*std::pow(_radius, 3)/3.0)
 
 /// \brief Compute cylinder volume
 /// \param[in] _r Cylinder base radius
 /// \param[in] _l Cylinder length
-#define IGN_CYLINDER_VOLUME(_r, _l) (_l * IGN_PI * std::pow(_r, 2))
+#define GZ_CYLINDER_VOLUME(_r, _l) (_l * GZ_PI * std::pow(_r, 2))
 
 /// \brief Compute box volume
 /// \param[in] _x X length
 /// \param[in] _y Y length
 /// \param[in] _z Z length
-#define IGN_BOX_VOLUME(_x, _y, _z) (_x *_y * _z)
+#define GZ_BOX_VOLUME(_x, _y, _z) (_x *_y * _z)
 
 /// \brief Compute box volume from a vector
 /// \param[in] _v Vector3d that contains the box's dimensions.
-#define IGN_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
+#define GZ_BOX_VOLUME_V(_v) (_v.X() *_v.Y() * _v.Z())
 
 namespace gz
 {
@@ -87,34 +91,46 @@ namespace gz
     inline namespace GZ_MATH_VERSION_NAMESPACE {
     //
     /// \brief size_t type with a value of 0
-    static const size_t IGN_ZERO_SIZE_T  = 0u;
+    static const size_t GZ_ZERO_SIZE_T  = 0u;
 
     /// \brief size_t type with a value of 1
-    static const size_t IGN_ONE_SIZE_T   = 1u;
+    static const size_t GZ_ONE_SIZE_T   = 1u;
 
     /// \brief size_t type with a value of 2
-    static const size_t IGN_TWO_SIZE_T   = 2u;
+    static const size_t GZ_TWO_SIZE_T   = 2u;
 
     /// \brief size_t type with a value of 3
-    static const size_t IGN_THREE_SIZE_T = 3u;
+    static const size_t GZ_THREE_SIZE_T = 3u;
 
     /// \brief size_t type with a value of 4
-    static const size_t IGN_FOUR_SIZE_T  = 4u;
+    static const size_t GZ_FOUR_SIZE_T  = 4u;
 
     /// \brief size_t type with a value of 5
-    static const size_t IGN_FIVE_SIZE_T  = 5u;
+    static const size_t GZ_FIVE_SIZE_T  = 5u;
 
     /// \brief size_t type with a value of 6
-    static const size_t IGN_SIX_SIZE_T   = 6u;
+    static const size_t GZ_SIX_SIZE_T   = 6u;
 
     /// \brief size_t type with a value of 7
-    static const size_t IGN_SEVEN_SIZE_T = 7u;
+    static const size_t GZ_SEVEN_SIZE_T = 7u;
 
     /// \brief size_t type with a value of 8
-    static const size_t IGN_EIGHT_SIZE_T = 8u;
+    static const size_t GZ_EIGHT_SIZE_T = 8u;
 
     /// \brief size_t type with a value of 9
-    static const size_t IGN_NINE_SIZE_T  = 9u;
+    static const size_t GZ_NINE_SIZE_T  = 9u;
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    constexpr auto GZ_DEPRECATED(7) IGN_ZERO_SIZE_T  = &GZ_ZERO_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_ONE_SIZE_T   = &GZ_ONE_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_TWO_SIZE_T   = &GZ_TWO_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_THREE_SIZE_T = &GZ_THREE_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_FOUR_SIZE_T  = &GZ_FOUR_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_FIVE_SIZE_T  = &GZ_FIVE_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_SIX_SIZE_T   = &GZ_SIX_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_SEVEN_SIZE_T = &GZ_SEVEN_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_EIGHT_SIZE_T = &GZ_EIGHT_SIZE_T;
+    constexpr auto GZ_DEPRECATED(7) IGN_NINE_SIZE_T  = &GZ_NINE_SIZE_T;
 
     /// \brief Double maximum value. This value will be similar to 1.79769e+308
     static const double MAX_D = std::numeric_limits<double>::max();
@@ -153,7 +169,7 @@ namespace gz
     static const uint16_t MIN_UI16 = std::numeric_limits<uint16_t>::min();
 
     /// \brief 16bit unsigned integer lowest value. This is equivalent to
-    /// IGN_UINT16_MIN, and is defined here for completeness.
+    /// GZ_UINT16_MIN, and is defined here for completeness.
     static const uint16_t LOW_UI16 = std::numeric_limits<uint16_t>::lowest();
 
     /// \brief 16-bit unsigned integer positive infinite value
@@ -166,7 +182,7 @@ namespace gz
     static const int16_t MIN_I16 = std::numeric_limits<int16_t>::min();
 
     /// \brief 16bit unsigned integer lowest value. This is equivalent to
-    /// IGN_INT16_MIN, and is defined here for completeness.
+    /// GZ_INT16_MIN, and is defined here for completeness.
     static const int16_t LOW_I16 = std::numeric_limits<int16_t>::lowest();
 
     /// \brief 16-bit unsigned integer positive infinite value
@@ -179,7 +195,7 @@ namespace gz
     static const uint32_t MIN_UI32 = std::numeric_limits<uint32_t>::min();
 
     /// \brief 32bit unsigned integer lowest value. This is equivalent to
-    /// IGN_UINT32_MIN, and is defined here for completeness.
+    /// GZ_UINT32_MIN, and is defined here for completeness.
     static const uint32_t LOW_UI32 = std::numeric_limits<uint32_t>::lowest();
 
     /// \brief 32-bit unsigned integer positive infinite value
@@ -192,7 +208,7 @@ namespace gz
     static const int32_t MIN_I32 = std::numeric_limits<int32_t>::min();
 
     /// \brief 32bit unsigned integer lowest value. This is equivalent to
-    /// IGN_INT32_MIN, and is defined here for completeness.
+    /// GZ_INT32_MIN, and is defined here for completeness.
     static const int32_t LOW_I32 = std::numeric_limits<int32_t>::lowest();
 
     /// \brief 32-bit unsigned integer positive infinite value
@@ -205,7 +221,7 @@ namespace gz
     static const uint64_t MIN_UI64 = std::numeric_limits<uint64_t>::min();
 
     /// \brief 64bit unsigned integer lowest value. This is equivalent to
-    /// IGN_UINT64_MIN, and is defined here for completeness.
+    /// GZ_UINT64_MIN, and is defined here for completeness.
     static const uint64_t LOW_UI64 = std::numeric_limits<uint64_t>::lowest();
 
     /// \brief 64-bit unsigned integer positive infinite value
@@ -218,7 +234,7 @@ namespace gz
     static const int64_t MIN_I64 = std::numeric_limits<int64_t>::min();
 
     /// \brief 64bit unsigned integer lowest value. This is equivalent to
-    /// IGN_INT64_MIN, and is defined here for completeness.
+    /// GZ_INT64_MIN, and is defined here for completeness.
     static const int64_t LOW_I64 = std::numeric_limits<int64_t>::lowest();
 
     /// \brief 64-bit unsigned integer positive infinite value
@@ -381,7 +397,7 @@ namespace gz
     inline bool equal(const T &_a, const T &_b,
                       const T &_epsilon = T(1e-6))
     {
-      IGN_FP_VOLATILE T diff = std::abs(_a - _b);
+      GZ_FP_VOLATILE T diff = std::abs(_a - _b);
       return diff <= _epsilon;
     }
 
@@ -563,20 +579,20 @@ namespace gz
     /// \brief Parse string into an integer.
     /// \param[in] _input The input string.
     /// \return An integer, or NAN_I if unable to parse the input.
-    int IGNITION_MATH_VISIBLE parseInt(const std::string &_input);
+    int GZ_MATH_VISIBLE parseInt(const std::string &_input);
 
     /// \brief parse string into float.
     /// \param [in] _input The string.
     /// \return A floating point number (can be NaN) or NAN_D if the
     /// _input could not be parsed.
-    double IGNITION_MATH_VISIBLE parseFloat(const std::string &_input);
+    double GZ_MATH_VISIBLE parseFloat(const std::string &_input);
 
     /// \brief Convert a std::chrono::steady_clock::time_point to a seconds and
     /// nanoseconds pair.
     /// \param[in] _time The time point to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
-    std::pair<int64_t, int64_t> IGNITION_MATH_VISIBLE timePointToSecNsec(
+    std::pair<int64_t, int64_t> GZ_MATH_VISIBLE timePointToSecNsec(
         const std::chrono::steady_clock::time_point &_time);
 
     /// \brief Convert seconds and nanoseconds to
@@ -585,7 +601,7 @@ namespace gz
     /// \param[in] _nanosec The nanoseconds to convert.
     /// \return A std::chrono::steady_clock::time_point based on the number of
     /// seconds and the number of nanoseconds.
-    std::chrono::steady_clock::time_point IGNITION_MATH_VISIBLE
+    std::chrono::steady_clock::time_point GZ_MATH_VISIBLE
       secNsecToTimePoint(
         const uint64_t &_sec, const uint64_t &_nanosec);
 
@@ -595,7 +611,7 @@ namespace gz
     /// \param[in] _nanosec The nanoseconds to convert.
     /// \return A std::chrono::steady_clock::duration based on the number of
     /// seconds and the number of nanoseconds.
-    std::chrono::steady_clock::duration IGNITION_MATH_VISIBLE secNsecToDuration(
+    std::chrono::steady_clock::duration GZ_MATH_VISIBLE secNsecToDuration(
         const uint64_t &_sec, const uint64_t &_nanosec);
 
     /// \brief Convert a std::chrono::steady_clock::duration to a seconds and
@@ -603,7 +619,7 @@ namespace gz
     /// \param[in] _dur The duration to convert.
     /// \return A pair where the first element is the number of seconds and
     /// the second is the number of nanoseconds.
-    std::pair<int64_t, int64_t> IGNITION_MATH_VISIBLE durationToSecNsec(
+    std::pair<int64_t, int64_t> GZ_MATH_VISIBLE durationToSecNsec(
         const std::chrono::steady_clock::duration &_dur);
 
     // TODO(anyone): Replace this with std::chrono::days.

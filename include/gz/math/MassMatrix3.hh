@@ -297,7 +297,7 @@ namespace gz
       /// \endcode
       ///
       public: bool IsNearPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         const T epsilon = this->Epsilon(_tolerance);
 
@@ -330,7 +330,7 @@ namespace gz
       /// \endcode
       ///
       public: bool IsPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         const T epsilon = this->Epsilon(_tolerance);
 
@@ -351,7 +351,7 @@ namespace gz
       /// A good value is 10, which is also the
       /// MASSMATRIX3_DEFAULT_TOLERANCE.
       public: T Epsilon(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         return Epsilon(this->DiagonalMoments(), _tolerance);
       }
@@ -379,7 +379,7 @@ namespace gz
       /// \endcode
       public: static T Epsilon(const Vector3<T> &_moments,
                   const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
       {
         // The following was borrowed heavily from:
         // https://github.com/RobotLocomotion/drake/blob/v0.27.0/multibody/tree/rotational_inertia.h
@@ -417,7 +417,7 @@ namespace gz
       /// \return True if IsNearPositive(_tolerance) and
       /// ValidMoments(this->PrincipalMoments(), _tolerance) both return true.
       public: bool IsValid(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const
       {
         return this->IsNearPositive(_tolerance) &&
                ValidMoments(this->PrincipalMoments(), _tolerance);
@@ -444,7 +444,7 @@ namespace gz
       ///   _moments[2] + _moments[0] + epsilon >= _moments[1];
       /// \endcode
       public: static bool ValidMoments(const Vector3<T> &_moments,
-                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
+                  const T _tolerance = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
               {
                 T epsilon = Epsilon(_moments, _tolerance);
 
@@ -516,8 +516,8 @@ namespace gz
 
         // sort the moments from smallest to largest
         T moment0 = (b + 2*sqrt(p) * cos(delta / 3.0)) / 3.0;
-        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*IGN_PI)/3.0)) / 3.0;
-        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*IGN_PI)/3.0)) / 3.0;
+        T moment1 = (b + 2*sqrt(p) * cos((delta + 2*GZ_PI)/3.0)) / 3.0;
+        T moment2 = (b + 2*sqrt(p) * cos((delta - 2*GZ_PI)/3.0)) / 3.0;
         sort3(moment0, moment1, moment2);
         return Vector3<T>(moment0, moment1, moment2);
       }
@@ -673,7 +673,7 @@ namespace gz
           //                   [-1  0  0]
           // That is equivalent to a 90 degree pitch
           if (unequalMoment == 0)
-            result *= Quaternion<T>(0, IGN_PI_2, 0);
+            result *= Quaternion<T>(0, GZ_PI_2, 0);
 
           return result;
         }
@@ -950,7 +950,7 @@ namespace gz
         {
           return false;
         }
-        T volume = IGN_PI * _radius * _radius * _length;
+        T volume = GZ_PI * _radius * _radius * _length;
         return this->SetFromCylinderZ(_mat.Density() * volume,
                                       _length, _radius, _rot);
       }
@@ -1020,7 +1020,7 @@ namespace gz
           return false;
         }
 
-        T volume = (4.0/3.0) * IGN_PI * std::pow(_radius, 3);
+        T volume = (4.0/3.0) * GZ_PI * std::pow(_radius, 3);
         return this->SetFromSphere(_mat.Density() * volume, _radius);
       }
 

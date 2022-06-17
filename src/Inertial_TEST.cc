@@ -64,7 +64,7 @@ TEST(Inertiald_Test, ConstructorNonDefaultValues)
   math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
-  const math::Pose3d pose(1, 2, 3, IGN_PI/6, 0, 0);
+  const math::Pose3d pose(1, 2, 3, GZ_PI/6, 0, 0);
   math::Inertiald inertial(m, pose);
 
   // Should not match simple constructor
@@ -117,7 +117,7 @@ TEST(Inertiald_Test, Setters)
   math::MassMatrix3d m(mass, Ixxyyzz, Ixyxzyz);
   EXPECT_TRUE(m.IsPositive());
   EXPECT_TRUE(m.IsValid());
-  const math::Pose3d pose(1, 2, 3, IGN_PI/6, 0, 0);
+  const math::Pose3d pose(1, 2, 3, GZ_PI/6, 0, 0);
   math::Inertiald inertial;
 
   // Initially valid
@@ -154,7 +154,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
   // 90 deg rotation about X axis, expect different MOI
   {
-    const math::Pose3d pose(0, 0, 0, IGN_PI_2, 0, 0);
+    const math::Pose3d pose(0, 0, 0, GZ_PI_2, 0, 0);
     const math::Matrix3d expectedMOI(2, 0, 0, 0, 4, 0, 0, 0, 3);
     math::Inertiald inertial(m, pose);
     EXPECT_NE(inertial.Moi(), m.Moi());
@@ -163,7 +163,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
   // 90 deg rotation about Y axis, expect different MOI
   {
-    const math::Pose3d pose(0, 0, 0, 0, IGN_PI_2, 0);
+    const math::Pose3d pose(0, 0, 0, 0, GZ_PI_2, 0);
     const math::Matrix3d expectedMOI(4, 0, 0, 0, 3, 0, 0, 0, 2);
     math::Inertiald inertial(m, pose);
     EXPECT_NE(inertial.Moi(), m.Moi());
@@ -172,7 +172,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
   // 90 deg rotation about Z axis, expect different MOI
   {
-    const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_2);
+    const math::Pose3d pose(0, 0, 0, 0, 0, GZ_PI_2);
     const math::Matrix3d expectedMOI(3, 0, 0, 0, 2, 0, 0, 0, 4);
     math::Inertiald inertial(m, pose);
     EXPECT_NE(inertial.Moi(), m.Moi());
@@ -181,7 +181,7 @@ TEST(Inertiald_Test, MOI_Diagonal)
 
   // 45 deg rotation about Z axis, expect different MOI
   {
-    const math::Pose3d pose(0, 0, 0, 0, 0, IGN_PI_4);
+    const math::Pose3d pose(0, 0, 0, 0, 0, GZ_PI_4);
     const math::Matrix3d expectedMOI(2.5, -0.5, 0, -0.5, 2.5, 0, 0, 0, 4);
     math::Inertiald inertial(m, pose);
     EXPECT_NE(inertial.Moi(), m.Moi());
@@ -215,18 +215,18 @@ void SetRotation(const double _mass,
 
   const std::vector<math::Quaterniond> rotations = {
     math::Quaterniond::Identity,
-    math::Quaterniond(IGN_PI, 0, 0),
-    math::Quaterniond(0, IGN_PI, 0),
-    math::Quaterniond(0, 0, IGN_PI),
-    math::Quaterniond(IGN_PI_2, 0, 0),
-    math::Quaterniond(0, IGN_PI_2, 0),
-    math::Quaterniond(0, 0, IGN_PI_2),
-    math::Quaterniond(IGN_PI_4, 0, 0),
-    math::Quaterniond(0, IGN_PI_4, 0),
-    math::Quaterniond(0, 0, IGN_PI_4),
-    math::Quaterniond(IGN_PI/6, 0, 0),
-    math::Quaterniond(0, IGN_PI/6, 0),
-    math::Quaterniond(0, 0, IGN_PI/6),
+    math::Quaterniond(GZ_PI, 0, 0),
+    math::Quaterniond(0, GZ_PI, 0),
+    math::Quaterniond(0, 0, GZ_PI),
+    math::Quaterniond(GZ_PI_2, 0, 0),
+    math::Quaterniond(0, GZ_PI_2, 0),
+    math::Quaterniond(0, 0, GZ_PI_2),
+    math::Quaterniond(GZ_PI_4, 0, 0),
+    math::Quaterniond(0, GZ_PI_4, 0),
+    math::Quaterniond(0, 0, GZ_PI_4),
+    math::Quaterniond(GZ_PI/6, 0, 0),
+    math::Quaterniond(0, GZ_PI/6, 0),
+    math::Quaterniond(0, 0, GZ_PI/6),
     math::Quaterniond(0.1, 0.2, 0.3),
     math::Quaterniond(-0.1, 0.2, -0.3),
     math::Quaterniond(0.4, 0.2, 0.5),
@@ -447,12 +447,12 @@ TEST(Inertiald_Test, AdditionSubtraction)
     const math::Vector3d size(1, 1, 1);
     math::MassMatrix3d cubeMM3;
     EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
-    const math::Inertiald cube(cubeMM3, math::Pose3d(0, 0, 0, IGN_PI_4, 0, 0));
+    const math::Inertiald cube(cubeMM3, math::Pose3d(0, 0, 0, GZ_PI_4, 0, 0));
 
     math::MassMatrix3d half;
     EXPECT_TRUE(half.SetFromBox(0.5*mass, math::Vector3d(0.5, 1, 1)));
-    math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, IGN_PI_4, 0, 0));
-    math::Inertiald right(half, math::Pose3d(0.25, 0, 0, IGN_PI_4, 0, 0));
+    math::Inertiald left(half, math::Pose3d(-0.25, 0, 0, GZ_PI_4, 0, 0));
+    math::Inertiald right(half, math::Pose3d(0.25, 0, 0, GZ_PI_4, 0, 0));
 
     // objects won't match exactly
     // since inertia matrices will all be in base frame
@@ -514,12 +514,12 @@ TEST(Inertiald_Test, AdditionSubtraction)
     EXPECT_TRUE(cubeMM3.SetFromBox(mass, size));
     const math::Inertiald sevenCubes =
       math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, -0.5, 0, 0, 0)) +
-      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, IGN_PI_2, 0, 0)) +
-      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, IGN_PI_2, 0)) +
-      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, IGN_PI_2)) +
-      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, IGN_PI, 0, 0)) +
-      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, IGN_PI, 0)) +
-      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, IGN_PI));
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, -0.5, GZ_PI_2, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, -0.5, 0, GZ_PI_2, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, -0.5, 0, 0, GZ_PI_2)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5, -0.5, 0.5, GZ_PI, 0, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(-0.5,  0.5, 0.5, 0, GZ_PI, 0)) +
+      math::Inertiald(cubeMM3, math::Pose3d(0.5,  -0.5, 0.5, 0, 0, GZ_PI));
     const math::Inertiald lastCube =
       math::Inertiald(cubeMM3, math::Pose3d(0.5,   0.5, 0.5, 0, 0, 0));
     const math::Inertiald addedCube = sevenCubes + lastCube;

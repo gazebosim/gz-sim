@@ -15,8 +15,8 @@
 import math
 import unittest
 
-from ignition.math import (Helpers, ign_box_volume, ign_box_volume_v, ign_cylinder_volume,
-                           ign_sphere_volume, Vector3d, equal, fixnan,
+from ignition.math import (Helpers, gz_box_volume, gz_box_volume_v, gz_cylinder_volume,
+                           gz_sphere_volume, Vector3d, equal, fixnan,
                            greater_or_near_equal, is_even, is_odd, is_power_of_two, isnan,
                            less_or_near_equal, max, mean, min,
                            parse_float, parse_int, precision, round_up_multiple,
@@ -243,31 +243,31 @@ class TestHelpers(unittest.TestCase):
 
     def test_volume(self):
         self.assertAlmostEqual(
-            ign_sphere_volume(1.0),
+            gz_sphere_volume(1.0),
             4.0*math.pi*math.pow(1, 3)/3.0,
             6)
         self.assertAlmostEqual(
-            ign_sphere_volume(0.1),
+            gz_sphere_volume(0.1),
             4.0*math.pi*math.pow(.1, 3)/3.0,
             6)
         self.assertAlmostEqual(
-            ign_sphere_volume(-1.1),
+            gz_sphere_volume(-1.1),
             4.0*math.pi*math.pow(-1.1, 3)/3.0,
             6)
 
         self.assertAlmostEqual(
-            ign_cylinder_volume(0.5, 2.0),
+            gz_cylinder_volume(0.5, 2.0),
             2 * math.pi * math.pow(.5, 2),
             6)
         self.assertAlmostEqual(
-            ign_cylinder_volume(1, -1),
+            gz_cylinder_volume(1, -1),
             -1 * math.pi * math.pow(1, 2),
             6)
 
-        self.assertEqual(ign_box_volume(1, 2, 3), 1 * 2 * 3)
+        self.assertEqual(gz_box_volume(1, 2, 3), 1 * 2 * 3)
         self.assertAlmostEqual(
-            ign_box_volume(.1, .2, .3),
-            ign_box_volume_v(Vector3d(0.1, 0.2, 0.3)),
+            gz_box_volume(.1, .2, .3),
+            gz_box_volume_v(Vector3d(0.1, 0.2, 0.3)),
             6)
 
     def test_round_up_multiple(self):

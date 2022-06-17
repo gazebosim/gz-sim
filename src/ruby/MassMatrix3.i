@@ -67,18 +67,18 @@ namespace gz
       public: bool operator==(const MassMatrix3<T> &_m) const;
       public: bool operator!=(const MassMatrix3<T> &_m) const;
       public: bool IsNearPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
       public: bool IsPositive(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
       public: T Epsilon(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
       public: static T Epsilon(const Vector3<T> &_moments,
                   const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
       public: bool IsValid(const T _tolerance =
-                  IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
+                  GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>) const;
       public: static bool ValidMoments(const Vector3<T> &_moments,
-                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
+                  const T _tolerance = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
       public: Vector3<T> PrincipalMoments(const T _tol = 1e-6) const;
       public: Quaternion<T> PrincipalAxesOffset(const T _tol = 1e-6) const;
       public: bool EquivalentBox(Vector3<T> &_size,

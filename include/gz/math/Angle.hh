@@ -22,23 +22,23 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/config.hh>
 
-/// \def IGN_RTOD(d)
+/// \def GZ_RTOD(d)
 /// \brief Macro that converts radians to degrees
 /// \param[in] r radians
 /// \return degrees
-#define IGN_RTOD(r) ((r) * 180 / IGN_PI)
+#define GZ_RTOD(r) ((r) * 180 / GZ_PI)
 
-/// \def IGN_DTOR(d)
+/// \def GZ_DTOR(d)
 /// \brief Converts degrees to radians
 /// \param[in] d degrees
 /// \return radians
-#define IGN_DTOR(d) ((d) * IGN_PI / 180)
+#define GZ_DTOR(d) ((d) * GZ_PI / 180)
 
-/// \def IGN_NORMALIZE(a)
+/// \def GZ_NORMALIZE(a)
 /// \brief Macro that normalizes an angle in the range -Pi to Pi
 /// \param[in] a angle
 /// \return the angle, in range
-#define IGN_NORMALIZE(a) (atan2(sin(a), cos(a)))
+#define GZ_NORMALIZE(a) (atan2(sin(a), cos(a)))
 
 namespace gz
 {
@@ -66,15 +66,15 @@ namespace gz
       public: static const Angle &Zero;
 
       /// \brief An angle with a value of Pi.
-      /// Equivalent to math::Angle(IGN_PI).
+      /// Equivalent to math::Angle(GZ_PI).
       public: static const Angle &Pi;
 
       /// \brief An angle with a value of Pi * 0.5.
-      /// Equivalent to math::Angle(IGN_PI * 0.5).
+      /// Equivalent to math::Angle(GZ_PI * 0.5).
       public: static const Angle &HalfPi;
 
       /// \brief An angle with a value of Pi * 2.
-      /// Equivalent to math::Angle(IGN_PI * 2).
+      /// Equivalent to math::Angle(GZ_PI * 2).
       public: static const Angle &TwoPi;
 
       /// \brief Default constructor that initializes an Angle to zero

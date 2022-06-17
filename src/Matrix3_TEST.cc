@@ -49,7 +49,7 @@ TEST(Matrix3dTest, Matrix3d)
                      math::Vector3d(3, 3, 3));
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 3, 1, 2, 3, 1, 2, 3));
 
-  matrix.SetFromAxisAngle(math::Vector3d(1, 1, 1), IGN_PI);
+  matrix.SetFromAxisAngle(math::Vector3d(1, 1, 1), GZ_PI);
   EXPECT_TRUE(matrix == math::Matrix3d(1, 2, 2, 2, 1, 2, 2, 2, 1));
 
   matrix.SetCol(0, math::Vector3d(3, 4, 5));

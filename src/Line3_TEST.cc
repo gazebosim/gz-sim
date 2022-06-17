@@ -202,7 +202,7 @@ TEST(Line3Test, Distance)
   EXPECT_EQ(result, math::Line3d(0, 0.5, 0, 0, 0.5, 0.4));
 
   EXPECT_TRUE(line.Distance(math::Line3d(0, 0.5, 1, 1, 0.5, 0), result));
-  EXPECT_NEAR(result.Length(), sin(IGN_PI / 4), 1e-4);
+  EXPECT_NEAR(result.Length(), sin(GZ_PI / 4), 1e-4);
   EXPECT_EQ(result, math::Line3d(0, 0.5, 0, 0.5, 0.5, 0.5));
 
   // Expect true when lines are parallel

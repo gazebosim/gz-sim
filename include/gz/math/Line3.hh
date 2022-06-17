@@ -382,7 +382,7 @@ namespace gz
       /// parameter is clamped to the range [0, 1].
       public: math::Vector3<T> operator[](const size_t _index) const
       {
-        return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
+        return this->pts[clamp(_index, GZ_ZERO_SIZE_T, GZ_ONE_SIZE_T)];
       }
 
       /// \brief Stream extraction operator

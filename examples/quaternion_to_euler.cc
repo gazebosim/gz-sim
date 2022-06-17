@@ -87,9 +87,9 @@ int main(int argc, char **argv)
   printf(" roll  % .6f degrees\n"
          " pitch % .6f degrees\n"
          " yaw   % .6f degrees\n",
-          IGN_RTOD(euler.X()),
-          IGN_RTOD(euler.Y()),
-          IGN_RTOD(euler.Z()));
+          GZ_RTOD(euler.X()),
+          GZ_RTOD(euler.Y()),
+          GZ_RTOD(euler.Z()));
 
   std::cout << "\nto Rotation matrix\n";
   printf("   % .6f  % .6f  % .6f\n"

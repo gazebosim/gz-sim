@@ -51,7 +51,7 @@ namespace gz
     /// * Ruby
     ///
     /// \code{.rb}
-    /// # Modify the RUBYLIB environment variable to include the ignition math
+    /// # Modify the RUBYLIB environment variable to include the Gazebo Math
     /// # library install path. For example, if you install to /user:
     /// #
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
@@ -447,11 +447,11 @@ namespace gz
         T sarg = -2 * (copy.qx*copy.qz - copy.qw * copy.qy);
         if (sarg <= T(-1.0))
         {
-          vec.Y(T(-0.5*IGN_PI));
+          vec.Y(T(-0.5*GZ_PI));
         }
         else if (sarg >= T(1.0))
         {
-          vec.Y(T(0.5*IGN_PI));
+          vec.Y(T(0.5*GZ_PI));
         }
         else
         {

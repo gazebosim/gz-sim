@@ -84,14 +84,14 @@ TEST(EllipsoidTest, VolumeAndDensity)
   // Basic sphere
   math::Ellipsoidd ellipsoid(2. * math::Vector3d::One);
 
-  double expectedVolume = (4. / 3.) * IGN_PI * std::pow(2.0, 3);
+  double expectedVolume = (4. / 3.) * GZ_PI * std::pow(2.0, 3);
   EXPECT_DOUBLE_EQ(expectedVolume, ellipsoid.Volume());
 
   double expectedDensity = mass / expectedVolume;
   EXPECT_DOUBLE_EQ(expectedDensity, ellipsoid.DensityFromMass(mass));
 
   math::Ellipsoidd ellipsoid2(math::Vector3d(1, 10, 100));
-  expectedVolume = (4. / 3.) * IGN_PI * 1. * 10. * 100.;
+  expectedVolume = (4. / 3.) * GZ_PI * 1. * 10. * 100.;
   EXPECT_DOUBLE_EQ(expectedVolume, ellipsoid2.Volume());
 
   expectedDensity = mass / expectedVolume;

@@ -265,7 +265,7 @@ namespace gz
       /// \return The triangle point at _index.
       public: Vector3<T> operator[](const size_t _index) const
       {
-        return this->pts[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
+        return this->pts[clamp(_index, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)];
       }
 
       /// The points of the triangle

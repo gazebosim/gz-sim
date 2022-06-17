@@ -83,7 +83,7 @@ TEST(CapsuleTest, VolumeAndDensity)
 {
   double mass = 1.0;
   math::Capsuled capsule(1.0, 0.001);
-  double expectedVolume = (IGN_PI * std::pow(0.001, 2) * (1.0 + 4./3. * 0.001));
+  double expectedVolume = (GZ_PI * std::pow(0.001, 2) * (1.0 + 4./3. * 0.001));
   EXPECT_DOUBLE_EQ(expectedVolume, capsule.Volume());
 
   double expectedDensity = mass / expectedVolume;
@@ -103,8 +103,8 @@ TEST(CapsuleTest, Mass)
   math::Capsuled capsule(l, r);
   capsule.SetDensityFromMass(mass);
 
-  const double cylinderVolume = IGN_PI * r*r * l;
-  const double sphereVolume = IGN_PI * 4. / 3. * r*r*r;
+  const double cylinderVolume = GZ_PI * r*r * l;
+  const double sphereVolume = GZ_PI * 4. / 3. * r*r*r;
   const double volume = cylinderVolume + sphereVolume;
   const double cylinderMass = mass * cylinderVolume / volume;
   const double sphereMass = mass * sphereVolume / volume;

@@ -473,7 +473,7 @@ namespace gz
       /// The index is clamped to the range [0,1].
       public: T &operator[](const std::size_t _index)
       {
-        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
+        return this->data[clamp(_index, GZ_ZERO_SIZE_T, GZ_ONE_SIZE_T)];
       }
 
       /// \brief Const-qualified array subscript operator
@@ -481,7 +481,7 @@ namespace gz
       /// The index is clamped to the range [0,1].
       public: T operator[](const std::size_t _index) const
       {
-        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_ONE_SIZE_T)];
+        return this->data[clamp(_index, GZ_ZERO_SIZE_T, GZ_ONE_SIZE_T)];
       }
 
       /// \brief Return the x value.

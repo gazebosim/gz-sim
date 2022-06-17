@@ -63,7 +63,7 @@ void defineMathInertial(py::module &m, const std::string &typestr)
     .def("set_mass_matrix",
          &Class::SetMassMatrix,
          py::arg("_m") = gz::math::MassMatrix3<T>(),
-         py::arg("_tolerance") = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
+         py::arg("_tolerance") = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>,
          "Set the mass and inertia matrix.")
     .def("mass_matrix",
          &Class::MassMatrix,

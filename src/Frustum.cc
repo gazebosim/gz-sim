@@ -45,7 +45,7 @@ class Frustum::Implementation
   /// The field of view is the angle between the frustum's vertex and the
   /// edges of the near or far plane.
   /// This value represents the horizontal angle.
-  public: math::Angle fov {IGN_DTOR(45)};
+  public: math::Angle fov {GZ_DTOR(45)};
 
   /// \brief Aspect ratio of the near and far planes. This is the
   // width divided by the height.

@@ -50,7 +50,7 @@ namespace gz
     ///
     /// * Ruby
     /// \code{.rb}
-    /// # Modify the RUBYLIB environment variable to include the ignition math
+    /// # Modify the RUBYLIB environment variable to include the Gazebo Math
     /// # library install path. For example, if you install to /user:
     /// #
     /// # $ export RUBYLIB=/usr/lib/ruby:$RUBYLIB
@@ -156,8 +156,8 @@ namespace gz
       /// \param[in] _v New value.
       public: void Set(size_t _row, size_t _col, T _v)
       {
-        this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
-                  [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)] = _v;
+        this->data[clamp(_row, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)]
+                  [clamp(_col, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)] = _v;
       }
 
       /// \brief Set values.
@@ -504,8 +504,8 @@ namespace gz
       /// \return a pointer to the row
       public: inline T operator()(size_t _row, size_t _col) const
       {
-        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
-                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
+        return this->data[clamp(_row, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)]
+                         [clamp(_col, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)];
       }
 
       /// \brief Array subscript operator.
@@ -514,8 +514,8 @@ namespace gz
       /// \return a pointer to the row
       public: inline T &operator()(size_t _row, size_t _col)
       {
-        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)]
-                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
+        return this->data[clamp(_row, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)]
+                         [clamp(_col, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)];
       }
 
       /// \brief Return the determinant of the matrix.

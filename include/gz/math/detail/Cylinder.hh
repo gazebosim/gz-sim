@@ -120,7 +120,7 @@ bool Cylinder<T>::MassMatrix(MassMatrix3d &_massMat) const
 template<typename T>
 T Cylinder<T>::Volume() const
 {
-  return IGN_PI * std::pow(this->radius, 2) *
+  return GZ_PI * std::pow(this->radius, 2) *
          this->length;
 }
 

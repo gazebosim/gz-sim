@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
   double wheelSeparation = 2.0;
   double wheelRadius = 0.5;
-  double wheelCircumference = 2 * IGN_PI * wheelRadius;
+  double wheelCircumference = 2 * GZ_PI * wheelRadius;
 
   // This is the linear distance traveled per degree of wheel rotation.
   double distPerDegree = wheelCircumference / 360.0;
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
   // position.
   std::cout << "--- Rotate both wheels by 1 degree. ---" << '\n';
   auto time1 = startTime + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(1.0), IGN_DTOR(1.0), time1);
+  odom.Update(GZ_DTOR(1.0), GZ_DTOR(1.0), time1);
 
   std::cout << "\tLinear velocity:\t" << distPerDegree / 0.1 << " m/s"
             << "\n\tOdom linear velocity:\t" << odom.LinearVelocity() << " m/s"
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
             << "by 2 degrees ---"
             << std::endl;
   auto time2 = time1 + std::chrono::milliseconds(100);
-  odom.Update(IGN_DTOR(2.0), IGN_DTOR(3.0), time2);
+  odom.Update(GZ_DTOR(2.0), GZ_DTOR(3.0), time2);
 
   std::cout << "The heading should be the arc tangent of the linear distance\n"
             << "traveled by the right wheel (the left wheel was stationary)\n"

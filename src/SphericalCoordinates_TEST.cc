@@ -436,8 +436,8 @@ TEST(SphericalCoordinatesTest, NoHeading)
 {
   // Default heading
   auto st = math::SphericalCoordinates::EARTH_WGS84;
-  math::Angle lat(IGN_DTOR(-22.9));
-  math::Angle lon(IGN_DTOR(-43.2));
+  math::Angle lat(GZ_DTOR(-22.9));
+  math::Angle lon(GZ_DTOR(-43.2));
   math::Angle heading(0.0);
   double elev = 0;
   math::SphericalCoordinates sc(st, lat, lon, elev, heading);
@@ -544,9 +544,9 @@ TEST(SphericalCoordinatesTest, WithHeading)
 {
   // Heading 90 deg: X == North, Y == West , Z == Up
   auto st = math::SphericalCoordinates::EARTH_WGS84;
-  math::Angle lat(IGN_DTOR(-22.9));
-  math::Angle lon(IGN_DTOR(-43.2));
-  math::Angle heading(IGN_DTOR(90.0));
+  math::Angle lat(GZ_DTOR(-22.9));
+  math::Angle lon(GZ_DTOR(-43.2));
+  math::Angle heading(GZ_DTOR(90.0));
   double elev = 0;
   math::SphericalCoordinates sc(st, lat, lon, elev, heading);
 

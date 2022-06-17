@@ -111,7 +111,7 @@ namespace gz
       public: void RecalcTangents();
 
       /// \brief Private data pointer
-      IGN_UTILS_IMPL_PTR(dataPtr)
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

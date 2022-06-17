@@ -619,7 +619,7 @@ namespace gz
       /// \return The value.
       public: T &operator[](const std::size_t _index)
       {
-        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
+        return this->data[clamp(_index, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)];
       }
 
       /// \brief Const-qualified array subscript operator
@@ -628,7 +628,7 @@ namespace gz
       /// \return The value.
       public: T operator[](const std::size_t _index) const
       {
-        return this->data[clamp(_index, IGN_ZERO_SIZE_T, IGN_TWO_SIZE_T)];
+        return this->data[clamp(_index, GZ_ZERO_SIZE_T, GZ_TWO_SIZE_T)];
       }
 
       /// \brief Round all values to _precision decimal places

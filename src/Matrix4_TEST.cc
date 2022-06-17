@@ -125,7 +125,7 @@ TEST(Matrix4dTest, ConstructFromPose3d)
   // Rotate pitch by pi/2 so yaw coincides with roll causing a gimbal lock
   {
     math::Vector3d trans(3, 2, 1);
-    math::Quaterniond qt(0, IGN_PI / 2, 0);
+    math::Quaterniond qt(0, GZ_PI / 2, 0);
     math::Pose3d pose(trans, qt);
     math::Matrix4d mat(pose);
 
@@ -137,9 +137,9 @@ TEST(Matrix4dTest, ConstructFromPose3d)
 
   {
     // setup a ZXZ rotation to ensure non-commutative rotations
-    math::Pose3d pose1(1, -2, 3, 0, 0, IGN_PI / 4);
-    math::Pose3d pose2(0, 1, -1, -IGN_PI / 4, 0, 0);
-    math::Pose3d pose3(-1, 0, 0, 0, 0, -IGN_PI / 4);
+    math::Pose3d pose1(1, -2, 3, 0, 0, GZ_PI / 4);
+    math::Pose3d pose2(0, 1, -1, -GZ_PI / 4, 0, 0);
+    math::Pose3d pose3(-1, 0, 0, 0, 0, -GZ_PI / 4);
 
     math::Matrix4d m1(pose1);
     math::Matrix4d m2(pose2);
@@ -675,17 +675,17 @@ TEST(Matrix4dTest, LookAt)
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(3, 2, 0),
                                    math::Vector3d(0, 2, 0))
                 .Pose(),
-            math::Pose3d(3, 2, 0, 0, 0, IGN_PI));
+            math::Pose3d(3, 2, 0, 0, 0, GZ_PI));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(1, 6, 1),
                                    math::Vector3d::One)
                 .Pose(),
-            math::Pose3d(1, 6, 1, 0, 0, -IGN_PI_2));
+            math::Pose3d(1, 6, 1, 0, 0, -GZ_PI_2));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(-1, -1, 0),
                                    math::Vector3d(1, 1, 0))
                 .Pose(),
-            math::Pose3d(-1, -1, 0, 0, 0, IGN_PI_4));
+            math::Pose3d(-1, -1, 0, 0, 0, GZ_PI_4));
 
   // Default up is Z
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d(0.1, -5, 222),
@@ -733,11 +733,11 @@ TEST(Matrix4dTest, LookAt)
                                    math::Vector3d(0, 1, 1),
                                    math::Vector3d::UnitY)
                 .Pose(),
-            math::Pose3d(1, 1, 1, IGN_PI_2, 0, IGN_PI));
+            math::Pose3d(1, 1, 1, GZ_PI_2, 0, GZ_PI));
 
   EXPECT_EQ(math::Matrix4d::LookAt(math::Vector3d::One,
                                    math::Vector3d(0, 1, 1),
                                    math::Vector3d(0, 1, 1))
                 .Pose(),
-            math::Pose3d(1, 1, 1, IGN_PI_4, 0, IGN_PI));
+            math::Pose3d(1, 1, 1, GZ_PI_4, 0, GZ_PI));
 }

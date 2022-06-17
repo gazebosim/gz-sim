@@ -17,3 +17,7 @@
 
 #include <gz/math/Angle.hh>
 #include <ignition/math/config.hh>
+
+#define IGN_RTOD(r) GZ_RTOD(r)
+#define IGN_DTOR(d) GZ_DTOR(d)
+#define IGN_NORMALIZE(a) GZ_NORMALIZE(a)

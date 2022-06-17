@@ -26,8 +26,8 @@ int main(int argc, char **argv)
     << p << std::endl;
 
   // Construct a pose at position 1, 2, 3 with a yaw of PI radians.
-  gz::math::Pose3d p1(1, 2, 3, 0, 0, IGN_PI);
-  std::cout << "A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n"
+  gz::math::Pose3d p1(1, 2, 3, 0, 0, GZ_PI);
+  std::cout << "A pose3d(1, 2, 3, 0, 0, GZ_PI) has the following values\n"
     << p1 << std::endl;
 
   // Set the position of a pose to 10, 20, 30

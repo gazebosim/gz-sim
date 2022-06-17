@@ -80,7 +80,7 @@ namespace gz
       ///
       /// \return True if the MassMatrix3 is valid.
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
-                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
+                  const T _tolerance = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>)
       {
         this->massMatrix = _m;
         return this->massMatrix.IsValid(_tolerance);

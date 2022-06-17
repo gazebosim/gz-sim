@@ -92,7 +92,7 @@ bool Sphere<T>::MassMatrix(MassMatrix3d &_massMat) const
 template<typename T>
 T Sphere<T>::Volume() const
 {
-  return (4.0/3.0) * IGN_PI * std::pow(this->radius, 3);
+  return (4.0/3.0) * GZ_PI * std::pow(this->radius, 3);
 }
 
 //////////////////////////////////////////////////
@@ -115,7 +115,7 @@ T Sphere<T>::VolumeBelow(const Plane<T> &_plane) const
   }
 
   auto h = r - dist;
-  return IGN_PI * h * h * (3 * r - h) / 3;
+  return GZ_PI * h * h * (3 * r - h) / 3;
 }
 
 //////////////////////////////////////////////////

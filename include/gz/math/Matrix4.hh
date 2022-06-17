@@ -305,15 +305,15 @@ namespace gz
 
           if (m31 < 0.0)
           {
-            euler.Y(IGN_PI / 2.0);
-            euler2.Y(IGN_PI / 2.0);
+            euler.Y(GZ_PI / 2.0);
+            euler2.Y(GZ_PI / 2.0);
             euler.X(atan2(m12, m13));
             euler2.X(atan2(m12, m13));
           }
           else
           {
-            euler.Y(-IGN_PI / 2.0);
-            euler2.Y(-IGN_PI / 2.0);
+            euler.Y(-GZ_PI / 2.0);
+            euler2.Y(-GZ_PI / 2.0);
             euler.X(atan2(-m12, -m13));
             euler2.X(atan2(-m12, -m13));
           }
@@ -321,7 +321,7 @@ namespace gz
         else
         {
           euler.Y(-asin(m31));
-          euler2.Y(IGN_PI - euler.Y());
+          euler2.Y(GZ_PI - euler.Y());
 
           euler.X(atan2(m32 / cos(euler.Y()), m33 / cos(euler.Y())));
           euler2.X(atan2(m32 / cos(euler2.Y()), m33 / cos(euler2.Y())));
@@ -686,8 +686,8 @@ namespace gz
       public: inline const T &operator()(const size_t _row,
                   const size_t _col) const
       {
-        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)][
-                          clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
+        return this->data[clamp(_row, GZ_ZERO_SIZE_T, GZ_THREE_SIZE_T)][
+                          clamp(_col, GZ_ZERO_SIZE_T, GZ_THREE_SIZE_T)];
       }
 
       /// \brief Get a mutable version the value at the specified row,
@@ -699,8 +699,8 @@ namespace gz
       /// \return The value at the specified index
       public: inline T &operator()(const size_t _row, const size_t _col)
       {
-        return this->data[clamp(_row, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)]
-                         [clamp(_col, IGN_ZERO_SIZE_T, IGN_THREE_SIZE_T)];
+        return this->data[clamp(_row, GZ_ZERO_SIZE_T, GZ_THREE_SIZE_T)]
+                         [clamp(_col, GZ_ZERO_SIZE_T, GZ_THREE_SIZE_T)];
       }
 
       /// \brief Equality test with tolerance.

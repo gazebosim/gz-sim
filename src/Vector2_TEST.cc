@@ -441,7 +441,7 @@ TEST(Vector2Test, Length)
   EXPECT_DOUBLE_EQ(math::Vector2d::Zero.SquaredLength(), 0.0);
 
   // One vector
-  EXPECT_NEAR(math::Vector2d::One.Length(), IGN_SQRT2, 1e-10);
+  EXPECT_NEAR(math::Vector2d::One.Length(), GZ_SQRT2, 1e-10);
   EXPECT_DOUBLE_EQ(math::Vector2d::One.SquaredLength(), 2.0);
 
   // Arbitrary vector

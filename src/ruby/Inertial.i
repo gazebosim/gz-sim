@@ -40,7 +40,7 @@ namespace gz
       public: ~Inertial() = default;
 
       public: bool SetMassMatrix(const MassMatrix3<T> &_m,
-                  const T _tolerance = IGN_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
+                  const T _tolerance = GZ_MASSMATRIX3_DEFAULT_TOLERANCE<T>);
 
       public: const MassMatrix3<T> &MassMatrix() const;
 

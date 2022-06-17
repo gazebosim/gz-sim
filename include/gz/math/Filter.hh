@@ -80,7 +80,7 @@ namespace gz
       // Documentation Inherited.
       public: virtual void Fc(double _fc, double _fs) override
       {
-        b1 = exp(-2.0 * IGN_PI * _fc / _fs);
+        b1 = exp(-2.0 * GZ_PI * _fc / _fs);
         a0 = 1.0 - b1;
       }
 
@@ -179,7 +179,7 @@ namespace gz
       /// \param[in] _q Q coefficient.
       public: void Fc(double _fc, double _fs, double _q)
       {
-        double k = tan(IGN_PI * _fc / _fs);
+        double k = tan(GZ_PI * _fc / _fs);
         double kQuadDenom = k * k + k / _q + 1.0;
         this->a0 = k * k/ kQuadDenom;
         this->a1 = 2 * this->a0;

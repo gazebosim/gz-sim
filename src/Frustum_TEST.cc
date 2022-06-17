@@ -30,7 +30,7 @@ TEST(FrustumTest, Constructor)
 
   EXPECT_DOUBLE_EQ(frustum.Near(), 0.0);
   EXPECT_DOUBLE_EQ(frustum.Far(), 1.0);
-  EXPECT_EQ(frustum.FOV(), IGN_DTOR(45));
+  EXPECT_EQ(frustum.FOV(), GZ_DTOR(45));
   EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 1.0);
   EXPECT_EQ(frustum.Pose(), Pose3d::Zero);
 }
@@ -45,7 +45,7 @@ TEST(FrustumTest, CopyConstructor)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       320.0/240.0,
       // Pose
@@ -88,11 +88,11 @@ TEST(FrustumTest, AssignmentOperator)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       320.0/240.0,
       // Pose
-      Pose3d(0, 0, 0, 0, 0, IGN_DTOR(45)));
+      Pose3d(0, 0, 0, 0, 0, GZ_DTOR(45)));
 
   Frustum frustum2;
   frustum2 = frustum;
@@ -132,7 +132,7 @@ TEST(FrustumTest, PyramidXAxisPos)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       320.0/240.0,
       // Pose
@@ -161,11 +161,11 @@ TEST(FrustumTest, PyramidXAxisNeg)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       320.0/240.0,
       // Pose
-      Pose3d(0, 0, 0, 0, 0, IGN_PI));
+      Pose3d(0, 0, 0, 0, 0, GZ_PI));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(-0.5, 0, 0)));
@@ -191,11 +191,11 @@ TEST(FrustumTest, PyramidYAxis)
       // Far distance
       5,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, 0, IGN_PI*0.5));
+      Pose3d(0, 0, 0, 0, 0, GZ_PI*0.5));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(1, 0, 0)));
@@ -221,11 +221,11 @@ TEST(FrustumTest, PyramidZAxis)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, -0.9)));
@@ -252,11 +252,11 @@ TEST(FrustumTest, NearFar)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
   EXPECT_DOUBLE_EQ(frustum.Near(), 1.0);
   EXPECT_DOUBLE_EQ(frustum.Far(), 10.0);
@@ -277,13 +277,13 @@ TEST(FrustumTest, FOV)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
-  EXPECT_EQ(frustum.FOV(), math::Angle(IGN_DTOR(45)));
+  EXPECT_EQ(frustum.FOV(), math::Angle(GZ_DTOR(45)));
 
   frustum.SetFOV(1.5707);
 
@@ -299,11 +299,11 @@ TEST(FrustumTest, AspectRatio)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
   EXPECT_DOUBLE_EQ(frustum.AspectRatio(), 1);
 
@@ -321,17 +321,17 @@ TEST(FrustumTest, Pose)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(45)),
+      Angle(GZ_DTOR(45)),
       // Aspect ratio
       1.0,
       // Pose
-      Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+      Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
-  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, IGN_PI*0.5, 0));
+  EXPECT_EQ(frustum.Pose(), Pose3d(0, 0, 0, 0, GZ_PI*0.5, 0));
 
-  frustum.SetPose(Pose3d(1, 2, 3, IGN_PI, 0, 0));
+  frustum.SetPose(Pose3d(1, 2, 3, GZ_PI, 0, 0));
 
-  EXPECT_EQ(frustum.Pose(), Pose3d(1, 2, 3, IGN_PI, 0, 0));
+  EXPECT_EQ(frustum.Pose(), Pose3d(1, 2, 3, GZ_PI, 0, 0));
 }
 
 /////////////////////////////////////////////////
@@ -343,11 +343,11 @@ TEST(FrustumTest, PoseContains)
       // Far distance
       10,
       // Field of view
-      Angle(IGN_DTOR(60)),
+      Angle(GZ_DTOR(60)),
       // Aspect ratio
       1920.0/1080.0,
       // Pose
-      Pose3d(0, -5, 0, 0, 0, IGN_PI*0.5));
+      Pose3d(0, -5, 0, 0, 0, GZ_PI*0.5));
 
   // Test the near clip boundary
   EXPECT_FALSE(frustum.Contains(Vector3d(0, -4.01, 0)));
@@ -366,44 +366,44 @@ TEST(FrustumTest, PoseContains)
 
   // Compute near clip points
   Vector3d nearTopLeft(
-      -tan(IGN_DTOR(30)) + offset,
+      -tan(GZ_DTOR(30)) + offset,
       frustum.Pose().Pos().Y() + frustum.Near() + offset,
-      tan(IGN_DTOR(30)) / frustum.AspectRatio() - offset);
+      tan(GZ_DTOR(30)) / frustum.AspectRatio() - offset);
 
   Vector3d nearTopLeftBad(
-      -tan(IGN_DTOR(30)) - offset,
+      -tan(GZ_DTOR(30)) - offset,
       frustum.Pose().Pos().Y() + frustum.Near() - offset,
-      tan(IGN_DTOR(30)) / frustum.AspectRatio() + offset);
+      tan(GZ_DTOR(30)) / frustum.AspectRatio() + offset);
 
   Vector3d nearTopRight(
-      tan(IGN_DTOR(30)) - offset,
+      tan(GZ_DTOR(30)) - offset,
       frustum.Pose().Pos().Y() + frustum.Near() + offset,
-      tan(IGN_DTOR(30)) / frustum.AspectRatio() - offset);
+      tan(GZ_DTOR(30)) / frustum.AspectRatio() - offset);
 
   Vector3d nearTopRightBad(
-      tan(IGN_DTOR(30)) + offset,
+      tan(GZ_DTOR(30)) + offset,
       frustum.Pose().Pos().Y() + frustum.Near() - offset,
-      tan(IGN_DTOR(30)) / frustum.AspectRatio() + offset);
+      tan(GZ_DTOR(30)) / frustum.AspectRatio() + offset);
 
   Vector3d nearBottomLeft(
-      -tan(IGN_DTOR(30)) + offset,
+      -tan(GZ_DTOR(30)) + offset,
       frustum.Pose().Pos().Y() + frustum.Near() + offset,
-      -tan(IGN_DTOR(30)) / frustum.AspectRatio() + offset);
+      -tan(GZ_DTOR(30)) / frustum.AspectRatio() + offset);
 
   Vector3d nearBottomLeftBad(
-      -tan(IGN_DTOR(30)) - offset,
+      -tan(GZ_DTOR(30)) - offset,
       frustum.Pose().Pos().Y() + frustum.Near() - offset,
-      -tan(IGN_DTOR(30)) / frustum.AspectRatio() - offset);
+      -tan(GZ_DTOR(30)) / frustum.AspectRatio() - offset);
 
   Vector3d nearBottomRight(
-      tan(IGN_DTOR(30)) - offset,
+      tan(GZ_DTOR(30)) - offset,
       frustum.Pose().Pos().Y() + frustum.Near() + offset,
-      -tan(IGN_DTOR(30)) / frustum.AspectRatio() + offset);
+      -tan(GZ_DTOR(30)) / frustum.AspectRatio() + offset);
 
   Vector3d nearBottomRightBad(
-      tan(IGN_DTOR(30)) + offset,
+      tan(GZ_DTOR(30)) + offset,
       frustum.Pose().Pos().Y() + frustum.Near() - offset,
-      -tan(IGN_DTOR(30)) / frustum.AspectRatio() - offset);
+      -tan(GZ_DTOR(30)) / frustum.AspectRatio() - offset);
 
   // Test near clip corners
   EXPECT_TRUE(frustum.Contains(nearTopLeft));
@@ -420,44 +420,44 @@ TEST(FrustumTest, PoseContains)
 
   // Compute far clip points
   Vector3d farTopLeft(
-      -tan(IGN_DTOR(30)) * frustum.Far() + offset,
+      -tan(GZ_DTOR(30)) * frustum.Far() + offset,
       frustum.Pose().Pos().Y() + frustum.Far() - offset,
-      (tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
+      (tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
 
   Vector3d farTopLeftBad(
-      -tan(IGN_DTOR(30))*frustum.Far() - offset,
+      -tan(GZ_DTOR(30))*frustum.Far() - offset,
       frustum.Pose().Pos().Y() + frustum.Far() + offset,
-      (tan(IGN_DTOR(30) * frustum.Far())) / frustum.AspectRatio() + offset);
+      (tan(GZ_DTOR(30) * frustum.Far())) / frustum.AspectRatio() + offset);
 
   Vector3d farTopRight(
-      tan(IGN_DTOR(30))*frustum.Far() - offset,
+      tan(GZ_DTOR(30))*frustum.Far() - offset,
       frustum.Pose().Pos().Y() + frustum.Far() - offset,
-      (tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
+      (tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
 
   Vector3d farTopRightBad(
-      tan(IGN_DTOR(30))*frustum.Far() + offset,
+      tan(GZ_DTOR(30))*frustum.Far() + offset,
       frustum.Pose().Pos().Y() + frustum.Far() + offset,
-      (tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
+      (tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
 
   Vector3d farBottomLeft(
-      -tan(IGN_DTOR(30))*frustum.Far() + offset,
+      -tan(GZ_DTOR(30))*frustum.Far() + offset,
       frustum.Pose().Pos().Y() + frustum.Far() - offset,
-      (-tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
+      (-tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
 
   Vector3d farBottomLeftBad(
-      -tan(IGN_DTOR(30))*frustum.Far() - offset,
+      -tan(GZ_DTOR(30))*frustum.Far() - offset,
       frustum.Pose().Pos().Y() + frustum.Far() + offset,
-      (-tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
+      (-tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
 
   Vector3d farBottomRight(
-      tan(IGN_DTOR(30))*frustum.Far() - offset,
+      tan(GZ_DTOR(30))*frustum.Far() - offset,
       frustum.Pose().Pos().Y() + frustum.Far() - offset,
-      (-tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
+      (-tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() + offset);
 
   Vector3d farBottomRightBad(
-      tan(IGN_DTOR(30))*frustum.Far() + offset,
+      tan(GZ_DTOR(30))*frustum.Far() + offset,
       frustum.Pose().Pos().Y() + frustum.Far() + offset,
-      (-tan(IGN_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
+      (-tan(GZ_DTOR(30)) * frustum.Far()) / frustum.AspectRatio() - offset);
 
   // Test far clip corners
   EXPECT_TRUE(frustum.Contains(farTopLeft));
@@ -473,7 +473,7 @@ TEST(FrustumTest, PoseContains)
   EXPECT_FALSE(frustum.Contains(farBottomRightBad));
 
   // Adjust to 45 degrees rotation
-  frustum.SetPose(Pose3d(1, 1, 0, 0, 0, -IGN_PI*0.25));
+  frustum.SetPose(Pose3d(1, 1, 0, 0, 0, -GZ_PI*0.25));
   EXPECT_TRUE(frustum.Contains(Vector3d(2, -1, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(0, 0, 0)));
   EXPECT_FALSE(frustum.Contains(Vector3d(1, 1, 0)));

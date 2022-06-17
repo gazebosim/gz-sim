@@ -76,7 +76,7 @@ namespace gz
       /// \return The index of the closest centroid to the point _p.
       private: unsigned int ClosestCentroid(const Vector3d &_p) const;
 
-      IGN_UTILS_IMPL_PTR(dataPtr)
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

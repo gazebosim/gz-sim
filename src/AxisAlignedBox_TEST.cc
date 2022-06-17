@@ -409,7 +409,7 @@ TEST(AxisAlignedBoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(Vector3d(2, 2, 0),
       Vector3d(-1, -1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, IGN_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, GZ_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(Vector3d(2, 2, 0),
       Vector3d(-1, -1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, Vector3d(1, 1, 0));
@@ -429,7 +429,7 @@ TEST(AxisAlignedBoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(Vector3d(-1, -2, 0),
       Vector3d(1, 1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, 2*IGN_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, 2*GZ_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(Vector3d(-1, -2, 0),
       Vector3d(1, 1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, Vector3d(1, 0, 0));
@@ -439,7 +439,7 @@ TEST(AxisAlignedBoxTest, Intersect)
   EXPECT_TRUE(intersect);
   EXPECT_TRUE(b.IntersectCheck(Vector3d(2, 1, 0),
       Vector3d(-1, -1, 0), 0, 1000));
-  EXPECT_DOUBLE_EQ(dist, IGN_SQRT2);
+  EXPECT_DOUBLE_EQ(dist, GZ_SQRT2);
   EXPECT_DOUBLE_EQ(std::get<1>(b.IntersectDist(Vector3d(2, 1, 0),
       Vector3d(-1, -1, 0), 0, 1000)), dist);
   EXPECT_EQ(pt, Vector3d(1, 0, 0));

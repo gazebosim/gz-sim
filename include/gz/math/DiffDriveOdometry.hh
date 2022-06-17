@@ -67,12 +67,12 @@ namespace gz
     /// // ... Some time later
     ///
     /// // Both wheels have rotated the same amount
-    /// odom.Update(IGN_DTOR(2), IGN_DTOR(2), std::chrono::steady_clock::now());
+    /// odom.Update(GZ_DTOR(2), GZ_DTOR(2), std::chrono::steady_clock::now());
     ///
     /// // ... Some time later
     ///
     /// // The left wheel has rotated, the right wheel did not rotate
-    /// odom.Update(IGN_DTOR(4), IGN_DTOR(2), std::chrono::steady_clock::now());
+    /// odom.Update(GZ_DTOR(4), GZ_DTOR(2), std::chrono::steady_clock::now());
     /// \endcode
     class GZ_MATH_VISIBLE DiffDriveOdometry
     {
@@ -131,7 +131,7 @@ namespace gz
       public: void SetVelocityRollingWindowSize(size_t _size);
 
       /// \brief Private data pointer.
-      IGN_UTILS_IMPL_PTR(dataPtr)
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

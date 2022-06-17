@@ -106,7 +106,7 @@ std::optional< MassMatrix3<T> > Capsule<T>::MassMatrix() const
   // mass and moment of inertia of hemisphere about centroid
   const T r2 = this->radius * this->radius;
   const T hemisphereMass = this->material.Density() *
-      2. / 3. * IGN_PI * r2 * this->radius;
+      2. / 3. * GZ_PI * r2 * this->radius;
   // efunda.com/math/solids/solids_display.cfm?SolidName=Hemisphere
   const T ixx = 83. / 320. * hemisphereMass * r2;
   const T izz = 2. / 5.  * hemisphereMass * r2;
@@ -135,7 +135,7 @@ std::optional< MassMatrix3<T> > Capsule<T>::MassMatrix() const
 template<typename T>
 T Capsule<T>::Volume() const
 {
-  return IGN_PI * std::pow(this->radius, 2) *
+  return GZ_PI * std::pow(this->radius, 2) *
          (this->length + 4. / 3. * this->radius);
 }
 

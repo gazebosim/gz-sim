@@ -57,7 +57,7 @@ namespace gz
     ///
     /// # Construct a pose at position 1, 2, 3 with a yaw of PI radians.
     /// p1 = Gz::Math::Pose3d.new(1, 2, 3, 0, 0, Math::PI)
-    /// printf("A pose3d(1, 2, 3, 0, 0, IGN_PI) has the following values\n" +
+    /// printf("A pose3d(1, 2, 3, 0, 0, GZ_PI) has the following values\n" +
     ///        "%f %f %f %f %f %f\n", p1.Pos().X(), p1.Pos().Y(), p1.Pos().Z(),
     ///        p1.Rot().Euler().X(), p1.Rot().Euler().Y(), p1.Rot().Euler().Z())
     ///
