@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,134 +21,201 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
-import QtQuick.Window 2.2
 import Qt.labs.folderlistmodel 2.1
-
-/**
- * Quick Setup
- */
+import QtQuick.Window 2.2
 
   Rectangle {
-      // width: 420
-      // height: 400
+      width: 720
+      height: 720
       id: quickSetup
 
-      function loadWorld(fileName, fileURL_, fileIsDir){
-        console.log(fileURL_)
-        console.log(fileName)
-        console.log(fileIsDir)
-        QuickSetupHandler.SetStartingWorld(fileURL_)
-        quickSetup.Window.window.close()
+      function loadWorld(fileURL){
+        QuickSetupHandler.SetStartingWorld(fileURL)
       }
 
       function getWorlds(){
         return "file://"+QuickSetupHandler.getWorldsPath()
       }
 
-      function getThumbnail(fileURL, fileIsDir){
-        if (fileIsDir)
-          return fileURL + "/thumbnails/0.png";
-        else
-          return "";
+      function close(){
+        quickSetup.Window.window.close()
       }
 
-      // color: Material.color(Material.Grey, Material.Shade600);
-      Component.onCompleted: function(){console.log("component completed")}
-    
-      Column {
-        anchors.fill: parent
-        anchors.margins: 10
+    RowLayout {
+        id: layout
+        // anchors.fill: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalTop
+        spacing: 6
 
-        Row {
-          Column{
-            Label {
-            text: "Worlds"
-            }
-
-          Rectangle {
-            width: 100
-            height: 300
-            color: "transparent"
-
-
-              ListView {
-                anchors.fill: parent
-
-                FolderListModel {
-                    id: folderModel
-                    showDirs: true
-                    showFiles: true
-                    showDirsFirst: true
-                    folder: quickSetup.getWorlds()
-                    nameFilters: [ "*.sdf" ]
-                }
-
-                // model: folderModel
-                // delegate: World {
-                //   width: parent.width
-                //   height: 100
-                //   id: filePath
-                //   // text: filePath
-                //   text: fileName
-                //   source: QuickSetupHandler.getThumbnail(fileURL, fileIsDir)
-                //   onClicked: quickSetup.loadWorld(fileName, fileURL, fileIsDir)
-                // }
-
-              model: folderModel
-                delegate: Button {
-                  width: parent.width
-                  height: 50
-                  text: fileName
-                  onClicked: {
-                    quickSetup.loadWorld(fileName, fileURL, fileIsDir)
-                  }
-                  background: Rectangle {
-                      color: fileIsDir ? "orange" : "gray"
-                      border.color: "black"
+          ColumnLayout {
+            id: localColumn
+            Layout.minimumHeight: 100
+            Layout.fillWidth: true
+            spacing: 0
+              Rectangle {
+                  color: 'transparent'
+                  Layout.fillWidth: true
+                  Layout.minimumWidth: 100
+                  Layout.preferredWidth: 600
+                  // Layout.maximumWidth: 700
+                  Layout.minimumHeight: 150
+                  Text {
+                      anchors.centerIn: parent
+                      text: "Gazebo logo here"
                   }
               }
 
-                ScrollIndicator.vertical: ScrollIndicator {
-                  active: true;
-                  onActiveChanged: {
-                    active = true;
+            Rectangle {
+                color: 'transparent'
+                Layout.fillWidth: true
+                  Layout.minimumWidth: 100
+                  Layout.preferredWidth: 700
+                  // Layout.maximumWidth: 700
+                  Layout.minimumHeight: 400
+                Text {
+                    anchors.centerIn: parent
+                    text: "Grid worlds thumbunails"
+                }
+                RowLayout{
+                  spacing: 6
+                  Rectangle {
+                      visible: true
+                      // color: "red";
+                      width: 500;
+                      height: 400;
+                      FolderListModel {
+                          id: folderModel
+                          nameFilters: ["*.png"]
+                          folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/thumbnails/"
+                      }
+
+                      Component {
+                          id: fileDelegate
+
+                          Image {
+                              width: gridView.cellWidth - 5
+                              height: gridView.cellHeight - 5
+                              smooth: true
+                              source: fileURL
+                          }
+                      }
+                      GridView {
+                          id: gridView
+                          width: parent.width
+                          height: parent.height - 200
+
+                          anchors {
+                              fill: parent
+                              leftMargin: 5
+                              topMargin: 5
+                          }
+
+                          cellWidth: width / 2
+                          cellHeight: height / 2
+
+                          model: folderModel
+                          delegate: fileDelegate
+                      }
                   }
+                    ColumnLayout{
+                      Rectangle {
+                          color: "transparent";
+                          width: 200; height: 200
+                          
+                          FolderListModel {
+                              id: sdfsModel
+                              showDirs: false
+                              showFiles: true
+                              folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/"
+                              nameFilters: [ "*.sdf" ]
+                          }
+                          
+                          ComboBox {
+                            id: comboBox
+                              currentIndex : 2
+                              model: sdfsModel
+                              textRole: 'fileName'
+                              width: parent.width
+                              onCurrentIndexChanged: quickSetup.loadWorld(model.get(currentIndex, 'fileURL'))
+                          }
+                          MouseArea {
+                          // ...
+                            onClicked: comboBox.popup.close()
+                          }
+                        }
+                      Rectangle { color: "transparent"; width: 200; height: 200 }
+                    }
+                }
+            }
+            Rectangle {
+                color: 'transparent'
+                Layout.fillWidth: true
+                  Layout.minimumWidth: 100
+                  Layout.preferredWidth: 700
+                  // Layout.maximumWidth: 700
+                  Layout.minimumHeight: 100
+            }
+
+              Rectangle {
+                  color: 'transparent'
+                  Layout.fillWidth: true
+                    Layout.minimumWidth: 100
+                    Layout.preferredWidth: 700
+                    // Layout.maximumWidth: 700
+                    Layout.minimumHeight: 50
+                  RowLayout {
+                      id: skip
+                      // anchors.fill: parent
+                      anchors.horizontalCenter: parent.horizontalCenter
+                      anchors.verticalCenter: parent.verticalTop
+                      spacing: 6
+                      Button {
+                        id: closeButton
+                        visible: true
+                        text: "Skip"
+                        // anchors.centerIn: parent
+                        Layout.minimumWidth: 100
+                        Layout.leftMargin: 10
+
+                        onClicked: {
+                          quickSetup.loadWorld("")
+                          quickSetup.Window.window.close()
+                        }
+
+                        Material.background: Material.primary
+                        ToolTip.visible: hovered
+                        ToolTip.delay: tooltipDelay
+                        ToolTip.timeout: tooltipTimeout
+                        ToolTip.text: qsTr("Skip")
+                      }
+                      Button {
+                        id: next
+                        visible: true
+                        text: "Next"
+                        // anchors.centerIn: parent
+                        Layout.minimumWidth: 100
+                        Layout.leftMargin: 10
+
+                        onClicked: {
+                          quickSetup.Window.window.close()
+                        }
+
+                        Material.background: Material.primary
+                        ToolTip.visible: hovered
+                        ToolTip.delay: tooltipDelay
+                        ToolTip.timeout: tooltipTimeout
+                        ToolTip.text: qsTr("Next")
+                      }
+                      CheckBox {
+                        text: "Don't show again"
+                        Layout.fillWidth: true
+                        onClicked: {
+                          console.debug("not yet implmented")
+                        }
+                      }
                 }
               }
-            }
-          }
-
-          Column{
-            CheckBox {
-              id: checkBox
-              text: "Don't show again"
-              Layout.fillWidth: true
-              checked: false
-            //   onClicked: {
-            //     QuickSetupHandler.onShowAgain(checkBox.checked);
-            // }
-          }
-
-          Button {
-            id: closeButton
-            visible: true
-            text: "Skip"
-            Layout.alignment : Qt.AlignVCenter
-            Layout.minimumWidth: width
-            Layout.leftMargin: 10
-
-            onClicked: {
-              quickSetup.Window.window.close()
-            }
-
-            Material.background: Material.primary
-            ToolTip.visible: hovered
-            ToolTip.delay: tooltipDelay
-            ToolTip.timeout: tooltipTimeout
-            ToolTip.text: qsTr("Skip")
           }
         }
-      }
-
-    }
   }
