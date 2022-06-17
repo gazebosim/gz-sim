@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Recreate.hh>
+#include <ignition/gazebo/config.hh>

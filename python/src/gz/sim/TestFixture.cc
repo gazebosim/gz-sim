@@ -19,13 +19,13 @@
 
 #include "TestFixture.hh"
 
-#include "ignition/gazebo/TestFixture.hh"
+#include "gz/sim/TestFixture.hh"
 
 #include "wrap_functions.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {

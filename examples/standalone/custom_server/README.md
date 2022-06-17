@@ -1,7 +1,7 @@
 # Custom server
 
 This example demonstrates how to run a simulation server headless
-using the C++ API, instead of using Ignition Gazebo from the command line.
+using the C++ API, instead of using Gazebo from the command line.
 
 ## Build Instructions
 

@@ -7,11 +7,11 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-navsat-system"
-      name="ignition::gazebo::systems::NavSat">
+      name="gz::sim::systems::NavSat">
     </plugin>
 
     <spherical_coordinates>

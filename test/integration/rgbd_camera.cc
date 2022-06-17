@@ -17,15 +17,15 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/image.pb.h>
+#include <gz/msgs/image.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 
 #include "plugins/MockSystem.hh"
@@ -33,8 +33,8 @@
 
 #define DEPTH_TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test RgbdCameraTest system
@@ -104,9 +104,9 @@ TEST_F(RgbdCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraBox))
 
   // Lock access to buffer and don't release it
   mutex.lock();
-  EXPECT_DOUBLE_EQ(depthBuffer[left], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[left], gz::math::INF_D);
   EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, DEPTH_TOL);
-  EXPECT_DOUBLE_EQ(depthBuffer[right], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[right], gz::math::INF_D);
 
   delete[] depthBuffer;
 }

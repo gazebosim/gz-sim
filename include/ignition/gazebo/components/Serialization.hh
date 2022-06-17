@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Serialization.hh>
+#include <ignition/gazebo/config.hh>

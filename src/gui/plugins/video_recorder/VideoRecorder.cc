@@ -42,7 +42,7 @@
 /// multiple viewports in the future.
 std::condition_variable g_renderCv;
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class VideoRecorderPrivate
   {
@@ -52,7 +52,7 @@ namespace ignition::gazebo
     /// \brief Initialize rendering and transport.
     public: void Initialize();
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Pointer to the camera being recorded
@@ -121,8 +121,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::Initialize()
@@ -148,7 +148,7 @@ void VideoRecorderPrivate::Initialize()
         std::get<bool>(cam->UserData("user-camera")))
     {
       this->camera = cam;
-      igndbg << "Video Recorder plugin is recoding camera ["
+      gzdbg << "Video Recorder plugin is recoding camera ["
              << this->camera->Name() << "]" << std::endl;
       break;
     }
@@ -156,14 +156,14 @@ void VideoRecorderPrivate::Initialize()
 
   if (!this->camera)
   {
-    ignerr << "Camera is not available" << std::endl;
+    gzerr << "Camera is not available" << std::endl;
     return;
   }
 
   // recorder stats topic
   this->recorderStatsPub =
     this->node.Advertise<msgs::Time>(this->recorderStatsTopic);
-  ignmsg << "Video recorder stats topic advertised on ["
+  gzmsg << "Video recorder stats topic advertised on ["
          << this->recorderStatsTopic << "]" << std::endl;
 }
 
@@ -219,7 +219,7 @@ void VideoRecorderPrivate::OnRender()
           std::chrono::steady_clock::duration dt;
           dt = t - this->startTime;
           int64_t sec, nsec;
-          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          std::tie(sec, nsec) = gz::math::durationToSecNsec(dt);
           msgs::Time msg;
           msg.set_sec(sec);
           msg.set_nsec(nsec);
@@ -230,17 +230,17 @@ void VideoRecorderPrivate::OnRender()
       else
       {
         if (this->useSimTime)
-          ignmsg << "Recording video using sim time." << std::endl;
+          gzmsg << "Recording video using sim time." << std::endl;
         if (this->lockstep)
         {
-          ignmsg << "Recording video in lockstep mode" << std::endl;
+          gzmsg << "Recording video in lockstep mode" << std::endl;
           if (!this->useSimTime)
           {
-            ignwarn << "It is recommended to set <use_sim_time> to true "
+            gzwarn << "It is recommended to set <use_sim_time> to true "
                     << "when recording video in lockstep mode." << std::endl;
           }
         }
-        ignmsg << "Recording video using bitrate: "
+        gzmsg << "Recording video using bitrate: "
                << this->bitrate <<  std::endl;
         this->videoEncoder.Start(this->format,
             this->filename, width, height, 25,
@@ -304,7 +304,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         bool useSimTime = false;
         if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Faild to parse <use_sim_time> value: "
+          gzerr << "Faild to parse <use_sim_time> value: "
                  << useSimTimeElem->GetText() << std::endl;
         }
         else
@@ -317,7 +317,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         bool lockstep = false;
         if (lockstepElem->QueryBoolText(&lockstep) != tinyxml2::XML_SUCCESS)
         {
-          ignerr << "Failed to parse <lockstep> value: "
+          gzerr << "Failed to parse <lockstep> value: "
                  << lockstepElem->GetText() << std::endl;
         }
         else
@@ -337,7 +337,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         }
         else
         {
-          ignerr << "Video recorder bitrate must be larger than 0"
+          gzerr << "Video recorder bitrate must be larger than 0"
                  << std::endl;
         }
       }
@@ -351,23 +351,23 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
 
   if (this->dataPtr->legacy)
   {
-    igndbg << "Legacy mode is enabled; this plugin must be used with "
+    gzdbg << "Legacy mode is enabled; this plugin must be used with "
            << "GzScene3D." << std::endl;
   }
   else
   {
-    igndbg << "Legacy mode is disabled; this plugin must be used with "
+    gzdbg << "Legacy mode is disabled; this plugin must be used with "
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -386,13 +386,13 @@ void VideoRecorder::OnStart(const QString &_format)
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error sending video record start request" << std::endl;
+        gzerr << "Error sending video record start request" << std::endl;
     };
-    ignition::msgs::VideoRecord req;
+    gz::msgs::VideoRecord req;
     req.set_start(this->dataPtr->recordVideo);
     req.set_format(this->dataPtr->format);
     req.set_save_filename(this->dataPtr->filename);
@@ -408,14 +408,14 @@ void VideoRecorder::OnStop()
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error sending video record stop request" << std::endl;
+        gzerr << "Error sending video record stop request" << std::endl;
     };
 
-    ignition::msgs::VideoRecord req;
+    gz::msgs::VideoRecord req;
     req.set_stop(true);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -445,12 +445,12 @@ void VideoRecorder::OnSave(const QString &_url)
 
   if (!result)
   {
-    ignerr  << "Unable to rename file from[" << this->dataPtr->filename
+    gzerr  << "Unable to rename file from[" << this->dataPtr->filename
       << "] to [" << path << "]" << std::endl;
   }
   else
   {
-    ignmsg << "Video saved to: " << path << std::endl;
+    gzmsg << "Video saved to: " << path << std::endl;
   }
 }
 
@@ -462,5 +462,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VideoRecorder,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(gz::sim::VideoRecorder,
+                    gz::gui::Plugin)

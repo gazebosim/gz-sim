@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/DetachableJoint.hh>
+#include <ignition/gazebo/config.hh>

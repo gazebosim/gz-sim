@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
+#ifndef GZ_SIM_SYSTEMS_DETACHABLEJOINT_HH_
+#define GZ_SIM_SYSTEMS_DETACHABLEJOINT_HH_
 
 #include <gz/msgs/empty.pb.h>
 
@@ -27,12 +27,12 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A system that initially attaches two models via a fixed joint and
@@ -70,8 +70,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);
@@ -103,7 +103,7 @@ namespace systems
     /// \brief Whether detachment has been requested
     private: std::atomic<bool> detachRequested{false};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Whether all parameters are valid and the system can proceed

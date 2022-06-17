@@ -15,6 +15,11 @@
  *
  */
 
+#include <gz/math/Inertial.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+
 #include <gz/msgs/Utility.hh>
 
 #include "gz/sim/components/AngularAcceleration.hh"
@@ -39,17 +44,17 @@
 
 #include "gz/sim/Link.hh"
 
-class ignition::gazebo::LinkPrivate
+class gz::sim::LinkPrivate
 {
   /// \brief Id of link entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
-Link::Link(gazebo::Entity _entity)
+Link::Link(sim::Entity _entity)
   : dataPtr(std::make_unique<LinkPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -84,7 +89,7 @@ Entity Link::Entity() const
 }
 
 //////////////////////////////////////////////////
-void Link::ResetEntity(gazebo::Entity _newEntity)
+void Link::ResetEntity(sim::Entity _newEntity)
 {
   this->dataPtr->id = _newEntity;
 }

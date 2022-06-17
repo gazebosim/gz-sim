@@ -22,38 +22,38 @@
 #include <sdf/Root.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 #include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
 {
   public: ::testing::AssertionResult StartServer(
-    const ignition::gazebo::ServerConfig &_serverConfig =
-      ignition::gazebo::ServerConfig())
+    const gz::sim::ServerConfig &_serverConfig =
+      gz::sim::ServerConfig())
   {
     this->relay = std::make_unique<test::Relay>();
     this->server = std::make_unique<Server>(_serverConfig);
@@ -64,7 +64,7 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*this->server->Running(0));
     // A pointer to the ecm. This will be valid once we run the mock system
     relay->OnPreUpdate(
-        [this](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
         {
           this->ecm = &_ecm;
         });
@@ -97,15 +97,15 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     this->creator->SetParent(modelEntity, worldEntity);
   }
 
-  public: gazebo::Model GetModel(const std::string &_name)
+  public: sim::Model GetModel(const std::string &_name)
   {
-    return gazebo::Model(this->ecm->EntityByComponents(
+    return sim::Model(this->ecm->EntityByComponents(
         components::Model(), components::Name(_name)));
   }
 
-  public: gazebo::Model GetChildModel(Entity _parent, const std::string &_name)
+  public: sim::Model GetChildModel(Entity _parent, const std::string &_name)
   {
-    return gazebo::Model(
+    return sim::Model(
       this->ecm->EntityByComponents(
         components::Model(),
         components::ParentEntity(_parent),
@@ -137,7 +137,7 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
   public: std::unique_ptr<SdfEntityCreator> creator;
 };
 
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(SdfFrameSemanticsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
 {
   const std::string modelSdf = R"sdf(
@@ -164,8 +164,8 @@ TEST_F(SdfFrameSemanticsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
   EXPECT_NE(link2, kNullEntity);
 
   // Expect the pose of L2 relative to model to be 0 0 1 0 0 pi
-  ignition::math::Pose3d expRelPose(0, 0, 1, 0, 0, IGN_PI);
-  ignition::math::Pose3d expWorldPose(0, 0, 3, 0, 0, IGN_PI);
+  gz::math::Pose3d expRelPose(0, 0, 1, 0, 0, IGN_PI);
+  gz::math::Pose3d expWorldPose(0, 0, 3, 0, 0, IGN_PI);
 
   EXPECT_EQ(expRelPose, this->GetPose(link2));
 
@@ -231,7 +231,7 @@ TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
 
   // Expect the pose of J1 relative to model to be the same as L2 (default
   // behavior)
-  ignition::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
+  gz::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
 
   // Expect the pose of J2 relative to model to be the same as L2 (non default
   // behavior due to "relative_to='L2'")
@@ -286,7 +286,7 @@ TEST_F(SdfFrameSemanticsTest, VisualCollisionRelativeTo)
 
   // Expect the pose of v1 and relative to L2 (their parent link) to be the same
   // as the pose of L1 relative to L2
-  ignition::math::Pose3d expPose(0, 0, -1, 0, 0, 0);
+  gz::math::Pose3d expPose(0, 0, -1, 0, 0, 0);
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
 
@@ -334,13 +334,13 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithLinks)
 
   // Expect the pose of L1 and relative to M to be the same
   // as the pose of F1 relative to M
-  ignition::math::Pose3d link1ExpRelativePose(0, 0, 1, 0, 0, 0);
+  gz::math::Pose3d link1ExpRelativePose(0, 0, 1, 0, 0, 0);
 
   EXPECT_EQ(link1ExpRelativePose, this->GetPose(link1));
 
   // Expect the pose of L2 and relative to M to be the same
   // as the pose of F2, which is at the origin of M
-  ignition::math::Pose3d link2ExpRelativePose = ignition::math::Pose3d::Zero;
+  gz::math::Pose3d link2ExpRelativePose = gz::math::Pose3d::Zero;
 
   EXPECT_EQ(link2ExpRelativePose, this->GetPose(link2));
 
@@ -389,7 +389,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
   this->server->Run(true, 1, false);
 
   // Expect the pose of J1 relative to model to be the same as F1 in world
-  ignition::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
+  gz::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
   // TODO(anyone) Enable the following expectation when a joint's WorldPose
   // can be computed by ign-physics.
   // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
@@ -440,7 +440,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithVisualAndCollision)
 
   // Expect the pose of v1 and relative to L1 (their parent link) to be the same
   // as the pose of F1 relative to L1
-  ignition::math::Pose3d expPose(0, 0, 1, 0, 0, 0);
+  gz::math::Pose3d expPose(0, 0, 1, 0, 0, 0);
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
 
@@ -486,8 +486,8 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
   Entity link2 = model2.LinkByName(*this->ecm, "L2");
   ASSERT_NE(link2, kNullEntity);
 
-  const ignition::math::Pose3d link1ExpectedPose(1, 1, 1, 0, 0, 0);
-  const ignition::math::Pose3d link2ExpectedPose(0, 1, 1, 0, 0, 0);
+  const gz::math::Pose3d link1ExpectedPose(1, 1, 1, 0, 0, 0);
+  const gz::math::Pose3d link2ExpectedPose(0, 1, 1, 0, 0, 0);
 
   EXPECT_EQ(link1ExpectedPose, this->GetPose(link1));
   EXPECT_EQ(link2ExpectedPose, this->GetPose(link2));
@@ -503,8 +503,8 @@ TEST_F(SdfFrameSemanticsTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
 
@@ -533,25 +533,25 @@ TEST_F(SdfFrameSemanticsTest,
   Entity link00 = includeNestedModel.LinkByName(*this->ecm, "link_00");
   ASSERT_NE(link00, kNullEntity);
 
-  ignition::math::Pose3d link00ExpectedPose(30, 32, 34, 0, 0, 0);
+  gz::math::Pose3d link00ExpectedPose(30, 32, 34, 0, 0, 0);
   EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
 
   auto link01 = includeNestedModel.LinkByName(*this->ecm, "link_01");
   ASSERT_NE(link01, kNullEntity);
 
-  ignition::math::Pose3d link01ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d link01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
 
   Entity nestedModelsLink00 = nestedModel00.LinkByName(*this->ecm, "link_00");
   ASSERT_NE(nestedModelsLink00, kNullEntity);
 
-  ignition::math::Pose3d nestedModelsLink00ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d nestedModelsLink00ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink00ExpectedPose, this->GetPose(nestedModelsLink00));
 
   auto nestedModelsLink01 = nestedModel01.LinkByName(*this->ecm, "link_01");
   ASSERT_NE(nestedModelsLink01, kNullEntity);
 
-  ignition::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
 
   this->server->Run(true, 1, false);
@@ -566,8 +566,8 @@ TEST_F(SdfFrameSemanticsTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
 
@@ -596,25 +596,25 @@ TEST_F(SdfFrameSemanticsTest,
   Entity link00 = includeNestedModel.LinkByName(*this->ecm, "link_00");
   ASSERT_NE(link00, kNullEntity);
 
-  ignition::math::Pose3d link00ExpectedPose(30, 32, 34, 0, 0, 0);
+  gz::math::Pose3d link00ExpectedPose(30, 32, 34, 0, 0, 0);
   EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
 
   auto link01 = includeNestedModel.LinkByName(*this->ecm, "link_01");
   ASSERT_NE(link01, kNullEntity);
 
-  ignition::math::Pose3d link01ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d link01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
 
   Entity nestedModelsLink00 = nestedModel00.LinkByName(*this->ecm, "link_00");
   ASSERT_NE(nestedModelsLink00, kNullEntity);
 
-  ignition::math::Pose3d nestedModelsLink00ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d nestedModelsLink00ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink00ExpectedPose, this->GetPose(nestedModelsLink00));
 
   auto nestedModelsLink01 = nestedModel01.LinkByName(*this->ecm, "link_01");
   ASSERT_NE(nestedModelsLink01, kNullEntity);
 
-  ignition::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
+  gz::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
 
   this->server->Run(true, 1, false);

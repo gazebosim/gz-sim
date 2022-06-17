@@ -25,9 +25,9 @@
 
 #include "GuiFileHandler.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
@@ -45,7 +45,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  gz::msgs::StringMsg_V worldsMsg;
 
   bool result{false};
   unsigned int timeout{5000};
@@ -74,7 +74,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
         this->node.Request(sdfGenService, req, timeout, genWorldSdf, result);
     if (serviceCall && result && !genWorldSdf.data().empty())
     {
-      igndbg << "Saving world: " << worldName << " to: " << localPath << "\n";
+      gzdbg << "Saving world: " << worldName << " to: " << localPath << "\n";
       std::ofstream fs(localPath, std::ios::out);
       if (fs.is_open())
       {
@@ -102,11 +102,11 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   if (!status)
   {
-    ignerr << statusMsg.str();
+    gzerr << statusMsg.str();
   }
   else
   {
-    ignmsg << statusMsg.str();
+    gzmsg << statusMsg.str();
   }
   emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }

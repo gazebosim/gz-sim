@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/GpuLidar.hh>
+#include <ignition/gazebo/config.hh>

@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_HH_
+#ifndef GZ_SIM_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_HH_
+#define GZ_SIM_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_HH_
 
 #include <memory>
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward Declaration
@@ -112,10 +112,10 @@ namespace systems
   ///       (representing 0% to 100%).
   ///       If no volume threshold is specified, 0.0 will be used.
   ///
-  /// Sources can be started and stopped via Ignition service calls.
+  /// Sources can be started and stopped via Gazebo service calls.
   /// If a source is successfully created, the following services will be
   /// created for the source (`<PREFIX>` is the scoped name for the source - see
-  /// ignition::gazebo::scopedName for more details - and `<id>` is the value
+  /// gz::sim::scopedName for more details - and `<id>` is the value
   /// specified in the source's `<id>` tag from the SDF):
   ///     * `<PREFIX>/source_<id>/play`
   ///         * Starts playing the source with the specified ID.
@@ -124,10 +124,10 @@ namespace systems
   ///         * Stops playing the source with the specified ID.
   ///           If the source is already stopped, nothing happens.
   ///
-  /// Microphone detection information can be retrieved via Ignition topics.
+  /// Microphone detection information can be retrieved via Gazebo topics.
   /// Whenever a microphone detects a source, it publishes a message to the
   /// `<PREFIX>/mic_<id>/detection` topic, where `<PREFIX>` is the scoped name
-  /// for the microphone - see ignition::gazebo::scopedName for more details -
+  /// for the microphone - see gz::sim::scopedName for more details -
   /// and `<id>` is the value specified in the microphone's `<id>` tag from the
   /// SDF.
   class LogicalAudioSensorPlugin :
@@ -149,8 +149,8 @@ namespace systems
                 EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,

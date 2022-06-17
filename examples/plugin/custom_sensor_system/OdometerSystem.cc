@@ -42,18 +42,18 @@
 using namespace custom;
 
 //////////////////////////////////////////////////
-void OdometerSystem::PreUpdate(const ignition::gazebo::UpdateInfo &,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void OdometerSystem::PreUpdate(const gz::sim::UpdateInfo &,
+    gz::sim::EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<ignition::gazebo::components::CustomSensor,
-               ignition::gazebo::components::ParentEntity>(
-    [&](const ignition::gazebo::Entity &_entity,
-        const ignition::gazebo::components::CustomSensor *_custom,
-        const ignition::gazebo::components::ParentEntity *_parent)->bool
+  _ecm.EachNew<gz::sim::components::CustomSensor,
+               gz::sim::components::ParentEntity>(
+    [&](const gz::sim::Entity &_entity,
+        const gz::sim::components::CustomSensor *_custom,
+        const gz::sim::components::ParentEntity *_parent)->bool
       {
         // Get sensor's scoped name without the world
-        auto sensorScopedName = ignition::gazebo::removeParentScope(
-            ignition::gazebo::scopedName(_entity, _ecm, "::", false), "::");
+        auto sensorScopedName = gz::sim::removeParentScope(
+            gz::sim::scopedName(_entity, _ecm, "::", false), "::");
         sdf::Sensor data = _custom->Data();
         data.SetName(sensorScopedName);
 
@@ -64,23 +64,23 @@ void OdometerSystem::PreUpdate(const ignition::gazebo::UpdateInfo &,
           data.SetTopic(topic);
         }
 
-        ignition::sensors::SensorFactory sensorFactory;
+        gz::sensors::SensorFactory sensorFactory;
         auto sensor = sensorFactory.CreateSensor<custom::Odometer>(data);
         if (nullptr == sensor)
         {
-          ignerr << "Failed to create odometer [" << sensorScopedName << "]"
+          gzerr << "Failed to create odometer [" << sensorScopedName << "]"
                  << std::endl;
           return false;
         }
 
         // Set sensor parent
-        auto parentName = _ecm.Component<ignition::gazebo::components::Name>(
+        auto parentName = _ecm.Component<gz::sim::components::Name>(
             _parent->Data())->Data();
         sensor->SetParent(parentName);
 
         // Set topic on Gazebo
         _ecm.CreateComponent(_entity,
-            ignition::gazebo::components::SensorTopic(sensor->Topic()));
+            gz::sim::components::SensorTopic(sensor->Topic()));
 
         // Keep track of this sensor
         this->entitySensorMap.insert(std::make_pair(_entity,
@@ -91,15 +91,15 @@ void OdometerSystem::PreUpdate(const ignition::gazebo::UpdateInfo &,
 }
 
 //////////////////////////////////////////////////
-void OdometerSystem::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+void OdometerSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
   if (!_info.paused)
   {
     for (auto &[entity, sensor] : this->entitySensorMap)
     {
-      sensor->NewPosition(ignition::gazebo::worldPose(entity, _ecm).Pos());
+      sensor->NewPosition(gz::sim::worldPose(entity, _ecm).Pos());
       sensor->Update(_info.simTime);
     }
   }
@@ -109,22 +109,22 @@ void OdometerSystem::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void OdometerSystem::RemoveSensorEntities(
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::EntityComponentManager &_ecm)
 {
-  _ecm.EachRemoved<ignition::gazebo::components::CustomSensor>(
-    [&](const ignition::gazebo::Entity &_entity,
-        const ignition::gazebo::components::CustomSensor *)->bool
+  _ecm.EachRemoved<gz::sim::components::CustomSensor>(
+    [&](const gz::sim::Entity &_entity,
+        const gz::sim::components::CustomSensor *)->bool
       {
         if (this->entitySensorMap.erase(_entity) == 0)
         {
-          ignerr << "Internal error, missing odometer for entity ["
+          gzerr << "Internal error, missing odometer for entity ["
                          << _entity << "]" << std::endl;
         }
         return true;
       });
 }
 
-IGNITION_ADD_PLUGIN(OdometerSystem, ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(OdometerSystem, gz::sim::System,
   OdometerSystem::ISystemPreUpdate,
   OdometerSystem::ISystemPostUpdate
 )

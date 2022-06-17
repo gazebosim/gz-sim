@@ -2,8 +2,8 @@
 
 This example shows how to create a GUI system plugin.
 
-Ignition Gazebo supports any kind of Ignition GUI plugin
-(`ignition::gui::Plugin`). Gazebo GUI plugins are a special type of Ignition
+Gazebo supports any kind of Gazebo GUI plugin
+(`gz::gui::Plugin`). Gazebo GUI plugins are a special type of Gazebo
 GUI plugin which also have access to entity and component updates coming from
 the server.
 

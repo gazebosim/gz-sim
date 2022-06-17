@@ -44,16 +44,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Imu data class.
-class ignition::gazebo::systems::ImuPrivate
+class gz::sim::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::ImuSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::ImuSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -65,7 +65,7 @@ class ignition::gazebo::systems::ImuPrivate
 
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
-  /// Defaults to zero, which is considered invalid by Ignition Gazebo.
+  /// Defaults to zero, which is considered invalid by Gazebo.
   public: Entity worldEntity = kNullEntity;
 
   /// True if the rendering component is initialized
@@ -116,7 +116,7 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -135,7 +135,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -145,6 +145,24 @@ void Imu::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the ImuPrivate::Update function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -168,7 +186,7 @@ void ImuPrivate::AddSensor(
   auto gravity = _ecm.Component<components::Gravity>(worldEntity);
   if (nullptr == gravity)
   {
-    ignerr << "World missing gravity." << std::endl;
+    gzerr << "World missing gravity." << std::endl;
     return;
   }
 
@@ -188,7 +206,7 @@ void ImuPrivate::AddSensor(
       sensors::ImuSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -217,7 +235,7 @@ void ImuPrivate::AddSensor(
     if (imuElementPtr->HasElement("orientation_reference_frame")) {
       double heading = 0.0;
 
-      ignition::gazebo::World world(worldEntity);
+      gz::sim::World world(worldEntity);
       if (world.SphericalCoordinates(_ecm))
       {
         auto sphericalCoordinates = world.SphericalCoordinates(_ecm).value();
@@ -225,7 +243,7 @@ void ImuPrivate::AddSensor(
       }
 
       sensor->SetWorldFrameOrientation(math::Quaterniond(0, 0, heading),
-        ignition::sensors::WorldFrameEnumType::ENU);
+        gz::sensors::WorldFrameEnumType::ENU);
     }
   }
 
@@ -250,7 +268,7 @@ void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
     this->worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == this->worldEntity)
   {
-    ignerr << "Missing world entity." << std::endl;
+    gzerr << "Missing world entity." << std::endl;
     return;
   }
 
@@ -309,7 +327,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
          }
         else
         {
-          ignerr << "Failed to update IMU: " << _entity << ". "
+          gzerr << "Failed to update IMU: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -329,7 +347,7 @@ void ImuPrivate::RemoveImuEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing IMU sensor for entity ["
+          gzerr << "Internal error, missing IMU sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -345,4 +363,7 @@ IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")

@@ -45,8 +45,8 @@
 
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
@@ -267,7 +267,7 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
       return out;
     };
 
-    // Configure SDF to fetch assets from ignition fuel.
+    // Configure SDF to fetch assets from Gazebo Fuel.
     sdf::setFindCallback(fuelCb);
     creator = std::make_unique<SdfEntityCreator>(this->ecm, this->evm);
   }
@@ -895,7 +895,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ElementUpdateFixture,
     IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {

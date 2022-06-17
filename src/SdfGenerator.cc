@@ -60,12 +60,12 @@
 #include "gz/sim/components/World.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
@@ -970,7 +970,7 @@ namespace sdf_generator
           }
           else
           {
-            ignwarn << "Error retrieving Fuel model version,"
+            gzwarn << "Error retrieving Fuel model version,"
                     << " saving model without version."
                     << std::endl;
           }
@@ -1017,5 +1017,5 @@ namespace sdf_generator
   }
 }
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_GUI_GUISYSTEM_HH_
-#define GZ_GAZEBO_GUI_GUISYSTEM_HH_
+#ifndef GZ_SIM_GUI_GUISYSTEM_HH_
+#define GZ_SIM_GUI_GUISYSTEM_HH_
 
 #include <QtCore>
 
@@ -26,27 +26,27 @@
 
 #include <sdf/Element.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   // Inline bracket to help doxygen filtering.
-  inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+  inline namespace GZ_SIM_VERSION_NAMESPACE {
   /// \brief Base class for a GUI System.
   ///
   /// A System operates on Entities that have certain Components. A System
   /// will only operate on an Entity if it has all of the required
   /// Components.
   ///
-  /// GUI systems are different from `ignition::gazebo::System`s because they
+  /// GUI systems are different from `gz::sim::System`s because they
   /// don't run in the same process as the physics. Instead, they run in a
   /// separate process that is stepped by updates coming through the network
-  class IGNITION_GAZEBO_GUI_VISIBLE GuiSystem : public ignition::gui::Plugin
+  class GZ_GAZEBO_GUI_VISIBLE GuiSystem : public gz::gui::Plugin
   {
     Q_OBJECT
 
     /// \brief Update callback called every time the system is stepped.
-    /// This is called at an Ignition transport thread, so any interaction
+    /// This is called at a Gazebo Transport thread, so any interaction
     /// with Qt should be done through signals and slots.
     /// \param[in] _info Current simulation information, such as time.
     /// \param[in] _ecm Mutable reference to the ECM, so the system can read

@@ -1,6 +1,6 @@
 \page server_config Server Configuration
 
-Most functionality on Ignition Gazebo is provided by plugins, which means that
+Most functionality on Gazebo is provided by plugins, which means that
 users can choose exactly what functionality is available to their simulations.
 Even running the physics engine is optional. This gives users great control
 and makes sure only what's crucial for a given simulation is loaded.
@@ -13,24 +13,24 @@ a simulation.
 There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
-2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
-3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
-   where `<#>` is Gazebo's major version.
+2. File path defined by the `GZ_SIM_SERVER_CONFIG_PATH` environment variable.
+3. The default configuration file at `$HOME/.gz/sim/<#>/server.config` \*,
+   where `<#>` is Gazebo Sim's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
-`IGN_GAZEBO_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
+`GZ_SIM_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
 file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
 > \* For log-playback, the default file is
-> `$HOME/.ignition/gazebo/<#>/playback_server.config`
+> `$HOME/.gz/sim/<#>/playback_server.config`
 
 ## Try it out
 
 ### Default configuration
 
-Let's try this in practice. First, let's open Ignition Gazebo without passing
+Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
 `ign gazebo`
@@ -49,18 +49,18 @@ broadcaster is loaded.
 
 By default, you're loading this file:
 
-`$HOME/.ignition/gazebo/<#>/server.config`
+`$HOME/.gz/sim/<#>/server.config`
 
-That file is created the first time you load Ignition Gazebo. Once it is
-created, Ignition will never write to it again unless you delete it. This
+That file is created the first time you load Gazebo. Once it is
+created, Gazebo will never write to it again unless you delete it. This
 means that you can customize it with your preferences and they will be applied
-every time Ignition is started!
+every time Gazebo is started!
 
 Let's try customizing it:
 
 1. Open this file with your favorite editor:
 
-    `$HOME/.ignition/gazebo/<#>/server.config`
+    `$HOME/.gz/sim/<#>/server.config`
 
 2. Remove the `<plugin>` block for the physics system
 
@@ -74,11 +74,11 @@ loaded.
 @image html files/server_config/modified_default_config.gif
 
 You'll often want to restore default settings or to use the latest default
-provided by Ignition (when you update to a newer version for example). In
+provided by Gazebo (when you update to a newer version for example). In
 that case, just delete that file, and the next time Gazebo is started a new file
 will be created with default values:
 
-`rm $HOME/.ignition/gazebo/<#>/server.config`
+`rm $HOME/.gz/sim/<#>/server.config`
 
 ### SDF
 
@@ -91,7 +91,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
   <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -231,7 +231,7 @@ rendering-based sensors to generate data.
 @image html files/server_config/camera_no_env.gif
 
 Now let's create a custom configuration file in
-`$HOME/.ignition/gazebo/rendering_sensors_server.config` that has the sensors
+`$HOME/.gz/sim/rendering_sensors_server.config` that has the sensors
 system:
 
 ```
@@ -240,12 +240,12 @@ system:
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-scene-broadcaster-system"
-            name="ignition::gazebo::systems::SceneBroadcaster">
+            name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-sensors-system"
-            name="ignition::gazebo::systems::Sensors">
+            name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
   </plugins>
@@ -254,7 +254,7 @@ system:
 
 And point the environment variable to that file:
 
-`export IGN_GAZEBO_SERVER_CONFIG_PATH=$HOME/.ignition/gazebo/rendering_sensors_server.config`
+`export GZ_SIM_SERVER_CONFIG_PATH=$HOME/.gz/sim/rendering_sensors_server.config`
 
 Now when we launch the simulation again, refreshing the image display will
 show the camera topic, and we can see the camera data.
@@ -263,4 +263,3 @@ the background color is the default grey, instead of the blue color set on the
 GUI `GzScene` plugin.
 
 @image html files/server_config/camera_env.gif
-

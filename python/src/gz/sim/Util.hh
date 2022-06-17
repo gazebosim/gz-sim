@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#ifndef IGNITION_GAZEBO_PYTHON__UTIL_HH_
-#define IGNITION_GAZEBO_PYTHON__UTIL_HH_
+#ifndef GZ_SIM_PYTHON__UTIL_HH_
+#define GZ_SIM_PYTHON__UTIL_HH_
 
 #include <pybind11/pybind11.h>
 
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/Util.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for a ignition::gazebo::Util
+/// Define a pybind11 wrapper for a gz::sim::Util
 /// \param[in] _module a pybind11 module to add the definition to
 void defineGazeboUtil(pybind11::module &_module);
 }  // namespace python
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_PYTHON__WORLD_HH_
+#endif  // GZ_SIM_PYTHON__WORLD_HH_

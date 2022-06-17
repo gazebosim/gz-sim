@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_GUIFILEHANDLER_HH_
-#define IGNITION_GAZEBO_GUI_GUIFILEHANDLER_HH_
+#ifndef GZ_SIM_GUI_GUIFILEHANDLER_HH_
+#define GZ_SIM_GUI_GUIFILEHANDLER_HH_
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 
@@ -27,12 +27,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling saving and loading of SDFormat files

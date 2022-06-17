@@ -35,7 +35,7 @@ timestamped directory where the `record_one_run.bash` is in.
 ## Changing camera follow behavior
 
 > This feature hasn't been ported to Fortress yet, see
-> https://github.com/ignitionrobotics/ign-gui/issues/298
+> https://github.com/gazebosim/gz-gui/issues/298
 
 ## Troubleshooting
 

@@ -16,29 +16,29 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/WindMode.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/WindMode.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test WindEffects system
 class WindEffectsTest : public InternalFixture<::testing::Test>
@@ -71,7 +71,7 @@ class LinkComponentRecorder
       : linkName(std::move(_linkName))
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
+                                    "gz::sim::MockSystem", nullptr);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();
@@ -83,7 +83,7 @@ class LinkComponentRecorder
     if (_createComp)
     {
       this->mockSystem->preUpdateCallback =
-        [this](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -99,8 +99,8 @@ class LinkComponentRecorder
     }
 
     this->mockSystem->postUpdateCallback =
-        [this](const gazebo::UpdateInfo &,
-              const gazebo::EntityComponentManager &_ecm)
+        [this](const sim::UpdateInfo &,
+              const sim::EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -185,7 +185,7 @@ class BlockingPublisher
 
 /////////////////////////////////////////////////
 /// Check if 'enable_wind' set only in <model> works
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInModel))
 {
   this->StartServer("/test/worlds/wind_effects.sdf");

@@ -14,20 +14,20 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLDCONTROL_HH_
-#define IGNITION_GAZEBO_WORLDCONTROL_HH_
+#ifndef GZ_SIM_WORLDCONTROL_HH_
+#define GZ_SIM_WORLDCONTROL_HH_
 
 #include <chrono>
 #include <cstdint>
 
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Helper struct to control world time. It's used to hold
     /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
@@ -56,6 +56,6 @@ namespace ignition
       std::chrono::steady_clock::duration seek{-1};
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_WORLDCONTROL_HH_
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_WORLDCONTROL_HH_

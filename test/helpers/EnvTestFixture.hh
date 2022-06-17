@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#ifndef GZ_SIM_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#define GZ_SIM_TEST_HELPERS_ENVTESTFIXTURE_HH_
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
 #include "gz/sim/test_config.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Common test setup for various tests
 template <typename TestType>
@@ -34,7 +34,7 @@ class InternalFixture : public TestType
   protected: void SetUp() override
   {
     // Augment the system plugin path.  In SetUp to avoid test order issues.
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+    common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
            common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
 
     common::Console::SetVerbosity(4);

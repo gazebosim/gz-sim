@@ -14,20 +14,20 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTVISUALSYSTEM_HH_
+#ifndef GZ_SIM_TEST_TESTVISUALSYSTEM_HH_
+#define GZ_SIM_TEST_TESTVISUALSYSTEM_HH_
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/transport/Node.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using VisualPluginComponent = components::Component<int,
@@ -43,17 +43,17 @@ class TestVisualSystem :
 {
   public: TestVisualSystem()
         {
-          igndbg << "Constructing TestVisualSystem" << std::endl;
+          gzdbg << "Constructing TestVisualSystem" << std::endl;
         }
 
   public: ~TestVisualSystem()
         {
-          igndbg << "Destroying TestVisualSystem" << std::endl;
+          gzdbg << "Destroying TestVisualSystem" << std::endl;
         }
 
   private: bool Service(msgs::StringMsg &_msg)
         {
-          igndbg << "TestVisualSystem service called" << std::endl;
+          gzdbg << "TestVisualSystem service called" << std::endl;
           _msg.set_data("TestVisualSystem");
           return true;
         }
@@ -63,7 +63,7 @@ class TestVisualSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestVisualSystem" << std::endl;
+          gzdbg << "Configuring TestVisualSystem" << std::endl;
           auto value = _sdf->Get<int>("visual_key");
           _ecm.CreateComponent(_entity,
               components::VisualPluginComponent(value));

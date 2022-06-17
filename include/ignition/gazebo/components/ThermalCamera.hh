@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ThermalCamera.hh>
+#include <ignition/gazebo/config.hh>

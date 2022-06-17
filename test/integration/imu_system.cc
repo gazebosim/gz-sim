@@ -17,24 +17,24 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/imu.pb.h>
+#include <gz/msgs/imu.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
@@ -42,8 +42,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test ImuTest system
 class ImuTest : public InternalFixture<::testing::Test>
@@ -108,7 +108,7 @@ void imuCb(const msgs::IMU &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling imu
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   double z = 3;
@@ -136,15 +136,15 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> accelerations;
   std::vector<math::Vector3d> angularVelocities;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Imu,
                   components::Name,
                   components::WorldPose,
                   components::AngularVelocity,
                   components::LinearAcceleration>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Imu *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,
@@ -175,7 +175,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
             });
 
         _ecm.Each<components::Gravity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::Gravity *_gravity) -> bool
             {
               // gtest is having a hard time with ASSERTs inside nested lambdas

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/comms-endpoint-system/Export.hh>
+#include <ignition/gazebo/config.hh>

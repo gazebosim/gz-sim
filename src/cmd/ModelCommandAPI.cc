@@ -58,8 +58,8 @@
 #include <gz/sim/components/World.hh>
 #include <gz/transport/Node.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 /// \brief Get the name of the world being used by calling

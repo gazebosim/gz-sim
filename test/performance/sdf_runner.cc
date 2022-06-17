@@ -17,49 +17,49 @@
 
 #include <array>
 
-#include <ignition/msgs.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
+#include <gz/msgs.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   std::string sdfFile{""};
   if (_argc >= 2)
   {
     sdfFile = _argv[1];
   }
-  igndbg << "SDF file: " << sdfFile << std::endl;
+  gzdbg << "SDF file: " << sdfFile << std::endl;
 
   unsigned int iterations{10000};
   if (_argc >= 3)
   {
     iterations = atoi(_argv[2]);
   }
-  igndbg << "Iterations: " << iterations << std::endl;
+  gzdbg << "Iterations: " << iterations << std::endl;
 
   double updateRate{-1};
   if (_argc >= 4)
   {
     updateRate = atoi(_argv[3]);
   }
-  igndbg << "Update rate: " << updateRate << std::endl;
+  gzdbg << "Update rate: " << updateRate << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
-    ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
+    gzerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
     return -1;
   }
 
@@ -68,23 +68,23 @@ int main(int _argc, char** _argv)
     serverConfig.SetUpdateRate(updateRate);
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  std::vector<ignition::msgs::Clock> msgs;
+  std::vector<gz::msgs::Clock> msgs;
   msgs.reserve(iterations);
 
-  std::function<void(const ignition::msgs::Clock&)> cb =
-    [&](const ignition::msgs::Clock &_msg)
+  std::function<void(const gz::msgs::Clock&)> cb =
+    [&](const gz::msgs::Clock &_msg)
     {
       msgs.push_back(_msg);
     };
 
   double progress = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb2 =
-    [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const gz::msgs::WorldStatistics &)> cb2 =
+    [&](const gz::msgs::WorldStatistics &_msg)
     {
       double nIters = static_cast<double>(_msg.iterations());
       nIters = nIters / iterations * 100;

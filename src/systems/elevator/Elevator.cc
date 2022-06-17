@@ -50,12 +50,12 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -103,7 +103,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   /// then publishes the new state
   /// \param[in] _info Current simulation step info
   /// \param[in] _ecm Entity component manager
-  public: void UpdateState(const ignition::gazebo::UpdateInfo &_info,
+  public: void UpdateState(const gz::sim::UpdateInfo &_info,
                            const EntityComponentManager &_ecm);
 
   /// \brief Callback for the door lidar scans
@@ -115,7 +115,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   /// \param[in] _msg Message that carries the floor level target
   public: void OnCmdMsg(const msgs::Int32 &_msg);
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Model to which this system belongs
@@ -231,7 +231,7 @@ void Elevator::Configure(const Entity &_entity,
       _sdf->Get<std::string>("cmd_topic", topicPrefix + "/cmd").first;
   this->dataPtr->node.Subscribe(cmdTopicName, &ElevatorPrivate::OnCmdMsg,
                                 this->dataPtr.get());
-  ignmsg << "System " << this->dataPtr->model.Name(_ecm) << " subscribed to "
+  gzmsg << "System " << this->dataPtr->model.Name(_ecm) << " subscribed to "
          << cmdTopicName << " for command messages" << std::endl;
 }
 
@@ -272,7 +272,7 @@ bool ElevatorPrivate::InitCabin(const std::string &_cabinJointName,
   this->cabinJoint = this->model.JointByName(_ecm, _cabinJointName);
   if (this->cabinJoint == kNullEntity)
   {
-    ignerr << "Failed to find cabin joint " << _cabinJointName << std::endl;
+    gzerr << "Failed to find cabin joint " << _cabinJointName << std::endl;
     return false;
   }
   if (!_ecm.EntityHasComponentType(this->cabinJoint,
@@ -298,7 +298,7 @@ bool ElevatorPrivate::InitCabin(const std::string &_cabinJointName,
     auto link = this->model.LinkByName(_ecm, name);
     if (link == kNullEntity)
     {
-      ignerr << "Failed to find floor link " << name << std::endl;
+      gzerr << "Failed to find floor link " << name << std::endl;
       return false;
     }
     auto z = _ecm.Component<components::Pose>(link)->Data().Z();
@@ -326,7 +326,7 @@ bool ElevatorPrivate::InitDoors(const std::string &_doorJointPrefix,
     auto joint = this->model.JointByName(_ecm, name);
     if (joint == kNullEntity)
     {
-      ignerr << "Failed to find door joint " << name << std::endl;
+      gzerr << "Failed to find door joint " << name << std::endl;
       return false;
     }
     if (!_ecm.EntityHasComponentType(joint,
@@ -394,7 +394,7 @@ void ElevatorPrivate::SetCabinMonitor(
 }
 
 //////////////////////////////////////////////////
-void ElevatorPrivate::UpdateState(const ignition::gazebo::UpdateInfo &_info,
+void ElevatorPrivate::UpdateState(const gz::sim::UpdateInfo &_info,
                                   const EntityComponentManager &_ecm)
 {
   // Update state
@@ -434,7 +434,7 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
   auto target = _msg.data();
   if (target < 0 || target >= static_cast<int32_t>(this->cabinTargets.size()))
   {
-    ignwarn << "Invalid target [" << target << "]; command must be in [0,"
+    gzwarn << "Invalid target [" << target << "]; command must be in [0,"
             << this->cabinTargets.size() << ")" << std::endl;
     return;
   }
@@ -444,9 +444,12 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

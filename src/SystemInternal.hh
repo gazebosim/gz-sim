@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
-#define IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+#ifndef GZ_SIM_SYSTEMINTERNAL_HH_
+#define GZ_SIM_SYSTEMINTERNAL_HH_
 
 #include <chrono>
 #include <memory>
@@ -27,12 +27,12 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemPluginPtr.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Class to hold systems internally. It supports systems loaded
     /// from plugins, as well as systems created at runtime.
@@ -122,6 +122,6 @@ namespace ignition
       public: std::vector<EntityQueryCallback> updates;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_SYSTEMINTERNAL_HH_

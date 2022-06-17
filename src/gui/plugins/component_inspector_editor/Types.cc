@@ -17,7 +17,7 @@
 
 #include "Types.hh"
 
-void ignition::gazebo::setNoise(sdf::Noise &_noise,
+void gz::sim::setNoise(sdf::Noise &_noise,
     double _mean, double _meanBias, double _stdDev,
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)

@@ -7,11 +7,11 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      name="gz::sim::systems::Buoyancy">
       <graded_buoyancy>
         <default_density>1000</default_density>
         <density_change>

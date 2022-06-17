@@ -25,12 +25,12 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Stores the 3D magnetic field in teslas.

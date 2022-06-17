@@ -21,24 +21,24 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 #include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Name.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
-namespace components = ignition::gazebo::components;
+using namespace gz;
+using namespace sim;
+namespace components = gz::sim::components;
 
 unsigned int imgCount = 0u;
 unsigned int depthImgCount = 0u;
@@ -66,18 +66,18 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: gz::sim::SystemPluginPtr systemPtr;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 /////////////////////////////////////////////////
@@ -94,9 +94,9 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
     };
@@ -124,7 +124,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   // and the <initial_charge> is equivalent ot the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   // subscribe to img topics to make sure we are receiving images.
   node.Subscribe("/camera", &imageCb);

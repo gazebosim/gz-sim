@@ -40,11 +40,11 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::TrackControllerPrivate
+class gz::sim::systems::TrackControllerPrivate
 {
   public : ~TrackControllerPrivate() {}
   /// \brief Register a collision entity to work with this system (e.g. enable
@@ -91,8 +91,8 @@ class ignition::gazebo::systems::TrackControllerPrivate
   /// \param[in] _frictionDirection First friction direction (in world coords).
   /// \return The computed contact surface speed.
   public: double ComputeSurfaceMotion(
-    double _beltSpeed, const ignition::math::Vector3d &_beltDirection,
-    const ignition::math::Vector3d &_frictionDirection);
+    double _beltSpeed, const gz::math::Vector3d &_beltDirection,
+    const gz::math::Vector3d &_frictionDirection);
 
   /// \brief Compute the first friction direction of the contact surface.
   /// \param[in] _centerOfRotation The point around which the track circles (
@@ -100,11 +100,11 @@ class ignition::gazebo::systems::TrackControllerPrivate
   /// \param[in] _contactWorldPosition Position of the contact point.
   /// \param[in] _contactNormal Normal of the contact surface (in world coords).
   /// \param[in] _beltDirection Direction of the belt (in world coords).
-  public: ignition::math::Vector3d ComputeFrictionDirection(
-    const ignition::math::Vector3d &_centerOfRotation,
-    const ignition::math::Vector3d &_contactWorldPosition,
-    const ignition::math::Vector3d &_contactNormal,
-    const ignition::math::Vector3d &_beltDirection);
+  public: gz::math::Vector3d ComputeFrictionDirection(
+    const gz::math::Vector3d &_centerOfRotation,
+    const gz::math::Vector3d &_contactWorldPosition,
+    const gz::math::Vector3d &_contactNormal,
+    const gz::math::Vector3d &_beltDirection);
 
   /// \brief Name of the link to which the track is attached.
   public: std::string linkName;
@@ -125,7 +125,7 @@ class ignition::gazebo::systems::TrackControllerPrivate
   public: EventManager* eventManager;
   /// \brief Connection to CollectContactSurfaceProperties event.
   public: common::ConnectionPtr eventConnection;
-  /// \brief Ignition transport node.
+  /// \brief Gazebo transport node.
   public: transport::Node node;
 
   /// \brief The model this plugin is attached to.
@@ -194,14 +194,14 @@ void TrackController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "TrackController should be attached to a model "
+    gzerr << "TrackController should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
 
   if (!_sdf->HasElement("link"))
   {
-    ignerr << "TrackController plugin is missing <link> element." << std::endl;
+    gzerr << "TrackController plugin is missing <link> element." << std::endl;
     return;
   }
   this->dataPtr->linkName = _sdf->Get<std::string>("link");
@@ -246,11 +246,11 @@ void TrackController::Configure(const Entity &_entity,
   if (!this->dataPtr->node.Subscribe(
     velTopic, &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
   {
-    ignerr << "Error subscribing to topic [" << velTopic << "]. "
+    gzerr << "Error subscribing to topic [" << velTopic << "]. "
            << "Track will not receive commands." << std::endl;
     return;
   }
-  igndbg << "Subscribed to " << velTopic << " for receiving track velocity "
+  gzdbg << "Subscribed to " << velTopic << " for receiving track velocity "
          << "commands." << std::endl;
 
   const auto kDefaultCorTopic = topicPrefix + "/track_cmd_center_of_rotation";
@@ -260,12 +260,12 @@ void TrackController::Configure(const Entity &_entity,
     corTopic, &TrackControllerPrivate::OnCenterOfRotation,
     this->dataPtr.get()))
   {
-    ignerr << "Error subscribing to topic [" << corTopic << "]. "
+    gzerr << "Error subscribing to topic [" << corTopic << "]. "
            << "Track will not receive center of rotation commands."
            << std::endl;
     return;
   }
-  igndbg << "Subscribed to " << corTopic << " for receiving track center "
+  gzdbg << "Subscribed to " << corTopic << " for receiving track center "
          << "of rotation commands." << std::endl;
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
@@ -277,7 +277,7 @@ void TrackController::Configure(const Entity &_entity,
     this->dataPtr->maxCommandAge =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(
         std::chrono::duration<double>(seconds));
-    igndbg << "Track commands will time out after " << seconds << " seconds"
+    gzdbg << "Track commands will time out after " << seconds << " seconds"
            << std::endl;
   }
 
@@ -342,24 +342,24 @@ void TrackController::Configure(const Entity &_entity,
   if (this->dataPtr->debug)
   {
     this->dataPtr->debugMarker.set_ns(this->dataPtr->linkName + "/friction");
-    this->dataPtr->debugMarker.set_action(ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->debugMarker.set_type(ignition::msgs::Marker::BOX);
-    this->dataPtr->debugMarker.set_visibility(ignition::msgs::Marker::GUI);
+    this->dataPtr->debugMarker.set_action(gz::msgs::Marker::ADD_MODIFY);
+    this->dataPtr->debugMarker.set_type(gz::msgs::Marker::BOX);
+    this->dataPtr->debugMarker.set_visibility(gz::msgs::Marker::GUI);
     this->dataPtr->debugMarker.mutable_lifetime()->set_sec(0);
     this->dataPtr->debugMarker.mutable_lifetime()->set_nsec(4000000);
 
     // Set material properties
-    ignition::msgs::Set(
+    gz::msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_ambient(),
-      ignition::math::Color(0, 0, 1, 1));
-    ignition::msgs::Set(
+      gz::math::Color(0, 0, 1, 1));
+    gz::msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_diffuse(),
-      ignition::math::Color(0, 0, 1, 1));
+      gz::math::Color(0, 0, 1, 1));
 
     // Set marker scale
-    ignition::msgs::Set(
+    gz::msgs::Set(
       this->dataPtr->debugMarker.mutable_scale(),
-      ignition::math::Vector3d(0.3, 0.03, 0.03));
+      gz::math::Vector3d(0.3, 0.03, 0.03));
   }
 }
 
@@ -387,7 +387,7 @@ void TrackController::PreUpdate(
   }
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignwarn << "Could not find track link [" << this->dataPtr->linkName << "]"
+    gzwarn << "Could not find track link [" << this->dataPtr->linkName << "]"
       << std::endl;
     return;
   }
@@ -449,7 +449,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     static bool informed = false;
     if (!informed)
     {
-      ignerr << "TrackController requires a physics engine that computes "
+      gzerr << "TrackController requires a physics engine that computes "
              << "contact normals!" << std::endl;
       informed = true;
     }
@@ -509,18 +509,18 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
   if (this->debug)
   {
-    igndbg << "Link: " << linkName << std::endl;
-    igndbg << "- is collision 1 track " << (isCollision1Track ? "1" : "0")
+    gzdbg << "Link: " << linkName << std::endl;
+    gzdbg << "- is collision 1 track " << (isCollision1Track ? "1" : "0")
            << std::endl;
-    igndbg << "- velocity cmd         " << this->velocity << std::endl;
-    igndbg << "- limited velocity cmd " << this->limitedVelocity << std::endl;
-    igndbg << "- friction direction   " << frictionDirection << std::endl;
-    igndbg << "- surface motion       " << surfaceMotion << std::endl;
-    igndbg << "- contact point        " << convert(_point) << std::endl;
-    igndbg << "- contact normal       " << contactNormal << std::endl;
-    igndbg << "- track rot            " << trackWorldRot << std::endl;
-    igndbg << "- track Y              " << trackYAxisGlobal << std::endl;
-    igndbg << "- belt direction       " << beltDirection << std::endl;
+    gzdbg << "- velocity cmd         " << this->velocity << std::endl;
+    gzdbg << "- limited velocity cmd " << this->limitedVelocity << std::endl;
+    gzdbg << "- friction direction   " << frictionDirection << std::endl;
+    gzdbg << "- surface motion       " << surfaceMotion << std::endl;
+    gzdbg << "- contact point        " << convert(_point) << std::endl;
+    gzdbg << "- contact normal       " << contactNormal << std::endl;
+    gzdbg << "- track rot            " << trackWorldRot << std::endl;
+    gzdbg << "- track Y              " << trackYAxisGlobal << std::endl;
+    gzdbg << "- belt direction       " << beltDirection << std::endl;
 
     this->debugMarker.set_id(++this->markerId);
 
@@ -530,7 +530,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     p += rot.RotateVector(
       math::Vector3d::UnitX * this->debugMarker.scale().x() / 2);
 
-    ignition::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
+    gz::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
       p.X(), p.Y(), p.Z(), rot.Roll(), rot.Pitch(), rot.Yaw()));
     this->debugMarker.mutable_material()->mutable_diffuse()->set_r(
       surfaceMotion >= 0 ? 0 : 1);
@@ -541,8 +541,8 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
 //////////////////////////////////////////////////
 double TrackControllerPrivate::ComputeSurfaceMotion(
-  const double _beltSpeed, const ignition::math::Vector3d &_beltDirection,
-  const ignition::math::Vector3d &_frictionDirection)
+  const double _beltSpeed, const gz::math::Vector3d &_beltDirection,
+  const gz::math::Vector3d &_frictionDirection)
 {
   // the dot product <beltDirection,fdir1> is the cosine of the angle they
   // form (because both are unit vectors)
@@ -553,11 +553,11 @@ double TrackControllerPrivate::ComputeSurfaceMotion(
 }
 
 //////////////////////////////////////////////////
-ignition::math::Vector3d TrackControllerPrivate::ComputeFrictionDirection(
-  const ignition::math::Vector3d &_centerOfRotation,
-  const ignition::math::Vector3d &_contactWorldPosition,
-  const ignition::math::Vector3d &_contactNormal,
-  const ignition::math::Vector3d &_beltDirection)
+gz::math::Vector3d TrackControllerPrivate::ComputeFrictionDirection(
+  const gz::math::Vector3d &_centerOfRotation,
+  const gz::math::Vector3d &_contactWorldPosition,
+  const gz::math::Vector3d &_contactNormal,
+  const gz::math::Vector3d &_beltDirection)
 {
   if (_centerOfRotation.IsFinite())
   {
@@ -614,9 +614,13 @@ void TrackControllerPrivate::OnCenterOfRotation(const msgs::Vector3d& _msg)
 }
 
 IGNITION_ADD_PLUGIN(TrackController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     TrackController::ISystemConfigure,
                     TrackController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+                          "gz::sim::systems::TrackController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
                           "ignition::gazebo::systems::TrackController")

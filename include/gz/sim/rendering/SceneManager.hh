@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_SCENEMANAGER_HH_
-#define GZ_GAZEBO_SCENEMANAGER_HH_
+#ifndef GZ_SIM_SCENEMANAGER_HH_
+#define GZ_SIM_SCENEMANAGER_HH_
 
 #include <map>
 #include <memory>
@@ -37,6 +37,11 @@
 #include <gz/common/Animation.hh>
 #include <gz/common/graphics/Types.hh>
 
+#include <gz/math/Inertial.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+
 #include <gz/msgs/particle_emitter.pb.h>
 
 #include <gz/rendering/RenderTypes.hh>
@@ -45,12 +50,12 @@
 #include <gz/sim/Entity.hh>
 #include <gz/sim/rendering/Export.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   // Forward declaration
   class SceneManagerPrivate;
 
@@ -89,7 +94,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   };
 
   /// \brief Scene manager class for loading and managing objects in the scene
-  class IGNITION_GAZEBO_RENDERING_VISIBLE SceneManager
+  class GZ_GAZEBO_RENDERING_VISIBLE SceneManager
   {
     /// \brief Constructor
     public: SceneManager();
@@ -243,11 +248,11 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
         const msgs::ParticleEmitter &_emitter);
 
-    /// \brief Ignition sensors is the one responsible for adding sensors
+    /// \brief Gazebo Sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.
     /// \param[in] _gazeboId Entity in Gazebo
-    /// \param[in] _sensorName Name of sensor node in Ignition Rendering.
+    /// \param[in] _sensorName Name of sensor node in Gazebo Rendering.
     /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
     public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,

@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKROLE_HH_
+#define GZ_SIM_NETWORK_NETWORKROLE_HH_
 
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Enumeration of roles that a network participant can take.
     enum class NetworkRole
     {
@@ -47,8 +47,8 @@ namespace ignition
       SimulationSecondary = 3,
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKROLE_HH_
+#endif  // GZ_SIM_NETWORKROLE_HH_
 

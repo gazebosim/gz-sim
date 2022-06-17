@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/MagneticField.hh>
+#include <ignition/gazebo/config.hh>

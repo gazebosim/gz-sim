@@ -15,20 +15,20 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_PARAMETERS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_PARAMETERS_HH_
+#ifndef GZ_SIM_SYSTEMS_MULTICOPTERVELOCITYCONTROL_PARAMETERS_HH_
+#define GZ_SIM_SYSTEMS_MULTICOPTERVELOCITYCONTROL_PARAMETERS_HH_
 
 #include <Eigen/Geometry>
 #include <vector>
 
 #include "gz/sim/config.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 namespace multicopter_control
@@ -92,7 +92,7 @@ namespace multicopter_control
 }  // namespace multicopter_control
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif

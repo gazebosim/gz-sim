@@ -43,16 +43,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Magnetometer data class.
-class ignition::gazebo::systems::MagnetometerPrivate
+class gz::sim::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::MagnetometerSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::MagnetometerSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -113,7 +113,7 @@ void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -132,7 +132,7 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -142,6 +142,24 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the MagnetometerPrivate::Update function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -178,7 +196,7 @@ void MagnetometerPrivate::AddMagnetometer(
       sensors::MagnetometerSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -210,7 +228,7 @@ void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
   auto worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == worldEntity)
   {
-    ignerr << "Missing world entity." << std::endl;
+    gzerr << "Missing world entity." << std::endl;
     return;
   }
 
@@ -218,7 +236,7 @@ void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
   auto worldField = _ecm.Component<components::MagneticField>(worldEntity);
   if (nullptr == worldField)
   {
-    ignerr << "World missing magnetic field." << std::endl;
+    gzerr << "World missing magnetic field." << std::endl;
     return;
   }
 
@@ -271,7 +289,7 @@ void MagnetometerPrivate::Update(
         }
         else
         {
-          ignerr << "Failed to update magnetometer: " << _entity << ". "
+          gzerr << "Failed to update magnetometer: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -291,7 +309,7 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing magnetometer sensor for entity ["
+          gzerr << "Internal error, missing magnetometer sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -307,5 +325,9 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
   Magnetometer::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+                          "gz::sim::systems::Magnetometer")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
                           "ignition::gazebo::systems::Magnetometer")

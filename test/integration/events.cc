@@ -16,26 +16,26 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "plugins/EventTriggerSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class EventTrigger : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(EventTrigger, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerPause))
 {
   // Create server

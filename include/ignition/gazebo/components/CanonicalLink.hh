@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/CanonicalLink.hh>
+#include <ignition/gazebo/config.hh>

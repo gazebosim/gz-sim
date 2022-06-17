@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
+#ifndef GZ_SIM_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
+#define GZ_SIM_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
 
 #include <string>
 
@@ -24,12 +24,12 @@
 #include <gz/sim/logicalaudiosensorplugin-system/Export.hh>
 #include <gz/math/Pose3.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace logical_audio
 {
   /// \brief Determines if an audio device can detect volume at a certain level.
@@ -42,7 +42,7 @@ namespace logical_audio
   /// device with a higher detection threshold.
   /// \return true if the listening device can detect volume at _volumeLevel,
   /// false otherwise.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   bool detect(double _volumeLevel, double _volumeDetectionThreshold);
 
   /// \brief Computes the volume level of an audio source at a certain location.
@@ -63,15 +63,15 @@ namespace logical_audio
   /// \return The volume level at this location.
   /// If the attenuation function or shape is undefined, -1.0 is returned.
   /// If the source is not playing, 0.0 is returned.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   double computeVolume(bool _playing,
       AttenuationFunction _attenuationFunc,
       AttenuationShape _attenuationShape,
       double _sourceEmissionVolume,
       double _innerRadius,
       double _falloffDistance,
-      const ignition::math::Pose3d &_sourcePose,
-      const ignition::math::Pose3d &_targetPose);
+      const gz::math::Pose3d &_sourcePose,
+      const gz::math::Pose3d &_targetPose);
 
   /// \brief Set the attenuation function that matches the defined string.
   /// The string is not case sensitive, and must match the spelling
@@ -86,7 +86,7 @@ namespace logical_audio
   /// the calculated attenuation function.
   /// \param[in] _str A string that should map to a value in
   /// AttenuationFunction.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void setAttenuationFunction(AttenuationFunction &_attenuationFunc,
       std::string _str);
 
@@ -102,7 +102,7 @@ namespace logical_audio
   /// calculated attenuation shape.
   /// \param[in] _str A string that should map to a value in
   ///   AttenuationShape.
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void setAttenuationShape(AttenuationShape &_attenuationShape,
       std::string _str);
 
@@ -115,7 +115,7 @@ namespace logical_audio
   /// source. This value must be greater than _innerRadius.
   /// If _falloffDistance < _innerRadius, _falloffDistance will be set to
   /// _innerRadius + 1 (assuming that _innerRadius is valid).
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void validateInnerRadiusAndFalloffDistance(double &_innerRadius,
       double &_falloffDistance);
 
@@ -123,7 +123,7 @@ namespace logical_audio
   /// \param[in,out] _volumeLevel The volume the source should play at.
   /// This parameter is checked (and possibly clipped) to ensure that it falls
   /// between 0.0 (0% volume) and 1.0 (100% volume).
-  IGNITION_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
+  GZ_GAZEBO_LOGICALAUDIOSENSORPLUGIN_SYSTEM_VISIBLE
   void validateVolumeLevel(double &_volumeLevel);
 }
 }

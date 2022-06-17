@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_THRUSTER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_THRUSTER_HH_
+#ifndef GZ_SIM_SYSTEMS_THRUSTER_HH_
+#define GZ_SIM_SYSTEMS_THRUSTER_HH_
 
 #include <gz/sim/System.hh>
 
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -41,7 +41,7 @@ namespace systems
   /// Alternatively, one may send angular velocity commands to calculate the
   /// force to be applied using the said equation. In the default mode the
   /// plugin will publish angular velocity in radians per second on
-  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an ignition.msgs.double. If
+  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an gz.msgs.double. If
   /// <use_angvel_cmd> is set to true it publishes force in Newtons instead to
   /// `/model/{ns}/joint/{joint_name}/force`.
   ///
@@ -95,33 +95,38 @@ namespace systems
   /// To control the rudder of the craft run the following:
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
-  ///    -m ignition.msgs.Double -p 'data: -0.17'
+  ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command:
   /// ```
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
-  /// -m ignition.msgs.Double -p 'data: -31'
+  /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
   class Thruster:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: Thruster();
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm) override;
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+        const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;

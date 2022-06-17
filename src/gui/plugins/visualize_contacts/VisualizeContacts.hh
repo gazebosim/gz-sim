@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VISUALIZECONTACTS_HH_
-#define IGNITION_GAZEBO_GUI_VISUALIZECONTACTS_HH_
+#ifndef GZ_SIM_GUI_VISUALIZECONTACTS_HH_
+#define GZ_SIM_GUI_VISUALIZECONTACTS_HH_
 
 #include <memory>
 
@@ -24,19 +24,19 @@
 
 #include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class VisualizeContactsPrivate;
 
   /// \brief Visualize the contacts returned by the Physics plugin. Use the
   /// checkbox to turn visualization on or off and spin boxes to change
   /// the size of the markers.
-  class VisualizeContacts : public ignition::gazebo::GuiSystem
+  class VisualizeContacts : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

@@ -15,10 +15,12 @@
  *
 */
 
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 /// \brief Structure to temporarily store plugin information for reset
@@ -86,7 +88,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
     ss.name = _name;
     ss.configureSdf = _sdf;
     this->AddSystemImpl(ss, ss.configureSdf);
-    igndbg << "Loaded system [" << _name
+    gzdbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -226,6 +228,29 @@ void SystemManager::AddSystemImpl(
       SystemInternal _system,
       std::shared_ptr<const sdf::Element> _sdf)
 {
+  // Add component
+  if (this->entityCompMgr && kNullEntity != _system.parentEntity)
+  {
+    msgs::Plugin_V systemInfoMsg;
+    auto systemInfoComp =
+        this->entityCompMgr->Component<components::SystemPluginInfo>(
+        _system.parentEntity);
+    if (systemInfoComp)
+    {
+      systemInfoMsg = systemInfoComp->Data();
+    }
+    if (_sdf)
+    {
+      auto pluginMsg = systemInfoMsg.add_plugins();
+      pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
+    }
+
+    this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
+        _system.parentEntity, systemInfoMsg);
+    this->entityCompMgr->SetChanged(_system.parentEntity,
+        components::SystemPluginInfo::typeId);
+  }
+
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
@@ -272,16 +297,15 @@ const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 //////////////////////////////////////////////////
 std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
 {
+  auto checkEntity = [&](const SystemInternal &_system)
+      {
+        return _system.parentEntity == _entity;
+      };
+
   std::vector<SystemInternal> result;
-  for (auto system : this->systems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
-  for (auto system : this->pendingSystems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
+  std::copy_if(this->systems.begin(), this->systems.end(),
+      std::back_inserter(result), checkEntity);
+  std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
+      std::back_inserter(result), checkEntity);
   return result;
 }

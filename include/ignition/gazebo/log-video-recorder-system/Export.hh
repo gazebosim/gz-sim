@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/log-video-recorder-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -32,17 +32,17 @@
 
 #include "BuoyancyEngine.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::BuoyancyEnginePrivateData
+class gz::sim::systems::BuoyancyEnginePrivateData
 {
   /// \brief Callback for incoming commands
-  /// \param[in] _volumeSetPoint - ignition message containing the desired
+  /// \param[in] _volumeSetPoint - Gazebo message containing the desired
   /// volume (in m^3) to fill/drain bladder to.
   public: void OnCmdBuoyancyEngine(
-    const ignition::msgs::Double &_volumeSetPoint);
+    const gz::msgs::Double &_volumeSetPoint);
 
   /// \brief Current volume of bladder in m^3
   public: double bladderVolume = 3e-5;
@@ -60,7 +60,7 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   public: double maxVolume = 0.000990;
 
   /// \brief The link which the bladder is attached to
-  public: ignition::gazebo::Entity linkEntity{kNullEntity};
+  public: gz::sim::Entity linkEntity{kNullEntity};
 
   /// \brief The world entity
   public: Entity world{kNullEntity};
@@ -75,10 +75,10 @@ class ignition::gazebo::systems::BuoyancyEnginePrivateData
   public: std::optional<double> surface = std::nullopt;
 
   /// \brief Trasport node for control
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief Publishes bladder status
-  public: ignition::transport::Node::Publisher statusPub;
+  public: gz::transport::Node::Publisher statusPub;
 
   /// \brief mutex for protecting bladder volume and set point.
   public: std::mutex mtx;
@@ -96,7 +96,7 @@ double BuoyancyEnginePrivateData::CurrentFluidDensity(
   if (!this->surface.has_value())
     return fluidDensity;
 
-  auto pose = gazebo::worldPose(this->linkEntity, _ecm);
+  auto pose = sim::worldPose(this->linkEntity, _ecm);
 
   if (pose.Pos().Z() < this->surface.value())
   {
@@ -107,7 +107,7 @@ double BuoyancyEnginePrivateData::CurrentFluidDensity(
 
 //////////////////////////////////////////////////
 void BuoyancyEnginePrivateData::OnCmdBuoyancyEngine(
-  const ignition::msgs::Double &_volumeSetpoint)
+  const gz::msgs::Double &_volumeSetpoint)
 {
   auto volume = std::max(this->minVolume, _volumeSetpoint.data());
   volume = std::min(volume, this->maxVolume);
@@ -124,15 +124,15 @@ BuoyancyEnginePlugin::BuoyancyEnginePlugin()
 
 //////////////////////////////////////////////////
 void BuoyancyEnginePlugin::Configure(
-  const ignition::gazebo::Entity &_entity,
+  const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  ignition::gazebo::EntityComponentManager &_ecm,
-  ignition::gazebo::EventManager &/*_eventMgr*/)
+  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EventManager &/*_eventMgr*/)
 {
-  auto model = ignition::gazebo::Model(_entity);
+  auto model = gz::sim::Model(_entity);
   if (!_sdf->HasElement("link_name"))
   {
-    ignerr << "Buoyancy Engine must be attached to some link."  << std::endl;
+    gzerr << "Buoyancy Engine must be attached to some link."  << std::endl;
     return;
   }
 
@@ -140,7 +140,7 @@ void BuoyancyEnginePlugin::Configure(
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "Link [" << _sdf->Get<std::string>("link_name")
+    gzerr << "Link [" << _sdf->Get<std::string>("link_name")
       << "] was not found in model [" << model.Name(_ecm) << "]" << std::endl;
     return;
   }
@@ -185,7 +185,7 @@ void BuoyancyEnginePlugin::Configure(
   this->dataPtr->world = _ecm.EntityByComponents(components::World());
   if (this->dataPtr->world == kNullEntity)
   {
-    ignerr << "World entity not found" <<std::endl;
+    gzerr << "World entity not found" <<std::endl;
     return;
   }
 
@@ -193,9 +193,9 @@ void BuoyancyEnginePlugin::Configure(
   std::string statusTopic = "/buoyancy_engine/current_volume";
   if (_sdf->HasElement("namespace"))
   {
-    cmdTopic = ignition::transport::TopicUtils::AsValidTopic(
+    cmdTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + _sdf->Get<std::string>("namespace") + "/buoyancy_engine/");
-    statusTopic = ignition::transport::TopicUtils::AsValidTopic(
+    statusTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + _sdf->Get<std::string>("namespace")
       + "/buoyancy_engine/current_volume");
   }
@@ -203,20 +203,20 @@ void BuoyancyEnginePlugin::Configure(
   if (!this->dataPtr->node.Subscribe(cmdTopic,
     &BuoyancyEnginePrivateData::OnCmdBuoyancyEngine, this->dataPtr.get()))
   {
-    ignerr << "Failed to subscribe to [" << cmdTopic << "]" << std::endl;
+    gzerr << "Failed to subscribe to [" << cmdTopic << "]" << std::endl;
   }
 
   this->dataPtr->statusPub =
-    this->dataPtr->node.Advertise<ignition::msgs::Double>(statusTopic);
+    this->dataPtr->node.Advertise<gz::msgs::Double>(statusTopic);
 
-  igndbg << "Listening to commands on [" << cmdTopic
+  gzdbg << "Listening to commands on [" << cmdTopic
          << "], publishing status on [" << statusTopic << "]" <<std::endl;
 }
 
 //////////////////////////////////////////////////
 void BuoyancyEnginePlugin::PreUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
@@ -224,17 +224,17 @@ void BuoyancyEnginePlugin::PreUpdate(
   typedef std::chrono::duration<float, std::ratio<1L, 1L>> DurationInSecs;
   auto dt = std::chrono::duration_cast<DurationInSecs>(_info.dt).count();
 
-  ignition::msgs::Double msg;
+  gz::msgs::Double msg;
 
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
     this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "World has no gravity component" << std::endl;
+    gzerr << "World has no gravity component" << std::endl;
     return;
   }
 
-  ignition::gazebo::Link link(this->dataPtr->linkEntity);
+  gz::sim::Link link(this->dataPtr->linkEntity);
   math::Vector3d zForce;
   {
     std::lock_guard lock(this->dataPtr->mtx);
@@ -276,9 +276,13 @@ void BuoyancyEnginePlugin::PreUpdate(
 
 IGNITION_ADD_PLUGIN(
   BuoyancyEnginePlugin,
-  ignition::gazebo::System,
+  gz::sim::System,
   BuoyancyEnginePlugin::ISystemConfigure,
   BuoyancyEnginePlugin::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
+                          "gz::sim::systems::BuoyancyEngine")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
                           "ignition::gazebo::systems::BuoyancyEngine")

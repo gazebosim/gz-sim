@@ -29,12 +29,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Thermal sensor data class.
-class ignition::gazebo::systems::ThermalSensorPrivate
+class gz::sim::systems::ThermalSensorPrivate
 {
 };
 
@@ -50,8 +50,8 @@ ThermalSensor::~ThermalSensor() = default;
 //////////////////////////////////////////////////
 void ThermalSensor::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    gazebo::EntityComponentManager &_ecm,
-    gazebo::EventManager & /*_eventMgr*/)
+    sim::EntityComponentManager &_ecm,
+    sim::EventManager & /*_eventMgr*/)
 {
   const std::string resolutionTag = "resolution";
   const std::string minTempTag = "min_temp";
@@ -60,7 +60,7 @@ void ThermalSensor::Configure(const Entity &_entity,
   auto sensorComp = _ecm.Component<components::ThermalCamera>(_entity);
   if (sensorComp == nullptr)
   {
-    ignerr << "The thermal sensor system can only be used to configure "
+    gzerr << "The thermal sensor system can only be used to configure "
            << "parameters of thermal camera sensor " << std::endl;
     return;
   }
@@ -89,5 +89,9 @@ IGNITION_ADD_PLUGIN(ThermalSensor, System,
   ThermalSensor::ISystemConfigure
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
+    "gz::sim::systems::ThermalSensor")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
     "ignition::gazebo::systems::ThermalSensor")

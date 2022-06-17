@@ -20,19 +20,19 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#ifndef GZ_SIM_SYSTEMS_ELEVATOR_HH_
+#define GZ_SIM_SYSTEMS_ELEVATOR_HH_
 
 #include <memory>
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -102,7 +102,7 @@ class ElevatorPrivate;
 ///
 /// `<open_door_wait_duration>`: Time to wait with a door open before the door
 /// closes. This element is optional and the default value is 5 sec.
-class IGNITION_GAZEBO_VISIBLE Elevator : public System,
+class GZ_GAZEBO_VISIBLE Elevator : public System,
                                          public ISystemConfigure,
                                          public ISystemPostUpdate
 {
@@ -128,7 +128,7 @@ class IGNITION_GAZEBO_VISIBLE Elevator : public System,
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#endif  // GZ_SIM_SYSTEMS_ELEVATOR_HH_

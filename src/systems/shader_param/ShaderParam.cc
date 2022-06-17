@@ -40,11 +40,11 @@
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ShaderParamPrivate
+class gz::sim::systems::ShaderParamPrivate
 {
   /// \brief Data structure for storing shader param info
   public: class ShaderParamValue
@@ -86,7 +86,7 @@ class ignition::gazebo::systems::ShaderParamPrivate
   public: std::mutex mutex;
 
   /// \brief Connection to pre-render event callback
-  public: ignition::common::ConnectionPtr connection{nullptr};
+  public: gz::common::ConnectionPtr connection{nullptr};
 
   /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
@@ -150,7 +150,7 @@ void ShaderParam::Configure(const Entity &_entity,
       if (!paramElem->HasElement("shader") ||
           !paramElem->HasElement("name"))
       {
-        ignerr << "<param> must have <shader> and <name> sdf elements"
+        gzerr << "<param> must have <shader> and <name> sdf elements"
                << std::endl;
         paramElem = paramElem->GetNextElement("param");
         continue;
@@ -192,7 +192,7 @@ void ShaderParam::Configure(const Entity &_entity,
   // parse path to shaders
   if (!sdf->HasElement("shader"))
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
@@ -203,7 +203,7 @@ void ShaderParam::Configure(const Entity &_entity,
     if (!shaderElem->HasElement("vertex") ||
         !shaderElem->HasElement("fragment"))
     {
-      ignerr << "<shader> must have <vertex> and <fragment> sdf elements"
+      gzerr << "<shader> must have <vertex> and <fragment> sdf elements"
              << std::endl;
     }
     else
@@ -230,7 +230,7 @@ void ShaderParam::Configure(const Entity &_entity,
   }
   if (this->dataPtr->shaders.empty())
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "No valid shaders." << std::endl;
     return;
   }
@@ -243,14 +243,14 @@ void ShaderParam::Configure(const Entity &_entity,
   // the callback is executed in the rendering thread so do all
   // rendering operations in that thread
   this->dataPtr->connection =
-      _eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
+      _eventMgr.Connect<gz::sim::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
 void ShaderParam::PreUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &)
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &)
 {
   IGN_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -325,7 +325,7 @@ void ShaderParamPrivate::OnUpdate()
       // if both glsl and metal are specified, print a msg to inform that
       // metal is used instead of glsl
       if (it != this->shaders.end())
-        ignmsg << "Using metal shaders. " << std::endl;
+        gzmsg << "Using metal shaders. " << std::endl;
     }
 #endif
     this->visual->SetMaterial(mat);
@@ -486,9 +486,13 @@ void ShaderParamPrivate::OnUpdate()
 }
 
 IGNITION_ADD_PLUGIN(ShaderParam,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     ShaderParam::ISystemConfigure,
                     ShaderParam::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
+  "gz::sim::systems::ShaderParam")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
   "ignition::gazebo::systems::ShaderParam")

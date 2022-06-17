@@ -25,7 +25,7 @@ You can run the example as follows:
 
 ## Demo example
 
-Ignition Gazebo ships with an example file which has a differential drive vehicle
+Gazebo ships with an example file which has a differential drive vehicle
 that can be controlled using a keyboard. You can run it as follows:
 
 1. In a terminal, run the keyboard executable as described above:

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LogPlaybackStatistics.hh>
+#include <ignition/gazebo/config.hh>

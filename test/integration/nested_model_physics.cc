@@ -16,24 +16,24 @@
  */
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/math/Pose3.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
+#include "gz/math/Pose3.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Model.hh"
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 {
@@ -42,7 +42,7 @@ class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 /// Test that a tower of 3 boxes built with an <include> and further nesting
 /// moves appropriately with joints in dartsim
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   // Start server
@@ -50,7 +50,7 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_connected_nested_models.sdf";
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
   serverConfig.SetSdfFile(sdfFile);
@@ -66,8 +66,8 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Check pose
     Entity baseLink = _ecm.EntityByComponents(
@@ -94,8 +94,8 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 
     constexpr double epsilon = 1e-2;
     // base_link does not move in this world
-    const ignition::math::Pose3d expectedBazeLinkPose(0, 0, 0.5, 0, 0, 0);
-    const ignition::math::Pose3d expectedLink01StartPose(0, 2, 0, 0, 0, 0);
+    const gz::math::Pose3d expectedBazeLinkPose(0, 0, 0.5, 0, 0, 0);
+    const gz::math::Pose3d expectedLink01StartPose(0, 2, 0, 0, 0, 0);
 
     EXPECT_NEAR(
       expectedBazeLinkPose.X(), baseLinkPose->Data().Pos().X(), epsilon);

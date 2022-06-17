@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/multicopter-motor-model-system/Export.hh>
+#include <ignition/gazebo/config.hh>

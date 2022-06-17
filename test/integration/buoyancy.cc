@@ -17,28 +17,28 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/components/CenterOfVolume.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Volume.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/components/CenterOfVolume.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Volume.hh"
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class BuoyancyTest : public InternalFixture<::testing::Test>
 {
@@ -59,8 +59,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
-                              const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &/*unused*/,
+                              const sim::EntityComponentManager &_ecm)
     {
       // Get Submarine
       Entity submarine = _ecm.EntityByComponents(
@@ -89,8 +89,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &/*unused*/,
-                              const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &/*unused*/,
+                              const sim::EntityComponentManager &_ecm)
     {
       // Get Submarine
       Entity submarine = _ecm.EntityByComponents(
@@ -161,7 +161,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
   // Start server
@@ -181,8 +181,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Check pose
     Entity submarine = _ecm.EntityByComponents(
@@ -217,7 +217,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineLink);
     ASSERT_NE(submarineCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(gz::math::Vector3d(0, 0, 0),
         submarineCenterOfVolume->Data());
 
     // Get the submarine buoyant link
@@ -235,7 +235,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineBuoyantCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineBuoyantLink);
     ASSERT_NE(submarineBuoyantCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(gz::math::Vector3d(0, 0, 0),
         submarineBuoyantCenterOfVolume->Data());
 
     // Get the submarine sinking link
@@ -253,7 +253,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineSinkingCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineSinkingLink);
     ASSERT_NE(submarineSinkingCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(gz::math::Vector3d(0, 0, 0),
         submarineSinkingCenterOfVolume->Data());
 
     // Get the duck link
@@ -269,7 +269,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
+    EXPECT_EQ(gz::math::Vector3d(0, 0, -0.4),
         duckCenterOfVolume->Data());
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
@@ -316,7 +316,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 {
   // Start server
@@ -336,8 +336,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
   {
     // Check pose
     Entity neutralBox = _ecm.EntityByComponents(
@@ -409,8 +409,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
 
   std::size_t iterations{0};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
   {
     // Get links
     auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);
@@ -464,8 +464,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
 
   std::size_t iterations{0};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
   {
     // Get links
     auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/triggered-publisher-system/Export.hh>
+#include <ignition/gazebo/config.hh>

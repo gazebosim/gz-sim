@@ -18,20 +18,20 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/TempDirectory.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/SemanticVersion.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/TempDirectory.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/SemanticVersion.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
-// https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/gazebosim/gz-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
-using namespace ignition;
+using namespace gz;
 
 auto kExampleTypes = std::vector<std::string>{"plugin", "standalone"};
 
@@ -69,7 +69,7 @@ bool FilterEntry(const ExampleEntry &_entry)
       (_entry.base == "custom_sensor_system" ||
        _entry.base == "gtest_setup"))
   {
-    igndbg << "Skipping [" << _entry.base
+    gzdbg << "Skipping [" << _entry.base
            << "] test, which requires CMake version "
            << ">= 3.11.0. Currently using CMake "
            << cmakeVersion
@@ -90,11 +90,11 @@ std::vector<ExampleEntry> GetExamples()
       common::joinPaths(PROJECT_SOURCE_PATH, "/examples/", type);
 
     // Iterate over directory
-    ignition::common::DirIter endIter;
-    for (ignition::common::DirIter dirIter(examplesDir);
+    gz::common::DirIter endIter;
+    for (gz::common::DirIter dirIter(examplesDir);
         dirIter != endIter; ++dirIter)
     {
-      auto base = ignition::common::basename(*dirIter);
+      auto base = gz::common::basename(*dirIter);
       auto sourceDir = common::joinPaths(examplesDir, base);
       examples.push_back({ type, base, sourceDir });
     }
@@ -122,14 +122,14 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
   }
 
   // Path to examples of the given type
-  ASSERT_TRUE(ignition::common::exists(_entry.sourceDir));
+  ASSERT_TRUE(gz::common::exists(_entry.sourceDir));
 
-  igndbg << "Source: " << _entry.sourceDir << std::endl;
+  gzdbg << "Source: " << _entry.sourceDir << std::endl;
 
   // Create a temp build directory
   common::TempDirectory tmpBuildDir;
   ASSERT_TRUE(tmpBuildDir.Valid());
-  igndbg << "Build directory: " << tmpBuildDir.Path() << std::endl;
+  gzdbg << "Build directory: " << tmpBuildDir.Path() << std::endl;
 
   char cmd[1024];
 
@@ -142,7 +142,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
 }
 
 //////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(ExamplesBuild, IGN_UTILS_TEST_DISABLED_ON_WIN32(Build))
 {
   Build(GetParam());

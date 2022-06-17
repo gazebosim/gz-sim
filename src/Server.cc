@@ -30,8 +30,8 @@
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
@@ -81,7 +81,7 @@ bool Server::DownloadModels()
     case ServerConfig::SourceType::kSdfRoot:
     {
       this->dataPtr->sdfRoot = this->dataPtr->config.SdfRoot()->Clone();
-      ignmsg << "Loading SDF world from SDF DOM.\n";
+      gzmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
 
@@ -96,7 +96,7 @@ bool Server::DownloadModels()
       {
         msg += "File path [" + this->dataPtr->config.SdfFile() + "].\n";
       }
-      ignmsg <<  msg;
+      gzmsg <<  msg;
       errors = root.LoadSdfString(
         this->dataPtr->config.SdfString());
       this->dataPtr->sdfRoot = root.Clone();
@@ -111,13 +111,13 @@ bool Server::DownloadModels()
 
       if (filePath.empty())
       {
-        ignerr << "Failed to find world ["
+        gzerr << "Failed to find world ["
                << this->dataPtr->config.SdfFile() << "]"
                << std::endl;
         return false;
       }
 
-      ignmsg << "Loading SDF world file[" << filePath << "].\n";
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       while (this->dataPtr->downloadInParallel &&
              this->dataPtr->simRunners.size() == 0)
@@ -159,7 +159,7 @@ bool Server::DownloadModels()
     case ServerConfig::SourceType::kNone:
     default:
     {
-      ignmsg << "Loading default world.\n";
+      gzmsg << "Loading default world.\n";
       // Load an empty world.
       /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
       errors = root.LoadSdfString(DefaultWorld::World());
@@ -171,7 +171,7 @@ bool Server::DownloadModels()
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << "\n";
+      gzerr << err << "\n";
     return false;
   }
   return true;
@@ -203,7 +203,7 @@ void Server::Init()
       this->DownloadModels();
     });
 
-    ignmsg << "Loading default world.\n";
+    gzerr << "Loading default world.\n";
 
     common::SystemPaths systemPaths;
 
@@ -233,7 +233,7 @@ void Server::Init()
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << "\n";
+      gzerr << err << "\n";
     return;
   }
 
@@ -272,14 +272,14 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
     if (!this->dataPtr->sigHandler.Initialized())
     {
-      ignerr << "Signal handlers were not created. The server won't run.\n";
+      gzerr << "Signal handlers were not created. The server won't run.\n";
       return false;
     }
 
     // Do not allow running more than once.
     if (this->dataPtr->running)
     {
-      ignwarn << "The server is already runnnng.\n";
+      gzwarn << "The server is already runnnng.\n";
       return false;
     }
   }
@@ -396,7 +396,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
   // Do not allow running more than once.
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 
@@ -416,7 +416,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 

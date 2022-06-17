@@ -41,8 +41,8 @@
 
 #include "JointTrajectoryController.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Helper class that contains all parameters required to create and
@@ -52,14 +52,14 @@ class JointParameters
   /// \brief Parse all parameters required for creation of ActuatedJoint and
   /// return them in a map
   /// \param[in] _sdf SDF reference used to obtain the parameters
-  /// \param[in] _ecm Ignition Entity Component Manager
+  /// \param[in] _ecm Gazebo Entity Component Manager
   /// \param[in] _enabledJoints List of joint entities that are enabled and
   /// need to be created
   /// \return Map of parameters for each joint, the first entry of pair
   /// indicates the joint name
   public: static std::map<std::string, JointParameters> ParseAll(
               const std::shared_ptr<const sdf::Element> &_sdf,
-              ignition::gazebo::EntityComponentManager &_ecm,
+              gz::sim::EntityComponentManager &_ecm,
               std::vector<Entity> _enabledJoints);
 
   /// \brief Parse all values of a single parameter that is specified multiple
@@ -149,22 +149,22 @@ class ActuatedJoint
                         const JointParameters &_params);
 
   /// \brief Setup components required for control of this joint
-  /// \param[in,out] _ecm Ignition Entity Component Manager
+  /// \param[in,out] _ecm Gazebo Entity Component Manager
   public: void SetupComponents(
-              ignition::gazebo::EntityComponentManager &_ecm) const;
+              gz::sim::EntityComponentManager &_ecm) const;
 
   /// \brief Set target of the joint that the controller will attempt to reach
   /// \param[in] _targetPoint Targets of all controlled joint
   /// \param[in] _jointIndex Index of the joint, used to determine what index
   /// of `_targetPoint` to use
   public: void SetTarget(
-              const ignition::msgs::JointTrajectoryPoint &_targetPoint,
+              const gz::msgs::JointTrajectoryPoint &_targetPoint,
               const size_t &_jointIndex);
 
   /// \brief Update command force that is applied on the joint
-  /// \param[in,out] _ecm Ignition Entity Component Manager
+  /// \param[in,out] _ecm Gazebo Entity Component Manager
   /// \param[in] _dt Time difference to update for
-  public: void Update(ignition::gazebo::EntityComponentManager &_ecm,
+  public: void Update(gz::sim::EntityComponentManager &_ecm,
                       const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Reset the target of the joint
@@ -197,9 +197,9 @@ class ActuatedJoint
   public: struct PIDs
   {
     /// \brief Position PID controller
-    ignition::math::PID position;
+    gz::math::PID position;
     /// \brief Velocity PID controller
-    ignition::math::PID velocity;
+    gz::math::PID velocity;
   } pids;
 };
 
@@ -250,11 +250,11 @@ class Trajectory
 
   /// \brief Trajectory defined in terms of temporal points, whose members are
   /// ordered according to `jointNames`
-  public: std::vector<ignition::msgs::JointTrajectoryPoint> points;
+  public: std::vector<gz::msgs::JointTrajectoryPoint> points;
 };
 
 /// \brief Private data of the JointTrajectoryController plugin
-class ignition::gazebo::systems::JointTrajectoryControllerPrivate
+class gz::sim::systems::JointTrajectoryControllerPrivate
 {
   /// \brief Get a list of enabled, unique, 1-axis joints of the model. If no
   /// joint names are specified in the plugin configuration, all valid 1-axis
@@ -262,7 +262,7 @@ class ignition::gazebo::systems::JointTrajectoryControllerPrivate
   /// \param[in] _entity Entity of the model that the plugin is being
   /// configured for
   /// \param[in] _sdf SDF reference used to determine enabled joints
-  /// \param[in] _ecm Ignition Entity Component Manager
+  /// \param[in] _ecm Gazebo Entity Component Manager
   /// \return List of entities containinig all enabled joints
   public: std::vector<Entity> GetEnabledJoints(
               const Entity &_entity,
@@ -273,13 +273,13 @@ class ignition::gazebo::systems::JointTrajectoryControllerPrivate
   /// \param[in] _msg A new message describing a joint trajectory that needs
   /// to be followed
   public: void JointTrajectoryCallback(
-              const ignition::msgs::JointTrajectory &_msg);
+              const gz::msgs::JointTrajectory &_msg);
 
   /// \brief Reset internals of the plugin, without affecting already created
   /// components
   public: void Reset();
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Publisher of the progress for currently followed trajectory
@@ -326,13 +326,13 @@ void JointTrajectoryController::Configure(
   const auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
-    ignerr << "[JointTrajectoryController] Failed to initialize because ["
+    gzerr << "[JointTrajectoryController] Failed to initialize because ["
            << model.Name(_ecm) << "(Entity=" << _entity
            << ")] is not a model. Please make sure that"
               " JointTrajectoryController is attached to a valid model.\n";
     return;
   }
-  ignmsg << "[JointTrajectoryController] Setting up controller for ["
+  gzmsg << "[JointTrajectoryController] Setting up controller for ["
          << model.Name(_ecm) << "(Entity=" << _entity << ")].\n";
 
   // Get list of enabled joints
@@ -350,14 +350,14 @@ void JointTrajectoryController::Configure(
         _ecm.Component<components::Name>(jointEntity)->Data();
     this->dataPtr->actuatedJoints[jointName] =
         ActuatedJoint(jointEntity, jointParameters[jointName]);
-    ignmsg << "[JointTrajectoryController] Configured joint ["
+    gzmsg << "[JointTrajectoryController] Configured joint ["
            << jointName << "(Entity=" << jointEntity << ")].\n";
   }
 
   // Make sure at least one joint is configured
   if (this->dataPtr->actuatedJoints.empty())
   {
-    ignerr << "[JointTrajectoryController] Failed to initialize because ["
+    gzerr << "[JointTrajectoryController] Failed to initialize because ["
            << model.Name(_ecm) << "(Entity=" << _entity
            << ")] has no supported joints.\n";
     return;
@@ -386,12 +386,12 @@ void JointTrajectoryController::Configure(
       trajectoryTopic);
   if (validTrajectoryTopic.empty())
   {
-    ignerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
+    gzerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
            << trajectoryTopic << "].\n";
     return;
   }
   // Subscribe
-  ignmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
+  gzmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
             " commands on topic [" << validTrajectoryTopic << "].\n";
   this->dataPtr->node.Subscribe(
       validTrajectoryTopic,
@@ -400,16 +400,16 @@ void JointTrajectoryController::Configure(
 
   // Advertise progress
   const auto progressTopic = validTrajectoryTopic + "_progress";
-  ignmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
+  gzmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
             " on topic [" << progressTopic << "].\n";
   this->dataPtr->progressPub =
-      this->dataPtr->node.Advertise<ignition::msgs::Float>(progressTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Float>(progressTopic);
 }
 
 //////////////////////////////////////////////////
 void JointTrajectoryController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointTrajectoryController::PreUpdate");
 
@@ -427,7 +427,7 @@ void JointTrajectoryController::PreUpdate(
   // Reset plugin if jump back in time is detected
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignmsg << "[JointTrajectoryController] Resetting plugin because jump back"
+    gzmsg << "[JointTrajectoryController] Resetting plugin because jump back"
               " in time ["
            << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
            << " s] was detected.\n";
@@ -506,7 +506,7 @@ void JointTrajectoryController::PreUpdate(
       }
 
       // Publish current progress of the trajectory
-      ignition::msgs::Float progressMsg;
+      gz::msgs::Float progressMsg;
       progressMsg.set_data(this->dataPtr->trajectory.ComputeProgress());
       this->dataPtr->progressPub.Publish(progressMsg);
     }
@@ -548,13 +548,13 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       // Check that model has exactly one joint that matches the name
       if (enabledJointEntity.empty())
       {
-        ignerr << "[JointTrajectoryController] Model does not contain joint ["
+        gzerr << "[JointTrajectoryController] Model does not contain joint ["
                << enabledJointName << "], which was explicitly enabled.\n";
         continue;
       }
       else if (enabledJointEntity.size() > 1)
       {
-        ignwarn << "[JointTrajectoryController] Model has "
+        gzwarn << "[JointTrajectoryController] Model has "
                 << enabledJointEntity.size() << " duplicate joints named ["
                 << enabledJointName << "]. Only the first (Entity="
                 << enabledJointEntity[0] << ") will be configured.\n";
@@ -579,7 +579,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
     {
       if (actuatedJoint.second.entity == jointEntity)
       {
-        ignwarn << "[JointTrajectoryController] Ignoring duplicate joint ["
+        gzwarn << "[JointTrajectoryController] Ignoring duplicate joint ["
                 << jointName << "(Entity=" << jointEntity << ")].\n";
         continue;
       }
@@ -600,7 +600,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       }
       case sdf::JointType::FIXED:
       {
-        igndbg << "[JointTrajectoryController] Fixed joint [" << jointName
+        gzdbg << "[JointTrajectoryController] Fixed joint [" << jointName
                << "(Entity=" << jointEntity << ")] is skipped.\n";
         continue;
       }
@@ -609,7 +609,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       case sdf::JointType::BALL:
       case sdf::JointType::UNIVERSAL:
       {
-        ignwarn << "[JointTrajectoryController] Joint [" << jointName
+        gzwarn << "[JointTrajectoryController] Joint [" << jointName
                 << "(Entity=" << jointEntity
                 << ")] is of unsupported type. Only joints with a single axis"
                    " are supported.\n";
@@ -617,7 +617,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
       }
       default:
       {
-        ignwarn << "[JointTrajectoryController] Joint [" << jointName
+        gzwarn << "[JointTrajectoryController] Joint [" << jointName
                 << "(Entity=" << jointEntity << ")] is of unknown type.\n";
         continue;
       }
@@ -630,12 +630,12 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
 
 //////////////////////////////////////////////////
 void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
-    const ignition::msgs::JointTrajectory &_msg)
+    const gz::msgs::JointTrajectory &_msg)
 {
   // Make sure the message is valid
   if (_msg.joint_names_size() == 0)
   {
-    ignwarn << "[JointTrajectoryController] JointTrajectory message does not"
+    gzwarn << "[JointTrajectoryController] JointTrajectory message does not"
                " contain any joint names.\n";
     return;
   }
@@ -644,7 +644,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
   // contains them
   if (_msg.points(0).accelerations_size() > 0)
   {
-    ignwarn << "[JointTrajectoryController] JointTrajectory message contains"
+    gzwarn << "[JointTrajectoryController] JointTrajectory message contains"
                " acceleration commands, which are currently ignored.\n";
   }
 
@@ -653,7 +653,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
 
   if (this->trajectory.status != Trajectory::Reached)
   {
-    ignwarn << "[JointTrajectoryController] A new JointTrajectory message was"
+    gzwarn << "[JointTrajectoryController] A new JointTrajectory message was"
                " received while executing a previous trajectory.\n";
   }
 
@@ -711,7 +711,7 @@ void JointTrajectoryControllerPrivate::Reset()
 //////////////////////////////////////////////////
 std::map<std::string, JointParameters> JointParameters::ParseAll(
     const std::shared_ptr<const sdf::Element> &_sdf,
-    ignition::gazebo::EntityComponentManager &_ecm,
+    gz::sim::EntityComponentManager &_ecm,
     std::vector<Entity> _enabledJoints)
 {
   std::map<std::string, JointParameters> output;
@@ -855,7 +855,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
   this->target.acceleration = 0.0;
   this->target.effort = 0.0;
 
-  this->pids.position = ignition::math::PID(_params.positionPID.pGain,
+  this->pids.position = gz::math::PID(_params.positionPID.pGain,
                                             _params.positionPID.iGain,
                                             _params.positionPID.dGain,
                                             _params.positionPID.iMax,
@@ -864,7 +864,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
                                             _params.positionPID.cmdMin,
                                             _params.positionPID.cmdOffset);
 
-  this->pids.velocity = ignition::math::PID(_params.velocityPID.pGain,
+  this->pids.velocity = gz::math::PID(_params.velocityPID.pGain,
                                             _params.velocityPID.iGain,
                                             _params.velocityPID.dGain,
                                             _params.velocityPID.iMax,
@@ -873,7 +873,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
                                             _params.velocityPID.cmdMin,
                                             _params.velocityPID.cmdOffset);
 
-  igndbg << "[JointTrajectoryController] Parameters for joint (Entity="
+  gzdbg << "[JointTrajectoryController] Parameters for joint (Entity="
          << _entity << "):\n"
          << "initial_position: ["    << _params.initialPosition       << "]\n"
          << "position_p_gain: ["     << _params.positionPID.pGain     << "]\n"
@@ -896,7 +896,7 @@ ActuatedJoint::ActuatedJoint(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void ActuatedJoint::SetupComponents(
-    ignition::gazebo::EntityComponentManager &_ecm) const
+    gz::sim::EntityComponentManager &_ecm) const
 {
   // Create JointPosition component if one does not exist
   if (nullptr == _ecm.Component<components::JointPosition>(this->entity))
@@ -919,7 +919,7 @@ void ActuatedJoint::SetupComponents(
 
 //////////////////////////////////////////////////
 void ActuatedJoint::SetTarget(
-    const ignition::msgs::JointTrajectoryPoint &_targetPoint,
+    const gz::msgs::JointTrajectoryPoint &_targetPoint,
     const size_t &_jointIndex)
 {
   if ((signed)_jointIndex < _targetPoint.positions_size())
@@ -941,7 +941,7 @@ void ActuatedJoint::SetTarget(
 }
 
 //////////////////////////////////////////////////
-void ActuatedJoint::Update(ignition::gazebo::EntityComponentManager &_ecm,
+void ActuatedJoint::Update(gz::sim::EntityComponentManager &_ecm,
                            const std::chrono::steady_clock::duration &_dt)
 {
   // Get JointPosition and JointVelocity components
@@ -1059,9 +1059,14 @@ void Trajectory::Reset()
 
 // Register plugin
 IGNITION_ADD_PLUGIN(JointTrajectoryController,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     JointTrajectoryController::ISystemConfigure,
                     JointTrajectoryController::ISystemPreUpdate)
+IGNITION_ADD_PLUGIN_ALIAS(
+    JointTrajectoryController,
+    "gz::sim::systems::JointTrajectoryController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
     "ignition::gazebo::systems::JointTrajectoryController")

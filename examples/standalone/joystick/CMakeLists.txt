@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # joystick currently works only on linux
 
-project(ignition-gazebo-joystick)
+project(gz-sim-joystick)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(ignition-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)

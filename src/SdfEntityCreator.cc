@@ -80,7 +80,7 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
-class ignition::gazebo::SdfEntityCreatorPrivate
+class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -101,8 +101,8 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   public: std::map<Entity, sdf::ElementPtr> newVisuals;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to
@@ -127,7 +127,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors resolveAxisErrors = _unresolvedAxis.ResolveXyz(axisXyz);
   if (!resolveAxisErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -136,7 +136,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
   if (!setXyzErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -464,13 +464,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     }
     else
     {
-      ignerr << "Could not find the canonical link entity for "
+      gzerr << "Could not find the canonical link entity for "
              << canonicalLinkPair.second << "\n";
     }
   }
   else if(!isStatic)
   {
-    ignerr << "Could not resolve the canonical link for " << _model->Name()
+    gzerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
   }
 
@@ -641,7 +641,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -655,7 +655,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -684,12 +684,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
       _joint->ResolveParentLink(resolvedParentLinkName);
     if (!resolveParentErrors.empty())
     {
-      ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
+      gzerr << "Failed to resolve parent link for joint '" << _joint->Name()
              << "' with parent name '" << _joint->ParentLinkName() << "'"
              << std::endl;
       for (const auto &error : resolveParentErrors)
       {
-        ignerr << error << std::endl;
+        gzerr << error << std::endl;
       }
 
       return kNullEntity;
@@ -709,12 +709,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
       _joint->ResolveChildLink(resolvedChildLinkName);
     if (!resolveChildErrors.empty())
     {
-      ignerr << "Failed to resolve child link for joint '" << _joint->Name()
+      gzerr << "Failed to resolve child link for joint '" << _joint->Name()
              << "' with child name '" << _joint->ChildLinkName() << "'"
              << std::endl;
       for (const auto &error : resolveChildErrors)
       {
-        ignerr << error << std::endl;
+        gzerr << error << std::endl;
       }
 
       return kNullEntity;
@@ -863,7 +863,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // \todo(anyone) Implement CPU-based lidar
     // this->dataPtr->ecm->CreateComponent(sensorEntity,
     //     components::Lidar(*_sensor));
-    ignwarn << "Sensor type LIDAR not supported yet. Try using"
+    gzwarn << "Sensor type LIDAR not supported yet. Try using"
       << "a GPU LIDAR instead." << std::endl;
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
@@ -976,7 +976,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else
   {
-    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
+    gzwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
             << "] not supported yet." << std::endl;
   }
 

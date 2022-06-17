@@ -31,16 +31,16 @@ namespace hello_world
   // physics runs. The opposite of that, `ISystemPreUpdate`, would be used by
   // plugins that want to send commands.
   class HelloWorld:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemPostUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemPostUpdate
   {
     // Plugins inheriting ISystemPostUpdate must implement the PostUpdate
     // callback. This is called at every simulation iteration after the physics
     // updates the world. The _info variable provides information such as time,
     // while the _ecm provides an interface to all entities and components in
     // simulation.
-    public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PostUpdate(const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) override;
   };
 }
 #endif

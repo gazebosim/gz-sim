@@ -60,12 +60,12 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::systems;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::systems;
 
 // Private data class.
-class ignition::gazebo::systems::LogRecordPrivate
+class gz::sim::systems::LogRecordPrivate
 {
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.
@@ -112,7 +112,7 @@ class ignition::gazebo::systems::LogRecordPrivate
   /// \brief Indicator of whether this instance has been started
   public: bool instStarted{false};
 
-  /// \brief Ignition transport recorder
+  /// \brief Gazebo transport recorder
   public: transport::log::Recorder recorder;
 
   /// \brief Directory in which to place log file
@@ -193,7 +193,7 @@ LogRecord::~LogRecord()
     this->dataPtr->savedModels.clear();
 
     LogRecordPrivate::started = false;
-    ignmsg << "Stopping recording" << std::endl;
+    gzmsg << "Stopping recording" << std::endl;
   }
 }
 
@@ -222,14 +222,14 @@ void LogRecord::Configure(const Entity &_entity,
     //   SDF, initialize to default here.
     if (logPath.empty())
     {
-      logPath = ignLogDirectory();
+      logPath = gzLogDirectory();
     }
 
     this->dataPtr->Start(logPath, this->dataPtr->cmpPath);
   }
   else
   {
-    ignwarn << "A LogRecord instance has already been started. "
+    gzwarn << "A LogRecord instance has already been started. "
       << "Will not start another.\n";
   }
 }
@@ -241,7 +241,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   // Only start one recorder instance
   if (LogRecordPrivate::started)
   {
-    ignwarn << "A LogRecord instance has already been started. "
+    gzwarn << "A LogRecord instance has already been started. "
       << "Will not start another.\n";
     return true;
   }
@@ -263,7 +263,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   if (this->logPath.empty() ||
       (common::exists(this->logPath) && !common::isDirectory(this->logPath)))
   {
-    ignerr << "Unspecified or invalid log path[" << this->logPath << "]. "
+    gzerr << "Unspecified or invalid log path[" << this->logPath << "]. "
       << "Recording will not take place." << std::endl;
     return false;
   }
@@ -272,7 +272,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   if (this->recordResources)
   {
-    ignmsg << "Resources will be recorded\n";
+    gzmsg << "Resources will be recorded\n";
   }
 
   // Create log directory
@@ -291,7 +291,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   }
   else
   {
-    ignerr << "Failed to generate valid topic to publish SDF. Tried ["
+    gzerr << "Failed to generate valid topic to publish SDF. Tried ["
            << sdfTopic << "]." << std::endl;
   }
 
@@ -305,7 +305,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   }
   else
   {
-    ignerr << "Failed to generate valid topic to publish state. Tried ["
+    gzerr << "Failed to generate valid topic to publish state. Tried ["
            << stateTopic << "]." << std::endl;
   }
 
@@ -313,14 +313,14 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   std::string dbPath = common::joinPaths(this->logPath, "state.tlog");
   if (common::exists(dbPath))
   {
-    ignmsg << "Overwriting existing file [" << dbPath << "]\n";
+    gzmsg << "Overwriting existing file [" << dbPath << "]\n";
     common::removeFile(dbPath);
   }
-  ignmsg << "Recording to log file [" << dbPath << "]" << std::endl;
+  gzmsg << "Recording to log file [" << dbPath << "]" << std::endl;
 
   // Add default topics if no topics were specified.
-  igndbg << "Recording default topic[" << sdfTopic << "].\n";
-  igndbg << "Recording default topic[" << stateTopic << "].\n";
+  gzdbg << "Recording default topic[" << sdfTopic << "].\n";
+  gzdbg << "Recording default topic[" << stateTopic << "].\n";
   this->recorder.AddTopic(sdfTopic);
   this->recorder.AddTopic(stateTopic);
 
@@ -338,12 +338,12 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
       if (std::regex_match(topic, regexMatch))
       {
         this->recorder.AddTopic(std::regex(topic));
-        igndbg << "Recording topic[" << topic << "] as regular expression.\n";
+        gzdbg << "Recording topic[" << topic << "] as regular expression.\n";
       }
       else
       {
         this->recorder.AddTopic(topic);
-        igndbg << "Recording topic[" << topic << "] as plain topic.\n";
+        gzdbg << "Recording topic[" << topic << "] as plain topic.\n";
       }
       recordTopicElem = recordTopicElem->GetNextElement("record_topic");
     }
@@ -359,7 +359,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
-      ignition::transport::log::RecorderError::SUCCESS)
+      gz::transport::log::RecorderError::SUCCESS)
   {
     this->instStarted = true;
     return true;
@@ -428,7 +428,7 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
 
   if (!this->SaveModels(modelSdfPaths))
   {
-    ignwarn << "Failed to save model resources during logging\n";
+    gzwarn << "Failed to save model resources during logging\n";
   }
 }
 
@@ -487,7 +487,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       }
       else
       {
-        ignerr << "Saving resource files at URI pointing to outside the model "
+        gzerr << "Saving resource files at URI pointing to outside the model "
                << "directory is currently not supported [" << rt << "]"
                << std::endl;
         saveError = true;
@@ -586,7 +586,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
       if (!common::createDirectories(destPath) ||
           !common::copyDirectory(srcPath, destPath))
       {
-        ignerr << "Failed to copy model directory from [" << srcPath
+        gzerr << "Failed to copy model directory from [" << srcPath
                << "] to [" << destPath << "]" << std::endl;
         saveError = true;
       }
@@ -600,7 +600,7 @@ bool LogRecordPrivate::SaveModels(const std::set<std::string> &_models)
     }
     else
     {
-      ignerr << "File: " << file << " not found!" << std::endl;
+      gzerr << "File: " << file << " not found!" << std::endl;
       saveError = true;
     }
   }
@@ -613,14 +613,14 @@ void LogRecordPrivate::CompressStateAndResources()
 {
   if (common::exists(this->cmpPath))
   {
-    ignmsg << "Removing existing file [" << this->cmpPath << "].\n";
+    gzmsg << "Removing existing file [" << this->cmpPath << "].\n";
     common::removeFile(this->cmpPath);
   }
 
   // Compress directory
   if (fuel_tools::Zip::Compress(this->logPath, this->cmpPath))
   {
-    ignmsg << "Compressed log file and resources to [" << this->cmpPath
+    gzmsg << "Compressed log file and resources to [" << this->cmpPath
            << "].\nRemoving recorded directory [" << this->logPath << "]."
            << std::endl;
     // Remove directory after compressing successfully
@@ -628,7 +628,7 @@ void LogRecordPrivate::CompressStateAndResources()
   }
   else
   {
-    ignerr << "Failed to compress log file and resources to ["
+    gzerr << "Failed to compress log file and resources to ["
            << this->cmpPath << "]. Keeping recorded directory ["
            << this->logPath << "]." << std::endl;
   }
@@ -658,7 +658,7 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -670,14 +670,14 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     auto worldEntity = _ecm.EntityByComponents(components::World());
     if (worldEntity == kNullEntity)
     {
-      ignerr << "Could not find the world entity\n";
+      gzerr << "Could not find the world entity\n";
     }
     else
     {
       auto worldSdfComp = _ecm.Component<components::WorldSdf>(worldEntity);
       if (worldSdfComp == nullptr || worldSdfComp->Data().Element() == nullptr)
       {
-        ignerr << "Could not load world SDF data\n";
+        gzerr << "Could not load world SDF data\n";
       }
       else
       {
@@ -706,11 +706,15 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(gz::sim::systems::LogRecord,
+                    gz::sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
+                          "gz::sim::systems::LogRecord")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
                           "ignition::gazebo::systems::LogRecord")

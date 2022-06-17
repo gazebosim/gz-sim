@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Element.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
@@ -33,6 +34,7 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
@@ -42,8 +44,8 @@
 
 #include "gz/sim/Conversions.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -56,8 +58,8 @@ TEST(Conversions, Light)
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetVisualize(true);
-  light.SetDiffuse(ignition::math::Color(0.4f, 0.5f, 0.6f, 1.0));
-  light.SetSpecular(ignition::math::Color(0.8f, 0.9f, 0.1f, 1.0));
+  light.SetDiffuse(gz::math::Color(0.4f, 0.5f, 0.6f, 1.0));
+  light.SetSpecular(gz::math::Color(0.8f, 0.9f, 0.1f, 1.0));
   light.SetAttenuationRange(3.2);
   light.SetConstantAttenuationFactor(0.5);
   light.SetLinearAttenuationFactor(0.1);
@@ -244,10 +246,11 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
-  material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetDiffuse(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(gz::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetShininess(0.5);
+  material.SetEmissive(gz::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
@@ -278,6 +281,7 @@ TEST(Conversions, Material)
       msgs::Convert(materialMsg.specular()));
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f),
       msgs::Convert(materialMsg.ambient()));
+  EXPECT_DOUBLE_EQ(0.5, materialMsg.shininess());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f),
       msgs::Convert(materialMsg.emissive()));
   EXPECT_TRUE(materialMsg.lighting());
@@ -307,6 +311,7 @@ TEST(Conversions, Material)
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f, 0.4f), newMaterial.Diffuse());
   EXPECT_EQ(math::Color(0.5f, 0.6f, 0.7f, 0.8f), newMaterial.Specular());
   EXPECT_EQ(math::Color(0.9f, 1.0f, 1.1f, 1.2f), newMaterial.Ambient());
+  EXPECT_DOUBLE_EQ(0.5, newMaterial.Shininess());
   EXPECT_EQ(math::Color(1.3f, 1.4f, 1.5f, 1.6f), newMaterial.Emissive());
   EXPECT_TRUE(newMaterial.Lighting());
   EXPECT_TRUE(newMaterial.DoubleSided());
@@ -339,7 +344,7 @@ TEST(Conversions, GeometryBox)
   geometry.SetType(sdf::GeometryType::BOX);
 
   sdf::Box boxShape;
-  boxShape.SetSize(ignition::math::Vector3d(1, 2, 3));
+  boxShape.SetSize(gz::math::Vector3d(1, 2, 3));
   geometry.SetBoxShape(boxShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -430,19 +435,19 @@ TEST(Conversions, GeometryEllipsoid)
   geometry.SetType(sdf::GeometryType::ELLIPSOID);
 
   sdf::Ellipsoid ellipsoidShape;
-  ellipsoidShape.SetRadii(ignition::math::Vector3d(1.2, 3.2, 2.4));
+  ellipsoidShape.SetRadii(gz::math::Vector3d(1.2, 3.2, 2.4));
   geometry.SetEllipsoidShape(ellipsoidShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
   EXPECT_EQ(msgs::Geometry::ELLIPSOID, geometryMsg.type());
   EXPECT_TRUE(geometryMsg.has_ellipsoid());
-  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+  EXPECT_EQ(gz::math::Vector3d(1.2, 3.2, 2.4),
     msgs::Convert(geometryMsg.ellipsoid().radii()));
 
   auto newGeometry = convert<sdf::Geometry>(geometryMsg);
   EXPECT_EQ(sdf::GeometryType::ELLIPSOID, newGeometry.Type());
   ASSERT_NE(nullptr, newGeometry.EllipsoidShape());
-  EXPECT_EQ(ignition::math::Vector3d(1.2, 3.2, 2.4),
+  EXPECT_EQ(gz::math::Vector3d(1.2, 3.2, 2.4),
     newGeometry.EllipsoidShape()->Radii());
 }
 
@@ -453,7 +458,7 @@ TEST(Conversions, GeometryMesh)
   geometry.SetType(sdf::GeometryType::MESH);
 
   sdf::Mesh meshShape;
-  meshShape.SetScale(ignition::math::Vector3d(1, 2, 3));
+  meshShape.SetScale(gz::math::Vector3d(1, 2, 3));
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
@@ -484,8 +489,8 @@ TEST(Conversions, GeometryPlane)
   geometry.SetType(sdf::GeometryType::PLANE);
 
   sdf::Plane planeShape;
-  planeShape.SetSize(ignition::math::Vector2d(1, 2));
-  planeShape.SetNormal(ignition::math::Vector3d::UnitY);
+  planeShape.SetSize(gz::math::Vector2d(1, 2));
+  planeShape.SetNormal(gz::math::Vector3d::UnitY);
   geometry.SetPlaneShape(planeShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -511,8 +516,8 @@ TEST(Conversions, GeometryHeightmap)
 
   sdf::Heightmap heightmap;
   heightmap.SetUri("file://heights.png");
-  heightmap.SetSize(ignition::math::Vector3d(1, 2, 3));
-  heightmap.SetPosition(ignition::math::Vector3d(4, 5, 6));
+  heightmap.SetSize(gz::math::Vector3d(1, 2, 3));
+  heightmap.SetPosition(gz::math::Vector3d(4, 5, 6));
   heightmap.SetUseTerrainPaging(true);
   heightmap.SetSampling(16u);
 
@@ -567,6 +572,40 @@ TEST(Conversions, GeometryHeightmap)
   ASSERT_EQ(1u, newHeightmap->BlendCount());
   EXPECT_DOUBLE_EQ(123.456, newHeightmap->BlendByIndex(0)->MinHeight());
   EXPECT_DOUBLE_EQ(456.789, newHeightmap->BlendByIndex(0)->FadeDistance());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryPolyline)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::POLYLINE);
+
+  sdf::Polyline polylineShape;
+  polylineShape.SetHeight(1.23);
+  polylineShape.AddPoint({4.5, 6.7});
+  polylineShape.AddPoint({8.9, 10.11});
+  geometry.SetPolylineShape({polylineShape});
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::POLYLINE, geometryMsg.type());
+  ASSERT_EQ(1, geometryMsg.polyline_size());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.polyline(0).height());
+  ASSERT_EQ(2, geometryMsg.polyline(0).point_size());
+  EXPECT_DOUBLE_EQ(4.5, geometryMsg.polyline(0).point(0).x());
+  EXPECT_DOUBLE_EQ(6.7, geometryMsg.polyline(0).point(0).y());
+  EXPECT_DOUBLE_EQ(8.9, geometryMsg.polyline(0).point(1).x());
+  EXPECT_DOUBLE_EQ(10.11, geometryMsg.polyline(0).point(1).y());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::POLYLINE, newGeometry.Type());
+  ASSERT_FALSE(newGeometry.PolylineShape().empty());
+  ASSERT_EQ(1u, newGeometry.PolylineShape().size());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.PolylineShape()[0].Height());
+  ASSERT_EQ(2u, newGeometry.PolylineShape()[0].PointCount());
+  EXPECT_DOUBLE_EQ(4.5, newGeometry.PolylineShape()[0].PointByIndex(0)->X());
+  EXPECT_DOUBLE_EQ(6.7, newGeometry.PolylineShape()[0].PointByIndex(0)->Y());
+  EXPECT_DOUBLE_EQ(8.9, newGeometry.PolylineShape()[0].PointByIndex(1)->X());
+  EXPECT_DOUBLE_EQ(10.11, newGeometry.PolylineShape()[0].PointByIndex(1)->Y());
 }
 
 /////////////////////////////////////////////////
@@ -645,8 +684,8 @@ TEST(Conversions, JointAxis)
 TEST(Conversions, Scene)
 {
   sdf::Scene scene;
-  scene.SetAmbient(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  scene.SetBackground(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetAmbient(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   scene.SetShadows(true);
   scene.SetGrid(true);
   scene.SetOriginVisual(true);
@@ -725,14 +764,14 @@ TEST(Conversions, Atmosphere)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, MagnetometerSensor)
+TEST(Conversions, MagnetometerSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -765,14 +804,14 @@ TEST(CONVERSIONS, MagnetometerSensor)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, AltimeterSensor)
+TEST(Conversions, AltimeterSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -1029,4 +1068,52 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, PluginElement)
+{
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "  <plugin filename='plum' name='peach'>"
+      "    <avocado>0.5</avocado>"
+      "  </plugin>"
+      "</world></sdf>");
+
+  auto world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  auto worldElem = world->Element();
+  ASSERT_NE(nullptr, worldElem);
+
+  auto pluginElem = worldElem->GetElement("plugin");
+  ASSERT_NE(nullptr, pluginElem);
+
+  auto pluginMsg = convert<msgs::Plugin>(*(pluginElem.get()));
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Plugin)
+{
+  sdf::Plugin pluginSdf;
+  pluginSdf.SetName("peach");
+  pluginSdf.SetFilename("plum");
+
+  auto content = std::make_shared<sdf::Element>();
+  content->SetName("avocado");
+  content->AddValue("double", "0.5", false, "");
+  pluginSdf.InsertContent(content);
+
+  auto pluginMsg = convert<msgs::Plugin>(pluginSdf);
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos) << pluginMsg.innerxml();
 }

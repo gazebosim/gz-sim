@@ -17,9 +17,9 @@
 
 syntax = "proto3";
 
-package ignition.gazebo.private_msgs;
+package gz.sim.private_msgs;
 
-import "ignition/msgs/world_stats.proto";
+import "gz/msgs/world_stats.proto";
 import "performer_affinity.proto";
 
 /// \brief Message to contain simulation step information for distributed
@@ -29,7 +29,7 @@ import "performer_affinity.proto";
 message SimulationStep
 {
   /// \brief Iteration information, such as sim time and paused state.
-  ignition.msgs.WorldStatistics stats = 1;
+  gz.msgs.WorldStatistics stats = 1;
 
   /// \brief Updated performer affinities. It will be empty if there are no
   /// affinity changes.

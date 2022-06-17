@@ -15,25 +15,25 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_GZSCENEMANAGER_HH_
-#define IGNITION_GAZEBO_GUI_GZSCENEMANAGER_HH_
+#ifndef GZ_SIM_GUI_GZSCENEMANAGER_HH_
+#define GZ_SIM_GUI_GZSCENEMANAGER_HH_
 
 #include <memory>
 
 #include <gz/sim/gui/GuiSystem.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   class GzSceneManagerPrivate;
 
   /// \brief Updates a 3D scene based on information coming from the ECM.
   /// This plugin doesn't instantiate a new 3D scene. Instead, it relies on
   /// another plugin being loaded alongside it that will create and paint the
-  /// scene to the window, such as `ignition::gui::plugins::Scene3D`.
+  /// scene to the window, such as `gz::gui::plugins::Scene3D`.
   ///
   /// Only one GzSceneManager can be used at a time.
   class GzSceneManager : public GuiSystem

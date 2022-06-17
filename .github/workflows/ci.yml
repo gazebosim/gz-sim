@@ -26,5 +26,5 @@ jobs:
         id: ci
         uses: ignition-tooling/action-ignition-ci@jammy
         with:
-          # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DBUILD_DOCS=OFF'

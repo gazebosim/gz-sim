@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Inertial.hh>
+#include <ignition/gazebo/config.hh>

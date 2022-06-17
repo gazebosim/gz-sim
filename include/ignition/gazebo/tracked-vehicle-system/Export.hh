@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/tracked-vehicle-system/Export.hh>
+#include <ignition/gazebo/config.hh>

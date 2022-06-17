@@ -32,12 +32,12 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A base class for an object responsible for creating components.
@@ -82,7 +82,7 @@ namespace components
   class StorageDescriptorBase
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(6) StorageDescriptorBase() = default;
+    public: GZ_DEPRECATED(6) StorageDescriptorBase() = default;
 
     /// \brief Destructor
     public: virtual ~StorageDescriptorBase() = default;
@@ -99,7 +99,7 @@ namespace components
     : public StorageDescriptorBase
   {
     /// \brief Constructor
-    public: IGN_DEPRECATED(6) StorageDescriptor() = default;
+    public: GZ_DEPRECATED(6) StorageDescriptor() = default;
 
     /// \brief Create an instance of a storage that holds ComponentTypeT
     /// components.
@@ -112,7 +112,7 @@ namespace components
 
   /// \brief A factory that generates a component based on a string type.
   class Factory
-      : public ignition::common::SingletonT<Factory>
+      : public gz::common::SingletonT<Factory>
   {
     /// \brief Register a component so that the factory can create instances
     /// of the component and its storage based on an ID.
@@ -123,7 +123,7 @@ namespace components
     /// \tparam ComponentTypeT Type of component to register.
     /// \deprecated See function that doesn't accept a storage
     public: template<typename ComponentTypeT>
-    void IGN_DEPRECATED(6) Register(const std::string &_type,
+    void GZ_DEPRECATED(6) Register(const std::string &_type,
         ComponentDescriptorBase *_compDesc,
         StorageDescriptorBase * /*_storageDesc*/)
     {
@@ -146,7 +146,7 @@ namespace components
         return;
       }
 
-      auto typeHash = ignition::common::hash64(_type);
+      auto typeHash = gz::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
@@ -176,7 +176,19 @@ namespace components
       // This happens at static initialization time, so we can't use common
       // console
       std::string debugEnv;
-      ignition::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
+      gz::common::env("GZ_DEBUG_COMPONENT_FACTORY", debugEnv);
+
+      if (debugEnv != "true")
+      {
+        gz::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
+        if (debugEnv == "true")
+        {
+          std::cerr << "Environment variable [IGN_DEBUG_COMPONENT_FACTORY] "
+                    << "is deprecated! Please use [GZ_DEBUG_COMPONENT_FACTORY]"
+                    << "instead." << std::endl;
+        }
+      }
+
       if (debugEnv == "true")
       {
         std::cout << "Registering [" << ComponentTypeT::typeName << "]"
@@ -280,12 +292,12 @@ namespace components
 
       if (nullptr == _data)
       {
-        ignerr << "Requested to create a new component instance with null "
+        gzerr << "Requested to create a new component instance with null "
           << "data." << std::endl;
       }
       else if (_type != _data->TypeId())
       {
-        ignerr << "The typeID of _type [" << _type << "] does not match the "
+        gzerr << "The typeID of _type [" << _type << "] does not match the "
           << "typeID of _data [" << _data->TypeId() << "]." << std::endl;
       }
       else
@@ -302,7 +314,7 @@ namespace components
     /// \param[in] _typeId Type of component which the storage will hold.
     /// \return Always returns nullptr.
     /// \deprecated Storages aren't necessary anymore.
-    public: std::unique_ptr<ComponentStorageBase> IGN_DEPRECATED(6) NewStorage(
+    public: std::unique_ptr<ComponentStorageBase> GZ_DEPRECATED(6) NewStorage(
         const ComponentTypeId & /*_typeId*/)
     {
       return nullptr;
@@ -377,9 +389,9 @@ namespace components
     { \
       if (_classname::typeId != 0) \
         return; \
-      using namespace ignition;\
-      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
-      gazebo::components::Factory::Instance()->Register<_classname>(\
+      using namespace gz;\
+      using Desc = sim::components::ComponentDescriptor<_classname>; \
+      sim::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc());\
     } \
   }; \

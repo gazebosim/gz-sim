@@ -7,15 +7,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
     <light type="directional" name="directional">

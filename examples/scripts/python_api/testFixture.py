@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# If you compiled Ignition Gazebo from source you should modify your
+# If you compiled Gazebo from source you should modify your
 # `PYTHONPATH`:
 #
 # export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
@@ -23,7 +23,6 @@
 # python3 examples/scripts/python_api/testFixture.py
 
 import os
-import time
 
 from ignition.common import set_verbosity
 from ignition.gazebo import TestFixture, World, world_entity
@@ -47,7 +46,7 @@ def on_pre_udpate_cb(_info, _ecm):
     pre_iterations += 1
     if first_iteration:
         first_iteration = False
-        world_e = world_entity(_ecm);
+        world_e = world_entity(_ecm)
         print('World entity is ', world_e)
         w = World(world_e)
         v = w.gravity(_ecm)
@@ -74,10 +73,7 @@ fixture.on_pre_update(on_pre_udpate_cb)
 fixture.finalize()
 
 server = fixture.server()
-server.run(False, 1000, False)
-
-while(server.is_running()):
-    time.sleep(0.1)
+server.run(True, 1000, False)
 
 print('iterations ', iterations)
 print('post_iterations ', post_iterations)

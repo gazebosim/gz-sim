@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/comms/MsgManager.hh>
+#include <ignition/gazebo/config.hh>

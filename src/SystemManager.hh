@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMMANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEMMANAGER_HH_
+#ifndef GZ_SIM_SYSTEMMANAGER_HH_
+#define GZ_SIM_SYSTEMMANAGER_HH_
 
 #include <memory>
 #include <string>
@@ -29,15 +29,15 @@
 
 #include "SystemInternal.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
-    class IGNITION_GAZEBO_VISIBLE SystemManager
+    class GZ_GAZEBO_VISIBLE SystemManager
     {
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins
@@ -130,13 +130,20 @@ namespace ignition
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
+      /// \brief Implementation for AddSystem functions that takes an SDF
+      /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
+      /// \param[in] _system Generic representation of a system.
+      /// \param[in] _sdf SDF element.
+      private: void AddSystemImpl(SystemInternal _system,
+                                  std::shared_ptr<const sdf::Element> _sdf);
+
       /// \brief Implementation for AddSystem functions. This only adds systems
       /// to a queue, the actual addition is performed by `AddSystemToRunner` at
       /// the appropriate time.
       /// \param[in] _system Generic representation of a system.
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
-                                  std::shared_ptr<const sdf::Element> _sdf);
+                                  const sdf::Plugin &_sdf);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
@@ -175,6 +182,6 @@ namespace ignition
       private: EventManager *eventMgr;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_SYSTEMINTERNAL_HH_

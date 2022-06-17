@@ -25,9 +25,9 @@ namespace command_actor
 
   /// \brief Example showing different ways of commanding an actor.
   class CommandActor:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: CommandActor();
@@ -36,27 +36,27 @@ namespace command_actor
     public: ~CommandActor() override;
 
     /// Documentation inherited
-    public: void Configure(const ignition::gazebo::Entity &_id,
+    public: void Configure(const gz::sim::Entity &_id,
                            const std::shared_ptr<const sdf::Element> &_sdf,
-                           ignition::gazebo::EntityComponentManager &_ecm,
-                           ignition::gazebo::EventManager &_eventMgr) final;
+                           gz::sim::EntityComponentManager &_ecm,
+                           gz::sim::EventManager &_eventMgr) final;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Actor entity
-    private: ignition::gazebo::Entity entity;
+    private: gz::sim::Entity entity;
 
     /// \brief Origins to change, where the key is the number of seconds from
     /// beginning of simulation, and the value is the new trajectory origin to
     /// set.
-    private: std::map<int, ignition::math::Pose3d> origins;
+    private: std::map<int, gz::math::Pose3d> origins;
 
     /// \brief Trajectory poses to change, where the key is the number of
     /// seconds from beginning of simulation, and the value is the new
     /// trajectory pose to set.
-    private: std::map<int, ignition::math::Pose3d> trajPoses;
+    private: std::map<int, gz::math::Pose3d> trajPoses;
 
     /// \brief Last time, in seconds, when the origin was changed.
     private: int lastOriginChange{0};

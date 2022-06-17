@@ -23,8 +23,8 @@
 #include "ComponentInspectorEditor.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Altimeter::Altimeter(ComponentInspectorEditor *_inspector)
@@ -68,7 +68,7 @@ Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
@@ -86,11 +86,11 @@ Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
         altimeter->SetVerticalPositionNoise(noise);
       }
       else
-        ignerr << "Unable to get the altimeter data.\n";
+        gzerr << "Unable to get the altimeter data.\n";
     }
     else
     {
-      ignerr << "Unable to get the altimeter component.\n";
+      gzerr << "Unable to get the altimeter component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -102,7 +102,7 @@ Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
@@ -120,11 +120,11 @@ Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
         altimeter->SetVerticalVelocityNoise(noise);
       }
       else
-        ignerr << "Unable to get the altimeter data.\n";
+        gzerr << "Unable to get the altimeter data.\n";
     }
     else
     {
-      ignerr << "Unable to get the altimeter component.\n";
+      gzerr << "Unable to get the altimeter component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

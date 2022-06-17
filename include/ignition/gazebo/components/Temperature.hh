@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Temperature.hh>
+#include <ignition/gazebo/config.hh>

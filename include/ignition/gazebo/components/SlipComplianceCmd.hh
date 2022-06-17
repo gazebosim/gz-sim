@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/SlipComplianceCmd.hh>
+#include <ignition/gazebo/config.hh>
