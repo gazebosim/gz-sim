@@ -10,5 +10,5 @@ if (GzBenchmark_FOUND OR IgnBenchmark_FOUND)
     ecm_serialize.cc
   )
 
-  ign_add_benchmarks(SOURCES ${tests})
+  gz_add_benchmarks(SOURCES ${tests})
 endif()

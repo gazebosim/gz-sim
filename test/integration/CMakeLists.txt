@@ -119,7 +119,7 @@ endif()
 link_directories(${PROJECT_BINARY_DIR}/test)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
-ign_build_tests(TYPE INTEGRATION
+gz_build_tests(TYPE INTEGRATION
   SOURCES
     ${tests}
   LIB_DEPS
@@ -134,7 +134,7 @@ cmake_policy(PUSH)
 if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
-ign_find_package(DART CONFIG)
+gz_find_package(DART CONFIG)
 cmake_policy(POP)
 if (DART_FOUND)
   # Only adding include directories, no need to link against DART to check version
