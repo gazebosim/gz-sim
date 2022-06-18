@@ -35,17 +35,10 @@ import QtQuick.Window 2.2
         QuickSetupHandler.SetStartingWorld(url)
       }
 
-      function debug(f, ff, fff){
-        console.log(f)
-        console.log(ff)
-        console.log(fff)
-      }
-
-      function loadFuelWorld(fileName){
+      function loadFuelWorld(fileName, uploader){
         // Construct fuel URL
         var fuel_url = "https://fuel.ignitionrobotics.org/1.0/"
-        fuel_url += fileName.split('.')[0] + "/worlds/" + fileName.split('.')[1]
-        console.debug(fuel_url)
+        fuel_url += uploader + "/worlds/" + fileName
         QuickSetupHandler.SetStartingWorld(fuel_url)
         quickSetup.Window.window.close()
       }
@@ -86,17 +79,12 @@ import QtQuick.Window 2.2
                   Layout.preferredWidth: 700
                   // Layout.maximumWidth: 700
                   Layout.minimumHeight: 400
-                Text {
-                    anchors.centerIn: parent
-                    text: "Grid worlds thumbunails"
-                }
                 RowLayout{
                   spacing: 6
                   Rectangle {
                       visible: true
-                      // color: "red";
                       width: 500;
-                      height: 400;
+                      height: 300;
                       FolderListModel {
                           id: folderModel
                           showDirs: false
@@ -109,7 +97,8 @@ import QtQuick.Window 2.2
 
                           World {
                               id: filePath
-                              text: fileName
+                              text: fileName.split('.')[1]
+                              uploader: fileName.split('.')[0]
                               width: gridView.cellWidth - 5
                               height: gridView.cellHeight - 5
                               smooth: true
@@ -120,7 +109,7 @@ import QtQuick.Window 2.2
                       GridView {
                           id: gridView
                           width: parent.width
-                          height: parent.height - 200
+                          height: parent.height
 
                           anchors {
                               fill: parent

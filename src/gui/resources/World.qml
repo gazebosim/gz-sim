@@ -7,17 +7,10 @@ Rectangle{
     id: main
     property alias source: root.source
     property alias text: label.text
+    property alias uploader: uploader.text
     border.color: "white"
     border.width: 5
     radius: 10
-
-    Label {
-        id: label
-        text: qsTr("Label")
-        anchors.horizontalCenter: parent.horizontalCenter
-        color: "#443224"
-        font.pixelSize: 14
-    }
 
     DropShadow {
         anchors.fill: root
@@ -28,7 +21,31 @@ Rectangle{
         color: "#80000000"
         source: root
     }
-    
+
+    ColumnLayout{
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        Rectangle{
+            y: 15 
+            Text {
+            id: label
+                text: qsTr("Label")
+                color: "#443224"
+                font.pixelSize: 14
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+        Rectangle{
+            Text {
+                id: uploader
+                text: qsTr("Label")
+                color: "grey"
+                font.pixelSize: 14
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+        }
+    }
+
     Image {
         id: root
         source: ""
@@ -46,7 +63,7 @@ Rectangle{
                 animation1.start()
                 animation2.start()
             }
-            onClicked: quickSetup.loadFuelWorld(main.text)
+            onClicked: quickSetup.loadFuelWorld(main.text, main.uploader)
         }
 
         Rectangle {
