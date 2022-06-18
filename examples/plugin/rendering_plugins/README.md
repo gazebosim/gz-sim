@@ -1,6 +1,6 @@
 # Rendering plugins
 
-Demo of 2 plugins that use Ignition Rendering, one for the server and one for the client.
+Demo of 2 plugins that use Gazebo Rendering, one for the server and one for the client.
 
 ## Build
 
@@ -23,7 +23,7 @@ Add the libraries to the correct paths:
 ~~~
 cd examples/plugin/rendering_plugins
 export IGN_GUI_PLUGIN_PATH=`pwd`/build
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Run the example world

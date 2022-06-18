@@ -28,8 +28,8 @@
 #include "gz/sim/components/SemanticLabel.hh"
 #include "gz/sim/components/Visual.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -43,14 +43,14 @@ Label::~Label() = default;
 //////////////////////////////////////////////////
 void Label::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    gazebo::EntityComponentManager &_ecm,
-    gazebo::EventManager & /*_eventMgr*/)
+    sim::EntityComponentManager &_ecm,
+    sim::EventManager & /*_eventMgr*/)
 {
   const std::string labelTag = "label";
 
   if (!_sdf->HasElement(labelTag))
   {
-    ignerr << "Failed to load Label system; label tag not found.\n";
+    gzerr << "Failed to load Label system; label tag not found.\n";
     return;
   }
 
@@ -58,7 +58,7 @@ void Label::Configure(const Entity &_entity,
 
   if (label < 0 || label > 255)
   {
-    ignerr << "Failed to configure Label system; value " << label
+    gzerr << "Failed to configure Label system; value " << label
       << " is not in [0-255] range.\n";
     return;
   }
@@ -74,7 +74,7 @@ void Label::Configure(const Entity &_entity,
   {
     // TODO(anyone) add support for nested models. We will need to check for
     // child models and their respective links/visuals
-    // https://github.com/ignitionrobotics/ign-gazebo/issues/1041
+    // https://github.com/gazebosim/gz-sim/issues/1041
 
     // Get link childern of parent model
     auto links = _ecm.ChildrenByComponents<components::Link>(
@@ -96,11 +96,14 @@ void Label::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Entity [" << _entity << "] is not a visual, actor, or model. "
+    gzerr << "Entity [" << _entity << "] is not a visual, actor, or model. "
            << "Label will be ignored. \n";
     return;
   }
 }
 
-IGNITION_ADD_PLUGIN(Label, System, Label::ISystemConfigure)
-IGNITION_ADD_PLUGIN_ALIAS(Label, "ignition::gazebo::systems::Label")
+GZ_ADD_PLUGIN(Label, System, Label::ISystemConfigure)
+GZ_ADD_PLUGIN_ALIAS(Label, "gz::sim::systems::Label")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(Label, "ignition::gazebo::systems::Label")

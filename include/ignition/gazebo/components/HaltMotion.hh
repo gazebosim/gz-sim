@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/HaltMotion.hh>
+#include <ignition/gazebo/config.hh>

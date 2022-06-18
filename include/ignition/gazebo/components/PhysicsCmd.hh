@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/PhysicsCmd.hh>
+#include <ignition/gazebo/config.hh>

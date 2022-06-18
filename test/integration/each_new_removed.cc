@@ -20,24 +20,24 @@
 #include <algorithm>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
-using IntComponent = gazebo::components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+using IntComponent = sim::components::Component<int, class IntComponentTag>;
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
 class EachNewRemovedFixture : public InternalFixture<::testing::Test>
@@ -45,13 +45,13 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(EachNewRemovedFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
-  gazebo::Server server;
+  sim::Server server;
 
   server.SetUpdatePeriod(1ns);
 
@@ -63,12 +63,12 @@ TEST_F(EachNewRemovedFixture,
   // Entities to be created in a system. These have to be out here so the
   // entityCreator can set the ids when it creates the entities and the
   // entityRemover system can access them easily
-  gazebo::Entity e1 = gazebo::kNullEntity;
-  gazebo::Entity e2 = gazebo::kNullEntity;
+  sim::Entity e1 = sim::kNullEntity;
+  sim::Entity e2 = sim::kNullEntity;
 
-  gazebo::test::Relay entityCreator;
+  sim::test::Relay entityCreator;
   entityCreator.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       if (shouldCreateEntities)
       {
@@ -81,9 +81,9 @@ TEST_F(EachNewRemovedFixture,
       }
   });
 
-  gazebo::test::Relay entityRemover;
+  sim::test::Relay entityRemover;
   entityRemover.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       if (shouldRemoveEntities)
       {
@@ -107,16 +107,16 @@ TEST_F(EachNewRemovedFixture,
   {
     // Lambda to return. This a simple counter that uses the appropriate count
     // variable where count = (pre, update, post)count
-    auto counterImpl = [&](const gazebo::UpdateInfo &,
-                           const gazebo::EntityComponentManager &_ecm)
+    auto counterImpl = [&](const sim::UpdateInfo &,
+                           const sim::EntityComponentManager &_ecm)
     {
-      _ecm.EachNew<IntComponent>([&](const gazebo::Entity &,
+      _ecm.EachNew<IntComponent>([&](const sim::Entity &,
                                      const IntComponent *) -> bool
       {
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachRemoved<IntComponent>([&](const gazebo::Entity &,
+      _ecm.EachRemoved<IntComponent>([&](const sim::Entity &,
                                          const IntComponent *) -> bool
       {
         ++_count.removedEntities;
@@ -126,7 +126,7 @@ TEST_F(EachNewRemovedFixture,
     return counterImpl;
   };
 
-  gazebo::test::Relay entityCounter;
+  sim::test::Relay entityCounter;
   entityCounter.OnPreUpdate(counterFunc(preCount));
   entityCounter.OnUpdate(counterFunc(updateCount));
   entityCounter.OnPostUpdate(counterFunc(postCount));

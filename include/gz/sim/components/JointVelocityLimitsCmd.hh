@@ -26,12 +26,12 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 
 namespace components
 {
@@ -43,12 +43,12 @@ namespace components
 /// sets the limit to the dynamics engine. After setting it, the data of this
 /// component will be cleared (i.e. the vector will have length zero).
 using JointVelocityLimitsCmd = Component<
-  std::vector<ignition::math::Vector2d>,
+  std::vector<gz::math::Vector2d>,
   class JointVelocityLimitsCmdTag,
-  serializers::VectorSerializer<ignition::math::Vector2d>
+  serializers::VectorSerializer<gz::math::Vector2d>
 >;
 
-IGN_GAZEBO_REGISTER_COMPONENT(
+GZ_SIM_REGISTER_COMPONENT(
   "gz_sim_components.JointVelocityLimitsCmd", JointVelocityLimitsCmd)
 }
 }

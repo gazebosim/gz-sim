@@ -29,8 +29,8 @@
 #include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -41,7 +41,7 @@ struct LoggingPlugin
   {
     static std::string recordPluginFileName =
       std::string("ignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
+      GZ_SIM_MAJOR_VERSION_STR + "-log-system";
     return recordPluginFileName;
   }
 
@@ -59,7 +59,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "ignition::gazebo::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -76,7 +76,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "ignition::gazebo::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };
@@ -107,7 +107,7 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
-  igndbg << "Server received signal[" << _sig  << "]\n";
+  gzdbg << "Server received signal[" << _sig  << "]\n";
   this->Stop();
 }
 
@@ -155,7 +155,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
     if (!networkReady || receivedStop)
     {
-      ignerr << "Failed to start network, simulation terminating" << std::endl;
+      gzerr << "Failed to start network, simulation terminating" << std::endl;
       return false;
     }
   }
@@ -321,11 +321,11 @@ void ServerPrivate::SetupTransport()
   std::string worldsService{"/gazebo/worlds"};
   if (this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this))
   {
-    ignmsg << "Serving world names on [" << worldsService << "]" << std::endl;
+    gzmsg << "Serving world names on [" << worldsService << "]" << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << worldsService
+    gzerr << "Something went wrong, failed to advertise [" << worldsService
            << "]" << std::endl;
   }
 
@@ -334,12 +334,12 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(addPathService,
       &ServerPrivate::AddResourcePathsService, this))
   {
-    ignmsg << "Resource path add service on [" << addPathService << "]."
+    gzmsg << "Resource path add service on [" << addPathService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << addPathService
+    gzerr << "Something went wrong, failed to advertise [" << addPathService
            << "]" << std::endl;
   }
 
@@ -347,12 +347,27 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
-    ignmsg << "Resource path get service on [" << getPathService << "]."
+    gzmsg << "Resource path get service on [" << getPathService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << getPathService
+    gzerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
+
+  // Advertise a service that returns the full path, on the Gazebo server's
+  // host machine, based on a provided URI.
+  std::string resolvePathService{"/gazebo/resource_paths/resolve"};
+  if (this->node.Advertise(resolvePathService,
+      &ServerPrivate::ResourcePathsResolveService, this))
+  {
+    gzmsg << "Resource path resolve service on [" << resolvePathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    gzerr << "Something went wrong, failed to advertise [" << getPathService
            << "]" << std::endl;
   }
 
@@ -361,12 +376,12 @@ void ServerPrivate::SetupTransport()
 
   if (this->pathPub)
   {
-    ignmsg << "Resource paths published on [" << pathTopic << "]."
+    gzmsg << "Resource paths published on [" << pathTopic << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << pathTopic
+    gzerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
 
@@ -374,18 +389,18 @@ void ServerPrivate::SetupTransport()
   if (this->node.Advertise(serverControlService,
                            &ServerPrivate::ServerControlService, this))
   {
-    ignmsg << "Server control service on [" << serverControlService << "]."
+    gzmsg << "Server control service on [" << serverControlService << "]."
            << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise ["
+    gzerr << "Something went wrong, failed to advertise ["
            << serverControlService << "]" << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(gz::msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -401,7 +416,7 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ServerControlService(
-  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+  const gz::msgs::ServerControl &_req, msgs::Boolean &_res)
 {
   _res.set_data(false);
 
@@ -410,7 +425,7 @@ bool ServerPrivate::ServerControlService(
     if (!this->stopThread)
     {
       this->stopThread = std::make_shared<std::thread>([this]{
-        ignlog << "Stopping Gazebo" << std::endl;
+        gzlog << "Stopping Gazebo" << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
         this->Stop();
       });
@@ -421,21 +436,21 @@ bool ServerPrivate::ServerControlService(
   // TODO(chapulina): implement world cloning
   if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
   {
-    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    gzerr << "ServerControl::clone is not implemented" << std::endl;
     _res.set_data(false);
   }
 
   // TODO(chapulina): implement adding a new world
   if (_req.new_world())
   {
-    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    gzerr << "ServerControl::new_world is not implemented" << std::endl;
     _res.set_data(false);
   }
 
   // TODO(chapulina): implement loading a world
   if (!_req.open_filename().empty())
   {
-    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    gzerr << "ServerControl::open_filename is not implemented" << std::endl;
     _res.set_data(false);
   }
 
@@ -444,7 +459,7 @@ bool ServerPrivate::ServerControlService(
 
 //////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const ignition::msgs::StringMsg_V &_req)
+    const gz::msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -467,7 +482,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    ignition::msgs::StringMsg_V &_res)
+    gz::msgs::StringMsg_V &_res)
 {
   _res.Clear();
 
@@ -483,6 +498,64 @@ bool ServerPrivate::ResourcePathsService(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ResourcePathsResolveService(
+    const msgs::StringMsg &_req,
+    msgs::StringMsg &_res)
+{
+  // Get the request
+  std::string req = _req.data();
+
+  // Handle the case where the request is already a valid path
+  if (common::exists(req))
+  {
+    _res.set_data(req);
+    return true;
+  }
+
+  // Try Fuel
+  std::string path =
+      fuel_tools::fetchResourceWithClient(req, *this->fuelClient.get());
+  if (!path.empty() && common::exists(path))
+  {
+    _res.set_data(path);
+    return true;
+  }
+
+  // Check for the file:// prefix.
+  std::string prefix = "file://";
+  if (req.find(prefix) == 0)
+  {
+    req = req.substr(prefix.size());
+    // Check to see if the path exists
+    if (common::exists(req))
+    {
+      _res.set_data(req);
+      return true;
+    }
+  }
+
+  // Check for the model:// prefix
+  prefix = "model://";
+  if (req.find(prefix) == 0)
+    req = req.substr(prefix.size());
+
+  // Checkout resource paths
+  std::vector<std::string> gzPaths = resourcePaths();
+  for (const std::string &gzPath : gzPaths)
+  {
+    std::string fullPath = common::joinPaths(gzPath, req);
+    if (common::exists(fullPath))
+    {
+      _res.set_data(fullPath);
+      return true;
+    }
+  }
+
+  // Otherwise the resource could not be found
+  return false;
 }
 
 //////////////////////////////////////////////////

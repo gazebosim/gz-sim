@@ -23,12 +23,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains a custom sensor's information.
@@ -36,7 +36,7 @@ namespace components
   /// the SDF spec.
   using CustomSensor = Component<sdf::Sensor, class CustomSensorTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CustomSensor",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSensor",
       CustomSensor)
 }
 }

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
-#define IGNITION_GAZEBO_SDFGENERATOR_HH_
+#ifndef GZ_SIM_SDFGENERATOR_HH_
+#define GZ_SIM_SDFGENERATOR_HH_
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 
@@ -26,12 +26,12 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
@@ -45,7 +45,7 @@ namespace sdf_generator
   /// \input[in] _config Configuration for the world generator
   /// \returns Generated world string if generation succeeded.
   /// Otherwise, nullopt
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   std::optional<std::string> generateWorld(
       const EntityComponentManager &_ecm, const Entity &_entity,
       const IncludeUriMap &_includeUriMap = IncludeUriMap(),
@@ -58,7 +58,7 @@ namespace sdf_generator
   /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
   /// included Fuel models
   /// \input[in] _config Configuration for the world generator
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateWorldElement(
       sdf::ElementPtr _elem,
       const EntityComponentManager &_ecm, const Entity &_entity,
@@ -71,7 +71,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Model entity
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateModelElement(const sdf::ElementPtr &_elem,
                           const EntityComponentManager &_ecm,
                           const Entity &_entity);
@@ -82,7 +82,7 @@ namespace sdf_generator
   /// \input[in] _saveFuelVersion True if "Save Fuel model versions" is enabled
   /// \input[in] _includeUriMap Map from file paths to URIs used to preserve
   /// included Fuel models
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   void updateModelElementWithNestedInclude(sdf::ElementPtr &_elem,
                                            const bool _saveFuelVersion,
                                            const IncludeUriMap &_includeUriMap);
@@ -94,7 +94,7 @@ namespace sdf_generator
   /// \input[in] _entity Entity of included resource
   /// \input[in] _uri Uri of the resource
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateIncludeElement(const sdf::ElementPtr &_elem,
                             const EntityComponentManager &_ecm,
                             const Entity &_entity, const std::string &_uri);
@@ -105,7 +105,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Link entity
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateLinkElement(const sdf::ElementPtr &_elem,
                          const EntityComponentManager &_ecm,
                          const Entity &_entity);
@@ -116,7 +116,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Sensor entity
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateSensorElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
@@ -127,7 +127,7 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity Light entity
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateLightElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
@@ -138,13 +138,13 @@ namespace sdf_generator
   /// \input[in] _ecm Immutable reference to the Entity Component Manager
   /// \input[in] _entity joint entity
   /// \returns true if update succeeded.
-  IGNITION_GAZEBO_VISIBLE
+  GZ_GAZEBO_VISIBLE
   bool updateJointElement(sdf::ElementPtr _elem,
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 }  // namespace sdf_generator
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz
 
-#endif /* end of include guard: IGNITION_GAZEBO_SDFGENERATOR_HH_ */
+#endif /* end of include guard: GZ_SIM_SDFGENERATOR_HH_ */

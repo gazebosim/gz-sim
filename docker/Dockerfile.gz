@@ -1,13 +1,13 @@
 # Purpose
 #
 #   This docker file is used by build.bash and run.bash to build and run
-#   an Ignition distribution based on binaries. See the README.md file.
+#   a Gazebo distribution based on binaries. See the README.md file.
 
 # Ubuntu 20.04 with nvidia opengl support
 FROM nvidia/opengl:1.2-glvnd-devel-ubuntu20.04
 
-# Name of the Ignition distribution
-ARG ign_distribution
+# Name of the Gazebo distribution
+ARG gz_distribution
 
 # Tools I find useful during development
 RUN apt-get update \
@@ -46,7 +46,7 @@ RUN sudo /bin/sh -c 'echo "deb [trusted=yes] http://packages.osrfoundation.org/g
  && sudo /bin/sh -c 'apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116' \
  && sudo apt-get update \
  && sudo apt-get install -y \
-    ${ign_distribution} \
+    ${gz_distribution} \
  && sudo apt-get clean
 
-ENTRYPOINT ["ign-gazebo"]
+ENTRYPOINT ["gz-sim"]

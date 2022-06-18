@@ -17,35 +17,40 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/gazebo/components/AngularAcceleration.hh>
-#include <ignition/gazebo/components/AngularVelocity.hh>
-#include <ignition/gazebo/components/AngularVelocityCmd.hh>
-#include <ignition/gazebo/components/CanonicalLink.hh>
-#include <ignition/gazebo/components/Collision.hh>
-#include <ignition/gazebo/components/ExternalWorldWrenchCmd.hh>
-#include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/LinearAcceleration.hh>
-#include <ignition/gazebo/components/LinearVelocity.hh>
-#include <ignition/gazebo/components/LinearVelocityCmd.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/Visual.hh>
+#include <gz/sim/components/AngularAcceleration.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/AngularVelocityCmd.hh>
+#include <gz/sim/components/CanonicalLink.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/ExternalWorldWrenchCmd.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/LinearAcceleration.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/LinearVelocityCmd.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Model.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Visual.hh>
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/SdfEntityCreator.hh>
-#include <ignition/gazebo/Link.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/SdfEntityCreator.hh>
+#include <gz/sim/Link.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class LinkIntegrationTest : public InternalFixture<::testing::Test>
 {
@@ -228,10 +233,10 @@ TEST_F(LinkIntegrationTest, LinkPoses)
   EXPECT_EQ(std::nullopt, link.WorldInertialPose(ecm));
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
   math::Pose3d inertiaPose;
   // This is the pose of the inertia frame relative to its parent link frame
-  inertiaPose.Set(1.0, 2.0, 3.0, 0, IGN_PI_2, 0);
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
 
   math::Inertiald linkInertial;
   linkInertial.SetPose(inertiaPose);
@@ -274,7 +279,7 @@ TEST_F(LinkIntegrationTest, LinkVelocities)
 
   // With custom velocities
   math::Pose3d pose;
-  pose.Set(0, 0, 0, IGN_PI_2, 0, 0);
+  pose.Set(0, 0, 0, GZ_PI_2, 0, 0);
   math::Vector3d linVel{1.0, 0.0, 0.0};
   math::Vector3d angVel{0.0, 0.0, 2.0};
   ecm.SetComponentData<components::WorldPose>(eLink, pose);
@@ -367,11 +372,11 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
 
   math::MassMatrix3d linkMassMatrix(1.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
   math::Pose3d linkComPose;
-  linkComPose.Set(0.2, 0.1, 0.0, IGN_PI_4, 0, 0);
+  linkComPose.Set(0.2, 0.1, 0.0, GZ_PI_4, 0, 0);
   math::Inertiald linkInertial{linkMassMatrix, linkComPose};
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, IGN_PI_4, IGN_PI_2);
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, GZ_PI_4, GZ_PI_2);
 
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
@@ -402,11 +407,11 @@ TEST_F(LinkIntegrationTest, LinkKineticEnergy)
 
   math::MassMatrix3d linkMassMatrix(2.0, {2.0, 1.5, 1.0}, {0.0, 0.0, 0.0});
   math::Pose3d linkComPose;
-  linkComPose.Set(0.2, 0.0, 0.0, IGN_PI_2, 0, 0);
+  linkComPose.Set(0.2, 0.0, 0.0, GZ_PI_2, 0, 0);
   math::Inertiald linkInertial{linkMassMatrix, linkComPose};
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, 0.0, IGN_PI_2);
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, 0.0, GZ_PI_2);
 
   // initially zero velocity
   math::Vector3d linkWorldAngularVelocity;
@@ -547,9 +552,9 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
 
   // create WorldPose and Inertial component and try adding force again
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
   math::Pose3d inertiaPose;
-  inertiaPose.Set(1.0, 2.0, 3.0, 0, IGN_PI_2, 0);
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
   math::Inertiald linkInertial;
   linkInertial.SetPose(inertiaPose);
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));

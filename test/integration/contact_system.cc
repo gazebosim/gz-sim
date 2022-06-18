@@ -17,24 +17,24 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <thread>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ContactSystemTest : public InternalFixture<::testing::Test>
 {
@@ -44,7 +44,7 @@ class ContactSystemTest : public InternalFixture<::testing::Test>
 // This test verifies that colliding entity names are populated in
 // the contact points message.
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableCollidingEntityNames))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableCollidingEntityNames))
 {
   // Start server
   ServerConfig serverConfig;
@@ -120,7 +120,7 @@ TEST_F(ContactSystemTest,
 // This test verifies that colliding entity names are not populated in
 // the contact points message.
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DisableCollidingEntityNames))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DisableCollidingEntityNames))
 {
   // Start server
   ServerConfig serverConfig;
@@ -191,9 +191,9 @@ TEST_F(ContactSystemTest,
 
 /////////////////////////////////////////////////
 // The test checks that contacts are published by the contact system
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleCollisionsAsContactSensors))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultipleCollisionsAsContactSensors))
 {
   // Start server
   ServerConfig serverConfig;
@@ -273,7 +273,7 @@ TEST_F(ContactSystemTest,
 }
 
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
 {
   // Start server
   ServerConfig serverConfig;

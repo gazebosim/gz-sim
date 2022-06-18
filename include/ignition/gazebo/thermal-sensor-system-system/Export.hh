@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/thermal-sensor-system-system/Export.hh>
+#include <ignition/gazebo/config.hh>

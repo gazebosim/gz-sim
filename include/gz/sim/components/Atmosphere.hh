@@ -24,12 +24,12 @@
 #include <gz/sim/Conversions.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using AtmosphereSerializer =
@@ -42,7 +42,7 @@ namespace components
   using Atmosphere =
       Component<sdf::Atmosphere, class AtmosphereTag,
       serializers::AtmosphereSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.Atmosphere", Atmosphere)
 }
 }

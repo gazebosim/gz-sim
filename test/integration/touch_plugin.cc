@@ -16,18 +16,18 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test TouchPlugin system
 class TouchPluginTest : public InternalFixture<::testing::Test>
@@ -48,8 +48,8 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -100,14 +100,14 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 // Known to fail on OSX, see
-// https://github.com/ignitionrobotics/ign-gazebo/issues/22
+// https://github.com/gazebosim/gz-sim/issues/22
 #if !defined (__APPLE__)
   EXPECT_TRUE(whiteTouched);
 #endif
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -139,7 +139,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -180,14 +180,14 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
 // Known to fail on OSX, see
-// https://github.com/ignitionrobotics/ign-gazebo/issues/22
+// https://github.com/gazebosim/gz-sim/issues/22
 #if !defined (__APPLE__)
   EXPECT_TRUE(blueTouched);
 #endif
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -226,7 +226,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
 /// Tests whether the plugin works when it is spawned after other entities have
 /// already been created and vice versa
 /// This test uses depends on the user_commands system
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 {
   std::string whiteBox = R"EOF(
   <?xml version="1.0" ?>
@@ -249,7 +249,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
         </link>
         <plugin
           filename="libignition-gazebo-touchplugin-system.so"
-          name="ignition::gazebo::systems::TouchPlugin">
+          name="gz::sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
           <namespace>white_touches_only_green</namespace>

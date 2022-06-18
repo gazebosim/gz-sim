@@ -25,12 +25,12 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using InertialSerializer =
@@ -42,7 +42,7 @@ namespace components
   /// \brief This component holds an entity's inertial.
   using Inertial = Component<math::Inertiald, class InertialTag,
                              serializers::InertialSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Inertial", Inertial)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Inertial", Inertial)
 }
 }
 }

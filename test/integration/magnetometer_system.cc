@@ -17,22 +17,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/magnetometer.pb.h>
+#include <gz/msgs/magnetometer.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Magnetometer.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
@@ -40,8 +40,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test MagnetometerTest system
 class MagnetometerTest : public InternalFixture<::testing::Test>
@@ -61,8 +61,8 @@ void magnetometerCb(const msgs::Magnetometer &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the detected field from a rotated magnetometer
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;
@@ -83,13 +83,13 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Magnetometer,
                   components::Name,
                   components::WorldPose>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Magnetometer *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose) -> bool
@@ -130,7 +130,7 @@ TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   // Hardcoded SDF values
   math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
-  ignition::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
+  gz::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
         worldMagneticField);
   mutex.lock();
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),

@@ -26,12 +26,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Data structure to hold a temperature range, in kelvin
@@ -89,7 +89,7 @@ namespace components
   /// \brief A component that stores a temperature range in kelvin
   using TemperatureRange = Component<TemperatureRangeInfo,
         class TemperatureRangeTag, serializers::TemperatureRangeInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.TemperatureRange",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.TemperatureRange",
       TemperatureRange)
 }
 }

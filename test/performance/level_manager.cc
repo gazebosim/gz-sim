@@ -19,29 +19,29 @@
 #include <gtest/gtest.h>
 #include <array>
 
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
 {
   using namespace std::chrono;
 
   common::Console::SetVerbosity(4);
 
-  ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+  gz::common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/level_performance.sdf");
   math::Stopwatch watch;
@@ -53,7 +53,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // measuring time differences between levels and no levels.
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     server.Run(true, 1, false);
@@ -62,7 +62,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server with levels
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    sim::Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     watch.Start(true);
@@ -74,7 +74,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server without levels
   {
     serverConfig.SetUseLevels(false);
-    gazebo::Server serverNoLevels(serverConfig);
+    sim::Server serverNoLevels(serverConfig);
     serverNoLevels.SetUpdatePeriod(1ns);
 
     watch.Start(true);
@@ -83,7 +83,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   }
   const auto nolevelsDuration = watch.ElapsedRunTime();
 
-  igndbg << "\nUsing levels = "
+  gzdbg << "\nUsing levels = "
          << duration_cast<milliseconds>(levelsDuration).count() << " ms\n"
          << "Without levels = "
          << duration_cast<milliseconds>(nolevelsDuration).count() << " ms\n";

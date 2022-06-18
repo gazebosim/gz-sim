@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
-#define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
+#ifndef GZ_SIM_GUI_VIEWANGLE_HH_
+#define GZ_SIM_GUI_VIEWANGLE_HH_
 
 #include <gz/msgs/pose.pb.h>
 
@@ -24,9 +24,9 @@
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ViewAnglePrivate;
 
@@ -36,7 +36,7 @@ namespace gazebo
   /// \<service\> : Set the service to receive view angle requests.
   /// \<legacy\> : Set to true to use with GzScene3D, false to use with
   /// MinimalScene. Defaults to true.
-  class ViewAngle : public ignition::gui::Plugin
+  class ViewAngle : public gz::gui::Plugin
   {
     Q_OBJECT
 

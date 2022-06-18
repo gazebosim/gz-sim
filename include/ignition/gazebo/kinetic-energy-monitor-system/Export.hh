@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/kinetic-energy-monitor-system/Export.hh>
+#include <ignition/gazebo/config.hh>

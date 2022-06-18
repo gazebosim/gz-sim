@@ -2,7 +2,7 @@
 
 # Overview
 
-Ignition Gazebo provides a Python API to interact with world.
+Gazebo provides a Python API to interact with world.
 
 For now, we provide a `TestFixture` class that allows to load a world file,
 step simulation and check entities and components.
@@ -37,18 +37,16 @@ fixture.finalize()
   - **Step 5**: Run the server
 
 ```python
-server.run(False, 1000, False)
-while(server.is_running()):
-    time.sleep(0.1)
+server.run(True, 1000, False)
 ```
 
 # Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo7/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/blob/ign-gazebo7/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
-If you compiled Ignition Gazebo from source you should modify your `PYTHONPATH`:
+If you compiled Gazebo from source you should modify your `PYTHONPATH`:
 
 ```bash
 export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
@@ -59,8 +57,8 @@ Now you can run the example:
 ```bash
 $ python3 examples/scripts/python_api/testFixture.py
 [Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
-[Dbg] [Physics.cc:789] Loaded [ignition::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
-[Dbg] [SimulationRunner.cc:909] Loaded system [ignition::gazebo::systems::Physics] for entity [1]
+[Dbg] [Physics.cc:789] Loaded [gz::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
+[Dbg] [SimulationRunner.cc:909] Loaded system [gz::sim::systems::Physics] for entity [1]
 [Msg] Loaded level [3]
 [Msg] Serving world controls on [/world/gravity/control], [/world/gravity/control/state] and [/world/gravity/playback/control]
 [Msg] Serving GUI information on [/world/gravity/gui/info]

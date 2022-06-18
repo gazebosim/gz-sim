@@ -45,12 +45,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
-class ignition::gazebo::systems::AltimeterPrivate
+class gz::sim::systems::AltimeterPrivate
 {
   /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,
@@ -104,7 +104,7 @@ Altimeter::~Altimeter() = default;
 void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::PreUpdate");
+  GZ_PROFILE("Altimeter::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -112,7 +112,7 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -126,12 +126,12 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
 void Altimeter::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::PostUpdate");
+  GZ_PROFILE("Altimeter::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -141,6 +141,24 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the AltimeterPrivate::UpdateAltimeters function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->UpdateAltimeters(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -176,7 +194,7 @@ void AltimeterPrivate::AddAltimeter(
       sensors::AltimeterSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -201,7 +219,7 @@ void AltimeterPrivate::AddAltimeter(
 //////////////////////////////////////////////////
 void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::CreateAltimeterEntities");
+  GZ_PROFILE("Altimeter::CreateAltimeterEntities");
   if (!this->initialized)
   {
     // Create altimeters
@@ -232,7 +250,7 @@ void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::UpdateAltimeters");
+  GZ_PROFILE("Altimeter::UpdateAltimeters");
   _ecm.Each<components::Altimeter, components::WorldPose,
             components::WorldLinearVelocity>(
     [&](const Entity &_entity,
@@ -250,7 +268,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update altimeter: " << _entity << ". "
+          gzerr << "Failed to update altimeter: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -262,7 +280,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 void AltimeterPrivate::RemoveAltimeterEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::RemoveAltimeterEntities");
+  GZ_PROFILE("Altimeter::RemoveAltimeterEntities");
   _ecm.EachRemoved<components::Altimeter>(
     [&](const Entity &_entity,
         const components::Altimeter *)->bool
@@ -270,7 +288,7 @@ void AltimeterPrivate::RemoveAltimeterEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing altimeter sensor for entity ["
+          gzerr << "Internal error, missing altimeter sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -281,9 +299,12 @@ void AltimeterPrivate::RemoveAltimeterEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Altimeter, System,
+GZ_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPreUpdate,
   Altimeter::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")
+GZ_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

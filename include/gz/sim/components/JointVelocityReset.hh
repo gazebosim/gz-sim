@@ -24,12 +24,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Joint velocities in SI units
@@ -40,7 +40,7 @@ namespace components
   using JointVelocityReset = Component<std::vector<double>,
                                        class JointVelocityResetTag,
                                        serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointVelocityReset", JointVelocityReset)
 }
 }

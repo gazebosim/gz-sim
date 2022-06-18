@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointTransmittedWrench.hh>
+#include <ignition/gazebo/config.hh>

@@ -24,19 +24,19 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains an altimeter sensor,
   /// sdf::Altimeter, information.
   using Altimeter =
       Component<sdf::Sensor, class AltimeterTag, serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Altimeter", Altimeter)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Altimeter", Altimeter)
 }
 }
 }

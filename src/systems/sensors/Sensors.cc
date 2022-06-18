@@ -20,6 +20,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -60,12 +61,12 @@
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SensorsPrivate
+class gz::sim::systems::SensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
@@ -100,7 +101,7 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
   /// Useful for detecting when a sensor Entity has been deleted and trigger
-  /// the destruction of the corresponding ignition::sensors Sensor object
+  /// the destruction of the corresponding gz::sensors Sensor object
   public: std::unordered_map<Entity, sensors::SensorId> entityToIdMap;
 
   /// \brief Flag to indicate if worker threads are running
@@ -111,6 +112,9 @@ class ignition::gazebo::systems::SensorsPrivate
 
   /// \brief Flag to signal if rendering update is needed
   public: bool updateAvailable { false };
+
+  /// \brief Flag to signal if a rendering update must be done
+  public: std::atomic<bool> forceUpdate { false };
 
   /// \brief Thread that rendering will occur in
   public: std::thread renderThread;
@@ -126,7 +130,10 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: ignition::common::ConnectionPtr stopConn;
+  public: gz::common::ConnectionPtr stopConn;
+
+  /// \brief Connection to events::ForceRender event, used to force rendering
+  public: gz::common::ConnectionPtr forceRenderConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
@@ -184,9 +191,17 @@ class ignition::gazebo::systems::SensorsPrivate
   /// \brief Stop the rendering thread
   public: void Stop();
 
+  /// \brief Force rendering thread to render
+  public: void ForceRender();
+
   /// \brief Update battery state of sensors in model
   /// \param[in] _ecm Entity component manager
   public: void UpdateBatteryState(const EntityComponentManager &_ecm);
+
+  /// \brief Check if sensor has subscribers
+  /// \param[in] _sensor Sensor to check
+  /// \return True if the sensor has subscribers, false otherwise
+  public: bool HasConnections(sensors::RenderingSensor *_sensor) const;
 
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
@@ -219,7 +234,7 @@ void SensorsPrivate::WaitForInit()
 {
   while (!this->initialized && this->running)
   {
-    igndbg << "Waiting for init" << std::endl;
+    gzdbg << "Waiting for init" << std::endl;
     std::unique_lock<std::mutex> lock(this->renderMutex);
     // Wait to be ready for initialization or stopped running.
     // We need rendering sensors to be available to initialize.
@@ -231,7 +246,7 @@ void SensorsPrivate::WaitForInit()
     if (this->doInit)
     {
       // Only initialize if there are rendering sensors
-      igndbg << "Initializing render context" << std::endl;
+      gzdbg << "Initializing render context" << std::endl;
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
@@ -245,7 +260,7 @@ void SensorsPrivate::WaitForInit()
     this->updateAvailable = false;
     this->renderCv.notify_one();
   }
-  igndbg << "Rendering Thread initialized" << std::endl;
+  gzdbg << "Rendering Thread initialized" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -263,13 +278,13 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
-  IGN_PROFILE("SensorsPrivate::RunOnce");
+  GZ_PROFILE("SensorsPrivate::RunOnce");
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     this->renderUtil.Update();
   }
 
-  if (!this->activeSensors.empty())
+  if (!this->activeSensors.empty() || this->forceUpdate)
   {
     // disable sensors that are out of battery or re-enable sensors that are
     // being charged
@@ -308,8 +323,9 @@ void SensorsPrivate::RunOnce()
     this->sensorMaskMutex.unlock();
 
     {
-      IGN_PROFILE("PreRender");
+      GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
+      this->scene->SetTime(this->updateTime);
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -317,14 +333,37 @@ void SensorsPrivate::RunOnce()
       this->scene->PreRender();
     }
 
+    // disable sensors that have no subscribers to prevent doing unnecessary
+    // work
+    std::unordered_set<sensors::RenderingSensor *> tmpDisabledSensors;
+    this->sensorMaskMutex.lock();
+    for (auto id : this->sensorIds)
+    {
+      sensors::Sensor *s = this->sensorManager.Sensor(id);
+      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+      if (rs->IsActive() && !this->HasConnections(rs))
+      {
+        rs->SetActive(false);
+        tmpDisabledSensors.insert(rs);
+      }
+    }
+    this->sensorMaskMutex.unlock();
+
     {
       // publish data
-      IGN_PROFILE("RunOnce");
+      GZ_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
+      this->eventManager->Emit<events::Render>();
+    }
+
+    // re-enble sensors
+    for (auto &rs : tmpDisabledSensors)
+    {
+      rs->SetActive(true);
     }
 
     {
-      IGN_PROFILE("PostRender");
+      GZ_PROFILE("PostRender");
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -337,6 +376,7 @@ void SensorsPrivate::RunOnce()
   }
 
   this->updateAvailable = false;
+  this->forceUpdate = false;
   lock.unlock();
   this->renderCv.notify_one();
 }
@@ -344,9 +384,9 @@ void SensorsPrivate::RunOnce()
 //////////////////////////////////////////////////
 void SensorsPrivate::RenderThread()
 {
-  IGN_PROFILE_THREAD_NAME("RenderThread");
+  GZ_PROFILE_THREAD_NAME("RenderThread");
 
-  igndbg << "SensorsPrivate::RenderThread started" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread started" << std::endl;
 
   // We have to wait for rendering sensors to be available
   this->WaitForInit();
@@ -360,13 +400,13 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
-  igndbg << "SensorsPrivate::RenderThread stopped" << std::endl;
+  gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void SensorsPrivate::Run()
 {
-  igndbg << "SensorsPrivate::Run" << std::endl;
+  gzdbg << "SensorsPrivate::Run" << std::endl;
   this->running = true;
   this->renderThread = std::thread(&SensorsPrivate::RenderThread, this);
 }
@@ -374,7 +414,7 @@ void SensorsPrivate::Run()
 //////////////////////////////////////////////////
 void SensorsPrivate::Stop()
 {
-  igndbg << "SensorsPrivate::Stop" << std::endl;
+  gzdbg << "SensorsPrivate::Stop" << std::endl;
   std::unique_lock<std::mutex> lock(this->renderMutex);
   this->running = false;
 
@@ -391,6 +431,12 @@ void SensorsPrivate::Stop()
   {
     this->renderThread.join();
   }
+}
+
+//////////////////////////////////////////////////
+void SensorsPrivate::ForceRender()
+{
+  this->forceUpdate = true;
 }
 
 //////////////////////////////////////////////////
@@ -447,7 +493,7 @@ void Sensors::Configure(const Entity &/*_id*/,
     EntityComponentManager &_ecm,
     EventManager &_eventMgr)
 {
-  igndbg << "Configuring Sensors system" << std::endl;
+  gzdbg << "Configuring Sensors system" << std::endl;
 
   // Setup rendering
   std::string engineName =
@@ -511,6 +557,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
+  this->dataPtr->forceRenderConn = _eventMgr.Connect<events::ForceRender>(
+      std::bind(&SensorsPrivate::ForceRender, this->dataPtr.get()));
+
   // Kick off worker thread
   this->dataPtr->Run();
 }
@@ -519,7 +568,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::Update");
+  GZ_PROFILE("Sensors::Update");
   std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
@@ -531,12 +580,12 @@ void Sensors::Update(const UpdateInfo &_info,
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::PostUpdate");
+  GZ_PROFILE("Sensors::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -544,7 +593,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
-        (_ecm.HasComponentType(components::Camera::typeId) ||
+        (this->dataPtr->forceUpdate ||
+         _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
@@ -552,7 +602,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
          _ecm.HasComponentType(components::WideAngleCamera::typeId)))
     {
-      igndbg << "Initialization needed" << std::endl;
+      gzdbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
       this->dataPtr->renderCv.notify_one();
     }
@@ -594,7 +644,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->sensorMaskMutex.unlock();
 
     if (!activeSensors.empty() ||
-        this->dataPtr->renderUtil.PendingSensors() > 0)
+        this->dataPtr->renderUtil.PendingSensors() > 0 ||
+        this->dataPtr->forceUpdate)
     {
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
@@ -683,7 +734,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 {
   if (_sdf.Type() == sdf::SensorType::NONE)
   {
-    ignerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
+    gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
   }
 
@@ -727,7 +778,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << _sdf.Name()
+    gzerr << "Failed to create sensor [" << _sdf.Name()
            << "]." << std::endl;
     return std::string();
   }
@@ -802,7 +853,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
         std::fabs(this->dataPtr->ambientTemperatureGradient * height);
     thermalSensor->SetAmbientTemperatureRange(tempRange);
 
-    ignmsg << "Setting ambient temperature to "
+    gzmsg << "Setting ambient temperature to "
            << this->dataPtr->ambientTemperature << " Kelvin and gradient to "
            << this->dataPtr->ambientTemperatureGradient << " K/m. "
            << "The resulting temperature range is: " << tempRange
@@ -812,10 +863,56 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   return sensor->Name();
 }
 
-IGNITION_ADD_PLUGIN(Sensors, System,
+//////////////////////////////////////////////////
+bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
+{
+  if (!_sensor)
+    return true;
+
+  // \todo(iche033) Remove this function once a virtual
+  // sensors::RenderingSensor::HasConnections function is available
+  {
+    auto s = dynamic_cast<sensors::RgbdCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::DepthCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::GpuLidarSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::SegmentationCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::ThermalCameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  {
+    auto s = dynamic_cast<sensors::CameraSensor *>(_sensor);
+    if (s)
+      return s->HasConnections();
+  }
+  gzwarn << "Unable to check connection count for sensor: " << _sensor->Name()
+          << ". Unknown sensor type." << std::endl;
+  return true;
+}
+
+GZ_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
   Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
+GZ_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")

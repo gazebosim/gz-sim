@@ -21,18 +21,18 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = Component<bool, class StaticTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Static", Static)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
 }
 }
 }

@@ -21,17 +21,17 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to turn off a model's joint's movement.
   using HaltMotion = Component<bool, class HaltMotionTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.HaltMotion",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.HaltMotion",
       HaltMotion)
 }
 }

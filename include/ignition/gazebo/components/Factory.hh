@@ -16,3 +16,7 @@
  */
 
 #include <gz/sim/components/Factory.hh>
+#include <ignition/gazebo/config.hh>
+
+#define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
+  GZ_SIM_REGISTER_COMPONENT(_compType, _classname)

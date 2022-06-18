@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Level.hh>
+#include <ignition/gazebo/config.hh>

@@ -27,12 +27,12 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using GeometrySerializer =
@@ -45,7 +45,7 @@ namespace components
   using Geometry = Component<sdf::Geometry, class GeometryTag,
                              serializers::GeometrySerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Geometry", Geometry)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Geometry", Geometry)
 
 }
 }

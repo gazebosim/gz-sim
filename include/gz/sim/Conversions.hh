@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_CONVERSIONS_HH_
-#define GZ_GAZEBO_CONVERSIONS_HH_
+#ifndef GZ_SIM_CONVERSIONS_HH_
+#define GZ_SIM_CONVERSIONS_HH_
 
 #include <gz/msgs/actor.pb.h>
 #include <gz/msgs/atmosphere.pb.h>
@@ -27,6 +27,7 @@
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material.pb.h>
 #include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/plugin_v.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/scene.pb.h>
 #include <gz/msgs/sensor.pb.h>
@@ -38,7 +39,9 @@
 #include <string>
 
 #include <gz/common/Console.hh>
+#include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Inertial.hh>
+#include <gz/math/Pose3.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Collision.hh>
@@ -49,6 +52,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Noise.hh>
 #include <sdf/ParticleEmitter.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
@@ -57,24 +61,24 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Helper function that sets a mutable msgs::SensorNoise object
     /// to the values contained in a sdf::Noise object.
     /// \param[out] _msg SensorNoise message to set.
     /// \param[in] _sdf SDF Noise object.
-    void IGNITION_GAZEBO_VISIBLE
+    void GZ_GAZEBO_VISIBLE
     set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Helper function that sets a mutable msgs::WorldStatistics object
-    /// to the values contained in a gazebo::UpdateInfo  object.
+    /// to the values contained in a sim::UpdateInfo  object.
     /// \param[out] _msg WorldStatistics message to set.
     /// \param[in] _in UpdateInfo object.
-    void IGNITION_GAZEBO_VISIBLE
+    void GZ_GAZEBO_VISIBLE
     set(msgs::WorldStatistics *_msg, const UpdateInfo &_in);
 
     /// \brief Helper function that sets a mutable msgs::Time object
@@ -82,7 +86,7 @@ namespace ignition
     /// object.
     /// \param[out] _msg Time message to set.
     /// \param[in] _in Chrono duration object.
-    void IGNITION_GAZEBO_VISIBLE
+    void GZ_GAZEBO_VISIBLE
     set(msgs::Time *_msg, const std::chrono::steady_clock::duration &_in);
 
     /// \brief Generic conversion from an SDF geometry to another type.
@@ -232,7 +236,7 @@ namespace ignition
     /// \param[in] _in SDF light type.
     /// \return Conversion result.
     /// \tparam Out Output type.
-    std::string IGNITION_GAZEBO_VISIBLE
+    std::string GZ_GAZEBO_VISIBLE
     convert(const sdf::LightType &_in);
 
     /// \brief Generic conversion from a light message to another type.
@@ -256,7 +260,7 @@ namespace ignition
     /// \brief Specialized conversion from a string to a sdf light type
     /// \param[in] _in String with the light type.
     /// \return Light type emun SDF object.
-    sdf::LightType IGNITION_GAZEBO_VISIBLE
+    sdf::LightType GZ_GAZEBO_VISIBLE
     convert(const std::string &_in);
 
     /// \brief Generic conversion from an SDF gui to another type.
@@ -290,7 +294,7 @@ namespace ignition
     /// \brief Specialized conversion from a steady clock duration to a time
     /// message.
     /// \param[in] _in Steady clock duration.
-    /// \return Ignition time message.
+    /// \return Gazebo time message.
     template<>
     msgs::Time convert(const std::chrono::steady_clock::duration &_in);
 
@@ -560,7 +564,7 @@ namespace ignition
     }
 
     /// \brief Specialized conversion from a world statistics message to an
-    /// `ignition::gazebo::UpdateInfo` object.
+    /// `gz::sim::UpdateInfo` object.
     /// \param[in] _in WorldStatistics message.
     /// \return Update info.
     template<>
@@ -709,6 +713,38 @@ namespace ignition
     /// \return Particle emitter message.
     template<>
     sdf::ParticleEmitter convert(const msgs::ParticleEmitter &_in);
+
+    /// \brief Generic conversion from an SDF element to another type.
+    /// \param[in] _in SDF element.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Element &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF element to a plugin message.
+    /// \param[in] _in SDF element.
+    /// \return Plugin message.
+    template<>
+    msgs::Plugin convert(const sdf::Element &_in);
+
+    /// \brief Generic conversion from an SDF plugin to another type.
+    /// \param[in] _in SDF plugin.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Plugin &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF plugin to a plugin message.
+    /// \param[in] _in SDF plugin.
+    /// \return Plugin message.
+    template<>
+    msgs::Plugin convert(const sdf::Plugin &_in);
     }
   }
 }

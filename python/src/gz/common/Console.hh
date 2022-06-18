@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IGNITION_GAZEBO_PYTHON__CONSOLE_HH_
-#define IGNITION_GAZEBO_PYTHON__CONSOLE_HH_
+#ifndef GZ_SIM_PYTHON__CONSOLE_HH_
+#define GZ_SIM_PYTHON__CONSOLE_HH_
 
 #include <pybind11/pybind11.h>
 
-namespace ignition
+namespace gz
 {
   namespace common
   {

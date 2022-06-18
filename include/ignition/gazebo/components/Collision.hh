@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Collision.hh>
+#include <ignition/gazebo/config.hh>

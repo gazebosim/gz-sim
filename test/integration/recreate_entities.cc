@@ -20,30 +20,30 @@
 #include <algorithm>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
 using namespace std::chrono_literals;
@@ -54,7 +54,7 @@ class RecreateEntitiesFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities))
 {
   // Start server
   ServerConfig serverConfig;
@@ -70,8 +70,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
@@ -84,7 +84,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity
@@ -164,35 +164,35 @@ TEST_F(RecreateEntitiesFixture,
         EXPECT_EQ(worldEntity, _parent->Data());
         if (modelCount == 1)
         {
-          EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("box", _name->Data());
           boxModelEntity = _entity;
         }
         else if (modelCount == 2)
         {
-          EXPECT_EQ(ignition::math::Pose3d(-1, -2, -3, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(-1, -2, -3, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("cylinder", _name->Data());
           cylModelEntity = _entity;
         }
         else if (modelCount == 3)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0, 0, 0, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("sphere", _name->Data());
           sphModelEntity = _entity;
         }
         else if (modelCount == 4)
         {
-          EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(-4, -5, -6, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("capsule", _name->Data());
           capModelEntity = _entity;
         }
         else if (modelCount == 5)
         {
-          EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+          EXPECT_EQ(gz::math::Pose3d(4, 5, 6, 0, 0, 1),
               _pose->Data());
           EXPECT_EQ("ellipsoid", _name->Data());
           ellipModelEntity = _entity;
@@ -228,7 +228,7 @@ TEST_F(RecreateEntitiesFixture,
 
         if (linkCount == 1)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("box_link", _name->Data());
           EXPECT_EQ(boxModelEntity, _parent->Data());
@@ -236,7 +236,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 2)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("cylinder_link", _name->Data());
           EXPECT_EQ(cylModelEntity, _parent->Data());
@@ -244,7 +244,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 3)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("sphere_link", _name->Data());
           EXPECT_EQ(sphModelEntity, _parent->Data());
@@ -252,7 +252,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 4)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("capsule_link", _name->Data());
           EXPECT_EQ(capModelEntity, _parent->Data());
@@ -260,7 +260,7 @@ TEST_F(RecreateEntitiesFixture,
         }
         else if (linkCount == 5)
         {
-          EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+          EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
               _pose->Data());
           EXPECT_EQ("ellipsoid_link", _name->Data());
           EXPECT_EQ(ellipModelEntity, _parent->Data());
@@ -324,7 +324,7 @@ TEST_F(RecreateEntitiesFixture,
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_Joints))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_Joints))
 {
   // Start server
   ServerConfig serverConfig;
@@ -340,8 +340,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
@@ -354,7 +354,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity
@@ -483,7 +483,7 @@ TEST_F(RecreateEntitiesFixture,
 
 /////////////////////////////////////////////////
 TEST_F(RecreateEntitiesFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_WorldJoint))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RecreateEntities_WorldJoint))
 {
   // Start server
   ServerConfig serverConfig;
@@ -499,8 +499,8 @@ TEST_F(RecreateEntitiesFixture,
 
   // Create a system that adds a recreate component to models
   test::Relay testSystem;
-  testSystem.OnUpdate([&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+  testSystem.OnUpdate([&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
     {
       // cppcheck-suppress knownConditionTrueFalse
       if (!ecm)
@@ -513,7 +513,7 @@ TEST_F(RecreateEntitiesFixture,
       if (recreateEntities)
       {
         _ecm.Each<components::Model>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::Model *) -> bool
             {
               // add a components::Recreate to indicate that this entity

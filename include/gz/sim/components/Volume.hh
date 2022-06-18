@@ -21,18 +21,18 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A volume component where the units are m^3.
   /// Double value indicates volume of an entity.
   using Volume = Component<double, class VolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Volume", Volume)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Volume", Volume)
 }
 }
 }

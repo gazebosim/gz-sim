@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Link.hh>
+#include <ignition/gazebo/config.hh>

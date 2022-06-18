@@ -37,28 +37,28 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::ParticleEmitterPrivate
+class gz::sim::systems::ParticleEmitterPrivate
 {
   /// \brief Callback for receiving particle emitter commands.
   /// \param[in] _msg Particle emitter message.
-  public: void OnCmd(const ignition::msgs::ParticleEmitter &_msg,
+  public: void OnCmd(const gz::msgs::ParticleEmitter &_msg,
               const transport::MessageInfo &_info);
 
-  public: bool EmittersService(ignition::msgs::ParticleEmitter_V &_res);
+  public: bool EmittersService(gz::msgs::ParticleEmitter_V &_res);
 
   /// \brief The transport node.
-  public: ignition::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief Map of topic name to particle emitter entity.
   public: std::map<std::string, Entity> emitterTopicMap;
 
   /// \brief Map of Entity to particle emitter command requested externally.
-  public: std::map<Entity, ignition::msgs::ParticleEmitter> userCmd;
+  public: std::map<Entity, gz::msgs::ParticleEmitter> userCmd;
 
   /// \brief A mutex to protect the user command.
   public: std::mutex mutex;
@@ -83,14 +83,14 @@ void ParticleEmitterPrivate::OnCmd(const msgs::ParticleEmitter &_msg,
   }
   else
   {
-    ignwarn << "Topic[" << _info.Topic() << "] is not known to the particle "
+    gzwarn << "Topic[" << _info.Topic() << "] is not known to the particle "
       "emitter system. The requested command will be ignored.\n";
   }
 }
 
 //////////////////////////////////////////////////
 bool ParticleEmitterPrivate::EmittersService(
-    ignition::msgs::ParticleEmitter_V &_res)
+    gz::msgs::ParticleEmitter_V &_res)
 {
   _res.Clear();
 
@@ -115,7 +115,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
   const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
-    ignerr << "World with id: " << _entity
+    gzerr << "World with id: " << _entity
            << " has no name. ParticleEmitter cannot create transport topics\n";
     return;
   }
@@ -124,21 +124,21 @@ void ParticleEmitter::Configure(const Entity &_entity,
   if (this->dataPtr->node.Advertise(emittersService,
         &ParticleEmitterPrivate::EmittersService, this->dataPtr.get()))
   {
-    ignmsg << "Serving particle emitter information on ["
+    gzmsg << "Serving particle emitter information on ["
       << emittersService << "]" << std::endl;
   }
   else
   {
-    ignerr << "Something went wrong, failed to advertise [" << emittersService
+    gzerr << "Something went wrong, failed to advertise [" << emittersService
            << "]" << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
-void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ParticleEmitter::PreUpdate");
+  GZ_PROFILE("ParticleEmitter::PreUpdate");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
@@ -176,11 +176,11 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           if (!this->dataPtr->node.Subscribe(
                 topic, &ParticleEmitterPrivate::OnCmd, this->dataPtr.get()))
           {
-            ignerr << "Error subscribing to topic [" << topic << "]. "
+            gzerr << "Error subscribing to topic [" << topic << "]. "
               << "Particle emitter will not receive updates." << std::endl;
             return false;
           }
-          ignmsg << "Particle emitter["
+          gzmsg << "Particle emitter["
             << scopedName(_entity, _ecm, "::", false) << "] subscribed "
             << "to command messages on topic[" << topic << "]\n";
 
@@ -246,10 +246,14 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   this->dataPtr->userCmd.clear();
 }
 
-IGNITION_ADD_PLUGIN(ParticleEmitter,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(ParticleEmitter,
+                    gz::sim::System,
                     ParticleEmitter::ISystemConfigure,
                     ParticleEmitter::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter,
+GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
+                          "gz::sim::systems::ParticleEmitter")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "ignition::gazebo::systems::ParticleEmitter")

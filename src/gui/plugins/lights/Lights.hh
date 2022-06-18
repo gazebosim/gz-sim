@@ -15,22 +15,22 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_LIGHTS_HH_
-#define IGNITION_GAZEBO_GUI_LIGHTS_HH_
+#ifndef GZ_SIM_GUI_LIGHTS_HH_
+#define GZ_SIM_GUI_LIGHTS_HH_
 
 #include <memory>
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class LightsPrivate;
 
   /// \brief Provides buttons for adding a point, directional, or spot light
   /// to the scene
-  class Lights : public ignition::gui::Plugin
+  class Lights : public gz::gui::Plugin
   {
     Q_OBJECT
 

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
+#ifndef GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
+#define GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 
 #include <memory>
 #include <set>
@@ -25,16 +25,16 @@
 #include <gz/transport/Node.hh>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief The JointStatePub system publishes state information for
-  /// a model. The published message type is ignition::msgs::Model, and the
+  /// a model. The published message type is gz::msgs::Model, and the
   /// publication topic is "/world/<world_name>/model/<model_name>/state".
   ///
   /// By default the JointStatePublisher will publish all joints for
@@ -70,7 +70,7 @@ namespace systems
     /// \param[in] _ecm The EntityComponentManager.
     /// \param[in] _joint The joint entity to create component for.
     private: void CreateComponents(EntityComponentManager &_ecm,
-                                   gazebo::Entity _joint);
+                                   sim::Entity _joint);
 
     /// \brief The model
     private: Model model;

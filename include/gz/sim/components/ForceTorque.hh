@@ -26,19 +26,19 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Serialization.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains an FT sensor,
   /// sdf::ForceTorque, information.
   using ForceTorque = Component<sdf::Sensor, class ForceTorqueTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ForceTorque",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ForceTorque",
                                 ForceTorque)
 }
 }

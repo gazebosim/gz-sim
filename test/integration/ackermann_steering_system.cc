@@ -16,17 +16,17 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
@@ -34,8 +34,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test AckermannSteering system
@@ -61,8 +61,8 @@ class AckermannSteeringTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -122,8 +122,8 @@ class AckermannSteeringTest
     const double desiredLinVel = 10.5;
     const double desiredAngVel = 0.1;
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            const gazebo::EntityComponentManager &)
+        [&](const sim::UpdateInfo &/*_info*/,
+            const sim::EntityComponentManager &)
         {
           msgs::Set(msg.mutable_linear(),
                     math::Vector3d(desiredLinVel, 0, 0));
@@ -194,8 +194,8 @@ class AckermannSteeringTest
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
                                    "/test/worlds/ackermann_steering.sdf"),
@@ -204,7 +204,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "/test/worlds/ackermann_steering_custom_topics.sdf"),
@@ -212,7 +212,7 @@ TEST_P(AckermannSteeringTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -229,8 +229,8 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       auto id = _ecm.EntityByComponents(
         components::Model(),
@@ -310,7 +310,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -369,7 +369,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;

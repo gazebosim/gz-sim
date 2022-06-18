@@ -38,8 +38,8 @@
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -54,7 +54,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 {
   if (nullptr == _world)
   {
-    ignerr << "Can't start simulation runner with null world." << std::endl;
+    gzerr << "Can't start simulation runner with null world." << std::endl;
     return;
   }
 
@@ -154,13 +154,13 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     {
       if (this->networkMgr->IsPrimary())
       {
-        ignmsg << "Network Primary, expects ["
+        gzmsg << "Network Primary, expects ["
           << this->networkMgr->Config().numSecondariesExpected
           << "] secondaries." << std::endl;
       }
       else if (this->networkMgr->IsSecondary())
       {
-        ignmsg << "Network Secondary, with namespace ["
+        gzmsg << "Network Secondary, with namespace ["
           << this->networkMgr->Namespace() << "]." << std::endl;
       }
     }
@@ -180,9 +180,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   if (this->systemMgr->TotalByEntity(
       worldEntity(this->entityCompMgr)).empty())
   {
-    ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 
@@ -199,7 +199,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   auto validNs = transport::TopicUtils::AsValidTopic(ns);
   if (validNs.empty())
   {
-    ignerr << "Invalid namespace [" << ns
+    gzerr << "Invalid namespace [" << ns
            << "], not initializing runner transport." << std::endl;
     return;
   }
@@ -214,7 +214,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node->Advertise("playback/control",
       &SimulationRunner::OnPlaybackControl, this);
 
-  ignmsg << "Serving world controls on [" << opts.NameSpace()
+  gzmsg << "Serving world controls on [" << opts.NameSpace()
          << "/control], [" << opts.NameSpace() << "/control/state] and ["
          << opts.NameSpace() << "/playback/control]" << std::endl;
 
@@ -228,17 +228,17 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   std::string infoService{"gui/info"};
   this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
 
-  ignmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
-  ignmsg << "World [" << _world->Name() << "] initialized with ["
+  gzmsg << "World [" << _world->Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
 
   std::string genWorldSdfService{"generate_world_sdf"};
   this->node->Advertise(
       genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
 
-  ignmsg << "Serving world SDF generation service on [" << opts.NameSpace()
+  gzmsg << "Serving world SDF generation service on [" << opts.NameSpace()
          << "/" << genWorldSdfService << "]" << std::endl;
 }
 
@@ -251,12 +251,12 @@ SimulationRunner::~SimulationRunner()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
-  IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
+  GZ_PROFILE("SimulationRunner::UpdateCurrentInfo");
 
   // Rewind
   if (this->requestedRewind)
   {
-    igndbg << "Rewinding simulation back to time zero." << std::endl;
+    gzdbg << "Rewinding simulation back to time zero." << std::endl;
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
@@ -277,7 +277,7 @@ void SimulationRunner::UpdateCurrentInfo()
   // Seek
   if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
   {
-    igndbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
+    gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
         this->requestedSeek).count() << "s." << std::endl;
 
     this->realTimes.clear();
@@ -404,17 +404,17 @@ void SimulationRunner::UpdatePhysicsParams()
 /////////////////////////////////////////////////
 void SimulationRunner::PublishStats()
 {
-  IGN_PROFILE("SimulationRunner::PublishStats");
+  GZ_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  ignition::msgs::WorldStatistics msg;
+  gz::msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.realTime);
+    gz::math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.simTime);
+    gz::math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -440,14 +440,14 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  ignition::msgs::Clock clockMsg;
+  gz::msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
   clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(IGN_SYSTEM_TIME_S());
+  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
   clockMsg.mutable_system()->set_nsec(
-      IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
+      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
   this->clockPub.Publish(clockMsg);
 
   // Only publish to root topic if no others are.
@@ -491,7 +491,7 @@ void SimulationRunner::ProcessSystemQueue()
 
   auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
 
-  igndbg << "Creating PostUpdate worker threads: "
+  gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
 
   this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
@@ -502,13 +502,13 @@ void SimulationRunner::ProcessSystemQueue()
 
   for (auto &system : this->systemMgr->SystemsPostUpdate())
   {
-    igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
 
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
-      IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
       while (this->postUpdateThreadsRunning)
       {
         this->postUpdateStartBarrier->Wait();
@@ -518,7 +518,7 @@ void SimulationRunner::ProcessSystemQueue()
         }
         this->postUpdateStopBarrier->Wait();
       }
-      igndbg << "Exiting postupdate worker thread ("
+      gzdbg << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
     id++;
@@ -528,35 +528,35 @@ void SimulationRunner::ProcessSystemQueue()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
-  IGN_PROFILE("SimulationRunner::UpdateSystems");
+  GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an ignition::common::WorkerPool. There is overhead associated with
+  // an gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
   if (this->resetInitiated)
   {
-    IGN_PROFILE("Reset");
+    GZ_PROFILE("Reset");
     for (auto &system : this->systemMgr->SystemsReset())
       system->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
 
   {
-    IGN_PROFILE("PreUpdate");
+    GZ_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     for (auto& system : this->systemMgr->SystemsUpdate())
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
   {
-    IGN_PROFILE("PostUpdate");
+    GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
@@ -609,24 +609,24 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
-  IGN_PROFILE_THREAD_NAME("SimulationRunner");
+  GZ_PROFILE_THREAD_NAME("SimulationRunner");
 
   // Initialize network communications.
   if (this->networkMgr)
   {
-    igndbg << "Initializing network configuration" << std::endl;
+    gzdbg << "Initializing network configuration" << std::endl;
     this->networkMgr->Handshake();
 
     // Secondaries are stepped through the primary, just keep alive until
     // simulation is over
     if (this->networkMgr->IsSecondary())
     {
-      igndbg << "Secondary running." << std::endl;
+      gzdbg << "Secondary running." << std::endl;
       while (!this->stopReceived)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
-      igndbg << "Secondary finished run." << std::endl;
+      gzdbg << "Secondary finished run." << std::endl;
       return true;
     }
   }
@@ -650,35 +650,35 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // because the GUI listens to these msgs to receive confirmation that
     // pause/play GUI requests have been processed by the server, so we want to
     // make sure that GUI requests are acknowledged quickly (see
-    // https://github.com/ignitionrobotics/ign-gui/pull/306 and
-    // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
+    // https://github.com/gazebosim/gz-gui/pull/306 and
+    // https://github.com/gazebosim/gz-sim/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<gz::transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
     {
-      ignwarn << "Found additional publishers on /stats," <<
+      gzwarn << "Found additional publishers on /stats," <<
                  " using namespaced stats topic only" << std::endl;
-      igndbg << "Publishers [Address, Message Type]:\n";
+      gzdbg << "Publishers [Address, Message Type]:\n";
 
       /// List the publishers
       for (auto & pub : publishers)
       {
-        igndbg << "  " << pub.Addr() << ", "
+        gzdbg << "  " << pub.Addr() << ", "
           << pub.MsgTypeName() << std::endl;
       }
     }
     else
     {
-      ignmsg << "Found no publishers on /stats, adding root stats topic"
+      gzmsg << "Found no publishers on /stats, adding root stats topic"
              << std::endl;
       this->rootStatsPub = this->node->Advertise<msgs::WorldStatistics>(
           "/stats");
@@ -687,33 +687,33 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<gz::msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<gz::transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
     {
-      ignwarn << "Found additional publishers on /clock," <<
+      gzwarn << "Found additional publishers on /clock," <<
                  " using namespaced clock topic only" << std::endl;
-      igndbg << "Publishers [Address, Message Type]:\n";
+      gzdbg << "Publishers [Address, Message Type]:\n";
 
       /// List the publishers
       for (auto & pub : publishers)
       {
-        igndbg << "  " << pub.Addr() << ", "
+        gzdbg << "  " << pub.Addr() << ", "
           << pub.MsgTypeName() << std::endl;
       }
     }
     else
     {
-      ignmsg << "Found no publishers on /clock, adding root clock topic"
+      gzmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
           "/clock");
     }
   }
@@ -726,7 +726,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
-    IGN_PROFILE("SimulationRunner::Run - Iteration");
+    GZ_PROFILE("SimulationRunner::Run - Iteration");
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
@@ -743,7 +743,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Only sleep if needed.
     if (sleepTime > 0ns)
     {
-      IGN_PROFILE("Sleep");
+      GZ_PROFILE("Sleep");
       // Get the current time, sleep for the duration needed to match the
       // updatePeriod, and then record the actual time slept.
       startTime = std::chrono::steady_clock::now();
@@ -801,7 +801,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 /////////////////////////////////////////////////
 void SimulationRunner::Step(const UpdateInfo &_info)
 {
-  IGN_PROFILE("SimulationRunner::Step");
+  GZ_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
   // Process new ECM state information, typically sent from the GUI after
@@ -951,7 +951,7 @@ void SimulationRunner::LoadServerPlugins(
     }
     else
     {
-      ignwarn << "No support for attaching plugins to entity of type ["
+      gzwarn << "No support for attaching plugins to entity of type ["
               << plugin.EntityType() << "]" << std::endl;
     }
 
@@ -970,7 +970,7 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
   if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
-    ignwarn <<
+    gzwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
@@ -1145,13 +1145,13 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
 
     if (_req.world_control().reset().model_only())
     {
-      ignwarn << "Model only reset is not supported." << std::endl;
+      gzwarn << "Model only reset is not supported." << std::endl;
     }
   }
 
   if (_req.world_control().seed() != 0)
   {
-    ignwarn << "Changing seed is not supported." << std::endl;
+    gzwarn << "Changing seed is not supported." << std::endl;
   }
 
   if (_req.world_control().has_run_to_sim_time())
@@ -1201,7 +1201,7 @@ bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
 
   if (_req.forward())
   {
-    ignwarn << "Log forwarding is not supported, use seek." << std::endl;
+    gzwarn << "Log forwarding is not supported, use seek." << std::endl;
   }
 
   this->worldControls.push_back(control);
@@ -1213,7 +1213,7 @@ bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessMessages()
 {
-  IGN_PROFILE("SimulationRunner::ProcessMessages");
+  GZ_PROFILE("SimulationRunner::ProcessMessages");
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
   this->ProcessWorldControl();
 }
@@ -1221,7 +1221,7 @@ void SimulationRunner::ProcessMessages()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessWorldControl()
 {
-  IGN_PROFILE("SimulationRunner::ProcessWorldControl");
+  GZ_PROFILE("SimulationRunner::ProcessWorldControl");
 
   // assume no stepping unless WorldControl msgs say otherwise
   this->SetStepping(false);
@@ -1258,7 +1258,7 @@ void SimulationRunner::ProcessWorldControl()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
-  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
+  GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
@@ -1276,7 +1276,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessRecreateEntitiesCreate()
 {
-  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
+  GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
 
   // clone the original entities
   for (auto & ent : this->entitiesToRecreate)
@@ -1294,26 +1294,26 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
       // next iteration
       if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
       {
-        ignerr << "Failed to remove Recreate component from entity["
+        gzerr << "Failed to remove Recreate component from entity["
           << ent << "]" << std::endl;
       }
 
       if (!this->entityCompMgr.RemoveComponent<components::Recreate>(
             clonedEntity))
       {
-        ignerr << "Failed to remove Recreate component from entity["
+        gzerr << "Failed to remove Recreate component from entity["
           << clonedEntity << "]" << std::endl;
       }
     }
     else if (!nameComp)
     {
-      ignerr << "Missing name component for entity[" << ent << "]. "
+      gzerr << "Missing name component for entity[" << ent << "]. "
         << "The entity will not be cloned during the recreation process."
         << std::endl;
     }
     else if (!parentComp)
     {
-      ignerr << "Missing parent component for entity[" << ent << "]. "
+      gzerr << "Missing parent component for entity[" << ent << "]. "
         << "The entity will not be cloned during the recreation process."
          << std::endl;
     }
@@ -1354,13 +1354,14 @@ SimulationRunner::UpdatePeriod() const
 }
 
 /////////////////////////////////////////////////
-const ignition::math::clock::duration &SimulationRunner::StepSize() const
+const std::chrono::steady_clock::duration &SimulationRunner::StepSize() const
 {
   return this->stepSize;
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
+void SimulationRunner::SetStepSize(
+    const std::chrono::steady_clock::duration &_step)
 {
   this->stepSize = _step;
 }
@@ -1436,7 +1437,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(gz::msgs::GUI &_res)
 {
   _res.Clear();
 

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/detachable-joint-system/Export.hh>
+#include <ignition/gazebo/config.hh>

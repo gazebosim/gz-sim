@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
+#ifndef GZ_SIM_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
+#define GZ_SIM_SYSTEMS_LINEAR_BATTERY_PLUGIN_HH_
 
 #include <string>
 #include <map>
@@ -26,12 +26,12 @@
 
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -53,11 +53,11 @@ namespace systems
   /// - `<enable_recharge>` If true, the battery can be recharged
   /// - `<recharge_by_topic>` If true, the start/stop signals for recharging the
   ///                     battery will also be available via topics. The
-  ///                     regular Ignition services will still be available.
+  ///                     regular Gazebo services will still be available.
   /// - `<charging_time>` Hours taken to fully charge the battery.
   ///                 (Required if `<enable_recharge>` is set to true)
   /// - `<fix_issue_225>` True to change the battery behavior to fix some issues
-  /// described in https://github.com/ignitionrobotics/ign-gazebo/issues/225.
+  /// described in https://github.com/gazebosim/gz-sim/issues/225.
   /// - `<power_draining_topic>` A topic that is used to start battery
   /// discharge. Any message on the specified topic will cause the batter to
   /// start draining. This element can be specified multiple times if
@@ -84,8 +84,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,

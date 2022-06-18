@@ -22,12 +22,12 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Entity.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component holds an entity's parent entity.
@@ -37,9 +37,9 @@ namespace components
   /// kept in sync with the parent entity components. Therefore,
   /// it is recommended that the `ParentEntity` component is never
   /// edited by hand, and instead, entities should be created using
-  /// the `gazebo::SdfEntityCreator` class.
+  /// the `sim::SdfEntityCreator` class.
   using ParentEntity = Component<Entity, class ParentEntityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.ParentEntity", ParentEntity)
 }
 }

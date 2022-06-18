@@ -24,12 +24,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 
 namespace components
 {
@@ -46,7 +46,7 @@ namespace components
 using JointTransmittedWrench =
     Component<msgs::Wrench, class JointTransmittedWrenchTag,
               serializers::MsgSerializer>;
-IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
                               JointTransmittedWrench)
 }  // namespace components
 }

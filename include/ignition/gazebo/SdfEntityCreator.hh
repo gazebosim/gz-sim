@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/SdfEntityCreator.hh>
+#include <ignition/gazebo/config.hh>

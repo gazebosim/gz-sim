@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LogicalCamera.hh>
+#include <ignition/gazebo/config.hh>

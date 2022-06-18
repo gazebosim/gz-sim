@@ -26,12 +26,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   class SdfElementSerializer
@@ -64,7 +64,7 @@ namespace serializers
       bool result = sdf::readString(sdfStr, sdfParsed);
       if (!result)
       {
-        ignerr << "Unable to deserialize sdf::ElementPtr" << std::endl;
+        gzerr << "Unable to deserialize sdf::ElementPtr" << std::endl;
         return _in;
       }
 
@@ -78,13 +78,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a visual.
   using Visual = Component<NoData, class VisualTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Visual", Visual)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Visual", Visual)
 
   /// \brief A component that contains a visual plugin's SDF element.
   using VisualPlugin = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.VisualPlugin",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.VisualPlugin",
       VisualPlugin)
 }
 }

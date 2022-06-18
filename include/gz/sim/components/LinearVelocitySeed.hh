@@ -22,30 +22,30 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains linear velocity seed of an entity
   /// expressed in the local frame of the entity and represented by
-  /// ignition::math::Vector3d. This seed can used to generate linear velocities
+  /// gz::math::Vector3d. This seed can used to generate linear velocities
   /// by applying transformations and adding noise.
   using LinearVelocitySeed =
       Component<math::Vector3d, class LinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LinearVelocitySeed",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LinearVelocitySeed",
                                 LinearVelocitySeed)
 
   /// \brief A component type that contains linear velocity seed of an entity in
-  /// the world frame represented by ignition::math::Vector3d. This seed can
+  /// the world frame represented by gz::math::Vector3d. This seed can
   /// used to generate linear velocities by applying transformations and adding
   /// noise.
   using WorldLinearVelocitySeed =
       Component<math::Vector3d, class WorldLinearVelocitySeedTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldLinearVelocitySeed",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldLinearVelocitySeed",
                                 WorldLinearVelocitySeed)
 }
 }

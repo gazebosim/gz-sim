@@ -39,11 +39,11 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/components/LogPlaybackStatistics.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class PlaybackScrubberPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief The start time of the log file
@@ -67,8 +67,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PlaybackScrubber::PlaybackScrubber() : GuiSystem(),
@@ -148,7 +148,7 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName == "")
   {
     // TODO(anyone) Only one world is supported for now
-    auto worldNames = ignition::gui::worldNames();
+    auto worldNames = gz::gui::worldNames();
     if (worldNames.size() >= 1)
     {
       this->dataPtr->worldName = worldNames[0].toStdString();
@@ -198,7 +198,7 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
     math::stringToTimePoint(time);
   if (enteredTime == math::secNsecToTimePoint(-1, 0))
   {
-    ignwarn << "Invalid time entered. "
+    gzwarn << "Invalid time entered. "
       "The format is dd hh:mm:ss.nnn" << std::endl;
     return;
   }
@@ -251,5 +251,5 @@ void PlaybackScrubber::OnDrop(double _value)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::PlaybackScrubber,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::PlaybackScrubber,
+                    gz::gui::Plugin)

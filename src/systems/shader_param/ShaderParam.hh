@@ -15,19 +15,19 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_SHADER_PARAM_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SHADER_PARAM_HH_
+#ifndef GZ_SIM_SYSTEMS_SHADER_PARAM_HH_
+#define GZ_SIM_SYSTEMS_SHADER_PARAM_HH_
 
 #include <memory>
 
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -57,7 +57,7 @@ namespace systems
   ///
   /// \verbatim
   ///     <plugin filename="ignition-gazebo-shader-param-system"
-  ///             name="ignition::gazebo::systems::ShaderParam">
+  ///             name="gz::sim::systems::ShaderParam">
   ///        <shader language='glsl'>
   ///          <vertex>materials/my_vs.glsl</vertex>
   ///          <fragment>materials/my_fs.glsl</fragment>
@@ -90,8 +90,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ShaderParamPrivate> dataPtr;

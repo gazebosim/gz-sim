@@ -2,7 +2,7 @@
 
 # Migration from Gazebo classic: SDF
 
-Both Gazebo classic and Ignition Gazebo support [SDF](http://sdformat.org/)
+Both Gazebo classic and Gazebo support [SDF](http://sdformat.org/)
 files to describe the simulation to be loaded. An SDF file defines the world
 environment, the robot's characteristics and what plugins to load.
 
@@ -24,16 +24,16 @@ nested models. These are some of the SDF tags that take URIs:
 
 * `<include><uri>`
 * `<mesh><uri>`
-* `<material><pbr><...><*_map>` (only on Ignition)
+* `<material><pbr><...><*_map>` (only on Gazebo)
 * `<actor><skin><filename>`
 * `<actor><animation><filename>`
 
 Here are the recommended ways to use URIs from most recommended to least:
 
-### Ignition Fuel URL
+### Gazebo Fuel URL
 
 It's possible to use URLs of resources on
-[Ignition Fuel](https://app.ignitionrobotics.org) within any of the tags
+[Gazebo Fuel](https://app.gazebosim.org) within any of the tags
 above and both simulators will be able to load it.
 
 For example, this world can be loaded into both simulators:
@@ -104,7 +104,7 @@ For example, this world can be loaded into both simulators:
 ```
 
 \note The actor's vertical pose will be different on both simulators.
-      That's because a hardcoded offset was removed on Ignition and
+      That's because a hardcoded offset was removed on Gazebo and
       maintained on Gazebo classic for backwards compatibility.
 
 ### Path relative to the SDF file
@@ -145,8 +145,8 @@ Each simulator uses a different environment variable:
 * Gazebo classic:
     * `GAZEBO_MODEL_PATH` for models
     * `GAZEBO_RESOURCE_PATH` for worlds and some rendering resources
-* Ignition Gazebo:
-    * `IGN_GAZEBO_RESOURCE_PATH` for worlds, models and other resources
+* Gazebo:
+    * `GZ_SIM_RESOURCE_PATH` for worlds, models and other resources
 
 For example, if you have the file structure above, you can set the environment
 variable to `/home/username/models`:
@@ -154,7 +154,7 @@ variable to `/home/username/models`:
 ```
 export GAZEBO_MODEL_PATH=/home/username/models
 export GAZEBO_RESOURCE_PATH=/home/username/models
-export IGN_GAZEBO_RESOURCE_PATH=/home/username/models
+export GZ_SIM_RESOURCE_PATH=/home/username/models
 ```
 
 And inside `world.sdf` include the model with:
@@ -170,7 +170,7 @@ On both situations, the `model://` prefix will be substituted by
 
 You can also set several lookup paths separating them with `:`, for example:
 
-`export IGN_GAZEBO_RESOURCE_PATH=/home/username/models:/home/username/another_project/models`
+`export GZ_SIM_RESOURCE_PATH=/home/username/models:/home/username/another_project/models`
 
 ### Absolute paths
 
@@ -185,7 +185,7 @@ different directories.
 ## Plugins
 
 Plugins are binary files compiled to use with a specific simulator. Plugins
-for Gazebo classic and Ignition Gazebo aren't usually compatible, so plugins
+for Gazebo classic and Gazebo aren't usually compatible, so plugins
 will need to be specified for each simulator separately.
 
 It's important to note that for both simulators, plugins compiled against
@@ -198,7 +198,7 @@ sure you're loading the correct plugins.
 Both simulators are installed with several built-in plugins.
 [Gazebo classic's plugins](https://github.com/osrf/gazebo/tree/gazebo11/plugins)
 and
-[Ignition Gazebo's plugins](https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems)
+[Gazebo Sim's plugins](https://github.com/gazebosim/gz-sim/tree/main/src/systems)
 have different file names. For example, to use Gazebo classic's differential drive
 plugin, the user can refer to it as follows:
 
@@ -210,18 +210,18 @@ plugin, the user can refer to it as follows:
 </model>
 ```
 
-On Ignition, that would be:
+On Gazebo, that would be:
 
 ```
 <model ...>
    <plugin filename="ignition-gazebo-diff-drive-system"
-     name="ignition::gazebo::systems::DiffDrive">
+     name="gz::sim::systems::DiffDrive">
      ...
    </plugin>
 </model>
 ```
 
-Note that besides the different file name, Ignition also requires the C++ class
+Note that besides the different file name, Gazebo also requires the C++ class
 to be defined in the `name` attribute.
 
 Also keep in mind that plugins that offer similar functionality may accept
@@ -235,10 +235,10 @@ where that plugin is located. The variables are different for each simulator:
 
 * Gazebo classic:
     * `GAZEBO_PLUGIN_PATH` for all plugin types.
-* Ignition Gazebo:
-    * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` for Ignition Gazebo systems (world, model,
+* Gazebo:
+    * `GZ_SIM_SYSTEM_PLUGIN_PATH` for Gazebo systems (world, model,
       sensor and visual plugins).
-    * `IGN_GUI_PLUGIN_PATH` for GUI plugins.
+    * `GZ_GUI_PLUGIN_PATH` for GUI plugins.
 
 ### Keeping plugins separate
 
@@ -257,22 +257,22 @@ and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct pl
 
 ### Default plugins
 
-Ignition Gazebo is more modular than Gazebo classic, so most features are optional.
-For example, by default, Ignition will load all the system plugins defined on
-the `~/.ignition/gazebo/<#>/server.config` file and all GUI plugins defined on the
-`~/.ignition/gazebo/<#>/gui.config` file. But the user can always remove plugins from
+Gazebo is more modular than Gazebo classic, so most features are optional.
+For example, by default, Gazebo will load all the system plugins defined on
+the `~/.gz/sim/<#>/server.config` file and all GUI plugins defined on the
+`~/.gz/sim/<#>/gui.config` file. But the user can always remove plugins from
 those files, or choose different ones by adding `<plugin>` tags to the SDF file.
 (For more details, see the [Server configuration tutorial](server_config.html)
 and the [GUI configuration tutorial](gui_config.html)).
 
 This is important to keep in mind when migrating your SDF files, because files
-that worked on Gazebo classic may need more plugins on Ignition.
+that worked on Gazebo classic may need more plugins on Gazebo.
 
 ## Materials
 
-Ignition does not support Ogre material files like Classic does, because Ignition
+Gazebo does not support Ogre material files like Classic does, because Gazebo
 Gazebo can be used with multiple rendering engines. Therefore, materials defined
-within a `<script>` aren't supported on Ignition, for example:
+within a `<script>` aren't supported on Gazebo, for example:
 
 ```
         <material>
@@ -322,11 +322,11 @@ couple alternatives.
 If using mesh files, the texture can be embedded into it. The advantage is that
 this works for both simulators. Some examples:
 
-* [OBJ + MTL](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/DeskChair)
-* [COLLADA](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Lamp%20Post)
+* [OBJ + MTL](https://app.gazebosim.org/OpenRobotics/fuel/models/DeskChair)
+* [COLLADA](https://app.gazebosim.org/OpenRobotics/fuel/models/Lamp%20Post)
 
 For primitive shapes or even meshes, you can pass the texture as the albedo map. If you
-want the model to be compatible with both Classic and Ignition, you can specify both
+want the model to be compatible with both Classic and Gazebo, you can specify both
 the script and the albedo map.
 
 ```
@@ -338,4 +338,3 @@ the script and the albedo map.
           </pbr>
         </material>
 ```
-

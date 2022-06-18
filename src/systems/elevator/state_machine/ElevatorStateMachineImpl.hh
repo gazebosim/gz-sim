@@ -31,12 +31,12 @@
 
 #include "../ElevatorCommonPrivate.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -102,7 +102,7 @@ void ElevatorStateMachinePrivate::EnqueueNewTarget(double _target)
   std::ostringstream ss;
   ss << "The elevator enqueued target " << _target << " [ ";
   for (const auto &target : this->targets) ss << target << " ";
-  ignmsg << ss.str() << "]" << std::endl;
+  gzmsg << ss.str() << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -125,9 +125,9 @@ ElevatorStateMachineDef::ElevatorStateMachineDef(
 ElevatorStateMachineDef::~ElevatorStateMachineDef() = default;
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz
 
 #include "EventsImpl.hh"
 

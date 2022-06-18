@@ -4,9 +4,9 @@
 #include <gz/plugin/Register.hh>
 
 // Include a line in your source file for each interface implemented.
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
     sample_system::SampleSystem,
-    ignition::gazebo::System,
+    gz::sim::System,
     sample_system::SampleSystem::ISystemPostUpdate)
 //! [registerSampleSystem]
 //! [implementSampleSystem]
@@ -20,9 +20,9 @@ SampleSystem::~SampleSystem()
 {
 }
 
-void SampleSystem::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+void SampleSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
-  ignmsg << "SampleSystem::PostUpdate" << std::endl;
+  gzmsg << "SampleSystem::PostUpdate" << std::endl;
 }
 //! [implementSampleSystem]

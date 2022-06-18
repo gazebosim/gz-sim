@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_RENDERUTIL_HH_
-#define GZ_GAZEBO_RENDERUTIL_HH_
+#ifndef GZ_SIM_RENDERUTIL_HH_
+#define GZ_SIM_RENDERUTIL_HH_
 
 #include <memory>
 #include <set>
@@ -32,17 +32,17 @@
 #include "gz/sim/rendering/MarkerManager.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   // forward declaration
   class RenderUtilPrivate;
 
   /// \class RenderUtil RenderUtil.hh gz/sim/gui/plugins/RenderUtil.hh
-  class IGNITION_GAZEBO_RENDERING_VISIBLE RenderUtil
+  class GZ_GAZEBO_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
     public: explicit RenderUtil();
@@ -144,14 +144,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// The callback function args are: sensor entity, sensor sdf
     /// and parent name, it returns the name of the rendering sensor created.
     public: void SetEnableSensors(bool _enable, std::function<
-        std::string(const gazebo::Entity &, const sdf::Sensor &,
+        std::string(const sim::Entity &, const sdf::Sensor &,
           const std::string &)> _createSensorCb = {});
 
     /// \brief Set the callback function for removing the sensors
     /// \param[in] _removeSensorCb Callback function for removing the sensors
     /// The callback function arg is the sensor entity to remove
     public : void SetRemoveSensorCb(
-        std::function<void(const gazebo::Entity &)> _removeSensorCb);
+        std::function<void(const sim::Entity &)> _removeSensorCb);
 
     /// \brief View an entity as transparent
     /// \param[in] _entity Entity to view as transparent

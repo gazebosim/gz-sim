@@ -21,18 +21,18 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to indicate that an entity casts shadows
   /// e.g. visual entities
   using CastShadows = Component<bool, class CastShadowsTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CastShadows",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CastShadows",
       CastShadows)
 }
 }

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/perfect-comms-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -22,18 +22,18 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief TODO(anyone) Substitute with sdf::LogicalCamera once that exists?
   /// This is currently the whole `<sensor>` element.
   using LogicalCamera = Component<sdf::ElementPtr, class LogicalCameraTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogicalCamera",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogicalCamera",
       LogicalCamera)
 }
 }

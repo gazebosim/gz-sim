@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ExternalWorldWrenchCmd.hh>
+#include <ignition/gazebo/config.hh>

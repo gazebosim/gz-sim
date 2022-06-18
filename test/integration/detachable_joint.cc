@@ -16,30 +16,30 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/WindMode.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/WindMode.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test DetachableJoint system
 class DetachableJointTest : public InternalFixture<::testing::Test>
@@ -58,8 +58,8 @@ class DetachableJointTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 {
   using namespace std::chrono_literals;
 
@@ -71,8 +71,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
   auto poseRecorder =
       [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
   {
-    return [&, _modelName](const gazebo::UpdateInfo &,
-                           const gazebo::EntityComponentManager &_ecm)
+    return [&, _modelName](const sim::UpdateInfo &,
+                           const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Model *,
@@ -137,7 +137,7 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 }
 
 /////////////////////////////////////////////////
-TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
 
@@ -149,8 +149,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
   auto poseRecorder =
       [](const std::string &_linkName, std::vector<math::Pose3d> &_poses)
   {
-    return [&, _linkName](const gazebo::UpdateInfo &,
-                          const gazebo::EntityComponentManager &_ecm)
+    return [&, _linkName](const sim::UpdateInfo &,
+                          const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
           [&](const Entity &_entity, const components::Link *,

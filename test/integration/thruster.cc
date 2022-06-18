@@ -17,26 +17,26 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ThrusterTest : public InternalFixture<::testing::Test>
 {
@@ -74,10 +74,10 @@ void ThrusterTest::TestWorld(const std::string &_world,
   double dt{0.0};
   fixture.
   OnConfigure(
-    [&](const ignition::gazebo::Entity &_worldEntity,
+    [&](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
       World world(_worldEntity);
 
@@ -91,8 +91,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
-  OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                            const gazebo::EntityComponentManager &_ecm)
+  OnPostUpdate([&](const sim::UpdateInfo &_info,
+                            const sim::EntityComponentManager &_ecm)
     {
       dt = std::chrono::duration<double>(_info.dt).count();
 
@@ -190,17 +190,20 @@ void ThrusterTest::TestWorld(const std::string &_world,
   pub.Publish(msg);
 
   // Check movement
-  for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
-      ++sleep)
+  if (_namespace != "lowbattery")
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    fixture.Server()->Run(true, 100, false);
-  }
-  EXPECT_LT(sleep, maxSleep);
-  EXPECT_LT(5.0, modelPoses.back().Pos().X());
+    for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
+        ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      fixture.Server()->Run(true, 100, false);
+    }
+    EXPECT_LT(sleep, maxSleep);
+    EXPECT_LT(5.0, modelPoses.back().Pos().X());
 
-  EXPECT_EQ(100u * sleep, modelPoses.size());
-  EXPECT_EQ(100u * sleep, propellerAngVels.size());
+    EXPECT_EQ(100u * sleep, modelPoses.size());
+    EXPECT_EQ(100u * sleep, propellerAngVels.size());
+  }
 
   // F = m * a
   // s = a * t^2 / 2
@@ -209,6 +212,14 @@ void ThrusterTest::TestWorld(const std::string &_world,
   double xTol{1e-2};
   for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
+    if (_namespace == "lowbattery" && i > 545)
+    {
+      // Battery discharged should not accelerate
+      EXPECT_NEAR(modelPoses[i-1].Pos().X() - modelPoses[i-2].Pos().X(),
+        modelPoses[i].Pos().X() - modelPoses[i-1].Pos().X(), 1e-6);
+      continue;
+    }
+
     auto pose = modelPoses[i];
     auto time = dt * i;
     EXPECT_NEAR(force * time * time / (2 * _mass), pose.Pos().X(), xTol);
@@ -219,7 +230,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     // The joint velocity command adds some roll to the body which the PID
     // wrench doesn't
-    if (_namespace == "custom")
+    if (_namespace == "custom" || _namespace == "lowbattery")
       EXPECT_NEAR(0.0, pose.Rot().Roll(), 0.1);
     else
       EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
@@ -232,7 +243,14 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // It takes a few iterations to reach the speed
     if (i > 25)
     {
-      EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+      if (_namespace == "lowbattery" && i > 545)
+      {
+        EXPECT_NEAR(0.0, angVel.X(), _baseTol);
+      }
+      else
+      {
+        EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+      }
     }
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
@@ -240,7 +258,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_ang_vel_cmd.sdf");
@@ -250,7 +268,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "thruster_ccw_force_cmd.sdf");
@@ -261,7 +279,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "thruster_ccw_ang_vel_cmd.sdf");
@@ -272,8 +290,8 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
@@ -284,7 +302,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
@@ -292,3 +310,14 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
 }
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_battery.sdf");
+
+  // Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, "lowbattery", 0.005, 950, 0.25, 1e-2);
+}
+

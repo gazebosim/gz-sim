@@ -38,11 +38,11 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::TouchPluginPrivate
+class gz::sim::systems::TouchPluginPrivate
 {
   // Initialize the plugin
   public: void Load(const EntityComponentManager &_ecm,
@@ -121,7 +121,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Get target substring
   if (!_sdf->HasElement("target"))
   {
-    ignerr << "Missing required parameter <target>." << std::endl;
+    gzerr << "Missing required parameter <target>." << std::endl;
     return;
   }
 
@@ -160,14 +160,14 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Namespace
   if (!_sdf->HasElement("namespace"))
   {
-    ignerr << "Missing required parameter <namespace>" << std::endl;
+    gzerr << "Missing required parameter <namespace>" << std::endl;
     return;
   }
   this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
       "namespace"));
   if (this->ns.empty())
   {
-    ignerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
+    gzerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
            << "] is invalid." << std::endl;
     return;
   }
@@ -175,7 +175,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Target time
   if (!_sdf->HasElement("time"))
   {
-    ignerr << "Missing required parameter <time>" << std::endl;
+    gzerr << "Missing required parameter <time>" << std::endl;
     return;
   }
 
@@ -213,14 +213,14 @@ void TouchPluginPrivate::Enable(const bool _value)
     this->touchStart = DurationType::zero();
     this->enabled = true;
 
-    igndbg << "Started touch plugin [" << this->ns << "]" << std::endl;
+    gzdbg << "Started touch plugin [" << this->ns << "]" << std::endl;
   }
   else
   {
     this->touchedPub.reset();
     this->enabled = false;
 
-    igndbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
+    gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
   }
 }
 
@@ -234,12 +234,12 @@ TouchPlugin::TouchPlugin()
 void TouchPluginPrivate::Update(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPluginPrivate::Update");
+  GZ_PROFILE("TouchPluginPrivate::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -283,7 +283,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (this->touchStart != DurationType::zero())
     {
-      igndbg << "Model [" << this->model.Name(_ecm)
+      gzdbg << "Model [" << this->model.Name(_ecm)
              << "] not touching anything at [" << _info.simTime.count()
              << "]" << std::endl;
     }
@@ -299,7 +299,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
       this->touchStart =
         std::chrono::duration_cast<DurationType>(_info.simTime);
 
-      igndbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
+      gzdbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
         << this->targetName << "] at " << this->touchStart.count() << " s"
         << std::endl;
     }
@@ -313,7 +313,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
   // and stop updating
   if (completed)
   {
-    igndbg << "Model [" << this->model.Name(_ecm) << "] touched ["
+    gzdbg << "Model [" << this->model.Name(_ecm) << "] touched ["
       << this->targetName << "] exclusively for "
       << this->targetTime.count() << " s" << std::endl;
 
@@ -362,7 +362,7 @@ void TouchPlugin::Configure(const Entity &_entity,
   this->dataPtr->model = Model(_entity);
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "Touch plugin should be attached to a model entity. "
+    gzerr << "Touch plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -372,7 +372,7 @@ void TouchPlugin::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPlugin::PreUpdate");
+  GZ_PROFILE("TouchPlugin::PreUpdate");
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed
@@ -401,17 +401,20 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void TouchPlugin::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPlugin::PostUpdate");
+  GZ_PROFILE("TouchPlugin::PostUpdate");
   if (this->dataPtr->validConfig)
   {
     this->dataPtr->Update(_info, _ecm);
   }
 }
 
-IGNITION_ADD_PLUGIN(TouchPlugin,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(TouchPlugin,
+                    gz::sim::System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")
+GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

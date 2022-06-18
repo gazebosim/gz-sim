@@ -60,12 +60,12 @@
 #include "gz/sim/components/World.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace sdf_generator
 {
@@ -393,7 +393,7 @@ namespace sdf_generator
               // https://example.org/1.0/test/models/Backpack
               // the path to the directory containing the sdf file (modelDir)
               // will be:
-              // $HOME/.ignition/fuel/example.org/test/models/Backpack/2/
+              // $HOME/.gz/fuel/example.org/test/models/Backpack/2/
               // and the basename of the directory is "1", which is the model
               // version.
               //
@@ -970,7 +970,7 @@ namespace sdf_generator
           }
           else
           {
-            ignwarn << "Error retrieving Fuel model version,"
+            gzwarn << "Error retrieving Fuel model version,"
                     << " saving model without version."
                     << std::endl;
           }
@@ -1016,6 +1016,6 @@ namespace sdf_generator
     return true;
   }
 }
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz

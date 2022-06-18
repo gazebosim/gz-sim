@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/Visibility.hh>
+#include <ignition/gazebo/config.hh>

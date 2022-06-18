@@ -23,21 +23,21 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component identifies an entity as being a level.
   using Level = Component<NoData, class LevelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Level", Level)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Level", Level)
 
   /// \brief This component identifies an entity as being a default level.
   using DefaultLevel = Component<NoData, class DefaultLevelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.DefaultLevel",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DefaultLevel",
       DefaultLevel)
 }
 }

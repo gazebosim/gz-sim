@@ -24,12 +24,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using JointAxisSerializer =
@@ -41,14 +41,14 @@ namespace components
   /// around sdf::JointAxis
   using JointAxis = Component<sdf::JointAxis, class JointAxisTag,
                               serializers::JointAxisSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag,
                                serializers::JointAxisSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointAxis2", JointAxis2)
 }
 }

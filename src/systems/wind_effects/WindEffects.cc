@@ -56,8 +56,8 @@
 
 #include "gz/sim/Link.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 namespace {
@@ -123,7 +123,7 @@ namespace {
     const std::string gtAttrName = _prefix + "gt";
     if (_sdf->HasAttribute(geAttrName) && _sdf->HasAttribute(gtAttrName))
     {
-      ignerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
+      gzerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
              << " are mutually exclusive. Ignoring both." << std::endl;
     }
     else if (_sdf->HasAttribute(geAttrName))
@@ -131,7 +131,7 @@ namespace {
       sdf::ParamPtr sdfGeAttrValue = _sdf->GetAttribute(geAttrName);
       if (!sdfGeAttrValue->Get<double>(leftValue))
       {
-        ignerr << "Invalid '" << geAttrName << "' attribute value. "
+        gzerr << "Invalid '" << geAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
       else
@@ -144,7 +144,7 @@ namespace {
       sdf::ParamPtr sdfGtAttrValue = _sdf->GetAttribute(gtAttrName);
       if(!sdfGtAttrValue->Get<double>(leftValue))
       {
-        ignerr << "Invalid '" << gtAttrName << "' attribute value. "
+        gzerr << "Invalid '" << gtAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
     }
@@ -155,7 +155,7 @@ namespace {
     const std::string ltAttrName = _prefix + "lt";
     if (_sdf->HasAttribute(leAttrName) && _sdf->HasAttribute(ltAttrName))
     {
-      ignerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
+      gzerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
              << " are mutually exclusive. Ignoring both." << std::endl;
     }
     else if (_sdf->HasAttribute(leAttrName))
@@ -163,7 +163,7 @@ namespace {
       sdf::ParamPtr sdfLeAttrValue = _sdf->GetAttribute(leAttrName);
       if (!sdfLeAttrValue->Get<double>(rightValue))
       {
-        ignerr << "Invalid '" << leAttrName << "' attribute value. "
+        gzerr << "Invalid '" << leAttrName << "' attribute value. "
                << "Ignoring." << std::endl;
       }
       else
@@ -176,7 +176,7 @@ namespace {
       sdf::ParamPtr sdfLtAttrValue = _sdf->GetAttribute(ltAttrName);
       if (!sdfLtAttrValue->Get<double>(rightValue))
       {
-        ignerr << "Invalid '" << gtAttrName << "'"
+        gzerr << "Invalid '" << gtAttrName << "'"
                << "attribute value. Ignoring."
                << std::endl;
       }
@@ -208,7 +208,7 @@ namespace {
 }  // namespace
 
 /// \brief Private WindEffects data class.
-class ignition::gazebo::systems::WindEffectsPrivate
+class gz::sim::systems::WindEffectsPrivate
 {
   /// \brief Initialize the system.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
@@ -299,7 +299,7 @@ class ignition::gazebo::systems::WindEffectsPrivate
   /// \brief Noise added to Z axis.
   public: sensors::NoisePtr noiseVertical;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Set during Load to true if the configuration for the plugin is
@@ -338,7 +338,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindRise) < 1e-6)
         {
-          ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+          gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -378,7 +378,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindOrientationChange) < 1e-6)
         {
-          ignerr << "Please set <horizontal><direction><time_for_rise> to a "
+          gzerr << "Please set <horizontal><direction><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -418,7 +418,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
       if (std::fabs(this->characteristicTimeForWindRiseVertical) < 1e-6)
       {
-        ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+        gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                << "value greater than 0" << std::endl;
         return;
       }
@@ -447,7 +447,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
   // It doesn't make sense to be negative, that would be negative wind drag.
   if (this->forceApproximationScalingFactor.Minimum() < 0.)
   {
-    ignerr << "<force_approximation_scaling_factor> must "
+    gzerr << "<force_approximation_scaling_factor> must "
            << "always be a nonnegative quantity" << std::endl;
     return;
   }
@@ -461,7 +461,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   auto validWorldName = transport::TopicUtils::AsValidTopic(_worldName);
   if (validWorldName.empty())
   {
-    ignerr << "Failed to setup transport, invalid world name [" << _worldName
+    gzerr << "Failed to setup transport, invalid world name [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -479,7 +479,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
                                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
+  GZ_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
   double period = std::chrono::duration<double>(_info.dt).count();
   double simTime = std::chrono::duration<double>(_info.simTime).count();
   double kMag = period / this->characteristicTimeForWindRise;
@@ -509,7 +509,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
       kMagVertical * windLinVelSeed->Data().Z();
 
   magnitude += this->magnitudeSinAmplitudePercent * this->magnitudeMean *
-               std::sin(2 * IGN_PI * simTime / this->magnitudeSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->magnitudeSinPeriod);
 
   if (this->noiseMagnitude)
   {
@@ -518,7 +518,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Compute horizontal direction
   double direction =
-      IGN_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
+      GZ_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
 
   if (!this->directionMean)
   {
@@ -533,15 +533,15 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   direction = this->directionMean.value();
 
   direction += this->orientationSinAmplitude *
-               std::sin(2 * IGN_PI * simTime / this->orientationSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->orientationSinPeriod);
 
   if (this->noiseDirection)
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
-  ignition::math::Vector3d windVel;
-  windVel.X(magnitude * std::cos(IGN_DTOR(direction)));
-  windVel.Y(magnitude * std::sin(IGN_DTOR(direction)));
+  gz::math::Vector3d windVel;
+  windVel.X(magnitude * std::cos(GZ_DTOR(direction)));
+  windVel.Y(magnitude * std::sin(GZ_DTOR(direction)));
 
   if (this->noiseVertical)
   {
@@ -560,7 +560,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
                                         EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::ApplyWindForce");
+  GZ_PROFILE("WindEffectsPrivate::ApplyWindForce");
   auto windVel =
       _ecm.Component<components::WorldLinearVelocity>(this->windEntity);
   if (!windVel)
@@ -696,12 +696,12 @@ void WindEffects::Configure(const Entity &_entity,
 void WindEffects::PreUpdate(const UpdateInfo &_info,
                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffects::PreUpdate");
+  GZ_PROFILE("WindEffects::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -735,9 +735,12 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
 
 }
 
-IGNITION_ADD_PLUGIN(WindEffects, System,
+GZ_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemConfigure,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

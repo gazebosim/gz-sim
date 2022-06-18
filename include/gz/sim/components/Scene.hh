@@ -26,12 +26,12 @@
 #include <gz/sim/Conversions.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using SceneSerializer =
@@ -43,7 +43,7 @@ namespace components
   /// \brief This component holds scene properties of the world.
   using Scene =
       Component<sdf::Scene, class SceneTag, serializers::SceneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.Scene", Scene)
 }
 }

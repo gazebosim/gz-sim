@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_MSGMANAGER_HH_
-#define GZ_GAZEBO_MSGMANAGER_HH_
+#ifndef GZ_SIM_MSGMANAGER_HH_
+#define GZ_SIM_MSGMANAGER_HH_
 
 #include <deque>
 #include <memory>
@@ -29,17 +29,17 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
 namespace msgs
 {
   // Forward declarations.
   class Dataframe;
 }
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace comms
 {
 
@@ -67,7 +67,7 @@ struct AddressContent
   public: std::string modelName;
 
   /// \brief Entity of the model associated to this address.
-  public: gazebo::Entity entity;
+  public: sim::Entity entity;
 };
 
 /// \brief A map where the key is an address and the value is all the
@@ -75,7 +75,7 @@ struct AddressContent
 using Registry = std::unordered_map<std::string, AddressContent>;
 
 /// \brief Class to handle messages and subscriptions.
-class IGNITION_GAZEBO_VISIBLE MsgManager
+class GZ_GAZEBO_VISIBLE MsgManager
 {
   /// \brief Default constructor.
   public: MsgManager();
@@ -149,7 +149,7 @@ class IGNITION_GAZEBO_VISIBLE MsgManager
   public: void Set(const Registry &_newContent);
 
   /// \brief Private data pointer.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

@@ -1,12 +1,12 @@
 \page light_config Light config
 
-This tutorial gives an introduction to Ignition Gazebo's service `/world/<world name>/light_config`.
+This tutorial gives an introduction to Gazebo Sim's service `/world/<world name>/light_config`.
 This service will allow to modify lights in the scene.
 
 # Modifying lights
 
 To modify lights inside the scene we need to use the service `/world/<world name>/light_config` and
-fill the message [`ignition::msgs::Light`](https://ignitionrobotics.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html).
+fill the message [`gz::msgs::Light`](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html).
 In particular this example modifies the point light that we introduced with the function `createLight()`.
 
 \snippet examples/standalone/light_control/light_control.cc create light

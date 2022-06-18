@@ -27,12 +27,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace logical_audio
 {
   /// \brief Audio source attenuation functions.
@@ -47,7 +47,7 @@ namespace logical_audio
 
   /// \brief Properties of a logical audio source.
   /// A source also has a pose, which can be stored as a component of a
-  /// source entity via ignition::gazebo::components::Pose
+  /// source entity via gz::sim::components::Pose
   struct Source
   {
     /// \brief The source's id
@@ -115,7 +115,7 @@ namespace logical_audio
 
   /// \brief Properties of a logical audio microphone.
   /// A microphone also has a pose, which can be stored as a component of a
-  /// microphone entity via ignition::gazebo::components::Pose
+  /// microphone entity via gz::sim::components::Pose
   struct Microphone
   {
     /// \brief The microphone's id
@@ -283,7 +283,7 @@ namespace serializers
 
 // using separate namespace blocks so all components appear in Doxygen
 // (appears as if Doxygen can't parse multiple components in a single
-// namespace block since IGN_GAZEBO_REGISTER_COMPONENT doesn't have a
+// namespace block since GZ_SIM_REGISTER_COMPONENT doesn't have a
 // trailing semicolon)
 namespace components
 {
@@ -292,7 +292,7 @@ namespace components
   using LogicalAudioSource = Component<logical_audio::Source,
         class LogicalAudioSourceTag,
         serializers::LogicalAudioSourceSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogicalAudioSource",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogicalAudioSource",
       LogicalAudioSource)
 }
 
@@ -303,7 +303,7 @@ namespace components
   using LogicalAudioSourcePlayInfo = Component<logical_audio::SourcePlayInfo,
         class LogicalAudioSourcePlayInfoTag,
         serializers::LogicalAudioSourcePlayInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.LogicalAudioSourcePlayInfo",
       LogicalAudioSourcePlayInfo)
 }
@@ -315,7 +315,7 @@ namespace components
   using LogicalMicrophone = Component<logical_audio::Microphone,
         class LogicalMicrophoneTag,
         serializers::LogicalMicrophoneSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogicalMicrophone",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogicalMicrophone",
       LogicalMicrophone)
 }
 }

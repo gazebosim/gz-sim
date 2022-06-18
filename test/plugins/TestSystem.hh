@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTSYSTEM_HH_
+#ifndef GZ_SIM_TEST_TESTSYSTEM_HH_
+#define GZ_SIM_TEST_TESTSYSTEM_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     class TestSystem: public System
     {
       public: TestSystem();

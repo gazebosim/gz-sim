@@ -23,12 +23,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   class JointTypeSerializer
@@ -64,7 +64,7 @@ namespace components
   /// around sdf::JointType
   using JointType = Component<sdf::JointType, class JointTypeTag,
                               serializers::JointTypeSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointType", JointType)
 }
 }

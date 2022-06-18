@@ -118,35 +118,35 @@ COMMANDS = { 'gazebo' =>
   "                               The default verbosity is 1, use -v without       \n"\
   "                               arguments for level 3.                           \n"\
   "\n"\
-  "  --gui-config [arg]           Ignition GUI configuration file to load.         \n"\
+  "  --gui-config [arg]           Gazebo GUI configuration file to load.         \n"\
   "                               If no config is given, the configuration in      \n"\
   "                               the SDF file is used. And if that's not          \n"\
   "                               provided, the default installed config is        \n"\
   "                               used.                                            \n"\
   "\n"\
-  "  --physics-engine [arg]       Ignition Physics engine plugin to load.          \n"\
+  "  --physics-engine [arg]       Gazebo Physics engine plugin to load.          \n"\
   "                               Gazebo will use DART by default.                 \n"\
   "                               (ignition-physics-dartsim-plugin)                \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_PHYSICS_ENGINE_PATH.                  \n"\
+  "                               GZ_SIM_PHYSICS_ENGINE_PATH.                  \n"\
   "\n"\
-  "  --render-engine [arg]        Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine [arg]        Gazebo Rendering engine plugin to load for     \n"\
   "                               both the server and the GUI. Gazebo will use     \n"\
   "                               OGRE2 by default. (ogre2)                        \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
-  "  --render-engine-gui [arg]    Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine-gui [arg]    Gazebo Rendering engine plugin to load for     \n"\
   "                               the GUI. Gazebo will use OGRE2 by default.       \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
-  "  --render-engine-server [arg] Ignition Rendering engine plugin to load for     \n"\
+  "  --render-engine-server [arg] Gazebo Rendering engine plugin to load for     \n"\
   "                               the server. Gazebo will use OGRE2 by default.    \n"\
   "                               (ogre2)                                          \n"\
   "                               Make sure custom plugins are in                  \n"\
-  "                               IGN_GAZEBO_RENDER_ENGINE_PATH.                   \n"\
+  "                               GZ_SIM_RENDER_ENGINE_PATH.                   \n"\
   "\n"\
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
@@ -154,17 +154,17 @@ COMMANDS = { 'gazebo' =>
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                  \n"\
-  "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
+  "  GZ_SIM_RESOURCE_PATH         Colon separated paths used to locate      \n"\
   " resources such as worlds and models.                                 \n\n"\
-  "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
+  "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
-  "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
-  "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
+  "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
+  "  GZ_GUI_PLUGIN_PATH           Colon separated paths used to locate GUI       \n"\
   " plugins.                                                               \n"\
 }
 
 #
-# Class for the Ignition Gazebo command line tools.
+# Class for the Gazebo command line tools.
 #
 class Cmd
 
@@ -353,11 +353,11 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
     end
 
     # Read the library version.
-    Importer.extern 'char *ignitionGazeboVersion()'
+    Importer.extern 'char *gzSimVersion()'
     begin
-      plugin_version = Importer.ignitionGazeboVersion.to_s
+      plugin_version = Importer.gzSimVersion.to_s
     rescue DLError
-      puts "Library error: Problem running 'ignitionGazeboVersion()' from #{plugin}."
+      puts "Library error: Problem running 'gzSimVersion()' from #{plugin}."
       exit(-1)
     end
 
@@ -377,8 +377,8 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       Importer.extern 'const char *findFuelResource(const char *)'
 
       if options.key?('version')
-        Importer.extern 'char *gazeboVersionHeader()'
-        puts Importer.gazeboVersionHeader.to_s
+        Importer.extern 'char *simVersionHeader()'
+        puts Importer.simVersionHeader.to_s
         exit
       end
 
@@ -393,10 +393,21 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
         # Check if the passed in file exists.
         if File.exists?(options['file'])
           path = options['file']
-        # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
+        # If not, then first check the GZ_SIM_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
         else
-          resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+          resourcePathEnv = ENV['GZ_SIM_RESOURCE_PATH']
+
+          if resourcePathEnv.nil?
+            resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+
+            if !resourcePathEnv.nil?
+              puts "
+Using deprecated environment variable [IGN_GAZEBO_RESOURCE_PATH].
+Please use [GZ_SIM_RESOURCE_PATH] instead."
+            end
+          end
+
           if !resourcePathEnv.nil?
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
@@ -449,7 +460,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
 
         if plugin.end_with? ".dylib"
           puts "`ign gazebo` currently only works with the -s argument on macOS.
-See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
 
@@ -476,8 +487,8 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
         end
 
         Signal.trap("INT") {
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
+          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
           return 1
         }
 
@@ -485,9 +496,9 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
         pid, status = Process.wait2
 
         if pid == serverPid
-          self.killProcess(guiPid, "Ignition Gazebo GUI", 5.0)
+          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
         else
-          self.killProcess(serverPid, "Ignition Gazebo Server", 5.0)
+          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
         end
 
       # If the -s option was specified, then run only the server
@@ -506,7 +517,7 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
       else options['gui']
         if plugin.end_with? ".dylib"
           puts "`ign gazebo` currently only works with the -s argument on macOS.
-See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
 

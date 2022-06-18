@@ -15,18 +15,18 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
+#ifndef GZ_SIM_SYSTEMS_TOUCH_PLUGIN_HH_
+#define GZ_SIM_SYSTEMS_TOUCH_PLUGIN_HH_
 
 #include <memory>
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -35,7 +35,7 @@ namespace systems
   /// \brief Plugin which checks if a model has touched some specific target
   /// for a given time continuously and exclusively. After the touch is
   /// completed, the plugin is disabled. It can be re-enabled through an
-  /// Ignition transport service.
+  /// Gazebo Transport service.
   ///
   /// It requires that contact sensors be placed in at least one link on the
   /// model on which this plugin is attached.
@@ -82,8 +82,8 @@ namespace systems
 
     // Documentation inherited
     public: void PostUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TouchPluginPrivate> dataPtr;

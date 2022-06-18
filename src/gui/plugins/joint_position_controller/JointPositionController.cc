@@ -38,7 +38,7 @@
 
 #include "JointPositionController.hh"
 
-namespace ignition::gazebo::gui
+namespace gz::sim::gui
 {
   class JointPositionControllerPrivate
   {
@@ -62,9 +62,9 @@ namespace ignition::gazebo::gui
   };
 }
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::gui;
 
 /////////////////////////////////////////////////
 JointsModel::JointsModel() : QStandardItemModel()
@@ -74,8 +74,8 @@ JointsModel::JointsModel() : QStandardItemModel()
 /////////////////////////////////////////////////
 QStandardItem *JointsModel::AddJoint(Entity _entity)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::AddJoint");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::AddJoint");
 
   auto itemIt = this->items.find(_entity);
 
@@ -96,8 +96,8 @@ QStandardItem *JointsModel::AddJoint(Entity _entity)
 /////////////////////////////////////////////////
 void JointsModel::RemoveJoint(Entity _entity)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::RemoveJoint");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::RemoveJoint");
 
   auto itemIt = this->items.find(_entity);
 
@@ -112,8 +112,8 @@ void JointsModel::RemoveJoint(Entity _entity)
 /////////////////////////////////////////////////
 void JointsModel::Clear()
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::Clear");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::Clear");
 
   this->invisibleRootItem()->removeRows(0, this->rowCount());
   this->items.clear();
@@ -162,8 +162,8 @@ void JointPositionController::LoadConfig(
     }
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -175,7 +175,7 @@ void JointPositionController::LoadConfig(
 void JointPositionController::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointPositionController::Update");
+  GZ_PROFILE("JointPositionController::Update");
 
   if (!this->dataPtr->xmlModelInitialized)
   {
@@ -189,7 +189,7 @@ void JointPositionController::Update(const UpdateInfo &,
     this->SetModelEntity(entity);
     this->SetLocked(true);
     this->dataPtr->xmlModelInitialized = true;
-    ignmsg << "Controller locked on [" << this->dataPtr->modelName.toStdString()
+    gzmsg << "Controller locked on [" << this->dataPtr->modelName.toStdString()
            << "]" << std::endl;
   }
 
@@ -218,7 +218,7 @@ void JointPositionController::Update(const UpdateInfo &,
     auto typeComp = _ecm.Component<components::JointType>(jointEntity);
     if (nullptr == typeComp)
     {
-      ignerr << "Joint [" << jointEntity << "] missing type" << std::endl;
+      gzerr << "Joint [" << jointEntity << "] missing type" << std::endl;
       continue;
     }
 
@@ -246,7 +246,7 @@ void JointPositionController::Update(const UpdateInfo &,
 
     if (nullptr == item)
     {
-      ignerr << "Failed to get item for joint [" << jointEntity << "]"
+      gzerr << "Failed to get item for joint [" << jointEntity << "]"
              << std::endl;
       continue;
     }
@@ -259,8 +259,8 @@ void JointPositionController::Update(const UpdateInfo &,
           JointsModel::RoleNames().key("name"));
 
       // Limits
-      double min = -IGN_PI;
-      double max = IGN_PI;
+      double min = -GZ_PI;
+      double max = GZ_PI;
       auto axisComp = _ecm.Component<components::JointAxis>(jointEntity);
       if (axisComp)
       {
@@ -301,7 +301,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -310,7 +310,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -374,7 +374,7 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 {
   std::string jointName = _jointName.toStdString();
 
-  ignition::msgs::Double msg;
+  gz::msgs::Double msg;
   msg.set_data(_pos);
   auto topic = transport::TopicUtils::AsValidTopic("/model/" +
       this->dataPtr->modelName.toStdString() + "/joint/" + jointName +
@@ -382,12 +382,12 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 
   if (topic.empty())
   {
-    ignerr << "Failed to create valid topic for joint [" << jointName << "]"
+    gzerr << "Failed to create valid topic for joint [" << jointName << "]"
            << std::endl;
     return;
   }
 
-  auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
+  auto pub = this->dataPtr->node.Advertise<gz::msgs::Double>(topic);
   pub.Publish(msg);
 }
 
@@ -400,11 +400,11 @@ void JointPositionController::OnReset()
         .toString().toStdString();
     if (jointName.empty())
     {
-      ignerr << "Internal error: failed to get joint name." << std::endl;
+      gzerr << "Internal error: failed to get joint name." << std::endl;
       continue;
     }
 
-    ignition::msgs::Double msg;
+    gz::msgs::Double msg;
     msg.set_data(0);
     auto topic = transport::TopicUtils::AsValidTopic("/model/" +
         this->dataPtr->modelName.toStdString() + "/joint/" + jointName +
@@ -412,16 +412,16 @@ void JointPositionController::OnReset()
 
     if (topic.empty())
     {
-      ignerr << "Failed to create valid topic for joint [" << jointName << "]"
+      gzerr << "Failed to create valid topic for joint [" << jointName << "]"
              << std::endl;
       return;
     }
 
-    auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
+    auto pub = this->dataPtr->node.Advertise<gz::msgs::Double>(topic);
     pub.Publish(msg);
   }
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::gui::JointPositionController,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::gui::JointPositionController,
+                    gz::gui::Plugin)

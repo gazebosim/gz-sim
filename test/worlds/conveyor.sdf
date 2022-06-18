@@ -10,20 +10,22 @@
         </physics>
         <plugin
                 filename="ignition-gazebo-physics-system"
-                name="ignition::gazebo::systems::Physics">
+                name="gz::sim::systems::Physics">
         </plugin>
         <plugin
                 filename="ignition-gazebo-user-commands-system"
-                name="ignition::gazebo::systems::UserCommands">
+                name="gz::sim::systems::UserCommands">
         </plugin>
         <plugin
                 filename="ignition-gazebo-scene-broadcaster-system"
-                name="ignition::gazebo::systems::SceneBroadcaster">
+                name="gz::sim::systems::SceneBroadcaster">
         </plugin>
 
         <scene>
             <ambient>1.0 1.0 1.0</ambient>
             <background>0.8 0.8 0.8</background>
+            <shadows>true</shadows>
+            <grid>false</grid>
         </scene>
 
         <light type="directional" name="sun">
@@ -140,7 +142,7 @@
             </link>
 
             <plugin filename="libignition-gazebo-track-controller-system.so"
-                    name="ignition::gazebo::systems::TrackController">
+                    name="gz::sim::systems::TrackController">
                 <link>base_link</link>
                 <max_command_age>2.0</max_command_age>
                 <max_velocity>0.5</max_velocity>
@@ -188,11 +190,11 @@
         <gui fullscreen="0">
             <!-- 3D scene -->
             <plugin filename="GzScene3D" name="3D View">
-                <ignition-gui>
+                <gz-gui>
                     <title>3D View</title>
                     <property type="bool" key="showTitleBar">false</property>
                     <property type="string" key="state">docked</property>
-                </ignition-gui>
+                </gz-gui>
 
                 <engine>ogre2</engine>
                 <scene>scene</scene>
@@ -203,7 +205,7 @@
 
             <!-- World control -->
             <plugin filename="WorldControl" name="World control">
-                <ignition-gui>
+                <gz-gui>
                     <title>World control</title>
                     <property type="bool" key="showTitleBar">false</property>
                     <property type="bool" key="resizable">false</property>
@@ -216,7 +218,7 @@
                         <line own="left" target="left"/>
                         <line own="bottom" target="bottom"/>
                     </anchors>
-                </ignition-gui>
+                </gz-gui>
 
                 <play_pause>true</play_pause>
                 <step>true</step>
@@ -226,7 +228,7 @@
 
             <!-- World statistics -->
             <plugin filename="WorldStats" name="World stats">
-                <ignition-gui>
+                <gz-gui>
                     <title>World stats</title>
                     <property type="bool" key="showTitleBar">false</property>
                     <property type="bool" key="resizable">false</property>
@@ -239,7 +241,7 @@
                         <line own="right" target="right"/>
                         <line own="bottom" target="bottom"/>
                     </anchors>
-                </ignition-gui>
+                </gz-gui>
 
                 <sim_time>true</sim_time>
                 <real_time>true</real_time>
@@ -249,7 +251,7 @@
 
             <!-- Translate / rotate -->
             <plugin filename="TransformControl" name="Transform control">
-                <ignition-gui>
+                <gz-gui>
                     <title>Transform control</title>
                     <anchors target="3D View">
                         <line own="left" target="left"/>
@@ -261,12 +263,12 @@
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
                     <property key="cardBackground" type="string">#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
 
             <!-- Insert simple shapes -->
             <plugin filename="Shapes" name="Shapes">
-                <ignition-gui>
+                <gz-gui>
                     <anchors target="Transform control">
                         <line own="left" target="right"/>
                         <line own="top" target="top"/>
@@ -277,7 +279,7 @@
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
                     <property key="cardBackground" type="string">#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
         </gui>
     </world>

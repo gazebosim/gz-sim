@@ -23,17 +23,17 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity as being a sensor.
   using Sensor = Component<NoData, class SensorTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Sensor", Sensor)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Sensor", Sensor)
 
   /// \brief Name of the transport topic where a sensor is publishing its
   /// data.
@@ -41,7 +41,7 @@ namespace components
   /// prefix common to all topics of that sensor.
   using SensorTopic = Component<std::string, class SensorTopicTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SensorTopic",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SensorTopic",
       SensorTopic)
 }
 }

@@ -23,18 +23,18 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Holds the render engine gui shared library.
   using RenderEngineGuiPlugin = Component<std::string,
       class RenderEngineGuiPluginTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.RenderEngineGuiPlugin",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RenderEngineGuiPlugin",
       RenderEngineGuiPlugin)
 }
 }

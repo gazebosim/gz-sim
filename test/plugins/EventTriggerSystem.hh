@@ -14,21 +14,21 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
+#ifndef GZ_SIM_TEST_EVENTTRIGGERSYSTEM_HH_
+#define GZ_SIM_TEST_EVENTTRIGGERSYSTEM_HH_
 
-#include <ignition/common/Console.hh>
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/System.hh"
+#include <gz/common/Console.hh>
+#include "gz/sim/Events.hh"
+#include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class EventTriggerSystem :
-  public gazebo::System,
-  public gazebo::ISystemConfigure,
-  public gazebo::ISystemUpdate
+  public sim::System,
+  public sim::ISystemConfigure,
+  public sim::ISystemUpdate
 {
   // needed for linter
   public: EventTriggerSystem() = default;
@@ -39,14 +39,14 @@ class EventTriggerSystem :
                          EntityComponentManager &/*_ecm*/,
                          EventManager &_eventManager) override
         {
-          igndbg << "Configure" << std::endl;
+          gzdbg << "Configure" << std::endl;
           this->eventManager = &_eventManager;
         }
 
   public: void Update(const UpdateInfo &/*_info*/,
                       EntityComponentManager &/*_ecm*/) override
         {
-          igndbg << "Update" << std::endl;
+          gzdbg << "Update" << std::endl;
           this->eventManager->Emit<events::Pause>(false);
         }
 

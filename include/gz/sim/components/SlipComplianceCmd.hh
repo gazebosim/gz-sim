@@ -26,12 +26,12 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains the slip compliance parameters to be
@@ -40,7 +40,7 @@ namespace components
   /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
     Component<std::vector<double>, class SlipComplianceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
       SlipComplianceCmd)
 }
 }

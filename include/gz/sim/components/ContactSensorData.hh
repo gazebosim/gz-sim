@@ -24,19 +24,19 @@
 #include <gz/sim/config.hh>
 #include <gz/math/Vector3.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains a list of contacts.
   using ContactSensorData =
       Component<msgs::Contacts,
       class ContactSensorDataTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ContactSensorData",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ContactSensorData",
                                 ContactSensorData)
 }
 }

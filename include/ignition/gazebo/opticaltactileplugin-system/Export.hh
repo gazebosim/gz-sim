@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/opticaltactileplugin-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_BARRIER_HH_
-#define IGNITION_GAZEBO_BARRIER_HH_
+#ifndef GZ_SIM_BARRIER_HH_
+#define GZ_SIM_BARRIER_HH_
 
 #include <atomic>
 #include <condition_variable>
@@ -26,12 +26,12 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class BarrierPrivate;
 
@@ -44,7 +44,7 @@ namespace ignition
     ///
     /// Note that this can likely be replaced once the C++ concurrency TS
     /// is ratified: https://en.cppreference.com/w/cpp/experimental/barrier
-    class IGNITION_GAZEBO_VISIBLE Barrier
+    class GZ_GAZEBO_VISIBLE Barrier
     {
       /// \brief Constructor
       /// \param[in] _threadCount Number of threads to syncronize
@@ -88,8 +88,8 @@ namespace ignition
       /// \brief Pointer to private data.
       private: std::unique_ptr<BarrierPrivate> dataPtr;
     };
-    }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-  }  // namespace gazebo
-}  // namespace ignition
+    }  // namespace GZ_SIM_VERSION_NAMESPACE
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_BARRIER_HH_
+#endif  // GZ_SIM_BARRIER_HH_

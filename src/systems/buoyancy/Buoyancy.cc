@@ -52,11 +52,11 @@
 
 #include "Buoyancy.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::BuoyancyPrivate
+class gz::sim::systems::BuoyancyPrivate
 {
   public: enum BuoyancyType
   {
@@ -265,7 +265,7 @@ void Buoyancy::Configure(const Entity &_entity,
       this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "Unable to get the gravity vector. Make sure this plugin is "
+    gzerr << "Unable to get the gravity vector. Make sure this plugin is "
       << "attached to a <world>, not a <model>." << std::endl;
     return;
   }
@@ -282,7 +282,7 @@ void Buoyancy::Configure(const Entity &_entity,
     auto gradedElement = _sdf->GetFirstElement();
     if (gradedElement == nullptr)
     {
-      ignerr << "Unable to get element description" << std::endl;
+      gzerr << "Unable to get element description" << std::endl;
       return;
     }
 
@@ -292,7 +292,7 @@ void Buoyancy::Configure(const Entity &_entity,
       if (argument->GetName() == "default_density")
       {
         argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
-        igndbg << "Default density set to "
+        gzdbg << "Default density set to "
           << this->dataPtr->fluidDensity << std::endl;
       }
       if (argument->GetName() == "density_change")
@@ -301,16 +301,16 @@ void Buoyancy::Configure(const Entity &_entity,
         auto density = argument->Get<double>("density", 0.0);
         if (!depth.second)
         {
-          ignwarn << "No <above_depth> tag was found as a "
+          gzwarn << "No <above_depth> tag was found as a "
             << "child of <density_change>" << std::endl;
         }
         if (!density.second)
         {
-          ignwarn << "No <density> tag was found as a "
+          gzwarn << "No <density> tag was found as a "
             << "child of <density_change>" << std::endl;
         }
         this->dataPtr->layers[depth.first] = density.first;
-        igndbg << "Added layer at " << depth.first << ", "
+        gzdbg << "Added layer at " << depth.first << ", "
           <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
@@ -318,7 +318,7 @@ void Buoyancy::Configure(const Entity &_entity,
   }
   else
   {
-    ignwarn <<
+    gzwarn <<
       "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
       << std::endl
       << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
@@ -337,15 +337,15 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Buoyancy::PreUpdate");
+  GZ_PROFILE("Buoyancy::PreUpdate");
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
       this->dataPtr->world);
   if (!gravity)
   {
-    ignerr << "Unable to get the gravity vector. Has gravity been defined?"
+    gzerr << "Unable to get the gravity vector. Has gravity been defined?"
            << std::endl;
     return;
   }
@@ -376,8 +376,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosInLinkSum =
-      ignition::math::Vector3d::Zero;
+    gz::math::Vector3d weightedPosInLinkSum =
+      gz::math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -389,7 +389,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
       if (!coll)
       {
-        ignerr << "Invalid collision pointer. This shouldn't happen\n";
+        gzerr << "Invalid collision pointer. This shouldn't happen\n";
         continue;
       }
 
@@ -420,16 +420,16 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
               if (mesh)
                 volume = mesh->Volume();
               else
-                ignerr << "Unable to load mesh[" << file << "]\n";
+                gzerr << "Unable to load mesh[" << file << "]\n";
             }
             else
             {
-              ignerr << "Invalid mesh filename[" << file << "]\n";
+              gzerr << "Invalid mesh filename[" << file << "]\n";
             }
             break;
           }
         default:
-          ignerr << "Unsupported collision geometry["
+          gzerr << "Unsupported collision geometry["
             << static_cast<int>(coll->Data().Geom()->Type()) << "]\n";
           break;
       }
@@ -507,7 +507,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
           if (!coll)
           {
-            ignerr << "Invalid collision pointer. This shouldn't happen\n";
+            gzerr << "Invalid collision pointer. This shouldn't happen\n";
             continue;
           }
 
@@ -530,7 +530,7 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
               static bool warned{false};
               if (!warned)
               {
-                ignwarn << "Only <box> and <sphere> collisions are supported "
+                gzwarn << "Only <box> and <sphere> collisions are supported "
                   << "by the graded buoyancy option." << std::endl;
                 warned = true;
               }
@@ -580,10 +580,14 @@ bool Buoyancy::IsEnabled(Entity _entity,
   return false;
 }
 
-IGNITION_ADD_PLUGIN(Buoyancy,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(Buoyancy,
+                    gz::sim::System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+GZ_ADD_PLUGIN_ALIAS(Buoyancy,
+                          "gz::sim::systems::Buoyancy")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "ignition::gazebo::systems::Buoyancy")

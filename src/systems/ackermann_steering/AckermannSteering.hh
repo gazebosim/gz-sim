@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#ifndef GZ_SIM_SYSTEMS_ACKERMANNSTEERING_HH_
+#define GZ_SIM_SYSTEMS_ACKERMANNSTEERING_HH_
 
 #include <memory>
 
 #include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -95,7 +95,7 @@ namespace systems
   /// right_steering_joint
   ///
   /// References:
-  /// https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems/diff_drive
+  /// https://github.com/gazebosim/gz-sim/tree/main/src/systems/diff_drive
   /// https://www.auto.tuwien.ac.at/bib/pdf_TR/TR0183.pdf
   /// https://github.com/froohoo/ackermansteer/blob/master/ackermansteer/
 
@@ -120,8 +120,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

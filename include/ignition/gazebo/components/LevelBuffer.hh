@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/LevelBuffer.hh>
+#include <ignition/gazebo/config.hh>

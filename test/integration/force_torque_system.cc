@@ -17,31 +17,31 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/ForceTorque.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/ForceTorque.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ForceTorqueTest : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 {
   using namespace std::chrono_literals;
   // Start server
@@ -99,7 +99,7 @@ TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
 {
   using namespace std::chrono_literals;
   // Start server

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/linearbatteryplugin-system/Export.hh>
+#include <ignition/gazebo/config.hh>

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/ParentLinkName.hh>
+#include <ignition/gazebo/config.hh>

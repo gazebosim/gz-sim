@@ -16,20 +16,20 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
@@ -37,8 +37,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test SphericalCoordinates system
@@ -56,8 +56,8 @@ TEST_F(SphericalCoordinatesTest, InitialFromSDF)
   math::SphericalCoordinates latest;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       auto entity = worldEntity(_ecm);
       EXPECT_NE(kNullEntity, entity);
@@ -86,7 +86,7 @@ TEST_F(SphericalCoordinatesTest, InitialFromSDF)
 
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(SetWorldOriginFromTransport))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SetWorldOriginFromTransport))
 {
   TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/spherical_coordinates.sdf");
@@ -95,8 +95,8 @@ TEST_F(SphericalCoordinatesTest,
   math::SphericalCoordinates latest;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       auto entity = worldEntity(_ecm);
       EXPECT_NE(kNullEntity, entity);
@@ -155,8 +155,8 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
   math::SphericalCoordinates latest;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       auto entity = worldEntity(_ecm);
       EXPECT_NE(kNullEntity, entity);
@@ -171,16 +171,16 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
   // Set throught C++ API and check
   fixture.OnPreUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      gz::sim::EntityComponentManager &_ecm)
     {
       auto entity = worldEntity(_ecm);
       EXPECT_NE(kNullEntity, entity);
 
       World world(entity);
       world.SetSphericalCoordinates(_ecm, math::SphericalCoordinates(
-          math::SphericalCoordinates::EARTH_WGS84, IGN_DTOR(52.2),
-          IGN_DTOR(21.0), 789.0, 0));
+          math::SphericalCoordinates::EARTH_WGS84, GZ_DTOR(52.2),
+          GZ_DTOR(21.0), 789.0, 0));
     });
 
   fixture.Server()->Run(true, 1, false);
@@ -193,7 +193,7 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
+TEST_F(SphericalCoordinatesTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "spherical_coordinates.sdf"));
@@ -204,8 +204,8 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
   math::Vector3d modelLatLon;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       World world(worldEntity(_ecm));
 
@@ -264,7 +264,7 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
 }
 
 /////////////////////////////////////////////////
-TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
+TEST_F(SphericalCoordinatesTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "spherical_coordinates.sdf"));
@@ -276,8 +276,8 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
   math::Pose3d modelPose;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       World world(worldEntity(_ecm));
 
@@ -324,7 +324,7 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
   auto scMsg = req.mutable_spherical_coordinates();
   scMsg->set_latitude_deg(desiredLat);
   scMsg->set_longitude_deg(desiredLon);
-  scMsg->set_heading_deg(IGN_RTOD(desiredHeading));
+  scMsg->set_heading_deg(GZ_RTOD(desiredHeading));
 
   msgs::Boolean res;
   bool result;

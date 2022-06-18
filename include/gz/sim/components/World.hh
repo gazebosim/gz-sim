@@ -23,21 +23,21 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity as being a world.
   using World = Component<NoData, class WorldTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.World", World)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.World", World)
 
   /// \brief A component that holds the world's SDF DOM
   using WorldSdf = Component<sdf::World, class WorldTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldSdf", WorldSdf)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldSdf", WorldSdf)
 }
 }
 }

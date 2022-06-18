@@ -51,6 +51,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/ThermalCamera.hh"
@@ -63,43 +64,44 @@
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SceneBroadcasterPrivate
+class gz::sim::systems::SceneBroadcasterPrivate
 {
   /// \brief Type alias for the graph used to represent the scene graph.
   public: using SceneGraphType = math::graph::DirectedGraph<
           std::shared_ptr<google::protobuf::Message>, bool>;
 
-  /// \brief Setup Ignition transport services and publishers
+  /// \brief Setup Gazebo Transport services and publishers
   /// \param[in] _worldName Name of world.
   public: void SetupTransport(const std::string &_worldName);
 
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+  public: bool SceneInfoService(gz::msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+  public: bool SceneGraphService(gz::msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+  public: bool StateService(gz::msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const gz::msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -224,15 +226,22 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// paused. The not-paused (a.ka. running) period has a key=false and a
   /// default update rate of 60Hz. The paused period has a key=true and a
   /// default update rate of 30Hz.
-  public: std::map<bool, std::chrono::duration<int64_t, std::ratio<1, 1000>>>
-      statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
-                         {true,  std::chrono::milliseconds(1000/30)}};
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
 };
 
 //////////////////////////////////////////////////
@@ -250,7 +259,7 @@ void SceneBroadcaster::Configure(
   const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
-    ignerr << "World with id: " << _entity
+    gzerr << "World with id: " << _entity
            << " has no name. SceneBroadcaster cannot create transport topics\n";
     return;
   }
@@ -261,16 +270,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod[false] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
 
-  // Set the paused update rate to half of the running update rate.
-  this->dataPtr->statePublishPeriod[true] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000 /
-        static_cast<int>(std::max(stateHerz.first * 0.5, 1.0))));
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    gzerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
@@ -284,14 +302,18 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcaster::PostUpdate");
+  GZ_PROFILE("SceneBroadcaster::PostUpdate");
 
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -342,7 +364,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Otherwise publish just periodic change components when running
     else if (!_info.paused)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
       auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
           {}, periodicComponents);
@@ -370,7 +392,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate Publish State");
+      GZ_PROFILE("SceneBroadcast::PostUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
@@ -381,7 +403,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcast::PoseUpdate");
+  GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
   msgs::Pose_V poseMsg, dyPoseMsg;
   bool dyPoseConnections = this->dyPosePub.HasConnections();
@@ -499,7 +521,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
   if (ns.empty())
   {
-    ignerr << "Failed to create valid namespace for world [" << _worldName
+    gzerr << "Failed to create valid namespace for world [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -514,7 +536,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
       this);
 
-  ignmsg << "Serving scene information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving scene information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
   // Scene graph service
@@ -523,7 +545,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(graphService,
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
-  ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving graph information on [" << opts.NameSpace() << "/"
          << graphService << "]" << std::endl;
 
   // State service
@@ -534,7 +556,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateService, &SceneBroadcasterPrivate::StateService,
       this);
 
-  ignmsg << "Serving full state on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state on [" << opts.NameSpace() << "/"
          << stateService << "]" << std::endl;
 
   // Async State service
@@ -543,33 +565,33 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateAsyncService,
       &SceneBroadcasterPrivate::StateAsyncService, this);
 
-  ignmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
          << stateAsyncService << "]" << std::endl;
 
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<gz::msgs::Scene>(sceneTopic);
 
-  ignmsg << "Publishing scene information on [" << sceneTopic
+  gzmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
 
   // Entity deletion publisher
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<gz::msgs::UInt32_V>(deletionTopic);
 
-  ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
+  gzmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
 
   // State topic
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<gz::msgs::SerializedStepMap>(stateTopic);
 
-  ignmsg << "Publishing state changes on [" << stateTopic << "]"
+  gzmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
 
   // Pose info publisher
@@ -580,7 +602,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic,
       poseAdvertOpts);
 
-  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
          << poseTopic << "]" << std::endl;
 
   // Dynamic pose info publisher
@@ -591,18 +613,19 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic,
       dyPoseAdvertOpts);
 
-  ignmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
          << dyPoseTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -615,7 +638,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const ignition::msgs::StringMsg &_req)
+    const gz::msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -624,7 +647,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStepMap &_res)
+    gz::msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -640,13 +663,13 @@ bool SceneBroadcasterPrivate::StateService(
   if (success)
     _res.CopyFrom(this->stepMsg);
   else
-    ignerr << "Timed out waiting for state" << std::endl;
+    gzerr << "Timed out waiting for state" << std::endl;
 
   return success;
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(gz::msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -916,22 +939,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          ignition::gazebo::set(
+          gz::sim::set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }
@@ -1000,6 +1023,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
@@ -1173,12 +1198,16 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 }
 
 
-IGNITION_ADD_PLUGIN(SceneBroadcaster,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(SceneBroadcaster,
+                    gz::sim::System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "gz::sim::systems::SceneBroadcaster")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "ignition::gazebo::systems::SceneBroadcaster")

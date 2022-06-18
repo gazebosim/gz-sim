@@ -15,21 +15,21 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIDEORECORDER_HH_
-#define IGNITION_GAZEBO_GUI_VIDEORECORDER_HH_
+#ifndef GZ_SIM_GUI_VIDEORECORDER_HH_
+#define GZ_SIM_GUI_VIDEORECORDER_HH_
 
 #include <memory>
 
 #include <gz/sim/gui/GuiSystem.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class VideoRecorderPrivate;
 
   /// \brief Provides video recording cababilities to the 3D scene.
-  class VideoRecorder : public ignition::gazebo::GuiSystem
+  class VideoRecorder : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

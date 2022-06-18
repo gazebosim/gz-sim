@@ -14,23 +14,23 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
+#ifndef GZ_SIM_TEST_TESTWORLDSYSTEM_HH_
+#define GZ_SIM_TEST_TESTWORLDSYSTEM_HH_
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using WorldPluginComponent =
     components::Component<double, class WorldPluginComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("WorldPluginComponent",
+GZ_SIM_REGISTER_COMPONENT("WorldPluginComponent",
     WorldPluginComponent)
 }
 }
@@ -42,12 +42,12 @@ class TestWorldSystem :
 {
   public: TestWorldSystem()
         {
-          igndbg << "Constructing TestWorldSystem" << std::endl;
+          gzdbg << "Constructing TestWorldSystem" << std::endl;
         }
 
   public: ~TestWorldSystem()
         {
-          igndbg << "Destroying TestWorldSystem" << std::endl;
+          gzdbg << "Destroying TestWorldSystem" << std::endl;
         }
 
   public: void Configure(const Entity &_entity,
@@ -55,13 +55,13 @@ class TestWorldSystem :
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventManager*/) override
         {
-          igndbg << "Configuring TestWorldSystem" << std::endl;
+          gzdbg << "Configuring TestWorldSystem" << std::endl;
           auto value = _sdf->Get<double>("world_key");
           _ecm.CreateComponent(_entity,
               components::WorldPluginComponent(value));
         }
 
-  public: void Update(const gazebo::UpdateInfo &_info,
+  public: void Update(const sim::UpdateInfo &_info,
                       EntityComponentManager &) override
           {
             std::cout << "iteration " << _info.iterations << std::endl;

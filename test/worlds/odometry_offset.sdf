@@ -8,7 +8,7 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
@@ -221,7 +221,7 @@
 
       <plugin
         filename="ignition-gazebo-odometry-publisher-system"
-        name="ignition::gazebo::systems::OdometryPublisher">
+        name="gz::sim::systems::OdometryPublisher">
       <xyz_offset>1 -1 0</xyz_offset>
       <rpy_offset>1.5708 0 0</rpy_offset>
       </plugin>

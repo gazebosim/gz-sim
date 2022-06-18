@@ -7,6 +7,6 @@ gz_add_gui_library(EntityContextMenu
   QT_HEADERS EntityContextMenu.hh
 )
 
-install (TARGETS EntityContextMenu DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR}/${module_name})
-install (FILES qmldir DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR}/${module_name})
+install (TARGETS EntityContextMenu DESTINATION ${GZ_SIM_GUI_PLUGIN_INSTALL_DIR}/${module_name})
+install (FILES qmldir DESTINATION ${GZ_SIM_GUI_PLUGIN_INSTALL_DIR}/${module_name})
 

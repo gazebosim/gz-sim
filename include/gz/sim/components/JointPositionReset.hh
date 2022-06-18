@@ -24,12 +24,12 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief Joint positions in SI units (rad for revolute, m for prismatic).
@@ -39,7 +39,7 @@ namespace components
   using JointPositionReset = Component<std::vector<double>,
                                        class JointPositionResetTag,
                                        serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointPositionReset", JointPositionReset)
 }
 }

@@ -24,21 +24,21 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains log playback,
   /// systems::LogPlayback, information.
   /// The log playback is created from world entity upon the playback plugin
   /// being loaded
-  using LogPlaybackStatistics = Component<ignition::msgs::LogPlaybackStatistics,
+  using LogPlaybackStatistics = Component<gz::msgs::LogPlaybackStatistics,
       class LogPlaybackStatisticsTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogPlaybackStatistics",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogPlaybackStatistics",
       LogPlaybackStatistics)
 }
 }

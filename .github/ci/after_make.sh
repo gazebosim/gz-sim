@@ -8,7 +8,7 @@ make install
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 
 # For ign-tools
-export IGN_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/ignition
 
 # For rendering / window tests
 Xvfb :1 -screen 0 1280x1024x24 &

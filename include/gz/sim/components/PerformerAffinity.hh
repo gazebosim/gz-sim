@@ -26,19 +26,19 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Serialization.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component holds the address of the distributed secondary that
   /// this performer is associated with.
   using PerformerAffinity = Component<std::string, class PerformerAffinityTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PerformerAffinity",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PerformerAffinity",
       PerformerAffinity)
 }
 }

@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/buoyancy-engine-system/Export.hh>
+#include <ignition/gazebo/config.hh>

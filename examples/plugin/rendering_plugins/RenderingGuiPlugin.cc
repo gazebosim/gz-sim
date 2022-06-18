@@ -33,8 +33,8 @@ void RenderingGuiPlugin::LoadConfig(const tinyxml2::XMLElement * /*_pluginElem*/
 {
   // This is necessary to receive the Render event on eventFilter
 //! [connectToGuiEvent]
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 //! [connectToGuiEvent]
 }
 
@@ -48,7 +48,7 @@ void RenderingGuiPlugin::RandomColor()
 //! [eventFilter]
 bool RenderingGuiPlugin::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in the render thread, so it's safe to make
     // rendering calls here
@@ -78,9 +78,9 @@ void RenderingGuiPlugin::PerformRenderingOperations()
     return;
 
   this->scene->SetAmbientLight({
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
-      static_cast<float>(ignition::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
+      static_cast<float>(gz::math::Rand::DblUniform(0.0, 1.0)),
       1.0});
 
   this->dirty = false;
@@ -90,10 +90,10 @@ void RenderingGuiPlugin::PerformRenderingOperations()
 /////////////////////////////////////////////////
 void RenderingGuiPlugin::FindScene()
 {
-  auto loadedEngNames = ignition::rendering::loadedEngines();
+  auto loadedEngNames = gz::rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
-    igndbg << "No rendering engine is loaded yet" << std::endl;
+    gzdbg << "No rendering engine is loaded yet" << std::endl;
     return;
   }
 
@@ -101,20 +101,20 @@ void RenderingGuiPlugin::FindScene()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    igndbg << "More than one engine is available. "
+    gzdbg << "More than one engine is available. "
       << "Using engine [" << engineName << "]" << std::endl;
   }
-  auto engine = ignition::rendering::engine(engineName);
+  auto engine = gz::rendering::engine(engineName);
   if (!engine)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
+    gzerr << "Internal error: failed to load engine [" << engineName
       << "]. Grid plugin won't work." << std::endl;
     return;
   }
 
   if (engine->SceneCount() == 0)
   {
-    igndbg << "No scene has been created yet" << std::endl;
+    gzdbg << "No scene has been created yet" << std::endl;
     return;
   }
 
@@ -122,13 +122,13 @@ void RenderingGuiPlugin::FindScene()
   auto scenePtr = engine->SceneByIndex(0);
   if (nullptr == scenePtr)
   {
-    ignerr << "Internal error: scene is null." << std::endl;
+    gzerr << "Internal error: scene is null." << std::endl;
     return;
   }
 
   if (engine->SceneCount() > 1)
   {
-    igndbg << "More than one scene is available. "
+    gzdbg << "More than one scene is available. "
       << "Using scene [" << scene->Name() << "]" << std::endl;
   }
 
@@ -141,5 +141,5 @@ void RenderingGuiPlugin::FindScene()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(RenderingGuiPlugin,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(RenderingGuiPlugin,
+                    gz::gui::Plugin)

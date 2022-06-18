@@ -16,17 +16,17 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test JointStatePublisher system
@@ -36,9 +36,9 @@ class JointStatePublisherTest
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -90,7 +90,7 @@ TEST_F(JointStatePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -147,7 +147,7 @@ TEST_F(JointStatePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(JointStatePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedJointPublisher))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedJointPublisher))
 {
   // Start server
   ServerConfig serverConfig;

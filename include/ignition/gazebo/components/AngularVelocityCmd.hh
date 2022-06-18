@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/AngularVelocityCmd.hh>
+#include <ignition/gazebo/config.hh>

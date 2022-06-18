@@ -19,32 +19,32 @@
 
 #include <string>
 
-#include <ignition/common/Battery.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Battery.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
@@ -54,27 +54,27 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: gz::sim::SystemPluginPtr systemPtr;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 
 /////////////////////////////////////////////////
 // Single model consuming single batter
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery.sdf");
@@ -86,9 +86,9 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
@@ -110,7 +110,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-sim/issues/55
       EXPECT_GT(batComp->Data(), 0);
     };
 
@@ -163,8 +163,8 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 
 /////////////////////////////////////////////////
 // Battery with  power draining topics
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery.sdf");
@@ -176,9 +176,9 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
@@ -200,7 +200,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-sim/issues/55
       EXPECT_GT(batComp->Data(), 0);
     };
 
@@ -229,7 +229,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
   // Send a message on one of the <power_draining_topic> topics, which will
   // start the battery draining when the server starts again.
-  ignition::transport::Node node;
+  gz::transport::Node node;
   auto pub = node.Advertise<msgs::StringMsg>("/battery/discharge2");
   msgs::StringMsg msg;
   pub.Publish(msg);

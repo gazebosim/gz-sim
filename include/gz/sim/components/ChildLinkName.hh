@@ -23,19 +23,19 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to indicate that a model is childlinkname (i.e.
   /// not moveable).
   using ChildLinkName = Component<std::string, class ChildLinkNameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.ChildLinkName", ChildLinkName)
 }
 }

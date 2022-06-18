@@ -15,21 +15,21 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_BANANA_FOR_SCALE_HH_
-#define IGNITION_GAZEBO_GUI_BANANA_FOR_SCALE_HH_
+#ifndef GZ_SIM_GUI_BANANA_FOR_SCALE_HH_
+#define GZ_SIM_GUI_BANANA_FOR_SCALE_HH_
 
 #include <memory>
 
 #include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class BananaPrivate;
 
   /// \brief Provides buttons for adding a banana for scale
-  class BananaForScale: public ignition::gui::Plugin
+  class BananaForScale: public gz::gui::Plugin
   {
     Q_OBJECT
 

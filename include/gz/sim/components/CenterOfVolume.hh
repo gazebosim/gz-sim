@@ -22,12 +22,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component for an entity's center of volume. Units are in meters.
@@ -35,7 +35,7 @@ namespace components
   /// position of the center of volume is relative to the pose of the parent
   /// entity, which is usually a link.
   using CenterOfVolume = Component<math::Vector3d, class CenterOfVolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CenterOfVolume",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CenterOfVolume",
       CenterOfVolume)
 }
 }

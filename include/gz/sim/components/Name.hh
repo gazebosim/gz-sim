@@ -23,19 +23,19 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief This component holds an entity's name. The component has no concept
   /// of scoped names nor does it care about uniqueness.
   using Name = Component<std::string, class NameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Name", Name)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Name", Name)
 }
 }
 }

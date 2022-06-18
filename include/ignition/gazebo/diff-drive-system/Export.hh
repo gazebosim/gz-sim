@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/diff-drive-system/Export.hh>
+#include <ignition/gazebo/config.hh>

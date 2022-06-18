@@ -23,19 +23,19 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains a Lidar sensor,
   /// sdf::Lidar, information.
   using Lidar = Component<sdf::Sensor, class LidarTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Lidar", Lidar)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Lidar", Lidar)
 }
 }
 }

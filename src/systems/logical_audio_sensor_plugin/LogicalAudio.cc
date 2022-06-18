@@ -22,12 +22,12 @@
 #include <string>
 #include <unordered_map>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace logical_audio
 {
   /// \brief A map to help convert user-input strings to the proper
@@ -58,8 +58,8 @@ namespace logical_audio
       double _sourceEmissionVolume,
       double _innerRadius,
       double _falloffDistance,
-      const ignition::math::Pose3d &_sourcePose,
-      const ignition::math::Pose3d &_targetPose)
+      const gz::math::Pose3d &_sourcePose,
+      const gz::math::Pose3d &_targetPose)
   {
     if (!_playing)
       return 0.0;
@@ -151,6 +151,6 @@ namespace logical_audio
       _volumeLevel = 1.0;
   }
 }  // namespace logical_audio
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz

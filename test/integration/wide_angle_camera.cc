@@ -17,22 +17,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/image.pb.h>
+#include <gz/msgs/image.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
+#include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test WideAndleCameraTest system
@@ -61,7 +61,7 @@ void imageCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Wide Angle Camera readings
-TEST_F(WideAngleCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
+TEST_F(WideAngleCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

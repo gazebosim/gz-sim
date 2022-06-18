@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef GZ_GAZEBO_ICOMMSMODEL_HH_
-#define GZ_GAZEBO_ICOMMSMODEL_HH_
+#ifndef GZ_SIM_ICOMMSMODEL_HH_
+#define GZ_SIM_ICOMMSMODEL_HH_
 
 #include <memory>
 
@@ -26,12 +26,12 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 
   // Forward declarations
   class EntityComponentManager;
@@ -61,10 +61,10 @@ namespace comms
   /// </physics>
   /// <plugin
   ///   filename="ignition-gazebo-perfect-comms-system"
-  ///   name="ignition::gazebo::systems::PerfectComms">
+  ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
-  class IGNITION_GAZEBO_VISIBLE ICommsModel:
+  class GZ_GAZEBO_VISIBLE ICommsModel:
 #ifdef _MSC_VER
   #pragma warning(push)
   #pragma warning(disable:4275)
@@ -87,13 +87,13 @@ namespace comms
 
     // Documentation inherited.
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief This method is called when there is a timestep in the simulator.
     /// \param[in] _info Simulator information about the current timestep.
     ///                         will become the new registry.
-    /// \param[in] _ecm - Ignition's ECM.
+    /// \param[in] _ecm - Gazebo Sim's ECM.
     public: virtual void StepImpl(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm);
 
@@ -118,14 +118,14 @@ namespace comms
     /// \param[in] _currentRegistry The current registry.
     /// \param[out] _newRegistry The new registry. When Step() is finished this
     ///                         will become the new registry.
-    /// \param[in] _ecm - Ignition's ECM.
+    /// \param[in] _ecm - Gazebo Sim's ECM.
     public: virtual void Step(const UpdateInfo &_info,
                               const Registry &_currentRegistry,
                               Registry &_newRegistry,
                               EntityComponentManager &_ecm) = 0;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }

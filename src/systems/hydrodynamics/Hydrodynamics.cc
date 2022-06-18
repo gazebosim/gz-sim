@@ -35,12 +35,12 @@
 
 #include "Hydrodynamics.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private Hydrodynamics data class.
-class ignition::gazebo::systems::HydrodynamicsPrivateData
+class gz::sim::systems::HydrodynamicsPrivateData
 {
   /// \brief Values to set via Plugin Parameters.
   /// Plugin Parameter: Added mass in surge, X_\dot{u}.
@@ -100,7 +100,7 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
-  /// \brief The ignition transport node
+  /// \brief The Gazebo Transport node
   public: transport::Node node;
 
   /// \brief Ocean current experienced by this body
@@ -127,50 +127,50 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
 void HydrodynamicsPrivateData::UpdateCurrent(const msgs::Vector3d &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mtx);
-  this->currentVector = ignition::msgs::Convert(_msg);
+  this->currentVector = gz::msgs::Convert(_msg);
 }
 
 /////////////////////////////////////////////////
 void AddAngularVelocityComponent(
-  const ignition::gazebo::Entity &_entity,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::Entity &_entity,
+  gz::sim::EntityComponentManager &_ecm)
 {
-  if (!_ecm.Component<ignition::gazebo::components::AngularVelocity>(_entity))
+  if (!_ecm.Component<gz::sim::components::AngularVelocity>(_entity))
   {
     _ecm.CreateComponent(_entity,
-      ignition::gazebo::components::AngularVelocity());
+      gz::sim::components::AngularVelocity());
   }
 
   // Create an angular velocity component if one is not present.
-  if (!_ecm.Component<ignition::gazebo::components::WorldAngularVelocity>(
+  if (!_ecm.Component<gz::sim::components::WorldAngularVelocity>(
       _entity))
   {
     _ecm.CreateComponent(_entity,
-      ignition::gazebo::components::WorldAngularVelocity());
+      gz::sim::components::WorldAngularVelocity());
   }
 }
 
 /////////////////////////////////////////////////
 void AddWorldPose(
-  const ignition::gazebo::Entity &_entity,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::Entity &_entity,
+  gz::sim::EntityComponentManager &_ecm)
 {
-  if (!_ecm.Component<ignition::gazebo::components::WorldPose>(_entity))
+  if (!_ecm.Component<gz::sim::components::WorldPose>(_entity))
   {
-    _ecm.CreateComponent(_entity, ignition::gazebo::components::WorldPose());
+    _ecm.CreateComponent(_entity, gz::sim::components::WorldPose());
   }
 }
 
 /////////////////////////////////////////////////
 void AddWorldLinearVelocity(
-  const ignition::gazebo::Entity &_entity,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const gz::sim::Entity &_entity,
+  gz::sim::EntityComponentManager &_ecm)
 {
-  if (!_ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(
+  if (!_ecm.Component<gz::sim::components::WorldLinearVelocity>(
       _entity))
   {
     _ecm.CreateComponent(_entity,
-      ignition::gazebo::components::WorldLinearVelocity());
+      gz::sim::components::WorldLinearVelocity());
   }
 }
 
@@ -197,16 +197,16 @@ Hydrodynamics::~Hydrodynamics()
 
 /////////////////////////////////////////////////
 void Hydrodynamics::Configure(
-  const ignition::gazebo::Entity &_entity,
+  const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  ignition::gazebo::EntityComponentManager &_ecm,
-  ignition::gazebo::EventManager &/*_eventMgr*/
+  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EventManager &/*_eventMgr*/
 )
 {
   if (_sdf->HasElement("waterDensity"))
   {
-    ignwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
+    gzwarn <<
+      "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
       << "\tPlease update your SDF to use <water_density> instead.";
   }
 
@@ -233,14 +233,14 @@ void Hydrodynamics::Configure(
   this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
 
   // Create model object, to access convenient functions
-  auto model = ignition::gazebo::Model(_entity);
+  auto model = gz::sim::Model(_entity);
 
   std::string ns {""};
   std::string currentTopic {"/ocean_current"};
   if (_sdf->HasElement("namespace"))
   {
     ns = _sdf->Get<std::string>("namespace");
-    currentTopic = ignition::transport::TopicUtils::AsValidTopic(
+    currentTopic = gz::transport::TopicUtils::AsValidTopic(
         "/model/" + ns + "/ocean_current");
   }
 
@@ -251,7 +251,7 @@ void Hydrodynamics::Configure(
 
   if (!_sdf->HasElement("link_name"))
   {
-    ignerr << "You musk specify a <link_name> for the hydrodynamic"
+    gzerr << "You must specify a <link_name> for the hydrodynamic"
       << " plugin to act upon";
     return;
   }
@@ -259,7 +259,7 @@ void Hydrodynamics::Configure(
   this->dataPtr->linkEntity = model.LinkByName(_ecm, linkName);
   if (!_ecm.HasEntity(this->dataPtr->linkEntity))
   {
-    ignerr << "Link name" << linkName << "does not exist";
+    gzerr << "Link name" << linkName << "does not exist";
     return;
   }
 
@@ -288,8 +288,8 @@ void Hydrodynamics::Configure(
 
 /////////////////////////////////////////////////
 void Hydrodynamics::PreUpdate(
-      const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &_info,
+      gz::sim::EntityComponentManager &_ecm)
 {
   if (_info.paused)
     return;
@@ -307,14 +307,14 @@ void Hydrodynamics::PreUpdate(
   Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
 
   // Get vehicle state
-  ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
+  gz::sim::Link baseLink(this->dataPtr->linkEntity);
   auto linearVelocity =
     _ecm.Component<components::WorldLinearVelocity>(this->dataPtr->linkEntity);
   auto rotationalVelocity = baseLink.WorldAngularVelocity(_ecm);
 
   if (!linearVelocity)
   {
-    ignerr << "no linear vel" <<"\n";
+    gzerr << "no linear vel" <<"\n";
     return;
   }
 
@@ -389,9 +389,9 @@ void Hydrodynamics::PreUpdate(
 
   const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
 
-  ignition::math::Vector3d
+  gz::math::Vector3d
     totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));
-  ignition::math::Vector3d
+  gz::math::Vector3d
     totalTorque(-kTotalWrench(3), -kTotalWrench(4), -kTotalWrench(5));
 
   baseLink.AddWorldWrench(
@@ -400,12 +400,17 @@ void Hydrodynamics::PreUpdate(
     pose->Rot()*totalTorque);
 }
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
   Hydrodynamics, System,
   Hydrodynamics::ISystemConfigure,
   Hydrodynamics::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
+  Hydrodynamics,
+  "gz::sim::systems::Hydrodynamics")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(
   Hydrodynamics,
   "ignition::gazebo::systems::Hydrodynamics")

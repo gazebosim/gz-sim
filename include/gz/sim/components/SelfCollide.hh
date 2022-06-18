@@ -21,18 +21,18 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component used to hold a model's self collide property.
   using SelfCollide = Component<bool, class SelfCollideTag>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SelfCollide",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SelfCollide",
                                 SelfCollide)
 }
 }

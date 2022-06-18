@@ -21,12 +21,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that identifies an entity needs to be recreated.
@@ -39,7 +39,7 @@ namespace components
   /// existing model. The existing model is tagged with this component so
   /// that it can be recreated by the server.
   using Recreate = Component<NoData, class RecreateTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Recreate", Recreate)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Recreate", Recreate)
 }
 }
 }

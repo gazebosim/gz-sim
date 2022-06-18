@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
-#define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
+#ifndef GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
+#define GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
 
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
@@ -41,14 +41,14 @@
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/detail/View.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
-    class IGNITION_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+    class GZ_GAZEBO_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
 
     /// \brief Type alias for the graph that holds entities.
@@ -64,7 +64,7 @@ namespace ignition
     /// components and entities.
     /// A component can be of any class which inherits from
     /// `components::BaseComponent`.
-    class IGNITION_GAZEBO_VISIBLE EntityComponentManager
+    class GZ_GAZEBO_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
       public: EntityComponentManager();
@@ -128,7 +128,7 @@ namespace ignition
       /// update step.
       ///
       /// \details It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// directly, and instead use the `sim::SdfEntityCreator` class to
       /// remove entities.
       ///
       /// \param[in] _entity Entity to be removed.
@@ -187,7 +187,7 @@ namespace ignition
       /// \brief Set the parent of an entity.
       ///
       /// \details It is recommended that systems don't call this function
-      /// directly, and instead use the `gazebo::SdfEntityCreator` class to
+      /// directly, and instead use the `sim::SdfEntityCreator` class to
       /// create entities that have the correct parent-child relationship.
       ///
       /// \param[in] _child Entity to set the parent
@@ -205,7 +205,7 @@ namespace ignition
       /// \param[in] _entity The entity to check.
       /// \param[in] _key The component to check.
       /// \return True if the component key belongs to the entity.
-      public: bool IGN_DEPRECATED(6) EntityHasComponent(const Entity _entity,
+      public: bool GZ_DEPRECATED(6) EntityHasComponent(const Entity _entity,
                   const ComponentKey &_key) const;
 
       /// \brief Check whether an entity has a specific component type.
@@ -228,7 +228,7 @@ namespace ignition
       /// \param[in] _key A key that uniquely identifies a component.
       /// \return True if the entity and component existed and the component was
       ///  removed.
-      public: bool IGN_DEPRECATED(6) RemoveComponent(
+      public: bool GZ_DEPRECATED(6) RemoveComponent(
                   const Entity _entity, const ComponentKey &_key);
 
       /// \brief Remove a component from an entity based on a type id.
@@ -285,7 +285,7 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT IGN_DEPRECATED(6) * Component(
+              const ComponentTypeT GZ_DEPRECATED(6) * Component(
               const ComponentKey &_key) const;
 
       /// \brief Get a mutable component based on a key.
@@ -293,7 +293,7 @@ namespace ignition
       /// \return The component associated with the key, or nullptr if the
       /// component could not be found.
       public: template<typename ComponentTypeT>
-              ComponentTypeT IGN_DEPRECATED(6) * Component(
+              ComponentTypeT GZ_DEPRECATED(6) * Component(
               const ComponentKey &_key);
 
       /// \brief Get a mutable component assigned to an entity based on a
@@ -345,13 +345,13 @@ namespace ignition
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              const ComponentTypeT IGN_DEPRECATED(6) * First() const;
+              const ComponentTypeT GZ_DEPRECATED(6) * First() const;
 
       /// \brief The first component instance of the specified type.
       /// This function is now deprecated, and will always return nullptr.
       /// \return nullptr.
       public: template<typename ComponentTypeT>
-              ComponentTypeT IGN_DEPRECATED(6) * First();
+              ComponentTypeT GZ_DEPRECATED(6) * First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
@@ -663,13 +663,13 @@ namespace ignition
       /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
           const Entity _entity, const ComponentTypeId _type,
-          gazebo::ComponentState _c = ComponentState::OneTimeChange);
+          sim::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
       /// \return Component's current state
-      public: gazebo::ComponentState ComponentState(const Entity _entity,
+      public: sim::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
 
       /// \brief All future entities will have an id that starts at _offset.

@@ -33,9 +33,9 @@
 
 #include <gz/sim/config.hh>
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
-class ignition::gazebo::SystemLoaderPrivate
+class gz::sim::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
   public: explicit SystemLoaderPrivate() = default;
@@ -44,35 +44,55 @@ class ignition::gazebo::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const std::string &_filename,
               const std::string &_name,
               const sdf::ElementPtr &/*_sdf*/,
-              ignition::plugin::PluginPtr &_plugin)
+              gz::plugin::PluginPtr &_plugin)
   {
-    ignition::common::SystemPaths systemPaths;
+    gz::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
     for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
     std::string homePath;
-    ignition::common::env(IGN_HOMEDIR, homePath);
+    gz::common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
-    systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
+
+    // TODO(CH3): Deprecated. Remove on tock.
+    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
+
+    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(_filename);
     if (pathToLib.empty())
     {
-      // We assume ignition::gazebo corresponds to the levels feature
-      if (_name != "ignition::gazebo")
+      // Try deprecated environment variable
+      // TODO(CH3): Deprecated. Remove on tock.
+      common::SystemPaths systemPathsDep;
+      systemPathsDep.SetPluginPathEnv(pluginPathEnvDeprecated);
+      pathToLib = systemPathsDep.FindSharedLibrary(_filename);
+
+      if (pathToLib.empty())
       {
-        ignerr << "Failed to load system plugin [" << _filename <<
-                  "] : couldn't find shared library." << std::endl;
+        // We assume gz::sim corresponds to the levels feature
+        if (_name != "gz::sim")
+        {
+          gzerr << "Failed to load system plugin [" << _filename <<
+                    "] : couldn't find shared library." << std::endl;
+        }
+        return false;
       }
-      return false;
+      else
+      {
+        gzwarn << "Found plugin [" << _filename
+               << "] using deprecated environment variable ["
+               << pluginPathEnvDeprecated << "]. Please use ["
+               << pluginPathEnv << "] instead." << std::endl;
+      }
     }
 
     auto pluginNames = this->loader.LoadLib(pathToLib);
     if (pluginNames.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << _filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -81,7 +101,7 @@ class ignition::gazebo::SystemLoaderPrivate
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      ignerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << _filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -90,7 +110,7 @@ class ignition::gazebo::SystemLoaderPrivate
     _plugin = this->loader.Instantiate(_name);
     if (!_plugin)
     {
-      ignerr << "Failed to load system plugin [" << _name <<
+      gzerr << "Failed to load system plugin [" << _name <<
                 "] : could not instantiate from library [" << _filename <<
                 "] from path [" << pathToLib << "]." << std::endl;
       return false;
@@ -98,7 +118,7 @@ class ignition::gazebo::SystemLoaderPrivate
 
     if (!_plugin->HasInterface<System>())
     {
-      ignerr << "Failed to load system plugin [" << _name <<
+      gzerr << "Failed to load system plugin [" << _name <<
         "] : system not found in library  [" << _filename <<
         "] from path [" << pathToLib << "]." << std::endl;
 
@@ -110,10 +130,11 @@ class ignition::gazebo::SystemLoaderPrivate
   }
 
   // Default plugin search path environment variable
-  public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
+  public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
+  public: std::string pluginPathEnvDeprecated{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
-  public: ignition::plugin::Loader loader;
+  public: gz::plugin::Loader loader;
 
   /// \brief Paths to search for system plugins.
   public: std::unordered_set<std::string> systemPluginPaths;
@@ -143,11 +164,11 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
-  ignition::plugin::PluginPtr plugin;
+  gz::plugin::PluginPtr plugin;
 
   if (_filename == "" || _name == "")
   {
-    ignerr << "Failed to instantiate system plugin: empty argument "
+    gzerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _filename << "] " <<
               "[(name): " << _name << "]." << std::endl;
     return {};
@@ -182,4 +203,3 @@ std::string SystemLoader::PrettyStr() const
 {
   return this->dataPtr->loader.PrettyStr();
 }
-

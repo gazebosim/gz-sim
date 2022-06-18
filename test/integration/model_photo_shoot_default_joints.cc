@@ -17,11 +17,11 @@
 
 #include "ModelPhotoShootTest.hh"
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 // Test the Model Photo Shoot plugin on the example world.
 TEST_F(ModelPhotoShootTest,
-       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelPhotoShootDefaultJoints))
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelPhotoShootDefaultJoints))
 {
   this->ModelPhotoShootTestCmd(
       "examples/worlds/model_photo_shoot.sdf");

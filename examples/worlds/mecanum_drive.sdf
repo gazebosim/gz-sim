@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo Mecanum drive plugin demo
+  Gazebo Mecanum drive plugin demo
 
   Try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5, y: 0.5}"
+    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5, y: 0.5}"
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {y: 0.5}, angular: {z: 0.2}"
+    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {y: 0.5}, angular: {z: 0.2}"
 
 -->
 <sdf version="1.6">
@@ -18,15 +18,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -77,7 +77,7 @@
       </link>
     </model>
 
-    <model name='vehicle_blue' xmlns:ignition="http://ignitionrobotics.org/schema">
+    <model name='vehicle_blue' xmlns:ignition="http://gazebosim.org/schema">
       <pose>0 2 0.325 0 -0 0</pose>
 
       <link name='chassis'>
@@ -345,7 +345,7 @@
 
       <plugin
         filename="ignition-gazebo-mecanum-drive-system"
-        name="ignition::gazebo::systems::MecanumDrive">
+        name="gz::sim::systems::MecanumDrive">
         <front_left_joint>front_left_wheel_joint</front_left_joint>
         <front_right_joint>front_right_wheel_joint</front_right_joint>
         <back_left_joint>rear_left_wheel_joint</back_left_joint>

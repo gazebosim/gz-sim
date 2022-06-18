@@ -30,6 +30,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
+#include <gz/math/Rand.hh>
 #include <gz/math/RollingMean.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
@@ -39,20 +40,20 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::OdometryPublisherPrivate
+class gz::sim::systems::OdometryPublisherPrivate
 {
   /// \brief Calculates odometry and publishes an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Model interface
@@ -95,10 +96,10 @@ class ignition::gazebo::systems::OdometryPublisherPrivate
   public: math::Pose3d lastUpdatePose{0, 0, 0, 0, 0, 0};
 
   /// \brief Current timestamp.
-  public: math::clock::time_point lastUpdateTime;
+  public: std::chrono::steady_clock::time_point lastUpdateTime;
 
   /// \brief Allow specifying constant xyz and rpy offsets
-  public: ignition::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
+  public: gz::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 
   /// \brief Gaussian noise
   public: double gaussianNoise = 0.0;
@@ -136,7 +137,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "OdometryPublisher system plugin should be attached to a model"
+    gzerr << "OdometryPublisher system plugin should be attached to a model"
            << " entity. Failed to initialize." << std::endl;
     return;
   }
@@ -144,7 +145,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->odomFrame = this->dataPtr->model.Name(_ecm) + "/" + "odom";
   if (!_sdf->HasElement("odom_frame"))
   {
-    ignwarn << "OdometryPublisher system plugin missing <odom_frame>, "
+    gzwarn << "OdometryPublisher system plugin missing <odom_frame>, "
       << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
   }
   else
@@ -154,14 +155,14 @@ void OdometryPublisher::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("xyz_offset"))
   {
-    this->dataPtr->offset.Pos() = _sdf->Get<ignition::math::Vector3d>(
+    this->dataPtr->offset.Pos() = _sdf->Get<gz::math::Vector3d>(
       "xyz_offset");
   }
 
   if (_sdf->HasElement("rpy_offset"))
   {
     this->dataPtr->offset.Rot() =
-      ignition::math::Quaterniond(_sdf->Get<ignition::math::Vector3d>(
+      gz::math::Quaterniond(_sdf->Get<gz::math::Vector3d>(
         "rpy_offset"));
   }
 
@@ -174,7 +175,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     + "/" + "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
-    ignwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
+    gzwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
       << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
   }
   else
@@ -185,7 +186,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->dimensions = 2;
   if (!_sdf->HasElement("dimensions"))
   {
-    igndbg << "OdometryPublisher system plugin missing <dimensions>, "
+    gzdbg << "OdometryPublisher system plugin missing <dimensions>, "
       << "defaults to \"" << this->dataPtr->dimensions << "\"" << std::endl;
   }
   else
@@ -193,7 +194,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->dimensions = _sdf->Get<int>("dimensions");
     if (this->dataPtr->dimensions != 2 && this->dataPtr->dimensions != 3)
     {
-      ignerr << "OdometryPublisher system plugin <dimensions> must be 2D or 3D "
+      gzerr << "OdometryPublisher system plugin <dimensions> must be 2D or 3D "
              << "not " << this->dataPtr->dimensions
              << "D. Failed to initialize." << std::endl;
       return;
@@ -222,7 +223,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
   if (odomTopicValid.empty())
   {
-    ignerr << "Failed to generate odom topic ["
+    gzerr << "Failed to generate odom topic ["
            << odomTopic << "]" << std::endl;
   }
   else
@@ -235,7 +236,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     transport::TopicUtils::AsValidTopic(odomCovTopic)};
   if (odomCovTopicValid.empty())
   {
-    ignerr << "Failed to generate odom topic ["
+    gzerr << "Failed to generate odom topic ["
            << odomCovTopic << "]" << std::endl;
   }
   else
@@ -246,15 +247,15 @@ void OdometryPublisher::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void OdometryPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::PreUpdate");
+  GZ_PROFILE("OdometryPublisher::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -273,7 +274,7 @@ void OdometryPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::PostUpdate");
+  GZ_PROFILE("OdometryPublisher::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -283,10 +284,10 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void OdometryPublisherPrivate::UpdateOdometry(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::UpdateOdometry");
+  GZ_PROFILE("OdometryPublisher::UpdateOdometry");
   // Record start time.
   if (!this->initialized)
   {
@@ -322,8 +323,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   double currentYaw = pose.Rot().Yaw();
   const double lastYaw = this->lastUpdatePose.Rot().Yaw();
-  while (currentYaw < lastYaw - IGN_PI) currentYaw += 2 * IGN_PI;
-  while (currentYaw > lastYaw + IGN_PI) currentYaw -= 2 * IGN_PI;
+  while (currentYaw < lastYaw - GZ_PI) currentYaw += 2 * GZ_PI;
+  while (currentYaw > lastYaw + GZ_PI) currentYaw -= 2 * GZ_PI;
   const float yawDiff = currentYaw - lastYaw;
 
   // Get velocities assuming 2D
@@ -337,31 +338,31 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<1>(this->linearMean).Push(linearVelocityY);
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_y(
       std::get<1>(this->linearMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_z(
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
     msg.mutable_twist()->mutable_angular()->set_x(
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
   // Get velocities and roll/pitch rates assuming 3D
   else if (this->dimensions == 3)
   {
     double currentRoll = pose.Rot().Roll();
     const double lastRoll = this->lastUpdatePose.Rot().Roll();
-    while (currentRoll < lastRoll - IGN_PI) currentRoll += 2 * IGN_PI;
-    while (currentRoll > lastRoll + IGN_PI) currentRoll -= 2 * IGN_PI;
+    while (currentRoll < lastRoll - GZ_PI) currentRoll += 2 * GZ_PI;
+    while (currentRoll > lastRoll + GZ_PI) currentRoll -= 2 * GZ_PI;
     const float rollDiff = currentRoll - lastRoll;
 
     double currentPitch = pose.Rot().Pitch();
     const double lastPitch = this->lastUpdatePose.Rot().Pitch();
-    while (currentPitch < lastPitch - IGN_PI) currentPitch += 2 * IGN_PI;
-    while (currentPitch > lastPitch + IGN_PI) currentPitch -= 2 * IGN_PI;
+    while (currentPitch < lastPitch - GZ_PI) currentPitch += 2 * GZ_PI;
+    while (currentPitch > lastPitch + GZ_PI) currentPitch -= 2 * GZ_PI;
     const float pitchDiff = currentPitch - lastPitch;
 
     double linearDisplacementZ =
@@ -377,26 +378,26 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_y(
       std::get<1>(this->linearMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_linear()->set_z(
       std::get<2>(this->linearMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_x(
       std::get<0>(this->angularMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
       std::get<1>(this->angularMean).Mean() +
-      ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+      gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
 
   // Set yaw rate
   std::get<2>(this->angularMean).Push(yawDiff / dt.count());
   msg.mutable_twist()->mutable_angular()->set_z(
     std::get<2>(this->angularMean).Mean() +
-    ignition::math::Rand::DblNormal(0, this->gaussianNoise));
+    gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
   msg.mutable_header()->mutable_stamp()->CopyFrom(
@@ -490,11 +491,15 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 }
 
-IGNITION_ADD_PLUGIN(OdometryPublisher,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(OdometryPublisher,
+                    gz::sim::System,
                     OdometryPublisher::ISystemConfigure,
                     OdometryPublisher::ISystemPreUpdate,
                     OdometryPublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(OdometryPublisher,
+GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
+                          "gz::sim::systems::OdometryPublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "ignition::gazebo::systems::OdometryPublisher")

@@ -46,12 +46,12 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private LogicalCamera data class.
-class ignition::gazebo::systems::LogicalCameraPrivate
+class gz::sim::systems::LogicalCameraPrivate
 {
   /// \brief A map of logicalCamera entities
   public: std::unordered_map<Entity,
@@ -106,7 +106,7 @@ LogicalCamera::~LogicalCamera() = default;
 void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCamera::PreUpdate");
+  GZ_PROFILE("LogicalCamera::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -114,7 +114,7 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -128,12 +128,12 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
 void LogicalCamera::PostUpdate(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCamera::PostUpdate");
+  GZ_PROFILE("LogicalCamera::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -143,6 +143,25 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the LogicalCameraPrivate::UpdateLogicalCameras
+    // function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->UpdateLogicalCameras(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -178,7 +197,7 @@ void LogicalCameraPrivate::AddLogicalCamera(
       sensors::LogicalCameraSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -200,7 +219,7 @@ void LogicalCameraPrivate::AddLogicalCamera(
 //////////////////////////////////////////////////
 void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
+  GZ_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
   if (!this->initialized)
   {
     // Create logicalCameras
@@ -233,7 +252,7 @@ void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 void LogicalCameraPrivate::UpdateLogicalCameras(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
+  GZ_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
   std::map<std::string, math::Pose3d> modelPoses;
 
   _ecm.Each<components::Model, components::Name, components::Pose>(
@@ -265,7 +284,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
         }
         else
         {
-          ignerr << "Failed to update logicalCamera: " << _entity << ". "
+          gzerr << "Failed to update logicalCamera: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -277,7 +296,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
 void LogicalCameraPrivate::RemoveLogicalCameraEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::RemoveLogicalCameraEntities");
+  GZ_PROFILE("LogicalCameraPrivate::RemoveLogicalCameraEntities");
   _ecm.EachRemoved<components::LogicalCamera>(
     [&](const Entity &_entity,
         const components::LogicalCamera *)->bool
@@ -285,7 +304,7 @@ void LogicalCameraPrivate::RemoveLogicalCameraEntities(
         auto sensorIt = this->entitySensorMap.find(_entity);
         if (sensorIt == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing logicalCamera sensor for entity ["
+          gzerr << "Internal error, missing logicalCamera sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -296,11 +315,14 @@ void LogicalCameraPrivate::RemoveLogicalCameraEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(LogicalCamera, System,
+GZ_ADD_PLUGIN(LogicalCamera, System,
   LogicalCamera::ISystemPreUpdate,
   LogicalCamera::ISystemPostUpdate
 )
 
+GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
+    "gz::sim::systems::LogicalCamera")
 
-IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
     "ignition::gazebo::systems::LogicalCamera")

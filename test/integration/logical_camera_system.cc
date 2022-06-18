@@ -17,27 +17,27 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/logical_camera_image.pb.h>
+#include <gz/msgs/logical_camera_image.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test LogicalCameraTest system
 class LogicalCameraTest : public InternalFixture<::testing::Test>
@@ -67,8 +67,8 @@ void logicalCamera2Cb(const msgs::LogicalCameraImage &_msg)
 /////////////////////////////////////////////////
 // This test checks that both logical cameras in the world can see a box
 // at the correct relative pose.
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
@@ -93,11 +93,11 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 
   // Create a system that checks sensor topics
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &_entity,
                 const components::LogicalCamera *,
                 const components::Name *_name) -> bool
             {
@@ -177,22 +177,22 @@ TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   math::Pose3d boxPose(1, 0, 0.5, 0, 0, 0);
   math::Pose3d sensor1Pose(0.05, 0.05, 0.55, 0, 0, 0);
   mutex.lock();
-  ignition::msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
-  EXPECT_EQ(sensor1Pose, ignition::msgs::Convert(img1.pose()));
+  gz::msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
+  EXPECT_EQ(sensor1Pose, gz::msgs::Convert(img1.pose()));
   EXPECT_EQ(1, img1.model().size());
   EXPECT_EQ(boxName, img1.model(0).name());
-  ignition::math::Pose3d boxPoseCamera1Frame = boxPose - sensor1Pose;
-  EXPECT_EQ(boxPoseCamera1Frame, ignition::msgs::Convert(img1.model(0).pose()));
+  gz::math::Pose3d boxPoseCamera1Frame = sensor1Pose.Inverse() * boxPose;
+  EXPECT_EQ(boxPoseCamera1Frame, gz::msgs::Convert(img1.model(0).pose()));
   mutex.unlock();
 
   // Sensor 2 should see box too - note different sensor pose.
   math::Pose3d sensor2Pose(0.05, -0.45, 0.55, 0, 0, 0);
   mutex.lock();
-  ignition::msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
-  EXPECT_EQ(sensor2Pose, ignition::msgs::Convert(img2.pose()));
+  gz::msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
+  EXPECT_EQ(sensor2Pose, gz::msgs::Convert(img2.pose()));
   EXPECT_EQ(1, img2.model().size());
   EXPECT_EQ(boxName, img2.model(0).name());
-  ignition::math::Pose3d boxPoseCamera2Frame = boxPose - sensor2Pose;
-  EXPECT_EQ(boxPoseCamera2Frame, ignition::msgs::Convert(img2.model(0).pose()));
+  gz::math::Pose3d boxPoseCamera2Frame = sensor2Pose.Inverse() * boxPose;
+  EXPECT_EQ(boxPoseCamera2Frame, gz::msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
 }

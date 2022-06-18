@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_GAZEBO_TESTFIXTURE_HH_
-#define GZ_GAZEBO_TESTFIXTURE_HH_
+#ifndef GZ_SIM_TESTFIXTURE_HH_
+#define GZ_SIM_TESTFIXTURE_HH_
 
 #include <memory>
 #include <string>
@@ -25,25 +25,25 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 //
-class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
+class GZ_GAZEBO_HIDDEN TestFixturePrivate;
 /// \brief Helper class to write automated tests. It provides a convenient API
 /// to load a world file, step simulation and check entities and components.
 ///
 /// ## Usage
 ///
 /// // Load a world with a fixture
-/// ignition::gazebo::TestFixture fixture("path_to.sdf");
+/// gz::sim::TestFixture fixture("path_to.sdf");
 ///
 /// // Register callbacks, for example:
-/// fixture.OnPostUpdate([&](const gazebo::UpdateInfo &,
-///   const gazebo::EntityComponentManager &_ecm)
+/// fixture.OnPostUpdate([&](const sim::UpdateInfo &,
+///   const sim::EntityComponentManager &_ecm)
 ///   {
 ///     // Add expectations here
 ///   }).Finalize();
@@ -52,7 +52,7 @@ class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// // Run the server
 /// fixture.Server()->Run(true, 1000, false);
 ///
-class IGNITION_GAZEBO_VISIBLE TestFixture
+class GZ_GAZEBO_VISIBLE TestFixture
 {
   /// \brief Constructor
   /// \param[in] _path Path to SDF file.
@@ -100,11 +100,11 @@ class IGNITION_GAZEBO_VISIBLE TestFixture
   public: TestFixture &Finalize();
 
   /// \brief Get pointer to underlying server.
-  public: std::shared_ptr<gazebo::Server> Server() const;
+  public: std::shared_ptr<sim::Server> Server() const;
 
   /// \internal
   /// \brief Pointer to private data.
-  // TODO(chapulina) Use IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
+  // TODO(chapulina) Use GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
   private: TestFixturePrivate *dataPtr;
 };
 }

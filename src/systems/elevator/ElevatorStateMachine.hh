@@ -20,8 +20,8 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#ifndef GZ_SIM_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#define GZ_SIM_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
 
 #include <memory>
 
@@ -30,12 +30,12 @@
 
 #include "afsm/fsm.hpp"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -135,10 +135,10 @@ class ElevatorStateMachineDef
 using ElevatorStateMachine = ::afsm::state_machine<ElevatorStateMachineDef>;
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz
 
 #include "state_machine/ElevatorStateMachineImpl.hh"
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#endif  // GZ_SIM_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_

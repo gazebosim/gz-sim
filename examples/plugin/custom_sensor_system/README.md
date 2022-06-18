@@ -1,9 +1,9 @@
 # Custom sensor system
 
-This example shows how to use a custom sensor with Ignition Gazebo.
+This example shows how to use a custom sensor with Gazebo.
 
 It uses the odometer created on this example:
-[ign-sensors/examples/custom_sensor](https://github.com/ignitionrobotics/ign-sensors/tree/main/examples/custom_sensor).
+[ign-sensors/examples/custom_sensor](https://github.com/gazebosim/gz-sensors/tree/main/examples/custom_sensor).
 
 ## Build
 
@@ -28,7 +28,7 @@ Before starting Gazebo, we must make sure it can find the plugin by doing:
 
 ~~~
 cd examples/plugins/custom_sensor_system
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then load the example world:

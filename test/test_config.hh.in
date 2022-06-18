@@ -14,26 +14,26 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_CONFIG_HH_
-#define IGNITION_GAZEBO_TEST_CONFIG_HH_
+#ifndef GZ_SIM_TEST_CONFIG_HH_
+#define GZ_SIM_TEST_CONFIG_HH_
 
 #include <stdlib.h>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/config.hh>
 
 #define PROJECT_SOURCE_PATH "${PROJECT_SOURCE_DIR}"
 #define PROJECT_BINARY_PATH "${CMAKE_BINARY_DIR}"
 #define CMAKE_VERSION "${CMAKE_VERSION}"
 
-#define IGN_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
+#define GZ_CONFIG_PATH "@CMAKE_BINARY_DIR@/test/conf"
 
 #ifdef _MSC_VER
 #    define popen _popen
 #    define pclose _pclose
 #endif
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Create a special test world that doesn't use physics to avoid some issues
 // where ODE doesn't initialize properly in multiple physics instances in the
@@ -49,13 +49,13 @@ struct TestWorldSansPhysics
     "<sdf version='1.6'>"
       "<world name='default'>"
         "<plugin filename='libignition-gazebo") +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
-        "  name='ignition::gazebo::systems::SceneBroadcaster'>"
+        GZ_SIM_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
+        "  name='gz::sim::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
         "  filename='libignition-gazebo" +
-        IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so'"
-        "  name='ignition::gazebo::systems::UserCommands'>"
+        GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so'"
+        "  name='gz::sim::systems::UserCommands'>"
         "</plugin>"
       "</world>"
     "</sdf>";

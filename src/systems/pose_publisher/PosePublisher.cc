@@ -50,12 +50,12 @@
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
-class ignition::gazebo::systems::PosePublisherPrivate
+class gz::sim::systems::PosePublisherPrivate
 {
   /// \brief Initializes internal caches for entities whose poses are to be
   /// published and their names
@@ -81,7 +81,7 @@ class ignition::gazebo::systems::PosePublisherPrivate
       const msgs::Time &_stampMsg,
       transport::Node::Publisher &_publisher);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief publisher for pose data
@@ -156,12 +156,12 @@ class ignition::gazebo::systems::PosePublisherPrivate
   /// \brief A variable that gets populated with poses. This also here as a
   /// member variable to avoid repeated memory allocations and improve
   /// performance.
-  public: ignition::msgs::Pose poseMsg;
+  public: gz::msgs::Pose poseMsg;
 
   /// \brief A variable that gets populated with poses. This also here as a
   /// member variable to avoid repeated memory allocations and improve
   /// performance.
-  public: ignition::msgs::Pose_V poseVMsg;
+  public: gz::msgs::Pose_V poseVMsg;
 
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
@@ -187,7 +187,7 @@ void PosePublisher::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "PosePublisher plugin should be attached to a model entity. "
+    gzerr << "PosePublisher plugin should be attached to a model entity. "
       << "Failed to initialize." << std::endl;
     return;
   }
@@ -255,7 +255,7 @@ void PosePublisher::Configure(const Entity &_entity,
   if (poseTopic.empty())
   {
     poseTopic = "/pose";
-    ignerr << "Empty pose topic generated for pose_publisher system. "
+    gzerr << "Empty pose topic generated for pose_publisher system. "
            << "Setting to " << poseTopic << std::endl;
   }
   std::string staticPoseTopic = poseTopic + "_static";
@@ -263,23 +263,23 @@ void PosePublisher::Configure(const Entity &_entity,
   if (this->dataPtr->usePoseV)
   {
     this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<ignition::msgs::Pose_V>(poseTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Pose_V>(poseTopic);
 
     if (this->dataPtr->staticPosePublisher)
     {
       this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<ignition::msgs::Pose_V>(
+          this->dataPtr->node.Advertise<gz::msgs::Pose_V>(
           staticPoseTopic);
     }
   }
   else
   {
     this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<ignition::msgs::Pose>(poseTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Pose>(poseTopic);
     if (this->dataPtr->staticPosePublisher)
     {
       this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<ignition::msgs::Pose>(
+          this->dataPtr->node.Advertise<gz::msgs::Pose>(
           staticPoseTopic);
     }
   }
@@ -289,12 +289,12 @@ void PosePublisher::Configure(const Entity &_entity,
 void PosePublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PosePublisher::PostUpdate");
+  GZ_PROFILE("PosePublisher::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -484,7 +484,7 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
   {
     if (this->entitiesToPublish.find(ent) == this->entitiesToPublish.end())
     {
-      ignwarn << "Entity id: '" << ent << "' not found when creating a list "
+      gzwarn << "Entity id: '" << ent << "' not found when creating a list "
               << "of dynamic entities in pose publisher." << std::endl;
     }
   }
@@ -505,7 +505,7 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
 void PosePublisherPrivate::FillPoses(const EntityComponentManager &_ecm,
     std::vector<std::pair<Entity, math::Pose3d>> &_poses, bool _static)
 {
-  IGN_PROFILE("PosePublisher::FillPose");
+  GZ_PROFILE("PosePublisher::FillPose");
 
   for (const auto &entity : this->entitiesToPublish)
   {
@@ -527,10 +527,10 @@ void PosePublisherPrivate::PublishPoses(
     const msgs::Time &_stampMsg,
     transport::Node::Publisher &_publisher)
 {
-  IGN_PROFILE("PosePublisher::PublishPoses");
+  GZ_PROFILE("PosePublisher::PublishPoses");
 
   // publish poses
-  ignition::msgs::Pose *msg = nullptr;
+  gz::msgs::Pose *msg = nullptr;
   if (this->usePoseV)
     this->poseVMsg.Clear();
 
@@ -554,7 +554,7 @@ void PosePublisherPrivate::PublishPoses(
     // frame_id: parent entity name
     // child_frame_id = entity name
     // pose is the transform from frame_id to child_frame_id
-    IGN_ASSERT(msg != nullptr, "Pose msg is null");
+    GZ_ASSERT(msg != nullptr, "Pose msg is null");
     auto header = msg->mutable_header();
 
     header->mutable_stamp()->CopyFrom(_stampMsg);
@@ -582,10 +582,14 @@ void PosePublisherPrivate::PublishPoses(
     _publisher.Publish(this->poseVMsg);
 }
 
-IGNITION_ADD_PLUGIN(PosePublisher,
+GZ_ADD_PLUGIN(PosePublisher,
                     System,
                     PosePublisher::ISystemConfigure,
                     PosePublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+GZ_ADD_PLUGIN_ALIAS(PosePublisher,
+                          "gz::sim::systems::PosePublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(PosePublisher,
                           "ignition::gazebo::systems::PosePublisher")

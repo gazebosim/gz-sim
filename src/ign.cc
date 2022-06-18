@@ -35,28 +35,28 @@
 #include "gz/sim/gui/Gui.hh"
 
 //////////////////////////////////////////////////
-extern "C" char *ignitionGazeboVersion()
+extern "C" char *gzSimVersion()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_FULL);
+  return strdup(GZ_SIM_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
-extern "C" char *gazeboVersionHeader()
+extern "C" char *simVersionHeader()
 {
-  return strdup(IGNITION_GAZEBO_VERSION_HEADER);
+  return strdup(GZ_SIM_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  gz::common::Console::SetVerbosity(std::atoi(_verbosity));
 }
 
 //////////////////////////////////////////////////
 extern "C" const char *worldInstallDir()
 {
-  return IGN_GAZEBO_WORLD_INSTALL_DIR;
+  return GZ_SIM_WORLD_INSTALL_DIR;
 }
 
 //////////////////////////////////////////////////
@@ -65,43 +65,43 @@ extern "C" const char *findFuelResource(
 {
   std::string path;
   std::string worldPath;
-  ignition::fuel_tools::FuelClient fuelClient;
+  gz::fuel_tools::FuelClient fuelClient;
 
   // Attempt to find cached copy, and then attempt download
-  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
+  if (fuelClient.CachedWorld(gz::common::URI(_pathToResource), path))
   {
-    ignmsg << "Cached world found." << std::endl;
+    gzmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
   // cppcheck-suppress syntaxError
-  else if (ignition::fuel_tools::Result result =
-    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+  else if (gz::fuel_tools::Result result =
+    fuelClient.DownloadWorld(gz::common::URI(_pathToResource), path);
     result)
   {
-    ignmsg << "Successfully downloaded world from fuel." << std::endl;
+    gzmsg << "Successfully downloaded world from fuel." << std::endl;
     worldPath = path;
   }
   else
   {
-    ignwarn << "Fuel world download failed because " << result.ReadableResult()
+    gzwarn << "Fuel world download failed because " << result.ReadableResult()
         << std::endl;
     return "";
   }
 
-  if (!ignition::common::exists(worldPath))
+  if (!gz::common::exists(worldPath))
     return "";
 
 
   // Find the first sdf file in the world path for now, the later intention is
   // to load an optional world config file first and if that does not exist,
   // continue to load the first sdf file found as done below
-  for (ignition::common::DirIter file(worldPath);
-       file != ignition::common::DirIter(); ++file)
+  for (gz::common::DirIter file(worldPath);
+       file != gz::common::DirIter(); ++file)
   {
     std::string current(*file);
-    if (ignition::common::isFile(current))
+    if (gz::common::isFile(current))
     {
-      std::string fileName = ignition::common::basename(current);
+      std::string fileName = gz::common::basename(current);
       std::string::size_type fileExtensionIndex = fileName.rfind(".");
       std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
 
@@ -124,14 +124,14 @@ extern "C" int runServer(const char *_sdfString,
     const char *_file, const char *_recordTopics,
     int _headless)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
-  if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+  if (!std::string(1, cmpPath.back()).compare(gz::common::separator("")))
   {
     // Remove the separator at end of path
     cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
@@ -145,7 +145,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
-      ignerr << "Both record and playback are specified. Only specify one.\n";
+      gzerr << "Both record and playback are specified. Only specify one.\n";
       return -1;
     }
 
@@ -159,7 +159,7 @@ extern "C" int runServer(const char *_sdfString,
 
       // Update compressed file path to name of recording directory path
       cmpPath = std::string(recordPathMod);
-      if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
+      if (!std::string(1, cmpPath.back()).compare(gz::common::separator(
         "")))
       {
         // Remove the separator at end of path
@@ -168,8 +168,8 @@ extern "C" int runServer(const char *_sdfString,
       cmpPath += ".zip";
 
       // Check if path or compressed file with same prefix exists
-      if (ignition::common::exists(recordPathMod) ||
-        ignition::common::exists(cmpPath))
+      if (gz::common::exists(recordPathMod) ||
+        gz::common::exists(cmpPath))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
@@ -177,34 +177,34 @@ extern "C" int runServer(const char *_sdfString,
           bool recordMsg = false;
           bool cmpMsg = false;
           // Remove files before initializing console log files on top of them
-          if (ignition::common::exists(recordPathMod))
+          if (gz::common::exists(recordPathMod))
           {
             recordMsg = true;
-            ignition::common::removeAll(recordPathMod);
+            gz::common::removeAll(recordPathMod);
           }
-          if (ignition::common::exists(cmpPath))
+          if (gz::common::exists(cmpPath))
           {
             cmpMsg = true;
-            ignition::common::removeFile(cmpPath);
+            gz::common::removeFile(cmpPath);
           }
 
           // Create log file before printing any messages so they can be logged
-          ignLogInit(recordPathMod, "server_console.log");
+          gzLogInit(recordPathMod, "server_console.log");
 
           if (recordMsg)
           {
-            ignmsg << "Log path already exists on disk! Existing files will "
+            gzmsg << "Log path already exists on disk! Existing files will "
               << "be overwritten." << std::endl;
-            ignmsg << "Removing existing path [" << recordPathMod << "]\n";
+            gzmsg << "Removing existing path [" << recordPathMod << "]\n";
           }
           if (cmpMsg)
           {
             if (_logCompress > 0)
             {
-              ignwarn << "Compressed log path already exists on disk! Existing "
+              gzwarn << "Compressed log path already exists on disk! Existing "
                 << "files will be overwritten." << std::endl;
             }
-            ignmsg << "Removing existing compressed file [" << cmpPath << "]\n";
+            gzmsg << "Removing existing compressed file [" << cmpPath << "]\n";
           }
         }
         // Otherwise rename to unique path
@@ -212,7 +212,7 @@ extern "C" int runServer(const char *_sdfString,
         {
           // Remove the separator at end of path
           if (!std::string(1, recordPathMod.back()).compare(
-            ignition::common::separator("")))
+            gz::common::separator("")))
           {
             recordPathMod = recordPathMod.substr(0, recordPathMod.length()
               - 1);
@@ -223,8 +223,8 @@ extern "C" int runServer(const char *_sdfString,
 
           // Keep renaming until path does not exist for both directory and
           // compressed file
-          while (ignition::common::exists(recordPathMod) ||
-            ignition::common::exists(cmpPath))
+          while (gz::common::exists(recordPathMod) ||
+            gz::common::exists(cmpPath))
           {
             recordPathMod = recordOrigPrefix +  "(" + std::to_string(count++) +
               ")";
@@ -232,39 +232,39 @@ extern "C" int runServer(const char *_sdfString,
             cmpPath = std::string(recordPathMod);
             // Remove the separator at end of path
             if (!std::string(1, cmpPath.back()).compare(
-              ignition::common::separator("")))
+              gz::common::separator("")))
             {
               cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
             }
             cmpPath += ".zip";
           }
 
-          ignLogInit(recordPathMod, "server_console.log");
-          ignwarn << "Log path already exists on disk! "
+          gzLogInit(recordPathMod, "server_console.log");
+          gzwarn << "Log path already exists on disk! "
             << "Recording instead to [" << recordPathMod << "]" << std::endl;
           if (_logCompress > 0)
           {
-            ignwarn << "Compressed log path already exists on disk! "
+            gzwarn << "Compressed log path already exists on disk! "
               << "Recording instead to [" << cmpPath << "]" << std::endl;
           }
         }
       }
       else
       {
-        ignLogInit(recordPathMod, "server_console.log");
+        gzLogInit(recordPathMod, "server_console.log");
       }
     }
     // Empty record path specified. Use default.
     else
     {
       // Create log file before printing any messages so they can be logged
-      ignLogInit(recordPathMod, "server_console.log");
-      ignmsg << "Recording states to default path [" << recordPathMod << "]"
+      gzLogInit(recordPathMod, "server_console.log");
+      gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
     }
     serverConfig.SetLogRecordPath(recordPathMod);
 
-    std::vector<std::string> topics = ignition::common::split(
+    std::vector<std::string> topics = gz::common::split(
         _recordTopics, ":");
     for (const std::string &topic : topics)
     {
@@ -273,7 +273,7 @@ extern "C" int runServer(const char *_sdfString,
   }
   else
   {
-    ignLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
   }
 
   if (_logCompress > 0)
@@ -281,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetLogRecordCompressPath(cmpPath);
   }
 
-  ignmsg << "Ignition Gazebo Server v" << IGNITION_GAZEBO_VERSION_FULL
+  gzmsg << "Gazebo Sim Server v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
   // Set the SDF string to user
@@ -289,7 +289,7 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (!serverConfig.SetSdfString(_sdfString))
     {
-      ignerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
+      gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
     }
   }
@@ -302,13 +302,13 @@ extern "C" int runServer(const char *_sdfString,
   // Set whether levels should be used.
   if (_levels > 0)
   {
-    ignmsg << "Using the level system\n";
+    gzmsg << "Using the level system\n";
     serverConfig.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
-    ignmsg << "Using the distributed simulation and levels systems\n";
+    gzmsg << "Using the distributed simulation and levels systems\n";
     serverConfig.SetNetworkRole(_networkRole);
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
@@ -318,14 +318,14 @@ extern "C" int runServer(const char *_sdfString,
   {
     if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
     {
-      ignerr << "Both an SDF file and playback flag are specified. "
+      gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
       return -1;
     }
     else
     {
-      ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+      gzmsg << "Playing back states" << _playback << std::endl;
+      serverConfig.SetLogPlaybackPath(gz::common::absPath(
         std::string(_playback)));
     }
   }
@@ -348,12 +348,12 @@ extern "C" int runServer(const char *_sdfString,
   }
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
 
-  igndbg << "Shutting down ign-gazebo-server" << std::endl;
+  gzdbg << "Shutting down ign-gazebo-server" << std::endl;
   return 0;
 }
 
@@ -387,5 +387,5 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   };
   int argc = sizeof(argv) / sizeof(argv[0]);
 
-  return ignition::gazebo::gui::runGui(argc, argv, _guiConfig, _renderEngine);
+  return gz::sim::gui::runGui(argc, argv, _guiConfig, _renderEngine);
 }

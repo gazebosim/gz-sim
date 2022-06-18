@@ -17,23 +17,23 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/float.pb.h>
-#include <ignition/msgs/joint_trajectory.pb.h>
+#include <gz/msgs/float.pb.h>
+#include <gz/msgs/joint_trajectory.pb.h>
 
 #include <array>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
@@ -41,8 +41,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for JointTrajectoryController system
 class JointTrajectoryControllerTestFixture
@@ -53,9 +53,9 @@ class JointTrajectoryControllerTestFixture
 /////////////////////////////////////////////////
 // Tests that JointTrajectoryController accepts position-controlled joint
 // trajectory
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointTrajectoryControllerTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
 {
   using namespace std::chrono_literals;
 
@@ -67,7 +67,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   const std::string jointNames[kNumberOfJoints] = {"RR_position_control_joint1",
                                                   "RR_position_control_joint2"};
 
-  // Define names of Ignition Transport topics
+  // Define names of Gazebo Transport topics
   const std::string trajectoryTopic =
       "/model/RR_position_control/joint_trajectory";
   const std::string feedbackTopic =
@@ -110,7 +110,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   test::Relay testSystem;
   double currentPositions[kNumberOfJoints];
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         // Create a JointPosition component for each joint if it doesn't exist
         for (const auto &jointName : jointNames)
@@ -124,8 +124,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
           }
         }
       });
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         // Get the current position of each joint
         for (std::size_t i = 0; i < kNumberOfJoints; ++i)
@@ -152,14 +152,14 @@ TEST_F(JointTrajectoryControllerTestFixture,
   }
 
   // Create new JointTrajectory message based on the defined trajectory
-  ignition::msgs::JointTrajectory msg;
+  gz::msgs::JointTrajectory msg;
   for (const auto &jointName : jointNames)
   {
     msg.add_joint_names(jointName);
   }
   for (size_t i = 0; i < trajectoryPositions.size(); ++i)
   {
-    ignition::msgs::JointTrajectoryPoint point;
+    gz::msgs::JointTrajectoryPoint point;
 
     // Set the temporal information for the point
     auto time = point.mutable_time_from_start();
@@ -179,8 +179,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
 
   // Verify that feedback is strictly increasing and reaches value of 1.0
   size_t count = 0;
-  std::function<void(const ignition::msgs::Float &)> feedbackCallback =
-      [&](const ignition::msgs::Float &_msg) {
+  std::function<void(const gz::msgs::Float &)> feedbackCallback =
+      [&](const gz::msgs::Float &_msg) {
         count++;
         if (trajectoryPositions.size() == count)
         {
@@ -231,7 +231,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
 // Tests that JointTrajectoryController accepts velocity-controlled joint
 // trajectory
 TEST_F(JointTrajectoryControllerTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
 {
   using namespace std::chrono_literals;
 
@@ -243,7 +243,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   const std::string jointNames[kNumberOfJoints] = {"RR_velocity_control_joint1",
                                                   "RR_velocity_control_joint2"};
 
-  // Define names of Ignition Transport topics
+  // Define names of Gazebo Transport topics
   const std::string trajectoryTopic = "/test_custom_topic/velocity_control";
   const std::string feedbackTopic =
       "/test_custom_topic/velocity_control_feedback";
@@ -280,7 +280,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   test::Relay testSystem;
   double currentVelocities[kNumberOfJoints];
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         // Create a JointVelocity component for each joint if it doesn't exist
         for (const auto &jointName : jointNames)
@@ -294,8 +294,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
           }
         }
       });
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         // Get the current velocity of each joint
         for (std::size_t i = 0; i < kNumberOfJoints; ++i)
@@ -322,14 +322,14 @@ TEST_F(JointTrajectoryControllerTestFixture,
   }
 
   // Create new JointTrajectory message based on the defined trajectory
-  ignition::msgs::JointTrajectory msg;
+  gz::msgs::JointTrajectory msg;
   for (const auto &jointName : jointNames)
   {
     msg.add_joint_names(jointName);
   }
   for (size_t i = 0; i < trajectoryVelocities.size(); ++i)
   {
-    ignition::msgs::JointTrajectoryPoint point;
+    gz::msgs::JointTrajectoryPoint point;
 
     // Set the temporal information for the point
     auto time = point.mutable_time_from_start();
@@ -349,8 +349,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
 
   // Verify that feedback is strictly increasing and reaches value of 1.0
   size_t count = 0;
-  std::function<void(const ignition::msgs::Float &)> feedbackCallback =
-      [&](const ignition::msgs::Float &_msg) {
+  std::function<void(const gz::msgs::Float &)> feedbackCallback =
+      [&](const gz::msgs::Float &_msg) {
         count++;
         if (trajectoryVelocities.size() == count)
         {

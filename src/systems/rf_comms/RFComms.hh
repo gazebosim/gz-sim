@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_RFCOMMS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_RFCOMMS_HH_
+#ifndef GZ_SIM_SYSTEMS_RFCOMMS_HH_
+#define GZ_SIM_SYSTEMS_RFCOMMS_HH_
 
 #include <memory>
 
@@ -24,12 +24,12 @@
 #include "gz/sim/comms/ICommsModel.hh"
 #include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A comms model that simulates communication using radio frequency
@@ -65,7 +65,7 @@ namespace systems
   /// Here's an example:
   /// <plugin
   ///   filename="ignition-gazebo-rf-comms-system"
-  ///   name="ignition::gazebo::systems::RFComms">
+  ///   name="gz::sim::systems::RFComms">
   ///   <range_config>
   ///     <max_range>500000.0</max_range>
   ///     <fading_exponent>1.5</fading_exponent>
@@ -95,13 +95,13 @@ namespace systems
                       EventManager &_eventMgr) override;
 
     // Documentation inherited.
-    public: void Step(const ignition::gazebo::UpdateInfo &_info,
+    public: void Step(const gz::sim::UpdateInfo &_info,
                       const comms::Registry &_currentRegistry,
                       comms::Registry &_newRegistry,
                       EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

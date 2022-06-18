@@ -46,16 +46,16 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private ForceTorque data class.
-class ignition::gazebo::systems::ForceTorquePrivate
+class gz::sim::systems::ForceTorquePrivate
 {
   /// \brief A map of FT entity to its FT sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::ForceTorqueSensor>> entitySensorMap;
+      std::unique_ptr<gz::sensors::ForceTorqueSensor>> entitySensorMap;
 
   /// \brief A struct to hold the joint and link entities associated with a
   /// sensor
@@ -111,7 +111,7 @@ ForceTorque::~ForceTorque() = default;
 void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PreUpdate");
+  GZ_PROFILE("ForceTorque::PreUpdate");
   this->dataPtr->CreateForceTorqueEntities(_ecm);
 }
 
@@ -119,12 +119,12 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 void ForceTorque::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PostUpdate");
+  GZ_PROFILE("ForceTorque::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -132,6 +132,24 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the ForceTorquePrivate::Update function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -183,7 +201,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             sensors::ForceTorqueSensor>(data);
         if (nullptr == sensor)
         {
-          ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+          gzerr << "Failed to create sensor [" << sensorScopedName << "]"
                  << std::endl;
           return true;
         }
@@ -199,7 +217,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
         if (!_ecm.EntityHasComponentType(jointEntity,
                                          components::Joint::typeId))
         {
-          ignerr << "Parent entity of sensor [" << sensorScopedName
+          gzerr << "Parent entity of sensor [" << sensorScopedName
                  << "] must be a joint. Failed to create sensor." << std::endl;
           return true;
         }
@@ -215,7 +233,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             this->GetLinkFromScopedName(_ecm, jointParentName, modelEntity);
         if (kNullEntity == jointParentLinkEntity )
         {
-          ignerr << "Parent link with name [" << jointParentName
+          gzerr << "Parent link with name [" << jointParentName
                  << "] of joint with name [" << jointName
                  << "] not found. Failed to create sensor [" << sensorScopedName
                  << "]" << std::endl;
@@ -228,7 +246,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
             this->GetLinkFromScopedName(_ecm, jointChildName, modelEntity);
         if (kNullEntity == jointChildLinkEntity)
         {
-          ignerr << "Child link with name [" << jointChildName
+          gzerr << "Child link with name [" << jointChildName
                  << "] of joint with name [" << jointName
                  << "] not found. Failed to create sensor [" << sensorScopedName
                  << "]" << std::endl;
@@ -258,7 +276,7 @@ void ForceTorquePrivate::CreateForceTorqueEntities(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::Update");
+  GZ_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque>(
       [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
@@ -268,7 +286,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
           auto jointLinkIt = this->sensorJointLinkMap.find(_entity);
           if (jointLinkIt == this->sensorJointLinkMap.end())
           {
-            ignerr << "Failed to update Force/Torque Sensor: " << _entity
+            gzerr << "Failed to update Force/Torque Sensor: " << _entity
                    << ". Associated entities not found." << std::endl;
             return true;
           }
@@ -313,7 +331,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
+          gzerr << "Failed to update Force/Torque Sensor: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -325,7 +343,7 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 void ForceTorquePrivate::RemoveForceTorqueEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
+  GZ_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
   _ecm.EachRemoved<components::ForceTorque>(
     [&](const Entity &_entity,
         const components::ForceTorque *)->bool
@@ -333,7 +351,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing FT sensor for entity ["
+          gzerr << "Internal error, missing FT sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -344,9 +362,12 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(ForceTorque, System,
+GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPreUpdate,
   ForceTorque::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")

@@ -26,12 +26,12 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Component.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   class LevelEntityNamesSerializer
@@ -81,7 +81,7 @@ namespace components
       Component<std::set<std::string>, class LevelEntityNamesTag,
                 serializers::LevelEntityNamesSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LevelEntityNames",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LevelEntityNames",
       LevelEntityNames)
 }
 }

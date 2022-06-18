@@ -19,8 +19,8 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace detail;
 
 //////////////////////////////////////////////////

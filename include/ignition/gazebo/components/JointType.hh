@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/JointType.hh>
+#include <ignition/gazebo/config.hh>

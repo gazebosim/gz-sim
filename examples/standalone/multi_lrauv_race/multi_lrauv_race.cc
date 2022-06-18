@@ -53,28 +53,28 @@ int main(int argc, char** argv)
   ns.push_back("triton");
   ns.push_back("daphne");
 
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   std::vector<std::string> rudderTopics;
   rudderTopics.resize(ns.size(), "");
-  std::vector<ignition::transport::Node::Publisher> rudderPubs;
+  std::vector<gz::transport::Node::Publisher> rudderPubs;
   rudderPubs.resize(ns.size());
 
   std::vector<std::string> propellerTopics;
   propellerTopics.resize(ns.size(), "");
-  std::vector<ignition::transport::Node::Publisher> propellerPubs;
+  std::vector<gz::transport::Node::Publisher> propellerPubs;
   propellerPubs.resize(ns.size());
 
   // Set up topic names and publishers
   for (int i = 0; i < ns.size(); i++)
   {
-    rudderTopics[i] = ignition::transport::TopicUtils::AsValidTopic(
+    rudderTopics[i] = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns[i] + "/joint/vertical_fins_joint/0/cmd_pos");
-    rudderPubs[i] = node.Advertise<ignition::msgs::Double>(rudderTopics[i]);
+    rudderPubs[i] = node.Advertise<gz::msgs::Double>(rudderTopics[i]);
 
-    propellerTopics[i] = ignition::transport::TopicUtils::AsValidTopic(
+    propellerTopics[i] = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns[i] + "/joint/propeller_joint/cmd_pos");
-    propellerPubs[i] = node.Advertise<ignition::msgs::Double>(
+    propellerPubs[i] = node.Advertise<gz::msgs::Double>(
       propellerTopics[i]);
   }
 
@@ -90,13 +90,13 @@ int main(int argc, char** argv)
     for (int i = 0; i < ns.size(); i++)
     {
       rudderCmds[i] = random_angle_within_limits(-0.01, 0.01);
-      ignition::msgs::Double rudderMsg;
+      gz::msgs::Double rudderMsg;
       rudderMsg.set_data(rudderCmds[i]);
       rudderPubs[i].Publish(rudderMsg);
 
       propellerCmds[i] = random_thrust_within_limits(
         -6.14 * artificial_speedup, 0);
-      ignition::msgs::Double propellerMsg;
+      gz::msgs::Double propellerMsg;
       propellerMsg.set_data(propellerCmds[i]);
       propellerPubs[i].Publish(propellerMsg);
 

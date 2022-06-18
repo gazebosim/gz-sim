@@ -16,3 +16,4 @@
  */
 
 #include <gz/sim/components/WindMode.hh>
+#include <ignition/gazebo/config.hh>

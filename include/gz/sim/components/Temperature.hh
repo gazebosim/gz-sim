@@ -23,22 +23,22 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component that stores temperature data in Kelvin
   using Temperature = Component<math::Temperature, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Temperature",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Temperature",
       Temperature)
 
   /// \brief A component that stores temperature linear resolution in Kelvin
   using TemperatureLinearResolution = Component<double, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.TemperatureLinearResolution",
       TemperatureLinearResolution)
 }

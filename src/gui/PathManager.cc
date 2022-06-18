@@ -28,9 +28,9 @@
 
 #include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)
@@ -49,10 +49,10 @@ void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
 {
   if (!_result)
   {
-    ignerr << "Failed to get resource paths through service" << std::endl;
+    gzerr << "Failed to get resource paths through service" << std::endl;
     return;
   }
-  igndbg << "Received resource paths." << std::endl;
+  gzdbg << "Received resource paths." << std::endl;
 
   onAddResourcePaths(_res);
 }
@@ -63,7 +63,7 @@ PathManager::PathManager()
   // Trigger an initial request to get all paths from server
   std::string service{"/gazebo/resource_paths/get"};
 
-  igndbg << "Requesting resource paths through [" << service << "]"
+  gzdbg << "Requesting resource paths through [" << service << "]"
          << std::endl;
   this->node.Request(service, onAddResourcePaths);
 

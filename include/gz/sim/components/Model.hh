@@ -26,12 +26,12 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   class SdfModelSerializer
@@ -46,13 +46,38 @@ namespace serializers
       sdf::ElementPtr modelElem = _model.Element();
       if (!modelElem)
       {
-        ignerr << "Unable to serialize sdf::Model" << std::endl;
+        gzwarn << "Unable to serialize sdf::Model" << std::endl;
         return _out;
+      }
+
+      bool skip = false;
+      if (modelElem->HasElement("pose"))
+      {
+        sdf::ElementPtr poseElem = modelElem->GetElement("pose");
+        if (poseElem->HasAttribute("relative_to"))
+        {
+          // Skip serializing models with //pose/@relative_to attribute
+          // since deserialization will fail. This could be a nested model.
+          // see https://github.com/ignitionrobotics/ign-gazebo/issues/1071
+          // Once https://github.com/ignitionrobotics/sdformat/issues/820 is
+          // resolved, there should be an API that returns sdf::Errors objects
+          // instead of printing console msgs so it would be easier to ignore
+          // specific errors in Deserialize.
+          static bool warned = false;
+          if (!warned)
+          {
+            gzwarn << "Skipping serialization / deserialization for models "
+                    << "with //pose/@relative_to attribute."
+                    << std::endl;
+            warned = true;
+          }
+          skip = true;
+        }
       }
 
       _out << "<?xml version=\"1.0\" ?>"
            << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-           << modelElem->ToString("")
+           << (skip ? std::string() : modelElem->ToString(""))
            << "</sdf>";
       return _out;
     }
@@ -70,7 +95,7 @@ namespace serializers
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-        ignerr << "Unable to unserialize sdf::Model" << std::endl;
+        gzwarn << "Unable to deserialize sdf::Model" << std::endl;
         return _in;
       }
 
@@ -84,13 +109,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a model.
   using Model = Component<NoData, class ModelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Model", Model)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Model", Model)
 
   /// \brief A component that holds the model's SDF DOM
   using ModelSdf = Component<sdf::Model,
                    class ModelTag,
                    serializers::SdfModelSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ModelSdf", ModelSdf)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ModelSdf", ModelSdf)
 }
 }
 }

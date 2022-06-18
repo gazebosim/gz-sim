@@ -8,7 +8,7 @@
 
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
       <!-- Publish at high frequency to test periodic changes -->
       <state_hertz>1000</state_hertz>
     </plugin>
@@ -17,11 +17,11 @@
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre</engine>
         <scene>scene</scene>

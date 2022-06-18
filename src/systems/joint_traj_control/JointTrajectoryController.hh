@@ -15,18 +15,18 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
+#ifndef GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
+#define GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 
 #include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -35,11 +35,11 @@ namespace systems
   /// \brief Joint trajectory controller, which can be attached to a model with
   /// reference to one or more 1-axis joints in order to follow a trajectory.
   ///
-  /// Joint trajectories can be sent to this plugin via Ignition Transport.
+  /// Joint trajectories can be sent to this plugin via Gazebo Transport.
   /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
   /// can be configured with the `<topic>` system parameter.
   ///
-  /// This topic accepts ignition::msgs::JointTrajectory messages that represent
+  /// This topic accepts gz::msgs::JointTrajectory messages that represent
   /// a full trajectory, defined as temporal `points` with their fields ordered
   /// according to `joint_names` field. The fields under `points` are
   /// `positions` - Controlled by position PID controller for each joint
@@ -54,7 +54,7 @@ namespace systems
   ///
   /// Input trajectory can be produced by a motion planning framework such as
   /// MoveIt2. For smooth execution of the trajectory, its points should to be
-  /// interpolated before sending them via Ignition Transport (interpolation
+  /// interpolated before sending them via Gazebo Transport (interpolation
   /// might already be implemented in the motion planning framework of your
   /// choice).
   ///
@@ -150,15 +150,15 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
   };
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz
 
 #endif

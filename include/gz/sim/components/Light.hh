@@ -27,12 +27,12 @@
 #include <gz/sim/Conversions.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
   using LightSerializer =
@@ -46,7 +46,7 @@ namespace components
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light =
       Component<sdf::Light, class LightTag, serializers::LightSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Light", Light)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Light", Light)
 }
 }
 }

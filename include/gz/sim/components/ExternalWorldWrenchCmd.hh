@@ -23,17 +23,17 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   /// \brief A component type that contains the external wrench to be applied on
   /// an entity expressed in the world frame and represented by
-  /// ignition::msgs::Wrench.
+  /// gz::msgs::Wrench.
   /// Currently this is used for applying wrenches on links. Although the
   /// msg::Wrench type has a force_offset member, the value is currently
   /// ignored. Instead, the force is applied at the link origin.
@@ -41,7 +41,7 @@ namespace components
   using ExternalWorldWrenchCmd =
       Component<msgs::Wrench, class ExternalWorldWrenchCmdTag,
       serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
                                 ExternalWorldWrenchCmd)
 }
 }

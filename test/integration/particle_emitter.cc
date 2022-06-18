@@ -19,24 +19,24 @@
 
 #include <string>
 
-#include <ignition/common/Util.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Color.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
 #include "gz/sim/test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ParticleEmitterTest : public InternalFixture<::testing::Test>
 {
@@ -59,8 +59,8 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};
@@ -69,13 +69,13 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 
   // Create a system that checks a particle emitter.
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::ParticleEmitter,
                   components::Name,
                   components::Pose>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const gz::sim::Entity &,
                 const components::ParticleEmitter *_emitter,
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool

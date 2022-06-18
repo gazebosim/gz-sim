@@ -10,30 +10,30 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      name="gz::sim::systems::Contact">
     </plugin>
 
     <gui fullscreen="0">
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -43,26 +43,26 @@
       </plugin>
 
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -75,7 +75,7 @@
             <line own="left" target="left"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <play_pause>true</play_pause>
         <step>true</step>
@@ -86,7 +86,7 @@
 
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
+        <gz-gui>
           <title>World stats</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -99,7 +99,7 @@
             <line own="right" target="right"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <sim_time>true</sim_time>
         <real_time>true</real_time>
@@ -109,9 +109,9 @@
 
       <!-- Grid Config -->
       <plugin filename="GridConfig" name="Grid config">
-        <ignition-gui>
+        <gz-gui>
           <title>Grid Config</title>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
     </gui>
 
