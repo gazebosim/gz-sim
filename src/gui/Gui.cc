@@ -372,7 +372,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, i
   // Don't show quick start menu if a file is set as a command line arg
     // When the quick start dialog is closed, publish the selected starting world path
   if(strlen(_file) == 0 && _waitGui == 1){
-    msg.add_data(gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig).erase(0,7));
+    msg.add_data(gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig));
   }
   else{
     msg.add_data(_file);

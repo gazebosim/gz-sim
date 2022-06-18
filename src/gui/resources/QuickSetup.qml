@@ -25,20 +25,34 @@ import Qt.labs.folderlistmodel 2.1
 import QtQuick.Window 2.2
 
   Rectangle {
+      anchors.fill: parent
       width: 720
       height: 720
       id: quickSetup
 
       function loadWorld(fileURL){
-        QuickSetupHandler.SetStartingWorld(fileURL)
+        // Remove "file://" from the QML url.
+        var url = fileURL.substring(7);
+        QuickSetupHandler.SetStartingWorld(url)
+      }
+
+      function debug(f, ff, fff){
+        console.log(f)
+        console.log(ff)
+        console.log(fff)
+      }
+
+      function loadFuelWorld(fileName){
+        // Construct fuel URL
+        var fuel_url = "https://fuel.ignitionrobotics.org/1.0/"
+        fuel_url += fileName.split('.')[0] + "/worlds/" + fileName.split('.')[1]
+        console.debug(fuel_url)
+        QuickSetupHandler.SetStartingWorld(fuel_url)
+        quickSetup.Window.window.close()
       }
 
       function getWorlds(){
         return "file://"+QuickSetupHandler.getWorldsPath()
-      }
-
-      function close(){
-        quickSetup.Window.window.close()
       }
 
     RowLayout {
@@ -86,20 +100,24 @@ import QtQuick.Window 2.2
                       height: 400;
                       FolderListModel {
                           id: folderModel
+                          showDirs: false
                           nameFilters: ["*.png"]
-                          folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/thumbnails/"
+                          folder: getWorlds()+ "/thumbnails/"
                       }
 
                       Component {
                           id: fileDelegate
 
-                          Image {
+                          World {
+                              id: filePath
+                              text: fileName
                               width: gridView.cellWidth - 5
                               height: gridView.cellHeight - 5
                               smooth: true
                               source: fileURL
                           }
                       }
+
                       GridView {
                           id: gridView
                           width: parent.width
@@ -127,7 +145,7 @@ import QtQuick.Window 2.2
                               id: sdfsModel
                               showDirs: false
                               showFiles: true
-                              folder: "file:///home/m/repos/citadel/src/ign-gazebo/examples/worlds/"
+                              folder: getWorlds()
                               nameFilters: [ "*.sdf" ]
                           }
                           
@@ -140,7 +158,6 @@ import QtQuick.Window 2.2
                               onCurrentIndexChanged: quickSetup.loadWorld(model.get(currentIndex, 'fileURL'))
                           }
                           MouseArea {
-                          // ...
                             onClicked: comboBox.popup.close()
                           }
                         }

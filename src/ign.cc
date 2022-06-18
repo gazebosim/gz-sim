@@ -140,7 +140,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         {
           std::unique_lock<std::mutex> lock(mutex);
           starting_world_path = _msg.data(0);
-          // starting_world_path = starting_world_path.erase(0,7);
           condition.notify_all();
         };
 

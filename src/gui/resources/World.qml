@@ -6,30 +6,28 @@ Image {
     id: root
     source: ""
     signal clicked
-    sourceSize.width: 100
-    sourceSize.height: 100
     property int duration: 250
     property alias text: label.text
 
     MouseArea {
         anchors.fill: parent
-        onClicked: root.clicked()
         onPressed: {
             glow.visible = true
             animation1.start()
             animation2.start()
         }
+        onClicked: quickSetup.loadFuelWorld(root.text)
     }
 
     Rectangle {
         id: glow
         visible: false
 
-        width: 125
-        height: 125
+        width: parent.width - 10
+        height: parent.height - 10
         color: "#00000000"
-        radius: 125
-        scale: 1.05
+        radius: parent.width - 10
+        scale: 0.95
         border.color: "#ffffff"
     }
 
@@ -38,7 +36,6 @@ Image {
         text: qsTr("Label")
         anchors.horizontalCenter: parent.horizontalCenter
         color: "#443224"
-        font.family: Constants.fontFamily
         font.pixelSize: 14
     }
 
