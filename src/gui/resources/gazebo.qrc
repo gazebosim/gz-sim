@@ -3,6 +3,7 @@
     <file>World.qml</file>
     <file>QuickSetup.qml</file>
     <file>GazeboDrawer.qml</file>
+    <file>images/gazebo_horz_pos_topbar.svg</file>
     <file>images/actor.png</file>
     <file>images/collision.png</file>
     <file>images/joint.png</file>

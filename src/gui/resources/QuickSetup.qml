@@ -25,10 +25,9 @@ import Qt.labs.folderlistmodel 2.1
 import QtQuick.Window 2.2
 
   Rectangle {
-      anchors.fill: parent
+      id: quickSetup
       width: 720
       height: 720
-      id: quickSetup
 
       function loadWorld(fileURL){
         // Remove "file://" from the QML url.
@@ -57,7 +56,6 @@ import QtQuick.Window 2.2
 
     RowLayout {
         id: layout
-        // anchors.fill: parent
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalTop
         spacing: 6
@@ -68,15 +66,16 @@ import QtQuick.Window 2.2
             Layout.fillWidth: true
             spacing: 0
               Rectangle {
-                  color: 'transparent'
+                  color: 'grey'
                   Layout.fillWidth: true
                   Layout.minimumWidth: 100
-                  Layout.preferredWidth: 600
+                  Layout.preferredWidth: 720
                   // Layout.maximumWidth: 700
                   Layout.minimumHeight: 150
-                  Text {
-                      anchors.centerIn: parent
-                      text: "Gazebo logo here"
+                  Image{
+                    source: "images/gazebo_horz_pos_topbar.svg"
+                    x: (parent.width - width) / 2
+                    y: (parent.height - height) / 2
                   }
               }
 
@@ -137,9 +136,20 @@ import QtQuick.Window 2.2
                       }
                   }
                     ColumnLayout{
+                      Rectangle{
+                          color: "transparent";
+                          width: 200; height: 50
+                          Label {
+                              id: label
+                              text: qsTr("Installed worlds")
+                              anchors.centerIn: parent
+                              color: "#443224"
+                              font.pixelSize: 16
+                          }
+                      }
                       Rectangle {
                           color: "transparent";
-                          width: 200; height: 200
+                          width: 200; height: 180
                           
                           FolderListModel {
                               id: sdfsModel
@@ -148,7 +158,6 @@ import QtQuick.Window 2.2
                               folder: getWorlds()
                               nameFilters: [ "*.sdf" ]
                           }
-                          
                           ComboBox {
                             id: comboBox
                               currentIndex : 2
@@ -190,7 +199,7 @@ import QtQuick.Window 2.2
                       Button {
                         id: closeButton
                         visible: true
-                        text: "Skip"
+                        text: "Open Empty World"
                         // anchors.centerIn: parent
                         Layout.minimumWidth: 100
                         Layout.leftMargin: 10

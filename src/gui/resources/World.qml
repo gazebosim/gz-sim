@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.3
 import QtGraphicalEffects 1.12
 
 Rectangle{
+    id: main
     property alias source: root.source
     property alias text: label.text
     border.color: "white"
@@ -45,7 +46,7 @@ Rectangle{
                 animation1.start()
                 animation2.start()
             }
-            onClicked: quickSetup.loadFuelWorld(root.text)
+            onClicked: quickSetup.loadFuelWorld(main.text)
         }
 
         Rectangle {
@@ -55,8 +56,7 @@ Rectangle{
             width: parent.width - 10
             height: parent.height - 10
             color: "#00000000"
-            radius: parent.width - 10
-            scale: 0.95
+            scale: 1.05
             border.color: "#ffffff"
         }
 
