@@ -59,7 +59,7 @@ class JointPositionRandomizer : public System,
       } 
       else if (jointType->Data() == sdf::JointType::REVOLUTE)
       {
-        pos = math::Rand::DblUniform(0, IGN_PI);
+        pos = math::Rand::DblUniform(0, GZ_PI);
         std::cout << "revolute joint (" << joint 
           << ") pos: (" << pos << " rad)"<< std::endl;
       }
@@ -71,7 +71,7 @@ class JointPositionRandomizer : public System,
 };
 }  // namespace reset_plugin
 
-IGNITION_ADD_PLUGIN(reset_plugin::JointPositionRandomizer,
+GZ_ADD_PLUGIN(reset_plugin::JointPositionRandomizer,
                     gz::sim::System,
                     reset_plugin::JointPositionRandomizer::ISystemConfigure,
                     reset_plugin::JointPositionRandomizer::ISystemReset)

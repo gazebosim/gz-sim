@@ -135,7 +135,7 @@ class ElevatorStateMachineDef
 using ElevatorStateMachine = ::afsm::state_machine<ElevatorStateMachineDef>;
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 

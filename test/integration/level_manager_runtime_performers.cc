@@ -208,7 +208,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
@@ -254,7 +254,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 ///////////////////////////////////////////////
 /// Check a level is loaded when a performer is inside a level
 /// Check a level is unloaded when a performer is outside a level
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
@@ -304,7 +304,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 
 ///////////////////////////////////////////////
 /// Check behaviour of level buffers
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
@@ -343,7 +343,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
 ///////////////////////////////////////////////
 /// Check that multiple performers can load/unload multiple levels independently
 TEST_F(LevelManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelsWithMultiplePerformers))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelsWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));
@@ -461,7 +461,7 @@ TEST_F(LevelManagerFixture,
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
 TEST_F(LevelManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));

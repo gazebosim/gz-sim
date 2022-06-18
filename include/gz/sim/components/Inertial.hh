@@ -42,7 +42,7 @@ namespace components
   /// \brief This component holds an entity's inertial.
   using Inertial = Component<math::Inertiald, class InertialTag,
                              serializers::InertialSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Inertial", Inertial)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Inertial", Inertial)
 }
 }
 }

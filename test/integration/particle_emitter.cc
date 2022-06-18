@@ -60,7 +60,7 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
+TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};

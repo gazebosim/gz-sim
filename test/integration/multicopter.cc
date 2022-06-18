@@ -69,7 +69,7 @@ class MulticopterTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
+TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 {
   // Start server
   auto server = this->StartServer("/test/worlds/quadcopter.sdf");
@@ -136,7 +136,7 @@ TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 
 /////////////////////////////////////////////////
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
 {
   // Start server
   auto server =
@@ -245,7 +245,7 @@ TEST_F(MulticopterTest,
 // Test the interactions between MulticopterVelocityControl and
 // MulticopterMotorModel
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
 {
   // Start server
   auto server =
@@ -321,7 +321,7 @@ TEST_F(MulticopterTest,
 
 /////////////////////////////////////////////////
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
 {
   // test that the drone is able to take off when carrying a payload
   // (nexted model) with extra mass.

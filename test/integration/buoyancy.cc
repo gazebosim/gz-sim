@@ -45,7 +45,7 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 {
   // This test checks if the restoring moments are correctly calculated accross
   // both uniform and graded modes when the vehicle is fully submerged.
@@ -162,7 +162,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
   // Start server
   ServerConfig serverConfig;
@@ -317,7 +317,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 {
   // Start server
   ServerConfig serverConfig;
@@ -402,7 +402,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "center_of_volume_graded.sdf"));
@@ -457,7 +457,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "center_of_volume.sdf"));

@@ -39,7 +39,7 @@ namespace components
   /// entity in the world frame represented by msgs::Light.
   using LightCmd = Component<gz::msgs::Light,
     class LightCmdTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LightCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LightCmd",
       LightCmd)
 }
 }

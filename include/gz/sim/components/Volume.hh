@@ -32,7 +32,7 @@ namespace components
   /// \brief A volume component where the units are m^3.
   /// Double value indicates volume of an entity.
   using Volume = Component<double, class VolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Volume", Volume)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Volume", Volume)
 }
 }
 }

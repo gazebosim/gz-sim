@@ -229,7 +229,7 @@ void LogVideoRecorder::Configure(
 void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogVideoRecorder::PostUpdate");
+  GZ_PROFILE("LogVideoRecorder::PostUpdate");
 
   // record videos for models in the specified regions.
   if (!this->dataPtr->regions.empty())
@@ -444,16 +444,16 @@ void LogVideoRecorderPrivate::Record(bool _record)
   this->node.Request(this->videoRecordService, req, cb);
 }
 
-IGNITION_ADD_PLUGIN(LogVideoRecorder,
+GZ_ADD_PLUGIN(LogVideoRecorder,
                     gz::sim::System,
                     LogVideoRecorder::ISystemConfigure,
                     LogVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "gz::sim::systems::LogVideoRecorder")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "ignition::gazebo::systems::LogVideoRecorder")

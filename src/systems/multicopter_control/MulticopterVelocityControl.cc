@@ -338,7 +338,7 @@ void MulticopterVelocityControl::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterVelocityControl::PreUpdate");
+  GZ_PROFILE("MulticopterVelocityControl::PreUpdate");
 
   if (!this->initialized)
   {
@@ -463,16 +463,16 @@ void MulticopterVelocityControl::PublishRotorVelocities(
   }
 }
 
-IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
+GZ_ADD_PLUGIN(MulticopterVelocityControl,
                     gz::sim::System,
                     MulticopterVelocityControl::ISystemConfigure,
                     MulticopterVelocityControl::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
     "gz::sim::systems::MulticopterVelocityControl")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
     "ignition::gazebo::systems::MulticopterVelocityControl")

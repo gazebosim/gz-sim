@@ -40,7 +40,7 @@ namespace components
   /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
     Component<std::vector<double>, class SlipComplianceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
       SlipComplianceCmd)
 }
 }

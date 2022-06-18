@@ -1724,11 +1724,11 @@
 
         <gui fullscreen='0'>
             <plugin name='3D View' filename='GzScene3D'>
-                <ignition-gui>
+                <gz-gui>
                     <title>3D View</title>
                     <property type='bool' key='showTitleBar'>0</property>
                     <property type='string' key='state'>docked</property>
-                </ignition-gui>
+                </gz-gui>
                 <engine>ogre2</engine>
                 <scene>scene</scene>
                 <ambient_light>0.4 0.4 0.4</ambient_light>
@@ -1736,7 +1736,7 @@
                 <camera_pose>-6 0 6 0 0.5 0</camera_pose>
             </plugin>
             <plugin name='World control' filename='WorldControl'>
-                <ignition-gui>
+                <gz-gui>
                     <title>World control</title>
                     <property type='bool' key='showTitleBar'>0</property>
                     <property type='bool' key='resizable'>0</property>
@@ -1748,13 +1748,13 @@
                         <line own='left' target='left'/>
                         <line own='bottom' target='bottom'/>
                     </anchors>
-                </ignition-gui>
+                </gz-gui>
                 <play_pause>1</play_pause>
                 <step>1</step>
                 <start_paused>1</start_paused>
             </plugin>
             <plugin name='World stats' filename='WorldStats'>
-                <ignition-gui>
+                <gz-gui>
                     <title>World stats</title>
                     <property type='bool' key='showTitleBar'>0</property>
                     <property type='bool' key='resizable'>0</property>
@@ -1766,14 +1766,14 @@
                         <line own='right' target='right'/>
                         <line own='bottom' target='bottom'/>
                     </anchors>
-                </ignition-gui>
+                </gz-gui>
                 <sim_time>1</sim_time>
                 <real_time>1</real_time>
                 <real_time_factor>1</real_time_factor>
                 <iterations>1</iterations>
             </plugin>
             <plugin name='Transform control' filename='TransformControl'>
-                <ignition-gui>
+                <gz-gui>
                     <title>Transform control</title>
                     <anchors target='3D View'>
                         <line own='left' target='left'/>
@@ -1785,10 +1785,10 @@
                     <property key='state' type='string'>floating</property>
                     <property key='showTitleBar' type='bool'>0</property>
                     <property key='cardBackground' type='string'>#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
             <plugin name='Shapes' filename='Shapes'>
-                <ignition-gui>
+                <gz-gui>
                     <anchors target='Transform control'>
                         <line own='left' target='right'/>
                         <line own='top' target='top'/>
@@ -1799,10 +1799,10 @@
                     <property key='state' type='string'>floating</property>
                     <property key='showTitleBar' type='bool'>0</property>
                     <property key='cardBackground' type='string'>#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
             <plugin filename="KeyPublisher" name="Key publisher">
-                <ignition-gui>
+                <gz-gui>
                     <anchors target="3D View">
                         <line own="right" target="right"/>
                         <line own="top" target="top"/>
@@ -1812,7 +1812,7 @@
                     <property key="height" type="double">5</property>
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
         </gui>
         <gravity>0 0 -9.8</gravity>

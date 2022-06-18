@@ -53,7 +53,7 @@ class gz::sim::SystemLoaderPrivate
       systemPaths.AddPluginPaths(path);
 
     std::string homePath;
-    gz::common::env(IGN_HOMEDIR, homePath);
+    gz::common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
 
     // TODO(CH3): Deprecated. Remove on tock.

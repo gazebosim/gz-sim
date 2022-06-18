@@ -143,7 +143,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
 
 //////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(ExamplesBuild, IGN_UTILS_TEST_DISABLED_ON_WIN32(Build))
+TEST_P(ExamplesBuild, GZ_UTILS_TEST_DISABLED_ON_WIN32(Build))
 {
   Build(GetParam());
 }

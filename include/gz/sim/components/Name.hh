@@ -35,7 +35,7 @@ namespace components
   /// of scoped names nor does it care about uniqueness.
   using Name = Component<std::string, class NameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Name", Name)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Name", Name)
 }
 }
 }

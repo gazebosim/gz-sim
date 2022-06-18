@@ -274,15 +274,15 @@ void BuoyancyEnginePlugin::PreUpdate(
   link.AddWorldWrench(_ecm, zForce, {0, 0, 0});
 }
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
   BuoyancyEnginePlugin,
   gz::sim::System,
   BuoyancyEnginePlugin::ISystemConfigure,
   BuoyancyEnginePlugin::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
+GZ_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
                           "gz::sim::systems::BuoyancyEngine")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
+GZ_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
                           "ignition::gazebo::systems::BuoyancyEngine")

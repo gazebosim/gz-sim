@@ -43,7 +43,7 @@ class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 /// Test that a tower of 3 boxes built with an <include> and further nesting
 /// moves appropriately with joints in dartsim
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
+TEST_F(NestedModelPhysicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   // Start server
   ServerConfig serverConfig;

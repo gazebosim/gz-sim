@@ -525,15 +525,15 @@ bool LogicalAudioSensorPluginPrivate::DurationExceeded(
     (currDuration > _sourcePlayInfo.playDuration);
 }
 
-IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
+GZ_ADD_PLUGIN(LogicalAudioSensorPlugin,
                     gz::sim::System,
                     LogicalAudioSensorPlugin::ISystemConfigure,
                     LogicalAudioSensorPlugin::ISystemPreUpdate,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
+GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "gz::sim::systems::LogicalAudioSensorPlugin")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
+GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "ignition::gazebo::systems::LogicalAudioSensorPlugin")

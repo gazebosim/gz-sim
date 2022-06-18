@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a joint.
   using Joint = Component<NoData, class JointTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Joint", Joint)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Joint", Joint)
 }
 }
 }

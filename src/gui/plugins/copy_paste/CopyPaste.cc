@@ -181,5 +181,5 @@ bool CopyPaste::PasteServiceCB(const gz::msgs::Empty &/*_req*/,
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::CopyPaste,
+GZ_ADD_PLUGIN(gz::sim::CopyPaste,
                     gz::gui::Plugin)

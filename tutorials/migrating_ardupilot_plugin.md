@@ -249,7 +249,7 @@ We need a few things from `ign-math`:
 #include <gz/math/Vector3.hh>
 ```
 
-To use the `IGNITION_ADD_PLUGIN()` and `IGNITION_ADD_PLUGIN_ALIAS()` macros, we
+To use the `GZ_ADD_PLUGIN()` and `GZ_ADD_PLUGIN_ALIAS()` macros, we
 need a header from `ign-plugin`:
 
 ```cpp
@@ -700,16 +700,16 @@ In the old code we register our plugin via the macro `GZ_REGISTER_PLUGIN()`:
 GZ_REGISTER_MODEL_PLUGIN(ArduPilotPlugin)
 ```
 
-In the new code we instead use two macros: `IGNITION_ADD_PLUGIN()` and `IGNITION_ADD_PLUGIN_ALIAS()`:
+In the new code we instead use two macros: `GZ_ADD_PLUGIN()` and `GZ_ADD_PLUGIN_ALIAS()`:
 
 ```cpp
 // NEW
-IGNITION_ADD_PLUGIN(gz::sim::systems::ArduPilotPlugin,
+GZ_ADD_PLUGIN(gz::sim::systems::ArduPilotPlugin,
                     gz::sim::System,
                     gz::sim::systems::ArduPilotPlugin::ISystemConfigure,
                     gz::sim::systems::ArduPilotPlugin::ISystemPostUpdate,
                     gz::sim::systems::ArduPilotPlugin::ISystemPreUpdate)
-IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
+GZ_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
 ```
 
 ## Build recipe: `CMakeLists.txt`

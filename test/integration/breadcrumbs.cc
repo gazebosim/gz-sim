@@ -77,7 +77,7 @@ void remainingCb(const msgs::Int32 &_msg)
 /////////////////////////////////////////////////
 // This test checks the .../deploy/remaining topic
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -135,7 +135,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 
 /////////////////////////////////////////////////
 // The test checks breadcrumbs are deployed at the correct pose
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -200,7 +200,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 
 /////////////////////////////////////////////////
 // The test checks max deployments
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -256,7 +256,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 /////////////////////////////////////////////////
 // The test checks that including models from fuel works. Also checks custom
 // topic
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -309,7 +309,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 
 /////////////////////////////////////////////////
 // The test checks that breadcrumbs can be performers
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -383,7 +383,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 /////////////////////////////////////////////////
 // Test that the volume of the performer is set when deploying a performer
 // breadcrumb
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
@@ -437,7 +437,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 
 /////////////////////////////////////////////////
 // The test verifies breadcrumbs physics is disabled using disable_physics_time
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -515,7 +515,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
 /////////////////////////////////////////////////
 // The test verifies that if allow_renaming is true, the Breadcrumb system
 // renames spawned models if a model with the same name exists.
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AllowRenaming))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AllowRenaming))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -569,7 +569,7 @@ std::vector<Entity> ModelsByNameRegex(
 
 // The test checks that models containing Breadcrumbs can be unloaded and loaded
 // safely
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs_levels.sdf", true);

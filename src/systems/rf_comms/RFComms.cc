@@ -469,14 +469,14 @@ void RFComms::Step(
   }
 }
 
-IGNITION_ADD_PLUGIN(RFComms,
+GZ_ADD_PLUGIN(RFComms,
                     gz::sim::System,
                     comms::ICommsModel::ISystemConfigure,
                     comms::ICommsModel::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(RFComms,
+GZ_ADD_PLUGIN_ALIAS(RFComms,
                           "gz::sim::systems::RFComms")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(RFComms,
+GZ_ADD_PLUGIN_ALIAS(RFComms,
                           "ignition::gazebo::systems::RFComms")

@@ -213,7 +213,7 @@ class GZ_GAZEBO_VISIBLE BaseView
   protected: std::set<ComponentTypeId> componentTypes;
 };
 }  // namespace detail
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 #endif

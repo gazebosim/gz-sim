@@ -153,7 +153,7 @@ void ModelEditor::Load()
 void ModelEditor::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ModelEditor::Update");
+  GZ_PROFILE("ModelEditor::Update");
 
   if (!this->dataPtr->entityCreator)
   {

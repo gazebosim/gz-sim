@@ -38,7 +38,7 @@ class RFCommsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
+TEST_F(RFCommsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
 {
   // Start server
   ServerConfig serverConfig;

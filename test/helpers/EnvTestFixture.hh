@@ -40,15 +40,15 @@ class InternalFixture : public TestType
     common::Console::SetVerbosity(4);
 
     // Change environment variable so that test files aren't written to $HOME
-    common::env(IGN_HOMEDIR, this->realHome);
-    EXPECT_TRUE(common::setenv(IGN_HOMEDIR, this->kFakeHome.c_str()));
+    common::env(GZ_HOMEDIR, this->realHome);
+    EXPECT_TRUE(common::setenv(GZ_HOMEDIR, this->kFakeHome.c_str()));
   }
 
   // Documentation inherited
   protected: void TearDown() override
   {
     // Restore $HOME
-    EXPECT_TRUE(common::setenv(IGN_HOMEDIR, this->realHome.c_str()));
+    EXPECT_TRUE(common::setenv(GZ_HOMEDIR, this->realHome.c_str()));
   }
 
   /// \brief Directory to act as $HOME for tests

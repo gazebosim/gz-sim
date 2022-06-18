@@ -73,7 +73,7 @@ void ICommsModel::Configure(const Entity &_entity,
 void ICommsModel::PreUpdate(const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm)
 {
-    IGN_PROFILE("ICommsModel::PreUpdate");
+    GZ_PROFILE("ICommsModel::PreUpdate");
 
     if (_info.paused)
       return;
