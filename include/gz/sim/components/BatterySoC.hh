@@ -32,7 +32,7 @@ namespace components
   /// A component that identifies an entity as being a battery.
   ///   Float value indicates state of charge.
   using BatterySoC = Component<float, class BatterySoCTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.BatterySoC", BatterySoC)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BatterySoC", BatterySoC)
 }
 }
 }

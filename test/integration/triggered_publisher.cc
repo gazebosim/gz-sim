@@ -93,7 +93,7 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 /// configuration
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(EmptyInputEmptyOutput))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(EmptyInputEmptyOutput))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_0");
@@ -104,7 +104,7 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_0", msgCb);
-  IGN_SLEEP_MS(100ms);
+  GZ_SLEEP_MS(100ms);
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
@@ -118,7 +118,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongInputMessageTypeDoesNotMatch))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(WrongInputMessageTypeDoesNotMatch))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Boolean>("/in_0");
@@ -142,7 +142,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerOutputs))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerOutputs))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_1");
@@ -159,7 +159,7 @@ TEST_F(TriggeredPublisherTest,
   for (std::size_t i = 0; i < pubCount; ++i)
   {
     EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   waitUntil(5000, [&]{return pubCount == recvCount;});
@@ -168,7 +168,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleOutputsForOneInput))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultipleOutputsForOneInput))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_2");
@@ -194,7 +194,7 @@ TEST_F(TriggeredPublisherTest,
   for (int i = 0; i < pubCount; ++i)
   {
     EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   waitUntil(5000, [&]
@@ -214,7 +214,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ExactMatchBooleanInputs))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ExactMatchBooleanInputs))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Boolean>("/in_3");
@@ -238,7 +238,7 @@ TEST_F(TriggeredPublisherTest,
     {
       EXPECT_TRUE(inputPub.Publish(msgs::Convert(false)));
     }
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The matcher filters out false messages and the inputs consist of 5 true and
@@ -248,7 +248,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MatchersWithLogicTypeAttribute))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MatchersWithLogicTypeAttribute))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Int32>("/in_4");
@@ -273,7 +273,7 @@ TEST_F(TriggeredPublisherTest,
   {
     EXPECT_TRUE(inputPub.Publish(
         msgs::Convert(static_cast<int32_t>(i - pubCount / 2))));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
   // The negative matcher filters out 0 so we expect 9 output messages from the
   // 10 inputs
@@ -285,7 +285,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleMatchersAreAnded))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultipleMatchersAreAnded))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Int32>("/in_5");
@@ -302,7 +302,7 @@ TEST_F(TriggeredPublisherTest,
   {
     EXPECT_TRUE(inputPub.Publish(
         msgs::Convert(static_cast<int32_t>(i - pubCount / 2))));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
   // The matcher filters out negative numbers and the input is [-5,4], so we
   // expect 5 output messages.
@@ -310,7 +310,7 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchers))
+TEST_F(TriggeredPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchers))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Vector2d>("/in_6");
@@ -337,7 +337,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchers))
   {
     msg.set_y(static_cast<double>(i));
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The first plugin matches x==1 and y==2 which only once out of the 10 inputs
@@ -350,7 +350,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchers))
 /// Tests that if the specified field is a repeated field, a partial match is
 /// used when comparing against the input.
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
            FieldMatchersWithRepeatedFieldsUsePartialMatches))
 {
   transport::Node node;
@@ -378,7 +378,7 @@ TEST_F(TriggeredPublisherTest,
     other->set_key("other_key");
     other->add_value("other_value");
     EXPECT_TRUE(inputPub.Publish(poseMsg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The matcher filters out frame ids that are not frame0, so we expect 1
@@ -389,7 +389,7 @@ TEST_F(TriggeredPublisherTest,
 }
 
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongInputWhenRepeatedSubFieldExpected))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(WrongInputWhenRepeatedSubFieldExpected))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_7");
@@ -400,14 +400,14 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_7", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   msgs::Empty msg;
   for (int i = 0; i < pubCount; ++i)
   {
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   EXPECT_EQ(0u, recvCount);
@@ -418,7 +418,7 @@ TEST_F(TriggeredPublisherTest,
 /// fields by specifying the containing field of the repeated field in the
 /// "field" attribute and setting the desired values of the repeated field in
 /// the value of the <match> tag.
-TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
+TEST_F(TriggeredPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
        FieldMatchersWithRepeatedFieldsInValueUseFullMatches))
 {
   transport::Node node;
@@ -430,7 +430,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
         ++recvCount;
       });
   node.Subscribe("/out_8", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
@@ -447,7 +447,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
       other->add_value("other_value");
     }
     EXPECT_TRUE(inputPub.Publish(poseMsg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // Since the field specified in "field" is not a repeated field, a full match
@@ -460,7 +460,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
 /// Tests that full matchers can be used with repeated fields by specifying the
 /// desired values of the repeated field in the value of the <match> tag. The
 /// message created from the value of <match> must be a full match of the input.
-TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
+TEST_F(TriggeredPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
        FullMatchersWithRepeatedFieldsInValueUseFullMatches))
 {
   transport::Node node;
@@ -472,7 +472,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
         ++recvCount;
       });
   node.Subscribe("/out_9", msgCb);
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   msgs::Int32_V msg;
@@ -480,7 +480,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
   {
     msg.add_data(i);
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The input contains an increasing sets of sequences, {0}, {0,1}, {0,1,2}...
@@ -489,7 +489,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(
 }
 
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(FullMatchersAcceptToleranceParam))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(FullMatchersAcceptToleranceParam))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Float>("/in_10");
@@ -500,7 +500,7 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_10", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   msgs::Float msg;
@@ -508,7 +508,7 @@ TEST_F(TriggeredPublisherTest,
   {
     msg.set_data(static_cast<float>(i)* 0.1);
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The input contains the sequence {0, 0.1, 0.2, ...}, the matcher is set to
@@ -517,7 +517,7 @@ TEST_F(TriggeredPublisherTest,
 }
 
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchersAcceptToleranceParam))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(FieldMatchersAcceptToleranceParam))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Pose>("/in_11");
@@ -528,7 +528,7 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_11", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   msgs::Pose msg;
@@ -537,7 +537,7 @@ TEST_F(TriggeredPublisherTest,
     msg.mutable_position()->set_x(0.1);
     msg.mutable_position()->set_z(static_cast<float>(i)* 0.1);
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // The input contains the sequence {0, 0.1, 0.2, ...} in position.z, the
@@ -547,7 +547,7 @@ TEST_F(TriggeredPublisherTest,
 }
 
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(SubfieldsOfRepeatedFieldsNotSupported))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SubfieldsOfRepeatedFieldsNotSupported))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Header>("/in_12");
@@ -558,7 +558,7 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_12", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   for (int i = 0; i < pubCount; ++i)
@@ -569,7 +569,7 @@ TEST_F(TriggeredPublisherTest,
     data->add_value("value1");
 
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   // Subfields of repeated fiealds are not supported, so no output should be
@@ -577,7 +577,7 @@ TEST_F(TriggeredPublisherTest,
   EXPECT_EQ(0u, recvCount);
 }
 
-TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerDelay))
+TEST_F(TriggeredPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TriggerDelay))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_13");
@@ -588,7 +588,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerDelay))
         ++recvCount;
       });
   node.Subscribe("/out_13", msgCb);
-  IGN_SLEEP_MS(100ms);
+  GZ_SLEEP_MS(100ms);
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
@@ -613,7 +613,7 @@ TEST_F(TriggeredPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerDelay))
 }
 
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongInputWhenRepeatedFieldExpected))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(WrongInputWhenRepeatedFieldExpected))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Int32>("/invalid_topic");
@@ -624,7 +624,7 @@ TEST_F(TriggeredPublisherTest,
         ++recvCount;
       });
   node.Subscribe("/out_9", msgCb);
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   const int pubCount{10};
   msgs::Int32 msg;
@@ -632,7 +632,7 @@ TEST_F(TriggeredPublisherTest,
   {
     msg.set_data(i);
     EXPECT_TRUE(inputPub.Publish(msg));
-    IGN_SLEEP_MS(10);
+    GZ_SLEEP_MS(10);
   }
 
   EXPECT_EQ(0u, recvCount);

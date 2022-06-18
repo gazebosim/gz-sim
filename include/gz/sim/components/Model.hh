@@ -109,13 +109,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a model.
   using Model = Component<NoData, class ModelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Model", Model)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Model", Model)
 
   /// \brief A component that holds the model's SDF DOM
   using ModelSdf = Component<sdf::Model,
                    class ModelTag,
                    serializers::SdfModelSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ModelSdf", ModelSdf)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ModelSdf", ModelSdf)
 }
 }
 }

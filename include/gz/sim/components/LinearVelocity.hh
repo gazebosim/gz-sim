@@ -33,14 +33,14 @@ namespace components
   /// \brief A component type that contains linear velocity of an entity
   /// represented by gz::math::Vector3d.
   using LinearVelocity = Component<math::Vector3d, class LinearVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.LinearVelocity", LinearVelocity)
 
   /// \brief A component type that contains linear velocity of an entity in the
   /// world frame represented by gz::math::Vector3d.
   using WorldLinearVelocity =
       Component<math::Vector3d, class WorldLinearVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.WorldLinearVelocity", WorldLinearVelocity)
 }
 }

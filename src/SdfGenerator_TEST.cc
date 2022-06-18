@@ -897,7 +897,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ElementUpdateFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";
@@ -1018,7 +1018,7 @@ TEST_F(GenerateWorldFixture, PoseWithAttributes)
       auto model = newWorld->ModelByIndex(0);
       ASSERT_NE(nullptr, model);
       // Check that the generated element has the new pose
-      EXPECT_EQ(math::Pose3d(1, 2, 3, IGN_PI_2, 0, 0), model->RawPose());
+      EXPECT_EQ(math::Pose3d(1, 2, 3, GZ_PI_2, 0, 0), model->RawPose());
     }
     {
       auto model = newWorld->ModelByIndex(1);

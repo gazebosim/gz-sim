@@ -32,7 +32,7 @@ namespace components
   /// \brief A component used to hold a model's self collide property.
   using SelfCollide = Component<bool, class SelfCollideTag>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SelfCollide",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SelfCollide",
                                 SelfCollide)
 }
 }

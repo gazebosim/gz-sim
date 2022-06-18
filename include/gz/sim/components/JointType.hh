@@ -64,7 +64,7 @@ namespace components
   /// around sdf::JointType
   using JointType = Component<sdf::JointType, class JointTypeTag,
                               serializers::JointTypeSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointType", JointType)
 }
 }

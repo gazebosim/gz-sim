@@ -95,7 +95,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
 
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(EntityFeatureMapFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
 {
   struct TestOptionalFeatures1
       : physics::FeatureList<physics::LinkFrameSemantics>

@@ -32,13 +32,13 @@ namespace components
 {
   /// \brief This component holds an entity's visibility flags (visual entities)
   using VisibilityFlags = Component<uint32_t, class VisibilityFlagsTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.VisibilityFlags",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.VisibilityFlags",
       VisibilityFlags)
 
   /// \brief This component holds an entity's visibility mask
   /// (camera sensor entities)
   using VisibilityMask = Component<uint32_t, class VisibilityMaskTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.VisibilityMask",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.VisibilityMask",
       VisibilityMask)
 }
 }

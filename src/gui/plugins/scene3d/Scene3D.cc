@@ -667,8 +667,8 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
-  IGN_PROFILE_THREAD_NAME("RenderThread");
-  IGN_PROFILE("IgnRenderer::Render");
+  GZ_PROFILE_THREAD_NAME("RenderThread");
+  GZ_PROFILE("IgnRenderer::Render");
 
   std::unique_lock<std::mutex> lock(_renderSync->mutex);
   _renderSync->WaitForQtThreadAndBlock(lock);
@@ -689,7 +689,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
         static_cast<double>(this->textureSize.height()));
     // setting the size should cause the render texture to be rebuilt
     {
-      IGN_PROFILE("IgnRenderer::Render Pre-render camera");
+      GZ_PROFILE("IgnRenderer::Render Pre-render camera");
       this->dataPtr->camera->Update();
     }
     // mark mouse dirty to force update view projection in HandleMouseEvent
@@ -747,13 +747,13 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   // update and render to texture
   if (update)
   {
-    IGN_PROFILE("IgnRenderer::Render Update camera");
+    GZ_PROFILE("IgnRenderer::Render Update camera");
     this->dataPtr->camera->Update();
   }
 
   // record video is requested
   {
-    IGN_PROFILE("IgnRenderer::Render Record Video");
+    GZ_PROFILE("IgnRenderer::Render Record Video");
     if (this->dataPtr->recordVideo)
     {
       unsigned int width = this->dataPtr->camera->ImageWidth();
@@ -832,7 +832,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Move To
   {
-    IGN_PROFILE("IgnRenderer::Render MoveTo");
+    GZ_PROFILE("IgnRenderer::Render MoveTo");
     if (!this->dataPtr->moveToTarget.empty())
     {
       if (this->dataPtr->moveToHelper.Idle())
@@ -864,7 +864,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Move to pose
   {
-    IGN_PROFILE("IgnRenderer::Render MoveToPose");
+    GZ_PROFILE("IgnRenderer::Render MoveToPose");
     if (this->dataPtr->moveToPoseValue)
     {
       if (this->dataPtr->moveToHelper.Idle())
@@ -886,7 +886,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Follow
   {
-    IGN_PROFILE("IgnRenderer::Render Follow");
+    GZ_PROFILE("IgnRenderer::Render Follow");
     if (!this->dataPtr->moveToTarget.empty())
     {
       _renderSync->ReleaseQtThreadFromBlock(lock);
@@ -940,7 +940,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View Angle
   {
-    IGN_PROFILE("IgnRenderer::Render ViewAngle");
+    GZ_PROFILE("IgnRenderer::Render ViewAngle");
     if (this->dataPtr->viewAngle)
     {
       if (this->dataPtr->moveToHelper.Idle())
@@ -983,7 +983,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Shapes
   {
-    IGN_PROFILE("IgnRenderer::Render Shapes");
+    GZ_PROFILE("IgnRenderer::Render Shapes");
     if (this->dataPtr->isSpawning)
     {
       // Generate spawn preview
@@ -1019,7 +1019,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View as transparent
   {
-    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    GZ_PROFILE("IgnRenderer::Render ViewTransparent");
     if (!this->dataPtr->viewTransparentTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1045,7 +1045,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View center of mass
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    GZ_PROFILE("IgnRenderer::Render ViewCOM");
     if (!this->dataPtr->viewCOMTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1071,7 +1071,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View inertia
   {
-    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    GZ_PROFILE("IgnRenderer::Render ViewInertia");
     if (!this->dataPtr->viewInertiaTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1097,7 +1097,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View joints
   {
-    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    GZ_PROFILE("IgnRenderer::Render ViewJoints");
     if (!this->dataPtr->viewJointsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1123,7 +1123,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View wireframes
   {
-    IGN_PROFILE("IgnRenderer::Render ViewWireframes");
+    GZ_PROFILE("IgnRenderer::Render ViewWireframes");
     if (!this->dataPtr->viewWireframesTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1149,7 +1149,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View collisions
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    GZ_PROFILE("IgnRenderer::Render ViewCollisions");
     if (!this->dataPtr->viewCollisionsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1942,27 +1942,27 @@ void IgnRenderer::HandleMouseTransformControl()
 
         if (snapVals.X() <= 1e-4)
         {
-          snapVals.X() = IGN_PI/4;
+          snapVals.X() = GZ_PI/4;
         }
         else
         {
-          snapVals.X() = IGN_DTOR(snapVals.X());
+          snapVals.X() = GZ_DTOR(snapVals.X());
         }
         if (snapVals.Y() <= 1e-4)
         {
-          snapVals.Y() = IGN_PI/4;
+          snapVals.Y() = GZ_PI/4;
         }
         else
         {
-          snapVals.Y() = IGN_DTOR(snapVals.Y());
+          snapVals.Y() = GZ_DTOR(snapVals.Y());
         }
         if (snapVals.Z() <= 1e-4)
         {
-          snapVals.Z() = IGN_PI/4;
+          snapVals.Z() = GZ_PI/4;
         }
         else
         {
-          snapVals.Z() = IGN_DTOR(snapVals.Z());
+          snapVals.Z() = GZ_DTOR(snapVals.Z());
         }
 
         SnapPoint(currentRot, snapVals);
@@ -3278,7 +3278,7 @@ void Scene3D::Update(const UpdateInfo &_info,
   if (nullptr == this->dataPtr->renderUtil)
     return;
 
-  IGN_PROFILE("Scene3D::Update");
+  GZ_PROFILE("Scene3D::Update");
   auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
   if (this->dataPtr->worldName.empty())
   {
@@ -4084,5 +4084,5 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::Scene3D,
+GZ_ADD_PLUGIN(gz::sim::Scene3D,
                     gz::gui::Plugin)

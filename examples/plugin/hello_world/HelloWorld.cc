@@ -29,7 +29,7 @@
 
 // This is required to register the plugin. Make sure the interfaces match
 // what's in the header.
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
     hello_world::HelloWorld,
     gz::sim::System,
     hello_world::HelloWorld::ISystemPostUpdate)

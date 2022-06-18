@@ -184,7 +184,7 @@ void View::AddEntityWithComps(const Entity &_entity, const bool _new,
     this->newEntities.insert(_entity);
 }
 }  // namespace detail
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 #endif

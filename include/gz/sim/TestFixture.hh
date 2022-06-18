@@ -104,7 +104,7 @@ class GZ_GAZEBO_VISIBLE TestFixture
 
   /// \internal
   /// \brief Pointer to private data.
-  // TODO(chapulina) Use IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
+  // TODO(chapulina) Use GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
   private: TestFixturePrivate *dataPtr;
 };
 }

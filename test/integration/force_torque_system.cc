@@ -41,7 +41,7 @@ class ForceTorqueTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 {
   using namespace std::chrono_literals;
   // Start server
@@ -99,7 +99,7 @@ TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
 {
   using namespace std::chrono_literals;
   // Start server

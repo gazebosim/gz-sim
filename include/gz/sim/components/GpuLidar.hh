@@ -35,7 +35,7 @@ namespace components
   /// sdf::Lidar, information.
   using GpuLidar = Component<sdf::Sensor, class GpuLidarTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.GpuLidar", GpuLidar)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.GpuLidar", GpuLidar)
 }
 }
 }

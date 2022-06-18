@@ -86,7 +86,7 @@ class Relay
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(FollowActorTest,
-       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;

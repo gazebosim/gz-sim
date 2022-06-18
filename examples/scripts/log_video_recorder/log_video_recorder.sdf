@@ -35,11 +35,11 @@
 
     <gui fullscreen='0'>
       <plugin filename='MinimalScene' name='3D View'>
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type='bool' key='showTitleBar'>false</property>
           <property type='string' key='state'>docked</property>
-        </ignition-gui>
+        </gz-gui>
         <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
@@ -47,22 +47,22 @@
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
         <camera_follow>
           <p_gain>0.01</p_gain>
           <world_frame>true</world_frame>
@@ -70,7 +70,7 @@
         </camera_follow>
       </plugin>
       <plugin filename='WorldControl' name='World control'>
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type='bool' key='showTitleBar'>false</property>
           <property type='bool' key='resizable'>false</property>
@@ -82,7 +82,7 @@
             <line own='left' target='left'/>
             <line own='bottom' target='bottom'/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
@@ -91,7 +91,7 @@
         <use_event>true</use_event>
       </plugin>
       <plugin filename='WorldStats' name='World stats'>
-        <ignition-gui>
+        <gz-gui>
           <title>World stats</title>
           <property type='bool' key='showTitleBar'>false</property>
           <property type='bool' key='resizable'>false</property>
@@ -103,7 +103,7 @@
             <line own='right' target='right'/>
             <line own='bottom' target='bottom'/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
         <sim_time>true</sim_time>
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
@@ -112,7 +112,7 @@
       </plugin>
       <!-- Video recorder -->
       <plugin filename="VideoRecorder" name="VideoRecorder">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="x" type="double">0</property>
           <property key="y" type="double">0</property>
@@ -121,7 +121,7 @@
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#777777</property>
-        </ignition-gui>
+        </gz-gui>
 
         <record_video>
           <use_sim_time>true</use_sim_time>

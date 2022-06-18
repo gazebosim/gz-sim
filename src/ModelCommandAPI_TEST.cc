@@ -74,7 +74,7 @@ std::string customExecStr(std::string _cmd)
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -87,7 +87,7 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 
 /////////////////////////////////////////////////
 // Tests `ign model` command.
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -595,7 +595,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.

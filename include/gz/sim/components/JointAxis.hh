@@ -41,14 +41,14 @@ namespace components
   /// around sdf::JointAxis
   using JointAxis = Component<sdf::JointAxis, class JointAxisTag,
                               serializers::JointAxisSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointAxis", JointAxis)
 
   /// \brief A component that contains the second joint axis for joints with two
   /// axes. This is a simple wrapper around sdf::JointAxis
   using JointAxis2 = Component<sdf::JointAxis, class JointAxis2Tag,
                                serializers::JointAxisSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointAxis2", JointAxis2)
 }
 }
