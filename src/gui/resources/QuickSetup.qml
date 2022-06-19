@@ -31,7 +31,7 @@ import QtQuick.Window 2.2
 
       function loadWorld(fileURL){
         // Remove "file://" from the QML url.
-        var url = fileURL.substring(7);
+        var url = fileURL.toString().split("file://")[1]
         QuickSetupHandler.SetStartingWorld(url)
       }
 
