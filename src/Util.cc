@@ -483,6 +483,23 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
+std::string getDefaultConfigFile(const char *_guiConfig)
+{
+  // Set default config file for Gazebo
+  std::string defaultGuiConfigName = "gui.config";
+  std::string defaultConfig;
+  // The playback flag (and not the gui-config flag) was
+  // specified from the command line
+  if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
+  {
+    defaultGuiConfigName = "playback_gui.config";
+  }
+  ignition::common::env(IGN_HOMEDIR, defaultConfig);
+  return ignition::common::joinPaths(defaultConfig, ".ignition",
+      "gazebo", defaultGuiConfigName);
+}
+
+//////////////////////////////////////////////////
 ignition::gazebo::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {

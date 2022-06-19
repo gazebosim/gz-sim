@@ -24,6 +24,7 @@
 #include <ignition/gui/Plugin.hh>
 #include <ignition/gui/Dialog.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
@@ -66,25 +67,11 @@ std::string createQuickStart(
   auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
 
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
-  std::string defaultGuiConfigName = "gui.config";
 
-  // Set default config file for Gazebo
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
-  {
-    // Quick setup menu is not shown during playback
-    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
-    {
-      return "";
-    }
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", defaultGuiConfigName);
-  }
-  else
-  {
-    defaultConfig = _defaultGuiConfig;
-  }
+    // Set default config file for Gazebo
+    defaultConfig = getDefaultConfigFile(_guiConfig);
 
   app->SetDefaultConfigPath(defaultConfig);
   app->LoadWindowConfig(defaultConfig);
@@ -160,26 +147,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
-  std::string defaultGuiConfigName = "gui.config";
 
-  // Set default config file for Gazebo
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
-  {
-    // The playback flag (and not the gui-config flag) was
-    // specified from the command line
-    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
-    {
-      defaultGuiConfigName = "playback_gui.config";
-    }
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", defaultGuiConfigName);
-  }
-  else
-  {
-    defaultConfig = _defaultGuiConfig;
-  }
+    // Set default config file for Gazebo
+    defaultConfig = getDefaultConfigFile(_guiConfig);
 
   app->SetDefaultConfigPath(defaultConfig);
 
@@ -323,6 +295,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     return nullptr;
   }
 
+  std::string defaultGuiConfigName = "gui.config";
   // If no plugins have been added, load default config file
   auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
   if (plugins.empty())
@@ -368,14 +341,19 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, i
   startingWorldPub = node.Advertise<msgs::StringMsg>("/gazebo/starting_world");
   msgs::StringMsg msg;
 
-  // Don't show quick start menu if a file is set as a command line arg
-    // When the quick start dialog is closed, publish the selected starting world path
-  if(strlen(_file) == 0 && _waitGui == 1)
-    msg.set_data(gazebo::gui::createQuickStart(_argc, _argv, _guiConfig));
+  // Don't show quick start menu in playback mode
+  if (nullptr != _guiConfig && std::string(_guiConfig) != "_playback_" || nullptr == _guiConfig)
+  {
+    // Don't show quick start menu if a file is set as a command line arg
+    if(strlen(_file) == 0 && _waitGui == 1)
+      msg.set_data(gazebo::gui::createQuickStart(_argc, _argv, _guiConfig));
+  }
   else
+  {
     msg.set_data(_file);
+  }
 
-  // Notify the server with the starting world path if specified
+  // Notify the server with the starting world path, or empty string if not specified
   if(startingWorldPub.ThrottledUpdateReady())
   {
     for (auto i = 0; i < 5; ++i)
