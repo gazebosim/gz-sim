@@ -80,7 +80,7 @@ namespace gui
   /// file does not exist, the default configuration from
   /// IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
   IGNITION_GAZEBO_GUI_VISIBLE
-  std::string createQuickSetup(
+  std::string createQuickStart(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr);
 

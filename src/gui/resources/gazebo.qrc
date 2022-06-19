@@ -1,11 +1,11 @@
 <!DOCTYPE RCC><RCC version="1.0">
   <qresource prefix="Gazebo/">
-    <file>World.qml</file>
-    <file>QuickSetup.qml</file>
+    <file>FuelThumbnail.qml</file>
     <file>GazeboDrawer.qml</file>
-    <file>images/gazebo_horz_pos_topbar.svg</file>
+    <file>QuickStart.qml</file>
     <file>images/actor.png</file>
     <file>images/collision.png</file>
+    <file>images/gazebo_horz_pos_topbar.svg</file>
     <file>images/joint.png</file>
     <file>images/light.png</file>
     <file>images/link.png</file>

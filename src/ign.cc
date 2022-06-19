@@ -27,8 +27,8 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/fuel_tools/WorldIdentifier.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/transport/Node.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -125,7 +125,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics, int _waitGui)
 {
-  std::string starting_world_path{""};
+  std::string startingWorldPath{""};
 
   // Lock until the starting world is received from Gui
   if (_waitGui==1)
@@ -135,11 +135,11 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     std::mutex mutex;
 
     // Create a subscriber just so we can check when the message has propagated
-    std::function<void(const ignition::msgs::StringMsg_V &)> topicCb =
-        [&starting_world_path, &mutex, &condition](const auto &_msg)
+    std::function<void(const ignition::msgs::StringMsg &)> topicCb =
+        [&startingWorldPath, &mutex, &condition](const auto &_msg)
         {
           std::unique_lock<std::mutex> lock(mutex);
-          starting_world_path = _msg.data(0);
+          startingWorldPath = _msg.data();
           condition.notify_all();
         };
 
@@ -148,7 +148,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     condition.wait(lock);
     igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
     node.Unsubscribe("/gazebo/starting_world");
-    ignmsg << "Received world [" << starting_world_path << "] from the GUI."
+    ignmsg << "Received world [" << startingWorldPath << "] from the GUI."
           << std::endl;
   }
 
@@ -331,7 +331,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
 
   if(_waitGui==1)
-    serverConfig.SetSdfFile(starting_world_path);
+    serverConfig.SetSdfFile(startingWorldPath);
   else
     serverConfig.SetSdfFile(_file);
 

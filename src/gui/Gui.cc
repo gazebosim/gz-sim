@@ -30,7 +30,7 @@
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "AboutDialogHandler.hh"
-#include "QuickSetup.hh"
+#include "QuickStartHandler.hh"
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
@@ -44,7 +44,7 @@ namespace gui
 {
 
 //////////////////////////////////////////////////
-std::string createQuickSetup(
+std::string createQuickStart(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig)
 {
@@ -89,20 +89,20 @@ std::string createQuickSetup(
   app->SetDefaultConfigPath(defaultConfig);
   app->LoadWindowConfig(defaultConfig);
 
-  if (!app->ShowQuickSetup()){
+  if (!app->ShowQuickStart()){
     return "";
   }
 
-  auto quickSetupHandler = new ignition::gazebo::gui::QuickSetupHandler();
-  quickSetupHandler->setParent(app->Engine());
+  auto quickStartHandler = new ignition::gazebo::gui::QuickStartHandler();
+  quickStartHandler->setParent(app->Engine());
 
   auto dialog = new ignition::gui::Dialog();
   dialog->QuickWindow();
 
   auto context = new QQmlContext(app->Engine()->rootContext());
-  context->setContextProperty("QuickSetupHandler", quickSetupHandler);
+  context->setContextProperty("QuickStartHandler", quickStartHandler);
 
-  std::string qmlFile("qrc:/Gazebo/QuickSetup.qml");
+  std::string qmlFile("qrc:/Gazebo/QuickStart.qml");
 
   QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
       QString(QString::fromStdString(qmlFile)));
@@ -117,7 +117,7 @@ std::string createQuickSetup(
     igndbg << "Shutting quick setup dialog" << std::endl;
   }
 
-  return quickSetupHandler->GetStartingWorld();
+  return quickStartHandler->GetStartingWorld();
 }
 
 //////////////////////////////////////////////////
@@ -365,17 +365,15 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, i
 {
   transport::Node node;
   transport::Node::Publisher startingWorldPub;
-  startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
-  msgs::StringMsg_V msg;
+  startingWorldPub = node.Advertise<msgs::StringMsg>("/gazebo/starting_world");
+  msgs::StringMsg msg;
 
   // Don't show quick start menu if a file is set as a command line arg
     // When the quick start dialog is closed, publish the selected starting world path
-  if(strlen(_file) == 0 && _waitGui == 1){
-    msg.add_data(gazebo::gui::createQuickSetup(_argc, _argv, _guiConfig));
-  }
-  else{
-    msg.add_data(_file);
-  }
+  if(strlen(_file) == 0 && _waitGui == 1)
+    msg.set_data(gazebo::gui::createQuickStart(_argc, _argv, _guiConfig));
+  else
+    msg.set_data(_file);
 
   // Notify the server with the starting world path if specified
   if(startingWorldPub.ThrottledUpdateReady())

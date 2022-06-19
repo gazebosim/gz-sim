@@ -1,6 +1,6 @@
 set (gui_sources
   AboutDialogHandler.cc
-  QuickSetup.cc
+  QuickStartHandler.cc
   Gui.cc
   GuiFileHandler.cc
   GuiRunner.cc
