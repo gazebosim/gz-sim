@@ -89,7 +89,6 @@ std::string createQuickSetup(
   app->SetDefaultConfigPath(defaultConfig);
   app->LoadWindowConfig(defaultConfig);
 
-  // TODO (mh) show quick setup by default  
   if (!app->ShowQuickSetup()){
     return "";
   }
@@ -217,12 +216,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
+  transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -364,8 +363,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, int _waitGui)
 {
-  ignition::transport::Node node;
-  ignition::transport::Node::Publisher startingWorldPub;
+  transport::Node node;
+  transport::Node::Publisher startingWorldPub;
   startingWorldPub = node.Advertise<msgs::StringMsg_V>("/gazebo/starting_world");
   msgs::StringMsg_V msg;
 
