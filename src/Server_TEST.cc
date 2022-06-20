@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 #include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
