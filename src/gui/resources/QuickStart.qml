@@ -172,20 +172,18 @@ Rectangle {
         Rectangle {
           color: 'transparent'
           Layout.fillWidth: true
-          Layout.minimumWidth: 100
-          Layout.preferredWidth: 700
+          Layout.preferredWidth: 720
           Layout.minimumHeight: 50
           RowLayout {
             id: skip
-            anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalTop
-            spacing: 6
+            spacing: 2*parent.width/5
             Button {
               id: closeButton
               visible: true
               text: "Open Empty World"
-              Layout.minimumWidth: 100
-              Layout.leftMargin: 10
+              Layout.minimumWidth: parent.width/5
+              Layout.leftMargin: parent.width/10
 
               onClicked: {
                 quickStart.loadWorld("")
@@ -202,8 +200,8 @@ Rectangle {
               id: next
               visible: true
               text: "Next"
-              Layout.minimumWidth: 100
-              Layout.leftMargin: 10
+              Layout.minimumWidth: closeButton.width
+              Layout.rightMargin: parent.width/10
 
               onClicked: {
                 quickStart.Window.window.close()
@@ -215,13 +213,13 @@ Rectangle {
               ToolTip.timeout: tooltipTimeout
               ToolTip.text: qsTr("Next")
             }
-            CheckBox {
-              text: "Don't show again"
-              Layout.fillWidth: true
-              onClicked: {
-                console.debug("not yet implmented")
-              }
-            }
+            // CheckBox {
+            //   text: "Don't show again"
+            //   Layout.fillWidth: true
+            //   onClicked: {
+            //     console.debug("not yet implmented")
+            //   }
+            // }
           }
         }
     }
