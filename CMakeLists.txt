@@ -119,7 +119,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.6
   # component order is important
   COMPONENTS
     # non-rendering
@@ -138,6 +138,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
@@ -147,7 +148,7 @@ set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-rendering6 REQUIRED VERSION 6.5)
 set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
