@@ -1084,7 +1084,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   EXPECT_TRUE(common::exists(tlogPath));
   EXPECT_TRUE(common::exists(clogPath));
 
-  // On OS X, ign-gazebo-server (server_main.cc) is being used as opposed to
+  // On OS X, gz-sim-server (server_main.cc) is being used as opposed to
   // gz sim. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until gz sim is fixed:

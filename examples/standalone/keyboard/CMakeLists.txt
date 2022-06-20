@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-project(ign-gazebo-keyboard)
+project(gz-sim-keyboard)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)

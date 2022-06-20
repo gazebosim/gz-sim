@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-project(ign-gazebo-external-ecm)
+project(gz-sim-external-ecm)
 
 find_package(gz-sim7 REQUIRED)
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-project(ign-gazebo-custom-server)
+project(gz-sim-custom-server)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-sim7 REQUIRED)

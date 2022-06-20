@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-project(ign-gazebo-entity-creation)
+project(gz-sim-entity-creation)
 
 find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
