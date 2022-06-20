@@ -64,7 +64,8 @@ std::string createQuickStart(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
+  auto app = std::make_unique<ignition::gui::Application>(
+    _argc, _argv, ignition::gui::WindowType::kDialog);
 
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
@@ -128,7 +129,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv, ignition::gui::WindowType::kDialog);
+  auto app = std::make_unique<ignition::gui::Application>(
+    _argc, _argv, ignition::gui::WindowType::kDialog);
 
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
@@ -334,7 +336,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, int _waitGui)
+int runGui(int &_argc, char **_argv,
+  const char *_guiConfig, const char*_file, int _waitGui)
 {
   transport::Node node;
   transport::Node::Publisher startingWorldPub;
@@ -345,7 +348,8 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, i
   if(strlen(_file) == 0 && _waitGui == 1)
   {
     // Don't show quick start menu in playback mode
-    if ((nullptr != _guiConfig && std::string(_guiConfig) != "_playback_") || nullptr == _guiConfig)
+    if ((nullptr != _guiConfig && std::string(_guiConfig) != "_playback_")
+      || nullptr == _guiConfig)
       msg.set_data(gazebo::gui::createQuickStart(_argc, _argv, _guiConfig));
   }
   else
@@ -353,7 +357,8 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig, const char*_file, i
     msg.set_data(_file);
   }
 
-  // Notify the server with the starting world path, or empty string if not specified
+  // Notify the server with the starting world path
+  // or an empty string if not specified
   if(startingWorldPub.ThrottledUpdateReady())
   {
     for (auto i = 0; i < 5; ++i)

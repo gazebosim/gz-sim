@@ -172,12 +172,12 @@ namespace ignition
     /// \return Entity of top level model. If _entity has no top level model,
     /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
-        const Entity &_entity,
-        const EntityComponentManager &_ecm);
-    
+        const Entity &_entity, const EntityComponentManager &_ecm);
+
     /// \brief Get the default config file for gazebo
     /// \return Path to Gazebo GUI default configuration file.
-    std::string IGNITION_GAZEBO_VISIBLE getDefaultConfigFile(const char *_guiConfig);
+    std::string IGNITION_GAZEBO_VISIBLE getDefaultConfigFile(
+      const char *_guiConfig);
 
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,

@@ -128,7 +128,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   std::string startingWorldPath{""};
 
   // Lock until the starting world is received from Gui
-  if (_waitGui==1)
+  if (_waitGui == 1)
   {
     ignition::transport::Node node;
     std::condition_variable condition;
@@ -330,7 +330,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
   }
 
-  if(_waitGui==1)
+  if(_waitGui == 1)
     serverConfig.SetSdfFile(startingWorldPath);
   else
     serverConfig.SetSdfFile(_file);
@@ -396,7 +396,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig, const char *_file, int _waitGui)
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
+  const char *_guiConfig, const char *_file, int _waitGui)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -409,5 +410,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig, const char
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(argc, &argv, _guiConfig, _file, _waitGui);
+  return ignition::gazebo::gui::runGui(
+    argc, &argv, _guiConfig, _file, _waitGui);
 }
