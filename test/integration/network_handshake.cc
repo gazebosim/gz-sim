@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <condition_variable>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/msgs/world_control.pb.h"
 #include "ignition/msgs/world_stats.pb.h"

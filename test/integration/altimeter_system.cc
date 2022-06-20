@@ -24,6 +24,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Altimeter.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
