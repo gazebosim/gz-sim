@@ -1575,8 +1575,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         joint.SetRawPose(_pose->Data());
         joint.SetThreadPitch(_threadPitch->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);

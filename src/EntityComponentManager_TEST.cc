@@ -2874,9 +2874,9 @@ TEST_P(EntityComponentManagerFixture,
   manager.CreateComponent(jointEntity, components::Name("jointEntity"));
   manager.CreateComponent(jointEntity, components::Joint());
   manager.CreateComponent(jointEntity,
-      components::ParentLinkName(parentLinkEntityName));
+      components::ParentName(parentLinkEntityName));
   manager.CreateComponent(jointEntity,
-      components::ChildLinkName(childLinkEntityName));
+      components::ChildName(childLinkEntityName));
   Entity childLinkEntity = manager.CreateEntity();
   manager.CreateComponent(childLinkEntity,
       components::ParentEntity(parentModelEntity));

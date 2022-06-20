@@ -656,12 +656,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
             !this->viewingInertias[jointEntity])
         {
           std::string childLinkName =
-              this->entityJoints[jointEntity].ChildLinkName();
+              this->entityJoints[jointEntity].ChildName();
           Entity childId =
               this->matchLinksWithEntities[model][childLinkName];
 
           std::string parentLinkName =
-              this->entityJoints[jointEntity].ParentLinkName();
+              this->entityJoints[jointEntity].ParentName();
           Entity parentId =
               this->matchLinksWithEntities[model][parentLinkName];
 
@@ -2547,8 +2547,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           joint.SetType(_jointType->Data());
           joint.SetRawPose(_pose->Data());
 
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
+          joint.SetParentName(_parentLinkName->Data());
+          joint.SetChildName(_childLinkName->Data());
 
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2708,8 +2708,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           joint.SetType(_jointType->Data());
           joint.SetRawPose(_pose->Data());
 
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
+          joint.SetParentName(_parentLinkName->Data());
+          joint.SetChildName(_childLinkName->Data());
 
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);

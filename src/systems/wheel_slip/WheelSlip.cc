@@ -197,7 +197,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     auto joints =
         _ecm.ChildrenByComponents(model.Entity(), components::Joint(),
-                                  components::ChildLinkName(linkName));
+                                  components::ChildName(linkName));
     if (joints.empty() || joints.size() != 1)
     {
       gzerr << "There should be 1 parent joint for link named [" << linkName

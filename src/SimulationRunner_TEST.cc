@@ -994,8 +994,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
     if (_checkAxis2)
       testAxis(_joint->Name(), _joint->Axis(1), _axis2);
 
-    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
-    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->ParentName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildName(), _childLinkName->Data());
     EXPECT_EQ(_joint->Name(), _name->Data());
   };
 
