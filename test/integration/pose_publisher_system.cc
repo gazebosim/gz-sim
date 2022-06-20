@@ -628,7 +628,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
 
 /////////////////////////////////////////////////
 // See: https://github.com/gazebosim/gz-sim/issues/630
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_MAC(StaticPoseUpdateFrequency))
+TEST_F(PosePublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_MAC(StaticPoseUpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;

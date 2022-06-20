@@ -431,7 +431,8 @@ TEST_F(LevelManagerFixture, LevelsWithMultiplePerformers)
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
 // See: https://github.com/gazebosim/gz-sim/issues/630
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(LevelBuffersWithMultiplePerformers))
+TEST_F(LevelManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_MAC(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));
