@@ -798,7 +798,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View center of mass
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCOM");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCOM");
     if (!this->viewCOMTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -824,7 +824,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View inertia
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewInertia");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewInertia");
     if (!this->viewInertiaTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -850,7 +850,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // view Transparent
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewTransparent");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewTransparent");
     if (!this->viewTransparentTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -876,7 +876,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View collisions
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCollisions");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCollisions");
     if (!this->viewCollisionsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -902,7 +902,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View joints
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewJoints");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewJoints");
     if (!this->viewJointsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -928,7 +928,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View wireframes
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewWireframes");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewWireframes");
     if (!this->viewWireframesTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -954,7 +954,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View frames
   {
-    IGN_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewFrames");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewFrames");
     if (!this->viewFramesTarget.empty())
     {
       auto targetNode = this->scene->NodeByName(this->viewFramesTarget);
@@ -2894,5 +2894,5 @@ bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::VisualizationCapabilities,
+GZ_ADD_PLUGIN(gz::sim::VisualizationCapabilities,
                     gz::gui::Plugin)

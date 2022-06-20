@@ -143,7 +143,7 @@ namespace sdf_generator
                            const EntityComponentManager &_ecm,
                            const Entity &_entity);
 }  // namespace sdf_generator
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 

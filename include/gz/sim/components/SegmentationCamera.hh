@@ -36,7 +36,7 @@ namespace components
   /// sdf::Camera, information.
   using SegmentationCamera = Component<sdf::Sensor, class SegmentationCameraTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SegmentationCamera",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SegmentationCamera",
       SegmentationCamera)
 }
 }

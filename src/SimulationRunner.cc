@@ -251,7 +251,7 @@ SimulationRunner::~SimulationRunner()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
-  IGN_PROFILE("SimulationRunner::UpdateCurrentInfo");
+  GZ_PROFILE("SimulationRunner::UpdateCurrentInfo");
 
   // Rewind
   if (this->requestedRewind)
@@ -404,7 +404,7 @@ void SimulationRunner::UpdatePhysicsParams()
 /////////////////////////////////////////////////
 void SimulationRunner::PublishStats()
 {
-  IGN_PROFILE("SimulationRunner::PublishStats");
+  GZ_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
   gz::msgs::WorldStatistics msg;
@@ -445,9 +445,9 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
   clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(IGN_SYSTEM_TIME_S());
+  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
   clockMsg.mutable_system()->set_nsec(
-      IGN_SYSTEM_TIME_NS() - IGN_SYSTEM_TIME_S() * IGN_SEC_TO_NANO);
+      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
   this->clockPub.Publish(clockMsg);
 
   // Only publish to root topic if no others are.
@@ -508,7 +508,7 @@ void SimulationRunner::ProcessSystemQueue()
     {
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
-      IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
       while (this->postUpdateThreadsRunning)
       {
         this->postUpdateStartBarrier->Wait();
@@ -528,7 +528,7 @@ void SimulationRunner::ProcessSystemQueue()
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateSystems()
 {
-  IGN_PROFILE("SimulationRunner::UpdateSystems");
+  GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
   // an gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
@@ -537,26 +537,26 @@ void SimulationRunner::UpdateSystems()
 
   if (this->resetInitiated)
   {
-    IGN_PROFILE("Reset");
+    GZ_PROFILE("Reset");
     for (auto &system : this->systemMgr->SystemsReset())
       system->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
 
   {
-    IGN_PROFILE("PreUpdate");
+    GZ_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     for (auto& system : this->systemMgr->SystemsUpdate())
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
   {
-    IGN_PROFILE("PostUpdate");
+    GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
@@ -609,7 +609,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
-  IGN_PROFILE_THREAD_NAME("SimulationRunner");
+  GZ_PROFILE_THREAD_NAME("SimulationRunner");
 
   // Initialize network communications.
   if (this->networkMgr)
@@ -726,7 +726,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
-    IGN_PROFILE("SimulationRunner::Run - Iteration");
+    GZ_PROFILE("SimulationRunner::Run - Iteration");
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
@@ -743,7 +743,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Only sleep if needed.
     if (sleepTime > 0ns)
     {
-      IGN_PROFILE("Sleep");
+      GZ_PROFILE("Sleep");
       // Get the current time, sleep for the duration needed to match the
       // updatePeriod, and then record the actual time slept.
       startTime = std::chrono::steady_clock::now();
@@ -801,7 +801,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 /////////////////////////////////////////////////
 void SimulationRunner::Step(const UpdateInfo &_info)
 {
-  IGN_PROFILE("SimulationRunner::Step");
+  GZ_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
   // Process new ECM state information, typically sent from the GUI after
@@ -1213,7 +1213,7 @@ bool SimulationRunner::OnPlaybackControl(const msgs::LogPlaybackControl &_req,
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessMessages()
 {
-  IGN_PROFILE("SimulationRunner::ProcessMessages");
+  GZ_PROFILE("SimulationRunner::ProcessMessages");
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
   this->ProcessWorldControl();
 }
@@ -1221,7 +1221,7 @@ void SimulationRunner::ProcessMessages()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessWorldControl()
 {
-  IGN_PROFILE("SimulationRunner::ProcessWorldControl");
+  GZ_PROFILE("SimulationRunner::ProcessWorldControl");
 
   // assume no stepping unless WorldControl msgs say otherwise
   this->SetStepping(false);
@@ -1258,7 +1258,7 @@ void SimulationRunner::ProcessWorldControl()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
-  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
+  GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
@@ -1276,7 +1276,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessRecreateEntitiesCreate()
 {
-  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
+  GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
 
   // clone the original entities
   for (auto & ent : this->entitiesToRecreate)

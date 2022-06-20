@@ -85,7 +85,7 @@ class GZ_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   private: void UpdateSystems();
 
   /// \brief Pointer to private data.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

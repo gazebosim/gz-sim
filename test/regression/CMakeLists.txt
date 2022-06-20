@@ -5,7 +5,7 @@ set(tests
 
 link_directories(${PROJECT_BINARY_DIR}/test)
 
-ign_build_tests(TYPE REGRESSION
+gz_build_tests(TYPE REGRESSION
   SOURCES
     ${tests}
   LIB_DEPS

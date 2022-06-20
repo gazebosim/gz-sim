@@ -37,7 +37,7 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-ign_add_component(gz
+gz_add_component(gz
   SOURCES
     ign.cc
     cmd/ModelCommandAPI.cc
@@ -137,7 +137,7 @@ if (MSVC)
 endif()
 
 # Create the library target
-ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   ignition-math${IGN_MATH_VER}
@@ -173,7 +173,7 @@ set(GZ_SIM_PLUGIN_INSTALL_DIR
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
 # Build the unit tests
-ign_build_tests(TYPE UNIT
+gz_build_tests(TYPE UNIT
   SOURCES
     ${gtest_sources}
   LIB_DEPS

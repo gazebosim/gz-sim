@@ -2,7 +2,7 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
+GZ_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
     gz::sim::MockSystem::ISystemConfigure,
     gz::sim::MockSystem::ISystemReset,
     gz::sim::MockSystem::ISystemPreUpdate,

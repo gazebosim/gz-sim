@@ -212,7 +212,7 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/diff_drive.sdf",
@@ -220,7 +220,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +
@@ -229,7 +229,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -331,7 +331,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -455,7 +455,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -513,7 +513,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -570,7 +570,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -630,7 +630,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -690,7 +690,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
   // Start server
   ServerConfig serverConfig;

@@ -85,8 +85,8 @@ PathModel::PathModel() : QStandardItemModel()
 /////////////////////////////////////////////////
 void PathModel::AddPath(const std::string &_path)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("PathModel::AddPath");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("PathModel::AddPath");
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
@@ -135,8 +135,8 @@ void ResourceModel::AddResources(std::vector<Resource> &_resources)
 /////////////////////////////////////////////////
 void ResourceModel::AddResource(Resource &_resource)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("GridModel::AddResource");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("GridModel::AddResource");
   QStandardItem *parentItem{nullptr};
 
   parentItem = this->invisibleRootItem();
@@ -633,5 +633,5 @@ void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::ResourceSpawner,
+GZ_ADD_PLUGIN(gz::sim::ResourceSpawner,
     gz::gui::Plugin)

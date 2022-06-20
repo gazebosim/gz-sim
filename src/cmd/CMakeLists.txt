@@ -21,7 +21,7 @@ file(GENERATE
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_script_generated} DESTINATION lib/ruby/ignition)
 
-set(ign_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
+set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate a configuration file.
 # Note that the major version of the library is included in the name.
@@ -54,7 +54,7 @@ file(GENERATE
 install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/ignition)
 
 # Used for the installed version.
-set(ign_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdmodel${PROJECT_VERSION_MAJOR}")
+set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/ignition/cmdmodel${PROJECT_VERSION_MAJOR}")
 
 set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
 configure_file(
@@ -85,7 +85,7 @@ file(GENERATE
   INPUT  "${cmd_script_configured_test}")
 
 # Used only for internal testing.
-set(ign_library_path
+set(gz_library_path
   "${CMAKE_BINARY_DIR}/test/lib/ruby/ignition/cmd${IGN_DESIGNATION}${PROJECT_VERSION_MAJOR}")
 
 # Generate a configuration file for internal testing.
@@ -112,7 +112,7 @@ file(GENERATE
   INPUT  "${cmd_model_script_configured_test}")
 
 # Used for internal testing.
-set(ign_model_ruby_path "${cmd_model_script_generated_test}")
+set(gz_model_ruby_path "${cmd_model_script_generated_test}")
 
 configure_file(
   "model.yaml.in"

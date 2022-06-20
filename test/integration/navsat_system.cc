@@ -60,7 +60,7 @@ void navsatCb(const msgs::NavSat &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling navsat
-TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
+TEST_F(NavSatTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "navsat.sdf"));

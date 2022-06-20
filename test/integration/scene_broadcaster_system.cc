@@ -44,7 +44,7 @@ class SceneBroadcasterTest
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -88,13 +88,13 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_TRUE(received);
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -140,7 +140,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -180,7 +180,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -225,7 +225,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
 TEST_P(SceneBroadcasterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -276,7 +276,7 @@ TEST_P(SceneBroadcasterTest,
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -336,7 +336,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 
 /////////////////////////////////////////////////
 /// Test whether the scene is updated when a model is spawned.
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -406,7 +406,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -474,7 +474,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
     server.Run(true, 1, false);
   }
 
@@ -491,7 +491,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
   EXPECT_TRUE(received);
   EXPECT_TRUE(node.Unsubscribe("/world/default/state"));
 
@@ -511,13 +511,13 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
   {
     // Run server
     server.Run(true, 1, false);
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
   }
   EXPECT_TRUE(received);
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
+TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -598,7 +598,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   unsigned int maxSleep{30u};
   while (!received && sleep++ < maxSleep)
   {
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
     server.Run(true, 1, false);
   }
 
@@ -615,7 +615,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
   EXPECT_TRUE(received);
 }
 
@@ -623,7 +623,7 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 /// Test whether the scene topic is published when entities and components are
 /// removed/added
 TEST_P(SceneBroadcasterTest,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveEntitiesComponents))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveEntitiesComponents))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
@@ -821,7 +821,7 @@ TEST_P(SceneBroadcasterTest,
         // cppcheck-suppress unmatchedSuppression
         // cppcheck-suppress knownConditionTrueFalse
         while (!received && sleep++ < maxSleep)
-          IGN_SLEEP_MS(100);
+          GZ_SLEEP_MS(100);
         EXPECT_TRUE(received);
         EXPECT_EQ(_shouldHaveState, hasState);
       };
@@ -866,7 +866,7 @@ TEST_P(SceneBroadcasterTest,
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
   while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
   EXPECT_TRUE(received);
   EXPECT_TRUE(hasState);
 
@@ -877,7 +877,7 @@ TEST_P(SceneBroadcasterTest,
 /////////////////////////////////////////////////
 // Tests https://github.com/ignitionrobotics/ign-gazebo/issues/1414
 TEST_P(SceneBroadcasterTest,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
 {
   // Start server
   std::string sdfStr = R"(
@@ -916,7 +916,7 @@ TEST_P(SceneBroadcasterTest,
 
 /////////////////////////////////////////////////
 TEST_P(SceneBroadcasterTest,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
 {
   // Start server
   sim::ServerConfig serverConfig;

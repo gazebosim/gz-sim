@@ -40,7 +40,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a collision.
   using Collision = Component<NoData, class CollisionTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.Collision", Collision)
 
   // TODO(anyone) The sdf::Collision DOM object does not yet contain
@@ -49,7 +49,7 @@ namespace components
   using CollisionElement =
       Component<sdf::Collision, class CollisionElementTag,
     serializers::CollisionElementSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CollisionElement",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CollisionElement",
                                 CollisionElement)
 
   /// \brief A component used to enable customization of contact surface for a
@@ -57,7 +57,7 @@ namespace components
   /// CollectContactSurfaceProperties from PhysicsEvents.
   using EnableContactSurfaceCustomization =
     Component<bool, class EnableContactSurfaceCustomizationTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.EnableContactSurfaceCustomization",
     EnableContactSurfaceCustomization)
 }

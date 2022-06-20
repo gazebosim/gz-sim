@@ -14,7 +14,7 @@ if (MSVC)
       COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-ign_add_component(rendering
+gz_add_component(rendering
   SOURCES ${rendering_comp_sources}
   GET_TARGET_NAME rendering_target
   CXX_STANDARD 17)

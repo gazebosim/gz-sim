@@ -86,7 +86,7 @@
           </geometry>
         </visual>
         <!-- Here's our custom sensor -->
-        <sensor name="an_odometer" type="custom" ignition:type="odometer">
+        <sensor name="an_odometer" type="custom" gz:type="odometer">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>

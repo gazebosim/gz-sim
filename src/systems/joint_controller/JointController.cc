@@ -176,7 +176,7 @@ void JointController::Configure(const Entity &_entity,
 void JointController::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointController::PreUpdate");
+  GZ_PROFILE("JointController::PreUpdate");
 
   // If the joint hasn't been identified yet, the plugin is disabled
   if (this->dataPtr->jointEntity == kNullEntity)
@@ -259,14 +259,14 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
   this->jointVelCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(JointController,
+GZ_ADD_PLUGIN(JointController,
                     gz::sim::System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointController,
+GZ_ADD_PLUGIN_ALIAS(JointController,
                           "gz::sim::systems::JointController")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(JointController,
+GZ_ADD_PLUGIN_ALIAS(JointController,
                           "ignition::gazebo::systems::JointController")

@@ -39,7 +39,7 @@ if (MSVC)
       COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-ign_add_component(gui
+gz_add_component(gui
   SOURCES ${gui_sources} resources/gazebo.qrc
   GET_TARGET_NAME gui_target
   CXX_STANDARD 17)
@@ -65,7 +65,7 @@ install (FILES playback_gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
 # Tests
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
-ign_build_tests(TYPE UNIT
+gz_build_tests(TYPE UNIT
   SOURCES
     ${gtest_sources}
   LIB_DEPS

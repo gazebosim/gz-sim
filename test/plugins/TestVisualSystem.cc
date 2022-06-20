@@ -18,6 +18,6 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::TestVisualSystem,
+GZ_ADD_PLUGIN(gz::sim::TestVisualSystem,
     gz::sim::System,
     gz::sim::TestVisualSystem::ISystemConfigure)

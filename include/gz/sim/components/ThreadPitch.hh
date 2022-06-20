@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to store the thread pitch of a screw joint
   using ThreadPitch = Component<double, class ThreadPitchTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.ThreadPitch", ThreadPitch)
 }
 }

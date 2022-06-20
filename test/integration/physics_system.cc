@@ -120,7 +120,7 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 
 ////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -189,7 +189,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 // This tests whether links with fixed joints keep their relative transforms
 // after physics. For that to work properly, the canonical link implementation
 // must be correct.
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -261,7 +261,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 /////////////////////////////////////////////////
 // Same as the CanonicalLink test, but with a non-default canonical link
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -316,7 +316,7 @@ TEST_F(PhysicsSystemFixture,
 
 /////////////////////////////////////////////////
 // Test physics integration with revolute joints
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -395,7 +395,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
   gz::sim::ServerConfig serverConfig;
   sim::Server server(serverConfig);
@@ -479,7 +479,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -565,7 +565,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test that joint position reported by the physics system include all axes
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -645,7 +645,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test joint position reset component
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -745,7 +745,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test joint veocity reset component
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1217,7 +1217,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1288,7 +1288,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1394,7 +1394,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
@@ -1537,7 +1537,7 @@ TEST_F(PhysicsSystemFixture,
 
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
@@ -1680,7 +1680,7 @@ TEST_F(PhysicsSystemFixture,
 
 // This tests whether the poses of nested models are updated correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1782,7 +1782,7 @@ TEST_F(PhysicsSystemFixture,
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1869,7 +1869,7 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
 // This tests whether pose updates are correct for a model whose canonical link
 // changes, but other links do not
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -1996,7 +1996,7 @@ TEST_F(PhysicsSystemFixture,
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -2078,7 +2078,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 /////////////////////////////////////////////////
 // Joint force
 TEST_F(PhysicsSystemFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
 {
   common::Console::SetVerbosity(4);
   gz::sim::ServerConfig serverConfig;
@@ -2200,7 +2200,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 // Test that joint velocity limit is applied
 TEST_F(PhysicsSystemFixtureWithDart6_10,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
 {
   // Start server
   ServerConfig serverConfig;

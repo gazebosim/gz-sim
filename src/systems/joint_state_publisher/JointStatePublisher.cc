@@ -312,14 +312,14 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   this->modelPub->Publish(msg);
 }
 
-IGNITION_ADD_PLUGIN(JointStatePublisher,
+GZ_ADD_PLUGIN(JointStatePublisher,
                     gz::sim::System,
                     JointStatePublisher::ISystemConfigure,
                     JointStatePublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
     "gz::sim::systems::JointStatePublisher")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
     "ignition::gazebo::systems::JointStatePublisher")

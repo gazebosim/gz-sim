@@ -18,7 +18,7 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::TestModelSystem,
+GZ_ADD_PLUGIN(gz::sim::TestModelSystem,
     gz::sim::System,
     gz::sim::TestModelSystem::ISystemConfigure)
 

@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a wind.
   using Wind = Component<NoData, class WindTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Wind", Wind)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Wind", Wind)
 }
 }
 }

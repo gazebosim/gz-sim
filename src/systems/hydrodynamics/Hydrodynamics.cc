@@ -400,17 +400,17 @@ void Hydrodynamics::PreUpdate(
     pose->Rot()*totalTorque);
 }
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
   Hydrodynamics, System,
   Hydrodynamics::ISystemConfigure,
   Hydrodynamics::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
   Hydrodynamics,
   "gz::sim::systems::Hydrodynamics")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
   Hydrodynamics,
   "ignition::gazebo::systems::Hydrodynamics")

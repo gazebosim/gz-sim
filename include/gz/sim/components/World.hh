@@ -33,11 +33,11 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a world.
   using World = Component<NoData, class WorldTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.World", World)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.World", World)
 
   /// \brief A component that holds the world's SDF DOM
   using WorldSdf = Component<sdf::World, class WorldTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldSdf", WorldSdf)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldSdf", WorldSdf)
 }
 }
 }

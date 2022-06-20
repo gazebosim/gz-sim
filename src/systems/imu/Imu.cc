@@ -108,7 +108,7 @@ Imu::~Imu() = default;
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Imu::PreUpdate");
+  GZ_PROFILE("Imu::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -130,7 +130,7 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
 void Imu::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Imu::PostUpdate");
+  GZ_PROFILE("Imu::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -262,7 +262,7 @@ void ImuPrivate::AddSensor(
 //////////////////////////////////////////////////
 void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ImuPrivate::CreateImuEntities");
+  GZ_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
   if (kNullEntity == this->worldEntity)
     this->worldEntity = _ecm.EntityByComponents(components::World());
@@ -302,7 +302,7 @@ void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ImuPrivate::Update(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ImuPrivate::Update");
+  GZ_PROFILE("ImuPrivate::Update");
   _ecm.Each<components::Imu,
             components::WorldPose,
             components::AngularVelocity,
@@ -339,7 +339,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
 void ImuPrivate::RemoveImuEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ImuPrivate::RemoveImuEntities");
+  GZ_PROFILE("ImuPrivate::RemoveImuEntities");
   _ecm.EachRemoved<components::Imu>(
     [&](const Entity &_entity,
         const components::Imu *)->bool
@@ -358,12 +358,12 @@ void ImuPrivate::RemoveImuEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Imu, System,
+GZ_ADD_PLUGIN(Imu, System,
   Imu::ISystemPreUpdate,
   Imu::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
+GZ_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")
+GZ_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")

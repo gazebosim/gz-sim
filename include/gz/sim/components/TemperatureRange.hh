@@ -89,7 +89,7 @@ namespace components
   /// \brief A component that stores a temperature range in kelvin
   using TemperatureRange = Component<TemperatureRangeInfo,
         class TemperatureRangeTag, serializers::TemperatureRangeInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.TemperatureRange",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.TemperatureRange",
       TemperatureRange)
 }
 }

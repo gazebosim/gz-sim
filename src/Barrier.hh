@@ -88,7 +88,7 @@ namespace gz
       /// \brief Pointer to private data.
       private: std::unique_ptr<BarrierPrivate> dataPtr;
     };
-    }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+    }  // namespace GZ_SIM_VERSION_NAMESPACE
   }  // namespace sim
 }  // namespace gz
 

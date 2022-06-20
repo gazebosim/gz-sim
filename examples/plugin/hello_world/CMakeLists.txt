@@ -4,10 +4,10 @@ find_package(ignition-cmake3 REQUIRED)
 
 project(Hello_world)
 
-ign_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
+gz_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
-ign_find_package(ignition-gazebo7 REQUIRED)
+gz_find_package(ignition-gazebo7 REQUIRED)
 set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
 
 add_library(HelloWorld SHARED HelloWorld)

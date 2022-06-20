@@ -82,7 +82,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 
 /////////////////////////////////////////////////
 // Battery
-TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
+TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "sensors_system_battery.sdf");

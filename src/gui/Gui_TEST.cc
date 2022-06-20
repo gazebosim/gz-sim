@@ -43,7 +43,7 @@ class GuiTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // https://github.com/gazebosim/gz-sim/issues/8
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
+TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 {
   common::Console::SetVerbosity(4);
   gzdbg << "Start test" << std::endl;
@@ -141,7 +141,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   int maxSleep{30};
   while (!topicCalled && sleep < maxSleep)
   {
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
     sleep++;
   }
   EXPECT_TRUE(topicCalled);

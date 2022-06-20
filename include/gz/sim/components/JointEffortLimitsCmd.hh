@@ -49,7 +49,7 @@ using JointEffortLimitsCmd = Component<
   serializers::VectorSerializer<gz::math::Vector2d>
 >;
 
-IGN_GAZEBO_REGISTER_COMPONENT(
+GZ_SIM_REGISTER_COMPONENT(
   "gz_sim_components.JointEffortLimitsCmd", JointEffortLimitsCmd)
 }
 

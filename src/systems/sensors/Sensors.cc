@@ -278,9 +278,9 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
-  IGN_PROFILE("SensorsPrivate::RunOnce");
+  GZ_PROFILE("SensorsPrivate::RunOnce");
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     this->renderUtil.Update();
   }
 
@@ -323,7 +323,7 @@ void SensorsPrivate::RunOnce()
     this->sensorMaskMutex.unlock();
 
     {
-      IGN_PROFILE("PreRender");
+      GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
       this->scene->SetTime(this->updateTime);
       // Update the scene graph manually to improve performance
@@ -351,7 +351,7 @@ void SensorsPrivate::RunOnce()
 
     {
       // publish data
-      IGN_PROFILE("RunOnce");
+      GZ_PROFILE("RunOnce");
       this->sensorManager.RunOnce(this->updateTime);
       this->eventManager->Emit<events::Render>();
     }
@@ -363,7 +363,7 @@ void SensorsPrivate::RunOnce()
     }
 
     {
-      IGN_PROFILE("PostRender");
+      GZ_PROFILE("PostRender");
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -384,7 +384,7 @@ void SensorsPrivate::RunOnce()
 //////////////////////////////////////////////////
 void SensorsPrivate::RenderThread()
 {
-  IGN_PROFILE_THREAD_NAME("RenderThread");
+  GZ_PROFILE_THREAD_NAME("RenderThread");
 
   gzdbg << "SensorsPrivate::RenderThread started" << std::endl;
 
@@ -570,7 +570,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::Update");
+  GZ_PROFILE("Sensors::Update");
   std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
@@ -582,7 +582,7 @@ void Sensors::Update(const UpdateInfo &_info,
 void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Sensors::PostUpdate");
+  GZ_PROFILE("Sensors::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -908,13 +908,13 @@ bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
   return true;
 }
 
-IGNITION_ADD_PLUGIN(Sensors, System,
+GZ_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
   Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
+GZ_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
+GZ_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")

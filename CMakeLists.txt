@@ -14,7 +14,7 @@ find_package(ignition-cmake3 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(
+gz_configure_project(
   REPLACE_IGNITION_INCLUDE_PATH gz/sim
   VERSION_SUFFIX pre1)
 set (CMAKE_CXX_STANDARD 17)
@@ -26,9 +26,9 @@ set (CMAKE_CXX_STANDARD 17)
 option(ENABLE_PROFILER "Enable Gazebo Profiler" FALSE)
 
 if(ENABLE_PROFILER)
-  add_definitions("-DIGN_PROFILER_ENABLE=1")
+  add_definitions("-DGZ_PROFILER_ENABLE=1")
 else()
-  add_definitions("-DIGN_PROFILER_ENABLE=0")
+  add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -61,28 +61,28 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat13 REQUIRED)
+gz_find_package(sdformat13 REQUIRED)
 set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-plugin
-ign_find_package(ignition-plugin2 REQUIRED COMPONENTS loader register)
+gz_find_package(ignition-plugin2 REQUIRED COMPONENTS loader register)
 set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport12 REQUIRED COMPONENTS log)
+gz_find_package(ignition-transport12 REQUIRED COMPONENTS log)
 set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs9 REQUIRED)
+gz_find_package(ignition-msgs9 REQUIRED)
 set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common5
+gz_find_package(ignition-common5
   COMPONENTS
     profiler
     events
@@ -93,14 +93,14 @@ set(IGN_COMMON_VER ${ignition-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools8 REQUIRED)
+gz_find_package(ignition-fuel_tools8 REQUIRED)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui7 REQUIRED)
+gz_find_package(ignition-gui7 REQUIRED)
 set(IGN_GUI_VER ${ignition-gui7_VERSION_MAJOR})
-ign_find_package (Qt5
+gz_find_package (Qt5
   COMPONENTS
     Core
     Quick
@@ -110,7 +110,7 @@ ign_find_package (Qt5
 
 #--------------------------------------
 # Find ignition-physics
-ign_find_package(ignition-physics6
+gz_find_package(ignition-physics6
   COMPONENTS
     heightmap
     mesh
@@ -121,7 +121,7 @@ set(IGN_PHYSICS_VER ${ignition-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors7 REQUIRED
+gz_find_package(ignition-sensors7 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -150,29 +150,29 @@ set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering7 REQUIRED)
+gz_find_package(ignition-rendering7 REQUIRED)
 set(IGN_RENDERING_VER ${ignition-rendering7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-math
-ign_find_package(ignition-math7 REQUIRED COMPONENTS eigen3)
+gz_find_package(ignition-math7 REQUIRED COMPONENTS eigen3)
 set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-tools
-ign_find_package(ignition-tools2
+gz_find_package(ignition-tools2
                  REQUIRED
                  PKGCONFIG "ignition-tools2")
 
 #--------------------------------------
 # Find ignition-utils
-ign_find_package(ignition-utils2 REQUIRED COMPONENTS cli)
+gz_find_package(ignition-utils2 REQUIRED COMPONENTS cli)
 set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
 set(REQ_PROTOBUF_VER 3)
-ign_find_package(IgnProtobuf
+gz_find_package(IgnProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
@@ -211,14 +211,14 @@ set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+gz_configure_build(QUIT_IF_BUILD_ERRORS)
 
 add_subdirectory(examples)
 
 #============================================================================
 # Create package information
 #============================================================================
-ign_create_packages()
+gz_create_packages()
 
 if (${pybind11_FOUND})
 	add_subdirectory(python)
@@ -235,7 +235,7 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_D
 # there is an unreleased fix; revert this when 1.9.1 is released
 # https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
-  ign_create_docs(
+  gz_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"

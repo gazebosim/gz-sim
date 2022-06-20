@@ -88,7 +88,7 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
 // The test checks the normal forces on the corners of the box-shaped sensor
 // Fails to load Ogre plugin on macOS
 TEST_F(OpticalTactilePluginTest,
-    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ForcesOnPlane))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ForcesOnPlane))
 {
   // World with moving entities
   const auto sdfPath = common::joinPaths(
