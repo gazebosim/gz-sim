@@ -185,7 +185,8 @@ TEST_F(TouchPluginTest, StartDisabled)
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, RemovalOfParentModel)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 

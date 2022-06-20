@@ -210,7 +210,8 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, PublishCmd)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/diff_drive.sdf",
@@ -218,7 +219,8 @@ TEST_P(DiffDriveTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, PublishCmdCustomTopics)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmdCustomTopics))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +

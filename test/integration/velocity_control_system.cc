@@ -230,7 +230,8 @@ class VelocityControlTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(VelocityControlTest, PublishCmd)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
