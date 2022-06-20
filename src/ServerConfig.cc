@@ -538,9 +538,10 @@ void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
   // Deprecated: accept ignition-prefixed engines
   auto engine = _engine;
-  if (engine.find("ignition") != std::string::npos)
+  auto pos = engine.find("ignition");
+  if (pos != std::string::npos)
   {
-    engine.replace(0, 8, "gz");
+    engine.replace(pos, pos + 8, "gz");
     gzwarn << "Trying to load deprecated engine [" << _engine
            << "] for the server. Use [" << engine << "] instead." << std::endl;
   }
@@ -570,9 +571,10 @@ void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
   // Deprecated: accept ignition-prefixed engines
   auto engine = _engine;
-  if (engine.find("ignition") != std::string::npos)
+  auto pos = engine.find("ignition");
+  if (pos != std::string::npos)
   {
-    engine.replace(0, 8, "gz");
+    engine.replace(pos, pos + 8, "gz");
     gzwarn << "Trying to load deprecated engine [" << _engine
            << "] for the GUI. Use [" << engine << "] instead." << std::endl;
   }

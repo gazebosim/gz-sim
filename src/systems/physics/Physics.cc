@@ -753,10 +753,11 @@ void Physics::Configure(const Entity &_entity,
   }
 
   // Deprecated: accept ignition-prefixed engines
-  if (pluginLib.find("ignition") != std::string::npos)
+  auto pos = pluginLib.find("ignition");
+  if (pos != std::string::npos)
   {
     auto msg = "Trying to load deprecated plugin [" + pluginLib + "]. Use [";
-    pluginLib.replace(0, 8, "gz");
+    pluginLib.replace(pos, pos + 8, "gz");
     gzwarn << msg << pluginLib << "] instead." << std::endl;
   }
 
