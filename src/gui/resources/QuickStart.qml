@@ -36,8 +36,8 @@ Rectangle {
 
   function loadFuelWorld(fileName, uploader){
     // Construct fuel URL
-    var fuel_url = "https://fuel.ignitionrobotics.org/1.0/"
-    fuel_url += uploader + "/worlds/" + fileName
+    var fuel_url = "https://app.gazebosim.org/"
+    fuel_url += uploader + "/fuel/worlds/" + fileName
     QuickStartHandler.SetStartingWorld(fuel_url)
     quickStart.Window.window.close()
   }
