@@ -679,7 +679,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     }
   }
   this->dataPtr->ecm->CreateComponent(
-      jointEntity, components::ParentName(resolvedParentLinkName));
+      jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
   if (_resolved)
@@ -705,7 +705,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   }
 
   this->dataPtr->ecm->CreateComponent(
-      jointEntity, components::ChildName(resolvedChildLinkName));
+      jointEntity, components::ChildLinkName(resolvedChildLinkName));
 
   return jointEntity;
 }

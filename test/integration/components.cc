@@ -337,9 +337,9 @@ TEST_F(ComponentsTest, CanonicalLink)
 TEST_F(ComponentsTest, ChildLinkName)
 {
   // Create components
-  auto comp11 = components::ChildName("comp1");
-  auto comp12 = components::ChildName("comp1");
-  auto comp2 = components::ChildName("comp2");
+  auto comp11 = components::ChildLinkName("comp1");
+  auto comp12 = components::ChildLinkName("comp1");
+  auto comp2 = components::ChildLinkName("comp2");
 
   // Equality operators
   EXPECT_EQ(comp11, comp12);
@@ -1349,9 +1349,9 @@ TEST_F(ComponentsTest, ParentEntity)
 TEST_F(ComponentsTest, ParentLinkName)
 {
   // Create components
-  auto comp11 = components::ParentName("comp1");
-  auto comp12 = components::ParentName("comp1");
-  auto comp2 = components::ParentName("comp2");
+  auto comp11 = components::ParentLinkName("comp1");
+  auto comp12 = components::ParentLinkName("comp1");
+  auto comp2 = components::ParentLinkName("comp2");
 
   // Equality operators
   EXPECT_EQ(comp11, comp12);
