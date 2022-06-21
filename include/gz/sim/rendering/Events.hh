@@ -77,6 +77,18 @@ namespace gz
       using PostRender = gz::common::EventT<void(void),
           struct PostRenderTag>;
 
+      /// \brief The render teardown event is emitted right before the
+      /// rendering thread is torn down. The event is emitted in the
+      /// rendering thread so last minute, cleanup rendering calls can
+      /// be made in this event callback.
+      ///
+      /// For example:
+      /// \code
+      /// eventManager.Emit<gz::sim::events::RenderTeardown>();
+      /// \endcode
+      using RenderTeardown = gz::common::EventT<void(void),
+          struct RenderTeardownTag>;
+
       /// \brief The force render event may be emitted outside the
       /// rendering thread to force rendering calls ie. to ensure
       /// rendering occurs even if it wasn't seemingly necessary.
