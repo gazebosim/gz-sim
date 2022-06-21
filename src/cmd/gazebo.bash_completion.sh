@@ -24,7 +24,6 @@ GZ_SIM_COMPLETION_LIST="
   -g
   --iterations
   --levels
-  --headless-rendering
   --network-role
   --network-secondaries
   --record
@@ -34,6 +33,7 @@ GZ_SIM_COMPLETION_LIST="
   --log-overwrite
   --log-compress
   --playback
+  --headless-rendering
   -r
   -s
   -v --verbose
