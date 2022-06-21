@@ -1901,7 +1901,62 @@
 
 ## Ignition Gazebo 3.x
 
-### Ignition Gazebo 3.X.X (20XX-XX-XX)
+### Ignition Gazebo 3.13.0 (2022-06-01)
+
+1. Extruded 2D polyline geometries
+    * [Pull request #1456](https://github.com/gazebosim/gz-sim/pull/1456)
+
+1. Add elevator system
+    * [Pull request #535](https://github.com/gazebosim/gz-sim/pull/535)
+
+1. Add desktop entry and svg logo
+    * [Pull request #1411](https://github.com/gazebosim/gz-sim/pull/1411)
+    * [Pull request #1430](https://github.com/gazebosim/gz-sim/pull/1430)
+
+1. Delete unused `gazebo.hh.in`
+    * [Pull request #1490](https://github.com/gazebosim/gz-sim/pull/1490)
+
+1. Add repo specific issue templates
+    * [Pull request #1461](https://github.com/gazebosim/gz-sim/pull/1461)
+
+1. Added user command to set multiple entities' poses
+    * [Pull request #1394](https://github.com/gazebosim/gz-sim/pull/1394)
+
+1. Component inspector: refactor Pose3d C++ code into a separate class
+    * [Pull request #1400](https://github.com/gazebosim/gz-sim/pull/1400)
+
+1. Added more sensor properties to `scene/info` topic
+    * [Pull request #1344](https://github.com/gazebosim/gz-sim/pull/1344)
+
+1. `JointStatePublisher` publish parent, child and axis data
+    * [Pull request #1345](https://github.com/gazebosim/gz-sim/pull/1345)
+
+1. Removed unused variables in shapes plugin
+    * [Pull request #1321](https://github.com/gazebosim/gz-sim/pull/1321)
+
+1. Log an error if `JointPositionController` cannot find the joint. (citadel retarget)
+    * [Pull request #1314](https://github.com/gazebosim/gz-sim/pull/1314)
+
+1. `Buoyancy`: fix center of volume's reference frame
+    * [Pull request #1302](https://github.com/gazebosim/gz-sim/pull/1302)
+
+1. Remove `EachNew` calls from sensor PreUpdates
+    * [Pull request #1281](https://github.com/gazebosim/gz-sim/pull/1281)
+
+1. Prevent `GzScene3D` 💥 if another scene is already loaded
+    * [Pull request #1294](https://github.com/gazebosim/gz-sim/pull/1294)
+
+1. Add `project()` call to examples
+    * [Pull request #1274](https://github.com/gazebosim/gz-sim/pull/1274)
+
+1. Implement `/server_control::stop`
+    * [Pull request #1240](https://github.com/gazebosim/gz-sim/pull/1240)
+
+1. 👩‍🌾 Make depth camera tests more robust
+    * [Pull request1257](https://github.com/gazebosim/gz-sim/pull/1257)
+
+1. Make tests run as fast as possible
+    * [Pull request #1194](https://github.com/gazebosim/gz-sim/pull/1194)
 
 ### Ignition Gazebo 3.12.0 (2021-11-11)
 

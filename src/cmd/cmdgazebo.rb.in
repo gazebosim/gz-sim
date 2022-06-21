@@ -160,7 +160,9 @@ COMMANDS = { 'gazebo' =>
   " locate system plugins.                                               \n\n"\
   "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
-  " plugins.                                                               \n"\
+  " plugins.                                                             \n\n"\
+  "  GZ_GUI_RESOURCE_PATH    Colon separated paths used to locate GUI      \n"\
+  " resources such as configuration files.                               \n\n"
 }
 
 #
