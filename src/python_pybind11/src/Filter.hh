@@ -66,7 +66,7 @@ public:
         PYBIND11_OVERLOAD_PURE(
             const T&,     // Return type (ret_type)
             Filter<T>,    // Parent class (cname)
-            Value         // Name of function in C++ (must match Python name)
+            Value,         // Name of function in C++ (must match Python name)
         );
     }
 };

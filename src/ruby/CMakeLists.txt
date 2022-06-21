@@ -53,7 +53,7 @@ if (RUBY_FOUND)
   # Suppress warnings on SWIG-generated files
   target_compile_options(${SWIG_RB_LIB} PRIVATE
     $<$<CXX_COMPILER_ID:GNU>:-Wno-pedantic -Wno-shadow -Wno-maybe-uninitialized -Wno-unused-parameter>
-    $<$<CXX_COMPILER_ID:Clang>:-Wno-shadow -Wno-maybe-uninitialized -Wno-unused-parameter>
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-shadow -Wno-unused-parameter -Wno-deprecated-declarations>
     $<$<CXX_COMPILER_ID:AppleClang>:-Wno-shadow -Wno-maybe-uninitialized -Wno-unused-parameter>
   )
   target_include_directories(${SWIG_RB_LIB} SYSTEM PUBLIC ${RUBY_INCLUDE_DIRS})
@@ -86,7 +86,7 @@ if (RUBY_FOUND)
   foreach (test ${ruby_tests})
     add_test(NAME ${test}.rb COMMAND
       ruby -I${FAKE_INSTALL_PREFIX}/lib/ruby/ignition ${CMAKE_SOURCE_DIR}/src/ruby/${test}.rb
-   	  --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
+         --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${test}rb.xml)
     set_tests_properties(${test}.rb PROPERTIES
       ENVIRONMENT "${_env_vars}")
   endforeach()

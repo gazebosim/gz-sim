@@ -27,6 +27,7 @@
 TEST(Deprecated, IgnitionNamespace)
 {
   ignition::math::Angle angle;
+  (void) angle;
 }
 
 #undef SUPPRESS_IGNITION_HEADER_DEPRECATION
