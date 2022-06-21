@@ -658,7 +658,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedParentLinkName;
   if (_resolved)
   {
-    resolvedParentLinkName = _joint->ParentLinkName();
+    resolvedParentLinkName = _joint->ParentName();
   }
   else
   {
@@ -668,7 +668,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     if (!resolveParentErrors.empty())
     {
       gzerr << "Failed to resolve parent link for joint '" << _joint->Name()
-             << "' with parent name '" << _joint->ParentLinkName() << "'"
+             << "' with parent name '" << _joint->ParentName() << "'"
              << std::endl;
       for (const auto &error : resolveParentErrors)
       {
@@ -684,7 +684,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedChildLinkName;
   if (_resolved)
   {
-    resolvedChildLinkName = _joint->ChildLinkName();
+    resolvedChildLinkName = _joint->ChildName();
   }
   else
   {
@@ -693,7 +693,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     if (!resolveChildErrors.empty())
     {
       gzerr << "Failed to resolve child link for joint '" << _joint->Name()
-             << "' with child name '" << _joint->ChildLinkName() << "'"
+             << "' with child name '" << _joint->ChildName() << "'"
              << std::endl;
       for (const auto &error : resolveChildErrors)
       {

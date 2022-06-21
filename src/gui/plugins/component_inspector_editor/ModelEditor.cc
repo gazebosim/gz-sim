@@ -506,8 +506,8 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
     return std::nullopt;
   }
 
-  joint.SetParentLinkName(_eta.data.at("parent_link"));
-  joint.SetChildLinkName(_eta.data.at("child_link"));
+  joint.SetParentName(_eta.data.at("parent_link"));
+  joint.SetChildName(_eta.data.at("child_link"));
 
   std::string jointName = "joint";
   Entity jointEnt = _ecm.EntityByComponents(

@@ -1426,12 +1426,12 @@ void RenderUtil::Update()
         if (!this->dataPtr->sceneManager.HasEntity(jointEntity))
         {
           std::string childLinkName =
-              this->dataPtr->entityJoints[jointEntity].ChildLinkName();
+              this->dataPtr->entityJoints[jointEntity].ChildName();
           Entity childId =
               this->dataPtr->matchLinksWithEntities[model][childLinkName];
 
           std::string parentLinkName =
-              this->dataPtr->entityJoints[jointEntity].ParentLinkName();
+              this->dataPtr->entityJoints[jointEntity].ParentName();
           Entity parentId =
               this->dataPtr->matchLinksWithEntities[model][parentLinkName];
 
@@ -1789,8 +1789,8 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         joint.SetType(_jointType->Data());
         joint.SetRawPose(_pose->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2055,8 +2055,8 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
         joint.SetType(_jointType->Data());
         joint.SetRawPose(_pose->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);

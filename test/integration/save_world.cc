@@ -887,8 +887,8 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   auto *joint = model->JointByName("joint");
   ASSERT_NE(nullptr, joint);
 
-  EXPECT_EQ("link1", joint->ParentLinkName());
-  EXPECT_EQ("link2", joint->ChildLinkName());
+  EXPECT_EQ("link1", joint->ParentName());
+  EXPECT_EQ("link2", joint->ChildName());
   EXPECT_EQ(sdf::JointType::REVOLUTE2, joint->Type());
 
   // Get the first axis
