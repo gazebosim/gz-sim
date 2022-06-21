@@ -168,7 +168,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
-TEST(CmdLine, GazeboHelpVsCompletionFlags)
+TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
 {
   // Flags in help message
   std::string helpOutput = customExecStr(kIgnCommand + " gazebo --help");
@@ -199,7 +199,7 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
-TEST(CmdLine, ModelHelpVsCompletionFlags)
+TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
 {
   // Flags in help message
   std::string helpOutput = customExecStr(kIgnModelCommand + " --help");
