@@ -78,9 +78,9 @@ namespace gz
           struct PostRenderTag>;
 
       /// \brief The render teardown event is emitted right before the
-      /// rendering thread is torn down. The veven is emitted in the
+      /// rendering thread is torn down. The event is emitted in the
       /// rendering thread so last minute, cleanup rendering calls can
-      /// be made in this event callback
+      /// be made in this event callback.
       ///
       /// For example:
       /// \code
