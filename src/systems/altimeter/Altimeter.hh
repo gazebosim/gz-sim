@@ -34,7 +34,7 @@ namespace systems
 
   /// \class Altimeter Altimeter.hh gz/sim/systems/Altimeter.hh
   /// \brief An altimeter sensor that reports vertical position and velocity
-  /// readings over ign transport
+  /// readings over gz transport
   class Altimeter:
     public System,
     public ISystemPreUpdate,

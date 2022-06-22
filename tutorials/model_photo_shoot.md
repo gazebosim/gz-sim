@@ -8,7 +8,7 @@ in Gazebo, located at `examples/worlds/model_photo_shoot.sdf`, by
 running the following command:
 
 ```
-ign gazebo  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
+gz sim  -s -r -v 4 --iterations 50 model_photo_shoot.sdf
 ```
 
 This will start Gazebo server, load the model and the plugin, take the

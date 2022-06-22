@@ -5,7 +5,7 @@
   Trigger the camera by publishing a boolean message to the /camera/trigger
   topic.
 
-    ign topic -t /camera/trigger -m Boolean -p "data: true" -n 1
+    gz topic -t /camera/trigger -m Boolean -p "data: true" -n 1
 
 -->
 <sdf version="1.6">

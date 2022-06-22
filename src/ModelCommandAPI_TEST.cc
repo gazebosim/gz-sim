@@ -26,7 +26,7 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/ign model ");
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/gz model ");
 
 
 /////////////////////////////////////////////////
@@ -72,7 +72,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// Test `ign model` command when no Gazebo server is running.
+// Test `gz model` command when no Gazebo server is running.
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
@@ -86,7 +86,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model` command.
+// Tests `gz model` command.
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   gz::sim::ServerConfig serverConfig;
@@ -101,7 +101,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model --list
+  // Tested command: gz model --list
   {
     const std::string cmd = kIgnModelCommand + "--list";
     const std::string output = customExecStr(cmd);
@@ -113,7 +113,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue
+  // Tested command: gz model -m vehicle_blue
   {
     const std::string cmd = kIgnModelCommand + "-m vehicle_blue";
     std::string output = customExecStr(cmd);
@@ -215,7 +215,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --pose
+  // Tested command: gz model -m vehicle_blue --pose
   {
     const std::string cmd = kIgnModelCommand + "-m vehicle_blue --pose ";
     std::string output = customExecStr(cmd);
@@ -230,7 +230,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --link
+  // Tested command: gz model -m vehicle_blue --link
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --link";
@@ -297,7 +297,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --link caster
+  // Tested command: gz model -m vehicle_blue --link caster
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --link caster";
@@ -322,7 +322,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --joint
+  // Tested command: gz model -m vehicle_blue --joint
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --joint";
@@ -364,7 +364,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --joint caster_wheel
+  // Tested command: gz model -m vehicle_blue --joint caster_wheel
   {
     const std::string cmd = kIgnModelCommand +
                             "-m vehicle_blue --joint caster_wheel";
@@ -386,7 +386,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with an airpressure sensor.
+// Tests `gz model -s` command with an airpressure sensor.
 TEST(ModelCommandAPI, AirPressureSensor)
 {
   gz::sim::ServerConfig serverConfig;
@@ -401,7 +401,7 @@ TEST(ModelCommandAPI, AirPressureSensor)
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
     const std::string cmd = kIgnModelCommand
       + "-m air_pressure_model -l link -s air_pressure_sensor";
@@ -429,7 +429,7 @@ TEST(ModelCommandAPI, AirPressureSensor)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with an altimeter.
+// Tests `gz model -s` command with an altimeter.
 TEST(ModelCommandAPI, AltimeterSensor)
 {
   gz::sim::ServerConfig serverConfig;
@@ -444,7 +444,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
     const std::string cmd = kIgnModelCommand
       + "-m altimeter_model -l link -s altimeter_sensor";
@@ -479,7 +479,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with a gpu lidar sensor.
+// Tests `gz model -s` command with a gpu lidar sensor.
 TEST(ModelCommandAPI, GpuLidarSensor)
 {
   gz::sim::ServerConfig serverConfig;
@@ -494,7 +494,7 @@ TEST(ModelCommandAPI, GpuLidarSensor)
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
     const std::string cmd = kIgnModelCommand
       + "-m gpu_lidar -l gpu_lidar_link -s gpu_lidar";
@@ -535,7 +535,7 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with a magnetometer.
+// Tests `gz model -s` command with a magnetometer.
 TEST(ModelCommandAPI, MagnetometerSensor)
 {
   gz::sim::ServerConfig serverConfig;
@@ -550,7 +550,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
     const std::string cmd = kIgnModelCommand
       + "-m magnetometer_model -l link -s magnetometer_sensor";
@@ -594,7 +594,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with an rgbd camera.
+// Tests `gz model -s` command with an rgbd camera.
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   gz::sim::ServerConfig serverConfig;
@@ -609,7 +609,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
     const std::string cmd = kIgnModelCommand
       + "-m rgbd_camera -l rgbd_camera_link -s rgbd_camera";

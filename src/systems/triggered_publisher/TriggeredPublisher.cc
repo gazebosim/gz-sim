@@ -123,7 +123,7 @@ class FullMatcher : public InputMatcher
   /// return false.
   /// \param[in] _matchString String used to construct the protobuf message
   /// against which input messages are matched. This is the human-readable
-  /// representation of a protobuf message as used by `ign topic` for publishing
+  /// representation of a protobuf message as used by `gz topic` for publishing
   /// messages
   public: FullMatcher(const std::string &_msgType, bool _logicType,
                       const std::string &_matchString);

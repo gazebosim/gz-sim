@@ -1,8 +1,10 @@
 --- # Subcommands available inside Gazebo Sim
 format: 1.0.0
-library_name: ignition-gazebo-ign
+library_name: gz-sim-ign
 library_version: @PROJECT_VERSION_FULL@
 library_path: @gz_library_path@
 commands:
-    - gazebo : Run and manage Gazebo.
+    - sim : Run and manage the Gazebo Simulator.
+    # TODO(CH3): Deprecated. Remove on tock.
+    - gazebo : Deprecated. Alias for sim.
 ---

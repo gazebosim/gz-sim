@@ -82,7 +82,7 @@ Implement the system class as usual, for example:
 In your `CMakeLists.txt` add the following
 
 ```
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
+gz_find_package(ignition-plugin1 REQUIRED COMPONENTS register)
 set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 # Add sources for each plugin to be registered.

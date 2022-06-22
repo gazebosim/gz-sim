@@ -31,7 +31,7 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then load the example world:
 
-    ign gazebo -v 3 hello_world_plugin.sdf
+    gz sim -v 3 hello_world_plugin.sdf
 
 You should see green messages on the terminal like:
 

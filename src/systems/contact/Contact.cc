@@ -62,7 +62,7 @@ class ContactSensor
   public: void AddContacts(const std::chrono::steady_clock::duration &_stamp,
                            const msgs::Contacts &_contacts);
 
-  /// \brief Publish sensor data over ign transport
+  /// \brief Publish sensor data over gz transport
   public: void Publish();
 
   /// \brief Topic to publish data to

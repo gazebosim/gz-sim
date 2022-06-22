@@ -10,7 +10,7 @@ box) where the entities are located at the start of the log.
 
 Run the `log_record_shapes.sdf` world to generate a state log of the simulation:
 
-    ign gazebo log_record_shapes.sdf
+    gz sim log_record_shapes.sdf
 
 Press Play and let the simulation run for 10 seconds of sim time. Stop and exit.
 You should now see a `state.tlog` generated in `/tmp/log` directory. Now, let's

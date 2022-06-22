@@ -16,12 +16,12 @@
 
   1. Move the rudder:
 
-      ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+      gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
          -m gz.msgs.Double -p 'data: -0.17'
 
   2. Propel the vehicle:
 
-      ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
+      gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust
       -m gz.msgs.Double -p 'data: -31'
 
 -->

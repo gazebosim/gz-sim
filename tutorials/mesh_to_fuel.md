@@ -179,7 +179,7 @@ The syntax for including any model from Fuel is:
 To launch the world and see your mesh, run Gazebo from inside the directory where you saved `import_mesh.sdf`:
 
 ```bash
-ign gazebo import_mesh.sdf
+gz sim import_mesh.sdf
 ```
 
 ![Launch sample world with mesh](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mesh_to_fuel/launch_world2.png)

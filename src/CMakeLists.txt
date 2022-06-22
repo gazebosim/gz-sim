@@ -39,7 +39,7 @@ set(gui_sources
 
 gz_add_component(gz
   SOURCES
-    ign.cc
+    gz.cc
     cmd/ModelCommandAPI.cc
   GET_TARGET_NAME gz_lib_target)
 target_link_libraries(${gz_lib_target}
@@ -101,7 +101,7 @@ set (gtest_sources
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
-  ign_TEST.cc
+  gz_TEST.cc
   comms/Broker_TEST.cc
   comms/MsgManager_TEST.cc
   network/NetworkConfig_TEST.cc
@@ -184,14 +184,14 @@ gz_build_tests(TYPE UNIT
 
 # Command line tests need extra settings
 foreach(CMD_TEST
-  UNIT_ign_TEST
+  UNIT_gz_TEST
   UNIT_ModelCommandAPI_TEST)
 
   if(NOT TARGET ${CMD_TEST})
     continue()
   endif()
 
-  # Running `ign gazebo` on macOS has problems when run with /usr/bin/ruby
+  # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
   # due to System Integrity Protection (SIP). Try to find ruby from
   # homebrew as a workaround.
   if (APPLE)

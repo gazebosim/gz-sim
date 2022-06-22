@@ -10,7 +10,7 @@
     make
 
   Try launching a comms subscriber:
-    ign topic -e -t addr2/rx
+    gz topic -e -t addr2/rx
 
   Try launching a comms publisher:
     ./publisher addr2

@@ -1,7 +1,7 @@
 \page model_command Model Command
 
 ## Overview
-`ign model` command allows you to get information about the models for a given running Gazebo simulation.
+`gz model` command allows you to get information about the models for a given running Gazebo simulation.
 
 For each model, it is possible to get information about its
  -  Pose: Pose of the model
@@ -12,12 +12,12 @@ For each model, it is possible to get information about its
 
 To try out this command we need first a running simulation. Let's load the `diff_drive` example world. In a terminal, run:
 
-    ign gazebo diff_drive.sdf
+    gz sim diff_drive.sdf
 
-Once Gazebo is up, we can use the ign model command to get information of the simulation.
+Once Gazebo is up, we can use the gz model command to get information of the simulation.
 Open a new terminal and enter:
 
-    ign model --list
+    gz model --list
 
 And available models should be printed:
 
@@ -29,9 +29,9 @@ And available models should be printed:
 
 Once you get the name of the model you want to see, you may run the following commands to get its properties.
 
-`ign model -m <model_name>` to get the **complete information of the model**. e.g.
+`gz model -m <model_name>` to get the **complete information of the model**. e.g.
 
-    ign model -m vehicle_blue
+    gz model -m vehicle_blue
 
 ```
 			Requesting state for world [diff_drive]...
@@ -129,9 +129,9 @@ Once you get the name of the model you want to see, you may run the following co
 ```
 
 
-`ign model -m <model_name> --pose` to get the **pose** information. e.g.
+`gz model -m <model_name> --pose` to get the **pose** information. e.g.
 
-    ign model -m vehicle_blue --pose
+    gz model -m vehicle_blue --pose
 
 
 ```
@@ -147,12 +147,12 @@ Once you get the name of the model you want to see, you may run the following co
 
 To get the information of **all the model links** enter
 
-    ign model -m <model_name> --link
+    gz model -m <model_name> --link
 
 
 Or you can get the information of a **single link** by adding the name as argument. e.g.
 
-    ign model -m vehicle_blue --link caster
+    gz model -m vehicle_blue --link caster
 
 ```
       Requesting state for world [diff_drive]...
@@ -175,11 +175,11 @@ Or you can get the information of a **single link** by adding the name as argume
 
 To get the information of **all the model joints** enter
 
-    ign model -m <model_name> --joint
+    gz model -m <model_name> --joint
 
 Or you can get the information of a **single joint** by adding the name as argument. e.g.
 
-    ign model -m vehicle_blue --joint caster_wheel
+    gz model -m vehicle_blue --joint caster_wheel
 
 ```
       Requesting state for world [diff_drive]...

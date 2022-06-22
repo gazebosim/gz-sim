@@ -85,13 +85,13 @@ See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.htm
 Gazebo Sim can be run from the command line, once [installed](#install), using:
 
 ```
-ign gazebo
+gz sim
 ```
 
 For help, and command line options use:
 
 ```
-ign gazebo -h
+gz sim -h
 ```
 
 ## Known issue of command line tools
@@ -103,7 +103,7 @@ A workaround for a single package is to define the environment variable
 `GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
-export GZ_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/gz
 ```
 
 However, that environment variable only takes a single path, which means if the
@@ -114,9 +114,9 @@ line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.gz/tools/configs -p
 cd ~/.gz/tools/configs/
-ln -s /usr/local/share/ignition/fuel8.yaml .
-ln -s /usr/local/share/ignition/transport12.yaml .
-ln -s /usr/local/share/ignition/transportlog12.yaml .
+ln -s /usr/local/share/gz/fuel8.yaml .
+ln -s /usr/local/share/gz/transport12.yaml .
+ln -s /usr/local/share/gz/transportlog12.yaml .
 ...
 export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
 ```

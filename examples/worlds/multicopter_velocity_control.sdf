@@ -6,28 +6,28 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
   Send commands to the quadcopter to go straight up:
 
-    ign topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
+    gz topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
 
   To hover
 
-    ign topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p " "
+    gz topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p " "
 
   Listen to odometry:
 
-    ign topic -e -t "/model/x3/odometry"
+    gz topic -e -t "/model/x3/odometry"
 
 
   Send commands to the hexacopter to go straight up:
 
-    ign topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
+    gz topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
 
   To hover
 
-    ign topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p " "
+    gz topic -t "/X4/gazebo/command/twist" -m gz.msgs.Twist -p " "
 
   Listen to odometry:
 
-    ign topic -e -t "/model/X4/odometry"
+    gz topic -e -t "/model/X4/odometry"
 
 -->
 

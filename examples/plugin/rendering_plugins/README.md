@@ -30,7 +30,7 @@ Run the example world
 
 ~~~
 cd examples/plugin/rendering_plugins
-ign gazebo -v 4 -r rendering_plugins.sdf
+gz sim -v 4 -r rendering_plugins.sdf
 ~~~
 
 The ambient light on the server scene, visible from the camera sensor, will change every 2 seconds.

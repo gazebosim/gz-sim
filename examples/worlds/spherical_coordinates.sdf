@@ -10,7 +10,7 @@
 
   Try changing the world origin coordinates with:
 
-ign service \
+gz service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
@@ -19,7 +19,7 @@ ign service \
 
   Spawn a model in spherical coordinates:
 
-ign service -s /world/spherical_coordinates/create \
+gz service -s /world/spherical_coordinates/create \
 --reqtype gz.msgs.EntityFactory \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -41,7 +41,7 @@ ign service -s /world/spherical_coordinates/create \
 
   Move a model in spherical coordinates:
 
-ign service -s /world/spherical_coordinates/set_spherical_coordinates \
+gz service -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
 --timeout 300 \

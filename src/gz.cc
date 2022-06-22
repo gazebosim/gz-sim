@@ -15,7 +15,7 @@
  *
 */
 
-#include "ign.hh"
+#include "gz.hh"
 
 #include <cstring>
 #include <string>
