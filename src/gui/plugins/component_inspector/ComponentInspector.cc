@@ -1268,6 +1268,35 @@ transport::Node &ComponentInspector::TransportNode()
   return this->dataPtr->node;
 }
 
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddSystem(const QString &_name,
+    const QString &_filename, const QString &_innerxml)
+{
+  msgs::EntityPlugin_V req;
+  auto ent = req.mutable_entity();
+  ent->set_id(this->dataPtr->entity);
+  auto plugin = req.add_plugins();
+  std::string name = _name.toStdString();
+  std::string filename = _filename.toStdString();
+  std::string innerxml = _innerxml.toStdString();
+  plugin->set_name(name);
+  plugin->set_filename(filename);
+  plugin->set_innerxml(innerxml);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/entity/system/add"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Error adding new system to model:\n"
+           << "Name: " << name << "\n"
+           << "Filename: " << filename << "\n"
+           << "Innerxml: " << innerxml << std::endl;
+  }
+}
+
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspector,
                     ignition::gui::Plugin)

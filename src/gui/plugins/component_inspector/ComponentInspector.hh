@@ -372,6 +372,13 @@ namespace gazebo
     /// \return Transport node
     public: transport::Node &TransportNode();
 
+    /// \brief Callback when a new system is to be added to an entity
+    /// \param[in] _name Name of system
+    /// \param[in] _filename Filename of system
+    /// \param[in] _innerxml Inner XML content of the system
+    public: Q_INVOKABLE void OnAddSystem(const QString &_name,
+        const QString &_filename, const QString &_innerxml);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<ComponentInspectorPrivate> dataPtr;

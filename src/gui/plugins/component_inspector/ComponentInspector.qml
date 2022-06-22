@@ -15,9 +15,9 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import IgnGazebo 1.0 as IgnGazebo
@@ -216,6 +216,26 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addSystemButton
+        checkable: false
+        text: "\u002B"
+        contentItem: Text {
+          text: addSystemButton.text
+          color: "#b5b5b5"
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+        }
+        visible: entityType == "model"
+        ToolTip.text: "Add a system to a model"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addSystemDialog.open()
+        }
+      }
+
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -226,6 +246,99 @@ Rectangle {
       }
     }
   }
+
+  Dialog {
+    id: addSystemDialog
+    modal: false
+    focus: true
+    title: "Add System"
+    closePolicy: Popup.CloseOnEscape
+
+    ColumnLayout {
+      GridLayout {
+        columns: 2
+        columnSpacing: 30
+        Text {
+          text: "Name"
+          Layout.row: 0
+          Layout.column: 0
+        }
+
+        TextField {
+          id: nameField
+          selectByMouse: true
+          Layout.row: 0
+          Layout.column: 1
+          Layout.minimumWidth: 250
+          onTextEdited: {
+            addSystemDialog.updateButtonState();
+          }
+        }
+
+        Text {
+          text: "Filename"
+          Layout.row: 1
+          Layout.column: 0
+        }
+
+        TextField {
+          id: filenameField
+          selectByMouse: true
+          Layout.row: 1
+          Layout.column: 1
+          Layout.minimumWidth: 250
+          onTextEdited: {
+            addSystemDialog.updateButtonState();
+          }
+        }
+      }
+
+      Text {
+        id: innerxmlLabel
+        text: "Innerxml"
+      }
+
+      Flickable {
+        id: innerxmlFlickable
+        Layout.minimumHeight: 300
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+
+        flickableDirection: Flickable.VerticalFlick
+        // contentY: 200
+        TextArea.flickable: TextArea {
+          id: innerxmlField
+          wrapMode: Text.WordWrap
+          selectByMouse: true
+          textFormat: TextEdit.PlainText
+          font.pointSize: 10
+        }
+        ScrollBar.vertical: ScrollBar {}
+      }
+    }
+
+    footer: DialogButtonBox {
+      id: buttons
+      standardButtons: Dialog.Ok | Dialog.Cancel
+    }
+
+    onOpened: {
+      buttons.standardButton(Dialog.Ok).enabled = false;
+    }
+
+    onAccepted: {
+      ComponentInspector.OnAddSystem(nameField.text.trim(),
+          filenameField.text.trim(), innerxmlField.text.trim())
+    }
+
+    function updateButtonState() {
+      buttons.standardButton(Dialog.Ok).enabled =
+          (nameField.text.trim() != '' &&
+          filenameField.text.trim() != '')
+    }
+  }
+
+
 
   ListView {
     anchors.top: header.bottom
