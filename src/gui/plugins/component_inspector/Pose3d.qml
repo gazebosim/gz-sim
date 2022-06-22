@@ -25,7 +25,7 @@ import "qrc:/qml"
 
 // Item displaying 3D pose information.
 Rectangle {
-  height: header.height + gzPose.height
+  height: header.height + gzPoseContent.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -39,13 +39,21 @@ Rectangle {
   function sendPose() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     Pose3dImpl.OnPose(
-      gzPose.xItem.value,
-      gzPose.yItem.value,
-      gzPose.zItem.value,
-      gzPose.rollItem.value,
-      gzPose.pitchItem.value,
-      gzPose.yawItem.value
+      gzPoseContent.xItem.value,
+      gzPoseContent.yItem.value,
+      gzPoseContent.zItem.value,
+      gzPoseContent.rollItem.value,
+      gzPoseContent.pitchItem.value,
+      gzPoseContent.yawItem.value
     );
+    console.log(
+      gzPoseContent.xItem.value,
+      gzPoseContent.yItem.value,
+      gzPoseContent.zItem.value,
+      gzPoseContent.rollItem.value,
+      gzPoseContent.pitchItem.value,
+      gzPoseContent.yawItem.value
+    )
   }
 
   Column {
@@ -69,7 +77,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: gzPose.show ?
+          source: gzPoseContent.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -84,9 +92,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          gzPose.show = !gzPose.show
-          // console.log(model.data[0], model.data[1], model.data[2], model.data[3], model.data[4], model.data[5])
-          // console.log(gzPose.xItem, gzPose.yItem, gzPose.zItem, gzPose.rollItem, gzPose.pitchItem, gzPose.yawItem)
+          gzPoseContent.show = !gzPoseContent.show
         }
         onEntered: {
           header.color = highlightColor
@@ -99,7 +105,7 @@ Rectangle {
 
     // Content
     GzPose {
-      id: gzPose
+      id: gzPoseContent
       width: parent.width
 
       readOnly: {
@@ -114,9 +120,13 @@ Rectangle {
       pitchModelValue: model.data[4]
       yawModelValue: model.data[5]
 
-      onPoseSet: {
+      onGzPoseSet: {
         sendPose()
       }
-    } // end gzPose
+
+      onShowChanged: {
+        console.log("bool var show changed")
+      }
+    } // end gzPoseContent
   } // end Column
 } // end Rectangle
