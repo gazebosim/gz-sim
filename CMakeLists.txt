@@ -80,7 +80,7 @@ set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.4
+ign_find_package(ignition-common4 VERSION 4.5.1
   COMPONENTS
     profiler
     events
@@ -161,6 +161,9 @@ set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 ign_find_package(ignition-tools
                  REQUIRED
                  PKGCONFIG "ignition-tools")
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find ignition-utils
