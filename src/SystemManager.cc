@@ -34,21 +34,19 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
 
 //////////////////////////////////////////////////
 void SystemManager::LoadPlugin(const Entity _entity,
-                               const std::string &_fname,
-                               const std::string &_name,
-                               const sdf::ElementPtr &_sdf)
+                               const sdf::Plugin &_plugin)
 {
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
+    system = this->systemLoader->LoadPlugin(_plugin);
   }
 
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
+    this->AddSystem(system.value(), _entity, _plugin.ToElement());
+    igndbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
