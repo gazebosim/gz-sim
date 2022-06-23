@@ -33,6 +33,7 @@ function(gz_add_gui_library library_name)
     # However, the warning is not important since those members do not need to
     # be interfaced with.
     set_source_files_properties(${${library_name}_headers_MOC} COMPILE_FLAGS "/wd4251")
+    set_source_files_properties(${gz_add_gui_library_SOURCES} COMPILE_FLAGS "/wd4251")
   endif()
 
   add_library(${library_name} SHARED

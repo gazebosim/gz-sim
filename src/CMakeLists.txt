@@ -37,17 +37,9 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-ign_add_component(ign
-  SOURCES
-    ign.cc
-    cmd/ModelCommandAPI.cc
-  GET_TARGET_NAME ign_lib_target)
-target_link_libraries(${ign_lib_target}
-  PRIVATE
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+set(cli_sources
+  ign.cc
+  cmd/ModelCommandAPI.cc
 )
 
 set (sources
@@ -132,8 +124,21 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
+
+# CLI
+ign_add_component(ign
+  SOURCES
+    ${cli_sources}
+  GET_TARGET_NAME ign_lib_target)
+target_link_libraries(${ign_lib_target}
+  PRIVATE
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+)
 
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
