@@ -233,10 +233,10 @@ TEST_F(LinkIntegrationTest, LinkPoses)
   EXPECT_EQ(std::nullopt, link.WorldInertialPose(ecm));
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
   math::Pose3d inertiaPose;
   // This is the pose of the inertia frame relative to its parent link frame
-  inertiaPose.Set(1.0, 2.0, 3.0, 0, IGN_PI_2, 0);
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
 
   math::Inertiald linkInertial;
   linkInertial.SetPose(inertiaPose);
@@ -279,7 +279,7 @@ TEST_F(LinkIntegrationTest, LinkVelocities)
 
   // With custom velocities
   math::Pose3d pose;
-  pose.Set(0, 0, 0, IGN_PI_2, 0, 0);
+  pose.Set(0, 0, 0, GZ_PI_2, 0, 0);
   math::Vector3d linVel{1.0, 0.0, 0.0};
   math::Vector3d angVel{0.0, 0.0, 2.0};
   ecm.SetComponentData<components::WorldPose>(eLink, pose);
@@ -372,11 +372,11 @@ TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
 
   math::MassMatrix3d linkMassMatrix(1.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
   math::Pose3d linkComPose;
-  linkComPose.Set(0.2, 0.1, 0.0, IGN_PI_4, 0, 0);
+  linkComPose.Set(0.2, 0.1, 0.0, GZ_PI_4, 0, 0);
   math::Inertiald linkInertial{linkMassMatrix, linkComPose};
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, IGN_PI_4, IGN_PI_2);
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, GZ_PI_4, GZ_PI_2);
 
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
@@ -407,11 +407,11 @@ TEST_F(LinkIntegrationTest, LinkKineticEnergy)
 
   math::MassMatrix3d linkMassMatrix(2.0, {2.0, 1.5, 1.0}, {0.0, 0.0, 0.0});
   math::Pose3d linkComPose;
-  linkComPose.Set(0.2, 0.0, 0.0, IGN_PI_2, 0, 0);
+  linkComPose.Set(0.2, 0.0, 0.0, GZ_PI_2, 0, 0);
   math::Inertiald linkInertial{linkMassMatrix, linkComPose};
 
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, 0.0, IGN_PI_2);
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, 0.0, GZ_PI_2);
 
   // initially zero velocity
   math::Vector3d linkWorldAngularVelocity;
@@ -552,9 +552,9 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
 
   // create WorldPose and Inertial component and try adding force again
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, IGN_PI_4);
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
   math::Pose3d inertiaPose;
-  inertiaPose.Set(1.0, 2.0, 3.0, 0, IGN_PI_2, 0);
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
   math::Inertiald linkInertial;
   linkInertial.SetPose(inertiaPose);
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));

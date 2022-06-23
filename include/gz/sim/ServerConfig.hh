@@ -463,7 +463,7 @@ namespace gz
     ///    variable.
     ///   * If GZ_SIM_SERVER_CONFIG_PATH is set but empty, no plugins
     ///     are loaded.
-    /// 2. File at ${IGN_HOMEDIR}/.gz/sim/server.config
+    /// 2. File at ${GZ_HOMEDIR}/.gz/sim/server.config
     /// 3. File at ${IGN_DATA_INSTALL_DIR}/server.config
     ///
     /// If any of the above files exist but are empty, resolution

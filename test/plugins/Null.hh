@@ -31,7 +31,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \class Null Null.hh ignition/gazebo/systems/Null.hh
+  /// \class Null Null.hh gz/sim/systems/Null.hh
   /// \brief Minimal system implementation
   class Null:
     public System,
@@ -69,5 +69,3 @@ namespace systems
 }
 }
 #endif
-
-

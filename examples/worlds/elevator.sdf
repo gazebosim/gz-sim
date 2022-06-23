@@ -4,11 +4,11 @@
 
   Try sending a command:
 
-    ign topic -t "/model/elevator/cmd" -m gz.msgs.Int32 -p "data: 2"
+    gz topic -t "/model/elevator/cmd" -m gz.msgs.Int32 -p "data: 2"
 
   Listen to state:
 
-    ign topic -e -t /model/elevator/state
+    gz topic -e -t /model/elevator/state
 
 -->
 <sdf version="1.6">

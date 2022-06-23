@@ -479,7 +479,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
                                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
+  GZ_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
   double period = std::chrono::duration<double>(_info.dt).count();
   double simTime = std::chrono::duration<double>(_info.simTime).count();
   double kMag = period / this->characteristicTimeForWindRise;
@@ -509,7 +509,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
       kMagVertical * windLinVelSeed->Data().Z();
 
   magnitude += this->magnitudeSinAmplitudePercent * this->magnitudeMean *
-               std::sin(2 * IGN_PI * simTime / this->magnitudeSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->magnitudeSinPeriod);
 
   if (this->noiseMagnitude)
   {
@@ -518,7 +518,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Compute horizontal direction
   double direction =
-      IGN_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
+      GZ_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
 
   if (!this->directionMean)
   {
@@ -533,15 +533,15 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   direction = this->directionMean.value();
 
   direction += this->orientationSinAmplitude *
-               std::sin(2 * IGN_PI * simTime / this->orientationSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->orientationSinPeriod);
 
   if (this->noiseDirection)
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
   gz::math::Vector3d windVel;
-  windVel.X(magnitude * std::cos(IGN_DTOR(direction)));
-  windVel.Y(magnitude * std::sin(IGN_DTOR(direction)));
+  windVel.X(magnitude * std::cos(GZ_DTOR(direction)));
+  windVel.Y(magnitude * std::sin(GZ_DTOR(direction)));
 
   if (this->noiseVertical)
   {
@@ -560,7 +560,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
                                         EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::ApplyWindForce");
+  GZ_PROFILE("WindEffectsPrivate::ApplyWindForce");
   auto windVel =
       _ecm.Component<components::WorldLinearVelocity>(this->windEntity);
   if (!windVel)
@@ -696,7 +696,7 @@ void WindEffects::Configure(const Entity &_entity,
 void WindEffects::PreUpdate(const UpdateInfo &_info,
                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffects::PreUpdate");
+  GZ_PROFILE("WindEffects::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -735,12 +735,12 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
 
 }
 
-IGNITION_ADD_PLUGIN(WindEffects, System,
+GZ_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemConfigure,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

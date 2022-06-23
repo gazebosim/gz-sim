@@ -6,15 +6,15 @@
 
   Try sending commands:
 
-    ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
+    gz topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
 
   Listen to joint states:
 
-    ign topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
+    gz topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
 
   Listen to battery state:
 
-    ign topic -et /model/lift_drag_demo_model/battery/linear_battery/state
+    gz topic -et /model/lift_drag_demo_model/battery/linear_battery/state
 -->
 <sdf version="1.6">
   <world name="lift_drag">

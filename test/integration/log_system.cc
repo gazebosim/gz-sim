@@ -63,7 +63,7 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 #ifndef __APPLE__
 static const std::string kIgnCommand(
   "GZ_SIM_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
-  kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} ign gazebo -s ");
+  kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} gz sim -s ");
 #endif
 
 /////////////////////////////////////////////////
@@ -264,7 +264,7 @@ class LogSystemTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 {
   // TODO(anyone) see LogSystemTest.LogControl comment about re-recording
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
@@ -315,7 +315,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPlaybackStatistics))
 
 /////////////////////////////////////////////////
 // Logging behavior when no paths are specified
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -327,13 +327,13 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Change environment variable so that test files aren't written to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, recording should take place in the `.gz` directory
+  // gz.cc, recording should take place in the `.gz` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -369,7 +369,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // Test case 2:
   // No path specified on command line (only --record, no --record-path).
   // No path specified in SDF.
-  // Run from command line, which should trigger ign.cc, which should initialize
+  // Run from command line, which should trigger gz.cc, which should initialize
   // gzLogDirectory() to default timestamp path. Both console and state logs
   // should be recorded here.
 
@@ -381,7 +381,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   entryList(logPath, entriesBefore);
 
   {
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -416,13 +416,13 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
 // Logging behavior when a path is specified either via the C++ API, SDF, or
 // the command line.
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -436,7 +436,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Gazebo Dome.
   // No path specified in C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
-  // state and console logs because ign.cc is not triggered.
+  // state and console logs because gz.cc is not triggered.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -470,9 +470,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 
   // Change environment variable so that test files aren't written to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
@@ -486,7 +486,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Gazebo Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
-  // gzLogDirectory because ign.cc is triggered by command line.
+  // gzLogDirectory because gz.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -501,7 +501,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -545,7 +545,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Gazebo Dome.
   // Empty path is specified via C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
-  // state and console logs because ign.cc is not triggered.
+  // state and console logs because gz.cc is not triggered.
   std::string stateLogPath = this->logDir;
 
   {
@@ -584,7 +584,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Gazebo Dome.
   // A different path is specified via C++ API.
   // Should take C++ API path. State log should be stored here. Console log is
-  // not initialized because ign.cc is not triggered.
+  // not initialized because gz.cc is not triggered.
   const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
   const std::string cppPath = common::joinPaths(this->logsDir, "cppPath");
   {
@@ -624,7 +624,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified by --record-path on command line.
   // Both state and console logs should be stored here.
   {
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -666,7 +666,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + cliPath + " " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -685,13 +685,13 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -841,10 +841,10 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
 {
   // TODO(anyone) when re-recording state.tlog file, do not run
-  // `ign gazebo --record rolling_shapes.sdf` with `-r` flag and pause sim
+  // `gz sim --record rolling_shapes.sdf` with `-r` flag and pause sim
   // before terminating. For some reason, when running with `-r` &/or
   // terminating sim w/o pausing causing strange pose behavior
   // when seeking close to end of file followed by rewind. For more details:
@@ -961,7 +961,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1038,9 +1038,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
   // Test case 2:
   // Path exists, command line --log-overwrite, should overwrite by
-  // command-line logic in ign.cc
+  // command-line logic in gz.cc
   {
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
       + "--record-path " + this->logDir + " " + recordSdfPath;
@@ -1066,9 +1066,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
   // Test case 3:
   // Path exists, no --log-overwrite, should create new files by command-line
-  // logic in ign.cc
+  // logic in gz.cc
   {
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
@@ -1085,9 +1085,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   EXPECT_TRUE(common::exists(clogPath));
 
   // On OS X, ign-gazebo-server (server_main.cc) is being used as opposed to
-  // ign gazebo. server_main.cc is deprecated and does not have overwrite
+  // gz sim. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
-  // renaming on OS X until ign gazebo is fixed:
+  // renaming on OS X until gz sim is fixed:
   // https://github.com/gazebosim/gz-sim/issues/25
 
   // New log files were created
@@ -1111,7 +1111,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
 /////////////////////////////////////////////////
 // TODO(chapulina) Record updated log
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 {
   auto logPath = common::joinPaths(PROJECT_SOURCE_PATH, "test", "media",
       "levels_log");
@@ -1250,7 +1250,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1356,7 +1356,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompress))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1402,7 +1402,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressOverwrite))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 {
 #ifndef __APPLE__
   // Create temp directory to store log
@@ -1430,7 +1430,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
@@ -1460,7 +1460,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
 
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
@@ -1482,7 +1482,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1495,9 +1495,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Change environment variable so that downloaded fuel files aren't written
   // to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1505,7 +1505,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 #ifndef __APPLE__
   // Log resources from command line
   {
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record --record-resources --record-path " + recordPath + " "
       + recordSdfPath;
@@ -1550,7 +1550,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   }
 
   // Console log is not created because gzLogDirectory() is not initialized,
-  // as ign.cc is not executed by command line.
+  // as gz.cc is not executed by command line.
   EXPECT_TRUE(common::exists(statePath));
 
   // Recorded models should exist
@@ -1562,14 +1562,14 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
@@ -1582,9 +1582,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   // Change environment variable so that downloaded fuel files aren't written
   // to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1592,7 +1592,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 #ifndef __APPLE__
   // Log only the /clock topic from command line
   {
-    // Command line triggers ign.cc, which handles initializing gzLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-topic /clock "
       + "--record-path " + recordPath + " "

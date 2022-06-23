@@ -92,7 +92,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     {
       defaultGuiConfigName = "playback_gui.config";
     }
-    gz::common::env(IGN_HOMEDIR, defaultConfig);
+    gz::common::env(GZ_HOMEDIR, defaultConfig);
     defaultConfigFolder =
       gz::common::joinPaths(defaultConfig, ".gz",
         "sim", GZ_SIM_MAJOR_VERSION_STR);
@@ -335,6 +335,6 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
   return -1;
 }
 }  // namespace gui
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz

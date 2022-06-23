@@ -21,11 +21,11 @@
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" char *ignitionGazeboVersion();
+extern "C" char *gzSimVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
-extern "C" char *gazeboVersionHeader();
+extern "C" char *simVersionHeader();
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4

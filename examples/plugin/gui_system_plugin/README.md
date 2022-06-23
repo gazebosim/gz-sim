@@ -34,7 +34,7 @@ export IGN_GUI_PLUGIN_PATH=`pwd`/build
 
 Then run a world, for example:
 
-    ign gazebo -v 4 shapes.sdf
+    gz sim -v 4 shapes.sdf
 
 From the GUI plugin menu on the top-right, choose "Gui System Plugin".
 

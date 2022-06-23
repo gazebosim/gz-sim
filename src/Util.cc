@@ -586,7 +586,7 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
       math::SphericalCoordinates::SPHERICAL);
 
   // Return degrees
-  return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
+  return math::Vector3d(GZ_RTOD(rad.X()), GZ_RTOD(rad.Y()), rad.Z());
 }
 
 //////////////////////////////////////////////////

@@ -7,7 +7,7 @@
   2. submarine_sinking: A simple submarine model that is not buoyant and sinks.
   3. submarine_buoyant: A simple submarine model that is buoyant and floats.
 
-  To run this demo: `ign gazebo -v 4 buoyancy.sdf`
+  To run this demo: `gz sim -v 4 buoyancy.sdf`
 
   To alter a submarine's buoyancy do one or both of the following:
 
@@ -16,7 +16,7 @@
 
   To drive the submarine model:
 
-  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m gz.msgs.Double  -p "data: 1.2"
+  1. gz topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m gz.msgs.Double  -p "data: 1.2"
 
 -->
 <sdf version="1.6">

@@ -55,7 +55,7 @@ class JointTrajectoryControllerTestFixture
 // trajectory
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointTrajectoryControllerTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
 {
   using namespace std::chrono_literals;
 
@@ -231,7 +231,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
 // Tests that JointTrajectoryController accepts velocity-controlled joint
 // trajectory
 TEST_F(JointTrajectoryControllerTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
 {
   using namespace std::chrono_literals;
 

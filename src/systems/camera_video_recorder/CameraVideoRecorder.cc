@@ -460,16 +460,16 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
        << this->dataPtr->service << "]" << std::endl;
 }
 
-IGNITION_ADD_PLUGIN(CameraVideoRecorder,
+GZ_ADD_PLUGIN(CameraVideoRecorder,
                     gz::sim::System,
                     CameraVideoRecorder::ISystemConfigure,
                     CameraVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+GZ_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
                           "gz::sim::systems::CameraVideoRecorder")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+GZ_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
                           "ignition::gazebo::systems::CameraVideoRecorder")

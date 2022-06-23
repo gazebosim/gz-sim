@@ -157,11 +157,11 @@ erb my_first_erb.erb > my_first_erb.sdf
 
 ## Run simulation world
 
-To test if the ERB template works, run the SDF file with the `ign gazebo` command
+To test if the ERB template works, run the SDF file with the `gz sim` command
 
 ```{.sh}
 # run with Gazebo
-ign gazebo my_first_erb.sdf
+gz sim my_first_erb.sdf
 ```
 
 If there are any errors or warnings from running the SDF file, you would need to go back to the ERB file and see if any coding mistakes were made.

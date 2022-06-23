@@ -19,7 +19,7 @@
 #include <gz/sim/components/Pose.hh>
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
     command_actor::CommandActor,
     gz::sim::System,
     command_actor::CommandActor::ISystemConfigure,

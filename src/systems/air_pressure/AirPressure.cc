@@ -103,7 +103,7 @@ AirPressure::~AirPressure() = default;
 void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressure::PreUpdate");
+  GZ_PROFILE("AirPressure::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -126,7 +126,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
-  IGN_PROFILE("AirPressure::PostUpdate");
+  GZ_PROFILE("AirPressure::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -217,7 +217,7 @@ void AirPressurePrivate::AddAirPressure(
 //////////////////////////////////////////////////
 void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
+  GZ_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
   if (!this->initialized)
   {
     // Create air pressure sensors
@@ -248,7 +248,7 @@ void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::UpdateAirPressures");
+  GZ_PROFILE("AirPressurePrivate::UpdateAirPressures");
   _ecm.Each<components::AirPressureSensor, components::WorldPose>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *,
@@ -274,7 +274,7 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 void AirPressurePrivate::RemoveAirPressureEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::RemoveAirPressureEntities");
+  GZ_PROFILE("AirPressurePrivate::RemoveAirPressureEntities");
   _ecm.EachRemoved<components::AirPressureSensor>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *)->bool
@@ -293,12 +293,12 @@ void AirPressurePrivate::RemoveAirPressureEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(AirPressure, System,
+GZ_ADD_PLUGIN(AirPressure, System,
   AirPressure::ISystemPreUpdate,
   AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
+GZ_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")
+GZ_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")

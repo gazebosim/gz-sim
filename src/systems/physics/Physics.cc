@@ -878,7 +878,7 @@ Physics::~Physics() = default;
 //////////////////////////////////////////////////
 void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Physics::Update");
+  GZ_PROFILE("Physics::Update");
 
   if (this->dataPtr->engine)
   {
@@ -903,7 +903,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void Physics::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Physics::Reset");
+  GZ_PROFILE("Physics::Reset");
 
   if (this->dataPtr->engine)
   {
@@ -1575,8 +1575,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         joint.SetRawPose(_pose->Data());
         joint.SetThreadPitch(_threadPitch->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -1845,7 +1845,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PhysicsPrivate::UpdatePhysics");
+  GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2511,7 +2511,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PhysicsPrivate::ResetPhysics");
+  GZ_PROFILE("PhysicsPrivate::ResetPhysics");
   // Clear worldPoseCmdsToRemove because pose commands that were issued before
   // the reset will be ignored.
   this->linkWorldPoses.clear();
@@ -2637,7 +2637,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 gz::physics::ForwardStep::Output PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
-  IGN_PROFILE("PhysicsPrivate::Step");
+  GZ_PROFILE("PhysicsPrivate::Step");
   gz::physics::ForwardStep::Input input;
   gz::physics::ForwardStep::State state;
   gz::physics::ForwardStep::Output output;
@@ -2693,7 +2693,7 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
     const gz::physics::ForwardStep::Output &_updatedLinks)
 {
-  IGN_PROFILE("Links Frame Data");
+  GZ_PROFILE("Links Frame Data");
 
   std::map<Entity, physics::FrameData3d> linkFrameData;
 
@@ -2912,7 +2912,7 @@ bool PhysicsPrivate::GetFrameDataRelativeToWorld(const Entity _entity,
 void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
     std::map<Entity, physics::FrameData3d> &_linkFrameData)
 {
-  IGN_PROFILE("PhysicsPrivate::UpdateSim");
+  GZ_PROFILE("PhysicsPrivate::UpdateSim");
 
   // Populate world components with default values
   _ecm.EachNew<components::World>(
@@ -2950,7 +2950,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  IGN_PROFILE_BEGIN("Models");
+  GZ_PROFILE_BEGIN("Models");
 
   // make sure we have an up-to-date mapping of canonical links to their models
   this->canonicalLinkModelTracker.AddNewModels(_ecm);
@@ -2977,13 +2977,13 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
     for (auto &modelEnt : canonicalLinkModels)
       this->UpdateModelPose(modelEnt, linkEntity, _ecm, _linkFrameData);
   }
-  IGN_PROFILE_END();
+  GZ_PROFILE_END();
 
   // Link poses, velocities...
-  IGN_PROFILE_BEGIN("Links");
+  GZ_PROFILE_BEGIN("Links");
   for (const auto &[entity, frameData] : _linkFrameData)
   {
-    IGN_PROFILE_BEGIN("Local pose");
+    GZ_PROFILE_BEGIN("Local pose");
     auto canonicalLink =
         _ecm.Component<components::CanonicalLink>(entity);
 
@@ -3011,7 +3011,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       _ecm.SetChanged(entity, components::Pose::typeId,
           ComponentState::PeriodicChange);
     }
-    IGN_PROFILE_END();
+    GZ_PROFILE_END();
 
     // Populate world poses, velocities and accelerations of the link. For
     // now these components are updated only if another system has created
@@ -3145,7 +3145,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           state);
     }
   }
-  IGN_PROFILE_END();
+  GZ_PROFILE_END();
 
   // pose/velocity/acceleration of non-link entities such as sensors /
   // collisions. These get updated only if another system has created
@@ -3156,7 +3156,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
   // * AngularVelocity
   // * LinearAcceleration
 
-  IGN_PROFILE_BEGIN("Sensors / collisions");
+  GZ_PROFILE_BEGIN("Sensors / collisions");
   // world pose
   _ecm.Each<components::Pose, components::WorldPose,
             components::ParentEntity>(
@@ -3249,10 +3249,10 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
         return true;
       });
-  IGN_PROFILE_END();
+  GZ_PROFILE_END();
 
   // Clear reset components
-  IGN_PROFILE_BEGIN("Clear / reset components");
+  GZ_PROFILE_BEGIN("Clear / reset components");
   std::vector<Entity> entitiesPositionReset;
   _ecm.Each<components::JointPositionReset>(
       [&](const Entity &_entity, components::JointPositionReset *) -> bool
@@ -3342,7 +3342,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
-  IGN_PROFILE_END();
+  GZ_PROFILE_END();
 
   _ecm.Each<components::AngularVelocityCmd>(
       [&](const Entity &, components::AngularVelocityCmd *_vel) -> bool
@@ -3359,7 +3359,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       });
 
   // Update joint positions
-  IGN_PROFILE_BEGIN("Joints");
+  GZ_PROFILE_BEGIN("Joints");
   _ecm.Each<components::Joint, components::JointPosition>(
       [&](const Entity &_entity, components::Joint *,
           components::JointPosition *_jointPos) -> bool
@@ -3393,7 +3393,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
-  IGN_PROFILE_END();
+  GZ_PROFILE_END();
 
   // Update joint transmitteds
   _ecm.Each<components::Joint, components::JointTransmittedWrench>(
@@ -3442,7 +3442,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PhysicsPrivate::UpdateCollisions");
+  GZ_PROFILE("PhysicsPrivate::UpdateCollisions");
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
@@ -3668,13 +3668,13 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
          << _world << "]" << std::endl;
 }
 
-IGNITION_ADD_PLUGIN(Physics,
+GZ_ADD_PLUGIN(Physics,
                     gz::sim::System,
                     Physics::ISystemConfigure,
                     Physics::ISystemReset,
                     Physics::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
+GZ_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")
+GZ_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

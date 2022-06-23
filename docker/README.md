@@ -57,7 +57,7 @@ use the Gazebo code found in the current source tree.
 
 ## Gazebo Using Debians In Docker
 
-This section describes how to build and run a docker image of an Gazebo
+This section describes how to build and run a docker image of a Gazebo
 distribution using debians.
 
 **Requirements**

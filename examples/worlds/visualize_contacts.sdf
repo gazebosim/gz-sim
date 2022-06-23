@@ -33,11 +33,11 @@ Contacts will be visualized as blue spheres and green cylinders.
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -48,43 +48,43 @@ Contacts will be visualized as blue spheres and green cylinders.
 
       <!-- Plugins that add functionality to the scene -->
       <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -97,7 +97,7 @@ Contacts will be visualized as blue spheres and green cylinders.
             <line own="left" target="left"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <play_pause>true</play_pause>
         <step>true</step>
@@ -108,7 +108,7 @@ Contacts will be visualized as blue spheres and green cylinders.
 
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
+        <gz-gui>
           <title>World stats</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -121,7 +121,7 @@ Contacts will be visualized as blue spheres and green cylinders.
             <line own="right" target="right"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <sim_time>true</sim_time>
         <real_time>true</real_time>
@@ -130,20 +130,20 @@ Contacts will be visualized as blue spheres and green cylinders.
       </plugin>
 
       <plugin filename="MarkerManager" name="Marker manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <!-- Visualize Contacts -->
       <plugin filename="VisualizeContacts" name="Visualize Contacts">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">docked</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
     </gui>
 

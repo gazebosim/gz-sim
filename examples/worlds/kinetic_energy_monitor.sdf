@@ -4,7 +4,7 @@
 
   Monitor output using:
 
-    ign topic -et "/model/sphere/kinetic_energy"
+    gz topic -et "/model/sphere/kinetic_energy"
 -->
 <sdf version="1.6">
   <world name="kinetic_energy_monitor">

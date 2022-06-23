@@ -239,7 +239,7 @@ void Elevator::Configure(const Entity &_entity,
 void Elevator::PostUpdate(const UpdateInfo &_info,
                           const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Elevator::PostUpdate");
+  GZ_PROFILE("Elevator::PostUpdate");
   if (_info.paused) return;
 
   // Throttle update rate
@@ -441,15 +441,15 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
   this->stateMachine->process_event(events::EnqueueNewTarget(_msg.data()));
 }
 
-IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
+GZ_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
+GZ_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
+GZ_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz

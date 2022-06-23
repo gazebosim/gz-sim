@@ -36,7 +36,7 @@ namespace components
   /// \brief A component type that contains commanded pose of an
   /// entity in the world frame represented by gz::math::Pose3d.
   using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldPoseCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldPoseCmd",
       WorldPoseCmd)
 }
 }

@@ -240,7 +240,7 @@ void LevelManager::ReadLevelPerformerInfo()
 /////////////////////////////////////////////////
 void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 {
-  IGN_PROFILE("LevelManager::ReadPerformers");
+  GZ_PROFILE("LevelManager::ReadPerformers");
 
   if (_sdf == nullptr)
     return;
@@ -375,7 +375,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
 /////////////////////////////////////////////////
 void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 {
-  IGN_PROFILE("LevelManager::ReadLevels");
+  GZ_PROFILE("LevelManager::ReadLevels");
 
   gzdbg << "Reading levels info\n";
 
@@ -440,7 +440,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 /////////////////////////////////////////////////
 void LevelManager::ConfigureDefaultLevel()
 {
-  IGN_PROFILE("LevelManager::ConfigureDefaultLevel");
+  GZ_PROFILE("LevelManager::ConfigureDefaultLevel");
 
   // Create the default level. This level contains all entities not contained by
   // any other level.
@@ -523,7 +523,7 @@ void LevelManager::AddWorld(const sdf::World *_world)
 /////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
-  IGN_PROFILE("LevelManager::CreatePerformers");
+  GZ_PROFILE("LevelManager::CreatePerformers");
 
   if (this->worldEntity == kNullEntity)
   {
@@ -570,7 +570,7 @@ void LevelManager::CreatePerformers()
 /////////////////////////////////////////////////
 void LevelManager::UpdateLevelsState()
 {
-  IGN_PROFILE("LevelManager::UpdateLevelsState");
+  GZ_PROFILE("LevelManager::UpdateLevelsState");
 
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
@@ -590,7 +590,7 @@ void LevelManager::UpdateLevelsState()
   }
 
   {
-    IGN_PROFILE("DefaultLevel");
+    GZ_PROFILE("DefaultLevel");
     // Handle default level
     this->runner->entityCompMgr.Each<components::DefaultLevel>(
         [&](const Entity &_entity, const components::DefaultLevel *) -> bool
@@ -618,7 +618,7 @@ void LevelManager::UpdateLevelsState()
             components::Geometry *_geometry,
             components::ParentEntity *_parent) -> bool
           {
-          IGN_PROFILE("EachPerformer");
+          GZ_PROFILE("EachPerformer");
 
           auto pose = this->runner->entityCompMgr.Component<components::Pose>(
               _parent->Data());
@@ -649,7 +649,7 @@ void LevelManager::UpdateLevelsState()
                   const components::Geometry *_levelGeometry,
                   const components::LevelBuffer *_levelBuffer) -> bool
                 {
-                IGN_PROFILE("CheckPerformerAgainstLevel");
+                GZ_PROFILE("CheckPerformerAgainstLevel");
                 // Check if the performer is in this level
                 // assume a box for now
                 auto box = _levelGeometry->Data().BoxShape();
@@ -797,7 +797,7 @@ void LevelManager::UpdateLevelsState()
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 {
-  IGN_PROFILE("LevelManager::LoadActiveEntities");
+  GZ_PROFILE("LevelManager::LoadActiveEntities");
 
   if (this->worldEntity == kNullEntity)
   {

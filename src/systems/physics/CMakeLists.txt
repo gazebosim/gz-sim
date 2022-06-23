@@ -11,7 +11,7 @@ set (gtest_sources
   EntityFeatureMap_TEST.cc
 )
 
-ign_build_tests(TYPE UNIT
+gz_build_tests(TYPE UNIT
   SOURCES
   ${gtest_sources}
   LIB_DEPS

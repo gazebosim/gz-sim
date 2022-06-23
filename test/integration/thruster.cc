@@ -258,7 +258,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_ang_vel_cmd.sdf");
@@ -268,7 +268,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "thruster_ccw_force_cmd.sdf");
@@ -279,7 +279,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "thruster_ccw_ang_vel_cmd.sdf");
@@ -291,7 +291,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
@@ -302,7 +302,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
@@ -312,7 +312,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_battery.sdf");

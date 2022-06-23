@@ -596,5 +596,5 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::AlignTool,
+GZ_ADD_PLUGIN(gz::sim::AlignTool,
                     gz::gui::Plugin)

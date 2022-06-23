@@ -68,22 +68,22 @@ namespace systems
   /// ## Examples
   /// To get started run:
   /// ```
-  /// ign gazebo buoyancy_engine.sdf
+  /// gz sim buoyancy_engine.sdf
   /// ```
   /// Enter the following in a separate terminal:
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
+  /// gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.003"
   /// ```
   /// To see the box float up.
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
+  /// gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.
   /// To see the current volume enter:
   /// ```
-  /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
+  /// gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
   /// ```
   class BuoyancyEnginePlugin:
     public gz::sim::System,

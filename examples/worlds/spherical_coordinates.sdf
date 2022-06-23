@@ -10,7 +10,7 @@
 
   Try changing the world origin coordinates with:
 
-ign service \
+gz service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
@@ -19,7 +19,7 @@ ign service \
 
   Spawn a model in spherical coordinates:
 
-ign service -s /world/spherical_coordinates/create \
+gz service -s /world/spherical_coordinates/create \
 --reqtype gz.msgs.EntityFactory \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -41,7 +41,7 @@ ign service -s /world/spherical_coordinates/create \
 
   Move a model in spherical coordinates:
 
-ign service -s /world/spherical_coordinates/set_spherical_coordinates \
+gz service -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -89,11 +89,11 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -104,61 +104,61 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
       <!-- Plugins that add functionality to the scene -->
       <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="SelectEntities" name="Select Entities">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="Spawn" name="Spawn Entities">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -171,7 +171,7 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
             <line own="left" target="left"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <play_pause>true</play_pause>
         <step>true</step>
@@ -182,7 +182,7 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
+        <gz-gui>
           <title>World stats</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -195,7 +195,7 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
             <line own="right" target="right"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <sim_time>true</sim_time>
         <real_time>true</real_time>
@@ -205,14 +205,14 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
       <!-- Translate / rotate -->
       <plugin filename="TransformControl" name="Transform control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">250</property>
           <property key="height" type="double">50</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#777777</property>
-        </ignition-gui>
+        </gz-gui>
 
         <!-- disable legacy features used to connect this plugin to GzScene3D -->
         <legacy>false</legacy>
@@ -220,24 +220,24 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 
       <!-- Entity tree -->
       <plugin filename="EntityTree" name="Entity tree">
-        <ignition-gui>
+        <gz-gui>
           <property type="string" key="state">docked_collapsed</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <!-- Inspector -->
       <plugin filename="ComponentInspector" name="Component inspector">
-        <ignition-gui>
+        <gz-gui>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <!-- Map -->
       <plugin filename="NavSatMap" name="NavSat Map">
-        <ignition-gui>
+        <gz-gui>
           <title>NavSat Map</title>
           <property key="state" type="string">docked</property>
-        </ignition-gui>
+        </gz-gui>
         <topic>/navsat</topic>
         <topic_picker>true</topic_picker>
       </plugin>

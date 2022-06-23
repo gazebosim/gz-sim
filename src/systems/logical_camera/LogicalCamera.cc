@@ -106,7 +106,7 @@ LogicalCamera::~LogicalCamera() = default;
 void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCamera::PreUpdate");
+  GZ_PROFILE("LogicalCamera::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -128,7 +128,7 @@ void LogicalCamera::PreUpdate(const UpdateInfo &/*_info*/,
 void LogicalCamera::PostUpdate(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCamera::PostUpdate");
+  GZ_PROFILE("LogicalCamera::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -219,7 +219,7 @@ void LogicalCameraPrivate::AddLogicalCamera(
 //////////////////////////////////////////////////
 void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
+  GZ_PROFILE("LogicalCameraPrivate::CreateLogicalCameraEntities");
   if (!this->initialized)
   {
     // Create logicalCameras
@@ -252,7 +252,7 @@ void LogicalCameraPrivate::CreateSensors(const EntityComponentManager &_ecm)
 void LogicalCameraPrivate::UpdateLogicalCameras(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
+  GZ_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
   std::map<std::string, math::Pose3d> modelPoses;
 
   _ecm.Each<components::Model, components::Name, components::Pose>(
@@ -296,7 +296,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
 void LogicalCameraPrivate::RemoveLogicalCameraEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogicalCameraPrivate::RemoveLogicalCameraEntities");
+  GZ_PROFILE("LogicalCameraPrivate::RemoveLogicalCameraEntities");
   _ecm.EachRemoved<components::LogicalCamera>(
     [&](const Entity &_entity,
         const components::LogicalCamera *)->bool
@@ -315,14 +315,14 @@ void LogicalCameraPrivate::RemoveLogicalCameraEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(LogicalCamera, System,
+GZ_ADD_PLUGIN(LogicalCamera, System,
   LogicalCamera::ISystemPreUpdate,
   LogicalCamera::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
     "gz::sim::systems::LogicalCamera")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
     "ignition::gazebo::systems::LogicalCamera")

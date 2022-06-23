@@ -49,7 +49,7 @@ class ThermalTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
+TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 {
   // Start server
   ServerConfig serverConfig;
@@ -173,7 +173,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
+TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
 {
   // Start server
   ServerConfig serverConfig;

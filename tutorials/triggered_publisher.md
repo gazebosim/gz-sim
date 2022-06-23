@@ -57,7 +57,7 @@ The `<input>` tag sets up the `TriggeredPublisher` to subscribe to the topic
 `/start` with a message type of `gz.msgs.Empty`. The `<output>` tag
 specifies the topic of the output and the actual data to be published. The data
 is expressed in the human-readable form of Google Protobuf messages. This is
-the same format used by `ign topic` for publishing messages.
+the same format used by `gz topic` for publishing messages.
 
 Since the `TriggeredPublisher` only deals with Gazebo topics, it can be
 anywhere a `<plugin>` tag is allowed. For this example, we will put it under
@@ -255,11 +255,11 @@ numbers is not advised, we will set a tolerance of 0.2.
 We can now run the simulation and from the command line by running
 
 ```
-ign gazebo -r triggered_publisher.sdf
+gz sim -r triggered_publisher.sdf
 ```
 
 and publish the start message
 
 ```
-ign topic -t "/start" -m gz.msgs.Empty -p " "
+gz topic -t "/start" -m gz.msgs.Empty -p " "
 ```

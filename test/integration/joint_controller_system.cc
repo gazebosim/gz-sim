@@ -49,7 +49,7 @@ class JointControllerTestFixture : public InternalFixture<::testing::Test>
 // Tests that the JointController accepts joint velocity commands
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointControllerTestFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
 {
   using namespace std::chrono_literals;
 
@@ -147,7 +147,7 @@ TEST_F(JointControllerTestFixture,
 /////////////////////////////////////////////////
 // Tests the JointController using joint force commands
 TEST_F(JointControllerTestFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
 {
   using namespace std::chrono_literals;
 

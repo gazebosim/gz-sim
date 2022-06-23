@@ -19,13 +19,13 @@ Gazebo records two types of information to files:
 Run the example world with `--record` flag. This records data to a default
 path, i.e. `~/.gz/sim/log/<timestamp>`:
 
-`ign gazebo -v 4 -r --record pose_publisher.sdf`
+`gz sim -v 4 -r --record pose_publisher.sdf`
 
 A custom path can be specified for recorded files through the `--record-path`
 flag. When `--record-path` is specified, `--record` does not need to be
 separately specified:
 
-`ign gazebo -v 4 -r --record-path ./foo pose_publisher.sdf `
+`gz sim -v 4 -r --record-path ./foo pose_publisher.sdf `
 
 Other options for recording:
 
@@ -94,7 +94,7 @@ The final record path will depend on a few options:
 Playback can be triggered by `--playback` command line flag. `<path>` is the
 directory specified to record:
 
-`ign gazebo -r -v 4 --playback <path>`
+`gz sim -r -v 4 --playback <path>`
 
 ### From plugin in SDF
 

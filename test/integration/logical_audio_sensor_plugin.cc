@@ -52,7 +52,7 @@ class LogicalAudioTest : public InternalFixture<::testing::Test>
 
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(LogicalAudioTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -207,7 +207,7 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
+TEST_F(LogicalAudioTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

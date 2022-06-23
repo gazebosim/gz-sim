@@ -17,15 +17,22 @@ release will remove the deprecated code.
   Use `gz/...` instead.
 * Configuration and log files are stored under `$HOME/.gz/sim` instead of
   `$HOME/.ignition/gazebo`
-* The following `IGN_` prefixed environment variables are deprecated and will be removed in future versions.
-  Use the `GZ_` prefixed versions instead!
+* The following `IGN_GAZEBO_` prefixed environment variables are deprecated and will be removed in future versions.
+  Use the `GZ_SIM_` prefixed versions instead!
   * `IGN_GAZEBO_RENDER_ENGINE_PATH` -> `GZ_SIM_RENDER_ENGINE_PATH`
   * `IGN_GAZEBO_PHYSICS_ENGINE_PATH` -> `GZ_SIM_PHYSICS_ENGINE_PATH`
   * `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` -> `GZ_SIM_SYSTEM_PLUGIN_PATH`
   * `IGN_DEBUG_COMPONENT_FACTORY` -> `GZ_DEBUG_COMPONENT_FACTORY`
   * `IGN_GAZEBO_RESOURCE_PATH` -> `GZ_SIM_RESOURCE_PATH`
   * `IGN_GAZEBO_SERVER_CONFIG_PATH` -> `GZ_SIM_SERVER_CONFIG_PATH`
-
+* The following `IGN_GAZEBO_` prefixed macros variables are deprecated and will be removed in future versions.
+  Use the `GZ_SIM_` prefixed versions instead!
+  * `IGN_GAZEBO_REGISTER_COMPONENT`
+  * `IGN_GAZEBO_PLUGIN_INSTALL_DIR`
+  * `IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR`
+  * `IGN_GAZEBO_WORLD_INSTALL_DIR`
+* The `gazebo` command line verb is deprecated.
+  Use `sim` instead (e.g. `ign gazebo` -> `gz sim`).
 
 ## Gazebo Sim 6.1 to 6.2
 
@@ -185,7 +192,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
   file can now be loaded without a flag.
 
 * The `ign-gazebo` command line tool is deprecated. The new tool is
-  `ign gazebo`, which has all the same options, except for
+  `gz sim`, which has all the same options, except for
   `--distributed` and `--file`/`-f`, which have been removed.
 
 * The `entity_name` field in the messages published by the imu system is
@@ -206,5 +213,5 @@ added an SDF message to the start of log files.
 * The ignition-gazebo1-gui library has been changed to a `gui` component of
 ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
-`ign_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
+`gz_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
 `libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`

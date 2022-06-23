@@ -198,9 +198,9 @@ class gz::sim::ServerConfigPrivate
   public: ServerConfigPrivate()
   {
     std::string home;
-    common::env(IGN_HOMEDIR, home);
+    common::env(GZ_HOMEDIR, home);
 
-    this->timestamp = IGN_SYSTEM_TIME();
+    this->timestamp = GZ_SYSTEM_TIME();
 
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
@@ -965,7 +965,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  gz::common::env(IGN_HOMEDIR, defaultConfigDir);
+  gz::common::env(GZ_HOMEDIR, defaultConfigDir);
   defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".gz",
     "sim", GZ_SIM_MAJOR_VERSION_STR);
 

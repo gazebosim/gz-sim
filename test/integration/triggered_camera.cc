@@ -67,7 +67,7 @@ void imageCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 // The test checks the Triggered Camera readings
 TEST_F(TriggeredCameraTest,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

@@ -765,7 +765,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
 void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("RenderUtil::UpdateFromECM");
+  GZ_PROFILE("RenderUtil::UpdateFromECM");
   std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
   this->dataPtr->simTime = _info.simTime;
 
@@ -1024,7 +1024,7 @@ int RenderUtil::PendingSensors() const
 //////////////////////////////////////////////////
 void RenderUtil::Update()
 {
-  IGN_PROFILE("RenderUtil::Update");
+  GZ_PROFILE("RenderUtil::Update");
   if (!this->dataPtr->initialized)
     return;
 
@@ -1127,7 +1127,7 @@ void RenderUtil::Update()
 
   // remove existing entities
   {
-    IGN_PROFILE("RenderUtil::Update Remove");
+    GZ_PROFILE("RenderUtil::Update Remove");
     for (auto &entity : removeEntities)
     {
       auto node = this->dataPtr->sceneManager.NodeById(entity.first);
@@ -1144,7 +1144,7 @@ void RenderUtil::Update()
 
   // create new entities
   {
-    IGN_PROFILE("RenderUtil::Update Create");
+    GZ_PROFILE("RenderUtil::Update Create");
     for (const auto &model : newModels)
     {
       uint64_t iteration = std::get<3>(model);
@@ -1260,7 +1260,7 @@ void RenderUtil::Update()
 
   // update entities' pose
   {
-    IGN_PROFILE("RenderUtil::Update Poses");
+    GZ_PROFILE("RenderUtil::Update Poses");
     for (const auto &pose : entityPoses)
     {
       auto node = this->dataPtr->sceneManager.NodeById(pose.first);
@@ -1426,12 +1426,12 @@ void RenderUtil::Update()
         if (!this->dataPtr->sceneManager.HasEntity(jointEntity))
         {
           std::string childLinkName =
-              this->dataPtr->entityJoints[jointEntity].ChildLinkName();
+              this->dataPtr->entityJoints[jointEntity].ChildName();
           Entity childId =
               this->dataPtr->matchLinksWithEntities[model][childLinkName];
 
           std::string parentLinkName =
-              this->dataPtr->entityJoints[jointEntity].ParentLinkName();
+              this->dataPtr->entityJoints[jointEntity].ParentName();
           Entity parentId =
               this->dataPtr->matchLinksWithEntities[model][parentLinkName];
 
@@ -1536,7 +1536,7 @@ void RenderUtil::Update()
   // TODO(anyone) currently updates material colors of visual only,
   // need to extend to other updates
   {
-    IGN_PROFILE("RenderUtil::Update Visuals");
+    GZ_PROFILE("RenderUtil::Update Visuals");
     for (const auto &visual : entityVisuals)
     {
       if (!visual.second.has_material())
@@ -1600,7 +1600,7 @@ void RenderUtil::Update()
 void RenderUtilPrivate::CreateRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
-  IGN_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
+  GZ_PROFILE("RenderUtilPrivate::CreateRenderingEntities");
 
   // Treat all pre-existent entities as new at startup
   // TODO(anyone) Combine the two CreateEntities functions below to reduce
@@ -1789,8 +1789,8 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         joint.SetType(_jointType->Data());
         joint.SetRawPose(_pose->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2055,8 +2055,8 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
         joint.SetType(_jointType->Data());
         joint.SetRawPose(_pose->Data());
 
-        joint.SetParentLinkName(_parentLinkName->Data());
-        joint.SetChildLinkName(_childLinkName->Data());
+        joint.SetParentName(_parentLinkName->Data());
+        joint.SetChildName(_childLinkName->Data());
 
         auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
         auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2171,7 +2171,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
 void RenderUtilPrivate::UpdateRenderingEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("RenderUtilPrivate::UpdateRenderingEntities");
+  GZ_PROFILE("RenderUtilPrivate::UpdateRenderingEntities");
   _ecm.Each<components::Model, components::Pose>(
       [&](const Entity &_entity,
         const components::Model *,
@@ -2340,7 +2340,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
 void RenderUtilPrivate::RemoveRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
-  IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
+  GZ_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
@@ -2869,7 +2869,7 @@ void RenderUtilPrivate::RemoveBoundingBox(const Entity _entity)
 void RenderUtilPrivate::UpdateLights(
     const std::unordered_map<Entity, msgs::Light> &_entityLights)
 {
-  IGN_PROFILE("RenderUtil::Update Lights");
+  GZ_PROFILE("RenderUtil::Update Lights");
   for (const auto &light : _entityLights)
   {
     auto node = this->sceneManager.NodeById(light.first);

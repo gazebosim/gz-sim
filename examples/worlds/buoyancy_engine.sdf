@@ -33,7 +33,7 @@ listens to the topic `buoyancy_engine` or
 
 To get started run:
 ```
-ign gazebo buoyancy_engine.sdf
+gz sim buoyancy_engine.sdf
 ```
 You will see two boxes. The box on the right doesn't have a surface set whereas
 the box on the left does. When commanded to go up, the box on the left will rise
@@ -41,19 +41,19 @@ until it breaches and then start oscillating around the surface. On the other
 hand the box on the right will rise forever as no surface is set.
 Enter the following in a separate terminal:
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
+gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.003"
 ```
 The boxes will float up. Note that the box on the left will start oscillating
 once it breaches the surface.
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
+gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.001"
 ```
 The boxes will go down.
 To see the current volume enter:
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
+gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
 ```
 -->
 <sdf version="1.6">

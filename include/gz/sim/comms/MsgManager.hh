@@ -149,7 +149,7 @@ class GZ_GAZEBO_VISIBLE MsgManager
   public: void Set(const Registry &_newContent);
 
   /// \brief Private data pointer.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

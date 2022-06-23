@@ -33,13 +33,13 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then load the example world:
 
-    ign gazebo -r odometer.sdf
+    gz sim -r odometer.sdf
 
 You should see a box slowly moving in a straight line.
 
 Listen to the odometer data with:
 
 ```
-ign topic -e -t /world/odometer_world/model/model_with_sensor/link/link/sensor/an_odometer/odometer
+gz topic -e -t /world/odometer_world/model/model_with_sensor/link/link/sensor/an_odometer/odometer
 ```
 

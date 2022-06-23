@@ -89,7 +89,7 @@ class SdfGeneratorFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(SdfGeneratorFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsSpawnedAfterLoad))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsSpawnedAfterLoad))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -217,7 +217,7 @@ TEST_F(SdfGeneratorFixture,
 /////////////////////////////////////////////////
 // Test segfaults on Mac at startup, possible collision with test above?
 TEST_F(SdfGeneratorFixture,
-    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -887,8 +887,8 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   auto *joint = model->JointByName("joint");
   ASSERT_NE(nullptr, joint);
 
-  EXPECT_EQ("link1", joint->ParentLinkName());
-  EXPECT_EQ("link2", joint->ChildLinkName());
+  EXPECT_EQ("link1", joint->ParentName());
+  EXPECT_EQ("link2", joint->ChildName());
   EXPECT_EQ(sdf::JointType::REVOLUTE2, joint->Type());
 
   // Get the first axis

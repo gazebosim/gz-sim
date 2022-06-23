@@ -130,7 +130,7 @@ namespace events
 
     /// \internal
     /// \brief Private data pointer
-    IGN_UTILS_IMPL_PTR(dataPtr)
+    GZ_UTILS_IMPL_PTR(dataPtr)
   };
 
   /// \brief Event that notifies when new entities have been created or removed
@@ -156,7 +156,7 @@ namespace events
 
     /// \internal
     /// \brief Private data pointer
-    IGN_UTILS_IMPL_PTR(dataPtr)
+    GZ_UTILS_IMPL_PTR(dataPtr)
   };
 
   /// \brief True if a transform control is currently active (translate /
@@ -211,7 +211,7 @@ namespace events
 
     /// \internal
     /// \brief Private data pointer
-    IGN_UTILS_IMPL_PTR(dataPtr)
+    GZ_UTILS_IMPL_PTR(dataPtr)
   };
 
   /// \brief Event that notifies a visual plugin is to be loaded
@@ -233,7 +233,7 @@ namespace events
 
     /// \internal
     /// \brief Private data pointer
-    IGN_UTILS_IMPL_PTR(dataPtr)
+    GZ_UTILS_IMPL_PTR(dataPtr)
   };
 }  // namespace events
 }

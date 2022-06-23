@@ -2,7 +2,7 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::EventTriggerSystem,
+GZ_ADD_PLUGIN(gz::sim::EventTriggerSystem,
     gz::sim::System,
     gz::sim::EventTriggerSystem::ISystemConfigure,
     gz::sim::EventTriggerSystem::ISystemUpdate)

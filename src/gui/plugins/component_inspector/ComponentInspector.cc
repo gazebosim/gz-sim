@@ -365,8 +365,8 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 QStandardItem *ComponentsModel::AddComponentType(
     gz::sim::ComponentTypeId _typeId)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("ComponentsModel::AddComponentType");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("ComponentsModel::AddComponentType");
 
   auto typeName = QString::fromStdString(
       components::Factory::Instance()->Name(_typeId));
@@ -396,8 +396,8 @@ QStandardItem *ComponentsModel::AddComponentType(
 void ComponentsModel::RemoveComponentType(
       gz::sim::ComponentTypeId _typeId)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("ComponentsModel::RemoveComponentType");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("ComponentsModel::RemoveComponentType");
 
   auto itemIt = this->items.find(_typeId);
 
@@ -461,7 +461,7 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
 void ComponentInspector::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ComponentInspector::Update");
+  GZ_PROFILE("ComponentInspector::Update");
 
   if (this->dataPtr->paused)
     return;
@@ -1227,5 +1227,5 @@ transport::Node &ComponentInspector::TransportNode()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::ComponentInspector,
+GZ_ADD_PLUGIN(gz::sim::ComponentInspector,
                     gz::gui::Plugin)

@@ -28,7 +28,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/ign gazebo -s ");
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/gz sim -s ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -56,7 +56,7 @@ std::string customExecStr(std::string _cmd)
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -88,7 +88,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Server))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
@@ -102,7 +102,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -119,7 +119,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
 {
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -136,7 +136,7 @@ TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   std::string cmd = kIgnCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
 

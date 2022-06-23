@@ -35,7 +35,7 @@ namespace components
 {
   /// \brief Stores the 3D magnetic field in teslas.
   using MagneticField = Component<math::Vector3d, class MagneticFieldTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.MagneticField", MagneticField)
 }
 }
