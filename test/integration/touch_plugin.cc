@@ -19,6 +19,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"
@@ -185,7 +186,8 @@ TEST_F(TouchPluginTest, StartDisabled)
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, RemovalOfParentModel)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 

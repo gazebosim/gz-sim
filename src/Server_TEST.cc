@@ -23,6 +23,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Rand.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Mesh.hh>
 
 #include "ignition/gazebo/components/AxisAlignedBox.hh"
@@ -678,7 +679,8 @@ TEST_P(ServerFixture, ServerControlStop)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersNonBlocking)
+// See: https://github.com/gazebosim/gz-sim/issues/1544
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersNonBlocking))
 {
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -718,7 +720,8 @@ TEST_P(ServerFixture, TwoServersNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, TwoServersMixedBlocking)
+// See: https://github.com/gazebosim/gz-sim/issues/1544
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersMixedBlocking))
 {
   ignition::gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());

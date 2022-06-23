@@ -20,6 +20,7 @@
 #include <ignition/common/Util.hh>
 #include <ignition/math/Pose3.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -230,7 +231,8 @@ class VelocityControlTest
 };
 
 /////////////////////////////////////////////////
-TEST_P(VelocityControlTest, PublishCmd)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",

@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <condition_variable>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/msgs/world_control.pb.h"
 #include "ignition/msgs/world_stats.pb.h"
@@ -122,7 +123,8 @@ TEST_F(NetworkHandshake, Handshake)
 }
 
 /////////////////////////////////////////////////
-TEST_F(NetworkHandshake, Updates)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
