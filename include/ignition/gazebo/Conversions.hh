@@ -775,7 +775,7 @@ namespace ignition
     /// \param[in] _in msgs::Plugin.
     /// \return sdf::Plugin.
     template<>
-    sdf::Plugin convert(const sdf::Plugin &_in);
+    sdf::Plugin convert(const msgs::Plugin &_in);
 
     /// \brief Generic conversion from a msgs::Plugin_V to another type.
     /// \param[in] _in msgs::Plugin_V.

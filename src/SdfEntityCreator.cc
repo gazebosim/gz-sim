@@ -324,6 +324,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
+  for (const sdf::Plugin &p : _world->Plugins())
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
+        p.ToElement());
+  }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -343,6 +348,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newModels)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newModels.clear();
 
@@ -350,6 +360,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newSensors)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newSensors.clear();
 
@@ -357,6 +372,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newVisuals)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newVisuals.clear();
 
@@ -490,6 +510,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
+  for (const sdf::Plugin &p : _actor->Plugins())
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
+        p.ToElement());
+  }
 
   return actorEntity;
 }
@@ -760,6 +785,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
     this->dataPtr->ecm->CreateComponent(visualEntity,
         components::SystemPluginInfo(
           convert<msgs::Plugin_V>(_visual->Plugins())));
+  }
+  // Deprecate this in Garden
+  if (_visual->Element())
+  {
+    sdf::ElementPtr pluginElem = _visual->Element()->FindElement("plugin");
+    if (pluginElem)
+    {
+      this->dataPtr->ecm->CreateComponent(visualEntity,
+          components::VisualPlugin(pluginElem));
+    }
   }
 
   // Keep track of visuals so we can load their plugins after loading the
