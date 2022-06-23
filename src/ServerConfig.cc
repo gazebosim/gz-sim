@@ -42,11 +42,11 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
               const std::unique_ptr<ServerConfig::PluginInfoPrivate> &_info)
           : entityName(_info->entityName),
             entityType(_info->entityType),
+            plugin(_info->plugin),
             filename(_info->filename),
             name(_info->name)
   {
-    if (_info->sdf)
-      this->sdf = _info->sdf->Clone();
+    this->sdf = plugin.Element();
   }
 
   /// \brief Constructor based on values.
@@ -56,22 +56,19 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \param[in] _entityType Entity type which should receive  this
   /// plugin. The type is used in conjuction with _entityName to
   /// uniquely identify an entity.
-  /// \param[in] _filename Plugin library filename.
-  /// \param[in] _name Name of the interface within the plugin library
-  /// to load.
-  /// \param[in] _sdf Plugin XML elements associated with this plugin.
+  /// \param[in] _plugin SDF Plugin associated with this plugin.
   // cppcheck-suppress passedByValue
   public: PluginInfoPrivate(std::string _entityName,
   // cppcheck-suppress passedByValue
                             std::string _entityType,
   // cppcheck-suppress passedByValue
-                            std::string _filename,
-  // cppcheck-suppress passedByValue
-                            std::string _name)
+                            sdf::Plugin _plugin)
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
-            filename(std::move(_filename)),
-            name(std::move(_name))
+            plugin(std::move(_plugin)),
+            filename(plugin.Filename()),
+            name(plugin.Name()),
+            sdf(plugin.Element())
   {
   }
 
@@ -81,7 +78,12 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   /// \brief The type of entity.
   public: std::string entityType = "";
 
+  /// \brief SDF plugin information.
+  public: sdf::Plugin plugin;
+
   /// \brief _filename The plugin library.
+  // Remove this in Garden, and rely solely on the plugin variable.
+  // Requires: https://github.com/gazebosim/sdformat/pull/1055
   public: std::string filename = "";
 
   /// \brief Name of the plugin implementation.
@@ -93,7 +95,7 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo()
-: dataPtr(new ServerConfig::PluginInfoPrivate)
+: dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
 {
 }
 
@@ -106,11 +108,28 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_filename,
                        const std::string &_name,
                        const sdf::ElementPtr &_sdf)
-  : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
-                                  _filename, _name))
+  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
 {
   if (_sdf)
+  {
     this->dataPtr->sdf = _sdf->Clone();
+    this->dataPtr->plugin.Load(this->dataPtr->sdf);
+  }
+  this->dataPtr->plugin.SetName(_name);
+  this->dataPtr->plugin.SetFilename(_filename);
+  this->dataPtr->filename = _filename;
+  this->dataPtr->name = _name;
+  this->dataPtr->entityName = _entityName;
+  this->dataPtr->entityType = _entityType;
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
+                       const std::string &_entityType,
+                       const sdf::Plugin &_plugin)
+  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>(_entityName,
+        _entityType, _plugin))
+{
 }
 
 //////////////////////////////////////////////////
@@ -161,6 +180,7 @@ const std::string &ServerConfig::PluginInfo::Filename() const
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
 {
+  this->dataPtr->plugin.SetFilename(_filename);
   this->dataPtr->filename = _filename;
 }
 
@@ -173,6 +193,7 @@ const std::string &ServerConfig::PluginInfo::Name() const
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetName(const std::string &_name)
 {
+  this->dataPtr->plugin.SetName(_name);
   this->dataPtr->name = _name;
 }
 
@@ -186,9 +207,32 @@ const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
 void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 {
   if (_sdf)
+  {
     this->dataPtr->sdf = _sdf->Clone();
+    this->dataPtr->plugin.Load(_sdf);
+  }
   else
     this->dataPtr->sdf = nullptr;
+}
+
+//////////////////////////////////////////////////
+const sdf::Plugin &ServerConfig::PluginInfo::Plugin() const
+{
+  return this->dataPtr->plugin;
+}
+
+//////////////////////////////////////////////////
+sdf::Plugin &ServerConfig::PluginInfo::Plugin()
+{
+  return this->dataPtr->plugin;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::PluginInfo::SetPlugin(const sdf::Plugin &_plugin) const
+{
+  this->dataPtr->plugin = _plugin;
+  this->dataPtr->filename = _plugin.Filename();
+  this->dataPtr->name = _plugin.Name();
 }
 
 /// \brief Private data for ServerConfig.
@@ -573,45 +617,33 @@ void ServerConfig::AddPlugin(const ServerConfig::PluginInfo &_info)
 ServerConfig::PluginInfo
 ServerConfig::LogPlaybackPlugin() const
 {
+  sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "ignition::gazebo::systems::LogPlayback";
-  auto pluginFilename = "ignition-gazebo-log-system";
-
-  sdf::ElementPtr playbackElem;
-  playbackElem = std::make_shared<sdf::Element>();
-  playbackElem->SetName("plugin");
+  plugin.SetName("ignition::gazebo::systems::LogPlayback");
+  plugin.SetFilename("ignition-gazebo-log-system");
 
   if (!this->LogPlaybackPath().empty())
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
     pathElem->SetName("playback_path");
-    playbackElem->AddElementDescription(pathElem);
-    pathElem = playbackElem->GetElement("playback_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogPlaybackPath());
+    plugin.InsertContent(pathElem);
   }
 
-  return ServerConfig::PluginInfo(entityName,
-      entityType,
-      pluginFilename,
-      pluginName,
-      playbackElem);
+  return ServerConfig::PluginInfo(entityName, entityType, plugin);
 }
 
 /////////////////////////////////////////////////
 ServerConfig::PluginInfo
 ServerConfig::LogRecordPlugin() const
 {
+  sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "ignition::gazebo::systems::LogRecord";
-  auto pluginFilename = "ignition-gazebo-log-system";
-
-  sdf::ElementPtr recordElem;
-
-  recordElem = std::make_shared<sdf::Element>();
-  recordElem->SetName("plugin");
+  plugin.SetName("ignition::gazebo::systems::LogRecord");
+  plugin.SetFilename("ignition-gazebo-log-system");
 
   igndbg << "Generating LogRecord SDF:" << std::endl;
 
@@ -619,37 +651,33 @@ ServerConfig::LogRecordPlugin() const
   {
     sdf::ElementPtr pathElem = std::make_shared<sdf::Element>();
     pathElem->SetName("record_path");
-    recordElem->AddElementDescription(pathElem);
-    pathElem = recordElem->GetElement("record_path");
     pathElem->AddValue("string", "", false, "");
     pathElem->Set<std::string>(this->LogRecordPath());
+    plugin.InsertContent(pathElem);
   }
 
   // Set whether to record resources
   sdf::ElementPtr resourceElem = std::make_shared<sdf::Element>();
   resourceElem->SetName("record_resources");
-  recordElem->AddElementDescription(resourceElem);
-  resourceElem = recordElem->GetElement("record_resources");
   resourceElem->AddValue("bool", "false", false, "");
   resourceElem->Set<bool>(this->LogRecordResources() ? true : false);
+  plugin.InsertContent(resourceElem);
 
   if (!this->LogRecordCompressPath().empty())
   {
     // Set whether to compress
     sdf::ElementPtr compressElem = std::make_shared<sdf::Element>();
     compressElem->SetName("compress");
-    recordElem->AddElementDescription(compressElem);
-    compressElem = recordElem->GetElement("compress");
     compressElem->AddValue("bool", "false", false, "");
     compressElem->Set<bool>(true);
+    plugin.InsertContent(compressElem);
 
-  // Set compress path
+    // Set compress path
     sdf::ElementPtr cPathElem = std::make_shared<sdf::Element>();
     cPathElem->SetName("compress_path");
-    recordElem->AddElementDescription(cPathElem);
-    cPathElem = recordElem->GetElement("compress_path");
     cPathElem->AddValue("string", "", false, "");
     cPathElem->Set<std::string>(this->LogRecordCompressPath());
+    plugin.InsertContent(cPathElem);
   }
 
   // If record topics specified, add in SDF
@@ -657,19 +685,16 @@ ServerConfig::LogRecordPlugin() const
   {
     sdf::ElementPtr topicElem = std::make_shared<sdf::Element>();
     topicElem->SetName("record_topic");
-    recordElem->AddElementDescription(topicElem);
-    topicElem = recordElem->AddElement("record_topic");
     topicElem->AddValue("string", "false", false, "");
     topicElem->Set<std::string>(topic);
+    plugin.InsertContent(topicElem);
   }
 
-  igndbg << recordElem->ToString("") << std::endl;
+  igndbg << plugin.ToElement()->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
       entityType,
-      pluginFilename,
-      pluginName,
-      recordElem);
+      plugin);
 }
 
 /////////////////////////////////////////////////
@@ -838,9 +863,11 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     // Create an SDF element of the plugin
     sdf::ElementPtr sdf(new sdf::Element);
     copyElement(sdf, elem);
+    sdf::Plugin plugin;
+    plugin.Load(sdf);
 
     // Add the plugin to the server config
-    ret.push_back({entityName, entityType, file, name, sdf});
+    ret.push_back({entityName, entityType, plugin});
   }
   return ret;
 }
@@ -862,7 +889,6 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
   doc.Parse(_str.c_str());
   return parsePluginsFromDoc(doc);
 }
-
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>

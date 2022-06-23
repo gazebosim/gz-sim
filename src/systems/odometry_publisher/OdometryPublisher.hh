@@ -57,6 +57,10 @@ namespace systems
   /// odometry with covariance messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/odometry_with_covariance`.
   ///
+  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// transform from `odom_frame` to `robot_base_frame`. This element is
+  /// optional, and the default value is `/model/{name_of_model}/pose`.
+  ///
   /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
   /// default value is 2.

@@ -229,6 +229,9 @@ void LevelManager::ReadLevelPerformerInfo()
   this->ConfigureDefaultLevel();
 
   // Load world plugins.
+  this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
+      this->runner->sdfWorld->Plugins());
+  // Deprecate this in Garden
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
 

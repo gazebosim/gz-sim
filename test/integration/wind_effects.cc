@@ -70,8 +70,10 @@ class LinkComponentRecorder
   public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
       : linkName(std::move(_linkName))
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetName("ignition::gazebo::MockSystem");
+    sdfPlugin.SetFilename("libMockSystem.so");
+    auto plugin = loader.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();
