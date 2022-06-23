@@ -17,9 +17,18 @@
 
 #include "TriggeredPublisher.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #include <limits>
 #include <utility>
