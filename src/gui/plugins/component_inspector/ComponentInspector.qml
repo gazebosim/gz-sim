@@ -226,8 +226,8 @@ Rectangle {
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
         }
-        visible: entityType == "model"
-        ToolTip.text: "Add a system to a model"
+        visible: entityType == "model" || entityType == "visual" || entityType == "sensor"
+        ToolTip.text: "Add a system to this entity"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
@@ -295,7 +295,7 @@ Rectangle {
 
       Text {
         id: innerxmlLabel
-        text: "Innerxml"
+        text: "Inner XML"
       }
 
       Flickable {
@@ -305,7 +305,6 @@ Rectangle {
         Layout.fillHeight: true
 
         flickableDirection: Flickable.VerticalFlick
-        // contentY: 200
         TextArea.flickable: TextArea {
           id: innerxmlField
           wrapMode: Text.WordWrap
@@ -313,7 +312,9 @@ Rectangle {
           textFormat: TextEdit.PlainText
           font.pointSize: 10
         }
-        ScrollBar.vertical: ScrollBar {}
+        ScrollBar.vertical: ScrollBar {
+          policy: ScrollBar.AlwaysOn
+        }
       }
     }
 
@@ -323,7 +324,7 @@ Rectangle {
     }
 
     onOpened: {
-      buttons.standardButton(Dialog.Ok).enabled = false;
+      addSystemDialog.updateButtonState();
     }
 
     onAccepted: {

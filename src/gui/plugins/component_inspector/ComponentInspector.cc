@@ -896,7 +896,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
       if (comp)
       {
-        this->SetType("material");
         setData(item, comp->Data());
       }
     }
@@ -1290,10 +1289,11 @@ void ComponentInspector::OnAddSystem(const QString &_name,
       "/entity/system/add"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "Error adding new system to model:\n"
+    ignerr << "Error adding new system to entity: "
+           << this->dataPtr->entity << "\n"
            << "Name: " << name << "\n"
            << "Filename: " << filename << "\n"
-           << "Innerxml: " << innerxml << std::endl;
+           << "Inner XML: " << innerxml << std::endl;
   }
 }
 
