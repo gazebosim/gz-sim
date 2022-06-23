@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <sdf/Plugin.hh>
+
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
@@ -52,13 +54,9 @@ namespace ignition
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
-      /// \param[in] _fname Filename of the plugin library
-      /// \param[in] _name Name of the plugin
-      /// \param[in] _sdf SDF element (content of plugin tag)
+      /// \param[in] _plugin Plugin to load
       public: void LoadPlugin(const Entity _entity,
-                              const std::string &_fname,
-                              const std::string &_name,
-                              const sdf::ElementPtr &_sdf);
+                              const sdf::Plugin &_plugin);
 
       /// \brief Add a system to the manager
       /// \param[in] _system SystemPluginPtr to be added

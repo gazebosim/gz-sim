@@ -122,7 +122,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
-  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
@@ -856,11 +856,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
+                                  const sdf::Plugin &_plugin)
 {
-  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
+  this->systemMgr->LoadPlugin(_entity, _plugin);
 }
 
 //////////////////////////////////////////////////
@@ -940,7 +938,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+      this->LoadPlugin(entity, plugin.Plugin());
     }
   }
 }
@@ -972,23 +970,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+    const sdf::Plugins &_plugins)
 {
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
+  for (const sdf::Plugin &plugin : _plugins)
   {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
+      this->LoadPlugin(_entity, plugin);
     }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 
