@@ -32,7 +32,7 @@ function(gz_add_gui_library library_name)
     # private members that don't get exported, so they trigger this warning.
     # However, the warning is not important since those members do not need to
     # be interfaced with.
-    set_source_files_properties(${library_name}_headers_MOC COMPILE_FLAGS "/wd4251")
+    set_source_files_properties(${${library_name}_headers_MOC} COMPILE_FLAGS "/wd4251")
   endif()
 
   add_library(${library_name} SHARED
