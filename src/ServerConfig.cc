@@ -82,6 +82,8 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
   public: sdf::Plugin plugin;
 
   /// \brief _filename The plugin library.
+  // Remove this in Garden, and rely solely on the plugin variable.
+  // Requires: https://github.com/gazebosim/sdformat/pull/1055
   public: std::string filename = "";
 
   /// \brief Name of the plugin implementation.
@@ -89,12 +91,11 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 
   /// \brief XML elements associated with this plugin
   public: sdf::ElementPtr sdf = nullptr;
-
 };
 
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo()
-: dataPtr(new ServerConfig::PluginInfoPrivate)
+: dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
 {
 }
 
@@ -107,7 +108,7 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_filename,
                        const std::string &_name,
                        const sdf::ElementPtr &_sdf)
-  : dataPtr(new ServerConfig::PluginInfoPrivate())
+  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
 {
   if (_sdf)
   {
@@ -126,8 +127,8 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
 ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_entityType,
                        const sdf::Plugin &_plugin)
-  : dataPtr(new ServerConfig::PluginInfoPrivate(_entityName, _entityType,
-                                  _plugin))
+  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>(_entityName,
+        _entityType, _plugin))
 {
 }
 
