@@ -254,7 +254,7 @@ namespace events
     /// \brief Get the SDF Plugin of the visual plugin
     public: const sdf::Plugins &Plugins() const;
 
-    static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 9);
 
     /// \internal
     /// \brief Private data pointer

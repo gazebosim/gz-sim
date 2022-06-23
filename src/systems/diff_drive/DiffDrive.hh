@@ -63,7 +63,7 @@ namespace systems
   /// `/model/{name_of_model}/odometry`.
   ///
   /// `<tf_topic>`: Custom topic on which this system will publish the
-  /// transform from `frame_id` to `child_frame_id`. This element if optional,
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
   ///  and the default value is `/model/{name_of_model}/tf`.
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the

@@ -952,6 +952,63 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_FALSE(res.has_sky());
 }
 
+TEST_P(SceneBroadcasterTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasParticleEmitter))
+{
+  // Start server
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      common::joinPaths("/", "test", "worlds", "particle_emitter2.sdf"));
+
+  gazebo::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  ignition::msgs::Scene res;
+
+  EXPECT_TRUE(node.Request("/world/particle_emitters/scene/info",
+        timeout, res, result));
+  ASSERT_TRUE(result);
+
+  ASSERT_EQ(3, res.model_size());
+  int count = 0;
+  for (int i = 0; i < res.model_size(); ++i)
+  {
+    if (res.model(i).name() == "smoke_generator_demo_model")
+    {
+      count++;
+      // There should be one link
+      ASSERT_EQ(1, res.model(i).link_size());
+      // The link should have one particle emitter
+      ASSERT_EQ(1, res.model(i).link(0).particle_emitter_size());
+
+      // Check a few parameter values to make sure we have the correct
+      // particle emittter
+      const msgs::ParticleEmitter &emitter =
+        res.model(i).link(0).particle_emitter(0);
+      EXPECT_EQ("smoke_emitter", emitter.name());
+      EXPECT_EQ(math::Pose3d(0, 1, 0, 0, 0, 0), msgs::Convert(emitter.pose()));
+      EXPECT_EQ(math::Vector3d(2, 2, 2), msgs::Convert(emitter.size()));
+      EXPECT_DOUBLE_EQ(5.0, emitter.rate().data());
+      EXPECT_DOUBLE_EQ(1.0, emitter.duration().data());
+      EXPECT_EQ(math::Vector3d(3, 3, 3),
+          msgs::Convert(emitter.particle_size()));
+      EXPECT_DOUBLE_EQ(2.0, emitter.lifetime().data());
+    }
+  }
+
+  // Should have found 1 particle emitter.
+  EXPECT_EQ(1, count);
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));
