@@ -73,8 +73,6 @@ COMMANDS = { 'gazebo' =>
   "                               enable console logging to a console.log          \n"\
   "                               file in the specified path.                      \n"\
   "\n"\
-  "  --headless-rendering         Run rendering in headless mode                   \n"\
-  "\n"\
   "  --record-resources           Implicitly invokes --record, and records         \n"\
   "                               meshes and material files, in addition to        \n"\
   "                               states and console messages.                     \n"\
@@ -108,6 +106,8 @@ COMMANDS = { 'gazebo' =>
   "\n"\
   "  --playback [arg]             Use logging system to play back states.          \n"\
   "                               Argument is path to recorded states.             \n"\
+  "\n"\
+  "  --headless-rendering         Run rendering in headless mode                   \n"\
   "\n"\
   "  -r                           Run simulation on start.                         \n"\
   "\n"\
@@ -160,7 +160,9 @@ COMMANDS = { 'gazebo' =>
   " locate system plugins.                                               \n\n"\
   "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
-  " plugins.                                                               \n"\
+  " plugins.                                                             \n\n"\
+  "  GZ_GUI_RESOURCE_PATH    Colon separated paths used to locate GUI      \n"\
+  " resources such as configuration files.                               \n\n"
 }
 
 #
