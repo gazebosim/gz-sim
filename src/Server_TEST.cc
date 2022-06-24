@@ -1172,6 +1172,32 @@ TEST_P(ServerFixture, ResolveResourcePaths)
         "include_nested", "model.sdf"), true);
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Stop)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/shapes.sdf");
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
+
+  // Run the server.
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_TRUE(*server.Running(0));
+  EXPECT_TRUE(server.Running());
+
+  // Stop the server
+  server.Stop();
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
