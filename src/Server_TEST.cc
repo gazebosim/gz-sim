@@ -231,8 +231,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetUpdateRate(10000);
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "/test/worlds/shapes.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -338,8 +338,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
   // Setting the SDF file should override the string.
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "/test/worlds/shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -407,8 +407,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -447,8 +446,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 TEST_P(ServerFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -480,8 +478,8 @@ TEST_P(ServerFixture, SdfStringServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "/test/worlds/shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -796,8 +794,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "/test/worlds/shapes.sdf"));
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -844,8 +842,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "/test/worlds/shapes.sdf"));
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -917,8 +915,8 @@ TEST_P(ServerFixture, Seed)
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-         (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+      (common::joinPaths(PROJECT_SOURCE_PATH, "/test/worlds:") +
+       common::joinPaths(PROJECT_SOURCE_PATH, "/test/worlds/models")).c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -1178,8 +1176,8 @@ TEST_P(ServerFixture, Stop)
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetUpdateRate(10000);
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths((PROJECT_SOURCE_PATH),
+      "/test/worlds/shapes.sdf"));
 
   gazebo::Server server(serverConfig);
 
