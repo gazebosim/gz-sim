@@ -94,6 +94,11 @@ set(tests_needing_display
   wide_angle_camera.cc
 )
 
+# Disable tests that need CLI if gz-tools is not found
+if (MSVC OR NOT GZ_TOOLS_PROGRAM)
+  list(REMOVE_ITEM tests log_system.cc)
+endif()
+
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
 # or Xdummy instead of skipping them

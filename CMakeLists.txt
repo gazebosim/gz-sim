@@ -159,10 +159,13 @@ gz_find_package(ignition-math7 REQUIRED COMPONENTS eigen3)
 set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-tools
-gz_find_package(ignition-tools2
-                 REQUIRED
-                 PKGCONFIG "ignition-tools2")
+# Find if gz command is available
+find_program(GZ_TOOLS_PROGRAM gz)
+if (GZ_TOOLS_PROGRAM)
+  message (STATUS "Searching for gz program - found. CLI tests can be built.")
+else()
+  message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
+endif()
 
 #--------------------------------------
 # Find ignition-utils
