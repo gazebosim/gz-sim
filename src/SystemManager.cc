@@ -59,11 +59,16 @@ void SystemManager::LoadPlugin(const Entity _entity,
         _fname == pluginInfo.fname &&
         _name == pluginInfo.name)
     {
-      //  Plugin already loaded
-      igndbg << "This system Plugin [" << _name
-             << "] is already loaded in this entity [" << _entity
-             << "]" << std::endl;
-      return;
+      if (_name == "gz::sim::systems::UserCommands" ||
+          _name == "gz::sim::systems::SceneBroadcaster" ||
+          _name == "gz::sim::systems::Physics")
+      {
+        //  Plugin already loaded
+        igndbg << "This system Plugin [" << _name
+               << "] is already loaded in this entity [" << _entity
+               << "]" << std::endl;
+        return;
+      }
     }
   }
 
@@ -157,6 +162,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
+  loadedPlugins.clear();
 
   std::vector<PluginInfo> pluginsToBeLoaded;
 

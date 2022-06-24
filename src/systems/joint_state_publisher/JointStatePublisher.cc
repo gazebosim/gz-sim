@@ -47,6 +47,12 @@ JointStatePublisher::JointStatePublisher()
 }
 
 //////////////////////////////////////////////////
+void JointStatePublisher::Reset(const UpdateInfo &_info,
+                                EntityComponentManager &_ecm)
+{
+}
+
+//////////////////////////////////////////////////
 void JointStatePublisher::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &)
@@ -315,6 +321,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 GZ_ADD_PLUGIN(JointStatePublisher,
                     gz::sim::System,
                     JointStatePublisher::ISystemConfigure,
+                    JointStatePublisher::ISystemReset,
                     JointStatePublisher::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,

@@ -538,8 +538,7 @@ void SimulationRunner::UpdateSystems()
   if (this->resetInitiated)
   {
     GZ_PROFILE("Reset");
-    for (auto &system : this->systemMgr->SystemsReset())
-      system->Reset(this->currentInfo, this->entityCompMgr);
+    this->systemMgr->Reset(this->currentInfo, this->entityCompMgr);
     return;
   }
 

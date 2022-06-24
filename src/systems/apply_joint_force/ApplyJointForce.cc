@@ -63,6 +63,12 @@ ApplyJointForce::ApplyJointForce()
 }
 
 //////////////////////////////////////////////////
+void ApplyJointForce::Reset(const UpdateInfo &_info,
+                                    EntityComponentManager &_ecm)
+{
+}
+
+//////////////////////////////////////////////////
 void ApplyJointForce::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -164,13 +170,14 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 GZ_ADD_PLUGIN(ApplyJointForce,
-                    gz::sim::System,
-                    ApplyJointForce::ISystemConfigure,
-                    ApplyJointForce::ISystemPreUpdate)
+              gz::sim::System,
+              ApplyJointForce::ISystemConfigure,
+              ApplyJointForce::ISystemReset,
+              ApplyJointForce::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "gz::sim::systems::ApplyJointForce")
+                    "gz::sim::systems::ApplyJointForce")
 
 // TODO(CH3): Deprecated, remove on version 8
 GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "ignition::gazebo::systems::ApplyJointForce")
+                    "ignition::gazebo::systems::ApplyJointForce")

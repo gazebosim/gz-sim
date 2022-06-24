@@ -194,8 +194,12 @@ class CreateCommand : public UserCommandBase
   public: CreateCommand(msgs::EntityFactory *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  public: ~CreateCommand();
+
   // Documentation inherited
   public: bool Execute() final;
+
+  private: std::thread threadDownloadModel;
 };
 
 /// \brief Command to remove an entity from simulation.
@@ -760,6 +764,11 @@ void UserCommands::Configure(const Entity &_entity,
   gzmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
+void UserCommands::Reset(const UpdateInfo &/*_info*/,
+                         EntityComponentManager &/*_ecm*/)
+{
+}
+
 //////////////////////////////////////////////////
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
@@ -1055,258 +1064,266 @@ CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
 {
 }
 
+CreateCommand::~CreateCommand()
+{
+  threadDownloadModel.join();
+}
+
 //////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
-  auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
-  if (nullptr == createMsg)
+  threadDownloadModel = std::thread([&]()
   {
-    gzerr << "Internal error, null create message" << std::endl;
-    return false;
-  }
-
-  // Load SDF
-  sdf::Root root;
-  sdf::Light lightSdf;
-  sdf::Errors errors;
-  switch (createMsg->from_case())
-  {
-    case msgs::EntityFactory::kSdf:
+    auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
+    if (nullptr == createMsg)
     {
-      errors = root.LoadSdfString(createMsg->sdf());
-      break;
-    }
-    case msgs::EntityFactory::kSdfFilename:
-    {
-      errors = root.Load(createMsg->sdf_filename());
-      break;
-    }
-    case msgs::EntityFactory::kModel:
-    {
-      // TODO(louise) Support model msg
-      gzerr << "model field not yet supported." << std::endl;
+      gzerr << "Internal error, null create message" << std::endl;
       return false;
     }
-    case msgs::EntityFactory::kLight:
-    {
-      lightSdf = convert<sdf::Light>(createMsg->light());
-      break;
-    }
-    case msgs::EntityFactory::kCloneName:
-    {
-      auto validClone = false;
-      auto clonedEntity = kNullEntity;
-      auto entityToClone = this->iface->ecm->EntityByComponents(
-          components::Name(createMsg->clone_name()));
-      if (kNullEntity != entityToClone)
-      {
-        auto parentComp =
-          this->iface->ecm->Component<components::ParentEntity>(entityToClone);
 
-        // TODO(anyone) add better support for creating non-top level entities.
-        // For now, we will only clone top level entities
-        if (parentComp && parentComp->Data() == this->iface->worldEntity)
-        {
-          auto parentEntity = parentComp->Data();
-          clonedEntity = this->iface->ecm->Clone(entityToClone,
-              parentEntity, createMsg->name(), createMsg->allow_renaming());
-          validClone = kNullEntity != clonedEntity;
-        }
+    // Load SDF
+    sdf::Root root;
+    sdf::Light lightSdf;
+    sdf::Errors errors;
+    switch (createMsg->from_case())
+    {
+      case msgs::EntityFactory::kSdf:
+      {
+        errors = root.LoadSdfString(createMsg->sdf());
+        break;
       }
-
-      if (!validClone)
+      case msgs::EntityFactory::kSdfFilename:
       {
-        gzerr << "Request to clone an entity named ["
-          << createMsg->clone_name() << "] failed." << std::endl;
+        errors = root.Load(createMsg->sdf_filename());
+        break;
+      }
+      case msgs::EntityFactory::kModel:
+      {
+        // TODO(louise) Support model msg
+        gzerr << "model field not yet supported." << std::endl;
         return false;
       }
-
-      if (createMsg->has_pose())
+      case msgs::EntityFactory::kLight:
       {
-        // TODO(anyone) handle if relative_to is filled
-        auto pose = sim::convert<math::Pose3d>(createMsg->pose());
-        this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
-            pose);
+        lightSdf = convert<sdf::Light>(createMsg->light());
+        break;
       }
-      return true;
+      case msgs::EntityFactory::kCloneName:
+      {
+        auto validClone = false;
+        auto clonedEntity = kNullEntity;
+        auto entityToClone = this->iface->ecm->EntityByComponents(
+            components::Name(createMsg->clone_name()));
+        if (kNullEntity != entityToClone)
+        {
+          auto parentComp =
+            this->iface->ecm->Component<components::ParentEntity>(entityToClone);
+
+          // TODO(anyone) add better support for creating non-top level entities.
+          // For now, we will only clone top level entities
+          if (parentComp && parentComp->Data() == this->iface->worldEntity)
+          {
+            auto parentEntity = parentComp->Data();
+            clonedEntity = this->iface->ecm->Clone(entityToClone,
+                parentEntity, createMsg->name(), createMsg->allow_renaming());
+            validClone = kNullEntity != clonedEntity;
+          }
+        }
+
+        if (!validClone)
+        {
+          gzerr << "Request to clone an entity named ["
+            << createMsg->clone_name() << "] failed." << std::endl;
+          return false;
+        }
+
+        if (createMsg->has_pose())
+        {
+          // TODO(anyone) handle if relative_to is filled
+          auto pose = sim::convert<math::Pose3d>(createMsg->pose());
+          this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
+              pose);
+        }
+        return true;
+      }
+      default:
+      {
+        gzerr << "Missing [from] field in create message." << std::endl;
+        return false;
+      }
     }
-    default:
+
+    if (!errors.empty())
     {
-      gzerr << "Missing [from] field in create message." << std::endl;
-      return false;
-    }
-  }
-
-  if (!errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << std::endl;
-    return false;
-  }
-
-  bool isModel{false};
-  bool isLight{false};
-  bool isActor{false};
-  bool isRoot{false};
-  if (nullptr != root.Model())
-  {
-    isRoot = true;
-    isModel = true;
-  }
-  else if (nullptr != root.Light())
-  {
-    isRoot = true;
-    isLight = true;
-  }
-  else if (nullptr != root.Actor())
-  {
-    isRoot = true;
-    isActor = true;
-  }
-  else if (!lightSdf.Name().empty())
-  {
-    isLight = true;
-  }
-  else
-  {
-    gzerr << "Expected exactly one top-level <model>, <light> or <actor> on"
-           << " SDF." << std::endl;
-    return false;
-  }
-
-  if ((isModel && isLight) || (isModel && isActor) || (isLight && isActor))
-  {
-    gzwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
-            << "but found more. Only the 1st will be spawned." << std::endl;
-  }
-
-  // Check the name of the entity being spawned
-  std::string desiredName;
-  if (!createMsg->name().empty())
-  {
-    desiredName = createMsg->name();
-  }
-  else if (isModel)
-  {
-    desiredName = root.Model()->Name();
-  }
-  else if (isLight && isRoot)
-  {
-    desiredName = root.Light()->Name();
-  }
-  else if (isLight)
-  {
-    desiredName = lightSdf.Name();
-  }
-  else if (isActor)
-  {
-    desiredName = root.Actor()->Name();
-  }
-
-  // Check if there's already a top-level entity with the given name
-  if (kNullEntity != this->iface->ecm->EntityByComponents(
-      components::Name(desiredName),
-      components::ParentEntity(this->iface->worldEntity)))
-  {
-    if (!createMsg->allow_renaming())
-    {
-      gzwarn << "Entity named [" << desiredName << "] already exists and "
-              << "[allow_renaming] is false. Entity not spawned."
-              << std::endl;
+      for (auto &err : errors)
+        gzerr << err << std::endl;
       return false;
     }
 
-    // Generate unique name
-    std::string newName = desiredName;
-    int i = 0;
-    while (kNullEntity != this->iface->ecm->EntityByComponents(
-      components::Name(newName),
-      components::ParentEntity(this->iface->worldEntity)))
+    bool isModel{false};
+    bool isLight{false};
+    bool isActor{false};
+    bool isRoot{false};
+    if (nullptr != root.Model())
     {
-      newName = desiredName + "_" + std::to_string(i++);
+      isRoot = true;
+      isModel = true;
     }
-    desiredName = newName;
-  }
-
-  // Create entities
-  Entity entity{kNullEntity};
-  if (isModel)
-  {
-    auto model = *root.Model();
-    model.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&model);
-  }
-  else if (isLight && isRoot)
-  {
-    auto light = *root.Light();
-    light.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&light);
-  }
-  else if (isLight)
-  {
-    lightSdf.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&lightSdf);
-  }
-  else if (isActor)
-  {
-    auto actor = *root.Actor();
-    actor.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&actor);
-  }
-
-  this->iface->creator->SetParent(entity, this->iface->worldEntity);
-
-  // Pose
-  std::optional<math::Pose3d> createPose;
-  if (createMsg->has_pose())
-  {
-    createPose = msgs::Convert(createMsg->pose());
-  }
-
-  // Spherical coordinates
-  if (createMsg->has_spherical_coordinates())
-  {
-    auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
-        this->iface->worldEntity);
-    if (nullptr == scComp)
+    else if (nullptr != root.Light())
     {
-      gzwarn << "Trying to create entity [" << desiredName
-              << "] with spherical coordinates, but world's spherical "
-              << "coordinates aren't set. Entity will be created at the world "
-              << "origin." << std::endl;
+      isRoot = true;
+      isLight = true;
+    }
+    else if (nullptr != root.Actor())
+    {
+      isRoot = true;
+      isActor = true;
+    }
+    else if (!lightSdf.Name().empty())
+    {
+      isLight = true;
     }
     else
     {
-      // deg to rad
-      math::Vector3d latLonEle{
-          GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
-          GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
-          createMsg->spherical_coordinates().elevation()};
-
-      auto pos = scComp->Data().PositionTransform(latLonEle,
-          math::SphericalCoordinates::SPHERICAL,
-          math::SphericalCoordinates::LOCAL2);
-
-      // Override pos and add to yaw
-      if (!createPose.has_value())
-        createPose = math::Pose3d::Zero;
-      createPose.value().SetX(pos.X());
-      createPose.value().SetY(pos.Y());
-      createPose.value().SetZ(pos.Z());
-      createPose.value().Rot() = math::Quaterniond(0, 0,
-          GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
-          createPose.value().Rot();
+      gzerr << "Expected exactly one top-level <model>, <light> or <actor> on"
+             << " SDF." << std::endl;
+      return false;
     }
-  }
 
-  if (createPose.has_value())
-  {
-    auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
-    *poseComp = components::Pose(createPose.value());
-  }
+    if ((isModel && isLight) || (isModel && isActor) || (isLight && isActor))
+    {
+      gzwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
+              << "but found more. Only the 1st will be spawned." << std::endl;
+    }
 
-  gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"
-         << std::endl;
+    // Check the name of the entity being spawned
+    std::string desiredName;
+    if (!createMsg->name().empty())
+    {
+      desiredName = createMsg->name();
+    }
+    else if (isModel)
+    {
+      desiredName = root.Model()->Name();
+    }
+    else if (isLight && isRoot)
+    {
+      desiredName = root.Light()->Name();
+    }
+    else if (isLight)
+    {
+      desiredName = lightSdf.Name();
+    }
+    else if (isActor)
+    {
+      desiredName = root.Actor()->Name();
+    }
+
+    // Check if there's already a top-level entity with the given name
+    if (kNullEntity != this->iface->ecm->EntityByComponents(
+        components::Name(desiredName),
+        components::ParentEntity(this->iface->worldEntity)))
+    {
+      if (!createMsg->allow_renaming())
+      {
+        gzwarn << "Entity named [" << desiredName << "] already exists and "
+                << "[allow_renaming] is false. Entity not spawned."
+                << std::endl;
+        return false;
+      }
+
+      // Generate unique name
+      std::string newName = desiredName;
+      int i = 0;
+      while (kNullEntity != this->iface->ecm->EntityByComponents(
+        components::Name(newName),
+        components::ParentEntity(this->iface->worldEntity)))
+      {
+        newName = desiredName + "_" + std::to_string(i++);
+      }
+      desiredName = newName;
+    }
+
+    // Create entities
+    Entity entity{kNullEntity};
+    if (isModel)
+    {
+      auto model = *root.Model();
+      model.SetName(desiredName);
+      entity = this->iface->creator->CreateEntities(&model);
+    }
+    else if (isLight && isRoot)
+    {
+      auto light = *root.Light();
+      light.SetName(desiredName);
+      entity = this->iface->creator->CreateEntities(&light);
+    }
+    else if (isLight)
+    {
+      lightSdf.SetName(desiredName);
+      entity = this->iface->creator->CreateEntities(&lightSdf);
+    }
+    else if (isActor)
+    {
+      auto actor = *root.Actor();
+      actor.SetName(desiredName);
+      entity = this->iface->creator->CreateEntities(&actor);
+    }
+
+    this->iface->creator->SetParent(entity, this->iface->worldEntity);
+
+    // Pose
+    std::optional<math::Pose3d> createPose;
+    if (createMsg->has_pose())
+    {
+      createPose = msgs::Convert(createMsg->pose());
+    }
+
+    // Spherical coordinates
+    if (createMsg->has_spherical_coordinates())
+    {
+      auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
+          this->iface->worldEntity);
+      if (nullptr == scComp)
+      {
+        gzwarn << "Trying to create entity [" << desiredName
+                << "] with spherical coordinates, but world's spherical "
+                << "coordinates aren't set. Entity will be created at the world "
+                << "origin." << std::endl;
+      }
+      else
+      {
+        // deg to rad
+        math::Vector3d latLonEle{
+            GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
+            GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
+            createMsg->spherical_coordinates().elevation()};
+
+        auto pos = scComp->Data().PositionTransform(latLonEle,
+            math::SphericalCoordinates::SPHERICAL,
+            math::SphericalCoordinates::LOCAL2);
+
+        // Override pos and add to yaw
+        if (!createPose.has_value())
+          createPose = math::Pose3d::Zero;
+        createPose.value().SetX(pos.X());
+        createPose.value().SetY(pos.Y());
+        createPose.value().SetZ(pos.Z());
+        createPose.value().Rot() = math::Quaterniond(0, 0,
+            GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+            createPose.value().Rot();
+      }
+    }
+
+    if (createPose.has_value())
+    {
+      auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
+      *poseComp = components::Pose(createPose.value());
+    }
+
+    gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"
+           << std::endl;
+  });
 
   return true;
 }
@@ -1922,7 +1939,8 @@ bool WheelSlipCommand::Execute()
 
 GZ_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
-  UserCommands::ISystemPreUpdate
+  UserCommands::ISystemPreUpdate,
+  UserCommands::ISystemReset
 )
 
 GZ_ADD_PLUGIN_ALIAS(UserCommands,

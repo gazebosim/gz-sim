@@ -35,6 +35,7 @@ namespace systems
   class ApplyJointForce
       : public System,
         public ISystemConfigure,
+        public ISystemReset,
         public ISystemPreUpdate
   {
     /// \brief Constructor
@@ -42,6 +43,10 @@ namespace systems
 
     /// \brief Destructor
     public: ~ApplyJointForce() override = default;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,

@@ -238,12 +238,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   if (worldEntity == kNullEntity)
   {
     worldEntity = this->dataPtr->ecm->CreateEntity();
+    // World components
+    this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
+    this->dataPtr->ecm->CreateComponent(worldEntity,
+        components::Name(_world->Name()));
   }
-
-  // World components
-  this->dataPtr->ecm->CreateComponent(worldEntity, components::World());
-  this->dataPtr->ecm->CreateComponent(worldEntity,
-      components::Name(_world->Name()));
 
   // scene
   if (_world->Scene())
