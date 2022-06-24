@@ -232,7 +232,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   ServerConfig serverConfig;
   serverConfig.SetUpdateRate(10000);
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
-      "/test/worlds/shapes.sdf"));
+      "test", "worlds", "shapes.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
