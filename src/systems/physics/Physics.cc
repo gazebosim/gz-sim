@@ -1374,7 +1374,16 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           // DEM
           else
           {
+            auto worldEntity = _ecm.EntityByComponents(components::World());
+            auto worldSphericalCoordinates = 
+              _ecm.Component<components::SphericalCoordinates>(
+                worldEntity)->Data();
+
             auto dem = std::make_shared<common::Dem>();
+            if (worldSphericalCoordinates)
+            {
+              dem.SetSphericalCoordinates();
+            }
             if (dem->Load(fullPath) < 0)
             {
               gzerr << "Failed to load heightmap dem data from ["
