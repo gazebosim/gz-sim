@@ -93,14 +93,9 @@ void testImages(const std::string &_imageFile,
   EXPECT_EQ(image.Width(), testImage.Width());
   EXPECT_EQ(image.Height(), testImage.Height());
   EXPECT_EQ(image.PixelFormat(), testImage.PixelFormat());
-  unsigned int dataLength;
-  unsigned char *imageData = nullptr;
-  image.Data(&imageData, dataLength);
-  unsigned int testDataLenght;
-  unsigned char *testImageData = nullptr;
-  image.Data(&testImageData, testDataLenght);
-  ASSERT_EQ(dataLength, testDataLenght);
-  ASSERT_EQ(memcmp(imageData, testImageData, dataLength), 0);
+  auto imageData = image.Data();
+  auto testImageData = image.Data();
+  ASSERT_EQ(imageData, testImageData);
 
   // Deleting files so they do not affect future tests
   EXPECT_EQ(remove(imageFilePath.c_str()), 0);
