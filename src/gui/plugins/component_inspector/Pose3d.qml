@@ -15,7 +15,6 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
@@ -36,24 +35,9 @@ Rectangle {
   property int margin: 5
 
   // Send new pose to C++
-  function sendPose() {
+  function sendPose(x, y, z, roll, pitch, yaw) {
     // TODO(anyone) There's a loss of precision when these values get to C++
-    Pose3dImpl.OnPose(
-      gzPoseContent.xItem.value,
-      gzPoseContent.yItem.value,
-      gzPoseContent.zItem.value,
-      gzPoseContent.rollItem.value,
-      gzPoseContent.pitchItem.value,
-      gzPoseContent.yawItem.value
-    );
-    console.log(
-      gzPoseContent.xItem.value,
-      gzPoseContent.yItem.value,
-      gzPoseContent.zItem.value,
-      gzPoseContent.rollItem.value,
-      gzPoseContent.pitchItem.value,
-      gzPoseContent.yawItem.value
-    )
+    Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
   }
 
   Column {
@@ -120,8 +104,8 @@ Rectangle {
       pitchModelValue: model.data[4]
       yawModelValue: model.data[5]
 
-      onGzPoseSet: {
-        sendPose()
+      onGzPoseSet: (x, y, z, roll, pitch, yaw) => {
+        sendPose(x, y, z, roll, pitch, yaw)
       }
 
       onShowChanged: {
