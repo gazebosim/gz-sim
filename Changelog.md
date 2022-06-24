@@ -2,6 +2,9 @@
 
 ### Gazebo Sim 6.10.0 (2022-06-24)
 
+1. Expose the ability to stop a server from C++
+    * [Pull request #1551](https://github.com/gazebosim/gz-sim/pull/1551)
+
 1. Fix various Protobuf Windows warnings
     * [Pull request #1299](https://github.com/gazebosim/gz-sim/pull/1299)
 
