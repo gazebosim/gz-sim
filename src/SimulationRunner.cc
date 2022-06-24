@@ -112,9 +112,28 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // World control
+  transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
+  if (this->networkMgr)
+  {
+    ns = this->networkMgr->Namespace() + ns;
+  }
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
+  {
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
+  }
+  opts.SetNameSpace(validNs);
+
+  this->node = std::make_unique<transport::Node>(opts);
+
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr);
+      &this->entityCompMgr, &this->eventMgr, validNs);
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -187,25 +206,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
-
-  // World control
-  transport::NodeOptions opts;
-  std::string ns{"/world/" + this->worldName};
-  if (this->networkMgr)
-  {
-    ns = this->networkMgr->Namespace() + ns;
-  }
-
-  auto validNs = transport::TopicUtils::AsValidTopic(ns);
-  if (validNs.empty())
-  {
-    ignerr << "Invalid namespace [" << ns
-           << "], not initializing runner transport." << std::endl;
-    return;
-  }
-  opts.SetNameSpace(validNs);
-
-  this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -813,6 +813,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // the systems can remove them first before new ones are created. This is
   // so that we can recreate entities with the same name.
   this->ProcessRecreateEntitiesRemove();
+
+  // handle systems that need to be added
+  this->systemMgr->ProcessPendingEntitySystems();
 
   // Update all the systems.
   this->UpdateSystems();

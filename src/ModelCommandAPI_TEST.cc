@@ -476,7 +476,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
       "    - Dynamic bias correlation time (s): 0\n";
     EXPECT_EQ(expectedOutput, output);
   }
-}*/
+}
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with a gpu lidar sensor.
@@ -592,7 +592,7 @@ TEST(ModelCommandAPI, GpuLidarSensor2)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with a magnetometer.
-/*TEST(ModelCommandAPI, MagnetometerSensor)
+TEST(ModelCommandAPI, MagnetometerSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -647,11 +647,11 @@ TEST(ModelCommandAPI, GpuLidarSensor2)
 
       EXPECT_EQ(expectedOutput, output);
   }
-}*/
+}
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-/*TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.

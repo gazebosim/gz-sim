@@ -25,11 +25,20 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
                              EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr)
+                             EventManager *_eventMgr,
+                             const std::string &_namespace)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr)
 {
+  transport::NodeOptions opts;
+  opts.SetNameSpace(_namespace);
+  this->node = std::make_unique<transport::Node>(opts);
+  std::string entitySystemService{"entity/system/add"};
+  this->node->Advertise(entitySystemService,
+      &SystemManager::EntitySystemAddService, this);
+  ignmsg << "Serving entity system service on ["
+         << "/" << entitySystemService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -219,4 +228,41 @@ std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
   std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
       std::back_inserter(result), checkEntity);
   return result;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  this->systemsToAdd.push_back(_req);
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+void SystemManager::ProcessPendingEntitySystems()
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  for (auto &req : this->systemsToAdd)
+  {
+    Entity entity = req.entity().id();
+
+    if (req.plugins().empty())
+    {
+      ignwarn << "Unable to add plugins to Entity: '" << entity
+              << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    for (auto &pluginMsg : req.plugins())
+    {
+      std::string fname = pluginMsg.filename();
+      std::string name = pluginMsg.name();
+      std::string innerxml = pluginMsg.innerxml();
+      sdf::Plugin pluginSDF(fname, name, innerxml);
+      this->LoadPlugin(entity, pluginSDF);
+    }
+  }
+  this->systemsToAdd.clear();
 }
