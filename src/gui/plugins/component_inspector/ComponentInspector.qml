@@ -226,7 +226,8 @@ Rectangle {
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
         }
-        visible: entityType == "model" || entityType == "visual" || entityType == "sensor"
+        visible: (entityType == "model" || entityType == "visual" ||
+                  entityType == "sensor" || entityType == "world")
         ToolTip.text: "Add a system to this entity"
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
