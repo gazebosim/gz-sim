@@ -28,7 +28,7 @@
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kIgnCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/gz sim -s ");
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + " sim -s ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
