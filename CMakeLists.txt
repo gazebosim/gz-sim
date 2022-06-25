@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-math7 VERSION 7.0.0)
+project(gz-math7 VERSION 7.0.0)
 
 #============================================================================
-# Find ignition-cmake
+# Find gz-cmake
 #============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake3 REQUIRED)
+# If you get an error at this line, you need to install gz-cmake
+find_package(gz-cmake3 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -41,9 +41,9 @@ option(USE_DIST_PACKAGES_FOR_PYTHON
 #============================================================================
 
 #--------------------------------------
-# Find ignition-utils
-gz_find_package(ignition-utils2 REQUIRED)
-set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
+# Find gz-utils
+gz_find_package(gz-utils2 REQUIRED)
+set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find eigen3
@@ -69,7 +69,7 @@ if (SWIG_FOUND)
   # Include ruby
   find_package(Ruby 1.9 QUIET)
   if (NOT RUBY_FOUND)
-    IGN_BUILD_WARNING("Ruby is missing: Install ruby-dev to enable ruby interface to ignition math.")
+    IGN_BUILD_WARNING("Ruby is missing: Install ruby-dev to enable ruby interfaces.")
     message (STATUS "Searching for Ruby - not found.")
   else()
     message (STATUS "Searching for Ruby - found version ${RUBY_VERSION}.")

@@ -1,5 +1,5 @@
 load(
-    "//ign_bazel:build_defs.bzl",
+    "//gz_bazel:build_defs.bzl",
     "IGNITION_ROOT",
     "IGNITION_VISIBILITY",
 )
@@ -21,7 +21,7 @@ cc_library(
     includes = ["include"],
     deps = [
         "@eigen3",
-        IGNITION_ROOT + "ign_math",
+        IGNITION_ROOT + "gz_math",
     ],
 )
 

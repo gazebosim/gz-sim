@@ -8,7 +8,7 @@ gz_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-    ignition-utils${IGN_UTILS_VER}::ignition-utils${IGN_UTILS_VER}
+    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
 )
 
 # Build the unit tests

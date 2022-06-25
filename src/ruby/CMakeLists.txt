@@ -60,7 +60,8 @@ if (RUBY_FOUND)
 
   SWIG_LINK_LIBRARIES(${SWIG_RB_LIB}
     ${RUBY_LIBRARY}
-    ignition-math${PROJECT_VERSION_MAJOR}
+    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+    gz-math${PROJECT_VERSION_MAJOR}
   )
   target_compile_features(${SWIG_RB_LIB} PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
 

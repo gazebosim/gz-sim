@@ -1,11 +1,11 @@
 load(
-    "//ign_bazel:build_defs.bzl",
+    "//gz_bazel:build_defs.bzl",
     "IGNITION_FEATURES",
     "IGNITION_VISIBILITY",
     "cmake_configure_file",
     "generate_include_header",
-    "ign_config_header",
-    "ign_export_header",
+    "gz_config_header",
+    "gz_export_header",
 )
 
 package(
@@ -17,7 +17,7 @@ licenses(["notice"])
 
 exports_files(["LICENSE"])
 
-PROJECT_NAME = "ignition-math"
+PROJECT_NAME = "gz-math"
 
 PROJECT_MAJOR = 7
 
@@ -26,15 +26,15 @@ PROJECT_MINOR = 0
 PROJECT_PATCH = 0
 
 # Generates config.hh based on the version numbers in CMake code.
-ign_config_header(
+gz_config_header(
     name = "config",
     src = "include/ignition/math/config.hh.in",
     cmakelists = ["CMakeLists.txt"],
-    project_name = "ignition-math",
+    project_name = PROJECT_NAME,
     project_version = (PROJECT_MAJOR, PROJECT_MINOR, PROJECT_PATCH),
 )
 
-ign_export_header(
+gz_export_header(
     name = "include/ignition/math/Export.hh",
     export_base = "IGNITION_MATH",
     lib_name = "ignition-math",
@@ -70,7 +70,7 @@ public_headers = public_headers_no_gen + [
 ]
 
 cc_library(
-    name = "ign_math",
+    name = "gz_math",
     srcs = sources + private_headers,
     hdrs = public_headers,
     includes = ["include"],
@@ -83,7 +83,7 @@ cc_binary(
     linkopts = ["-Wl,-soname,libignition-math7.so"],
     linkshared = True,
     deps = [
-        ":ign_math",
+        ":gz_math",
     ],
 )
 
@@ -91,7 +91,7 @@ cc_binary(
     name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
     srcs = [src],
     deps = [
-        ":ign_math",
+        ":gz_math",
         "@gtest",
         "@gtest//:gtest_main",
     ],
