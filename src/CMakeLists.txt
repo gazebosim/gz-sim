@@ -214,7 +214,7 @@ foreach(CMD_TEST
       "BREW_RUBY=\"${BREW_RUBY} \"")
 
   target_compile_definitions(${CMD_TEST} PRIVATE
-      "GZ_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
+      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
   set(_env_vars)
   list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
