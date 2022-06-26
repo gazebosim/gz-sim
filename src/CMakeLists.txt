@@ -114,6 +114,11 @@ set(tests_needing_display
   ModelCommandAPI_TEST.cc
 )
 
+# Disable tests that need CLI if gz-tools is not found
+if (MSVC OR NOT GZ_TOOLS_PROGRAM)
+  list(REMOVE_ITEM gtest_sources gz_TEST.cc ModelCommandAPI_TEST.cc)
+endif()
+
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
 # or Xdummy instead of skipping them
@@ -209,7 +214,7 @@ foreach(CMD_TEST
       "BREW_RUBY=\"${BREW_RUBY} \"")
 
   target_compile_definitions(${CMD_TEST} PRIVATE
-      "GZ_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
+      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
   set(_env_vars)
   list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
