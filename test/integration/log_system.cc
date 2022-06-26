@@ -61,7 +61,7 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 // \todo(anyone) Enable tests for OSX once command line works there
 #ifndef __APPLE__
-static const std::string kIgnCommand(
+static const std::string kGzCommand(
   "GZ_SIM_SYSTEM_PLUGIN_PATH=" + kBinPath + "/lib LD_LIBRARY_PATH=" +
   kBinPath + "/lib:/usr/local/lib:${LD_LIBRARY_PATH} gz sim -s ");
 #endif
@@ -382,7 +382,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   {
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -502,7 +502,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs.close();
 
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -625,7 +625,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // Both state and console logs should be stored here.
   {
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -667,7 +667,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs.close();
 
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + cliPath + " " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1042,7 +1042,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   {
     // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 --log-overwrite "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1070,7 +1070,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   {
     // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1432,7 +1432,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 
     // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1462,7 +1462,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
 
     // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -1506,7 +1506,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Log resources from command line
   {
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record --record-resources --record-path " + recordPath + " "
       + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -1593,7 +1593,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   // Log only the /clock topic from command line
   {
     // Command line triggers gz.cc, which handles initializing gzLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations 5 "
       + "--record-topic /clock "
       + "--record-path " + recordPath + " "
       + recordSdfPath;
