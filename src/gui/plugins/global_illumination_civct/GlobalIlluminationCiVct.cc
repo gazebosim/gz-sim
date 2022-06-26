@@ -67,6 +67,18 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+  /// \brief Private data only used when loading this plugin
+  /// from XML. We must do this because we require Ogre-Next
+  /// engine to be loaded and there are also thread synchronization
+  /// issues (GUI vs internal data) that needs to be accounted
+  struct GZ_GAZEBO_HIDDEN GiCiVctXmlInitData
+  {
+    uint32_t resolution[3]{ 16u, 16u, 16u };
+    uint32_t octantCount[3]{ 1u, 1u, 1u };
+    float areaHalfSize[3]{ 5.0f, 5.0f, 5.0f };
+    float thinWallCounter{ 1.0f };
+  };
+
   /// \brief Private data class for GlobalIlluminationCiVct
   class GZ_GAZEBO_HIDDEN GlobalIlluminationCiVctPrivate
   {
@@ -93,9 +105,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief See GlobalIlluminationCiVct::ResetCascades.
     public: bool resetRequested GUARDED_BY(serviceMutex){false};
-
-    /// \brief See rendering::GlobalIlluminationCiVct::SetResolution
-    public: uint32_t resolution[3] GUARDED_BY(serviceMutex){16u, 16u, 16u};
 
     /// \brief See rendering::GlobalIlluminationCiVct::SetBounceCount
     public: uint32_t bounceCount GUARDED_BY(serviceMutex){6u};
@@ -132,6 +141,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief GI debug visualization is dirty. Only used by GUI.
     /// Not in simulation.
     public: bool debugVisualizationDirty GUARDED_BY(serviceMutex){false};
+
+    /// \brief See GiCiVctXmlInitData. Only used during XML initialization.
+    /// It's never accessed by multiple threads at the same time.
+    public: std::vector<GiCiVctXmlInitData> xmlInitData;
   };
 }
 }
@@ -221,9 +234,24 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
     this->dataPtr->scene = scene;
     this->dataPtr->initialized = true;
 
-    // Ensure we initialize with valid settings so the user
-    // can just Enable us immediately.
-    emit qmlAddCascade();
+    if (this->dataPtr->xmlInitData.empty())
+    {
+      // Ensure we initialize with valid settings so the user
+      // can just Enable us immediately.
+      emit qmlAddCascade();
+    }
+    else
+    {
+      for (const GiCiVctXmlInitData &itor : this->dataPtr->xmlInitData)
+      {
+        emit qmlAddCascade2(itor.resolution[0], itor.resolution[1],
+                            itor.resolution[2], itor.octantCount[0],
+                            itor.octantCount[1], itor.octantCount[2],
+                            itor.areaHalfSize[0], itor.areaHalfSize[1],
+                            itor.areaHalfSize[2], itor.thinWallCounter);
+      }
+    }
+
     this->OnRefreshCamerasImpl();
   }
 }
@@ -311,6 +339,20 @@ static bool GetXmlUint32x3(const tinyxml2::XMLElement *_elem,
   return true;
 }
 
+static bool GetXmlFloatx3(const tinyxml2::XMLElement *_elem,
+                          float _valueToSet[3])
+{
+  std::istringstream stream(_elem->GetText());
+  math::Vector3f values3;
+  stream >> values3;
+
+  _valueToSet[0] = static_cast<float>(values3.X());
+  _valueToSet[1] = static_cast<float>(values3.Y());
+  _valueToSet[2] = static_cast<float>(values3.Z());
+
+  return true;
+}
+
 /////////////////////////////////////////////////
 void GlobalIlluminationCiVct::LoadConfig(
   const tinyxml2::XMLElement *_pluginElem)
@@ -331,10 +373,6 @@ void GlobalIlluminationCiVct::LoadConfig(
   if (auto elem = _pluginElem->FirstChildElement("anisotropic"))
   {
     GetXmlBool(elem, this->dataPtr->anisotropic);
-  }
-  if (auto elem = _pluginElem->FirstChildElement("resolution"))
-  {
-    GetXmlUint32x3(elem, this->dataPtr->resolution);
   }
   if (auto elem = _pluginElem->FirstChildElement("bounceCount"))
   {
@@ -372,6 +410,33 @@ void GlobalIlluminationCiVct::LoadConfig(
     {
       GetXmlUint32(elem, this->dataPtr->debugVisMode);
     }
+  }
+
+  this->dataPtr->xmlInitData.clear();
+
+  for (auto *elemCascade = _pluginElem->FirstChildElement("cascade");
+       elemCascade != nullptr;
+       elemCascade = elemCascade->NextSiblingElement("cascade"))
+  {
+    GiCiVctXmlInitData xmlInitData;
+    if (auto elem = elemCascade->FirstChildElement("resolution"))
+    {
+      GetXmlUint32x3(elem, xmlInitData.resolution);
+    }
+    if (auto elem = elemCascade->FirstChildElement("octantCount"))
+    {
+      GetXmlUint32x3(elem, xmlInitData.octantCount);
+    }
+    if (auto elem = elemCascade->FirstChildElement("thinWallCounter"))
+    {
+      GetXmlFloat(elem, xmlInitData.thinWallCounter);
+    }
+    if (auto elem = elemCascade->FirstChildElement("areaHalfSize"))
+    {
+      GetXmlFloatx3(elem, xmlInitData.areaHalfSize);
+    }
+
+    this->dataPtr->xmlInitData.push_back(xmlInitData);
   }
 
   gz::gui::App()->findChild<gz::gui::MainWindow *>()->installEventFilter(this);

@@ -146,6 +146,22 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Tells QML to add a cascade from UI thread. MUST start lowercase.
     signals: void qmlAddCascade();
 
+    /// \brief Tells QML to add a cascade from UI thread. MUST start lowercase.
+    /// \param[in] _resX Resolution X
+    /// \param[in] _resY Resolution Y
+    /// \param[in] _resZ Resolution Z
+    /// \param[in] _octX Octant Count X
+    /// \param[in] _octY Octant Count Y
+    /// \param[in] _octZ Octant Count Z
+    /// \param[in] _ahsX Area Half Size X
+    /// \param[in] _ahsY Area Half Size Y
+    /// \param[in] _ahsZ Area Half Size Z
+    /// \param[in] _thinWallCounter thinWallCounter parameter
+    signals: void qmlAddCascade2(quint32 _resX, quint32 _resY, quint32 _resZ,
+                                 quint32 _octX, quint32 _octY, quint32 _octZ,
+                                 float _ahsX, float _ahsY, float _ahsZ,
+                                 float _thinWallCounter);
+
     /// \brief See rendering::GlobalIlluminationCiVct::SetBounceCount
     /// \param[in] _enabled See GlobalIlluminationCiVct::SetBounceCount
     public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);

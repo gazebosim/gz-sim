@@ -46,6 +46,25 @@ GridLayout {
       function onQmlAddCascade() {
         mainGridLayout.addCascade()
       }
+
+      function onQmlAddCascade2(_resX, _resY, _resZ, _octX, _octY, _octZ,
+                                _ahsX, _ahsY, _ahsZ, _thinWallCounter) {
+        var cascade = GlobalIlluminationCiVct.AddCascade()
+        var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
+        cascade.resolutionX = _resX
+        cascade.resolutionY = _resY
+        cascade.resolutionZ = _resZ
+        cascade.octantCountX = _octX
+        cascade.octantCountY = _octY
+        cascade.octantCountZ = _octZ
+        cascade.areaHalfSizeX = _ahsX
+        cascade.areaHalfSizeY = _ahsY
+        cascade.areaHalfSizeZ = _ahsZ
+        var cascadeObj =
+          cascadeComponent.createObject(mainGridLayout,
+                                        { "cascadePtr":cascade });
+        cascades.push(cascadeObj)
+      }
   }
 
   Button {
