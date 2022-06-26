@@ -506,7 +506,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     auto pos = msgType.find(deprecatedPrefix);
     if (pos != std::string::npos)
     {
-      msgType.replace(pos, deprecatedPrefix.size(), "gz");
+      msgType.replace(pos, deprecatedPrefix.size(), "gz.msgs");
     }
 
     if (msgType == "gz.msgs.SerializedState")

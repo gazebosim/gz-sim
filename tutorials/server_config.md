@@ -98,11 +98,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -160,11 +160,11 @@ Let's start by saving this simple world with a camera sensor as
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -174,9 +174,9 @@ Let's start by saving this simple world with a camera sensor as
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
     </gui>
