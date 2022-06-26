@@ -47,11 +47,12 @@ class gz::sim::SystemLoaderPrivate
               gz::plugin::PluginPtr &_plugin)
   {
     // Deprecated: accept ignition-gazebo-prefixed systems
+    std::string deprecatedPrefix{"ignition-gazebo"};
     auto filename = _filename;
-    auto pos = filename.find("ignition-gazebo");
+    auto pos = filename.find(deprecatedPrefix);
     if (pos != std::string::npos)
     {
-      filename.replace(pos, pos + 15, "gz-sim");
+      filename.replace(pos, deprecatedPrefix.size(), "gz-sim");
       gzwarn << "Trying to load deprecated plugin [" << _filename
              << "]. Using [" << filename << "] instead." << std::endl;
     }

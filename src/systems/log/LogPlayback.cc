@@ -502,10 +502,11 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
     // Support ignition.msgs for backwards compatibility, don't remove on tock
     // so users can use logs across versions
-    auto pos = msgType.find("ignition.msgs");
+    std::string deprecatedPrefix{"ignition.msgs"};
+    auto pos = msgType.find(deprecatedPrefix);
     if (pos != std::string::npos)
     {
-      msgType.replace(pos, pos + 8, "gz");
+      msgType.replace(pos, deprecatedPrefix.size(), "gz");
     }
 
     if (msgType == "gz.msgs.SerializedState")

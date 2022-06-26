@@ -59,7 +59,7 @@ class JointPositionRandomizer : public System,
       }
       else if (jointType->Data() == sdf::JointType::REVOLUTE)
       {
-        pos = math::Rand::DblUniform(0, IGN_PI);
+        pos = math::Rand::DblUniform(0, GZ_PI);
         std::cout << "revolute joint (" << joint
           << ") pos: (" << pos << " rad)"<< std::endl;
       }
