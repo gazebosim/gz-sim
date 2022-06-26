@@ -71,6 +71,8 @@ GridLayout {
     Layout.fillWidth: true
     onClicked: {
       mainGridLayout.addCascade()
+      }
+    }
 
   Button {
     id: resetCascades
