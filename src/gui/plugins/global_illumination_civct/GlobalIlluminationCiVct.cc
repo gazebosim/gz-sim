@@ -28,47 +28,47 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
-#include "ignition/rendering/Camera.hh"
-#include "ignition/rendering/GlobalIlluminationCiVct.hh"
-#include "ignition/rendering/RenderEngine.hh"
-#include "ignition/rendering/RenderTypes.hh"
-#include "ignition/rendering/RenderingIface.hh"
-#include "ignition/rendering/Scene.hh"
+#include "gz/rendering/Camera.hh"
+#include "gz/rendering/GlobalIlluminationCiVct.hh"
+#include "gz/rendering/RenderEngine.hh"
+#include "gz/rendering/RenderTypes.hh"
+#include "gz/rendering/RenderingIface.hh"
+#include "gz/rendering/Scene.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
 #include "Tsa.hh"
 
 // clang-format off
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   /// \brief Private data class for GlobalIlluminationCiVct
-  class IGNITION_GAZEBO_HIDDEN GlobalIlluminationCiVctPrivate
+  class GZ_GAZEBO_HIDDEN GlobalIlluminationCiVctPrivate
   {
     /// \brief Transport node
     public: transport::Node node;
@@ -138,8 +138,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 // clang-format on
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Q_DECLARE_METATYPE(CiVctCascadePrivate);
 
@@ -172,15 +172,15 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    igndbg << "More than one engine is available. "
-           << "GlobalIlluminationCiVct plugin will use engine [" << engineName
-           << "]" << std::endl;
+    gzdbg << "More than one engine is available. "
+          << "GlobalIlluminationCiVct plugin will use engine [" << engineName
+          << "]" << std::endl;
   }
   auto engine = rendering::engine(engineName);
   if (!engine)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
-           << "]. GlobalIlluminationCiVct plugin won't work." << std::endl;
+    gzerr << "Internal error: failed to load engine [" << engineName
+          << "]. GlobalIlluminationCiVct plugin won't work." << std::endl;
     return;
   }
 
@@ -192,7 +192,7 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   auto scene = engine->SceneByIndex(0);
   if (!scene)
   {
-    ignerr << "Internal error: scene is null." << std::endl;
+    gzerr << "Internal error: scene is null." << std::endl;
     return;
   }
 
@@ -202,18 +202,16 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   }
 
   // Create visual
-  igndbg << "Creating GlobalIlluminationCiVct" << std::endl;
+  gzdbg << "Creating GlobalIlluminationCiVct" << std::endl;
 
   auto root = scene->RootVisual();
   this->dataPtr->gi = scene->CreateGlobalIlluminationCiVct();
   if (!this->dataPtr->gi)
   {
-    ignwarn << "Failed to create GlobalIlluminationCiVct, GI plugin won't work."
-            << std::endl;
+    gzerr << "Failed to create GlobalIlluminationCiVct, GI plugin won't work."
+          << std::endl;
 
-    ignition::gui::App()
-      ->findChild<ignition::gui::MainWindow *>()
-      ->removeEventFilter(this);
+    gz::gui::App()->findChild<gz::gui::MainWindow *>()->removeEventFilter(this);
   }
   else
   {
@@ -240,8 +238,8 @@ static bool GetXmlBool(const tinyxml2::XMLElement *_elem, bool &_valueToSet)
 
   if (_elem->QueryBoolText(&value) != tinyxml2::XML_SUCCESS)
   {
-    ignerr << "Failed to parse <" << _elem->Name()
-           << "> value: " << _elem->GetText() << std::endl;
+    gzerr << "Failed to parse <" << _elem->Name()
+          << "> value: " << _elem->GetText() << std::endl;
     return false;
   }
   else
@@ -261,8 +259,8 @@ static bool GetXmlFloat(const tinyxml2::XMLElement *_elem, float &_valueToSet)
 
   if (_elem->QueryFloatText(&value) != tinyxml2::XML_SUCCESS)
   {
-    ignerr << "Failed to parse <" << _elem->Name()
-           << "> value: " << _elem->GetText() << std::endl;
+    gzerr << "Failed to parse <" << _elem->Name()
+          << "> value: " << _elem->GetText() << std::endl;
     return false;
   }
   else
@@ -283,8 +281,8 @@ static bool GetXmlUint32(const tinyxml2::XMLElement *_elem,
 
   if (_elem->QueryIntText(&value) != tinyxml2::XML_SUCCESS)
   {
-    ignerr << "Failed to parse <" << _elem->Name()
-           << "> value: " << _elem->GetText() << std::endl;
+    gzerr << "Failed to parse <" << _elem->Name()
+          << "> value: " << _elem->GetText() << std::endl;
     return false;
   }
   else
@@ -376,15 +374,13 @@ void GlobalIlluminationCiVct::LoadConfig(
     }
   }
 
-  ignition::gui::App()
-    ->findChild<ignition::gui::MainWindow *>()
-    ->installEventFilter(this);
+  gz::gui::App()->findChild<gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -504,7 +500,7 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
     }
     else
     {
-      ignerr << "GI pointer is not set" << std::endl;
+      gzerr << "GI pointer is not set" << std::endl;
     }
   }
 
@@ -703,7 +699,7 @@ QObject *GlobalIlluminationCiVct::AddCascade()
   if (!ref)
   {
     this->dataPtr->cascades.back()->cascade->SetAreaHalfSize(
-      ignition::math::Vector3d(5.0, 5.0, 5.0));
+      gz::math::Vector3d(5.0, 5.0, 5.0));
     this->dataPtr->cascades.back()->cascade->SetThinWallCounter(1.0f);
   }
   else
@@ -764,5 +760,4 @@ bool GlobalIlluminationCiVct::ValidSettings() const
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::GlobalIlluminationCiVct,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::GlobalIlluminationCiVct, gz::gui::Plugin)

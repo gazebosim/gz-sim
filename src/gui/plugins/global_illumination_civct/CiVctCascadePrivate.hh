@@ -15,42 +15,42 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_CIVCTCASCADEPRIVATE_HH_
-#define IGNITION_GAZEBO_GUI_CIVCTCASCADEPRIVATE_HH_
+#ifndef GZ_SIM_GUI_CIVCTCASCADEPRIVATE_HH_
+#define GZ_SIM_GUI_CIVCTCASCADEPRIVATE_HH_
 
 #include <memory>
 #include <mutex>
 
-#include "ignition/gazebo/gui/GuiSystem.hh"
-#include "ignition/gui/qt.h"
+#include "gz/sim/gui/GuiSystem.hh"
+#include "gz/gui/qt.h"
 
 #include "Tsa.hh"
 
-namespace ignition
+namespace gz
 {
   namespace rendering
   {
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+    inline namespace GZ_SIM_VERSION_NAMESPACE
     {
       /// Forward declare the only ptr we need
       class CiVctCascade;
       typedef std::shared_ptr<CiVctCascade> CiVctCascadePtr;
-    }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+    }  // namespace GZ_SIM_GAZEBO_VERSION_NAMESPACE
   }  // namespace rendering
-}  // namespace ignition
+}  // namespace gz
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class GlobalIlluminationCiVct;
 
   /// \brief Cascade container for QML to control all of its settings,
   /// per cascade
-  class IGNITION_GAZEBO_HIDDEN CiVctCascadePrivate : public QObject
+  class GZ_GAZEBO_HIDDEN CiVctCascadePrivate : public QObject
   {
     friend class GlobalIlluminationCiVct;
 

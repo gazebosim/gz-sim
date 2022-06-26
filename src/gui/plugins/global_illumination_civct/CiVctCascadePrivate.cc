@@ -21,10 +21,10 @@
 
 #include "GlobalIlluminationCiVct.hh"
 
-#include "ignition/rendering/GlobalIlluminationCiVct.hh"
+#include "gz/rendering/GlobalIlluminationCiVct.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 CiVctCascadePrivate::CiVctCascadePrivate(std::mutex &_serviceMutex,
                                          GlobalIlluminationCiVct &_creator,
