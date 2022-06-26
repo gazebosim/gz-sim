@@ -15,26 +15,26 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_GLOBALILLUMINATIONVCT_HH_
-#define IGNITION_GAZEBO_GUI_GLOBALILLUMINATIONVCT_HH_
+#ifndef GZ_SIM_GUI_GLOBALILLUMINATIONVCT_HH_
+#define GZ_SIM_GUI_GLOBALILLUMINATIONVCT_HH_
 
 #include <memory>
 
-#include "ignition/gazebo/gui/GuiSystem.hh"
-#include "ignition/gui/qt.h"
+#include "gz/sim/gui/GuiSystem.hh"
+#include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class GlobalIlluminationVctPrivate;
 
   /// \brief Enable and configure Global Illumination using VCT
   /// (Voxel Cone Tracing)
-  class GlobalIlluminationVct : public ignition::gazebo::GuiSystem
+  class GlobalIlluminationVct : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
