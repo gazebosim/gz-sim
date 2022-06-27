@@ -1,5 +1,136 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.10.0 (2022-06-24)
+
+1. Expose the ability to stop a server from C++
+    * [Pull request #1551](https://github.com/gazebosim/gz-sim/pull/1551)
+
+1. Fix various Protobuf Windows warnings
+    * [Pull request #1299](https://github.com/gazebosim/gz-sim/pull/1299)
+
+1. New service for adding systems to an entity
+    * [Pull request #1524](https://github.com/gazebosim/gz-sim/pull/1524)
+
+1. Added particle emitters to scene broadcaster
+    * [Pull request #1516](https://github.com/gazebosim/gz-sim/pull/1516)
+
+1. Use more `sdf::Plugin` instead of `sdf::ElementPtr`
+    * [Pull request #1352](https://github.com/gazebosim/gz-sim/pull/1352)
+
+1. Depend on common 4.5.1
+    * [Pull request #1547](https://github.com/gazebosim/gz-sim/pull/1547)
+
+1. Update README links
+    * [Pull request #1546](https://github.com/gazebosim/gz-sim/pull/1546)
+
+1. Add bounding boxes into the label system plugin
+    * [Pull request #1040](https://github.com/gazebosim/gz-sim/pull/1040)
+
+1. Odometry publisher: also publish `Pose_V` (TF)
+    * [Pull request #1534](https://github.com/gazebosim/gz-sim/pull/1534)
+
+1. Fix clang warning from Thruster plugin
+    * [Pull request #1540](https://github.com/gazebosim/gz-sim/pull/1540)
+
+1. Fix locks in Visualize Lidar GUI plugin
+    * [Pull request #1538](https://github.com/gazebosim/gz-sim/pull/1538)
+
+1. Bash completion for flags
+    * [Pull request #1504](https://github.com/gazebosim/gz-sim/pull/1504)
+
+1. Fix sensors battery state test
+    * [Pull request #1529](https://github.com/gazebosim/gz-sim/pull/1529)
+
+1. Add new `GZ_GUI_RESOURCE_PATH` to help message
+    * [Pull request #1470](https://github.com/gazebosim/gz-sim/pull/1470)
+
+1. Fix regression with camera sensors not using the background color set in `<scene>`
+    * [Pull request #1515](https://github.com/gazebosim/gz-sim/pull/1515)
+
+1. Check RGBD camera sensor connection
+    * [Pull request #1513](https://github.com/gazebosim/gz-sim/pull/1513)
+
+1. Optimize sensor updates
+    * [Pull request #1480](https://github.com/gazebosim/gz-sim/pull/1480)
+
+1. System inspector GUI widget
+    * [Pull request #1404](https://github.com/gazebosim/gz-sim/pull/1404)
+
+1. Scene update resource finder
+    * [Pull request #1508](https://github.com/gazebosim/gz-sim/pull/1508)
+
+1. Updating hydrodynamics plugin description
+    * [Pull request #1502](https://github.com/gazebosim/gz-sim/pull/1502)
+
+1. Makes thruster stop when battery runs out.
+    * [Pull request #1495](https://github.com/gazebosim/gz-sim/pull/1495)
+
+1. Fix Documentation Header.
+    * [Pull request #1501](https://github.com/gazebosim/gz-sim/pull/1501)
+
+1. Adding rssi
+    * [Pull request #1482](https://github.com/gazebosim/gz-sim/pull/1482)
+
+1. Delete unused gazebo.hh.in
+    * [Pull request #1490](https://github.com/gazebosim/gz-sim/pull/1490)
+
+1. :books: Fixed broken URL link to gazebo documentation
+    * [Pull request #1486](https://github.com/gazebosim/gz-sim/pull/1486)
+
+1. View polyline collisions on the GUI
+    * [Pull request #1481](https://github.com/gazebosim/gz-sim/pull/1481)
+
+1. Extruded 2D polyline geometries
+    * [Pull request #1456](https://github.com/gazebosim/gz-sim/pull/1456)
+
+1. Fix fuel url
+    * [Pull request #1479](https://github.com/gazebosim/gz-sim/pull/1479)
+
+1. Camera trigger integration test
+    * [Pull request #1384](https://github.com/gazebosim/gz-sim/pull/1384)
+
+1. Extend Multicoptor Control system to include nested model inertial params
+    * [Pull request #1450](https://github.com/gazebosim/gz-sim/pull/1450)
+
+1. Remove dead ign.cc file
+    * [Pull request #1474](https://github.com/gazebosim/gz-sim/pull/1474)
+
+1. Test case to check if velocity limits are applied to joints
+    * [Pull request #1445](https://github.com/gazebosim/gz-sim/pull/1445)
+
+1. SceneBroadcaster: Use double for state publish frequency instead of int
+    * [Pull request #1417](https://github.com/gazebosim/gz-sim/pull/1417)
+
+1. Revert format change
+    * [Pull request #1468](https://github.com/gazebosim/gz-sim/pull/1468)
+
+1. Fix finding DART on macOS
+    * [Pull request #1469](https://github.com/gazebosim/gz-sim/pull/1469)
+
+1. Skip serializing nested model with `//pose/@relative_to` attribute
+    * [Pull request #1454](https://github.com/gazebosim/gz-sim/pull/1454)
+
+1. Fix running simulation with no world specified on the command line
+    * [Pull request #1463](https://github.com/gazebosim/gz-sim/pull/1463)
+
+1. Add repo specific issue templates
+    * [Pull request #1461](https://github.com/gazebosim/gz-sim/pull/1461)
+
+1. python: release GIL when running server
+    * [Pull request #1458](https://github.com/gazebosim/gz-sim/pull/1458)
+
+1. python: remove semicolons
+    * [Pull request #1459](https://github.com/gazebosim/gz-sim/pull/1459)
+
+1. Bump rendering dependency version
+    * [Pull request #1455](https://github.com/gazebosim/gz-sim/pull/1455)
+
+1. Improve contact sensor / visualization performance
+    * [Pull request #1452](https://github.com/gazebosim/gz-sim/pull/1452)
+
+1. Set simulation time to Rendering
+    * [Pull request #1415](https://github.com/gazebosim/gz-sim/pull/1415)
+
 ### Ignition Gazebo 6.9.0 (2022-04-14)
 
 1. Add new `RFComms` system
