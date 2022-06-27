@@ -104,7 +104,7 @@ Rectangle {
       pitchModelValue: model.data[4]
       yawModelValue: model.data[5]
 
-      onGzPoseSet: (x, y, z, roll, pitch, yaw) => {
+      onGzPoseSet: {
         sendPose(x, y, z, roll, pitch, yaw)
       }
 
