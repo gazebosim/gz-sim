@@ -50,11 +50,11 @@ Scene 3D plugin with custom video recorder settings:
 
 ```xml
 <plugin filename="GzScene3D" name="3D View">
-  <ignition-gui>
+  <gz-gui>
     <title>3D View</title>
     <property type="bool" key="showTitleBar">false</property>
     <property type="string" key="state">docked</property>
-  </ignition-gui>
+  </gz-gui>
 
   <engine>ogre2</engine>
   <scene>scene</scene>

@@ -6,7 +6,7 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-collada-world-exporter-system"
+      filename="gz-sim-collada-world-exporter-system"
       name="gz::sim::systems::ColladaWorldExporter">
     </plugin>
 

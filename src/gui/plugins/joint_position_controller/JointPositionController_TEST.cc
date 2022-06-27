@@ -153,9 +153,9 @@ TEST_F(JointPositionControllerGui,
   // Load plugin
   const char *pluginStr =
     "<plugin filename=\"JointPositionController\">"
-      "<ignition-gui>"
+      "<gz-gui>"
         "<title>JointPositionController!</title>"
-      "</ignition-gui>"
+      "</gz-gui>"
     "</plugin>";
 
   tinyxml2::XMLDocument pluginDoc;

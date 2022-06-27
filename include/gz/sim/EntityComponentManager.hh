@@ -48,7 +48,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
-    class GZ_GAZEBO_HIDDEN EntityComponentManagerPrivate;
+    class GZ_SIM_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
 
     /// \brief Type alias for the graph that holds entities.
@@ -64,7 +64,7 @@ namespace gz
     /// components and entities.
     /// A component can be of any class which inherits from
     /// `components::BaseComponent`.
-    class GZ_GAZEBO_VISIBLE EntityComponentManager
+    class GZ_SIM_VISIBLE EntityComponentManager
     {
       /// \brief Constructor
       public: EntityComponentManager();

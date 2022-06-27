@@ -2621,7 +2621,17 @@ void RenderUtil::ShowGrid()
 /////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
-  this->dataPtr->engineName = _name;
+  // Deprecated: accept ignition-prefixed engines
+  std::string deprecatedPrefix{"ignition"};
+  auto name = _name;
+  auto pos = name.find(deprecatedPrefix);
+  if (pos != std::string::npos)
+  {
+    name.replace(pos, deprecatedPrefix.size(), "gz");
+    gzwarn << "Trying to load deprecated engine [" << _name
+           << "] for the server. Use [" << name << "] instead." << std::endl;
+  }
+  this->dataPtr->engineName = name;
 }
 
 /////////////////////////////////////////////////

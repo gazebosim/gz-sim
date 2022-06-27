@@ -41,7 +41,7 @@ namespace gz
     /// \brief Configuration parameters for a Server. An instance of this
     /// object can be used to construct a Server with a particular
     /// configuration.
-    class GZ_GAZEBO_VISIBLE ServerConfig
+    class GZ_SIM_VISIBLE ServerConfig
     {
       /// \brief Type of SDF source.
       public: enum class SourceType
@@ -67,7 +67,7 @@ namespace gz
       /// type and name, but it can't tell apart multiple entities with the same
       /// name in different parts of the entity tree.
       /// \sa const std::list<PluginInfo> &Plugins() const
-      public: class GZ_GAZEBO_VISIBLE PluginInfo
+      public: class GZ_SIM_VISIBLE PluginInfo
       {
         /// \brief Default constructor.
         public: PluginInfo();
@@ -425,14 +425,14 @@ namespace gz
     /// \param[in] _fname Absolute path to the configuration file to parse.
     /// \return A list of all of the plugins found in the configuration file
     std::list<ServerConfig::PluginInfo>
-    GZ_GAZEBO_VISIBLE
+    GZ_SIM_VISIBLE
     parsePluginsFromFile(const std::string &_fname);
 
     /// \brief Parse plugins from XML configuration string.
     /// \param[in] _str XML configuration content to parse
     /// \return A list of all of the plugins found in the configuration string.
     std::list<ServerConfig::PluginInfo>
-    GZ_GAZEBO_VISIBLE
+    GZ_SIM_VISIBLE
     parsePluginsFromString(const std::string &_str);
 
     /// \brief Load plugin information, following ordering.
@@ -457,7 +457,7 @@ namespace gz
     //
     /// \return A list of plugins to load, based on above ordering
     std::list<ServerConfig::PluginInfo>
-    GZ_GAZEBO_VISIBLE
+    GZ_SIM_VISIBLE
     loadPluginInfo(bool _isPlayback = false);
     }
   }

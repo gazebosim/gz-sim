@@ -16,15 +16,15 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="ignition-gazebo-physics-system"
+     filename="gz-sim-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-log-system"
+      filename="gz-sim-log-system"
       name="gz::sim::systems::LogRecord">
       <record_resources>1</record_resources>
       <compress>0</compress>

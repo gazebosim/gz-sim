@@ -49,18 +49,18 @@ class JointPositionRandomizer : public System,
     {
       auto jointType = _ecm.Component<components::JointType>(joint);
 
-      double pos = 0.0; 
+      double pos = 0.0;
 
       if (jointType->Data() == sdf::JointType::PRISMATIC)
       {
         pos = math::Rand::DblUniform(-0.8, 0.1);
-        std::cout << "prismatic joint (" << joint 
+        std::cout << "prismatic joint (" << joint
           << ") pos: (" << pos << " m)"<< std::endl;
-      } 
+      }
       else if (jointType->Data() == sdf::JointType::REVOLUTE)
       {
         pos = math::Rand::DblUniform(0, GZ_PI);
-        std::cout << "revolute joint (" << joint 
+        std::cout << "revolute joint (" << joint
           << ") pos: (" << pos << " rad)"<< std::endl;
       }
       _ecm.SetComponentData<components::JointPositionReset>(joint, {pos});

@@ -50,7 +50,7 @@ pybind11_add_module(gazebo SHARED
 
 target_link_libraries(gazebo PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
 # TODO(ahcorde): Move this module to ign-common
@@ -60,7 +60,7 @@ pybind11_add_module(common SHARED
 )
 
 target_link_libraries(common PRIVATE
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
 configure_build_install_location(gazebo)

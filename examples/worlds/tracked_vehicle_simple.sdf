@@ -1067,7 +1067,7 @@
                 </physics>
             </joint>
 
-            <plugin name="gz::sim::systems::TrackedVehicle" filename="ignition-gazebo-tracked-vehicle-system">
+            <plugin name="gz::sim::systems::TrackedVehicle" filename="gz-sim-tracked-vehicle-system">
                 <left_track><link>left_track</link></left_track>
                 <left_track><link>front_left_flipper</link></left_track>
                 <left_track><link>rear_left_flipper</link></left_track>

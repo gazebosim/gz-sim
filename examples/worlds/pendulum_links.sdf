@@ -267,7 +267,7 @@
       </joint>
 
       <plugin
-          filename="ignition-gazebo-velocity-control-system"
+          filename="gz-sim-velocity-control-system"
           name="gz::sim::systems::VelocityControl">
         <link_name>base</link_name>
         <link_name>upper_link</link_name>
