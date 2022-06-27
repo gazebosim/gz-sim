@@ -4,7 +4,7 @@ gz_add_system(multicopter-control
   Common.cc
   LeeVelocityController.cc
   PUBLIC_LINK_LIBS
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
     Eigen3::Eigen
 )

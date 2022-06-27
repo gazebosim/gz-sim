@@ -328,7 +328,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
     // Run main window.
     // This blocks until the window is closed or we receive a SIGINT
     app->exec();
-    gzdbg << "Shutting down ign-gazebo-gui" << std::endl;
+    gzdbg << "Shutting down gz-sim-gui" << std::endl;
     return 0;
   }
 

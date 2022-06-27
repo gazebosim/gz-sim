@@ -62,7 +62,7 @@ Recording can be specified in the SDF, under `<world>` tag:
 <world name="default">
     ...
     <plugin
-      filename="ignition-gazebo-log-system"
+      filename="gz-sim-log-system"
       name="gz::sim::systems::LogRecord">
     </plugin>
     ...

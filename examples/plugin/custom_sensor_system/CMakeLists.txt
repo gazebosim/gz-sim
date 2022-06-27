@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 
-find_package(ignition-cmake3 REQUIRED)
+find_package(gz-cmake3 REQUIRED)
 
 project(OdometerSystem)
 
-gz_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
-set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
+gz_find_package(gz-plugin2 REQUIRED COMPONENTS register)
+set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
-gz_find_package(ignition-gazebo7 REQUIRED)
-set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
+gz_find_package(gz-sim7 REQUIRED)
+set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 
-find_package(ignition-sensors7 REQUIRED)
-set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
+find_package(gz-sensors7 REQUIRED)
+set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
 
 # Fetch the custom sensor example from ign-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part
@@ -27,9 +27,9 @@ add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_cl
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_NAME}.cc)
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  PRIVATE ignition-gazebo${IGN_GAZEBO_VER}::ignition-gazebo${IGN_GAZEBO_VER}
-  PRIVATE ignition-sensors${IGN_SENSORS_VER}::ignition-sensors${IGN_SENSORS_VER}
+  PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
+  PRIVATE gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
+  PRIVATE gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
   PRIVATE odometer
 )
 target_include_directories(${PROJECT_NAME}

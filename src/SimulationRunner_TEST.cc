@@ -1585,7 +1585,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   auto plugin = res.plugin(0);
   EXPECT_EQ("3D View", plugin.name());
   EXPECT_EQ("MinimalScene", plugin.filename());
-  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<gz-gui>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<service>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<pose_topic>"), std::string::npos);

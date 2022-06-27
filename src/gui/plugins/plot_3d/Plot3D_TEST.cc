@@ -76,9 +76,9 @@ TEST_F(Plot3D, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   // Add plugin
   const char *pluginStr =
     "<plugin filename=\"Plot3D\">"
-      "<ignition-gui>"
+      "<gz-gui>"
         "<title>Plot3D!</title>"
-      "</ignition-gui>"
+      "</gz-gui>"
       "<entity_name>banana</entity_name>"
       "<maximum_points>123</maximum_points>"
       "<minimum_distance>0.123</minimum_distance>"

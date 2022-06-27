@@ -36,7 +36,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class GZ_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
+class GZ_SIM_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 

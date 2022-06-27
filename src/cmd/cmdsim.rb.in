@@ -126,7 +126,7 @@ COMMANDS = { 'sim' =>
   "\n"\
   "  --physics-engine [arg]       Gazebo Physics engine plugin to load.            \n"\
   "                               Gazebo will use DART by default.                 \n"\
-  "                               (ignition-physics-dartsim-plugin)                \n"\
+  "                               (gz-physics-dartsim-plugin)                \n"\
   "                               Make sure custom plugins are in                  \n"\
   "                               GZ_SIM_PHYSICS_ENGINE_PATH.                      \n"\
   "\n"\
