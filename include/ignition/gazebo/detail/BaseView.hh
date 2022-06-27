@@ -22,6 +22,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ignition/gazebo/components/Component.hh"
+
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/Types.hh"
 #include "ignition/gazebo/config.hh"
@@ -104,6 +106,9 @@ class IGNITION_GAZEBO_VISIBLE BaseView
   /// \return true if the view requires components of type _typeId, false
   /// otherwise
   public: bool RequiresComponent(const ComponentTypeId _typeId) const;
+
+  public: virtual void UpdateComponent(const Entity _entity,
+              const components::BaseComponent *_data) = 0;
 
   /// \brief Update the internal data in the view because a component has been
   /// added to an entity. It is assumed that the entity is already associated

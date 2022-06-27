@@ -110,6 +110,10 @@ class IGNITION_GAZEBO_VISIBLE View : public BaseView
               ComponentTypeTs*... _compPtrs);
 
   /// \brief Documentation inherited
+  public: void UpdateComponent(const Entity _entity,
+              const components::BaseComponent *_data) override;
+
+  /// \brief Documentation inherited
   public: bool NotifyComponentAddition(const Entity _entity, bool _newEntity,
               const ComponentTypeId _typeId) override;
 

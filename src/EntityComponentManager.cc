@@ -1085,6 +1085,7 @@ bool EntityComponentManager::CreateComponentImplementation(
 
       for (auto &viewPair : this->dataPtr->views)
       {
+        viewPair.second.first->UpdateComponent(_entity, _data);
         viewPair.second.first->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
       }

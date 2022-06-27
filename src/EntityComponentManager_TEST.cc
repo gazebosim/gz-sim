@@ -33,6 +33,7 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
+#include "ignition/gazebo/components/VisualCmd.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
 #include "../test/helpers/EnvTestFixture.hh"
@@ -693,6 +694,82 @@ TEST_P(EntityComponentManagerFixture,
     {
       EXPECT_TRUE(manager.RemoveComponent(eIntDouble, compToRemove->TypeId()));
     }
+  }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddRemoveAddComponent))
+{
+  // ./build/ignition-gazebo6/bin/UNIT_EntityComponentManager_TEST --gtest_filter='*ViewsAddRemoveAddComponent*'
+
+  // Create an entity
+  Entity eVisCmd = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+
+  // Add visual cmd component
+  msgs::Visual visualMsg;
+  visualMsg.mutable_material()->mutable_diffuse()->set_r(1.0);
+  visualMsg.mutable_material()->mutable_diffuse()->set_g(0.0);
+  visualMsg.mutable_material()->mutable_diffuse()->set_b(0.0);
+  visualMsg.mutable_material()->mutable_diffuse()->set_a(1.0);
+
+  auto visCmdComp = manager.CreateComponent<components::VisualCmd>(
+      eVisCmd, components::VisualCmd(visualMsg));
+  ASSERT_NE(nullptr, visCmdComp);
+  EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().r());
+  EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().g());
+  EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().b());
+  EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().a());
+
+  for (int i = 0; i < 3; ++i)
+  {
+    int count = 0;
+    manager.Each<components::VisualCmd> ([&](const Entity &_entity,
+          const components::VisualCmd *_visualCmd)->bool
+        {
+          EXPECT_EQ(_entity, eVisCmd);
+          EXPECT_NE(nullptr, _visualCmd);
+          if (i == 0)
+          {
+            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().r());
+            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().g());
+            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().b());
+            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().a());
+          }
+          else if (i == 2)
+          {
+            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().r());
+            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().g());
+            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().b());
+            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().a());
+          }
+          ++count;
+          return true;
+        });
+
+    if (i == 0)
+    {
+      EXPECT_EQ(1, count);
+      // remove visual cmd component
+      EXPECT_TRUE(manager.RemoveComponent(eVisCmd, visCmdComp->TypeId()));
+    }
+    else if (i == 1)
+    {
+      EXPECT_EQ(0, count);
+      // re-add visual cmd component
+      visualMsg.mutable_material()->mutable_diffuse()->set_r(0.0);
+      visualMsg.mutable_material()->mutable_diffuse()->set_g(1.0);
+      visCmdComp = manager.CreateComponent<components::VisualCmd>(
+          eVisCmd, components::VisualCmd(visualMsg));
+      ASSERT_NE(nullptr, visCmdComp);
+      EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().r());
+      EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().g());
+      EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().b());
+      EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().a());
+    }
+    else
+      EXPECT_EQ(1, count);
   }
 }
 

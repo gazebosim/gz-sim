@@ -90,6 +90,29 @@ bool View::RemoveEntity(const Entity _entity)
 }
 
 //////////////////////////////////////////////////
+void View::UpdateComponent(const Entity _entity,
+            const components::BaseComponent *_data)
+{
+  for (uint64_t i = 0; i < this->invalidData[_entity].size(); ++i)
+  {
+    // TODO(jenn) how to figure out if actually same component
+    // (not just same component type)?
+    if (this->invalidData[_entity][i]->TypeId() == _data->TypeId())
+    {
+      this->invalidData[_entity][i] =
+          const_cast<components::BaseComponent *>(_data);
+    }
+  }
+  for (uint64_t i = 0; i < this->invalidConstData[_entity].size(); ++i)
+  {
+    if (this->invalidConstData[_entity][i]->TypeId() == _data->TypeId())
+    {
+      this->invalidConstData[_entity][i] = _data;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 bool View::NotifyComponentAddition(const Entity _entity,
     bool _newEntity, const ComponentTypeId _typeId)
 {
