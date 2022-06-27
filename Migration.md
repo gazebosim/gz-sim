@@ -113,7 +113,7 @@ since pose information is being logged in the `changed_state` topic.
 
 ## Gazebo Sim 4.x to 5.x
 
-* Use `cli` component of `ignition-utils1`.
+* Use `cli` component of `gz-utils1`.
 
 * `gz::sim::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code

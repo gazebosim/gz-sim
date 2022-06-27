@@ -24,12 +24,12 @@ e.g.
 
         bash record_one_run.bash /tmp/log
 
-Once the script is run, ign-gazebo window should pop-up and log playback
+Once the script is run, gz-sim window should pop-up and log playback
 should automatically start. The GUI camera will follow the first entity found
 and the video recorder will be started. When the log playback ends, the video
 is saved to the current working directory. The log playback rewinds and the
 process is repeated for next entity until there are no more entities left. Once
-all videos are done, ign-gazebo is killed and the videos are moved to a
+all videos are done, gz-sim is killed and the videos are moved to a
 timestamped directory where the `record_one_run.bash` is in.
 
 ## Changing camera follow behavior

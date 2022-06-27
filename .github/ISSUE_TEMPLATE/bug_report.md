@@ -17,7 +17,7 @@ http://answers.gazebosim.org instead.-->
       - [ ] Sensor rendering error. <!-- Search for message like "[Msg] Loading plugin [ignition-rendering-ogre]" (not starting with "[GUI]"). -->
       - [ ] GUI rendering error. <!-- Search for message like "[GUI] [Msg] Loading plugin [ignition-rendering-ogre2] -->
     - EGL headless mode:
-      - [ ] Running in EGL headless mode <!-- only available since Ignition Fortress, GPU display is specified as /dev/dri/card* instead of :0 -->
+      - [ ] Running in EGL headless mode <!-- only available since Gazebo Fortress, GPU display is specified as /dev/dri/card* instead of :0 -->
     - Generally, mention all circumstances that might affect rendering capabilities: <!-- remove lines that do not apply to keep the list short -->
       - [ ] running on a dual GPU machine (integrated GPU + discrete GPU)
       - [ ] running on a multi-GPU machine (it has multiple discrete GPUs)

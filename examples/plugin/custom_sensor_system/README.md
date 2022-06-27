@@ -3,11 +3,11 @@
 This example shows how to use a custom sensor with Gazebo.
 
 It uses the odometer created on this example:
-[ign-sensors/examples/custom_sensor](https://github.com/gazebosim/gz-sensors/tree/main/examples/custom_sensor).
+[gz-sensors/examples/custom_sensor](https://github.com/gazebosim/gz-sensors/tree/main/examples/custom_sensor).
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugins/custom_sensor_system
@@ -42,4 +42,3 @@ Listen to the odometer data with:
 ```
 gz topic -e -t /world/odometer_world/model/model_with_sensor/link/link/sensor/an_odometer/odometer
 ```
-

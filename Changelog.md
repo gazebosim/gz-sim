@@ -2795,7 +2795,7 @@
 1. Fix seeking back in time in log playback
     * [BitBucket pull request 523](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/523)
 
-1. Fix the deprecated ign-gazebo command line
+1. Fix the deprecated gz-sim command line
     * [BitBucket pull request 499](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/499)
 
 1. Always use the latest render texture in scene3d

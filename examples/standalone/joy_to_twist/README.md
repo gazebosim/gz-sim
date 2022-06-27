@@ -8,7 +8,7 @@ messages according to user-defined configuration.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/standalone/joy_to_twist
@@ -58,4 +58,3 @@ that can be controlled using a joystick. You can run it as follows:
 
 1. Now hold your joystick's A button (or equivalent) and move the directional
    stick to control the vehicle.
-
