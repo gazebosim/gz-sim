@@ -28,6 +28,10 @@ Rectangle {
   width: 720
   height: 720
 
+  function changeDefault(checked){
+    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
+  }
+
   function loadWorld(fileURL){
     // Remove "file://" from the QML url.
     var url = fileURL.toString().split("file://")[1]
@@ -65,7 +69,10 @@ Rectangle {
           Layout.minimumHeight: 150
           Image{
             source: "images/gazebo_horz_pos_topbar.svg"
-            x: (parent.width - width) / 2
+            // width: 400
+            // height: 300
+            fillMode: Image.PreserveAspectFit
+            x: (parent.width - width)  / 2 - width/3
             y: (parent.height - height) / 2
           }
       }
@@ -213,13 +220,14 @@ Rectangle {
               ToolTip.timeout: tooltipTimeout
               ToolTip.text: qsTr("Next")
             }
-            // CheckBox {
-            //   text: "Don't show again"
-            //   Layout.fillWidth: true
-            //   onClicked: {
-            //     console.debug("not yet implmented")
-            //   }
-            // }
+            CheckBox {
+              id: showByDefault
+              text: "Don't show again"
+              Layout.fillWidth: true
+              onClicked: {
+                quickStart.changeDefault(showByDefault.checked)
+              }
+            }
           }
         }
     }
