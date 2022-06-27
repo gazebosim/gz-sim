@@ -137,7 +137,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
   snprintf(cmd, sizeof(cmd), "cd %s && cmake %s",
     tmpBuildDir.Path().c_str(), _entry.sourceDir.c_str());
 
-  ASSERT_EQ(system(cmd), 0);
+  ASSERT_EQ(system(cmd), 0) << _entry.sourceDir;
   ASSERT_EQ(system("make"), 0);
 }
 

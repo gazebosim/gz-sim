@@ -14,7 +14,7 @@ This world attaches logical audio sources to the `red_box` and `blue_box` models
 Let's take a look at the SDF relevant to the source for `red_box` to understand how to define a logical audio source in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>.5 0 0 0 0 0</pose>
@@ -45,7 +45,7 @@ This means that this source will play for an infinite amount of simulation time,
 Let's now take a look at the SDF relevant to the microphone for `green_box` to understand how to define a logical microphone in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <microphone>
           <id>1</id>
           <pose>0 .5 0 0 0 0</pose>

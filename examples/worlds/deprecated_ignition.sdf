@@ -1,42 +1,22 @@
 <?xml version="1.0" ?>
 <!--
-  Log record resources demo.
-
-  Running this world will record log files to /tmp/log. It will overwrite that
-  directory if it already exists.
-
-  You can playback running the log_playback.sdf file.
+  This example shows that loading plugins with deprecated ignition prefixes still
+  work, but the user should see warnings printed on the terminal.
 -->
 <sdf version="1.6">
-  <world name="default">
-    <physics name="fast" type="ignored">
-      <real_time_factor>0</real_time_factor>
-    </physics>
-
+  <world name="empty">
     <plugin
-     filename="gz-sim-physics-system"
-     name="gz::sim::systems::Physics">
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
+      filename="ignition-gazebo-user-commands-system"
+      name="ignition::gazebo::systems::UserCommands">
     </plugin>
     <plugin
-      filename="gz-sim-log-system"
-      name="gz::sim::systems::LogRecord">
-      <!-- Deprecated: directories to write recorded files.
-           Use --record-path instead. -->
-      <!-- path>/tmp/log</path -->
-      <record_resources>1</record_resources>
-      <compress>0</compress>
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
-
-    <scene>
-      <ambient>0.8 0.8 0.8 1.0</ambient>
-      <background>0.34 0.39 0.43 1.0</background>
-      <grid>false</grid>
-      <origin_visual>false</origin_visual>
-    </scene>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -52,16 +32,8 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <include>
-      <static>false</static>
-      <name>staging_area</name>
-      <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/X2 Config 1</uri>
-    </include>
-
     <model name="ground_plane">
       <static>true</static>
-      <pose>0 0 -0.5 0 0.52 0</pose>
       <link name="link">
         <collision name="collision">
           <geometry>

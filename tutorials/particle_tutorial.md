@@ -11,7 +11,7 @@ To be able to spawn particle emitters,  first you will need to include the parti
 
 ```xml
     <plugin
-      filename="ignition-gazebo-particle-emitter-system"
+      filename="gz-sim-particle-emitter-system"
       name="gz::sim::systems::ParticleEmitter">
     </plugin>
 ```

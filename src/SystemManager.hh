@@ -37,7 +37,7 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
-    class GZ_GAZEBO_VISIBLE SystemManager
+    class GZ_SIM_VISIBLE SystemManager
     {
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins

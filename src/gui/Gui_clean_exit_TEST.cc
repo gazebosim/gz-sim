@@ -53,7 +53,7 @@ void startServer(const std::string &_fileName)
 void startGui()
 {
   int argc = 1;
-  char *argv = const_cast<char *>("ign-gazebo-gui");
+  char *argv = const_cast<char *>("gz-sim-gui");
   EXPECT_EQ(0, sim::gui::runGui(argc, &argv, "", ""));
 }
 

@@ -356,7 +356,7 @@ extern "C" int runServer(const char *_sdfString,
   // Run the server
   server.Run(true, _iterations, _run == 0);
 
-  gzdbg << "Shutting down ign-gazebo-server" << std::endl;
+  gzdbg << "Shutting down gz-sim-server" << std::endl;
   return 0;
 }
 
@@ -374,7 +374,7 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   static char *argv[] = {
-    const_cast<char *>("ign-gazebo-gui"),
+    const_cast<char *>("gz-sim-gui"),
 #ifdef QT_QML_DEBUG
     // To debug with QML, you must add
     //

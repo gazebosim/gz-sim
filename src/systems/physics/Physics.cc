@@ -749,7 +749,17 @@ void Physics::Configure(const Entity &_entity,
   // 3. Use DART by default
   if (pluginLib.empty())
   {
-    pluginLib = "libignition-physics-dartsim-plugin.so";
+    pluginLib = "gz-physics-dartsim-plugin";
+  }
+
+  // Deprecated: accept ignition-prefixed engines
+  std::string deprecatedPrefix{"ignition"};
+  auto pos = pluginLib.find(deprecatedPrefix);
+  if (pos != std::string::npos)
+  {
+    auto msg = "Trying to load deprecated plugin [" + pluginLib + "]. Use [";
+    pluginLib.replace(pos, deprecatedPrefix.size(), "gz");
+    gzwarn << msg << pluginLib << "] instead." << std::endl;
   }
 
   // Update component

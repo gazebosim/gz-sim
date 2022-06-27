@@ -14,15 +14,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -103,7 +103,7 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-kinetic-energy-monitor-system"
+        filename="gz-sim-kinetic-energy-monitor-system"
         name="gz::sim::systems::KineticEnergyMonitor">
         <link_name>sphere_link</link_name>
         <kinetic_energy_threshold>100</kinetic_energy_threshold>
