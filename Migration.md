@@ -34,6 +34,14 @@ release will remove the deprecated code.
 * The `gazebo` command line verb is deprecated.
   Use `sim` instead (e.g. `ign gazebo` -> `gz sim`).
 
+* **Breaking Changes**
+  * The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+    * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+    * Some non-exhaustive examples of this include:
+      * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+      * CMake `-config` files
+      * Paths that depend on the project name
+
 ## Gazebo Sim 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now
