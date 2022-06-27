@@ -22,7 +22,7 @@ Add the libraries to the correct paths:
 
 ~~~
 cd examples/plugin/rendering_plugins
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
@@ -30,7 +30,7 @@ Run the example world
 
 ~~~
 cd examples/plugin/rendering_plugins
-ign gazebo -v 4 -r rendering_plugins.sdf
+gz sim -v 4 -r rendering_plugins.sdf
 ~~~
 
 The ambient light on the server scene, visible from the camera sensor, will change every 2 seconds.

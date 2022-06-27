@@ -92,7 +92,7 @@ void worldReset()
 /////////////////////////////////////////////////
 /// This test checks that that the physics system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
+TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   gz::sim::ServerConfig serverConfig;
 

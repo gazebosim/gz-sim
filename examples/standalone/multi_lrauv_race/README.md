@@ -17,7 +17,7 @@ From this directory, run the following to compile:
 
 From the `build` directory, run Gazebo Sim and the example controller:
 
-    ign gazebo -r ../../../worlds/multi_lrauv_race.sdf
+    gz sim -r ../../../worlds/multi_lrauv_race.sdf
     ./multi_lrauv_race
 
 The example controller will output pseudorandom propeller and rudder commands

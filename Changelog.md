@@ -357,7 +357,7 @@
 1. Sensor systems work if loaded after sensors
     * [Pull request #1104](https://github.com/gazebosim/gz-sim/pull/1104)
 
-1. Support printing sensors using `ign model`
+1. Support printing sensors using `gz model`
     * [Pull request #1157](https://github.com/gazebosim/gz-sim/pull/1157)
 
 1. Set camera clipping plane distances from the GUI
@@ -614,7 +614,7 @@
 1. Examples and tutorial on using rendering API from plugins
     * [Pull request #596](https://github.com/gazebosim/gz-sim/pull/596)
 
-1.  Add missing GZ_GAZEBO_VISIBLE macros
+1.  Add missing GZ_SIM_VISIBLE macros
     * [Pull request #563](https://github.com/gazebosim/gz-sim/pull/563)
 
 1. Fix visibility macro names when used by a different component (Windows)
@@ -956,7 +956,7 @@
 1. 3 to 4
     * [Pull request #933](https://github.com/gazebosim/gz-sim/pull/933)
 
-1. Model info CLI `ign model`
+1. Model info CLI `gz model`
     * [Pull request #893](https://github.com/gazebosim/gz-sim/pull/893)
 
 1. Support Bullet on Edifice
@@ -1299,7 +1299,7 @@
 1. Use common::setenv for portability to Windows
     * [Pull request #561](https://github.com/gazebosim/gz-sim/pull/561)
 
-1.  Add missing GZ_GAZEBO_VISIBLE macros
+1.  Add missing GZ_SIM_VISIBLE macros
     * [Pull request #563](https://github.com/gazebosim/gz-sim/pull/563)
 
 1. Fix deprecation warnings
@@ -1729,7 +1729,7 @@
 1. Fix to handle multiple logical cameras.
     * [Pull Request 539](https://github.com/gazebosim/gz-sim/pull/539)
 
-1. Improve ign tool support on macOS.
+1. Improve gz tool support on macOS.
     * [Pull Request 477](https://github.com/gazebosim/gz-sim/pull/477)
 
 1. Add support for topic statistics on breadcrumb deployments.
@@ -2010,7 +2010,7 @@
 1. Examples and tutorial on using rendering API from plugins
     * [Pull request #596](https://github.com/gazebosim/gz-sim/pull/596)
 
-1.  Add missing GZ_GAZEBO_VISIBLE macros
+1.  Add missing GZ_SIM_VISIBLE macros
     * [Pull request #563](https://github.com/gazebosim/gz-sim/pull/563)
 
 1. Fix visibility macro names when used by a different component (Windows)
@@ -2064,7 +2064,7 @@
 1. Hello world plugin added
     * [Pull request #699](https://github.com/gazebosim/gz-sim/pull/699)
 
-1. Model info CLI `ign model`
+1. Model info CLI `gz model`
     * [Pull request #893](https://github.com/gazebosim/gz-sim/pull/893)
 
 1. Don't create components for entities that don't exist
@@ -2166,7 +2166,7 @@
 1. Added screenshot to toolbar
     * [Pull request #588](https://github.com/gazebosim/gz-sim/pull/588)
 
-1. Improve ign tool support on macOS
+1. Improve gz tool support on macOS
     * [Pull request #477](https://github.com/gazebosim/gz-sim/pull/477)
 
 1. change nullptr to a int ptr for qt 5.15.2 bug
@@ -2444,7 +2444,7 @@
     * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
     * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.
@@ -2585,7 +2585,7 @@
 1. Enhanced log playback performance.
     * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.

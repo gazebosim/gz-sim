@@ -73,11 +73,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
 }
 }
@@ -994,8 +994,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
     if (_checkAxis2)
       testAxis(_joint->Name(), _joint->Axis(1), _axis2);
 
-    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
-    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->ParentName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildName(), _childLinkName->Data());
     EXPECT_EQ(_joint->Name(), _name->Data());
   };
 
@@ -1185,7 +1185,7 @@ TEST_P(SimulationRunnerTest, Time)
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
+TEST_P(SimulationRunnerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 {
   // Load SDF file
   sdf::Root root;
@@ -1294,7 +1294,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1317,7 +1317,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1418,7 +1418,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1440,7 +1440,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;
@@ -1534,7 +1534,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1585,7 +1585,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   auto plugin = res.plugin(0);
   EXPECT_EQ("3D View", plugin.name());
   EXPECT_EQ("MinimalScene", plugin.filename());
-  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<gz-gui>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<service>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<pose_topic>"), std::string::npos);

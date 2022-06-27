@@ -78,18 +78,18 @@ namespace components
   /// element](http://sdformat.org/spec?ver=1.6&elem=actor).
   using Actor =
       Component<sdf::Actor, class ActorTag, serializers::ActorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Actor", Actor)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Actor", Actor)
 
   /// \brief Time in seconds within animation being currently played.
   using AnimationTime = Component<std::chrono::steady_clock::duration,
       class AnimationTimeTag, serializers::AnimationTimeSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AnimationTime",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AnimationTime",
       AnimationTime)
 
   /// \brief Name of animation being currently played.
   using AnimationName = Component<std::string, class AnimationNameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AnimationName",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AnimationName",
       AnimationName)
 }
 }

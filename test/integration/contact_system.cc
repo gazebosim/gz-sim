@@ -44,7 +44,7 @@ class ContactSystemTest : public InternalFixture<::testing::Test>
 // This test verifies that colliding entity names are populated in
 // the contact points message.
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableCollidingEntityNames))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableCollidingEntityNames))
 {
   // Start server
   ServerConfig serverConfig;
@@ -120,7 +120,7 @@ TEST_F(ContactSystemTest,
 // This test verifies that colliding entity names are not populated in
 // the contact points message.
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DisableCollidingEntityNames))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DisableCollidingEntityNames))
 {
   // Start server
   ServerConfig serverConfig;
@@ -193,7 +193,7 @@ TEST_F(ContactSystemTest,
 // The test checks that contacts are published by the contact system
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleCollisionsAsContactSensors))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultipleCollisionsAsContactSensors))
 {
   // Start server
   ServerConfig serverConfig;
@@ -273,7 +273,7 @@ TEST_F(ContactSystemTest,
 }
 
 TEST_F(ContactSystemTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
 {
   // Start server
   ServerConfig serverConfig;

@@ -109,7 +109,7 @@ void imuCb(const msgs::IMU &_msg)
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling imu
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   double z = 3;
   // TODO(anyone): get step size from sdf
@@ -260,7 +260,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 
 /////////////////////////////////////////////////
 // The test checks to make sure orientation is not published if it is disabled
-TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 {
   imuMsgs.clear();
 
@@ -299,7 +299,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 /////////////////////////////////////////////////
 // The test checks if the orientation is published according to the
 // localization tag
-TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 {
   imuMsgs.clear();
   clearLastImuMsgs();
@@ -373,7 +373,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 /////////////////////////////////////////////////
 // The test checks if the orientation is published according to the
 // localization tag, with heading_deg also accounted for
-TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
 {
   imuMsgs.clear();
   clearLastImuMsgs();
@@ -448,7 +448,7 @@ TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
 // The test checks if orientations are reported correctly for a rotating body.
 // The world includes a sphere rolling down a plane, with axis of rotation
 // as the "west" direction vector, using the right hand rule.
-TEST_F(ImuTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
 {
   imuMsgs.clear();
   clearLastImuMsgs();

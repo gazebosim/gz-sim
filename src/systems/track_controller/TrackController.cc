@@ -613,14 +613,14 @@ void TrackControllerPrivate::OnCenterOfRotation(const msgs::Vector3d& _msg)
   this->hasNewCommand = true;
 }
 
-IGNITION_ADD_PLUGIN(TrackController,
+GZ_ADD_PLUGIN(TrackController,
                     gz::sim::System,
                     TrackController::ISystemConfigure,
                     TrackController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+GZ_ADD_PLUGIN_ALIAS(TrackController,
                           "gz::sim::systems::TrackController")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+GZ_ADD_PLUGIN_ALIAS(TrackController,
                           "ignition::gazebo::systems::TrackController")

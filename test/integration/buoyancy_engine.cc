@@ -54,7 +54,7 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
+TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
 {
   ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -103,7 +103,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
+TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 {
   ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
@@ -152,7 +152,7 @@ TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 }
 
 /////////////////////////////////////////////////
-TEST_F(BuoyancyEngineTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
+TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
 {
   ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),

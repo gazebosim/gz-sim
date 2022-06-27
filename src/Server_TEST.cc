@@ -52,7 +52,7 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 {
   gz::sim::ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -160,7 +160,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -212,7 +212,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigSensorPlugin))
 {
   // Start server
   ServerConfig serverConfig;
@@ -263,7 +263,7 @@ TEST_P(ServerFixture,
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -296,7 +296,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -339,7 +339,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -379,7 +379,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
   auto logPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "test_log_path");
@@ -487,7 +487,7 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 
   // Add a small sleep because the non-blocking Run call causes the
   // simulation runner to start asynchronously.
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
   EXPECT_TRUE(*server.Running(0));
 
   EXPECT_EQ(0u, server.IterationCount());
@@ -502,7 +502,7 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   EXPECT_TRUE(server.Running());
 
   while (*server.IterationCount() < 100)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
@@ -522,7 +522,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 
   server.Run(false, 100, false);
   while (*server.IterationCount() < 100)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
@@ -530,7 +530,7 @@ TEST_P(ServerFixture, RunNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 {
   sim::Server server;
   EXPECT_FALSE(server.Running());
@@ -577,7 +577,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 {
   sim::Server server;
   EXPECT_FALSE(server.Running());
@@ -638,7 +638,7 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
   EXPECT_FALSE(server.Run(false, 100, false));
 
   while (*server.IterationCount() < 100)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
@@ -655,7 +655,7 @@ TEST_P(ServerFixture, SigInt)
   // Run forever, non-blocking.
   server.Run(false, 0, false);
 
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
 
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
@@ -679,7 +679,7 @@ TEST_P(ServerFixture, ServerControlStop)
   // Run forever, non-blocking.
   server.Run(false, 0, false);
 
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
 
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
@@ -703,7 +703,7 @@ TEST_P(ServerFixture, ServerControlStop)
   EXPECT_TRUE(result);
   EXPECT_FALSE(res.data());
 
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
 
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
@@ -718,14 +718,14 @@ TEST_P(ServerFixture, ServerControlStop)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -740,7 +740,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   // Run the server to test whether we can add systems while system is running
   server.Run(false, 0, false);
 
-  IGN_SLEEP_MS(500);
+  GZ_SLEEP_MS(500);
 
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
@@ -773,7 +773,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -847,7 +847,7 @@ TEST_P(ServerFixture, Seed)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   gz::common::setenv("GZ_SIM_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
@@ -1006,7 +1006,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   int maxSleep{30};
   while (!receivedMsg && sleep < maxSleep)
   {
-    IGN_SLEEP_MS(50);
+    GZ_SLEEP_MS(50);
     sleep++;
   }
   EXPECT_TRUE(receivedMsg);

@@ -3,18 +3,18 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo7 VERSION 7.0.0)
+project(gz-sim7 VERSION 7.0.0)
 
 #============================================================================
-# Find ignition-cmake
+# Find gz-cmake
 #============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake3 REQUIRED)
+# If you get an error at this line, you need to install gz-cmake
+find_package(gz-cmake3 REQUIRED)
 
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(
+gz_configure_project(
   REPLACE_IGNITION_INCLUDE_PATH gz/sim
   VERSION_SUFFIX pre1)
 set (CMAKE_CXX_STANDARD 17)
@@ -26,9 +26,9 @@ set (CMAKE_CXX_STANDARD 17)
 option(ENABLE_PROFILER "Enable Gazebo Profiler" FALSE)
 
 if(ENABLE_PROFILER)
-  add_definitions("-DIGN_PROFILER_ENABLE=1")
+  add_definitions("-DGZ_PROFILER_ENABLE=1")
 else()
-  add_definitions("-DIGN_PROFILER_ENABLE=0")
+  add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -61,46 +61,46 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat13 REQUIRED)
+gz_find_package(sdformat13 REQUIRED)
 set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-plugin
-ign_find_package(ignition-plugin2 REQUIRED COMPONENTS loader register)
-set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
+# Find gz-plugin
+gz_find_package(gz-plugin2 REQUIRED COMPONENTS loader register)
+set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-transport
-ign_find_package(ignition-transport12 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport12_VERSION_MAJOR})
+# Find gz-transport
+gz_find_package(gz-transport12 REQUIRED COMPONENTS log)
+set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-msgs
-ign_find_package(ignition-msgs9 REQUIRED)
-set(IGN_MSGS_VER ${ignition-msgs9_VERSION_MAJOR})
+# Find gz-msgs
+gz_find_package(gz-msgs9 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-common
+# Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common5
+gz_find_package(gz-common5
   COMPONENTS
     profiler
     events
     av
   REQUIRED
 )
-set(IGN_COMMON_VER ${ignition-common5_VERSION_MAJOR})
+set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools8 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools8_VERSION_MAJOR})
+# Find gz-fuel_tools
+gz_find_package(gz-fuel_tools8 REQUIRED)
+set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-gui
-ign_find_package(ignition-gui7 REQUIRED)
-set(IGN_GUI_VER ${ignition-gui7_VERSION_MAJOR})
-ign_find_package (Qt5
+# Find gz-gui
+gz_find_package(gz-gui7 REQUIRED)
+set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package (Qt5
   COMPONENTS
     Core
     Quick
@@ -109,19 +109,19 @@ ign_find_package (Qt5
   PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
 
 #--------------------------------------
-# Find ignition-physics
-ign_find_package(ignition-physics6
+# Find gz-physics
+gz_find_package(gz-physics6
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics6_VERSION_MAJOR})
+set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-sensors
-ign_find_package(ignition-sensors7 REQUIRED
+# Find gz-sensors
+gz_find_package(gz-sensors7 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -146,38 +146,41 @@ ign_find_package(ignition-sensors7 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors7_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-rendering
-ign_find_package(ignition-rendering7 REQUIRED)
-set(IGN_RENDERING_VER ${ignition-rendering7_VERSION_MAJOR})
+# Find gz-rendering
+gz_find_package(gz-rendering7 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-math
-ign_find_package(ignition-math7 REQUIRED COMPONENTS eigen3)
-set(IGN_MATH_VER ${ignition-math7_VERSION_MAJOR})
+# Find gz-math
+gz_find_package(gz-math7 REQUIRED COMPONENTS eigen3)
+set(GZ_MATH_VER ${gz-math7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-tools
-ign_find_package(ignition-tools2
-                 REQUIRED
-                 PKGCONFIG "ignition-tools2")
+# Find if gz command is available
+find_program(GZ_TOOLS_PROGRAM gz)
+if (GZ_TOOLS_PROGRAM)
+  message (STATUS "Searching for gz program - found. CLI tests can be built.")
+else()
+  message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
+endif()
 
 #--------------------------------------
-# Find ignition-utils
-ign_find_package(ignition-utils2 REQUIRED COMPONENTS cli)
-set(IGN_UTILS_VER ${ignition-utils2_VERSION_MAJOR})
+# Find gz-utils
+gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
+set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
 set(REQ_PROTOBUF_VER 3)
-ign_find_package(IgnProtobuf
+gz_find_package(IgnProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${ignition-msgs9_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
@@ -211,14 +214,14 @@ set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+gz_configure_build(QUIT_IF_BUILD_ERRORS)
 
 add_subdirectory(examples)
 
 #============================================================================
 # Create package information
 #============================================================================
-ign_create_packages()
+gz_create_packages()
 
 if (${pybind11_FOUND})
 	add_subdirectory(python)
@@ -235,19 +238,19 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_D
 # there is an unreleased fix; revert this when 1.9.1 is released
 # https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
-  ign_create_docs(
+  gz_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
     IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
-     "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
-     "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-     "${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}"
-     "${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}"
-     "${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}"
-     "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
-     "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
+     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
   )
 endif()
 

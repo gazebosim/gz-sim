@@ -6,28 +6,28 @@
 
   Try sending commands:
 
-    ign topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
+    gz topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
 
   Listen to joint states:
 
-    ign topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
+    gz topic -e -t /world/lift_drag/model/lift_drag_demo_model/joint_state
 
   Listen to battery state:
 
-    ign topic -et /model/lift_drag_demo_model/battery/linear_battery/state
+    gz topic -et /model/lift_drag_demo_model/battery/linear_battery/state
 -->
 <sdf version="1.6">
   <world name="lift_drag">
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -251,11 +251,11 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-joint-state-publisher-system"
+        filename="gz-sim-joint-state-publisher-system"
         name="gz::sim::systems::JointStatePublisher"></plugin>
 
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
+        filename="gz-sim-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -269,7 +269,7 @@
         <link_name>blade_1</link_name>
       </plugin>
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
+        filename="gz-sim-lift-drag-system"
         name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>0.1</cla>
@@ -283,11 +283,11 @@
         <link_name>blade_2</link_name>
       </plugin>
       <plugin
-        filename="ignition-gazebo-apply-joint-force-system"
+        filename="gz-sim-apply-joint-force-system"
         name="gz::sim::systems::ApplyJointForce">
         <joint_name>rod_1_joint</joint_name>
       </plugin>
-      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+      <plugin filename="gz-sim-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>

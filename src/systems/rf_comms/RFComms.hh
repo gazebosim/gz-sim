@@ -64,7 +64,7 @@ namespace systems
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="ignition-gazebo-rf-comms-system"
+  ///   filename="gz-sim-rf-comms-system"
   ///   name="gz::sim::systems::RFComms">
   ///   <range_config>
   ///     <max_range>500000.0</max_range>
@@ -101,7 +101,7 @@ namespace systems
                       EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

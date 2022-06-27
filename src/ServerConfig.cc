@@ -198,9 +198,9 @@ class gz::sim::ServerConfigPrivate
   public: ServerConfigPrivate()
   {
     std::string home;
-    common::env(IGN_HOMEDIR, home);
+    common::env(GZ_HOMEDIR, home);
 
-    this->timestamp = IGN_SYSTEM_TIME();
+    this->timestamp = GZ_SYSTEM_TIME();
 
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
@@ -534,9 +534,19 @@ const std::string &ServerConfig::RenderEngineServer() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetRenderEngineServer(const std::string &_renderEngineServer)
+void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
-  this->dataPtr->renderEngineServer = _renderEngineServer;
+  // Deprecated: accept ignition-prefixed engines
+    std::string deprecatedPrefix{"ignition"};
+  auto engine = _engine;
+  auto pos = engine.find(deprecatedPrefix);
+  if (pos != std::string::npos)
+  {
+    engine.replace(pos, deprecatedPrefix.size(), "gz");
+    gzwarn << "Trying to load deprecated engine [" << _engine
+           << "] for the server. Use [" << engine << "] instead." << std::endl;
+  }
+  this->dataPtr->renderEngineServer = engine;
 }
 
 /////////////////////////////////////////////////
@@ -558,9 +568,19 @@ const std::string &ServerConfig::RenderEngineGui() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetRenderEngineGui(const std::string &_renderEngineGui)
+void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
-  this->dataPtr->renderEngineGui = _renderEngineGui;
+  // Deprecated: accept ignition-prefixed engines
+    std::string deprecatedPrefix{"ignition"};
+  auto engine = _engine;
+  auto pos = engine.find(deprecatedPrefix);
+  if (pos != std::string::npos)
+  {
+    engine.replace(pos, deprecatedPrefix.size(), "gz");
+    gzwarn << "Trying to load deprecated engine [" << _engine
+           << "] for the GUI. Use [" << engine << "] instead." << std::endl;
+  }
+  this->dataPtr->renderEngineGui = engine;
 }
 
 /////////////////////////////////////////////////
@@ -931,7 +951,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  gz::common::env(IGN_HOMEDIR, defaultConfigDir);
+  gz::common::env(GZ_HOMEDIR, defaultConfigDir);
   defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".gz",
     "sim", GZ_SIM_MAJOR_VERSION_STR);
 

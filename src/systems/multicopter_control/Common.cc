@@ -287,6 +287,6 @@ std::optional<FrameData> getFrameData(const EntityComponentManager &_ecm,
 }
 }  // namespace multicopter_control
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz

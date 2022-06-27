@@ -10,7 +10,7 @@ plugin to open the Video Recorder tool. Alternatively, launch the demo world in
 Gazebo that already has this plugin included in the GUI.
 
 ```
-ign gazebo -v 4 video_record_dbl_pendulum.sdf
+gz sim -v 4 video_record_dbl_pendulum.sdf
 ```
 
 In this plugin, you should see a single button with a video recorder icon.
@@ -50,11 +50,11 @@ Scene 3D plugin with custom video recorder settings:
 
 ```xml
 <plugin filename="GzScene3D" name="3D View">
-  <ignition-gui>
+  <gz-gui>
     <title>3D View</title>
     <property type="bool" key="showTitleBar">false</property>
     <property type="string" key="state">docked</property>
-  </ignition-gui>
+  </gz-gui>
 
   <engine>ogre2</engine>
   <scene>scene</scene>

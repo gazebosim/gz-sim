@@ -31,7 +31,7 @@ through the command line or the SDF file.
 Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
-`ign gazebo`
+`gz sim`
 
 You should see an empty world with several plugins loaded by default, such as the
 3D Scene, the play/pause button, etc.
@@ -57,7 +57,7 @@ Let's try customizing it:
 
 3. Reload Gazebo:
 
-    `ign gazebo`
+    `gz sim`
 
 Note how the UI is now in dark mode!
 
@@ -88,11 +88,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -117,7 +117,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
 
 Now let's load this world:
 
-`ign gazebo <path to>/fuel_preview.sdf`
+`gz sim <path to>/fuel_preview.sdf`
 
 Notice how the application has only one GUI plugin loaded, the 3D scene, as defined
 on the SDF file above.
@@ -141,7 +141,7 @@ hand, we'll create it from the UI.
 
 1. Let's start loading the SDF world we created above, with the `<gui>` element back:
 
-`ign gazebo <path to>/fuel_preview.sdf`
+`gz sim <path to>/fuel_preview.sdf`
 
 2. Now from the top-right menu, choose to add the "View Angle" plugin. This
    plugin has convenient buttons to change the camera angle, try them out!
@@ -164,7 +164,7 @@ hand, we'll create it from the UI.
 
 2. Finally, let's load the previous world, with our custom configuration:
 
-    `ign gazebo <path to>/fuel_preview.sdf --gui-config <path to>saved.config`
+    `gz sim <path to>/fuel_preview.sdf --gui-config <path to>saved.config`
 
 3. Gazebo should open with your custom layout.
 

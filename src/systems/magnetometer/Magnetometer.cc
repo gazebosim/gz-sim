@@ -105,7 +105,7 @@ Magnetometer::~Magnetometer() = default;
 void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Magnetometer::PreUpdate");
+  GZ_PROFILE("Magnetometer::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -127,7 +127,7 @@ void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
 void Magnetometer::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Magnetometer::PostUpdate");
+  GZ_PROFILE("Magnetometer::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -224,7 +224,7 @@ void MagnetometerPrivate::AddMagnetometer(
 //////////////////////////////////////////////////
 void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MagnetometerPrivate::CreateMagnetometerEntities");
+  GZ_PROFILE("MagnetometerPrivate::CreateMagnetometerEntities");
   auto worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == worldEntity)
   {
@@ -273,7 +273,7 @@ void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
 void MagnetometerPrivate::Update(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MagnetometerPrivate::Update");
+  GZ_PROFILE("MagnetometerPrivate::Update");
   _ecm.Each<components::Magnetometer,
             components::WorldPose>(
     [&](const Entity &_entity,
@@ -301,7 +301,7 @@ void MagnetometerPrivate::Update(
 void MagnetometerPrivate::RemoveMagnetometerEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MagnetometerPrivate::RemoveMagnetometerEntities");
+  GZ_PROFILE("MagnetometerPrivate::RemoveMagnetometerEntities");
   _ecm.EachRemoved<components::Magnetometer>(
     [&](const Entity &_entity,
         const components::Magnetometer *)->bool
@@ -320,14 +320,14 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Magnetometer, System,
+GZ_ADD_PLUGIN(Magnetometer, System,
   Magnetometer::ISystemPreUpdate,
   Magnetometer::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+GZ_ADD_PLUGIN_ALIAS(Magnetometer,
                           "gz::sim::systems::Magnetometer")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+GZ_ADD_PLUGIN_ALIAS(Magnetometer,
                           "ignition::gazebo::systems::Magnetometer")

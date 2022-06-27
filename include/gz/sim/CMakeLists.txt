@@ -1,4 +1,4 @@
-ign_install_all_headers()
+gz_install_all_headers()
 
 add_subdirectory(components)
 

@@ -86,7 +86,7 @@ TEST_F(SphericalCoordinatesTest, InitialFromSDF)
 
 /////////////////////////////////////////////////
 TEST_F(SphericalCoordinatesTest,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(SetWorldOriginFromTransport))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SetWorldOriginFromTransport))
 {
   TestFixture fixture(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/spherical_coordinates.sdf");
@@ -179,8 +179,8 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
 
       World world(entity);
       world.SetSphericalCoordinates(_ecm, math::SphericalCoordinates(
-          math::SphericalCoordinates::EARTH_WGS84, IGN_DTOR(52.2),
-          IGN_DTOR(21.0), 789.0, 0));
+          math::SphericalCoordinates::EARTH_WGS84, GZ_DTOR(52.2),
+          GZ_DTOR(21.0), 789.0, 0));
     });
 
   fixture.Server()->Run(true, 1, false);
@@ -193,7 +193,7 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
+TEST_F(SphericalCoordinatesTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "spherical_coordinates.sdf"));
@@ -264,7 +264,7 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MoveEntity))
 }
 
 /////////////////////////////////////////////////
-TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
+TEST_F(SphericalCoordinatesTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "spherical_coordinates.sdf"));
@@ -324,7 +324,7 @@ TEST_F(SphericalCoordinatesTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
   auto scMsg = req.mutable_spherical_coordinates();
   scMsg->set_latitude_deg(desiredLat);
   scMsg->set_longitude_deg(desiredLon);
-  scMsg->set_heading_deg(IGN_RTOD(desiredHeading));
+  scMsg->set_heading_deg(GZ_RTOD(desiredHeading));
 
   msgs::Boolean res;
   bool result;

@@ -29,7 +29,7 @@
 
 // This is required to register the plugin. Make sure the interfaces match
 // what's in the header.
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
     hello_world::HelloWorld,
     gz::sim::System,
     hello_world::HelloWorld::ISystemPostUpdate)
@@ -48,7 +48,7 @@ void HelloWorld::PostUpdate(const gz::sim::UpdateInfo &_info,
   msg += "paused.";
 
   // Messages printed with gzmsg only show when running with verbosity 3 or
-  // higher (i.e. ign gazebo -v 3)
+  // higher (i.e. gz sim -v 3)
   gzmsg << msg << std::endl;
 }
 

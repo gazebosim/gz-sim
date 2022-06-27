@@ -144,7 +144,7 @@ TEST(PeerTracker, PeerTracker)
 }
 
 //////////////////////////////////////////////////
-TEST(PeerTracker, IGN_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
+TEST(PeerTracker, GZ_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
 {
   gz::common::Console::SetVerbosity(4);
   EventManager eventMgr;

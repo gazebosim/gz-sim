@@ -104,7 +104,7 @@ Altimeter::~Altimeter() = default;
 void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::PreUpdate");
+  GZ_PROFILE("Altimeter::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -126,7 +126,7 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
 void Altimeter::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::PostUpdate");
+  GZ_PROFILE("Altimeter::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -219,7 +219,7 @@ void AltimeterPrivate::AddAltimeter(
 //////////////////////////////////////////////////
 void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::CreateAltimeterEntities");
+  GZ_PROFILE("Altimeter::CreateAltimeterEntities");
   if (!this->initialized)
   {
     // Create altimeters
@@ -250,7 +250,7 @@ void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::UpdateAltimeters");
+  GZ_PROFILE("Altimeter::UpdateAltimeters");
   _ecm.Each<components::Altimeter, components::WorldPose,
             components::WorldLinearVelocity>(
     [&](const Entity &_entity,
@@ -280,7 +280,7 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
 void AltimeterPrivate::RemoveAltimeterEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Altimeter::RemoveAltimeterEntities");
+  GZ_PROFILE("Altimeter::RemoveAltimeterEntities");
   _ecm.EachRemoved<components::Altimeter>(
     [&](const Entity &_entity,
         const components::Altimeter *)->bool
@@ -299,12 +299,12 @@ void AltimeterPrivate::RemoveAltimeterEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(Altimeter, System,
+GZ_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPreUpdate,
   Altimeter::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+GZ_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")
+GZ_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

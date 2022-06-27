@@ -5,22 +5,22 @@
   Start gazebo using the "--levels" flag.
   Start the simulation and try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"
 
-    ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"
+    gz topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"
 -->
 <sdf version="1.6">
   <world name="levels">
     <plugin
-     filename="ignition-gazebo-physics-system"
+     filename="gz-sim-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -4003,7 +4003,7 @@
     </joint>
 
     <plugin
-      filename="ignition-gazebo-diff-drive-system"
+      filename="gz-sim-diff-drive-system"
       name="gz::sim::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
@@ -4181,7 +4181,7 @@
     </joint>
 
     <plugin
-      filename="ignition-gazebo-diff-drive-system"
+      filename="gz-sim-diff-drive-system"
       name="gz::sim::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>

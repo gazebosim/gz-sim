@@ -32,18 +32,18 @@ Gazebo ships with an example world that demos the levels feature. Try it as foll
 
 1. Run the example world with the `--levels` flag:
 
-    `ign gazebo levels.sdf --levels`
+    `gz sim levels.sdf --levels`
 
     Gazebo will open with a world that has 2 vehicles, one red and one blue.
 
 2. Open a new terminal and publish the following commands for the vehicles to
     drive forward:
 
-    `ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"`
+    `gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"`
 
     and
 
-    `ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"`
+    `gz topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"`
 
 3. Press play on Gazebo. You'll see that the tunnels will be loaded as the
     vehicles move forward.
@@ -232,7 +232,7 @@ successfuly added.
 1. Run the `levels_no_performer.sdf` world in a terminal.
 
 ```
-ign gazebo levels_no_performers.sdf -v 4 --levels
+gz sim levels_no_performers.sdf -v 4 --levels
 ```
 
 Here you will see the two vehicles, which are regular models that do not trigger level loading. They are not performers until you call the service.
@@ -240,7 +240,7 @@ Here you will see the two vehicles, which are regular models that do not trigger
 2. In another terminal call the add performer service for the blue vehicle.
 
 ```
-ign service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
+gz service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example

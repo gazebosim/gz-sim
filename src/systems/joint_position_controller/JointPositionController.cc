@@ -221,7 +221,7 @@ void JointPositionController::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointPositionController::PreUpdate");
+  GZ_PROFILE("JointPositionController::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -356,14 +356,14 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
   this->jointPosCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(JointPositionController,
+GZ_ADD_PLUGIN(JointPositionController,
                     gz::sim::System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+GZ_ADD_PLUGIN_ALIAS(JointPositionController,
                           "gz::sim::systems::JointPositionController")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+GZ_ADD_PLUGIN_ALIAS(JointPositionController,
                           "ignition::gazebo::systems::JointPositionController")

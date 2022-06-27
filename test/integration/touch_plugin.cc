@@ -49,7 +49,7 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -107,7 +107,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -139,7 +139,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiLink))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -187,7 +187,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -226,7 +226,7 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
 /// Tests whether the plugin works when it is spawned after other entities have
 /// already been created and vice versa
 /// This test uses depends on the user_commands system
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 {
   std::string whiteBox = R"EOF(
   <?xml version="1.0" ?>

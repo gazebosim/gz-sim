@@ -45,7 +45,7 @@ namespace detail
 /// are used in templated Gz::Sim::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
 /// gz::sim::detail) directly.
-class GZ_GAZEBO_VISIBLE View : public BaseView
+class GZ_SIM_VISIBLE View : public BaseView
 {
   /// \brief Alias for containers that hold and entity and its component data.
   /// The component types held in this container match the component types that
@@ -184,7 +184,7 @@ void View::AddEntityWithComps(const Entity &_entity, const bool _new,
     this->newEntities.insert(_entity);
 }
 }  // namespace detail
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 #endif

@@ -466,7 +466,7 @@ void LogPlayback::Reset(const UpdateInfo &, EntityComponentManager &)
 //////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogPlayback::Update");
+  GZ_PROFILE("LogPlayback::Update");
   if (_info.dt == std::chrono::steady_clock::duration::zero())
     return;
 
@@ -512,9 +512,11 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
     // Support ignition.msgs for backwards compatibility, don't remove on tock
     // so users can use logs across versions
-    if (msgType.find("ignition.msgs") == 0)
+    std::string deprecatedPrefix{"ignition.msgs"};
+    auto pos = msgType.find(deprecatedPrefix);
+    if (pos != std::string::npos)
     {
-      msgType.replace(0, 8, "gz");
+      msgType.replace(pos, deprecatedPrefix.size(), "gz.msgs");
     }
 
     if (msgType == "gz.msgs.SerializedState")
@@ -626,15 +628,15 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(gz::sim::systems::LogPlayback,
+GZ_ADD_PLUGIN(gz::sim::systems::LogPlayback,
                     gz::sim::System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemReset,
                     LogPlayback::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
+GZ_ADD_PLUGIN_ALIAS(LogPlayback,
                           "gz::sim::systems::LogPlayback")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
+GZ_ADD_PLUGIN_ALIAS(LogPlayback,
                           "ignition::gazebo::systems::LogPlayback")

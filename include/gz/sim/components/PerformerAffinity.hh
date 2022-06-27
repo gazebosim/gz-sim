@@ -38,7 +38,7 @@ namespace components
   /// this performer is associated with.
   using PerformerAffinity = Component<std::string, class PerformerAffinityTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PerformerAffinity",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PerformerAffinity",
       PerformerAffinity)
 }
 }

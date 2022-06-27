@@ -124,9 +124,9 @@ void OdometerSystem::RemoveSensorEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(OdometerSystem, gz::sim::System,
+GZ_ADD_PLUGIN(OdometerSystem, gz::sim::System,
   OdometerSystem::ISystemPreUpdate,
   OdometerSystem::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(OdometerSystem, "custom::OdometerSystem")
+GZ_ADD_PLUGIN_ALIAS(OdometerSystem, "custom::OdometerSystem")

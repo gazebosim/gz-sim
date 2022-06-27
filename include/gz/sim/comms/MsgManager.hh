@@ -75,7 +75,7 @@ struct AddressContent
 using Registry = std::unordered_map<std::string, AddressContent>;
 
 /// \brief Class to handle messages and subscriptions.
-class GZ_GAZEBO_VISIBLE MsgManager
+class GZ_SIM_VISIBLE MsgManager
 {
   /// \brief Default constructor.
   public: MsgManager();
@@ -149,7 +149,7 @@ class GZ_GAZEBO_VISIBLE MsgManager
   public: void Set(const Registry &_newContent);
 
   /// \brief Private data pointer.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

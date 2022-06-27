@@ -4,18 +4,18 @@
 
   Try sending joint position commands:
 
-    ign topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: -1.0"
+    gz topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: 1.0"
+    gz topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: 1.0"
 -->
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -113,7 +113,7 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
+        filename="gz-sim-joint-position-controller-system"
         name="gz::sim::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <topic>rotor_cmd</topic>

@@ -71,7 +71,7 @@ void cameraCb(const msgs::Image & _msg)
 // Test the ability to set the background color using the sensor system
 // plugin.
 TEST_F(CameraSensorBackgroundFixture,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
 {
   // Start server
   sim::ServerConfig serverConfig;

@@ -14,18 +14,18 @@ if (MSVC)
       COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-ign_add_component(rendering
+gz_add_component(rendering
   SOURCES ${rendering_comp_sources}
   GET_TARGET_NAME rendering_target
   CXX_STANDARD 17)
 
 target_link_libraries(${rendering_target}
   PUBLIC
-    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   PRIVATE
-    ignition-plugin${IGN_PLUGIN_VER}::register
+    gz-plugin${GZ_PLUGIN_VER}::register
 )
 
-install(TARGETS ${rendering_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
+install(TARGETS ${rendering_target} DESTINATION ${GZ_LIB_INSTALL_DIR})
 
 set(rendering_target ${rendering_target} PARENT_SCOPE)

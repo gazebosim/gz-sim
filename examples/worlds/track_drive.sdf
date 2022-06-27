@@ -4,15 +4,15 @@
 
   Try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.7}"
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.7}"
 
-    ign topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.8}"
+    gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.8}"
 
   Listen to odometry:
 
-    ign topic -e -t /model/vehicle_blue/odometry
+    gz topic -e -t /model/vehicle_blue/odometry
 
-    ign topic -e -t /model/vehicle_green/odometry
+    gz topic -e -t /model/vehicle_green/odometry
 
 -->
 <sdf version="1.6">
@@ -23,19 +23,19 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-imu-system"
+      filename="gz-sim-imu-system"
       name="gz::sim::systems::Imu">
     </plugin>
 
@@ -1050,7 +1050,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="ignition-gazebo-diff-drive-system"
+      <plugin filename="gz-sim-diff-drive-system"
               name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>
@@ -2071,7 +2071,7 @@
       </joint>
 
       <!-- Track drive -->
-      <plugin filename="ignition-gazebo-diff-drive-system"
+      <plugin filename="gz-sim-diff-drive-system"
               name="gz::sim::systems::DiffDrive">
         <left_joint>left_track_wheel1_j</left_joint>
         <right_joint>right_track_wheel1_j</right_joint>

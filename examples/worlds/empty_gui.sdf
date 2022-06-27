@@ -5,7 +5,7 @@ This example helps illustrate the interaction of the MinimalScene with other GUI
 
 1. Load this world
 
-        ign gazebo empty_gui.sdf
+        gz sim empty_gui.sdf
 
     The entire screen will be grey, because there's no scene manager populating it with
 
@@ -39,11 +39,11 @@ This example helps illustrate the interaction of the MinimalScene with other GUI
 
     <gui fullscreen="0">
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>

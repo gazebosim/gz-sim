@@ -30,7 +30,7 @@ namespace components
 {
 using WorldPluginComponent =
     components::Component<double, class WorldPluginComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("WorldPluginComponent",
+GZ_SIM_REGISTER_COMPONENT("WorldPluginComponent",
     WorldPluginComponent)
 }
 }

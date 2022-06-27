@@ -44,7 +44,7 @@ namespace gz
     ///
     /// Note that this can likely be replaced once the C++ concurrency TS
     /// is ratified: https://en.cppreference.com/w/cpp/experimental/barrier
-    class GZ_GAZEBO_VISIBLE Barrier
+    class GZ_SIM_VISIBLE Barrier
     {
       /// \brief Constructor
       /// \param[in] _threadCount Number of threads to syncronize
@@ -88,7 +88,7 @@ namespace gz
       /// \brief Pointer to private data.
       private: std::unique_ptr<BarrierPrivate> dataPtr;
     };
-    }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+    }  // namespace GZ_SIM_VERSION_NAMESPACE
   }  // namespace sim
 }  // namespace gz
 

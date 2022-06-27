@@ -3,7 +3,7 @@
 //! [registerSampleSystem2]
 #include <gz/plugin/RegisterMore.hh>
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
     sample_system::SampleSystem2,
     gz::sim::System,
     sample_system::SampleSystem2::ISystemPreUpdate,

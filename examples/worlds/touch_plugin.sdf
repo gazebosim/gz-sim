@@ -7,7 +7,7 @@ least one link on the model on which this plugin is attached.
 The plugin's parameters are documented in src/systems/touchplugin/TouchPlugin.hh
 
 If the plugin is not enabled by default send this command to enable
-  ign service -s /white_touches_only_green/enable \
+  gz service -s /white_touches_only_green/enable \
   --reqtype gz.msgs.Boolean \
   --reptype gz.msgs.Empty \
   --timeout 3000 \
@@ -15,22 +15,22 @@ If the plugin is not enabled by default send this command to enable
 
 The output of the plugin is via
 
-  ign topic -e -t /white_touches_only_green/touched
+  gz topic -e -t /white_touches_only_green/touched
 
 -->
 
 <sdf version="1.6">
   <world name="touch">
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-contact-system"
+      filename="gz-sim-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -103,7 +103,7 @@ The output of the plugin is via
       </link>
 
       <plugin
-        filename="ignition-gazebo-touchplugin-system"
+        filename="gz-sim-touchplugin-system"
         name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>

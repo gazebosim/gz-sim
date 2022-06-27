@@ -18,7 +18,7 @@ model:
 ```{.xml}
 <model>
   ...
-  <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+  <plugin filename="gz-sim-linearbatteryplugin-system"
         name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
@@ -114,7 +114,7 @@ Both services accept an `gz::msgs::Boolean` parameter.
 A battery has been added to a demo world, which can be run using:
 
 ```
-ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+gz sim -v 4 linear_battery_demo.sdf -z 1000000
 ```
 
 The blue vehicle on the left has a battery, while the one on the right does not. When the battery drains, the corresponding vehicle stops moving. Please, see

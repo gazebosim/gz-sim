@@ -33,7 +33,7 @@ environment variable.
 Let's try this in practice. First, let's open Gazebo without passing
 any arguments:
 
-`ign gazebo`
+`gz sim`
 
 You should see an empty world with several systems loaded by default, such as
 physics, the scene broadcaster (which keeps the GUI updated), and the system that
@@ -66,7 +66,7 @@ Let's try customizing it:
 
 3. Reload Gazebo:
 
-    `ign gazebo`
+    `gz sim`
 
 Now insert a shape and press play: it shouldn't fall because physics wasn't
 loaded.
@@ -98,11 +98,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -127,7 +127,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
 
 Now let's load this world:
 
-`ign gazebo -r <path to>/fuel_preview.sdf`
+`gz sim -r <path to>/fuel_preview.sdf`
 
 Notice how the application has only one system plugin loaded, the scene
 broadcaster, as defined on the SDF file above. Physics is not loaded, so even
@@ -160,11 +160,11 @@ Let's start by saving this simple world with a camera sensor as
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -174,9 +174,9 @@ Let's start by saving this simple world with a camera sensor as
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
     </gui>
@@ -221,7 +221,7 @@ Let's start by saving this simple world with a camera sensor as
 
 Then load the `simple_camera.sdf` world:
 
-`ign gazebo -r <path to>/simple_camera.sdf`
+`gz sim -r <path to>/simple_camera.sdf`
 
 You'll see a world with a camera and a cone. If you refresh the image display
 plugin, it won't show any image topics. That's because the default server
@@ -239,12 +239,12 @@ system:
   <plugins>
     <plugin entity_name="*"
             entity_type="world"
-            filename="ignition-gazebo-scene-broadcaster-system"
+            filename="gz-sim-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
-            filename="ignition-gazebo-sensors-system"
+            filename="gz-sim-sensors-system"
             name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>

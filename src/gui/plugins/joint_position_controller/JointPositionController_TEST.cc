@@ -55,7 +55,7 @@ class JointPositionControllerGui : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
+TEST_F(JointPositionControllerGui, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 {
   // Create app
   auto app = std::make_unique<gui::Application>(g_argc, g_argv);
@@ -102,7 +102,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
 /////////////////////////////////////////////////
 TEST_F(JointPositionControllerGui,
-    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCommand))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCommand))
 {
   // Create a model with a joint
   sim::EntityComponentManager ecm;
@@ -153,9 +153,9 @@ TEST_F(JointPositionControllerGui,
   // Load plugin
   const char *pluginStr =
     "<plugin filename=\"JointPositionController\">"
-      "<ignition-gui>"
+      "<gz-gui>"
         "<title>JointPositionController!</title>"
-      "</ignition-gui>"
+      "</gz-gui>"
     "</plugin>";
 
   tinyxml2::XMLDocument pluginDoc;

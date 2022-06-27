@@ -10,14 +10,14 @@ loader.
 1. Add the following lines as a child to the `<world>` tag in an SDF file.
 ```
 <plugin
-  filename="ignition-gazebo-collada-world-exporter-system"
+  filename="gz-sim-collada-world-exporter-system"
   name="gz::sim::systems::ColladaWorldExporter">
 </plugin>
 ```
 
 2. Run the world using
 ```
-ign gazebo -v 4 -s -r --iterations 1 WORLD_FILE_NAME
+gz sim -v 4 -s -r --iterations 1 WORLD_FILE_NAME
 ```
 
 3. A subdirectory, named after the world, has been created in the current working directory. Within this subdirectory is the mesh and materials for the world.

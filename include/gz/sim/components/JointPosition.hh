@@ -37,7 +37,7 @@ namespace components
   /// of the joint.
   using JointPosition = Component<std::vector<double>, class JointPositionTag,
                                   serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointPosition", JointPosition)
 }
 }

@@ -33,7 +33,7 @@ namespace components
   /// \brief TODO(anyone) Substitute with sdf::Contact once that exists?
   /// This is currently the whole `<sensor>` element.
   using ContactSensor = Component<sdf::ElementPtr, class ContactSensorTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ContactSensor",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ContactSensor",
                                 ContactSensor)
 }
 }

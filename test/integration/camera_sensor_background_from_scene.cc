@@ -75,7 +75,7 @@ void cameraCb(const msgs::Image & _msg)
 /////////////////////////////////////////////////
 // Test sensors use the background color of <scene> by default
 TEST_F(CameraSensorBackgroundFixture,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(RedBackgroundFromScene))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(RedBackgroundFromScene))
 {
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_scene_background.sdf");

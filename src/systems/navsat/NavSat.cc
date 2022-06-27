@@ -100,7 +100,7 @@ NavSat::NavSat() : System(), dataPtr(utils::MakeUniqueImpl<Implementation>())
 void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::PreUpdate");
+  GZ_PROFILE("NavSat::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -122,7 +122,7 @@ void NavSat::PreUpdate(const UpdateInfo &/*_info*/,
 void NavSat::PostUpdate(const UpdateInfo &_info,
                            const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::PostUpdate");
+  GZ_PROFILE("NavSat::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -206,7 +206,7 @@ void NavSat::Implementation::AddSensor(
 //////////////////////////////////////////////////
 void NavSat::Implementation::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::CreateSensors");
+  GZ_PROFILE("NavSat::CreateSensors");
   if (!this->initialized)
   {
     _ecm.Each<components::NavSat, components::ParentEntity>(
@@ -235,7 +235,7 @@ void NavSat::Implementation::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::Update");
+  GZ_PROFILE("NavSat::Update");
 
   _ecm.Each<components::NavSat, components::WorldLinearVelocity>(
     [&](const Entity &_entity,
@@ -261,8 +261,8 @@ void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
           return true;
         }
 
-        it->second->SetLatitude(IGN_DTOR(latLonEle.value().X()));
-        it->second->SetLongitude(IGN_DTOR(latLonEle.value().Y()));
+        it->second->SetLatitude(GZ_DTOR(latLonEle.value().X()));
+        it->second->SetLongitude(GZ_DTOR(latLonEle.value().Y()));
         it->second->SetAltitude(latLonEle.value().Z());
 
         // Velocity in ENU frame
@@ -275,7 +275,7 @@ void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void NavSat::Implementation::RemoveSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("NavSat::RemoveSensors");
+  GZ_PROFILE("NavSat::RemoveSensors");
   _ecm.EachRemoved<components::NavSat>(
     [&](const Entity &_entity,
         const components::NavSat *)->bool
@@ -294,12 +294,12 @@ void NavSat::Implementation::RemoveSensors(const EntityComponentManager &_ecm)
       });
 }
 
-IGNITION_ADD_PLUGIN(NavSat, System,
+GZ_ADD_PLUGIN(NavSat, System,
   NavSat::ISystemPreUpdate,
   NavSat::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(NavSat, "gz::sim::systems::NavSat")
+GZ_ADD_PLUGIN_ALIAS(NavSat, "gz::sim::systems::NavSat")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(NavSat, "ignition::gazebo::systems::NavSat")
+GZ_ADD_PLUGIN_ALIAS(NavSat, "ignition::gazebo::systems::NavSat")

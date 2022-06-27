@@ -195,7 +195,7 @@ class AckermannSteeringTest
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
                                    "/test/worlds/ackermann_steering.sdf"),
@@ -204,7 +204,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmdCustomTopics))
 {
   TestPublishCmd(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "/test/worlds/ackermann_steering_custom_topics.sdf"),
@@ -212,7 +212,7 @@ TEST_P(AckermannSteeringTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -310,7 +310,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
@@ -369,7 +369,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
 /////////////////////////////////////////////////
 TEST_P(AckermannSteeringTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;

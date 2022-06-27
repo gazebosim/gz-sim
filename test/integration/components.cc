@@ -862,7 +862,7 @@ TEST_F(ComponentsTest, Light)
   auto data1 = sdf::Light();
   data1.SetType(sdf::LightType::POINT);
   data1.SetName("light_test");
-  data1.SetRawPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
+  data1.SetRawPose(math::Pose3d(1, 2, 4, 0, 0, GZ_PI));
   data1.SetDiffuse(math::Color(1, 0, 0, 1));
   data1.SetSpecular(math::Color(0, 1, 0, 1));
   data1.SetCastShadows(true);
@@ -893,7 +893,7 @@ TEST_F(ComponentsTest, Light)
   comp3.Deserialize(istr);
   EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
   EXPECT_EQ("light_test", comp3.Data().Name());
-  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, GZ_PI), comp3.Data().RawPose());
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());

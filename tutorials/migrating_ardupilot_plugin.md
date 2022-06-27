@@ -108,7 +108,7 @@ the symbol visibility macro):
 
 ```cpp
 // NEW
-class GZ_GAZEBO_VISIBLE ArduPilotPlugin:
+class GZ_SIM_VISIBLE ArduPilotPlugin:
        public gz::sim::System,
        public gz::sim::ISystemConfigure,
        public gz::sim::ISystemPostUpdate,
@@ -249,7 +249,7 @@ We need a few things from `ign-math`:
 #include <gz/math/Vector3.hh>
 ```
 
-To use the `IGNITION_ADD_PLUGIN()` and `IGNITION_ADD_PLUGIN_ALIAS()` macros, we
+To use the `GZ_ADD_PLUGIN()` and `GZ_ADD_PLUGIN_ALIAS()` macros, we
 need a header from `ign-plugin`:
 
 ```cpp
@@ -700,16 +700,16 @@ In the old code we register our plugin via the macro `GZ_REGISTER_PLUGIN()`:
 GZ_REGISTER_MODEL_PLUGIN(ArduPilotPlugin)
 ```
 
-In the new code we instead use two macros: `IGNITION_ADD_PLUGIN()` and `IGNITION_ADD_PLUGIN_ALIAS()`:
+In the new code we instead use two macros: `GZ_ADD_PLUGIN()` and `GZ_ADD_PLUGIN_ALIAS()`:
 
 ```cpp
 // NEW
-IGNITION_ADD_PLUGIN(gz::sim::systems::ArduPilotPlugin,
+GZ_ADD_PLUGIN(gz::sim::systems::ArduPilotPlugin,
                     gz::sim::System,
                     gz::sim::systems::ArduPilotPlugin::ISystemConfigure,
                     gz::sim::systems::ArduPilotPlugin::ISystemPostUpdate,
                     gz::sim::systems::ArduPilotPlugin::ISystemPreUpdate)
-IGNITION_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
+GZ_ADD_PLUGIN_ALIAS(gz::sim::systems::ArduPilotPlugin,"ArduPilotPlugin")
 ```
 
 ## Build recipe: `CMakeLists.txt`
@@ -730,13 +730,13 @@ In the new code we explicitly reference each Gazebo package that we use:
 ```
 # NEW
 find_package(sdformat13 REQUIRED)
-find_package(ignition-common5-all REQUIRED)
-find_package(ignition-gazebo7-all REQUIRED)
-find_package(ignition-math7-all REQUIRED)
-find_package(ignition-msgs9-all REQUIRED)
-find_package(ignition-physics6-all REQUIRED)
-find_package(ignition-sensors7-all REQUIRED)
-find_package(ignition-transport12-all REQUIRED)
+find_package(gz-common5-all REQUIRED)
+find_package(gz-sim7-all REQUIRED)
+find_package(gz-math7-all REQUIRED)
+find_package(gz-msgs9-all REQUIRED)
+find_package(gz-physics6-all REQUIRED)
+find_package(gz-sensors7-all REQUIRED)
+find_package(gz-transport12-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:
@@ -759,20 +759,20 @@ include_directories(
         ${PROJECT_SOURCE_DIR}
         include
         ${SDFORMAT-INCLUDE_DIRS}
-        ${IGNITION-COMMON_INCLUDE_DIRS}
-        ${IGNITION-GAZEBO_INCLUDE_DIRS}
-        ${IGNITION-MATH_INCLUDE_DIRS}
-        ${IGNITION-MSGS_INCLUDE_DIRS}
-        ${IGNITION-TRANSPORT_INCLUDE_DIRS}
+        ${GZ-COMMON_INCLUDE_DIRS}
+        ${GZ-GAZEBO_INCLUDE_DIRS}
+        ${GZ-MATH_INCLUDE_DIRS}
+        ${GZ-MSGS_INCLUDE_DIRS}
+        ${GZ-TRANSPORT_INCLUDE_DIRS}
         )
 
 link_libraries(
         ${SDFORMAT-LIBRARIES}
-        ${IGNITION-COMMON_LIBRARIES}
-        ${IGNITION-GAZEBO_LIBRARIES}
-        ${IGNITION-MATH_LIBRARIES}
-        ${IGNITION-MSGS_LIBRARIES}
-        ${IGNITION-TRANSPORT_LIBRARIES}
+        ${GZ-COMMON_LIBRARIES}
+        ${GZ-GAZEBO_LIBRARIES}
+        ${GZ-MATH_LIBRARIES}
+        ${GZ-MSGS_LIBRARIES}
+        ${GZ-TRANSPORT_LIBRARIES}
         )
 ```
 
@@ -810,7 +810,7 @@ In the new model, we do this instead:
 <!-- NEW -->
 <plugin
     name="gz::sim::systems::LiftDrag"
-    filename="ignition-gazebo-lift-drag-system">
+    filename="gz-sim-lift-drag-system">
   <!-- ...configuration goes here... -->
   <link_name>rotor_0</link_name>
 </plugin>
@@ -823,25 +823,25 @@ plugin once for the entire model and the `ApplyJointForce` plugin once for each 
 ```xml
 <!-- NEW -->
 <plugin
-  filename="ignition-gazebo-joint-state-publisher-system"
+  filename="gz-sim-joint-state-publisher-system"
   name="gz::sim::systems::JointStatePublisher"></plugin>
 <plugin
-  filename="ignition-gazebo-apply-joint-force-system"
+  filename="gz-sim-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_0_joint</joint_name>
 </plugin>
 <plugin
-  filename="ignition-gazebo-apply-joint-force-system"
+  filename="gz-sim-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_1_joint</joint_name>
 </plugin>
 <plugin
-  filename="ignition-gazebo-apply-joint-force-system"
+  filename="gz-sim-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_2_joint</joint_name>
 </plugin>
 <plugin
-  filename="ignition-gazebo-apply-joint-force-system"
+  filename="gz-sim-apply-joint-force-system"
   name="gz::sim::systems::ApplyJointForce">
   <joint_name>rotor_3_joint</joint_name>
 </plugin>

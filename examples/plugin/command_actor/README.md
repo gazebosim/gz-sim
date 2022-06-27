@@ -27,5 +27,5 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then run the demo world:
 
-    ign gazebo -v 4 command_actor.sdf -r
+    gz sim -v 4 command_actor.sdf -r
 

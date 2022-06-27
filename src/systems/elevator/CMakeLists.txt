@@ -4,8 +4,8 @@ gz_add_system(elevator
     utils/DoorTimer.cc
     utils/JointMonitor.cc
   PUBLIC_LINK_LIBS
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   PRIVATE_INCLUDE_DIRS
     vender/afsm/include
     vender/metapushkin/include

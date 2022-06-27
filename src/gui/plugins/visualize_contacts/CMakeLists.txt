@@ -4,5 +4,5 @@ gz_add_gui_plugin(VisualizeContacts
   QT_HEADERS
     VisualizeContacts.hh
   PUBLIC_LINK_LIBS
-    ${IGNITION-RENDERING_LIBRARIES}
+    gz-rendering${GZ_RENDERING_VER}::core
 )

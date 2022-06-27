@@ -112,7 +112,7 @@ bool NetworkManagerPrimary::Ready() const
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 {
-  IGN_PROFILE("NetworkManagerPrimary::Step");
+  GZ_PROFILE("NetworkManagerPrimary::Step");
 
   // Check all secondaries have been registered
   bool ready = true;
@@ -150,7 +150,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   // Block until all secondaries are done
   {
-    IGN_PROFILE("Waiting for secondaries");
+    GZ_PROFILE("Waiting for secondaries");
 
     auto result = future.wait_for(10s);
 
@@ -167,7 +167,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   // Update primary state with states received from secondaries
   {
-    IGN_PROFILE("Updating primary state");
+    GZ_PROFILE("Updating primary state");
     for (const auto &msg : this->secondaryStates)
     {
       this->dataPtr->ecm->SetState(msg);
@@ -220,7 +220,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 void NetworkManagerPrimary::PopulateAffinities(
     private_msgs::SimulationStep &_msg)
 {
-  IGN_PROFILE("NetworkManagerPrimary::PopulateAffinities");
+  GZ_PROFILE("NetworkManagerPrimary::PopulateAffinities");
 
   // p: performer
   // l: level

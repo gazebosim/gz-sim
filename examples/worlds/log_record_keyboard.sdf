@@ -5,7 +5,7 @@
   Running this world will record log files to ~/.gz/sim/log/<timestamp>
   by default.
 
-  Running `ign gazebo` with `-v 3` or `-v 4` will output a message indicating where
+  Running `gz sim` with `-v 3` or `-v 4` will output a message indicating where
   your logfile is being stored to (e.g., [Msg] Recording to log file
   [/home/username/.gz/sim/log/<timestamp>/state.tlog]).
 
@@ -13,20 +13,20 @@
 
   You can playback the logs with:
 
-      ign gazebo --playback ~/.gz/sim/log/<timestamp>
+      gz sim --playback ~/.gz/sim/log/<timestamp>
 -->
 <sdf version="1.6">
   <world name="default">
     <plugin
-     filename="ignition-gazebo-physics-system"
+     filename="gz-sim-physics-system"
      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-log-system"
+      filename="gz-sim-log-system"
       name="gz::sim::systems::LogRecord">
     </plugin>
 
@@ -247,7 +247,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
+        filename="gz-sim-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
@@ -425,7 +425,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
+        filename="gz-sim-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>

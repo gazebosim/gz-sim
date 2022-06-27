@@ -6,7 +6,7 @@
 
   Run with
 
-    ign gazebo trisphere_cycle_wheel_slip.sdf
+    gz sim trisphere_cycle_wheel_slip.sdf
 
 -->
 

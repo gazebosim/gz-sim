@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Purpose
-#   This script is designed to build a docker image of an Gazebo distribution.
+#   This script is designed to build a docker image of a Gazebo distribution.
 #   See README.md and run.bash for more information.
 
 if [ $# -eq 0 ]
