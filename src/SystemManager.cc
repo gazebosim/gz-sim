@@ -56,7 +56,6 @@ void SystemManager::LoadPlugin(const Entity _entity,
   for (const auto & pluginInfo : loadedPlugins)
   {
     if (_entity == pluginInfo.entity &&
-        _fname == pluginInfo.fname &&
         _name == pluginInfo.name)
     {
       if (_name == "gz::sim::systems::UserCommands" ||
