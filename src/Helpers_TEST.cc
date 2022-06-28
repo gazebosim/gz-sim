@@ -986,7 +986,7 @@ TEST(HelpersTest, AppendToStream)
   std::ostringstream out;
 
   GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  // Deprecated in ign-math7
+  // Deprecated in gz-math7
   math::appendToStream(out, 0.12345678, 3);
   EXPECT_EQ(out.str(), "0.123");
 

@@ -25,7 +25,7 @@ Build on Unix:
 make
 ```
 
-To build on Windows, make sure the configuration matches `ign-math`'s 
+To build on Windows, make sure the configuration matches `gz-math`'s 
 configuration:
 
 ```

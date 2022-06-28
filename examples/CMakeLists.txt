@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
 project(gz-math-examples)
 
-# Find the Ignition-Math library
+# Find the Gazebo Math library
 find_package(gz-math7 REQUIRED)
 set(GZ_MATH_VER ${gz-math7_VERSION_MAJOR})
 

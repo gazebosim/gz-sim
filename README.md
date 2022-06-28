@@ -14,8 +14,8 @@ Ubuntu Focal  | [![Build Status](https://build.osrfoundation.org/buildStatus/ico
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_math-ci-ign-math7-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_math-ci-ign-math7-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ign_math-ign-7-win)](https://build.osrfoundation.org/job/ign_math-ign-7-win)
 
-Gazebo Math, a component of [Ignition
-Robotics](https://gazebosim.org), provides general purpose math
+Gazebo Math, a component of [Gazebo
+Sim](https://gazebosim.org), provides general purpose math
 classes and functions designed for robotic applications.
 
 # Table of Contents
@@ -43,7 +43,7 @@ Gazebo Math provides a wide range of functionality, including:
 * Type-templated pose, matrix, vector, and quaternion classes.
 * Shape representations along with operators to compute volume, density, size and other properties.
 * Classes for material properties, mass, inertial, temperature, [PID](https://en.wikipedia.org/wiki/PID_controller), kmeans, spherical coordinates, and filtering.
-* Optional Eigen component that converts between a few Eigen and Ignition
+* Optional Eigen component that converts between a few Eigen and Gazebo
 Math types.
 
 # Install

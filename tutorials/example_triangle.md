@@ -4,11 +4,11 @@ This tutorial explains how to use the `Triangle` class from Gazebo Math library.
 
 ## Compile the code
 
-Go to `ign-math/examples` and use `cmake` to compile the code:
+Go to `gz-math/examples` and use `cmake` to compile the code:
 
 ```{.sh}
 git clone https://github.com/gazebosim/gz-math/ -b master
-cd ign-math/examples
+cd gz-math/examples
 mkdir build
 cd build
 cmake ..

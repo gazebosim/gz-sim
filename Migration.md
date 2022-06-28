@@ -11,6 +11,12 @@ release will remove the deprecated code.
 
   1. Removed the Quaternion integer template `Quaternioni`.
 
+  1. The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+    * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+    * Some non-exhaustive examples of this include:
+      * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+      * CMake `-config` files
+      * Paths that depend on the project name
 
 ### Deprecations
 
@@ -149,9 +155,9 @@ release will remove the deprecated code.
 
 ### Added dependencies
 
-1. **ignition-cmake**
-    + Ignition-math now has a build dependency on ignition-cmake, which
-      allows cmake scripts to be shared across all the ignition packages.
+1. **gz-cmake**
+    + gz-math now has a build dependency on gz-cmake, which
+      allows cmake scripts to be shared across all the Gazebo packages.
 
 ### Modifications
 

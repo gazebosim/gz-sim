@@ -3,7 +3,7 @@
 Next Tutorial: \ref cppgetstarted
 
 These instructions are for installing only Gazebo Math.
-If you're interested in using all the Ignition libraries, check out this [Ignition installation](https://gazebosim.org/docs/latest/install).
+If you're interested in using all the Gazebo libraries, check out this [Gazebo installation](https://gazebosim.org/docs/latest/install).
 
 We recommend following the Binary Installation instructions to get up and running as quickly and painlessly as possible.
 
@@ -55,8 +55,8 @@ Miniconda suffices.
 
 Create if necessary, and activate a Conda environment:
 ```
-conda create -n ign-ws
-conda activate ign-ws
+conda create -n gz-ws
+conda activate gz-ws
 ```
 
 Install:
@@ -101,7 +101,7 @@ The optional Ruby tests of Gazebo Math require:
 
 ### Windows 10
 
-First, follow the [ign-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, and other prerequisites, and also for creating a Conda environment.
+First, follow the [gz-cmake](https://github.com/gazebosim/gz-cmake) tutorial for installing Conda, Visual Studio, CMake, and other prerequisites, and also for creating a Conda environment.
 
 The optional Eigen component of Gazebo Math requires:
 
@@ -134,7 +134,7 @@ The optional Eigen component of Gazebo Math requires:
 
 4. Configure and build
   ```
-  cd ign-math
+  cd gz-math
   mkdir build
   cd build
   cmake ..
@@ -164,7 +164,7 @@ The optional Eigen component of Gazebo Math requires:
 
 3. Configure and build
   ```
-  cd ign-math
+  cd gz-math
   mkdir build
   cd build
   cmake ..
@@ -181,7 +181,7 @@ The optional Eigen component of Gazebo Math requires:
 1. Navigate to `condabin` if necessary to use the `conda` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of `condabin` in Anaconda Prompt, `where conda`).
   Activate the Conda environment created in the prerequisites:
   ```
-  conda activate ign-ws
+  conda activate gz-ws
   ```
 
 2. Install dependencies
@@ -205,7 +205,7 @@ The optional Eigen component of Gazebo Math requires:
 
 4. Configure and build
   ```
-  cd ign-math
+  cd gz-math
   mkdir build
   cd build
   cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
@@ -235,7 +235,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 3. Configure and build the documentation.
  ```
- cd ign-math; mkdir build; cd build; cmake ../; make doc
+ cd gz-math; mkdir build; cd build; cmake ../; make doc
  ```
 
 4. View the documentation by running the following command from the build directory.
