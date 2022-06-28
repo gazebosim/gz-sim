@@ -140,7 +140,7 @@ namespace gz::sim
     public: void FindInertialLinks(const EntityComponentManager &_ecm);
 
     /// \brief Retrieve visual based on its Gazebo entity. Note that this is
-    /// different from ign-rendering's internal ID for the visual.
+    /// different from gz-rendering's internal ID for the visual.
     /// \param[in] _entity Gazebo entity
     /// \return Pointer to requested visual, null if not found.
     public: rendering::VisualPtr VisualByEntity(Entity _entity);
