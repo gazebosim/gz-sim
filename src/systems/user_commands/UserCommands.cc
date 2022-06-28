@@ -764,11 +764,6 @@ void UserCommands::Configure(const Entity &_entity,
   gzmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
-void UserCommands::Reset(const UpdateInfo &/*_info*/,
-                         EntityComponentManager &/*_ecm*/)
-{
-}
-
 //////////////////////////////////////////////////
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
@@ -1323,6 +1318,7 @@ bool CreateCommand::Execute()
 
     gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"
            << std::endl;
+    return true;
   });
 
   return true;
@@ -1937,10 +1933,10 @@ bool WheelSlipCommand::Execute()
   return false;
 }
 
-GZ_ADD_PLUGIN(UserCommands, System,
-  UserCommands::ISystemConfigure,
-  UserCommands::ISystemPreUpdate,
-  UserCommands::ISystemReset
+GZ_ADD_PLUGIN(UserCommands,
+              System,
+              UserCommands::ISystemConfigure,
+              UserCommands::ISystemPreUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(UserCommands,

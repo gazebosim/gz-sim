@@ -73,8 +73,6 @@ bool Server::DownloadModels()
 {
   sdf::Root root;
   sdf::Errors errors;
-  std::cerr << "this->dataPtr->config.Source() "
-            << static_cast<int>(this->dataPtr->config.Source()) << '\n';
   switch (this->dataPtr->config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file
@@ -202,8 +200,6 @@ void Server::Init()
     {
       this->DownloadModels();
     });
-
-    gzerr << "Loading default world.\n";
 
     common::SystemPaths systemPaths;
 

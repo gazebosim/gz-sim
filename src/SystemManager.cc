@@ -53,7 +53,7 @@ void SystemManager::LoadPlugin(const Entity _entity,
                                const std::string &_name,
                                const sdf::ElementPtr &_sdf)
 {
-  for (const auto pluginInfo : loadedPlugins)
+  for (const auto & pluginInfo : loadedPlugins)
   {
     if (_entity == pluginInfo.entity &&
         _fname == pluginInfo.fname &&

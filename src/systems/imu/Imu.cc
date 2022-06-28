@@ -105,12 +105,6 @@ Imu::Imu() : System(), dataPtr(std::make_unique<ImuPrivate>())
 Imu::~Imu() = default;
 
 //////////////////////////////////////////////////
-void Imu::Reset(const UpdateInfo &_info,
-                EntityComponentManager &_ecm)
-{
-}
-
-//////////////////////////////////////////////////
 void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
@@ -365,9 +359,8 @@ void ImuPrivate::RemoveImuEntities(
 }
 
 GZ_ADD_PLUGIN(Imu, System,
-  Imu::ISystemPreUpdate,
-  Imu::ISystemReset,
-  Imu::ISystemPostUpdate
+              Imu::ISystemPreUpdate,
+              Imu::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")

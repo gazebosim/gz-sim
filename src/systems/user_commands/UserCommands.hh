@@ -73,8 +73,7 @@ namespace systems
   class UserCommands final:
     public System,
     public ISystemConfigure,
-    public ISystemPreUpdate,
-    public ISystemReset
+    public ISystemPreUpdate
   {
     /// \brief Constructor
     public: explicit UserCommands();
@@ -95,10 +94,6 @@ namespace systems
     /// \param[in] _ecm The entity component manager.
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
-
-    /// Documentation inherited
-    public: void Reset(const UpdateInfo &_info,
-                       EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<UserCommandsPrivate> dataPtr;

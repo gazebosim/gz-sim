@@ -66,8 +66,7 @@ namespace systems
   class LiftDrag
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate,
-        public ISystemReset
+        public ISystemPreUpdate
   {
     /// \brief Constructor
     public: LiftDrag();
@@ -84,10 +83,6 @@ namespace systems
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
-
-    /// Documentation inherited
-    public: void Reset(const UpdateInfo &_info,
-                       EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<LiftDragPrivate> dataPtr;

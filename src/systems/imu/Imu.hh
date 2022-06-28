@@ -39,7 +39,6 @@ namespace systems
   class Imu:
     public System,
     public ISystemPreUpdate,
-    public ISystemReset,
     public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -47,10 +46,6 @@ namespace systems
 
     /// \brief Destructor
     public: ~Imu() override;
-
-    public: void Reset(const UpdateInfo &_info,
-                       EntityComponentManager &_ecm) final;
-
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;

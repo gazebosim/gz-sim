@@ -49,7 +49,6 @@ namespace systems
   class JointStatePublisher
       : public System,
         public ISystemConfigure,
-        public ISystemReset,
         public ISystemPostUpdate
   {
     /// \brief Constructor
@@ -66,10 +65,6 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
-
-    /// Documentation inherited
-    public: void Reset(const UpdateInfo &_info,
-                       EntityComponentManager &_ecm) final;
 
     /// \brief Create components for a joint.
     /// \param[in] _ecm The EntityComponentManager.
