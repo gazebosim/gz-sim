@@ -63,7 +63,6 @@ if (RUBY_FOUND)
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     gz-math${PROJECT_VERSION_MAJOR}
   )
-  target_compile_features(${SWIG_RB_LIB} PUBLIC ${IGN_CXX_${c++standard}_FEATURES})
 
   set_target_properties(${SWIG_RB_LIB}
     PROPERTIES

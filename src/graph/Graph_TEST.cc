@@ -55,7 +55,7 @@ class MockEdgesFullUndirectedGraph : public UndirectedGraph<V, E>
 // The list of graphs we want to test.
 using GraphTypes = ::testing::Types<DirectedGraph<int, double>,
                                     UndirectedGraph<int, double>>;
-TYPED_TEST_CASE(GraphTestFixture, GraphTypes);
+TYPED_TEST_SUITE(GraphTestFixture, GraphTypes, );
 
 /////////////////////////////////////////////////
 TYPED_TEST(GraphTestFixture, UniformInitialization)

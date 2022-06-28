@@ -68,9 +68,3 @@ TEST(MovingWindowFilterTest, FilterSomething)
         3.0*static_cast<double>(i));
   EXPECT_EQ(vectorMWF.Value(), vsum / 20.0);
 }
-
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

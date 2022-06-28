@@ -35,7 +35,7 @@ class EdgeTestFixture : public testing::Test
 // The list of edges we want to test.
 using EdgeTypes = ::testing::Types<DirectedEdge<int>,
                                    UndirectedEdge<int>>;
-TYPED_TEST_CASE(EdgeTestFixture, EdgeTypes);
+TYPED_TEST_SUITE(EdgeTestFixture, EdgeTypes, );
 
 /////////////////////////////////////////////////
 TYPED_TEST(EdgeTestFixture, Accessors)

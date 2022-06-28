@@ -188,10 +188,3 @@ TEST(TemperatureTest, Negative)
   Temperature temp5 = 2.0 / temp3;
   EXPECT_NEAR(temp5.Kelvin(), 2.0, 1e-6);
 }
-
-/////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

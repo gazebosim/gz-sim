@@ -419,10 +419,3 @@ TEST(Color, HSV)
   EXPECT_NEAR(clr.B(), 0.3f, 1e-3);
   EXPECT_NEAR(clr.A(), 1.0, 1e-3);
 }
-
-/////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

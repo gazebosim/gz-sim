@@ -20,7 +20,7 @@
 #include <fstream>
 #include <string>
 
-#include "test_config.h"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #ifdef _WIN32
 # define GZ_PATH_MAX _MAX_PATH
@@ -392,11 +392,4 @@ TEST(ExamplesBuild, Build)
   // Remove temp dir
   removeAll(tmpBuildDir);
 #endif
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

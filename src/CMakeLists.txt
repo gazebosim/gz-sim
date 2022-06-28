@@ -4,7 +4,7 @@
 gz_get_libsources_and_unittests(sources gtest_sources)
 
 # Create the library target
-gz_create_core_library(SOURCES ${sources} CXX_STANDARD ${c++standard})
+gz_create_core_library(SOURCES ${sources} CXX_STANDARD ${CMAKE_CXX_STANDARD})
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
