@@ -55,7 +55,7 @@ class QuickStartHandler : public QObject
   /// \brief Get starting world url from GUI.
   /// \return World url
   std::string StartingWorld();
-  
+
   /// \brief Get default config of the dialog.
   /// \return config as string
   std::string Config() const;
@@ -64,7 +64,7 @@ class QuickStartHandler : public QObject
   /// \param[in] _showQuickStartOpts True to show.
   Q_INVOKABLE void SetShowDefaultQuickStartOpts(
       const bool _showQuickStartOpts);
-  
+
   /// \brief Show the default options of the drawer
   bool ShowDefaultQuickStartOpts() const;
 

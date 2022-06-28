@@ -83,7 +83,8 @@ std::string createQuickStart(
   auto dialog = new ignition::gui::Dialog();
   dialog->SetName("quick_start");
   dialog->SetDefaultConfig(quickStartHandler->Config());
-  std::string defaultValue = dialog->ReadAttribute(app->DefaultConfigPath(), "default");
+  std::string defaultValue = dialog->ReadAttribute(app->DefaultConfigPath(),
+    "default");
   if (defaultValue == "false")
   {
     return "";
@@ -110,7 +111,8 @@ std::string createQuickStart(
   }
 
   // Update dialog config
-  dialog->WriteAttribute(app->DefaultConfigPath(), "default", quickStartHandler->ShowDefaultQuickStartOpts());
+  dialog->WriteAttribute(app->DefaultConfigPath(), "default",
+    quickStartHandler->ShowDefaultQuickStartOpts());
   return quickStartHandler->StartingWorld();
 }
 

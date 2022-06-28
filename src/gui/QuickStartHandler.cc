@@ -72,11 +72,12 @@ void QuickStartHandler::SetStartingWorld(QString _url)
 }
 
 /////////////////////////////////////////////////
-void QuickStartHandler::SetShowDefaultQuickStartOpts(const bool _showQuickStartOpts)
+void QuickStartHandler::SetShowDefaultQuickStartOpts(
+  const bool _showQuickStartOpts)
 {
   this->showDefaultQuickStartOpts = !_showQuickStartOpts;
 }
-  
+
 /////////////////////////////////////////////////
 bool QuickStartHandler::ShowDefaultQuickStartOpts() const
 {
