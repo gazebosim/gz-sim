@@ -34,7 +34,6 @@
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
 #include "gz/sim/TestFixture.hh"
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/Model.hh"
@@ -49,6 +48,8 @@
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
+
+#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;

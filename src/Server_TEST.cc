@@ -35,7 +35,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/Types.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"

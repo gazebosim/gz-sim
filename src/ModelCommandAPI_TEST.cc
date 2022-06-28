@@ -23,7 +23,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
     std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");

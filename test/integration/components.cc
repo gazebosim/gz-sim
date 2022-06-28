@@ -85,7 +85,7 @@
 #include "gz/sim/components/ThreadPitch.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;

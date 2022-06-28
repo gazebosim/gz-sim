@@ -30,7 +30,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"

@@ -29,7 +29,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Model.hh"
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
