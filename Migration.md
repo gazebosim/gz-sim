@@ -34,6 +34,10 @@ release will remove the deprecated code.
 * The `gazebo` command line verb is deprecated.
   Use `sim` instead (e.g. `ign gazebo` -> `gz sim`).
 
+* The shared libraries have `gz` where there used to be `ignition`, and also have their `lib` and `.so` prefixes and suffixes removed.
+  E.g. `libignition-XXX-system.so` -> `gz-XXX-system`.
+  * Using the un-migrated version is still possible due to tick-tocks, but will be removed in future versions.
+
 * **Breaking Changes**
   * The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
     * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
