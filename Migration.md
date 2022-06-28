@@ -182,7 +182,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 
 ## Gazebo Sim 2.x to 3.x
 
-* Use ign-rendering3, ign-sensors3 and ign-gui3.
+* Use gz-rendering3, gz-sensors3 and gz-gui3.
 
 ## Gazebo Sim 1.x to 2.x
 

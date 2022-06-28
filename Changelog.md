@@ -1230,7 +1230,7 @@
 1. Deprecate TmpIface: it's leftover from prototyping
     * [Pull request #654](https://github.com/gazebosim/gz-sim/pull/654)
 
-1. Bump in edifice: ign-common4
+1. Bump in edifice: gz-common4
     * [Pull request #577](https://github.com/gazebosim/gz-sim/pull/577)
 
 1. Plugin to spawn lights
@@ -1308,13 +1308,13 @@
 1. Fix visibility macro names when used by a different component (Windows)
     * [Pull request #564](https://github.com/gazebosim/gz-sim/pull/564)
 
-1. Bump edifice sdformat11 and ign-physics4
+1. Bump edifice sdformat11 and gz-physics4
     * [Pull request #549](https://github.com/gazebosim/gz-sim/pull/549)
 
 1. Use ComponentState::PeriodicChange in UpdateState to avoid forcing full scene update
     * [Pull request #486](https://github.com/gazebosim/gz-sim/pull/486)
 
-1. Bump in edifice: ign-msgs7
+1. Bump in edifice: gz-msgs7
     * [Pull request #546](https://github.com/gazebosim/gz-sim/pull/546)
 
 1. Add support for sky
@@ -1323,7 +1323,7 @@
 1. Infrastructure
     * [Pull request #423](https://github.com/gazebosim/gz-sim/pull/423)
 
-1. Bump in edifice: ign-rendering5
+1. Bump in edifice: gz-rendering5
     * [Pull request #430](https://github.com/gazebosim/gz-sim/pull/430)
 
 1. Add 25percent darker view angle icons
@@ -1894,7 +1894,7 @@
 1. Support <actor><pose> and <actor><plugin>
     * [BitBucket pull request 542](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/542)
 
-1. Depend on ign-rendering4, ign-gui4, ign-sensors4
+1. Depend on gz-rendering4, gz-gui4, gz-sensors4
     * [BitBucket pull request 540](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/540)
 
 1. Axis-Aligned Bounding Boxes
@@ -2567,7 +2567,7 @@
 1. Move function definitions to their correct locations in EntityComponentManager
     * [BitBucket pull request 380](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/380)
 
-1. Depend on ign-rendering3, ign-gui3, ign-sensors3
+1. Depend on gz-rendering3, gz-gui3, gz-sensors3
     * [BitBucket pull request 411](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/411)
 
 1. Rendering and Animating Actors
