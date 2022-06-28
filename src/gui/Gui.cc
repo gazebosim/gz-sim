@@ -77,14 +77,18 @@ std::string createQuickStart(
   app->SetDefaultConfigPath(defaultConfig);
   app->LoadWindowConfig(defaultConfig);
 
-  if (!app->ShowQuickStart()){
-    return "";
-  }
-
   auto quickStartHandler = new ignition::gazebo::gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
   auto dialog = new ignition::gui::Dialog();
+  dialog->SetName("quick_start");
+  dialog->SetDefaultConfig(quickStartHandler->Config());
+  std::string defaultValue = dialog->ReadAttribute(app->DefaultConfigPath(), "default");
+  if (defaultValue == "false")
+  {
+    return "";
+  }
+
   dialog->QuickWindow();
 
   auto context = new QQmlContext(app->Engine()->rootContext());
@@ -105,7 +109,9 @@ std::string createQuickStart(
     igndbg << "Shutting quick setup dialog" << std::endl;
   }
 
-  return quickStartHandler->GetStartingWorld();
+  // Update dialog config
+  dialog->WriteAttribute(app->DefaultConfigPath(), "default", quickStartHandler->ShowDefaultQuickStartOpts());
+  return quickStartHandler->StartingWorld();
 }
 
 //////////////////////////////////////////////////
@@ -157,8 +163,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   app->SetDefaultConfigPath(defaultConfig);
 
-  if (!app->InitializeMainWindow())
-      ignerr << "Failed to initialize main window." << std::endl;
+  if (!app->CreateMainWindow())
+    ignerr << "Failed to initialize main window." << std::endl;
 
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();

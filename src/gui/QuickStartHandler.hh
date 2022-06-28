@@ -42,23 +42,41 @@ class QuickStartHandler : public QObject
 
   /// \brief Get worlds path
   /// \return worlds directory path
-  Q_INVOKABLE QString getWorldsPath();
+  Q_INVOKABLE QString WorldsPath();
 
-  /// \brief Function called from QML when user clicks on a link
-  /// \param[in] _url Url to web page.
+  /// \brief Get Gazebo version
+  /// \return gazebo version
+  Q_INVOKABLE QString GazeboVersion();
+
+  /// \brief Set starting world
+  /// \param[in] _url Url to the world file.
   Q_INVOKABLE void SetStartingWorld(QString _url);
 
-  std::string GetStartingWorld();
+  /// \brief Get starting world url from GUI.
+  /// \return World url
+  std::string StartingWorld();
+  
+  /// \brief Get default config of the dialog.
+  /// \return config as string
+  std::string Config() const;
 
-  /// \brief Callback when checkbox is clicked.
-  /// \param[in] _checked indicates show quick setup dialog again or not
-  Q_INVOKABLE void OnShowAgain(bool _checked);
+  /// \brief Set the flag to show the side drawer's default options.
+  /// \param[in] _showQuickStartOpts True to show.
+  Q_INVOKABLE void SetShowDefaultQuickStartOpts(
+      const bool _showQuickStartOpts);
+  
+  /// \brief Show the default options of the drawer
+  bool ShowDefaultQuickStartOpts() const;
 
-  private: std::string worldsPath;
+  /// \brief Show the default options of the drawer
+  private: bool showDefaultQuickStartOpts{true};
 
-  private: bool showAgain;
+  /// \brief Installed worlds path.
+  private: std::string worldsPath{""};
 
-  private: std::string startingWorld;
+  /// \brief Get starting world url.
+  private: std::string startingWorld{""};
+
 };
 }
 }

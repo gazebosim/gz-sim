@@ -48,15 +48,21 @@ QuickStartHandler::QuickStartHandler()
 }
 
 /////////////////////////////////////////////////
-QString QuickStartHandler::getWorldsPath()
+QString QuickStartHandler::WorldsPath()
 {
   return QString::fromUtf8(this->worldsPath.c_str());
 }
 
 /////////////////////////////////////////////////
-std::string QuickStartHandler::GetStartingWorld()
+std::string QuickStartHandler::StartingWorld()
 {
   return this->startingWorld;
+}
+
+/////////////////////////////////////////////////
+QString QuickStartHandler::GazeboVersion()
+{
+  return QString::fromUtf8(IGNITION_GAZEBO_VERSION_FULL);
 }
 
 /////////////////////////////////////////////////
@@ -66,7 +72,19 @@ void QuickStartHandler::SetStartingWorld(QString _url)
 }
 
 /////////////////////////////////////////////////
-void QuickStartHandler::OnShowAgain(bool _checked)
+void QuickStartHandler::SetShowDefaultQuickStartOpts(const bool _showQuickStartOpts)
 {
-  showAgain = _checked;
+  this->showDefaultQuickStartOpts = !_showQuickStartOpts;
+}
+  
+/////////////////////////////////////////////////
+bool QuickStartHandler::ShowDefaultQuickStartOpts() const
+{
+  return this->showDefaultQuickStartOpts;
+}
+
+/////////////////////////////////////////////////
+std::string QuickStartHandler::Config() const
+{
+  return std::string("<dialog name=\"quick_start\" default=\"true\"/>");
 }
