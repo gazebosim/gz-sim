@@ -87,7 +87,6 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    // this->AddSystem(system.value(), _entity, _sdf);
     SystemInternal ss(system.value(), _entity);
     ss.fname = _fname;
     ss.name = _name;
@@ -149,6 +148,19 @@ size_t SystemManager::ActivatePendingSystems()
 }
 
 //////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+};
+
+//////////////////////////////////////////////////
 void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   {
@@ -184,11 +196,12 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       // from a plugin, because there isn't access to the constructor.
       if (nullptr != system.systemShared)
       {
-        ignwarn << "Systems not created from plugins cannot be correctly "
-          << " reset without implementing ISystemReset interface.\n";
-          continue;
+        ignwarn << "In-memory without ISystemReset detected: ["
+          << system.name << "]\n"
+          << "Systems created without plugins that do not implement Reset"
+          << " will not be reloaded. Reset may not work correctly\n";
+        continue;
       }
-
       PluginInfo info = {
         system.parentEntity, system.fname, system.name,
         system.configureSdf->Clone()
@@ -203,7 +216,8 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // Load plugins which do not implement reset after clearing this->systems
   // to ensure the previous instance is destroyed before the new one is created
   // and configured.
-  for (const auto &pluginInfo : pluginsToBeLoaded) {
+  for (const auto &pluginInfo : pluginsToBeLoaded)
+  {
     this->LoadPlugin(pluginInfo.entity,
                      pluginInfo.fname,
                      pluginInfo.name,

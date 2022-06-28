@@ -103,11 +103,11 @@ namespace gz
       /// Otherwise, if a system is created from in-memory rather than a plugin,
       /// that system will remain unaffected.
       /// \param[in] _info Update info corresponding to the update time
-      /// \param[in] _ecm Version of the _ecm reset to an initial state
+      /// \param[in] _ecm Version of the ECM reset to an initial state
       public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
-      /// \brief Get an vector of all active systems implementing "Configure"
-      /// \return Vector of systems's configure interfaces.
+      /// \brief Get a vector of all systems implementing "Configure"
+      /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing "Reset"

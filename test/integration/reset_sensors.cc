@@ -20,37 +20,27 @@
 #include <string>
 #include <vector>
 
-#include <sdf/Model.hh>
+#include <sdf/Element.hh>
 #include <sdf/Root.hh>
-#include <sdf/World.hh>
-
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/Entity.hh"
-#include "gz/sim/EntityComponentManager.hh"
-#include "gz/sim/EventManager.hh"
-#include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/Types.hh"
-#include "gz/sim/test_config.hh"
+#include "gz/sim/SystemPluginPtr.hh"
 
-#include "gz/sim/components/Model.hh"
-#include "gz/sim/components/Name.hh"
-#include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/World.hh"
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
 
 #include "plugins/MockSystem.hh"
-#include "../helpers/EnvTestFixture.hh"
+#include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
-namespace components = gz::sim::components;
 
 //////////////////////////////////////////////////
-class ResetFixture: public InternalFixture<::testing::Test>
+class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
 {
   protected: void SetUp() override
   {
@@ -90,20 +80,39 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that the physics system handles cases where entities
+/// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
+TEST_F(ResetFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 {
   gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
-    "test", "worlds", "reset.sdf");
+      "test", "worlds", "reset_sensors.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
   root.Load(sdfFile);
   sim::Server server(serverConfig);
+
+  const std::string sensorName = "air_pressure_sensor";
+  auto topic = "world/default/model/box/link/link/"
+      "sensor/air_pressure_sensor/air_pressure";
+
+  // Subscribe to air_pressure topic
+  bool received{false};
+  msgs::FluidPressure msg;
+  msg.Clear();
+  std::function<void(const msgs::FluidPressure &)>  cb =
+      [&received, &msg](const msgs::FluidPressure &_msg)
+  {
+    // Only need one message
+    if (received)
+      return;
+
+    msg = _msg;
+    received = true;
+  };
 
   // A pointer to the ecm. This will be valid once we run the mock system
   sim::EntityComponentManager *ecm = nullptr;
@@ -134,10 +143,14 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(0u, this->mockSystem->postUpdateCallCount);
   }
 
+  transport::Node node;
+  node.Subscribe(topic, cb);
+
   // Run so that things will happen in the world
   // In this case, the box should fall some
   server.Run(true, 100, false);
   {
+    ASSERT_NE(nullptr, ecm);
     auto entity = ecm->EntityByComponents(components::Name("box"));
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
@@ -149,7 +162,11 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(100u, this->mockSystem->preUpdateCallCount);
     EXPECT_EQ(100u, this->mockSystem->updateCallCount);
     EXPECT_EQ(100u, this->mockSystem->postUpdateCallCount);
+    EXPECT_TRUE(received);
   }
+
+  node.Unsubscribe(topic);
+  received = false;
 
   // Validate update info in the reset
   this->mockSystem->resetCallback =
@@ -163,7 +180,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   // Send command to reset to initial state
   worldReset();
 
-  // It takes two iterations for this to propagate,
+  // It takes two iterations for this to propage,
   // the first is for the message to be received and internal state setup
   server.Run(true, 1, false);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
@@ -191,6 +208,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(101u, this->mockSystem->postUpdateCallCount);
   }
 
+  node.Subscribe(topic, cb);
+
   server.Run(true, 100, false);
   {
     ASSERT_NE(nullptr, ecm);
@@ -205,5 +224,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     EXPECT_EQ(201u, this->mockSystem->preUpdateCallCount);
     EXPECT_EQ(201u, this->mockSystem->updateCallCount);
     EXPECT_EQ(201u, this->mockSystem->postUpdateCallCount);
+    EXPECT_TRUE(received);
   }
 }
