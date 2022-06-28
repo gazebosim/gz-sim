@@ -23,7 +23,7 @@
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 

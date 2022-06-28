@@ -16,8 +16,7 @@ endif()
 
 gz_add_component(rendering
   SOURCES ${rendering_comp_sources}
-  GET_TARGET_NAME rendering_target
-  CXX_STANDARD 17)
+  GET_TARGET_NAME rendering_target)
 
 target_link_libraries(${rendering_target}
   PUBLIC

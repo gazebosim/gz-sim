@@ -22,7 +22,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;

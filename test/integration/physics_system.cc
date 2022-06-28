@@ -41,7 +41,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"

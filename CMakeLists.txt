@@ -14,10 +14,12 @@ find_package(gz-cmake3 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 gz_configure_project(
   REPLACE_IGNITION_INCLUDE_PATH gz/sim
   VERSION_SUFFIX pre1)
-set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
 # Set project-specific options

@@ -26,7 +26,7 @@
 #endif
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>

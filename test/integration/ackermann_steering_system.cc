@@ -27,7 +27,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"

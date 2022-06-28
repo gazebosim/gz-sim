@@ -1,0 +1,8 @@
+commit 9406a60c7839052e4944ea4dbc8344762a89f9bd (HEAD -> main, origin/main, origin/HEAD)
+Author: Abseil Team <absl-team@google.com>
+Date:   Mon Jun 27 13:15:39 2022 -0700
+
+    Mark internal-only function as having internal linkage.
+    
+    PiperOrigin-RevId: 457550818
+    Change-Id: I9046801b64ce4581d742d650451332fd56489632

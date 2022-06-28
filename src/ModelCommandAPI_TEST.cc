@@ -23,7 +23,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kIgnModelCommand(
     std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
@@ -661,11 +661,4 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
       "  - Visibility mask: 4294967295\n";
       EXPECT_EQ(expectedOutput, output);
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
