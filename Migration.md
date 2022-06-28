@@ -199,7 +199,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * The `-f`/`--file` command line argument has been deprecated. The SDF
   file can now be loaded without a flag.
 
-* The `ign-gazebo` command line tool is deprecated. The new tool is
+* The `gz-sim` command line tool is deprecated. The new tool is
   `gz sim`, which has all the same options, except for
   `--distributed` and `--file`/`-f`, which have been removed.
 

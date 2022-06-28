@@ -105,7 +105,7 @@ class gz::sim::gui::SelectEntitiesPrivate
   public: SelectionHelper selectionHelper;
 
   /// \brief Currently selected entities, organized by order of selection.
-  /// These are ign-gazebo IDs
+  /// These are gz-sim IDs
   public: std::vector<Entity> selectedEntities;
 
   /// \brief Currently selected entities, organized by order of selection.

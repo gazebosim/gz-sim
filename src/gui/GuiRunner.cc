@@ -75,7 +75,7 @@ class gz::sim::GuiRunner::Implementation
   /// \brief Name of WorldControl service
   public: std::string controlService;
 
-  /// \brief System loader for loading ign-gazebo systems
+  /// \brief System loader for loading gz-sim systems
   public: std::unique_ptr<SystemLoader> systemLoader;
 
   /// \brief Mutex to protect systemLoader
@@ -319,7 +319,7 @@ void GuiRunner::UpdatePlugins()
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
 
-  // ign-gazebo systems
+  // gz-sim systems
   this->LoadSystems();
   this->UpdateSystems();
 }

@@ -162,7 +162,7 @@ TEST_F(ThermalSensorTest,
   EXPECT_EQ(sdf::PixelFormatType::L_INT8, cameraSdf->PixelFormat());
 
   // verify camera properties set through plugin
-  // the resolution, min and max are invalid range values. Ign-gazebo should
+  // the resolution, min and max are invalid range values. gz-sim should
   // print out warnings and use default values
   EXPECT_DOUBLE_EQ(0.0, resolution);
   EXPECT_DOUBLE_EQ(999.0, minTemp);

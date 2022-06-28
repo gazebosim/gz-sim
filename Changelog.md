@@ -845,7 +845,7 @@
 1. Support locked entities, and headless video recording using sim time
     * [Pull request #862](https://github.com/gazebosim/gz-sim/pull/862)
 
-1. Update ign-gazebo4 changelog
+1. Update gz-sim4 changelog
     * [Pull request #1031](https://github.com/gazebosim/gz-sim/pull/1031)
 
 1. bump version and update changelog
@@ -1459,7 +1459,7 @@
 1. Using math::SpeedLimiter on the ackermann_steering controller.
     * [Pull Request 837](https://github.com/gazebosim/gz-sim/pull/837)
 
-1. All changes merged forward from ign-gazebo3
+1. All changes merged forward from gz-sim3
     * [Pull Request 866](https://github.com/gazebosim/gz-sim/pull/866)
     * [Pull Request 916](https://github.com/gazebosim/gz-sim/pull/916)
     * [Pull Request 933](https://github.com/gazebosim/gz-sim/pull/933)
@@ -1757,7 +1757,7 @@
 1. Update Dockerfiles to use focal images
     * [pull request 388](https://github.com/gazebosim/gz-sim/pull/388)
 
-1. Updated source build instructions for ign-gazebo4
+1. Updated source build instructions for gz-sim4
     * [pull request 404](https://github.com/gazebosim/gz-sim/pull/404)
 
 1. Add tests for the AnimationTime component
@@ -1927,7 +1927,7 @@
 1. Fix generation of systems library symlinks in build directory
     * [Pull request #1160](https://github.com/gazebosim/gz-sim/pull/1160)
 
-1. Backport sim::Util::validTopic() from ign-gazebo4.
+1. Backport sim::Util::validTopic() from gz-sim4.
     * [Pull request #1153](https://github.com/gazebosim/gz-sim/pull/1153)
 
 1. Support setting the background color for sensors
@@ -2428,7 +2428,7 @@
 1. Add search and sort for resource spawner.
     * [Pull Request 359](https://github.com/gazebosim/gz-sim/pull/359)
 
-1. Fix source build instructions for ign-gazebo3.
+1. Fix source build instructions for gz-sim3.
     * [Pull Request 395](https://github.com/gazebosim/gz-sim/pull/395)
 
 1. Added playback scrubber GUI
@@ -2503,7 +2503,7 @@
 
 ### Gazebo Sim 3.2.0 (2020-05-20)
 
-1. Merge ign-gazebo2 to ign-gazebo3
+1. Merge gz-sim2 to gz-sim3
     * [pull request 149](https://github.com/gazebosim/gz-sim/pull/149)
 
 ### Gazebo Sim 3.1.0 (2020-05-19)
