@@ -148,19 +148,6 @@ size_t SystemManager::ActivatePendingSystems()
 }
 
 //////////////////////////////////////////////////
-/// \brief Structure to temporarily store plugin information for reset
-struct PluginInfo {
-  /// \brief Entity plugin is attached to
-  Entity entity;
-  /// \brief Filename of the plugin library
-  std::string fname;
-  /// \brief Name of the plugin
-  std::string name;
-  /// \brief SDF element (content of the plugin tag)
-  sdf::ElementPtr sdf;
-};
-
-//////////////////////////////////////////////////
 void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   {
