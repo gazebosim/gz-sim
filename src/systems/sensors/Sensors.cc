@@ -570,7 +570,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 //////////////////////////////////////////////////
 void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 {
-  IGN_PROFILE("Sensors::Reset");
+  GZ_PROFILE("Sensors::Reset");
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
