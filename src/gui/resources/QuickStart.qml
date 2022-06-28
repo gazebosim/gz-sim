@@ -29,10 +29,12 @@ Rectangle {
   height: 720
 
   function changeDefault(checked){
+    console.log("default changed to ", checked);
     QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
   }
 
   function loadWorld(fileURL){
+    openWorld.enabled = true;
     // Remove "file://" from the QML url.
     var url = fileURL.toString().split("file://")[1]
     QuickStartHandler.SetStartingWorld(url)
@@ -47,7 +49,7 @@ Rectangle {
   }
 
   function getWorlds(){
-    return "file://"+QuickStartHandler.getWorldsPath()
+    return "file://"+QuickStartHandler.WorldsPath()
   }
 
   RowLayout {
@@ -69,11 +71,12 @@ Rectangle {
           Layout.minimumHeight: 150
           Image{
             source: "images/gazebo_horz_pos_topbar.svg"
-            // width: 400
-            // height: 300
             fillMode: Image.PreserveAspectFit
-            x: (parent.width - width)  / 2 - width/3
+            x: (parent.width - width)  / 2 - width / 3
             y: (parent.height - height) / 2
+          }
+          Text{
+            text: QuickStartHandler.GazeboVersion()
           }
       }
 
@@ -84,54 +87,72 @@ Rectangle {
         Layout.preferredWidth: 700
         Layout.minimumHeight: 400
         RowLayout{
-          spacing: 6
-          Rectangle {
-            visible: true
-            width: 500;
-            height: 300;
-            FolderListModel {
-              id: folderModel
-              showDirs: false
-              nameFilters: ["*.png"]
-              folder: getWorlds()+ "/thumbnails/"
-            }
-
-            Component {
-              id: fileDelegate
-
-              FuelThumbnail {
-                id: filePath
-                text: fileName.split('.')[1]
-                uploader: fileName.split('.')[0]
-                width: gridView.cellWidth - 5
-                height: gridView.cellHeight - 5
-                smooth: true
-                source: fileURL
+          ColumnLayout {
+            Rectangle {
+              Layout.topMargin: 10
+              Layout.bottomMargin: 10
+              color: 'transparent'
+              Layout.preferredWidth: 500
+              Layout.preferredHeight: 50
+              Label {
+                id: labelFuel
+                text: qsTr("Choose a world to open")
+                anchors.centerIn: parent
+                color: "#443224"
+                font.pixelSize: 16
               }
             }
+            Rectangle {
+              Layout.preferredWidth: 500
+              Layout.preferredHeight: 350
 
-            GridView {
-                id: gridView
-                width: parent.width
-                height: parent.height
+              color: 'transparent'
+              FolderListModel {
+                id: folderModel
+                showDirs: false
+                nameFilters: ["*.png"]
+                folder: getWorlds()+ "/thumbnails/"
+              }
 
-                anchors {
-                    fill: parent
-                    leftMargin: 5
-                    topMargin: 5
+              Component {
+                id: fileDelegate
+
+                FuelThumbnail {
+                  id: filePath
+                  text: fileName.split('.')[1]
+                  uploader: fileName.split('.')[0]
+                  width: gridView.cellWidth - 5
+                  height: gridView.cellHeight - 5
+                  smooth: true
+                  source: fileURL
                 }
+              }
+              GridView {
+                  id: gridView
+                  width: parent.width
+                  height: parent.height
 
-                cellWidth: width / 2
-                cellHeight: height / 2
+                  anchors {
+                      fill: parent
+                      leftMargin: 5
+                      topMargin: 5
+                  }
 
-                model: folderModel
-                delegate: fileDelegate
+                  cellWidth: width / 2
+                  cellHeight: height / 2
+
+                  model: folderModel
+                  delegate: fileDelegate
+                }
               }
             }
+
               ColumnLayout {
                 Rectangle {
                   color: "transparent";
                   width: 200; height: 50
+                  Layout.topMargin: 10
+
                   Label {
                     id: label
                     text: qsTr("Installed worlds")
@@ -154,7 +175,7 @@ Rectangle {
                   }
                   ComboBox {
                     id: comboBox
-                    currentIndex : 2
+                    currentIndex : -1
                     model: sdfsModel
                     textRole: 'fileName'
                     width: parent.width
@@ -184,7 +205,7 @@ Rectangle {
           RowLayout {
             id: skip
             anchors.verticalCenter: parent.verticalTop
-            spacing: 2*parent.width/5
+            spacing: parent.width/10
             Button {
               id: closeButton
               visible: true
@@ -203,10 +224,19 @@ Rectangle {
               ToolTip.timeout: tooltipTimeout
               ToolTip.text: qsTr("Skip")
             }
+            CheckBox {
+              id: showByDefault
+              text: "Don't show again"
+              Layout.fillWidth: true
+              onClicked: {
+                quickStart.changeDefault(showByDefault.checked)
+              }
+            }
             Button {
-              id: next
+              id: openWorld
               visible: true
-              text: "Next"
+              text: "Open World"
+              enabled: false
               Layout.minimumWidth: closeButton.width
               Layout.rightMargin: parent.width/10
 
@@ -218,15 +248,7 @@ Rectangle {
               ToolTip.visible: hovered
               ToolTip.delay: tooltipDelay
               ToolTip.timeout: tooltipTimeout
-              ToolTip.text: qsTr("Next")
-            }
-            CheckBox {
-              id: showByDefault
-              text: "Don't show again"
-              Layout.fillWidth: true
-              onClicked: {
-                quickStart.changeDefault(showByDefault.checked)
-              }
+              ToolTip.text: qsTr("Open World")
             }
           }
         }
