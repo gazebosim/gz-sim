@@ -1112,10 +1112,11 @@ bool CreateCommand::Execute()
         if (kNullEntity != entityToClone)
         {
           auto parentComp =
-            this->iface->ecm->Component<components::ParentEntity>(entityToClone);
+            this->iface->ecm->Component<components::ParentEntity>(
+              entityToClone);
 
-          // TODO(anyone) add better support for creating non-top level entities.
-          // For now, we will only clone top level entities
+          // TODO(anyone) add better support for creating non-top level.
+          // entities For now, we will only clone top level entities
           if (parentComp && parentComp->Data() == this->iface->worldEntity)
           {
             auto parentEntity = parentComp->Data();
@@ -1277,14 +1278,14 @@ bool CreateCommand::Execute()
     // Spherical coordinates
     if (createMsg->has_spherical_coordinates())
     {
-      auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
-          this->iface->worldEntity);
+      auto scComp = this->iface->ecm->Component<
+        components::SphericalCoordinates>(this->iface->worldEntity);
       if (nullptr == scComp)
       {
         gzwarn << "Trying to create entity [" << desiredName
                 << "] with spherical coordinates, but world's spherical "
-                << "coordinates aren't set. Entity will be created at the world "
-                << "origin." << std::endl;
+                << "coordinates aren't set. Entity will be created at the "
+                << "world origin." << std::endl;
       }
       else
       {
