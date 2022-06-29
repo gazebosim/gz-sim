@@ -12,7 +12,7 @@
 
 Each `gz sim` instance has the ability to run with the `--network-role` flag.
 When the flag is present, the instance attempts to join a distributed simulation
-environment by utilizing `ign-transport`. Ign-transport is used to register and
+environment by utilizing `gz-transport`. gz-transport is used to register and
 track available peers, as well as synchronize clock and state among multiple
 distributed environment participants.
 

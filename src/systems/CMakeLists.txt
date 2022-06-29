@@ -46,8 +46,7 @@ function(gz_add_system system_name)
 
   gz_add_component(${system_name}
     SOURCES ${sources}
-    GET_TARGET_NAME system_target
-    CXX_STANDARD 17)
+    GET_TARGET_NAME system_target)
 
   target_link_libraries(${system_target}
     PUBLIC

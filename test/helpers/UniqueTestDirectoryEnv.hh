@@ -21,7 +21,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
-#include <gz/sim/test_config.hh>
+#include "test_config.hh"
 
 namespace gz
 {

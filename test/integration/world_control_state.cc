@@ -25,7 +25,7 @@
 #include "gz/sim/components/Name.hh"
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"

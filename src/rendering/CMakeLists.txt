@@ -16,8 +16,7 @@ endif()
 
 gz_add_component(rendering
   SOURCES ${rendering_comp_sources}
-  GET_TARGET_NAME rendering_target
-  CXX_STANDARD 17)
+  GET_TARGET_NAME rendering_target)
 
 target_link_libraries(${rendering_target}
   PUBLIC
@@ -26,6 +25,6 @@ target_link_libraries(${rendering_target}
     gz-plugin${GZ_PLUGIN_VER}::register
 )
 
-install(TARGETS ${rendering_target} DESTINATION ${GZ_LIB_INSTALL_DIR})
+install(TARGETS ${rendering_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
 
 set(rendering_target ${rendering_target} PARENT_SCOPE)

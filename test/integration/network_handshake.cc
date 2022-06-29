@@ -25,7 +25,7 @@
 #include "gz/msgs/world_stats.pb.h"
 #include "gz/transport/Node.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 

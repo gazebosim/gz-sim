@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 
-<!-- Run demo with ign-gazebo examples/standalone/multi_lrauv_race
-  (example is provided in ign-gazebo6+). -->
+<!-- Run demo with gz-sim examples/standalone/multi_lrauv_race
+  (example is provided in gz-sim6+). -->
 
 <sdf version="1.6">
   <world name="multi_lrauv">
