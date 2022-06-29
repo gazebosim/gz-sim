@@ -875,7 +875,7 @@ TEST_P(SceneBroadcasterTest,
 }
 
 /////////////////////////////////////////////////
-// Tests https://github.com/ignitionrobotics/ign-gazebo/issues/1414
+// Tests https://github.com/gazebosim/gz-sim/issues/1414
 TEST_P(SceneBroadcasterTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
 {

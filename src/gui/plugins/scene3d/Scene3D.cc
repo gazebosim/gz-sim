@@ -2764,9 +2764,9 @@ void TextureNode::PrepareNode()
 RenderWindowItem::RenderWindowItem(QQuickItem *_parent)
   : QQuickItem(_parent), dataPtr(new RenderWindowItemPrivate)
 {
-  // TODO(chapulina) Forward-porting #1294 from ign-gazebo3 to ign-gazebo5
+  // TODO(chapulina) Forward-porting #1294 from gz-sim3 to gz-sim5
   // is non-trivial since the plugin's internals have changed. Keeping this
-  // shortcut here for now, and revisiting later specifically for ign-gazebo5
+  // shortcut here for now, and revisiting later specifically for gz-sim5
   // onwards.
   // See https://github.com/gazebosim/gz-sim/issues/1254
   static bool done{false};
@@ -2948,9 +2948,9 @@ Scene3D::~Scene3D() = default;
 /////////////////////////////////////////////////
 void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
-  // TODO(chapulina) Forward-porting #1294 from ign-gazebo3 to ign-gazebo5
+  // TODO(chapulina) Forward-porting #1294 from gz-sim3 to gz-sim5
   // is non-trivial since the plugin's internals have changed. Keeping this
-  // shortcut here for now, and revisiting later specifically for ign-gazebo5
+  // shortcut here for now, and revisiting later specifically for gz-sim5
   // onwards.
   // See https://github.com/gazebosim/gz-sim/issues/1254
   static bool done{false};

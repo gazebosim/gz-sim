@@ -654,7 +654,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     // Worlds from environment variable
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
-    // Worlds installed with ign-gazebo
+    // Worlds installed with gz-sim
     systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     filePath = systemPaths.FindFile(_sdfFile);

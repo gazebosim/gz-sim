@@ -34,6 +34,14 @@ release will remove the deprecated code.
 * The `gazebo` command line verb is deprecated.
   Use `sim` instead (e.g. `ign gazebo` -> `gz sim`).
 
+* **Breaking Changes**
+  * The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
+    * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
+    * Some non-exhaustive examples of this include:
+      * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
+      * CMake `-config` files
+      * Paths that depend on the project name
+
 ## Gazebo Sim 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now
@@ -113,7 +121,7 @@ since pose information is being logged in the `changed_state` topic.
 
 ## Gazebo Sim 4.x to 5.x
 
-* Use `cli` component of `ignition-utils1`.
+* Use `cli` component of `gz-utils1`.
 
 * `gz::sim::RenderUtil::SelectedEntities()` now returns a
   `const std::vector<Entity> &` instead of forcing a copy. The calling code
@@ -174,7 +182,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 
 ## Gazebo Sim 2.x to 3.x
 
-* Use ign-rendering3, ign-sensors3 and ign-gui3.
+* Use gz-rendering3, gz-sensors3 and gz-gui3.
 
 ## Gazebo Sim 1.x to 2.x
 
@@ -191,7 +199,7 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * The `-f`/`--file` command line argument has been deprecated. The SDF
   file can now be loaded without a flag.
 
-* The `ign-gazebo` command line tool is deprecated. The new tool is
+* The `gz-sim` command line tool is deprecated. The new tool is
   `gz sim`, which has all the same options, except for
   `--distributed` and `--file`/`-f`, which have been removed.
 
