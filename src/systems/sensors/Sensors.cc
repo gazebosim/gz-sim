@@ -317,7 +317,7 @@ void SensorsPrivate::RunOnce()
       for (const auto & sensor : this->activeSensors)
       {
         // 90% of update delta (1/UpdateRate());
-        auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
+        auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
         this->sensorMask[sensor->Id()] = this->updateTime + delta;
       }
