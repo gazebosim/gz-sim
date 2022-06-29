@@ -730,6 +730,9 @@ TEST_P(EntityComponentManagerFixture,
         {
           EXPECT_EQ(_entity, eVisCmd);
           EXPECT_NE(nullptr, _visualCmd);
+          if (nullptr == _visualCmd)
+            return true;
+
           if (i == 0)
           {
             EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().r());
@@ -744,6 +747,8 @@ TEST_P(EntityComponentManagerFixture,
             EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().b());
             EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().a());
           }
+          else
+            ADD_FAILURE() << "Index [" << i << "] should have no component.";
           ++count;
           return true;
         });

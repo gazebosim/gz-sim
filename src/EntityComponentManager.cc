@@ -493,7 +493,11 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
 
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    auto updateData = this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (updateData)
+    {
+      ignerr << "UPDATE DATA" << std::endl;
+    }
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -1085,7 +1089,7 @@ bool EntityComponentManager::CreateComponentImplementation(
 
       for (auto &viewPair : this->dataPtr->views)
       {
-        viewPair.second.first->UpdateComponent(_entity, _data);
+        //viewPair.second.first->UpdateComponent(_entity, _data);
         viewPair.second.first->NotifyComponentAddition(_entity,
             this->IsNewEntity(_entity), _componentTypeId);
       }
@@ -1740,7 +1744,12 @@ void EntityComponentManager::SetState(
           continue;
         }
         newComp->Deserialize(istr);
-        this->CreateComponentImplementation(entity, type, newComp.get());
+        auto updateData = this->CreateComponentImplementation(entity, type,
+            newComp.get());
+        if (updateData)
+        {
+          ignerr << "UPDATE DATA" << std::endl;
+        }
       }
       // Update component value
       else
@@ -1827,13 +1836,19 @@ void EntityComponentManager::SetState(
 
         newComp->Deserialize(istr);
 
-        this->CreateComponentImplementation(entity,
+        auto updateData = this->CreateComponentImplementation(entity,
             newComp->TypeId(), newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, compIter.first);
+        }
       }
       // Update component value
-      else
+      if (comp)
       {
-        comp->Deserialize(istr);
+        std::istringstream istr2(compMsg.component());
+        comp->Deserialize(istr2);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?
             ComponentState::OneTimeChange :
