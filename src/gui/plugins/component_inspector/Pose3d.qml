@@ -97,20 +97,21 @@ Rectangle {
         return !(isModel) || nestedModel
       }
 
-      xModelValue: model.data[0]
-      yModelValue: model.data[1]
-      zModelValue: model.data[2]
-      rollModelValue: model.data[3]
-      pitchModelValue: model.data[4]
-      yawModelValue: model.data[5]
+      xValue: model.data[0]
+      yValue: model.data[1]
+      zValue: model.data[2]
+      rollValue: model.data[3]
+      pitchValue: model.data[4]
+      yawValue: model.data[5]
 
       onGzPoseSet: {
-        sendPose(x, y, z, roll, pitch, yaw)
+        // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+        sendPose(_x, _y, _z, _roll, _pitch, _yaw)
       }
 
-      onShowChanged: {
-        console.log("bool var show changed")
-      }
+      // By default it is closed
+      show: false
+
     } // end gzPoseContent
   } // end Column
 } // end Rectangle
