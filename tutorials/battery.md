@@ -118,7 +118,7 @@ gz sim -v 4 linear_battery_demo.sdf -z 1000000
 ```
 
 The blue vehicle on the left has a battery, while the one on the right does not. When the battery drains, the corresponding vehicle stops moving. Please, see
-`ign-gazebo/examples/worlds/linear_battery_demo.sdf`, where you can
+`gz-sim/examples/worlds/linear_battery_demo.sdf`, where you can
 find the commands to visualize the state of the battery, as well as commands to
 start and stop the recharging.
 
@@ -126,7 +126,7 @@ start and stop the recharging.
 To control the vehicles with keyboard, run
 
 ```
-cd ign-gazebo/examples/standalone/keyboard
+cd gz-sim/examples/standalone/keyboard
 mkdir build && cd build
 cmake .. && make
 ./keyboard ../keyboard.sdf

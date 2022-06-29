@@ -20,7 +20,7 @@
 #include <gz/common/Console.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/Util.hh>
-#include <gz/sim/test_config.hh>
+#include <test_config.hh>
 
 using namespace gz;
 using namespace sim;

@@ -5,10 +5,10 @@ system plugin.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/plugins/hello_world
+cd gz-sim/examples/plugins/hello_world
 mkdir build
 cd build
 cmake ..
@@ -25,7 +25,7 @@ the `hello_world_plugin.sdf` file that's going to be loaded.
 Before starting Gazebo, we must make sure it can find the plugin by doing:
 
 ~~~
-cd ign-gazebo/examples/plugins/hello_world
+cd gz-sim/examples/plugins/hello_world
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 

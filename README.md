@@ -97,7 +97,7 @@ gz sim -h
 ## Known issue of command line tools
 
 In the event that the installation is a mix of Debian and from source, command
-line tools from `ign-tools` may not work correctly.
+line tools from `gz-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
 `GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
@@ -138,12 +138,12 @@ See the [Writing Tests section of the contributor guide](https://github.com/gaze
 Refer to the following table for information about important directories and files in this repository.
 
 ```
-ign-gazebo
-├── examples                     Various examples that can be run against binary or source installs of ign-gazebo.
+gz-sim
+├── examples                     Various examples that can be run against binary or source installs of gz-sim.
 │   ├── plugin                   Example plugins.
-│   ├── standalone               Example standalone programs that use ign-gazebo as a library.
+│   ├── standalone               Example standalone programs that use gz-sim as a library.
 │   └── worlds                   Example SDF world files.
-├── include/ignition/gazebo      Header files that downstream users are expected to use.
+├── include/gz/sim               Header files that downstream users are expected to use.
 │   └── detail                   Header files that are not intended for downstream use, mainly template implementations.
 ├── src                          Source files and unit tests.
 │   ├── gui                      Graphical interface source code.

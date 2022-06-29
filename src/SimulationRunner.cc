@@ -136,7 +136,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     if (_config.NetworkRole().empty())
     {
-      /// \todo(nkoenig) Remove part of the 'if' statement in ign-gazebo3.
+      /// \todo(nkoenig) Remove part of the 'if' statement in gz-sim3.
       this->networkMgr = NetworkManager::Create(
           std::bind(&SimulationRunner::Step, this, std::placeholders::_1),
           this->entityCompMgr, &this->eventMgr);

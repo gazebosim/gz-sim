@@ -33,7 +33,7 @@
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -162,7 +162,7 @@ TEST_F(ThermalSensorTest,
   EXPECT_EQ(sdf::PixelFormatType::L_INT8, cameraSdf->PixelFormat());
 
   // verify camera properties set through plugin
-  // the resolution, min and max are invalid range values. Ign-gazebo should
+  // the resolution, min and max are invalid range values. gz-sim should
   // print out warnings and use default values
   EXPECT_DOUBLE_EQ(0.0, resolution);
   EXPECT_DOUBLE_EQ(999.0, minTemp);

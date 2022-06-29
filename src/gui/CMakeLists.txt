@@ -41,8 +41,7 @@ endif()
 
 gz_add_component(gui
   SOURCES ${gui_sources} resources/gazebo.qrc
-  GET_TARGET_NAME gui_target
-  CXX_STANDARD 17)
+  GET_TARGET_NAME gui_target)
 
 target_link_libraries(${gui_target}
   PUBLIC

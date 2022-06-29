@@ -96,7 +96,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
         statusMsg << "Service call for generating world SDFormat timed out\n";
       }
       statusMsg << "Unknown error occured when saving the world. Please check "
-                << "the console output of ign-gazebo\n";
+                << "the console output of gz-sim\n";
     }
   }
 

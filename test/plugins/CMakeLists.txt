@@ -32,7 +32,6 @@ endif()
 if(BUILD_TESTING)
   foreach (src ${test_plugins})
     add_library(${src} SHARED ${src}.cc)
-    set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
     target_link_libraries(${src}
       PRIVATE
         gz-plugin${GZ_PLUGIN_VER}::register

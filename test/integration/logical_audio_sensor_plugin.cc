@@ -32,7 +32,7 @@
 
 #include "gz/sim/components/LogicalAudio.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"

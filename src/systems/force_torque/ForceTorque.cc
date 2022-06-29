@@ -72,7 +72,7 @@ class gz::sim::systems::ForceTorquePrivate
   /// \brief Cache of the entities associated with the sensor
   public: std::unordered_map<Entity, SensorJointAndLinks> sensorJointLinkMap;
 
-  /// \brief Ign-sensors sensor factory for creating sensors
+  /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Get the link entity identified by the given scoped name

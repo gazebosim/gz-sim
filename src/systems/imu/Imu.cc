@@ -55,7 +55,7 @@ class gz::sim::systems::ImuPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<gz::sensors::ImuSensor>> entitySensorMap;
 
-  /// \brief Ign-sensors sensor factory for creating sensors
+  /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Keep list of sensors that were created during the previous

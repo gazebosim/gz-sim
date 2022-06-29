@@ -26,7 +26,7 @@
 #include "helpers/EnvTestFixture.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/gui/Gui.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
 

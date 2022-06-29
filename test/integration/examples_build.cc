@@ -25,7 +25,7 @@
 #include <gz/math/SemanticVersion.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
@@ -154,10 +154,3 @@ INSTANTIATE_TEST_SUITE_P(Plugins, ExamplesBuild,
     [](const ::testing::TestParamInfo<ExamplesBuild::ParamType>& param) {
       return param.param.type + "_" + param.param.base;
     });
-
-//////////////////////////////////////////////////
-int main(int _argc, char **_argv)
-{
-  ::testing::InitGoogleTest(&_argc, _argv);
-  return RUN_ALL_TESTS();
-}

@@ -23,9 +23,9 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
-static const std::string kIgnModelCommand(
+static const std::string kGzModelCommand(
     std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
@@ -75,7 +75,7 @@ std::string customExecStr(std::string _cmd)
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
-  const std::string cmd = kIgnModelCommand + "--list ";
+  const std::string cmd = kGzModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
         "\nService call to [/gazebo/worlds] timed out\n"
@@ -102,7 +102,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model --list
   {
-    const std::string cmd = kIgnModelCommand + "--list";
+    const std::string cmd = kGzModelCommand + "--list";
     const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive]..."
@@ -114,7 +114,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue
   {
-    const std::string cmd = kIgnModelCommand + "-m vehicle_blue";
+    const std::string cmd = kGzModelCommand + "-m vehicle_blue";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
@@ -216,7 +216,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue --pose
   {
-    const std::string cmd = kIgnModelCommand + "-m vehicle_blue --pose ";
+    const std::string cmd = kGzModelCommand + "-m vehicle_blue --pose ";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
@@ -231,7 +231,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue --link
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --link";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -298,7 +298,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue --link caster
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --link caster";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -323,7 +323,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue --joint
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --joint";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -365,7 +365,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
   // Tested command: gz model -m vehicle_blue --joint caster_wheel
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --joint caster_wheel";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -402,7 +402,7 @@ TEST(ModelCommandAPI, AirPressureSensor)
 
   // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m air_pressure_model -l link -s air_pressure_sensor";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -445,7 +445,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
 
   // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m altimeter_model -l link -s altimeter_sensor";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -495,7 +495,7 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 
   // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m gpu_lidar -l gpu_lidar_link -s gpu_lidar";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -551,7 +551,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
   // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m magnetometer_model -l link -s magnetometer_sensor";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -610,7 +610,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 
   // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m rgbd_camera -l rgbd_camera_link -s rgbd_camera";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -661,11 +661,4 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
       "  - Visibility mask: 4294967295\n";
       EXPECT_EQ(expectedOutput, output);
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }
