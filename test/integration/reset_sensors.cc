@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/detail/fluid_pressure.pb.h>
+#include <gz/msgs/fluid_pressure.pb.h>
 #include <string>
 #include <vector>
 
