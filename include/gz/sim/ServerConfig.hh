@@ -215,7 +215,8 @@ namespace gz
       public: std::optional<double> UpdateRate() const;
 
       /// \brief Set the run option
-      /// \return True if -r is setted or False otherwise
+      /// \param[in] _run True if the server should run on start,
+      /// false otherwise
       public: void SetRunOption(bool _run);
 
       /// \brief Get the run option
@@ -223,7 +224,7 @@ namespace gz
       public: bool RunOption() const;
 
       /// \brief True if the models are downloaded in a thread false otherwise
-      /// \param _downloadInParallel True if the models are downloaded in a
+      /// \param[in] _downloadInParallel True if the models are downloaded in a
       /// thread false otherwise
       public: void SetDownloadInParallel(bool _downloadInParallel);
 

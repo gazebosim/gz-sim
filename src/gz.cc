@@ -351,7 +351,7 @@ extern "C" int runServer(const char *_sdfString,
 
   // Create the Gazebo server
   serverConfig.SetDownloadInParallel(true);
-  gz::sim::Server server(true, serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);

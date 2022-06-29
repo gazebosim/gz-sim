@@ -60,15 +60,6 @@ Server::Server(const ServerConfig &_config)
 }
 
 /////////////////////////////////////////////////
-Server::Server(bool _downloadInParallel, const ServerConfig &_config)
-  : dataPtr(new ServerPrivate)
-{
-  this->dataPtr->config = _config;
-  this->dataPtr->downloadInParallel = _downloadInParallel;
-  this->Init();
-}
-
-/////////////////////////////////////////////////
 bool Server::DownloadModels()
 {
   sdf::Root root;
@@ -117,7 +108,7 @@ bool Server::DownloadModels()
 
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
-      while (this->dataPtr->downloadInParallel &&
+      while (this->dataPtr->config.DownloadInParallel() &&
              this->dataPtr->simRunners.size() == 0)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -126,7 +117,7 @@ bool Server::DownloadModels()
       errors = root.Load(filePath);
       this->dataPtr->sdfRoot = root.Clone();
 
-      if (!this->dataPtr->downloadInParallel)
+      if (!this->dataPtr->config.DownloadInParallel())
         return true;
 
       if (this->dataPtr->sdfRoot.WorldCount() == 0)
@@ -194,7 +185,7 @@ void Server::Init()
 
   sdf::Errors errors;
 
-  if (this->dataPtr->downloadInParallel)
+  if (this->dataPtr->config.DownloadInParallel())
   {
     this->dataPtr->downloadModelsThread = std::thread([&]()
     {
