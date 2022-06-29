@@ -212,11 +212,20 @@ void Server::Init()
     std::string filePath = systemPaths.FindFile(
       this->dataPtr->config.SdfFile());
 
-    std::string worldName;
-    auto errors2 = this->dataPtr->sdfRoot.WorldName(filePath, worldName);
+    std::vector<std::string> worldNames;
+    auto errors2 = this->dataPtr->sdfRoot.WorldNameFromFile(
+      filePath, worldNames);
 
-    errors = this->dataPtr->sdfRoot.LoadSdfString(
-      DefaultWorld::World(worldName));
+    if (worldNames.size() > 0)
+    {
+      // we only support one world for now
+      errors = this->dataPtr->sdfRoot.LoadSdfString(
+        DefaultWorld::World(worldNames[0]));
+    }
+    else
+    {
+      return;
+    }
   }
   else
   {
