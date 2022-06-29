@@ -403,7 +403,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 void SceneBroadcaster::Reset(const UpdateInfo &_info,
                              EntityComponentManager &_manager)
 {
-  // Run Post Update so that GUI will be refreshed if reset is called while 
+  // Run Post Update so that GUI will be refreshed if reset is called while
   // simulation is paused.
   this->PostUpdate(_info, _manager);
 }
