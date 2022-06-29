@@ -23,6 +23,7 @@ libxi-dev
 libxmu-dev
 python3-distutils
 python3-pybind11
+python3-pytest
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
 qml-module-qtqml-models2
