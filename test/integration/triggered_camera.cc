@@ -71,6 +71,7 @@ TEST_F(TriggeredCameraTest,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "triggered_camera_sensor.sdf");
   serverConfig.SetSdfFile(sdfFile);

@@ -46,6 +46,7 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
   using namespace std::chrono_literals;
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -104,6 +105,7 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
   using namespace std::chrono_literals;
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
   serverConfig.SetSdfFile(sdfFile);

@@ -64,6 +64,7 @@ TEST_F(ShaderParamTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ShaderParam))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "examples", "worlds", "shader_param.sdf");
   serverConfig.SetSdfFile(sdfFile);

@@ -71,6 +71,7 @@ TEST_F(DistortionCameraTest,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_distortion.sdf");
   serverConfig.SetSdfFile(sdfFile);

@@ -235,16 +235,18 @@ class VelocityControlTest
 TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
-      "/model/vehicle_blue/cmd_vel");
+    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "velocity_control.sdf"),
+    "/model/vehicle_blue/cmd_vel");
 }
 
 /////////////////////////////////////////////////
 TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
 {
   TestPublishLinkCmd(
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
-      "/model/vehicle_blue/link/caster/cmd_vel");
+    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "velocity_control.sdf"),
+    "/model/vehicle_blue/link/caster/cmd_vel");
 }
 
 // Run multiple times

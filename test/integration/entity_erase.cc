@@ -39,9 +39,9 @@ TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
 {
   gz::sim::ServerConfig serverConfig;
-
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_TRUE(server.HasEntity("box"));

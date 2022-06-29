@@ -65,9 +65,10 @@ TEST_F(DepthCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/depth_camera_sensor.sdf";
+  const auto sdfFile = gz::common::joinPath(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "depth_camera_sensor.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

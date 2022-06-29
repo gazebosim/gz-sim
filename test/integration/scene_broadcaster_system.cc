@@ -48,8 +48,10 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -98,8 +100,9 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -144,8 +147,9 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -184,8 +188,9 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -229,8 +234,10 @@ TEST_P(SceneBroadcasterTest,
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/altimeter_with_pose.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "altimeter_with_pose.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -280,8 +287,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -340,8 +347,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -410,8 +417,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -521,8 +528,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/empty.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "empty.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -627,8 +634,9 @@ TEST_P(SceneBroadcasterTest,
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes_scene_broadcaster_only.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "shapes_scene_broadcaster_only.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -920,8 +928,8 @@ TEST_P(SceneBroadcasterTest,
 {
   // Start server
   sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      common::joinPaths("/", "test", "worlds", "conveyor.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "conveyor.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());

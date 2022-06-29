@@ -47,6 +47,7 @@ class DetachableJointTest : public InternalFixture<::testing::Test>
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
     this->server = std::make_unique<Server>(serverConfig);
 

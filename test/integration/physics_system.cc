@@ -101,9 +101,9 @@ class PhysicsSystemFixtureWithDart6_10 : public PhysicsSystemFixture
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 {
   gz::sim::ServerConfig serverConfig;
-
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/shapes.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
 
@@ -123,9 +123,9 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/falling.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "falling.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
@@ -193,8 +193,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/canonical.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "canonical.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -202,6 +202,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -265,8 +266,8 @@ TEST_F(PhysicsSystemFixture,
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/nondefault_canonical.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "nondefault_canonical.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -274,6 +275,7 @@ TEST_F(PhysicsSystemFixture,
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -320,8 +322,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -329,6 +331,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -399,6 +402,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
   gz::sim::ServerConfig serverConfig;
   sim::Server server(serverConfig);
+  serverConfig.SetHeadlessRendering(true);
   server.SetPaused(false);
 
   // Create a system just to get the ECM
@@ -483,9 +487,10 @@ TEST_F(PhysicsSystemFixture,
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/friction.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "friction.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -569,9 +574,10 @@ TEST_F(PhysicsSystemFixture,
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/demo_joint_types.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "demo_joint_types.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -648,9 +654,9 @@ TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -748,9 +754,8 @@ TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -758,6 +763,7 @@ TEST_F(PhysicsSystemFixture,
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -846,9 +852,9 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -969,9 +975,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -979,6 +986,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server(serverConfig);
 
@@ -1093,9 +1101,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/revolute_joint_equilibrium.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "revolute_joint_equilibrium.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1220,9 +1229,9 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/contact.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "contact.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sim::Server server(serverConfig);
@@ -1291,9 +1300,9 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/nested_model.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "nested_model.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1396,14 +1405,17 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  std::string path = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+   "test", "worlds", "models");
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/include_nested_models.sdf";
+  const std::string sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "include_nested_models.sdf");
   serverConfig.SetSdfFile(sdfFile);
   sim::Server server(serverConfig);
 
@@ -1539,14 +1551,17 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  std::string path = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "models");
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/include_nested_models.sdf";
+  const std::string sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "include_nested_models.sdf");
   serverConfig.SetSdfFile(sdfFile);
   sim::Server server(serverConfig);
 
@@ -1683,9 +1698,10 @@ TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/nested_model_canonical_link.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "nested_model_canonical_link.sdf");
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1785,6 +1801,7 @@ TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
   bool checked{false};
 
@@ -1826,6 +1843,7 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture, PhysicsOptions)
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "physics_options.sdf"));
 
@@ -1882,7 +1900,7 @@ TEST_F(PhysicsSystemFixture,
   ASSERT_TRUE(nullptr != world);
 
   serverConfig.SetSdfFile(sdfFile);
-
+  serverConfig.SetHeadlessRendering(true);
   sim::Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
@@ -1999,9 +2017,9 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/heightmap.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "heightmap.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
@@ -2082,9 +2100,9 @@ TEST_F(PhysicsSystemFixture,
 {
   common::Console::SetVerbosity(4);
   gz::sim::ServerConfig serverConfig;
-
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_transmitted_wrench.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "joint_transmitted_wrench.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -2204,8 +2222,9 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-          "/test/worlds/joint_velocity_limit.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "joint_velocity_limit.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   auto server = std::make_unique<Server>(serverConfig);

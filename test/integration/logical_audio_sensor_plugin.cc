@@ -55,8 +55,9 @@ TEST_F(LogicalAudioTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/logical_audio_sensor_plugin.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "logical_audio_sensor_plugin.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   // start server
@@ -210,8 +211,10 @@ TEST_F(LogicalAudioTest,
 TEST_F(LogicalAudioTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
 {
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/logical_audio_sensor_plugin_services.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "logical_audio_sensor_plugin_services.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   // start server

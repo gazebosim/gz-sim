@@ -75,6 +75,7 @@ TEST_F(CameraSensorBackgroundFixture,
 {
   // Start server
   sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_empty_scene.sdf");
   serverConfig.SetSdfFile(sdfFile);

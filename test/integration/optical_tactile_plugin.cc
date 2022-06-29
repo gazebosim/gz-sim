@@ -43,6 +43,7 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     serverConfig.SetSdfFile(_sdfFile);
     server = std::make_unique<Server>(serverConfig);
     using namespace std::chrono_literals;

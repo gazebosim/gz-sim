@@ -124,6 +124,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
   {
     // Start server
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     serverConfig.SetSdfFile(_sdfFile);
 
     Server server(serverConfig);

@@ -56,6 +56,7 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // Start server
       ServerConfig serverConfig;
       serverConfig.SetSdfFile(_sdfFile);
+      serverConfig.SetHeadlessRendering(true);
 
       Server server(serverConfig);
       EXPECT_FALSE(server.Running());
@@ -233,8 +234,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_skid.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "diff_drive_skid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -335,8 +337,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_skid.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "diff_drive_skid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -459,8 +462,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "diff_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -517,8 +521,10 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_frame_id.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "diff_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -574,8 +580,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "diff_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -634,8 +641,10 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_frame_id.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "diff_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -694,8 +703,10 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_tf_topic.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "diff_drive_custom_tf_topic.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

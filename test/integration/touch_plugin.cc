@@ -35,7 +35,8 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
-    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
+    serverConfig.SetSdfFile(gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), _sdfFile));
     server = std::make_unique<Server>(serverConfig);
     using namespace std::chrono_literals;
     server->SetUpdatePeriod(0ns);
@@ -51,7 +52,8 @@ class TouchPluginTest : public InternalFixture<::testing::Test>
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 {
-  this->StartServer("/test/worlds/touch_plugin.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "touch_plugin.sdf"));
 
   bool whiteTouched{false};
   auto whiteTouchCb = std::function<void(const msgs::Boolean &)>(

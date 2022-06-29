@@ -54,6 +54,7 @@ class BreadcrumbsTest : public InternalFixture<::testing::Test>
     this->serverConfig.SetSdfFile(
         common::joinPaths(PROJECT_SOURCE_PATH, _path));
     this->serverConfig.SetUseLevels(_useLevels);
+    this->serverConfig.SetHeadlessRendering(true);
 
     this->server = std::make_unique<Server>(this->serverConfig);
     EXPECT_FALSE(this->server->Running());

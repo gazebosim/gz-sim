@@ -50,6 +50,7 @@ TEST_F(EachNewRemovedFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
   sim::Server server;
 

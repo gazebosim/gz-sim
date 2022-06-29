@@ -41,8 +41,9 @@ TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/camera_video_record.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "camera_video_record.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

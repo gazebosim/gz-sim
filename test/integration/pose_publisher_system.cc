@@ -104,8 +104,10 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/pose_publisher.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "pose_publisher.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -326,8 +328,9 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/pose_publisher.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "pose_publisher.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -391,8 +394,8 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/pose_publisher.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "pose_publisher.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -648,8 +651,10 @@ TEST_F(PosePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/pose_publisher.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH) +
+    "test", "worlds", "pose_publisher.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -716,8 +721,9 @@ TEST_F(PosePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/nested_model.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "nested_model.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

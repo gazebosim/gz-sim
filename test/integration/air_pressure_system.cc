@@ -47,8 +47,9 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/air_pressure.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "air_pressure.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

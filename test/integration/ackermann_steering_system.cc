@@ -52,6 +52,7 @@ class AckermannSteeringTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());
@@ -216,8 +217,9 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering_slow_odom.sdf"));
+      "test", "worlds", "ackermann_steering_slow_odom.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -314,8 +316,9 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering.sdf"));
+      "test", "worlds", "ackermann_steering.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -373,8 +376,9 @@ TEST_P(AckermannSteeringTest,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-             "/test/worlds/ackermann_steering_custom_frame_id.sdf"));
+             "test", "worlds", "ackermann_steering_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

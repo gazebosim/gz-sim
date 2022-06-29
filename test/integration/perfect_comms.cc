@@ -45,6 +45,7 @@ TEST_F(PerfectCommsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerfectComms))
     gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "examples", "worlds", "perfect_comms.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

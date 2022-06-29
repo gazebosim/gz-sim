@@ -65,8 +65,9 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/altimeter.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "altimeter.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

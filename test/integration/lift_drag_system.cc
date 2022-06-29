@@ -84,6 +84,7 @@ TEST_P(VerticalForceParamFixture,
   const auto sdfFile =
       common::joinPaths(PROJECT_SOURCE_PATH, GetParam().fileName);
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

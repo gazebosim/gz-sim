@@ -81,6 +81,7 @@ TEST_F(CameraSensorBackgroundFixture,
     "test", "worlds", "camera_sensor_scene_background.sdf");
   // Start server
   sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(sdfFile);
 
   sim::Server server(serverConfig);

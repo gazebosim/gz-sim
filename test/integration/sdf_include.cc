@@ -36,13 +36,13 @@ class SdfInclude : public InternalFixture<::testing::Test>
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(SdfInclude, GZ_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
 {
-  std::string path = common::cwd() + "/test_cache";
+  std::string path = gz::common::joinPaths(common::cwd(), "test_cache");
 
   // Configure the gazebo server, which will cause a model to be downloaded.
   sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/include.sdf");
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "include.sdf"));
   sim::Server server(serverConfig);
 
   EXPECT_TRUE(common::exists(path +

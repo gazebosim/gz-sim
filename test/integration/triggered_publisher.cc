@@ -52,8 +52,10 @@ class TriggeredPublisherTest : public InternalFixture<::testing::Test>
 
     // Start server
     ServerConfig serverConfig;
-    const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/triggered_publisher.sdf";
+    serverConfig.SetHeadlessRendering(true);
+    const auto sdfFile = gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "triggered_publisher.sdf");
     serverConfig.SetSdfFile(sdfFile);
 
     this->server = std::make_unique<Server>(serverConfig);

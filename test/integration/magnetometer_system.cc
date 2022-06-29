@@ -66,8 +66,9 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/magnetometer.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "magnetometer.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

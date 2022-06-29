@@ -54,6 +54,7 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   {
     // Start server
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "buoyancy_uniform_restoring_moments.sdf");
     serverConfig.SetSdfFile(sdfFile);
@@ -84,8 +85,9 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   {
     // Start server
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/buoyancy_graded_restoring_moments.sdf");
+      "test", "worlds", "buoyancy_graded_restoring_moments.sdf");
     serverConfig.SetSdfFile(sdfFile);
 
     test::Relay testSystem;
@@ -166,8 +168,9 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_BINARY_PATH) +
-    "/test/worlds/buoyancy.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_BINARY_PATH),
+    "test", "worlds", "buoyancy.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -321,6 +324,7 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "graded_buoyancy.sdf");
   serverConfig.SetSdfFile(sdfFile);

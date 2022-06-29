@@ -60,6 +60,7 @@ TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "buoyancy_engine.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -106,6 +107,7 @@ TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
 TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 {
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "buoyancy_engine.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -155,6 +157,7 @@ TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpward))
 TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
 {
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "buoyancy_engine.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -201,4 +204,3 @@ TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
   EXPECT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
   EXPECT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
 }
-

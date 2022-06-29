@@ -35,6 +35,7 @@ class MultipleServers : public InternalFixture<::testing::TestWithParam<int>>
 TEST_P(MultipleServers, TwoServersNonBlocking)
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   sim::Server server1(serverConfig);
@@ -75,6 +76,7 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
 TEST_P(MultipleServers, TwoServersMixedBlocking)
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   sim::Server server1(serverConfig);

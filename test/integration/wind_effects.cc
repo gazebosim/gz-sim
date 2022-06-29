@@ -46,7 +46,8 @@ class WindEffectsTest : public InternalFixture<::testing::Test>
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
-    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
+    serverConfig.SetSdfFile(gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), _sdfFile));
     this->server = std::make_unique<Server>(serverConfig);
 
     EXPECT_FALSE(this->server->Running());
@@ -188,7 +189,8 @@ class BlockingPublisher
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInModel))
 {
-  this->StartServer("/test/worlds/wind_effects.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "wind_effects.sdf"));
 
   LinkComponentRecorder<components::WindMode> linkWindMode("box_test1");
 
@@ -205,7 +207,8 @@ TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInModel))
 /// Check if 'enable_wind' set only in <link> works
 TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInLink))
 {
-  this->StartServer("/test/worlds/wind_effects.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "wind_effects.sdf"));
 
   LinkComponentRecorder<components::WindMode> linkWindMode("box_test2");
 
@@ -221,7 +224,8 @@ TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInLink))
 ////////////////////////////////////////////////
 TEST_F(WindEffectsTest , GZ_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
 {
-  this->StartServer("/test/worlds/wind_effects.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "wind_effects.sdf"));
   LinkComponentRecorder<components::WorldLinearAcceleration> linkAccelerations(
       "box_test1", true);
 
@@ -258,7 +262,8 @@ TEST_F(WindEffectsTest , GZ_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
 ////////////////////////////////////////////////
 TEST_F(WindEffectsTest , GZ_UTILS_TEST_DISABLED_ON_WIN32(ComplexWindForce))
 {
-  this->StartServer("/test/worlds/sea_storm_effects.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "sea_storm_effects.sdf"));
   LinkComponentRecorder<components::WorldLinearAcceleration>
       belowSurfaceAccelerations("box_below_surface", true);
   LinkComponentRecorder<components::WorldLinearAcceleration>
@@ -302,7 +307,8 @@ TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TopicsAndServices))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/wind_effects.sdf");
+  this->StartServer(gz::common::joinPaths(
+    "test", "worlds", "wind_effects.sdf"));
   this->server->Run(true, 10, false);
 
   // As specified in SDF
@@ -386,7 +392,8 @@ TEST_F(WindEffectsTest,
       </model>
   </sdf>)EOF";
 
-  this->StartServer("/test/worlds/wind_effects.sdf");
+  this->StartServer(
+    gz::common::joinPaths("test", "worlds", "wind_effects.sdf"));
 
   LinkComponentRecorder<components::WorldLinearVelocity>
     linkVelocityComponent("test_link_wind");

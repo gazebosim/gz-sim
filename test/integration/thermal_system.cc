@@ -53,8 +53,9 @@ TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/thermal.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "thermal.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -177,8 +178,9 @@ TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
-        "test/worlds/thermal.sdf"));
+        "test", "worlds", "thermal.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

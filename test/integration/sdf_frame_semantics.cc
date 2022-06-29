@@ -502,14 +502,16 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
 TEST_F(SdfFrameSemanticsTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToTPE))
 {
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  std::string path = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "models");
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/include_nested_models.sdf";
+  const std::string sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "include_nested_models.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   ASSERT_TRUE(this->StartServer(serverConfig));
@@ -565,14 +567,16 @@ TEST_F(SdfFrameSemanticsTest,
 TEST_F(SdfFrameSemanticsTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToDartsim))
 {
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  std::string path = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "models");
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/include_nested_models.sdf";
+  const std::string sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "include_nested_models.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   ASSERT_TRUE(this->StartServer(serverConfig));

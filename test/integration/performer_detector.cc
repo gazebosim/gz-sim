@@ -42,9 +42,11 @@ class PerformerDetectorTest : public InternalFixture<::testing::Test>
                                       bool _useLevels = false)
   {
     ServerConfig serverConfig;
-    const auto sdfFile = std::string(PROJECT_SOURCE_PATH) + _filePath;
+    const auto sdfFile = gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), _filePath);
     serverConfig.SetSdfFile(sdfFile);
     serverConfig.SetUseLevels(_useLevels);
+    serverConfig.SetHeadlessRendering(true);
 
     auto server = std::make_unique<Server>(serverConfig);
     EXPECT_FALSE(server->Running());

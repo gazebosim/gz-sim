@@ -95,6 +95,7 @@ void worldReset()
 TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
   const std::string sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "reset.sdf");

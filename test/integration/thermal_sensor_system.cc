@@ -78,8 +78,9 @@ TEST_F(ThermalSensorTest,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
-        "test/worlds/thermal_invalid.sdf"));
+    "test", "worlds", "thermal_invalid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

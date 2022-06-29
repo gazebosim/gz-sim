@@ -117,8 +117,9 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/imu.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "imu.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -266,6 +267,7 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OrientationDisabled))
 
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "imu_no_orientation.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -306,6 +308,7 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamedFrames))
 
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "imu_named_frame.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -380,6 +383,7 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamedFramesWithHeading))
 
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "imu_heading_deg.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -455,6 +459,7 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatingBody))
 
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "imu_rotating_demo.sdf");
   serverConfig.SetSdfFile(sdfFile);

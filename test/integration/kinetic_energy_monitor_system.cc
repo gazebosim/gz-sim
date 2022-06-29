@@ -57,9 +57,10 @@ TEST_F(KineticEnergyMonitorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/altimeter.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "altimeter.sdf");
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

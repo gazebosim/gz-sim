@@ -50,6 +50,7 @@ class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
   {
     // Start server
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     serverConfig.SetSdfFile(_sdfFile);
 
     Server server(serverConfig);

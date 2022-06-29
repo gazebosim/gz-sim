@@ -53,7 +53,9 @@ class MulticopterTest : public InternalFixture<::testing::Test>
   protected: std::unique_ptr<Server> StartServer(const std::string &_filePath)
   {
     ServerConfig serverConfig;
-    const auto sdfFile = std::string(PROJECT_SOURCE_PATH) + _filePath;
+    serverConfig.SetHeadlessRendering(true);
+    const auto sdfFile = gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), _filePath);
     serverConfig.SetSdfFile(sdfFile);
 
     auto server = std::make_unique<Server>(serverConfig);

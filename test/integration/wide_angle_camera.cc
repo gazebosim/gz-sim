@@ -65,6 +65,7 @@ TEST_F(WideAngleCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "wide_angle_camera_sensor.sdf");
   serverConfig.SetSdfFile(sdfFile);

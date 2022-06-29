@@ -59,8 +59,9 @@ TEST_F(GpuLidarTest, GZ_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/gpu_lidar_sensor.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "gpu_lidar_sensor.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

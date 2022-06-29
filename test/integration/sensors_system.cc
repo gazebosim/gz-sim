@@ -161,9 +161,10 @@ void testDefaultTopics()
 TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
   gz::sim::ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/sensor.sdf";
+  const std::string sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "sensor.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 

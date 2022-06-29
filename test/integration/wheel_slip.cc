@@ -112,8 +112,8 @@ TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   std::vector<std::string> linksToCheck{"wheel", "axle", "upright"};
 
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/tire_drum.sdf";
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "tire_drum.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -374,8 +374,8 @@ TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
 TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
 {
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/trisphere_cycle_wheel_slip.sdf";
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "trisphere_cycle_wheel_slip.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

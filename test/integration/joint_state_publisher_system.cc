@@ -42,8 +42,9 @@ TEST_F(JointStatePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "diff_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -94,8 +95,10 @@ TEST_F(JointStatePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_limited_joint_pub.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "diff_drive_limited_joint_pub.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -151,6 +154,7 @@ TEST_F(JointStatePublisherTest,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "diff_drive_nested.sdf"));
 

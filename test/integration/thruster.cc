@@ -63,6 +63,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfFile(_world);
 
   TestFixture fixture(serverConfig);
@@ -320,4 +321,3 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, "lowbattery", 0.005, 950, 0.25, 1e-2);
 }
-

@@ -99,6 +99,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -269,6 +270,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetHeadlessRendering(true);
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

@@ -39,6 +39,7 @@ class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
   public: void LoadWorld(const std::string &_path)
   {
     ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
     serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
     serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH, _path));
 

@@ -107,12 +107,13 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     gz::sim::ServerConfig serverConfig;
+    serverConfig.SetHeadlessRendering(true);
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,
     // level1 contains tile_1.
-    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                            "/test/worlds/levels.sdf");
+    serverConfig.SetSdfFile(gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "levels.sdf"));
     serverConfig.SetUseLevels(true);
 
     EXPECT_EQ(nullptr, this->server);

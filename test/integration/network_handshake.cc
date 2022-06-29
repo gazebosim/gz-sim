@@ -72,6 +72,7 @@ class NetworkHandshake : public InternalFixture<::testing::Test>
 TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 {
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   serverConfig.SetNetworkRole("primary");
   serverConfig.SetNetworkSecondaries(2);

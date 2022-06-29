@@ -54,6 +54,7 @@ class OdometryPublisherTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());
@@ -214,6 +215,7 @@ class OdometryPublisherTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());
@@ -349,6 +351,7 @@ class OdometryPublisherTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());
@@ -403,6 +406,7 @@ class OdometryPublisherTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());
@@ -449,6 +453,7 @@ class OdometryPublisherTest
     // Start server
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(_sdfFile);
+    serverConfig.SetHeadlessRendering(true);
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());

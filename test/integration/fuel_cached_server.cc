@@ -40,6 +40,7 @@ TEST_P(FuelCachedServer, CachedFuelWorld)
   common::setenv("GZ_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   auto fuelWorldURL =
     "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));

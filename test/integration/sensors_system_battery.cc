@@ -92,6 +92,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(sdfPath);
+  serverConfig.SetHeadlessRendering(true);
 
   // A pointer to the ecm. This will be valid once we run the mock system
   sim::EntityComponentManager *ecm = nullptr;

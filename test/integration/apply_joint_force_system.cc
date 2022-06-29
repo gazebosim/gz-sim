@@ -55,8 +55,9 @@ TEST_F(ApplyJointForceTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/apply_joint_force.sdf";
+  serverConfig.SetHeadlessRendering(true);
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "apply_joint_force.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -117,4 +118,3 @@ TEST_F(ApplyJointForceTestFixture,
   }
   EXPECT_DOUBLE_EQ(jointForceCmd.back(), testJointForce);
 }
-

@@ -90,8 +90,9 @@ TEST_P(FollowActorTest,
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/follow_actor.sdf");
+  serverConfig.SetHeadlessRendering(true);
+  serverConfig.SetSdfFile(gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "follow_actor.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
