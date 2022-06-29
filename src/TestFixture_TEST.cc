@@ -22,7 +22,7 @@
 
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/ServerConfig.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 #include "gz/sim/TestFixture.hh"
 

@@ -33,7 +33,7 @@
 #include <sdf/Sphere.hh>
 
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"

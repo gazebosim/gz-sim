@@ -24,7 +24,7 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
 

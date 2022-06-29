@@ -3,7 +3,7 @@
   Gazebo perfect-comms plugin demo.
 
   Compile the comms publisher:
-    cd ign-gazebo/examples/standalone/comms
+    cd gz-sim/examples/standalone/comms
     mkdir build
     cd build
     cmake ..

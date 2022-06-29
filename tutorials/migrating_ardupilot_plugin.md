@@ -231,7 +231,7 @@ entities and components that form the graph handled by the ECM. For example, if
 you wonder which components can be accessed by default from the plugin, this
 class is the best entry point.
 
-Next we include the parts of `ign-gazebo` itself that we're using:
+Next we include the parts of `gz-sim` itself that we're using:
 
 ```cpp
 // NEW
@@ -239,7 +239,7 @@ Next we include the parts of `ign-gazebo` itself that we're using:
 #include <gz/sim/Util.hh>
 ```
 
-We need a few things from `ign-math`:
+We need a few things from `gz-math`:
 
 ```cpp
 // NEW
@@ -250,14 +250,14 @@ We need a few things from `ign-math`:
 ```
 
 To use the `GZ_ADD_PLUGIN()` and `GZ_ADD_PLUGIN_ALIAS()` macros, we
-need a header from `ign-plugin`:
+need a header from `gz-plugin`:
 
 ```cpp
 // NEW
 #include <gz/plugin/Register.hh>
 ```
 
-Because we'll be subscribing to data published by a sensor, we need a header from `ign-transport`:
+Because we'll be subscribing to data published by a sensor, we need a header from `gz-transport`:
 
 ```cpp
 // NEW
@@ -634,7 +634,7 @@ pkt.imuAngularVelocityRPY[2] = angularVel.Z();
 ```
 
 In the new code, as previously mentioned, these data are accessed by
-subscribing to the sensor via ign-transport. In that subscription we registered
+subscribing to the sensor via gz-transport. In that subscription we registered
 a callback that just copies the latest IMU message to `imuMsg` and sets the
 flag `imuMsgValid`, using `imuMsgMutex` to exclude concurrent access to those
 variables. So we access the latest IMU sensor by copying and reading from that
@@ -760,7 +760,7 @@ include_directories(
         include
         ${SDFORMAT-INCLUDE_DIRS}
         ${GZ-COMMON_INCLUDE_DIRS}
-        ${GZ-GAZEBO_INCLUDE_DIRS}
+        ${GZ-SIM_INCLUDE_DIRS}
         ${GZ-MATH_INCLUDE_DIRS}
         ${GZ-MSGS_INCLUDE_DIRS}
         ${GZ-TRANSPORT_INCLUDE_DIRS}
@@ -769,7 +769,7 @@ include_directories(
 link_libraries(
         ${SDFORMAT-LIBRARIES}
         ${GZ-COMMON_LIBRARIES}
-        ${GZ-GAZEBO_LIBRARIES}
+        ${GZ-SIM_LIBRARIES}
         ${GZ-MATH_LIBRARIES}
         ${GZ-MSGS_LIBRARIES}
         ${GZ-TRANSPORT_LIBRARIES}
