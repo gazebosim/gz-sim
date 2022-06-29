@@ -2,24 +2,24 @@
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="ignition-gazebo-air-pressure-system"
+      filename="gz-sim-air-pressure-system"
       name="ignition::gazebo::systems::AirPressure">
     </plugin>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
+      filename="gz-sim-sensors-system"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
 

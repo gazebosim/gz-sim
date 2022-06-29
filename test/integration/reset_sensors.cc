@@ -135,7 +135,7 @@ common::Image toImage(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(ResetFixture, HandleReset)
+TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 {
   gz::sim::ServerConfig serverConfig;
 
