@@ -34,8 +34,7 @@ release will remove the deprecated code.
 * The `gazebo` command line verb is deprecated.
   Use `sim` instead (e.g. `ign gazebo` -> `gz sim`).
 
-* The shared libraries have `gz` where there used to be `ignition`, and also have their `lib` and `.so` prefixes and suffixes removed.
-  E.g. `libignition-XXX-system.so` -> `gz-XXX-system`.
+* The shared libraries have `gz` where there used to be `ignition`.
   * Using the un-migrated version is still possible due to tick-tocks, but will be removed in future versions.
 
 * **Breaking Changes**
