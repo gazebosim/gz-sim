@@ -235,8 +235,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetHeadlessRendering(true);
-  serverConfig.SetSdfFile(gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "diff_drive_skid.sdf"));
+  serverConfig.SetSdfFile(
+    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "diff_drive_skid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

@@ -7,6 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Ubuntu Focal CI
     steps:
+      - name: Set env
+        run: |
+          echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v2
       - name: Compile and test

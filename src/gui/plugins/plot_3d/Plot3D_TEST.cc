@@ -65,7 +65,8 @@ TEST_F(Plot3D, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   // Create app
   auto app = std::make_unique<gui::Application>(g_argc, g_argv);
   ASSERT_NE(nullptr, app);
-  app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
+  app->AddPluginPath(gz::common::joinPaths(
+    std::string(PROJECT_BINARY_PATH), "lib"));
 
   // Create GUI runner to handle sim::gui plugins
   GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION

@@ -57,6 +57,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "empty.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -336,6 +337,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "shapes.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -524,6 +526,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "shapes.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -698,6 +701,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "shapes.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -773,6 +777,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -1043,6 +1048,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "shapes.sdf");
   serverConfig.SetSdfFile(sdfFile);
@@ -1122,6 +1128,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
 {
   // Start server
   ServerConfig serverConfig;
+  serverConfig.SetHeadlessRendering(true);
   const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "trisphere_cycle_wheel_slip.sdf");
   serverConfig.SetSdfFile(sdfFile);
