@@ -19,17 +19,17 @@
     </physics>
 
     <model name="box">
-      <pose>0 0 1.1 0 0 0</pose>
+      <pose>0 0 5.0 0 0 0</pose>
       <static>false</static>
       <link name="link">
         <collision name="collision_0">
           <geometry>
-            <box><size>5 5 2.5</size></box>
+            <box><size>1 1 1</size></box>
           </geometry>
         </collision>
         <visual name="visual_0">
           <geometry>
-            <box><size>5 5 2.5</size></box>
+            <box><size>1 1 1</size></box>
           </geometry>
           <material>
             <ambient>0 1 0 0.8</ambient>

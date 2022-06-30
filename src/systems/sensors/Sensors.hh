@@ -56,6 +56,7 @@ namespace systems
   class Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemReset,
     public ISystemUpdate,
     public ISystemPostUpdate
   {
@@ -70,6 +71,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,

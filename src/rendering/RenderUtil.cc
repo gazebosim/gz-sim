@@ -1661,7 +1661,6 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         return true;
       });
 
-
   _ecm.Each<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
