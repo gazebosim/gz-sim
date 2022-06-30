@@ -1838,17 +1838,19 @@ void EntityComponentManager::SetState(
 
         auto updateData = this->CreateComponentImplementation(entity,
             newComp->TypeId(), newComp.get());
-        if (updateData)
-        {
-          // Set comp so we deserialize the data below again
-          comp = this->ComponentImplementation(entity, compIter.first);
-        }
+        // if (updateData)
+        // {
+        //   // Set comp so we deserialize the data below again
+        //   comp = this->ComponentImplementation(entity, compIter.first);
+        // }
       }
       // Update component value
-      if (comp)
+      // if (comp)
+      else
       {
-        std::istringstream istr2(compMsg.component());
-        comp->Deserialize(istr2);
+        // std::istringstream istr2(compMsg.component());
+        // comp->Deserialize(istr2);
+        comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?
             ComponentState::OneTimeChange :

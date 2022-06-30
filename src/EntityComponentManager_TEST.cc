@@ -33,7 +33,6 @@
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/VisualCmd.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/config.hh"
 #include "../test/helpers/EnvTestFixture.hh"
@@ -694,87 +693,6 @@ TEST_P(EntityComponentManagerFixture,
     {
       EXPECT_TRUE(manager.RemoveComponent(eIntDouble, compToRemove->TypeId()));
     }
-  }
-}
-
-//////////////////////////////////////////////////
-TEST_P(EntityComponentManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddRemoveAddComponent))
-{
-  // ./build/ignition-gazebo6/bin/UNIT_EntityComponentManager_TEST --gtest_filter='*ViewsAddRemoveAddComponent*'
-
-  // Create an entity
-  Entity eVisCmd = manager.CreateEntity();
-  EXPECT_EQ(1u, manager.EntityCount());
-
-  // Add visual cmd component
-  msgs::Visual visualMsg;
-  visualMsg.mutable_material()->mutable_diffuse()->set_r(1.0);
-  visualMsg.mutable_material()->mutable_diffuse()->set_g(0.0);
-  visualMsg.mutable_material()->mutable_diffuse()->set_b(0.0);
-  visualMsg.mutable_material()->mutable_diffuse()->set_a(1.0);
-
-  auto visCmdComp = manager.CreateComponent<components::VisualCmd>(
-      eVisCmd, components::VisualCmd(visualMsg));
-  ASSERT_NE(nullptr, visCmdComp);
-  EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().r());
-  EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().g());
-  EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().b());
-  EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().a());
-
-  for (int i = 0; i < 3; ++i)
-  {
-    int count = 0;
-    manager.Each<components::VisualCmd> ([&](const Entity &_entity,
-          const components::VisualCmd *_visualCmd)->bool
-        {
-          EXPECT_EQ(_entity, eVisCmd);
-          EXPECT_NE(nullptr, _visualCmd);
-          if (nullptr == _visualCmd)
-            return true;
-
-          if (i == 0)
-          {
-            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().r());
-            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().g());
-            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().b());
-            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().a());
-          }
-          else if (i == 2)
-          {
-            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().r());
-            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().g());
-            EXPECT_FLOAT_EQ(0.0f, _visualCmd->Data().material().diffuse().b());
-            EXPECT_FLOAT_EQ(1.0f, _visualCmd->Data().material().diffuse().a());
-          }
-          else
-            ADD_FAILURE() << "Index [" << i << "] should have no component.";
-          ++count;
-          return true;
-        });
-
-    if (i == 0)
-    {
-      EXPECT_EQ(1, count);
-      // remove visual cmd component
-      EXPECT_TRUE(manager.RemoveComponent(eVisCmd, visCmdComp->TypeId()));
-    }
-    else if (i == 1)
-    {
-      EXPECT_EQ(0, count);
-      // re-add visual cmd component
-      visualMsg.mutable_material()->mutable_diffuse()->set_r(0.0);
-      visualMsg.mutable_material()->mutable_diffuse()->set_g(1.0);
-      visCmdComp = manager.CreateComponent<components::VisualCmd>(
-          eVisCmd, components::VisualCmd(visualMsg));
-      ASSERT_NE(nullptr, visCmdComp);
-      EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().r());
-      EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().g());
-      EXPECT_FLOAT_EQ(0.0f, visCmdComp->Data().material().diffuse().b());
-      EXPECT_FLOAT_EQ(1.0f, visCmdComp->Data().material().diffuse().a());
-    }
-    else
-      EXPECT_EQ(1, count);
   }
 }
 
@@ -3241,6 +3159,53 @@ TEST_P(EntityComponentManagerFixture,
         return true;
       });
   EXPECT_EQ(1, foundEntities);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponents))
+{
+  Entity e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_EQ(0, eachCount<IntComponent>(manager));
+
+  // add a component
+  auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(1, eachCount<IntComponent>(manager));
+  EXPECT_EQ(123, comp->Data());
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // remove a component
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // add same type of component back in using SetState
+  auto iter = stateMsg.mutable_entities()->find(e1);
+  ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
+  msgs::SerializedEntityMap &e1Msg = iter->second;
+
+  auto compIter = e1Msg.mutable_components()->find(comp->TypeId());
+  ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
+  msgs::SerializedComponent &e1c1Msg = compIter->second;
+  e1c1Msg.set_component(std::to_string(321));
+  (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
+  (*stateMsg.mutable_entities())[static_cast<int64_t>(e1)] = e1Msg;
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // check component
+  comp = manager.Component<IntComponent>(e1);
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(321, comp->Data());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
