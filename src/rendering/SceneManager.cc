@@ -2252,7 +2252,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
     std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
                                   animFilename.size());
     std::transform(extension.begin(), extension.end(),
-                    extension.begin(), ::tolower);
+                   extension.begin(), ::tolower);
 
     if (extension == "bvh")
     {
@@ -2281,8 +2281,8 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         if (animMesh->MeshSkeleton()->AnimationCount() > 1)
         {
           ignwarn << "File [" << animFilename
-              << "] has more than one animation, but only the 1st one is used."
-              << std::endl;
+                  << "] has more than one animation, but only the 1st one is used."
+                  << std::endl;
         }
       }
       animMesh = meshManager->MeshByName(animFilename);
@@ -2292,7 +2292,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       if (nullptr == firstAnim)
       {
         ignerr << "Failed to get animations from [" << animFilename
-                << "]" << std::endl;
+               << "]" << std::endl;
         return nullptr;
       }
       // do not add duplicate animation
