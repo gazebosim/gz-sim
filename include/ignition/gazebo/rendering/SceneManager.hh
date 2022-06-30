@@ -200,6 +200,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested visual
     public: rendering::VisualPtr VisualById(Entity _id);
 
+    /// \brief Sequences Trajectories
+    /// \param[in] _trajectories Actor trajectories
+    /// \param[in] _delayStartTime Actor trajectory delay start time (miliseconds)
+    public: void SequenceTrajectories(std::vector<common::TrajectoryInfo>& _trajectories,
+        std::chrono::steady_clock::time_point _time);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom

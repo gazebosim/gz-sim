@@ -910,6 +910,19 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   return material;
 }
 
+void SceneManager::SequenceTrajectories(std::vector<common::TrajectoryInfo>& _trajectories,
+   TP _time)
+{
+  // sequencing all trajectories
+  for (auto &trajectory : _trajectories)
+  {
+    auto duration = trajectory.Duration();
+    trajectory.SetStartTime(_time);
+    _time += duration;
+    trajectory.SetEndTime(_time);
+  }
+}
+
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
@@ -1164,13 +1177,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   auto delayStartTime = std::chrono::milliseconds(
               static_cast<int>(_actor.ScriptDelayStart() * 1000));
   TP time(delayStartTime);
-  for (auto &trajectory : trajectories)
-  {
-    auto dura = trajectory.Duration();
-    trajectory.SetStartTime(time);
-    time += dura;
-    trajectory.SetEndTime(time);
-  }
+  this->SequenceTrajectories(trajectories, time);
+
 
   // loop flag: add a placeholder trajectory to indicate no loop
   if (!_actor.ScriptLoop())
