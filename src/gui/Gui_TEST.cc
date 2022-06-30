@@ -26,7 +26,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/gui/Gui.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../../test/helpers/EnvTestFixture.hh"
 

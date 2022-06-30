@@ -25,7 +25,7 @@
 #include <gz/math/SemanticVersion.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
@@ -137,7 +137,7 @@ void ExamplesBuild::Build(const ExampleEntry &_entry)
   snprintf(cmd, sizeof(cmd), "cd %s && cmake %s",
     tmpBuildDir.Path().c_str(), _entry.sourceDir.c_str());
 
-  ASSERT_EQ(system(cmd), 0);
+  ASSERT_EQ(system(cmd), 0) << _entry.sourceDir;
   ASSERT_EQ(system("make"), 0);
 }
 
@@ -154,10 +154,3 @@ INSTANTIATE_TEST_SUITE_P(Plugins, ExamplesBuild,
     [](const ::testing::TestParamInfo<ExamplesBuild::ParamType>& param) {
       return param.param.type + "_" + param.param.base;
     });
-
-//////////////////////////////////////////////////
-int main(int _argc, char **_argv)
-{
-  ::testing::InitGoogleTest(&_argc, _argv);
-  return RUN_ALL_TESTS();
-}

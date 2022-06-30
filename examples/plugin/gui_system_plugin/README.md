@@ -11,7 +11,7 @@ See `GuiSystemPluginPlugin.hh` for more information.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugin/gui_system_plugin
@@ -29,7 +29,7 @@ Add the library to the path:
 
 ~~~
 cd examples/plugin/gui_system_plugin
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then run a world, for example:

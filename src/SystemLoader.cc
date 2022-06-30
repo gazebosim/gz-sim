@@ -46,6 +46,17 @@ class gz::sim::SystemLoaderPrivate
               const sdf::ElementPtr &/*_sdf*/,
               gz::plugin::PluginPtr &_plugin)
   {
+    // Deprecated: accept ignition-gazebo-prefixed systems
+    std::string deprecatedPrefix{"ignition-gazebo"};
+    auto filename = _filename;
+    auto pos = filename.find(deprecatedPrefix);
+    if (pos != std::string::npos)
+    {
+      filename.replace(pos, deprecatedPrefix.size(), "gz-sim");
+      gzwarn << "Trying to load deprecated plugin [" << _filename
+             << "]. Using [" << filename << "] instead." << std::endl;
+    }
+
     gz::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
@@ -61,28 +72,28 @@ class gz::sim::SystemLoaderPrivate
 
     systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 
-    auto pathToLib = systemPaths.FindSharedLibrary(_filename);
+    auto pathToLib = systemPaths.FindSharedLibrary(filename);
     if (pathToLib.empty())
     {
       // Try deprecated environment variable
       // TODO(CH3): Deprecated. Remove on tock.
       common::SystemPaths systemPathsDep;
       systemPathsDep.SetPluginPathEnv(pluginPathEnvDeprecated);
-      pathToLib = systemPathsDep.FindSharedLibrary(_filename);
+      pathToLib = systemPathsDep.FindSharedLibrary(filename);
 
       if (pathToLib.empty())
       {
         // We assume gz::sim corresponds to the levels feature
         if (_name != "gz::sim")
         {
-          gzerr << "Failed to load system plugin [" << _filename <<
+          gzerr << "Failed to load system plugin [" << filename <<
                     "] : couldn't find shared library." << std::endl;
         }
         return false;
       }
       else
       {
-        gzwarn << "Found plugin [" << _filename
+        gzwarn << "Found plugin [" << filename
                << "] using deprecated environment variable ["
                << pluginPathEnvDeprecated << "]. Please use ["
                << pluginPathEnv << "] instead." << std::endl;
@@ -92,7 +103,7 @@ class gz::sim::SystemLoaderPrivate
     auto pluginNames = this->loader.LoadLib(pathToLib);
     if (pluginNames.empty())
     {
-      gzerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -101,7 +112,7 @@ class gz::sim::SystemLoaderPrivate
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      gzerr << "Failed to load system plugin [" << _filename <<
+      gzerr << "Failed to load system plugin [" << filename <<
                 "] : couldn't load library on path [" << pathToLib <<
                 "]." << std::endl;
       return false;
@@ -111,7 +122,7 @@ class gz::sim::SystemLoaderPrivate
     if (!_plugin)
     {
       gzerr << "Failed to load system plugin [" << _name <<
-                "] : could not instantiate from library [" << _filename <<
+                "] : could not instantiate from library [" << filename <<
                 "] from path [" << pathToLib << "]." << std::endl;
       return false;
     }
@@ -119,13 +130,12 @@ class gz::sim::SystemLoaderPrivate
     if (!_plugin->HasInterface<System>())
     {
       gzerr << "Failed to load system plugin [" << _name <<
-        "] : system not found in library  [" << _filename <<
+        "] : system not found in library  [" << filename <<
         "] from path [" << pathToLib << "]." << std::endl;
 
       return false;
     }
 
-    this->systemPluginsAdded.insert(_plugin);
     return true;
   }
 
@@ -140,7 +150,6 @@ class gz::sim::SystemLoaderPrivate
   public: std::unordered_set<std::string> systemPluginPaths;
 
   /// \brief System plugins that have instances loaded via the manager.
-  public: std::unordered_set<SystemPluginPtr> systemPluginsAdded;
 };
 
 //////////////////////////////////////////////////

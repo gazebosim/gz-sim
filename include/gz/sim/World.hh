@@ -38,7 +38,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
-    class GZ_GAZEBO_HIDDEN WorldPrivate;
+    class GZ_SIM_HIDDEN WorldPrivate;
     //
     /// \class World World.hh gz/sim/World.hh
     /// \brief This class provides wrappers around entities and components
@@ -58,7 +58,7 @@ namespace gz
     ///
     ///    World world(entity);
     ///    std::string name = world.Name(ecm);
-    class GZ_GAZEBO_VISIBLE World {
+    class GZ_SIM_VISIBLE World {
       /// \brief Constructor
       /// \param[in] _entity World entity
       public: explicit World(sim::Entity _entity = kNullEntity);

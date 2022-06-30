@@ -65,7 +65,7 @@ struct ComponentTypeHasher
 /// are used in templated Gz::Sim::EntityComponentManager methods.
 /// However, users should not use this class (or anything else in namespace
 /// gz::sim::detail) directly.
-class GZ_GAZEBO_VISIBLE BaseView
+class GZ_SIM_VISIBLE BaseView
 {
   /// \brief Destructor
   public: virtual ~BaseView();

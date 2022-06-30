@@ -31,7 +31,7 @@ use the Gazebo code found in the current source tree.
     cd ..
     ```
 
-1. Build the gz-gazebo:base image.
+1. Build the gz-sim:base image.
 
     ```
     docker build . -f ./docker/Dockerfile.base -t gz-sim:base
@@ -52,7 +52,7 @@ use the Gazebo code found in the current source tree.
 4. Alternatively, you can directly run Gazebo using
 
     ```
-    ./docker/run.bash gz-sim:nightly ign-gazebo-server -v 4
+    ./docker/run.bash gz-sim:nightly gz-sim-server -v 4
     ```
 
 ## Gazebo Using Debians In Docker

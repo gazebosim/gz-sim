@@ -26,7 +26,7 @@
 #include "helpers/EnvTestFixture.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/gui/Gui.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
 
@@ -53,7 +53,7 @@ void startServer(const std::string &_fileName)
 void startGui()
 {
   int argc = 1;
-  char *argv = const_cast<char *>("ign-gazebo-gui");
+  char *argv = const_cast<char *>("gz-sim-gui");
   EXPECT_EQ(0, sim::gui::runGui(argc, &argv, "", ""));
 }
 

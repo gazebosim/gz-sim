@@ -38,7 +38,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/EntityComponentManager.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../../../../test/helpers/EnvTestFixture.hh"
 
 #include "../../GuiRunner.hh"
@@ -153,9 +153,9 @@ TEST_F(JointPositionControllerGui,
   // Load plugin
   const char *pluginStr =
     "<plugin filename=\"JointPositionController\">"
-      "<ignition-gui>"
+      "<gz-gui>"
         "<title>JointPositionController!</title>"
-      "</ignition-gui>"
+      "</gz-gui>"
     "</plugin>";
 
   tinyxml2::XMLDocument pluginDoc;

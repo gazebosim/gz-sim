@@ -29,7 +29,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -875,7 +875,7 @@ TEST_P(SceneBroadcasterTest,
 }
 
 /////////////////////////////////////////////////
-// Tests https://github.com/ignitionrobotics/ign-gazebo/issues/1414
+// Tests https://github.com/gazebosim/gz-sim/issues/1414
 TEST_P(SceneBroadcasterTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
 {
@@ -889,11 +889,11 @@ TEST_P(SceneBroadcasterTest,
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
       <state_hertz>0.4</state_hertz>
     </plugin>

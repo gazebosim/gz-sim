@@ -4,7 +4,7 @@ Demo of 2 plugins that use Gazebo Rendering, one for the server and one for the 
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugin/rendering_plugins
@@ -22,7 +22,7 @@ Add the libraries to the correct paths:
 
 ~~~
 cd examples/plugin/rendering_plugins
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 

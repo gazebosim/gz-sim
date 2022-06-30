@@ -303,7 +303,6 @@ void SensorsPrivate::RunOnce()
       this->sensorStateChanged.clear();
     }
 
-    this->sensorMaskMutex.lock();
     // Check the active sensors against masked sensors.
     //
     // The internal state of a rendering sensor is not updated until the
@@ -313,14 +312,16 @@ void SensorsPrivate::RunOnce()
     // To prevent this, add sensors that are currently being rendered to
     // a mask. Sensors are removed from the mask when 90% of the update
     // delta has passed, which will allow rendering to proceed.
-    for (const auto & sensor : this->activeSensors)
     {
-      // 90% of update delta (1/UpdateRate());
-      auto delta = std::chrono::duration_cast< std::chrono::milliseconds>(
-        std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
-      this->sensorMask[sensor->Id()] = this->updateTime + delta;
+      std::unique_lock<std::mutex> lockMask(this->sensorMaskMutex);
+      for (const auto & sensor : this->activeSensors)
+      {
+        // 90% of update delta (1/UpdateRate());
+        auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
+          std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
+        this->sensorMask[sensor->Id()] = this->updateTime + delta;
+      }
     }
-    this->sensorMaskMutex.unlock();
 
     {
       GZ_PROFILE("PreRender");
@@ -556,7 +557,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   this->dataPtr->eventManager = &_eventMgr;
 
-  this->dataPtr->stopConn = _eventMgr.Connect<events::Stop>(
+  this->dataPtr->stopConn = this->dataPtr->eventManager->Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
   this->dataPtr->forceRenderConn = _eventMgr.Connect<events::ForceRender>(
@@ -564,6 +565,35 @@ void Sensors::Configure(const Entity &/*_id*/,
 
   // Kick off worker thread
   this->dataPtr->Run();
+}
+
+//////////////////////////////////////////////////
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
+{
+  GZ_PROFILE("Sensors::Reset");
+
+  if (this->dataPtr->running && this->dataPtr->initialized)
+  {
+    igndbg << "Resetting Sensors\n";
+
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
+      this->dataPtr->sensorMask.clear();
+    }
+
+    for (auto id : this->dataPtr->sensorIds)
+    {
+      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+
+      if (nullptr == s)
+      {
+        ignwarn << "Sensor removed before reset: " << id << "\n";
+        continue;
+      }
+
+      s->SetNextDataUpdateTime(_info.simTime);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -583,14 +613,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::PostUpdate");
-
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
 
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
@@ -614,36 +636,45 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-    auto time = math::durationToSecNsec(_info.simTime);
-    auto t = math::secNsecToDuration(time.first, time.second);
-
     std::vector<sensors::RenderingSensor *> activeSensors;
 
-    this->dataPtr->sensorMaskMutex.lock();
-    for (auto id : this->dataPtr->sensorIds)
     {
-      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-
-      auto it = this->dataPtr->sensorMask.find(id);
-      if (it != this->dataPtr->sensorMask.end())
+      std::unique_lock<std::mutex> lk(this->dataPtr->sensorMaskMutex);
+      for (auto id : this->dataPtr->sensorIds)
       {
-        if (it->second <= t)
-        {
-          this->dataPtr->sensorMask.erase(it);
-        }
-        else
+        sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
+
+        if (nullptr == s)
         {
           continue;
         }
-      }
 
-      if (rs && rs->NextDataUpdateTime() <= t)
-      {
-        activeSensors.push_back(rs);
+        auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+
+        if (nullptr == rs)
+        {
+          continue;
+        }
+
+        auto it = this->dataPtr->sensorMask.find(id);
+        if (it != this->dataPtr->sensorMask.end())
+        {
+          if (it->second <= _info.simTime)
+          {
+            this->dataPtr->sensorMask.erase(it);
+          }
+          else
+          {
+            continue;
+          }
+        }
+
+        if (rs && rs->NextDataUpdateTime() <= _info.simTime)
+        {
+          activeSensors.push_back(rs);
+        }
       }
     }
-    this->dataPtr->sensorMaskMutex.unlock();
 
     if (!activeSensors.empty() ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
@@ -662,13 +693,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       }
 
       this->dataPtr->activeSensors = std::move(activeSensors);
-      this->dataPtr->updateTime = t;
+      this->dataPtr->updateTime = _info.simTime;
       this->dataPtr->updateAvailable = true;
       this->dataPtr->renderCv.notify_one();
     }
   }
 }
-
 
 //////////////////////////////////////////////////
 void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)
@@ -910,6 +940,7 @@ bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
 
 GZ_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
+  Sensors::ISystemReset,
   Sensors::ISystemUpdate,
   Sensors::ISystemPostUpdate
 )

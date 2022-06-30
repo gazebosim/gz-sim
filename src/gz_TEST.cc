@@ -23,12 +23,12 @@
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
-static const std::string kIgnCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + "/gz sim -s ");
+static const std::string kGzCommand(
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + " sim -s ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -58,7 +58,7 @@ std::string customExecStr(std::string _cmd)
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
+  std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -73,7 +73,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
 
   // Use GZ_SIM_RESOURCE_PATH instead of specifying the complete path
   cmd = std::string("GZ_SIM_RESOURCE_PATH=") +
-    PROJECT_SOURCE_PATH + "/test/worlds " + kIgnCommand +
+    PROJECT_SOURCE_PATH + "/test/worlds " + kGzCommand +
     " -r -v 4 --iterations 5 " + " plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -92,7 +92,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
+  std::string cmd = kGzCommand + " -r -v 4 --iterations 5" +
     " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
@@ -104,7 +104,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 /////////////////////////////////////////////////
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
+  std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -121,7 +121,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboServer))
 /////////////////////////////////////////////////
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
 {
-  std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 " +
+  std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -138,7 +138,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
 /////////////////////////////////////////////////
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
-  std::string cmd = kIgnCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
+  std::string cmd = kGzCommand + " -s -r -v 4 --iterations 1 plugins.sdf";
 
   // No path
   std::string output = customExecStr(cmd);

@@ -39,7 +39,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"

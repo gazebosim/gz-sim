@@ -5,12 +5,12 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-sensors-system"
+      filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

@@ -5,19 +5,19 @@
       <real_time_factor>0</real_time_factor>
     </physics>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/in_0"/>
       <output type="gz.msgs.Empty" topic="/out_0"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/in_1"/>
       <output type="gz.msgs.Boolean" topic="/out_1">
           data: true
       </output>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/in_2"/>
       <output type="gz.msgs.Boolean" topic="/out_2_0">
           data: false
@@ -27,7 +27,7 @@
       </output>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Boolean" topic="/in_3">
         <match>
             data: true
@@ -36,7 +36,7 @@
       <output type="gz.msgs.Empty" topic="/out_3"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Int32" topic="/in_4">
         <match logic_type="negative">
             data: 0
@@ -45,7 +45,7 @@
       <output type="gz.msgs.Empty" topic="/out_4_0"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Int32" topic="/in_4">
         <match logic_type="positive">
             data: 0
@@ -54,7 +54,7 @@
       <output type="gz.msgs.Empty" topic="/out_4_1"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Int32" topic="/in_5">
         <match logic_type="negative">
             data: -5
@@ -75,7 +75,7 @@
       <output type="gz.msgs.Empty" topic="/out_5"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Vector2d" topic="/in_6">
         <match field="x">1.0</match>
         <match field="y">2.0</match>
@@ -83,7 +83,7 @@
       <output type="gz.msgs.Empty" topic="/out_6_0"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Vector2d" topic="/in_6">
         <match field="x">1.0</match>
         <match logic_type="negative" field="y">2.0</match>
@@ -91,7 +91,7 @@
       <output type="gz.msgs.Empty" topic="/out_6_1"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Pose" topic="/in_7">
         <match field="header.data">
             {
@@ -102,7 +102,7 @@
       </input>
       <output type="gz.msgs.Empty" topic="/out_7"/>
     </plugin>
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Pose" topic="/in_8">
         <match field="header">
           {
@@ -120,49 +120,49 @@
       <output type="gz.msgs.Empty" topic="/out_8"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Int32_V" topic="/in_9">
         <match>data: 0, data: 1</match>
       </input>
       <output type="gz.msgs.Empty" topic="/out_9"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Float" topic="/in_10">
         <match tol="0.15">data: 0.5</match>
       </input>
       <output type="gz.msgs.Empty" topic="/out_10"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Pose" topic="/in_11">
         <match field="position.z" tol="0.15">0.5</match>
       </input>
       <output type="gz.msgs.Empty" topic="/out_11"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Header" topic="/in_12">
         <match field="data.value">"value1"</match>
       </input>
       <output type="gz.msgs.Empty" topic="/out_12"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/in_13"/>
       <output type="gz.msgs.Empty" topic="/out_13"/>
       <delay_ms>1000</delay_ms>
     </plugin>
 
     <!-- The following systems are used for testing invalid configuration. They don't have actual tests -->
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.NonExtentType" topic="/invalid_input_0">
         <match>data: 0, data: 1</match>
       </input>
       <output type="gz.msgs.Empty" topic="/invalid_output_0"/>
     </plugin>
 
-    <plugin filename="ignition-gazebo-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Empty" topic="/invalid_input_1"/>
     </plugin>
     <!-- End invalid configuration -->

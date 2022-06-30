@@ -45,9 +45,9 @@ gz_add_component(gz
 target_link_libraries(${gz_lib_target}
   PRIVATE
     ${PROJECT_LIBRARY_TARGET_NAME}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 
 set (sources
@@ -114,6 +114,11 @@ set(tests_needing_display
   ModelCommandAPI_TEST.cc
 )
 
+# Disable tests that need CLI if gz-tools is not found
+if (MSVC OR NOT GZ_TOOLS_PROGRAM)
+  list(REMOVE_ITEM gtest_sources gz_TEST.cc ModelCommandAPI_TEST.cc)
+endif()
+
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
 # or Xdummy instead of skipping them
@@ -137,20 +142,20 @@ if (MSVC)
 endif()
 
 # Create the library target
-gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+gz_create_core_library(SOURCES ${sources})
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  ignition-math${IGN_MATH_VER}
-  ignition-plugin${IGN_PLUGIN_VER}::core
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-  ignition-common${IGN_COMMON_VER}::profiler
-  ignition-fuel_tools${IGN_FUEL_TOOLS_VER}::ignition-fuel_tools${IGN_FUEL_TOOLS_VER}
-  ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
-  ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+  gz-math${GZ_MATH_VER}
+  gz-plugin${GZ_PLUGIN_VER}::core
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::profiler
+  gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
+  gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
-  ignition-plugin${IGN_PLUGIN_VER}::loader
+  gz-plugin${GZ_PLUGIN_VER}::loader
 )
 if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
@@ -167,7 +172,7 @@ add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/gz-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/test)
@@ -179,7 +184,7 @@ gz_build_tests(TYPE UNIT
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}
 )
 
 # Command line tests need extra settings
@@ -209,7 +214,7 @@ foreach(CMD_TEST
       "BREW_RUBY=\"${BREW_RUBY} \"")
 
   target_compile_definitions(${CMD_TEST} PRIVATE
-      "GZ_PATH=\"${IGNITION-TOOLS2_BINARY_DIRS}\"")
+      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
   set(_env_vars)
   list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
