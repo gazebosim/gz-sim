@@ -203,7 +203,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Sequences Trajectories
     /// \param[in] _trajectories Actor trajectories
     /// \param[in] _time Actor trajectory delay start time (miliseconds)
-    public: void SequenceTrajectories(std::vector<common::TrajectoryInfo>& _trajectories,
+    public: void SequenceTrajectories(
+        std::vector<common::TrajectoryInfo>& _trajectories,
         std::chrono::steady_clock::time_point _time);
 
     /// \brief Create an actor

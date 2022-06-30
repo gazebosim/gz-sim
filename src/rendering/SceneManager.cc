@@ -910,8 +910,9 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   return material;
 }
 
-void SceneManager::SequenceTrajectories(std::vector<common::TrajectoryInfo>& _trajectories,
-   TP _time)
+void SceneManager::SequenceTrajectories(
+    std::vector<common::TrajectoryInfo>& _trajectories,
+    TP _time)
 {
   // sequencing all trajectories
   for (auto &trajectory : _trajectories)
