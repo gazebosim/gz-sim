@@ -125,7 +125,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
     ASSERT_NE(nullptr, poseComp);
-    EXPECT_FLOAT_EQ(poseComp->Data().Z(), 1.1f);
+    EXPECT_FLOAT_EQ(poseComp->Data().Z(), 5.0f);
 
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(0u, this->mockSystem->resetCallCount);
@@ -142,7 +142,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
     ASSERT_NE(nullptr, poseComp);
-    EXPECT_LT(poseComp->Data().Z(), 1.1f);
+    EXPECT_LT(poseComp->Data().Z(), 5.0f);
 
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(0u, this->mockSystem->resetCallCount);
@@ -180,7 +180,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
     ASSERT_NE(nullptr, poseComp);
-    EXPECT_FLOAT_EQ(poseComp->Data().Z(), 1.1f);
+    EXPECT_FLOAT_EQ(poseComp->Data().Z(), 5.0f);
 
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(1u, this->mockSystem->resetCallCount);
@@ -198,7 +198,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     ASSERT_NE(kNullEntity, entity);
     auto poseComp = ecm->Component<components::Pose>(entity);
     ASSERT_NE(nullptr, poseComp);
-    EXPECT_LT(poseComp->Data().Z(), 1.1f);
+    EXPECT_LT(poseComp->Data().Z(), 5.0f);
 
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(1u, this->mockSystem->resetCallCount);

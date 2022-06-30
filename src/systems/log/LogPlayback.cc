@@ -454,6 +454,16 @@ bool LogPlaybackPrivate::ExtractStateAndResources()
 }
 
 //////////////////////////////////////////////////
+void LogPlayback::Reset(const UpdateInfo &, EntityComponentManager &)
+{
+  // In this case, Reset is a noop
+  // LogPlayback already has handling for jumps in time as part of the
+  // Update method.
+  // Leaving this function implemented but empty prevents the SystemManager
+  // from trying to destroy and recreate the plugin.
+}
+
+//////////////////////////////////////////////////
 void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("LogPlayback::Update");
@@ -621,6 +631,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 GZ_ADD_PLUGIN(gz::sim::systems::LogPlayback,
                     gz::sim::System,
                     LogPlayback::ISystemConfigure,
+                    LogPlayback::ISystemReset,
                     LogPlayback::ISystemUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LogPlayback,

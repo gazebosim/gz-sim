@@ -136,7 +136,6 @@ class gz::sim::SystemLoaderPrivate
       return false;
     }
 
-    this->systemPluginsAdded.insert(_plugin);
     return true;
   }
 
@@ -151,7 +150,6 @@ class gz::sim::SystemLoaderPrivate
   public: std::unordered_set<std::string> systemPluginPaths;
 
   /// \brief System plugins that have instances loaded via the manager.
-  public: std::unordered_set<SystemPluginPtr> systemPluginsAdded;
 };
 
 //////////////////////////////////////////////////

@@ -400,6 +400,15 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Reset(const UpdateInfo &_info,
+                             EntityComponentManager &_manager)
+{
+  // Run Post Update so that GUI will be refreshed if reset is called while
+  // simulation is paused.
+  this->PostUpdate(_info, _manager);
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
@@ -1201,7 +1210,8 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 GZ_ADD_PLUGIN(SceneBroadcaster,
                     gz::sim::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate)
+                    SceneBroadcaster::ISystemPostUpdate,
+                    SceneBroadcaster::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace

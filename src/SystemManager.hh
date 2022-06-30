@@ -92,12 +92,26 @@ namespace gz
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
-      /// \brief Get an vector of all active systems implementing "Configure"
-      /// \return Vector of systems's configure interfaces.
+      /// \brief Perform a reset on all systems
+      ///
+      /// If a system implements the ISystemReset interface, it will be called.
+      //
+      /// Otherwise, if a system does not have the ISystemReset interface
+      /// implemented, and was created via loading a plugin,
+      /// that plugin will be reloaded.
+      ///
+      /// Otherwise, if a system is created from in-memory rather than a plugin,
+      /// that system will remain unaffected.
+      /// \param[in] _info Update info corresponding to the update time
+      /// \param[in] _ecm Version of the ECM reset to an initial state
+      public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
+
+      /// \brief Get a vector of all systems implementing "Configure"
+      /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing "Reset"
-      /// \return Vector of systems's reset interfaces.
+      /// \return Vector of systems' reset interfaces.
       public: const std::vector<ISystemReset *>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
