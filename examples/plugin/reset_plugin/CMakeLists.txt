@@ -9,6 +9,6 @@ find_package(gz-sim7 REQUIRED)
 set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 
 add_library(JointPositionRandomizer SHARED JointPositionRandomizer.cc)
-target_link_libraries(JointPositionRandomizer
+target_link_libraries(JointPositionRandomizer 
   PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
   PRIVATE gz-sim${GZ_SIM_VER}::core)
