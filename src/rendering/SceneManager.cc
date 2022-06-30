@@ -2281,7 +2281,8 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         if (animMesh->MeshSkeleton()->AnimationCount() > 1)
         {
           ignwarn << "File [" << animFilename
-                  << "] has more than one animation, but only the 1st one is used."
+                  << "] has more than one animation, " 
+                  << "but only the 1st one is used."
                   << std::endl;
         }
       }

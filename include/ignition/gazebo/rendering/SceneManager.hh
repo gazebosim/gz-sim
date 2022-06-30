@@ -23,6 +23,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
@@ -203,7 +204,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Apply Animation to Actor
     /// \param[in] _actor Actor
     /// \return Animation name to ID map
-    public: std::unordered_map<std::string, unsigned int> 
+    public: std::unordered_map<std::string, unsigned int>
         LoadAnimations(const sdf::Actor &_actor);
 
     /// \brief Create an actor
