@@ -404,22 +404,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 void SceneBroadcaster::Reset(const UpdateInfo &_info,
                              EntityComponentManager &_manager)
 {
-  // Update scene graph with added entities before populating pose message
-  this->dataPtr->SceneGraphAddEntities(_manager);
-
-  this->dataPtr->PoseUpdate(_info, _manager);
-
-  // call SceneGraphRemoveEntities at the end of this update cycle so that
-  // removed entities are removed from the scene graph for the next update cycle
-  this->dataPtr->SceneGraphRemoveEntities(_manager);
-
-  std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
-  this->dataPtr->stepMsg.Clear();
-
-  set(this->dataPtr->stepMsg.mutable_stats(), _info);
-  _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
-  this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
-  this->dataPtr->lastStatePubTime = std::chrono::system_clock::now();
+  // Run Post Update so that GUI will be refreshed if reset is called while
+  // simulation is paused.
+  this->PostUpdate(_info, _manager);
 }
 
 //////////////////////////////////////////////////

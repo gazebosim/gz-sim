@@ -172,6 +172,12 @@ target_link_libraries(INTEGRATION_collada_world_exporter
   gz-common${GZ_COMMON_VER}::graphics
 )
 
+if(TARGET INTEGRATION_reset_sensors)
+  target_link_libraries(INTEGRATION_reset_sensors
+    gz-common${GZ_COMMON_VER}::graphics
+  )
+endif()
+
 # The default timeout (240s) doesn't seem to be enough for this test.
 set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
 
