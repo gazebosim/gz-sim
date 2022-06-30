@@ -200,6 +200,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \return Pointer to requested visual
     public: rendering::VisualPtr VisualById(Entity _id);
 
+    /// \brief Apply Animation to Actor
+    /// \param[in] _actor Actor
+    /// \return Animation name to ID map
+    public: std::unordered_map<std::string, unsigned int> 
+        LoadAnimations(const sdf::Actor &_actor);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
