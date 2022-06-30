@@ -100,7 +100,7 @@ if (BUILD_TESTING)
   foreach (test ${python_tests})
     if (pytest_FOUND)
       add_test(NAME ${test}.py COMMAND
-        "${PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/${test}.xml")
+        "${PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
     else()
       add_test(NAME ${test}.py COMMAND
         "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
