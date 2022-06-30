@@ -15,7 +15,6 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
@@ -25,7 +24,8 @@ import "qrc:/qml"
 
 // Item displaying 3D vector information.
 Rectangle {
-  height: header.height + content.height
+
+  height: header.height + gzVectorContent.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -35,45 +35,8 @@ Rectangle {
   // Horizontal margins
   property int margin: 5
 
-  // Maximum spinbox value
-  property double spinMax: 1000000
-
   // Units, defaults to meters.
   property string unit: model && model.unit != undefined ? model.unit : 'm'
-
-  // Readn-only / write
-  property bool readOnly: true
-
-  /**
-   * Used to create a spin box
-   */
-  Component {
-    id: writableNumber
-    IgnSpinBox {
-      id: writableSpin
-      value: numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
-    }
-  }
-
-  /**
-   * Used to create a read-only number
-   */
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = getDecimals(numberText.width)
-        return numberValue.toFixed(decimals)
-      }
-    }
-  }
 
   Column {
     anchors.fill: parent
@@ -96,7 +59,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: content.show ?
+          source: gzVectorContent.show ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -111,7 +74,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          content.show = !content.show
+          gzVectorContent.show = !gzVectorContent.show
         }
         onEntered: {
           header.color = highlightColor
@@ -123,89 +86,16 @@ Rectangle {
     }
 
     // Content
-    Rectangle {
-      id: content
-      property bool show: false
+    GzVector3 {
+      id: gzVectorContent
       width: parent.width
-      height: show ? grid.height : 0
-      clip: true
-      color: "transparent"
+      show: false
+      gzUnit: unit
 
-      Behavior on height {
-        NumberAnimation {
-          duration: 200;
-          easing.type: Easing.InOutQuad
-        }
-      }
+      xValue: model.data[0]
+      yValue: model.data[1]
+      zValue: model.data[2]
+    } // GzVector3 ends
 
-      GridLayout {
-        id: grid
-        width: parent.width
-        columns: 4
-
-        // Left spacer
-        Item {
-          Layout.rowSpan: 3
-          width: indentation + margin
-        }
-
-        Text {
-          text: 'X (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            anchors.fill: parent
-            property double numberValue: model.data[0]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-          }
-        }
-
-        // Right spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin
-        }
-
-        Text {
-          text: 'Y (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-          }
-        }
-
-        Text {
-          text: 'Z (' + unit + ')'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-          }
-        }
-      }
-    }
-  }
-}
+  } // Column ends
+} // Rectangle ends
