@@ -1626,12 +1626,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::ChildLinkName *_childLinkName) -> bool
       {
         // If the parent model is scheduled for recreation, then do not
-        // try to create a new link. This situation can occur when a link
+        // try to create a new joint. This situation can occur when a joint
         // is added to a model from the GUI model editor.
         if (_ecm.EntityHasComponentType(_parentModel->Data(),
               components::Recreate::typeId))
         {
-          // Add this entity to the set of newly added links to existing
+          // Add this entity to the set of newly added joints to existing
           // models.
           this->jointAddedToModel.insert(_entity);
           return true;
@@ -1652,41 +1652,48 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         // Check if parent model exists
         if (!this->entityModelMap.HasEntity(_parentModel->Data()))
         {
-          gzwarn << "Joint's parent entity [" << _parentModel->Data()
+          gzerr << "Joint's parent model entity [" << _parentModel->Data()
                   << "] not found on model map." << std::endl;
           return true;
         }
 
-<<<<<<< HEAD
-        auto modelJointFeature =
-            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
-=======
-        auto modelPtrPhys =
-            this->entityModelMap.EntityCast<JointFeatureList>(
->>>>>>> e578c37f7 (Allow SDF model to be constructed in a single shot)
-                _parentModel->Data());
-        if (!modelPtrPhys)
+        auto basicModelPtrPhys = this->entityModelMap
+            .EntityCast<JointFeatureList>(_parentModel->Data());
+        if (!basicModelPtrPhys)
         {
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to process joints, but the physics "
-                   << "engine doesn't support joint features. "
-                   << "Joints will be ignored." << std::endl;
+            gzerr << "Attempting to create a new joint [" <<_name->Data()
+                  << "] but the chosen physics engine does not support the "
+                  << "minimal joint features, so no joints will be created."
+                  << std::endl;
             informed = true;
           }
 
-          // Break Each call since no joints can be processed
+          // Skip all other attempts to create joints
           return false;
         }
 
-        if (const auto existingJoint = modelPtrPhys->GetJoint(_name->Data()))
+        if (const auto existingJoint =
+            basicModelPtrPhys->GetJoint(_name->Data()))
         {
           // No need to create this joint because it was already created when
           // parsing the model.
           this->entityJointMap.AddEntity(_entity, existingJoint);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          return true;
+        }
+
+        auto modelPtrPhys =
+            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
+                _parentModel->Data());
+        if (!modelPtrPhys)
+        {
+          gzerr << "Attempting to create a new joint [" << _name->Data()
+                << "], but the physics engine doesn't support constructing "
+                << "joints at runtime." << std::endl;
           return true;
         }
 
@@ -1752,9 +1759,9 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             this->entityLinkMap.Get(_jointInfo->Data().parentLink);
         if (!parentLinkPhys)
         {
-          gzwarn << "DetachableJoint's parent link entity ["
-                  << _jointInfo->Data().parentLink << "] not found in link map."
-                  << std::endl;
+          gzerr << "DetachableJoint's parent link entity ["
+                << _jointInfo->Data().parentLink << "] not found in link map."
+                << std::endl;
           return true;
         }
 
@@ -1764,8 +1771,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         auto childLinkPhys = this->entityLinkMap.Get(childLinkEntity);
         if (!childLinkPhys)
         {
-          gzwarn << "Failed to find joint's child link [" << childLinkEntity
-                  << "]." << std::endl;
+          gzerr << "Failed to find joint's child link [" << childLinkEntity
+                << "]." << std::endl;
           return true;
         }
 
@@ -1777,7 +1784,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to create a detachable joint, but the physics"
+            gzerr << "Attempting to create a detachable joint, but the physics"
                    << " engine doesn't support feature "
                    << "[AttachFixedJointFeature]. Detachable joints will be "
                    << "ignored." << std::endl;
@@ -1810,7 +1817,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         }
         else
         {
-          gzwarn << "DetachableJoint could not be created." << std::endl;
+          gzerr << "DetachableJoint could not be created." << std::endl;
         }
         return true;
       });
