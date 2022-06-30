@@ -19,6 +19,7 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <algorithm>
 #include <set>

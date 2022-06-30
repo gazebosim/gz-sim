@@ -23,6 +23,9 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
 
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Gui.hh"
 

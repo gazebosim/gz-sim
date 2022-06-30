@@ -40,6 +40,8 @@
 
 #include <gz/transport/Node.hh>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/server_control.pb.h>
 
 #include "gz/sim/config.hh"

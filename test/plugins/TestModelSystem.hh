@@ -21,8 +21,10 @@
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/System.hh>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/sim/config.hh>
+
 
 namespace gz
 {

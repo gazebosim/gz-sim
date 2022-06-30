@@ -29,6 +29,7 @@
 #include <gz/sim/Entity.hh>
 #include <gz/transport/Node.hh>
 
+#include <gz/msgs/serialized_map.pb.h>
 #include "msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"

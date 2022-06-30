@@ -23,6 +23,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ImplPtr.hh>
 #include "gz/sim/config.hh"
