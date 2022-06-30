@@ -95,7 +95,7 @@ void testImages(const std::string &_imageFile,
   EXPECT_EQ(image.Height(), testImage.Height());
   EXPECT_EQ(image.PixelFormat(), testImage.PixelFormat());
   auto imageData = image.Data();
-  auto testImageData = image.Data();
+  auto testImageData = testImage.Data();
   ASSERT_EQ(imageData, testImageData);
 
   // Deleting files so they do not affect future tests
