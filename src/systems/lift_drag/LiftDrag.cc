@@ -558,9 +558,9 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 GZ_ADD_PLUGIN(LiftDrag,
-              gz::sim::System,
-              LiftDrag::ISystemConfigure,
-              LiftDrag::ISystemPreUpdate)
+                    gz::sim::System,
+                    LiftDrag::ISystemConfigure,
+                    LiftDrag::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
 

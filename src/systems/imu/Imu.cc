@@ -359,8 +359,8 @@ void ImuPrivate::RemoveImuEntities(
 }
 
 GZ_ADD_PLUGIN(Imu, System,
-              Imu::ISystemPreUpdate,
-              Imu::ISystemPostUpdate
+  Imu::ISystemPreUpdate,
+  Imu::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
