@@ -19,6 +19,7 @@
 #include <ignition/msgs/pose.pb.h>
 
 #include <ignition/transport/Node.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/SystemLoader.hh"
@@ -60,7 +61,8 @@ class PerformerDetectorTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-TEST_F(PerformerDetectorTest, MovingPerformer)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(PerformerDetectorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(MovingPerformer))
 {
   auto server = this->StartServer("/test/worlds/performer_detector.sdf");
 

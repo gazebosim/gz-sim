@@ -23,6 +23,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/utilities/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Joint.hh>
@@ -178,7 +179,8 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-TEST_F(LevelManagerFixture, DefaultLevel)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
@@ -429,7 +431,9 @@ TEST_F(LevelManagerFixture, LevelsWithMultiplePerformers)
 
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
-TEST_F(LevelManagerFixture, LevelBuffersWithMultiplePerformers)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LevelManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_MAC(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));
