@@ -2239,9 +2239,11 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
   unsigned int numAnims = 0;
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
+
   // Load all animations
   for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
   {
+
     std::string animName = _actor.AnimationByIndex(i)->Name();
     std::string animFilename = asFullPath(
         _actor.AnimationByIndex(i)->Filename(),
@@ -2294,7 +2296,8 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       {
         ignerr << "Failed to get animations from [" << animFilename
                << "]" << std::endl;
-        return nullptr;
+        mapAnimNameId.clear();
+        break;
       }
       // do not add duplicate animation
       // start checking from index 1 since index 0 is reserved by skin mesh
