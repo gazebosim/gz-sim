@@ -18,7 +18,6 @@
 
 #include <map>
 #include <memory>
-#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>

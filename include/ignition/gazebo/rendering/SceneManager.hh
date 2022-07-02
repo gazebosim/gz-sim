@@ -23,6 +23,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
