@@ -2260,7 +2260,6 @@ SceneManager::LoadTrajectories(const sdf::Actor &_actor,
   std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
   Entity &_id)
 {
-
   rendering::MeshDescriptor descriptor;
   descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
   common::MeshManager *meshManager = common::MeshManager::Instance();
