@@ -2288,7 +2288,7 @@ SceneManager::LoadTrajectories(const sdf::Actor &_actor,
       if (trajSdf->WaypointCount() != 0)
       {
         std::map<TP, math::Pose3d> waypoints;
-        for (unsigned j = 0; j < trajSdf->WaypointCount(); j++)
+        for (unsigned j = 0; j < trajSdf->WaypointCount(); ++j)
         {
           auto point = trajSdf->WaypointByIndex(j);
           TP pointTp(std::chrono::milliseconds(
