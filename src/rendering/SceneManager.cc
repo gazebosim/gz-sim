@@ -2242,7 +2242,6 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
   // Load all animations
   for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
   {
-
     std::string animName = _actor.AnimationByIndex(i)->Name();
     std::string animFilename = asFullPath(
         _actor.AnimationByIndex(i)->Filename(),
