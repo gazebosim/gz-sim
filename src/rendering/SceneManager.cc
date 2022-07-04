@@ -2292,7 +2292,7 @@ SceneManager::LoadTrajectories(const sdf::Actor &_actor,
         {
           auto point = trajSdf->WaypointByIndex(j);
           TP pointTp(std::chrono::milliseconds(
-                    static_cast<int>(point->Time()*1000)));
+                    static_cast<int>(point->Time() * 1000)));
           waypoints[pointTp] = point->Pose();
         }
         trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
