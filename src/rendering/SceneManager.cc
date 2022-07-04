@@ -2254,6 +2254,7 @@ AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
   return animData;
 }
 
+/////////////////////////////////////////////////
 std::vector<common::TrajectoryInfo>
 SceneManager::LoadTrajectories(const sdf::Actor &_actor,
   std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
