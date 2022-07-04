@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -199,6 +200,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _id Unique visual (entity) id
     /// \return Pointer to requested visual
     public: rendering::VisualPtr VisualById(Entity _id);
+
+    /// \brief Load Actor animations
+    /// \param[in] _actor Actor
+    /// \return Animation name to ID map
+    public: std::unordered_map<std::string, unsigned int>
+        LoadAnimations(const sdf::Actor &_actor);
 
     /// \brief Sequences Trajectories
     /// \param[in] _trajectories Actor trajectories
