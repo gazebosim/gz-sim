@@ -2297,7 +2297,7 @@ SceneManager::LoadTrajectories(const sdf::Actor &_actor,
         }
         trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
         // Animations are offset by 1 because index 0 is taken by the mesh name
-        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
+        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex() - 1);
 
         if (animation && animation->InterpolateX())
         {
