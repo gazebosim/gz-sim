@@ -21,9 +21,9 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Actor.hh>
