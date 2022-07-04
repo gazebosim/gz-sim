@@ -2271,7 +2271,7 @@ SceneManager::LoadTrajectories(const sdf::Actor &_actor,
   if (_actor.TrajectoryCount() != 0)
   {
     // Load all trajectories specified in sdf
-    for (unsigned i = 0; i < _actor.TrajectoryCount(); i++)
+    for (unsigned i = 0; i < _actor.TrajectoryCount(); ++i)
     {
       const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
       if (nullptr == trajSdf)
