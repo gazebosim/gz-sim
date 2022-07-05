@@ -86,32 +86,52 @@ Rectangle {
         }
       }
     }
-
-    // Content
-    GzPose {
-      id: gzPoseContent
+    Rectangle {
+      id: content
+      color: "transparent"
       width: parent.width
+      height: gzPoseContent.height
+      RowLayout {
+        id: gzPoseRow
+        width: parent.width
 
-      readOnly: {
-        var isModel = entityType == "model"
-        return !(isModel) || nestedModel
-      }
+        // Left spacer
+        Item {
+          Layout.preferredWidth: margin + indentation
+        }
 
-      xValue: model.data[0]
-      yValue: model.data[1]
-      zValue: model.data[2]
-      rollValue: model.data[3]
-      pitchValue: model.data[4]
-      yawValue: model.data[5]
+        // Content
+        GzPose {
+          id: gzPoseContent
+          Layout.fillWidth: true
 
-      onGzPoseSet: {
-        // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
-        sendPose(_x, _y, _z, _roll, _pitch, _yaw)
-      }
+          readOnly: {
+            var isModel = entityType == "model"
+            return !(isModel) || nestedModel
+          }
 
-      // By default it is closed
-      show: false
+          xValue: model.data[0]
+          yValue: model.data[1]
+          zValue: model.data[2]
+          rollValue: model.data[3]
+          pitchValue: model.data[4]
+          yawValue: model.data[5]
 
-    } // end gzPoseContent
+          onGzPoseSet: {
+            // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+            sendPose(_x, _y, _z, _roll, _pitch, _yaw)
+          }
+
+          // By default it is closed
+          show: false
+
+        } // end gzPoseContent
+
+        // Right spacer
+        Item {
+          Layout.preferredWidth: margin
+        }
+      } // end RowLayout
+    } // end Rectangle
   } // end Column
 } // end Rectangle
