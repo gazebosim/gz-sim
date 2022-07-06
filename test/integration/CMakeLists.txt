@@ -142,7 +142,7 @@ if (POLICY CMP0074)
 endif()
 gz_find_package(DART CONFIG)
 cmake_policy(POP)
-if (DART_FOUND)
+if (DART_FOUND AND TARGET INTEGRATION_physics_system)
   # Only adding include directories, no need to link against DART to check version
   target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
   target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
@@ -152,25 +152,36 @@ if (DART_FOUND)
   )
 endif()
 
-target_link_libraries(INTEGRATION_tracked_vehicle_system
-  gz-physics${GZ_PHYSICS_VER}::core
-  gz-plugin${GZ_PLUGIN_VER}::loader
-)
+if (TARGET INTEGRATION_tracked_vehicle_system)
+  target_link_libraries(INTEGRATION_tracked_vehicle_system
+    gz-physics${GZ_PHYSICS_VER}::core
+    gz-plugin${GZ_PLUGIN_VER}::loader
+  )
+endif()
 
-target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
-  gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
-)
-target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
-  gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
-)
+if (TARGET INTEGRATION_model_photo_shoot_default_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
 
-target_link_libraries(INTEGRATION_log_system
-  gz-transport${GZ_TRANSPORT_VER}::log
-)
+if (TARGET INTEGRATION_model_photo_shoot_random_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
 
-target_link_libraries(INTEGRATION_collada_world_exporter
-  gz-common${GZ_COMMON_VER}::graphics
-)
+if (TARGET INTEGRATION_log_system)
+  target_link_libraries(INTEGRATION_log_system
+    gz-transport${GZ_TRANSPORT_VER}::log
+  )
+endif()
+
+if (TARGET INTEGRATION_collada_world_exporter)
+  target_link_libraries(INTEGRATION_collada_world_exporter
+    gz-common${GZ_COMMON_VER}::graphics
+  )
+endif()
 
 if(TARGET INTEGRATION_reset_sensors)
   target_link_libraries(INTEGRATION_reset_sensors
@@ -179,13 +190,15 @@ if(TARGET INTEGRATION_reset_sensors)
 endif()
 
 # The default timeout (240s) doesn't seem to be enough for this test.
-set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+if(TARGET INTEGRATION_tracked_vehicle_system )
+  set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+endif()
 
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
 endif()
 
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
