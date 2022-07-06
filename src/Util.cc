@@ -408,7 +408,7 @@ std::vector<std::string> resourcePaths()
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
@@ -428,7 +428,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
-    sdfPaths = common::Split(sdfPathCStr, ':');
+    sdfPaths = common::Split(sdfPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Ignition file paths (for <uri>s)
@@ -437,7 +437,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
-    ignPaths = common::Split(ignPathCStr, ':');
+    ignPaths = common::Split(ignPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Gazebo resource paths
@@ -445,7 +445,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Add new paths to gzPaths
@@ -474,20 +474,20 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // Update the vars
   std::string sdfPathsStr;
   for (const auto &path : sdfPaths)
-    sdfPathsStr += ':' + path;
+    sdfPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
-    ignPathsStr += ':' + path;
+    ignPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(
     systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
-    gzPathsStr += ':' + path;
+    gzPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
