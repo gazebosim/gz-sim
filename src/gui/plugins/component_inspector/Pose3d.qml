@@ -61,7 +61,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: gzPoseContent.show ?
+          source: gzPoseContent.expand ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -76,7 +76,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          gzPoseContent.show = !gzPoseContent.show
+          gzPoseContent.expand = !gzPoseContent.expand
         }
         onEntered: {
           header.color = highlightColor
@@ -87,7 +87,6 @@ Rectangle {
       }
     }
     Rectangle {
-      id: content
       color: "transparent"
       width: parent.width
       height: gzPoseContent.height
@@ -123,7 +122,7 @@ Rectangle {
           }
 
           // By default it is closed
-          show: false
+          expand: false
 
         } // end gzPoseContent
 
