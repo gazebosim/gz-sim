@@ -35,8 +35,6 @@ struct PluginInfo {
   sdf::ElementPtr sdf;
 };
 
-std::vector<PluginInfo> loadedPlugins;
-
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
                              EntityComponentManager *_entityCompMgr,
@@ -48,34 +46,90 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
 }
 
 //////////////////////////////////////////////////
+void SystemManager::SetRemoveInitialSystemPlugins()
+{
+  std::set<unsigned int> removePendingSystems;
+  /// Found systems already loaded
+  if (this->systems.size() >= 3)
+  {
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+      bool foundSystem = false;
+      for (unsigned int j = 3; j < this->systems.size(); ++j)
+      {
+        if (this->systems[i].name == this->systems[j].name)
+        {
+          foundSystem = true;
+          removeSystems.insert(j);
+          break;
+        }
+      }
+
+      for (unsigned int j = 0; j < this->pendingSystems.size(); ++j)
+      {
+        if (this->systems[i].name == this->systems[j].name)
+        {
+          foundSystem = true;
+          removePendingSystems.insert(j);
+          break;
+        }
+      }
+      if (!foundSystem)
+      {
+        removeSystems.insert(i);
+      }
+    }
+  }
+  else
+  {
+    /// Check if there are system plugin repeated
+    if (this->pendingSystems.size() >= 3)
+    {
+      for (unsigned int i = 0; i < 3; ++i)
+      {
+        bool foundSystem = false;
+        for (unsigned int j = 3; j < this->pendingSystems.size(); ++j)
+        {
+          if (this->pendingSystems[i].name == this->pendingSystems[j].name)
+          {
+            removePendingSystems.insert(j);
+            foundSystem = true;
+            break;
+          }
+        }
+        if (!foundSystem && this->pendingSystems.size() > 3)
+        {
+          removePendingSystems.insert(i);
+        }
+      }
+    }
+  }
+
+  int counter = 0;
+  for (auto const & index : removePendingSystems)
+  {
+    this->pendingSystems.erase(this->pendingSystems.begin() + index + counter);
+    counter--;
+  }
+
+  counter = 0;
+  for (auto const & index : removeSystems)
+  {
+    this->systems.erase(this->systems.begin() + index + counter);
+    counter--;
+  }
+}
+
+//////////////////////////////////////////////////
 void SystemManager::LoadPlugin(const Entity _entity,
                                const std::string &_fname,
                                const std::string &_name,
                                const sdf::ElementPtr &_sdf)
 {
-  for (const auto & pluginInfo : loadedPlugins)
-  {
-    if (_entity == pluginInfo.entity &&
-        _name == pluginInfo.name)
-    {
-      if (_name == "gz::sim::systems::UserCommands" ||
-          _name == "gz::sim::systems::SceneBroadcaster" ||
-          _name == "gz::sim::systems::Physics")
-      {
-        //  Plugin already loaded
-        igndbg << "This system Plugin [" << _name
-               << "] is already loaded in this entity [" << _entity
-               << "]" << std::endl;
-        return;
-      }
-    }
-  }
-
   PluginInfo info;
   info.entity = _entity;
   info.name = _name;
   info.fname = _fname;
-  loadedPlugins.push_back(info);
 
   std::optional<SystemPluginPtr> system;
   {
@@ -160,9 +214,10 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
-  loadedPlugins.clear();
 
   std::vector<PluginInfo> pluginsToBeLoaded;
+
+  unsigned int index = 0;
 
   for (auto& system : this->systems)
   {
@@ -171,6 +226,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       // If implemented, call reset and add to pending systems.
       system.reset->Reset(_info, _ecm);
 
+      if (this->removeSystems.find(index) == this->removeSystems.end())
       {
         std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
         this->pendingSystems.push_back(system);
@@ -186,17 +242,24 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
           << system.name << "]\n"
           << "Systems created without plugins that do not implement Reset"
           << " will not be reloaded. Reset may not work correctly\n";
+        index++;
         continue;
       }
-      PluginInfo info = {
-        system.parentEntity, system.fname, system.name,
-        system.configureSdf->Clone()
-      };
 
-      pluginsToBeLoaded.push_back(info);
+      if (this->removeSystems.find(index) == this->removeSystems.end())
+      {
+        PluginInfo info = {
+          system.parentEntity, system.fname, system.name,
+          system.configureSdf->Clone()
+        };
+
+        pluginsToBeLoaded.push_back(info);
+      }
     }
+    index++;
   }
 
+  this->removeSystems.clear();
   this->systems.clear();
 
   // Load plugins which do not implement reset after clearing this->systems

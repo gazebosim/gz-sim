@@ -747,6 +747,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
         this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
+        this->systemMgr->SetRemoveInitialSystemPlugins();
+
         WorldControl control;
         control.rewind = true;
         control.pause = !this->serverConfig.RunOption();

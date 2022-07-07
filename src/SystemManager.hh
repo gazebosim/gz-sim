@@ -106,6 +106,14 @@ namespace gz
       /// \param[in] _ecm Version of the ECM reset to an initial state
       public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
+      /// \brief When loading the model in the background we inserted an empty
+      /// world that contains 3 system plugins (SceneBroadcaster, UserCommand
+      /// and Physics). This three system plugins need to be checked when the
+      /// models are downloaded. If a new system is added that was already added
+      /// then this new one is removed, or if a model is not found then is
+      /// removed because this plugin was not specify in the world 
+      public: void SetRemoveInitialSystemPlugins();
+
       /// \brief Get a vector of all systems implementing "Configure"
       /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
@@ -180,6 +188,9 @@ namespace gz
 
       /// \brief Pointer to associated event manager
       private: EventManager *eventMgr;
+
+      /// \brief Systems to remove when reset is called
+      private: std::set<unsigned int> removeSystems;
     };
     }
   }  // namespace sim
