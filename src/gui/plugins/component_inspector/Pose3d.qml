@@ -24,7 +24,7 @@ import "qrc:/qml"
 
 // Item displaying 3D pose information.
 Rectangle {
-  height: header.height + gzPoseContent.height
+  height: header.height + gzPoseInstance.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -61,7 +61,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: gzPoseContent.expand ?
+          source: gzPoseInstance.expand ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -76,7 +76,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          gzPoseContent.expand = !gzPoseContent.expand
+          gzPoseInstance.expand = !gzPoseInstance.expand
         }
         onEntered: {
           header.color = highlightColor
@@ -89,7 +89,7 @@ Rectangle {
     Rectangle {
       color: "transparent"
       width: parent.width
-      height: gzPoseContent.height
+      height: gzPoseInstance.height
       RowLayout {
         id: gzPoseRow
         width: parent.width
@@ -101,7 +101,7 @@ Rectangle {
 
         // Content
         GzPose {
-          id: gzPoseContent
+          id: gzPoseInstance
           Layout.fillWidth: true
 
           readOnly: {
@@ -124,7 +124,7 @@ Rectangle {
           // By default it is closed
           expand: false
 
-        } // end gzPoseContent
+        } // end gzPoseInstance
 
         // Right spacer
         Item {
