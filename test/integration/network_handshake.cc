@@ -136,10 +136,11 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo primaryPluginInfo;
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
-  primaryPluginInfo.SetFilename(
-      "libignition-gazebo-scene-broadcaster-system.so");
-  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
-  primaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin plugin;
+  plugin.SetFilename("libignition-gazebo-scene-broadcaster-system.so");
+  plugin.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  plugin.InsertContent(pluginElem);
+  primaryPluginInfo.SetPlugin(plugin);
 
   ServerConfig configPrimary;
   configPrimary.SetNetworkRole("primary");
@@ -158,9 +159,11 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
-  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
-  secondaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin secondPlugin;
+  secondPlugin.SetFilename("libignition-gazebo-physics-system.so");
+  secondPlugin.SetName("ignition::gazebo::systems::Physics");
+  secondPlugin.InsertContent(pluginElem);
+  secondaryPluginInfo.SetPlugin(secondPlugin);
 
   ServerConfig configSecondary;
   configSecondary.SetNetworkRole("secondary");

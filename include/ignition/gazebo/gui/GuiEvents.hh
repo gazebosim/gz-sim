@@ -29,6 +29,7 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/utils/ImplPtr.hh>
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include "ignition/gazebo/gui/Export.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -215,6 +216,8 @@ namespace events
   };
 
   /// \brief Event that notifies a visual plugin is to be loaded
+  /// \note This will be deprecated in Gazebo 7 (Garden), please the use
+  /// VisualPlugins class.
   class IGNITION_GAZEBO_GUI_VISIBLE VisualPlugin: public QEvent
   {
     /// \brief Constructor
@@ -230,6 +233,28 @@ namespace events
     public: sdf::ElementPtr Element() const;
 
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
+
+    /// \internal
+    /// \brief Private data pointer
+    IGN_UTILS_IMPL_PTR(dataPtr)
+  };
+
+  /// \brief Event that notifies a visual plugin is to be loaded
+  class IGNITION_GAZEBO_GUI_VISIBLE VisualPlugins: public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entity Visual entity id
+    /// \param[in] _plugins SDF plugin object
+    public: explicit VisualPlugins(ignition::gazebo::Entity _entity,
+                const sdf::Plugins &_plugins);
+
+    /// \brief Get the entity to load the visual plugin for
+    public: ignition::gazebo::Entity Entity() const;
+
+    /// \brief Get the SDF Plugin of the visual plugin
+    public: const sdf::Plugins &Plugins() const;
+
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 9);
 
     /// \internal
     /// \brief Private data pointer
