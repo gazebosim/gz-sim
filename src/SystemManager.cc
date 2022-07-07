@@ -19,6 +19,8 @@
 #include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
 
+#include <set>
+
 using namespace gz;
 using namespace sim;
 

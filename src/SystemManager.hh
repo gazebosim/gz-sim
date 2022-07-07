@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMMANAGER_HH_
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -111,7 +112,7 @@ namespace gz
       /// and Physics). This three system plugins need to be checked when the
       /// models are downloaded. If a new system is added that was already added
       /// then this new one is removed, or if a model is not found then is
-      /// removed because this plugin was not specify in the world 
+      /// removed because this plugin was not specify in the world
       public: void SetRemoveInitialSystemPlugins();
 
       /// \brief Get a vector of all systems implementing "Configure"
