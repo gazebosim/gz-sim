@@ -92,7 +92,7 @@ namespace systems
   ///
   /// `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `frame_id` to `child_frame_id`. This element is optional,
-  ///  and the default value is `/model/{name_of_model}/tf`.
+  /// and the default value is `/model/{name_of_model}/tf`.
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
@@ -104,7 +104,7 @@ namespace systems
   /// the target of the odometry transform in both the `<tf_topic>`
   /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
   /// `ignition.msgs.Odometry` message. This element if optional,
-  ///  and the default value is `{name_of_model}/{name_of_link}`.
+  /// and the default value is `{name_of_model}/{name_of_link}`.
   ///
   /// A robot with rear drive and front steering would have one each
   /// of left_joint, right_joint, left_steering_joint and
