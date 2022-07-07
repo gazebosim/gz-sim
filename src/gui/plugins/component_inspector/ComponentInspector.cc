@@ -119,6 +119,9 @@ namespace ignition::gazebo
 
     /// \brief Handles all system info components.
     public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
+
+    /// \brief A list of system plugin filenames
+    public: QStringList systemFilenameList;
   };
 }
 
@@ -1265,6 +1268,41 @@ const std::string &ComponentInspector::WorldName() const
 transport::Node &ComponentInspector::TransportNode()
 {
   return this->dataPtr->node;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::QuerySystems()
+{
+  msgs::Empty req;
+  msgs::EntityPlugin_V res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/entity/system/info"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "querying systems " << std::endl;
+  }
+
+  this->dataPtr->systemFilenameList.clear();
+  for (auto &plugin : res.plugins())
+  {
+    this->dataPtr->systemFilenameList.push_back(
+        QString(plugin.filename().c_str()));
+  }
+  this->SystemFilenameListChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspector::SystemFilenameList() const
+{
+  return this->dataPtr->systemFilenameList;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSystemFilenameList(const QStringList &_list)
+{
+  this->dataPtr->systemFilenameList = _list;
 }
 
 /////////////////////////////////////////////////

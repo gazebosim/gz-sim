@@ -274,6 +274,7 @@ Rectangle {
           onTextEdited: {
             addSystemDialog.updateButtonState();
           }
+          placeholderText: "Leave empty to load first plugin"
         }
 
         Text {
@@ -282,15 +283,23 @@ Rectangle {
           Layout.column: 0
         }
 
-        TextField {
-          id: filenameField
-          selectByMouse: true
+        ComboBox {
+          id: filenameCB
           Layout.row: 1
           Layout.column: 1
+          Layout.fillWidth: true
           Layout.minimumWidth: 250
-          onTextEdited: {
+          model: ComponentInspector.systemFilenameList
+          currentIndex: 0
+          onCurrentIndexChanged: {
+            if (currentIndex < 0)
+              return;
             addSystemDialog.updateButtonState();
           }
+          ToolTip.visible: hovered
+          ToolTip.delay: tooltipDelay
+          ToolTip.timeout: tooltipTimeout
+          ToolTip.text: currentText
         }
       }
 
@@ -325,18 +334,18 @@ Rectangle {
     }
 
     onOpened: {
+      ComponentInspector.QuerySystems();
       addSystemDialog.updateButtonState();
     }
 
     onAccepted: {
       ComponentInspector.OnAddSystem(nameField.text.trim(),
-          filenameField.text.trim(), innerxmlField.text.trim())
+          filenameCB.currentText.trim(), innerxmlField.text.trim())
     }
 
     function updateButtonState() {
       buttons.standardButton(Dialog.Ok).enabled =
-          (nameField.text.trim() != '' &&
-          filenameField.text.trim() != '')
+          (filenameCB.currentText.trim() != '')
     }
   }
 

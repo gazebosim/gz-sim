@@ -41,8 +41,7 @@ class ignition::gazebo::SystemLoaderPrivate
   public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
-  public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
-              ignition::plugin::PluginPtr &_gzPlugin)
+  public: std::list<std::string> PluginPaths() const
   {
     ignition::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
@@ -54,6 +53,20 @@ class ignition::gazebo::SystemLoaderPrivate
     ignition::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
+
+    return systemPaths.PluginPaths();
+  }
+
+  //////////////////////////////////////////////////
+  public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
+              ignition::plugin::PluginPtr &_gzPlugin)
+  {
+    std::list<std::string> paths = this->PluginPaths();
+    ignition::common::SystemPaths systemPaths;
+    for (const auto &p : paths)
+    {
+      systemPaths.AddPluginPaths(p);
+    }
 
     auto pathToLib = systemPaths.FindSharedLibrary(_sdfPlugin.Filename());
     if (pathToLib.empty())
@@ -85,7 +98,10 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
-    _gzPlugin = this->loader.Instantiate(_sdfPlugin.Name());
+    std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
+        pluginName : _sdfPlugin.Name();
+
+    _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
     if (!_gzPlugin)
     {
       ignerr << "Failed to load system plugin [" << _sdfPlugin.Name() <<
@@ -130,6 +146,12 @@ SystemLoader::SystemLoader()
 SystemLoader::~SystemLoader() = default;
 
 //////////////////////////////////////////////////
+std::list<std::string> SystemLoader::PluginPaths() const
+{
+  return this->dataPtr->PluginPaths();
+}
+
+//////////////////////////////////////////////////
 void SystemLoader::AddSystemPluginPath(const std::string &_path)
 {
   this->dataPtr->systemPluginPaths.insert(_path);
@@ -141,7 +163,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
-  if (_filename == "" || _name == "")
+  if (_filename == "")
   {
     ignerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _filename << "] " <<
@@ -175,7 +197,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 {
   ignition::plugin::PluginPtr plugin;
 
-  if (_plugin.Filename() == "" || _plugin.Name() == "")
+  if (_plugin.Filename() == "")
   {
     ignerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _plugin.Filename() << "] " <<
@@ -186,7 +208,6 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   auto ret = this->dataPtr->InstantiateSystemPlugin(_plugin, plugin);
   if (ret && plugin)
     return plugin;
-
   return {};
 }
 

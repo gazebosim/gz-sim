@@ -81,7 +81,10 @@ namespace ignition
       /// \returns A pretty string
       public: std::string PrettyStr() const;
 
-      /// \brief Pointer to private data.
+      /// \brief Get the plugin search paths used for loading system plugins
+      /// \return Paths to search for plugins
+      public: std::list<std::string> PluginPaths() const;
+
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
     };
     }

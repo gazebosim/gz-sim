@@ -212,6 +212,14 @@ namespace gazebo
       NOTIFY NestedModelChanged
     )
 
+    /// \brief System filename list
+    Q_PROPERTY(
+      QStringList systemFilenameList
+      READ SystemFilenameList
+      WRITE SetSystemFilenameList
+      NOTIFY SystemFilenameListChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -371,6 +379,21 @@ namespace gazebo
     /// \brief Node for communication
     /// \return Transport node
     public: transport::Node &TransportNode();
+
+    /// \brief Query system plugin info.
+    public: Q_INVOKABLE void QuerySystems();
+
+    /// \brief Get the system plugin filename list
+    /// \return A list of filenames that are potentially system plugins
+    public: Q_INVOKABLE QStringList SystemFilenameList() const;
+
+    /// \brief Set the system plugin filename list
+    /// \param[in] _systempFilenameList A list of system plugin filenames
+    public: Q_INVOKABLE void SetSystemFilenameList(
+        const QStringList &_systemFilenameList);
+
+    /// \brief Notify that system plugin filename list has changed
+    signals: void SystemFilenameListChanged();
 
     /// \brief Callback when a new system is to be added to an entity
     /// \param[in] _name Name of system
