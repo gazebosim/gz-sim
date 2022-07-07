@@ -1735,7 +1735,6 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
-
       // Create if new
       if (nullptr == comp)
       {

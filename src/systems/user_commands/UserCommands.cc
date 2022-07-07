@@ -1823,17 +1823,12 @@ bool VisualCommand::Execute()
     return false;
   }
 
-  /* service commands:
-  ign service -s /world/minimal_scene/visual_config --reqtype ignition.msgs.Visual --reptype ignition.msgs.Boolean --req 'name: "box_visual" material: {diffuse: {r: 0 g: 0 b: 1 a: 1}}' --timeout 300
-
-  ign service -s /world/minimal_scene/visual_config --reqtype ignition.msgs.Visual --reptype ignition.msgs.Boolean --req 'name: "box_visual" material: {diffuse: {r: 1 g: 0 b: 0 a: 1}}' --timeout 300
-  */
-
   Entity visualEntity = kNullEntity;
   std::string entityName = visualMsg->name();
   if (!entityName.empty())
   {
-    visualEntity = this->iface->ecm->EntityByComponents(components::Name(entityName));
+    visualEntity =
+        this->iface->ecm->EntityByComponents(components::Name(entityName));
   }
   else if (visualMsg->id() != kNullEntity)
   {
