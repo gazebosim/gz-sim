@@ -204,7 +204,7 @@ void Server::Init()
       this->dataPtr->config.SdfFile());
 
     std::vector<std::string> worldNames;
-    auto errors2 = this->dataPtr->sdfRoot.WorldNameFromFile(
+    auto errors2 = this->dataPtr->sdfRoot.WorldNamesFromFile(
       filePath, worldNames);
 
     if (worldNames.size() > 0)
