@@ -27,6 +27,7 @@ Rectangle {
   id: quickStart
   width: 720
   height: 720
+  property var selectedWorld: "Blank world"
 
   function changeDefault(checked){
     console.log("default changed to ", checked);
@@ -34,10 +35,13 @@ Rectangle {
   }
 
   function loadWorld(fileURL){
-    openWorld.enabled = true;
     // Remove "file://" from the QML url.
     var url = fileURL.toString().split("file://")[1]
+    console.log(url);
     QuickStartHandler.SetStartingWorld(url)
+    // openWorld.color = 'green';
+    openWorld.text = "Run selected world";
+    openWorld.Material.background= Material.Green
   }
 
   function loadFuelWorld(fileName, uploader){
@@ -45,11 +49,20 @@ Rectangle {
     var fuel_url = "https://app.gazebosim.org/"
     fuel_url += uploader + "/fuel/worlds/" + fileName
     QuickStartHandler.SetStartingWorld(fuel_url)
-    quickStart.Window.window.close()
+    openWorld.text = "Run selected world"
+    openWorld.Material.background = Material.Green
+    quickStart.selectedWorld = fileName
   }
 
   function getWorlds(){
     return "file://"+QuickStartHandler.WorldsPath()
+  }
+
+  function getColor(fileName){
+    console.log(fileName, selectedWorld)
+    if(fileName == selectedWorld)
+      return "green";
+    return "white";
   }
 
   RowLayout {
@@ -64,7 +77,7 @@ Rectangle {
       Layout.fillWidth: true
       spacing: 0
       Rectangle {
-        color: 'grey'
+        color: 'transparent'
           Layout.fillWidth: true
           Layout.minimumWidth: 100
           Layout.preferredWidth: 720
@@ -76,7 +89,7 @@ Rectangle {
             y: (parent.height - height) / 2
           }
           Text{
-            text: QuickStartHandler.GazeboVersion()
+            text: 'v ' + QuickStartHandler.GazeboVersion()
           }
       }
 
@@ -125,6 +138,7 @@ Rectangle {
                   height: gridView.cellHeight - 5
                   smooth: true
                   source: fileURL
+                  color: getColor(fileName.split('.')[1])
                 }
               }
               GridView {
@@ -204,42 +218,27 @@ Rectangle {
           Layout.minimumHeight: 50
           RowLayout {
             id: skip
-            anchors.verticalCenter: parent.verticalTop
-            spacing: parent.width/10
-            Button {
-              id: closeButton
-              visible: true
-              text: "Open Empty World"
-              Layout.minimumWidth: parent.width/5
-              Layout.leftMargin: parent.width/10
-
-              onClicked: {
-                quickStart.loadWorld("")
-                quickStart.Window.window.close()
-              }
-
-              Material.background: Material.primary
-              ToolTip.visible: hovered
-              ToolTip.delay: tooltipDelay
-              ToolTip.timeout: tooltipTimeout
-              ToolTip.text: qsTr("Skip")
+            anchors {
+                fill: parent
+                leftMargin: 10
+                topMargin: 10
             }
             CheckBox {
               id: showByDefault
               text: "Don't show again"
               Layout.fillWidth: true
+              Layout.leftMargin: 20
               onClicked: {
                 quickStart.changeDefault(showByDefault.checked)
               }
             }
             Button {
               id: openWorld
+              Layout.fillWidth: true
+              Layout.rightMargin: 20
               visible: true
-              text: "Open World"
-              enabled: false
-              Layout.minimumWidth: closeButton.width
-              Layout.rightMargin: parent.width/10
-
+              text: "Run Empty World"
+              enabled: true
               onClicked: {
                 quickStart.Window.window.close()
               }
@@ -248,7 +247,7 @@ Rectangle {
               ToolTip.visible: hovered
               ToolTip.delay: tooltipDelay
               ToolTip.timeout: tooltipTimeout
-              ToolTip.text: qsTr("Open World")
+              ToolTip.text: qsTr("Run")
             }
           }
         }

@@ -25,6 +25,7 @@ Rectangle{
     property alias source: root.source
     property alias text: label.text
     property alias uploader: uploader.text
+    property alias color: main.color
     border.color: "white"
     border.width: 5
     radius: 10
@@ -80,7 +81,7 @@ Rectangle{
                 animation1.start()
                 animation2.start()
             }
-            onClicked: quickStart.loadFuelWorld(main.text, main.uploader)
+            onClicked: quickStart.loadFuelWorld(main.text, main.uploader);
         }
 
         Rectangle {

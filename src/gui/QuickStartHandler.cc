@@ -87,5 +87,5 @@ bool QuickStartHandler::ShowDefaultQuickStartOpts() const
 /////////////////////////////////////////////////
 std::string QuickStartHandler::Config() const
 {
-  return std::string("<dialog name=\"quick_start\" default=\"true\"/>");
+  return std::string("<dialog name=\"quick_start\" show_again=\"true\"/>");
 }
