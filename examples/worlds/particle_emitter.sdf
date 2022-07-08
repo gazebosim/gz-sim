@@ -31,7 +31,7 @@
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
       <!-- Use TPE in order to use nested models -->
-      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
+      <engine><filename>gz-physics-tpe-plugin</filename></engine>
     </plugin>
     <plugin
       filename="gz-sim-user-commands-system"

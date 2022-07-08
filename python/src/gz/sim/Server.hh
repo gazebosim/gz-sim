@@ -31,7 +31,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboServer(pybind11::object module);
+defineSimServer(pybind11::object module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz
