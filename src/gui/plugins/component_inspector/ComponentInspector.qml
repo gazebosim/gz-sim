@@ -298,7 +298,6 @@ Rectangle {
           }
           ToolTip.visible: hovered
           ToolTip.delay: tooltipDelay
-          ToolTip.timeout: tooltipTimeout
           ToolTip.text: currentText
         }
       }

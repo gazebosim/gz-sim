@@ -85,6 +85,7 @@ namespace ignition
       /// \return Paths to search for plugins
       public: std::list<std::string> PluginPaths() const;
 
+      /// \brief Pointer to private data.
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
     };
     }
