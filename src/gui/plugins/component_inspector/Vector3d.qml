@@ -59,7 +59,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: gzVectorContent.show ?
+          source: gzVectorContent.expand ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -74,7 +74,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          gzVectorContent.show = !gzVectorContent.show
+          gzVectorContent.expand = !gzVectorContent.expand
         }
         onEntered: {
           header.color = highlightColor
@@ -89,7 +89,7 @@ Rectangle {
     GzVector3 {
       id: gzVectorContent
       width: parent.width
-      show: false
+      expand: false
       gzUnit: unit
 
       xValue: model.data[0]
