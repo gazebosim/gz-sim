@@ -42,6 +42,17 @@ namespace gz
       std::optional<std::size_t> index;
     };
 
+    /// \brief Describes a 4D interpolation point.
+    template<typename T, typename V>
+    struct InterpolationPoint4D
+    {
+      /// \brief The relevant interpolation points in 3D
+      std::vector<InterpolationPoint3D<V>> timeSlice;
+
+      /// \brief The time of this point
+      T time;
+    };
+
     /// \brief Describes an interpolation point in1d.
     template<typename T>
     struct InterpolationPoint1D
