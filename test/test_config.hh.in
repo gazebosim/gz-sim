@@ -48,12 +48,12 @@ struct TestWorldSansPhysics
     static std::string world = std::string("<?xml version='1.0'?>"
     "<sdf version='1.6'>"
       "<world name='default'>"
-        "<plugin filename='libignition-gazebo") +
+        "<plugin filename='libgz-sim") +
         GZ_SIM_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
         "  name='gz::sim::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
-        "  filename='libignition-gazebo" +
+        "  filename='libgz-sim" +
         GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so'"
         "  name='gz::sim::systems::UserCommands'>"
         "</plugin>"

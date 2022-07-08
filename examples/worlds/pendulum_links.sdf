@@ -16,15 +16,15 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-       filename="libignition-gazebo-physics-system.so"
+       filename="gz-sim-physics-system"
         name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-        filename="libignition-gazebo-user-commands-system.so"
+        filename="gz-sim-user-commands-system"
         name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-        filename="libignition-gazebo-scene-broadcaster-system.so"
+        filename="gz-sim-scene-broadcaster-system"
         name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
