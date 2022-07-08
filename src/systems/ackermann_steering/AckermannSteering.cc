@@ -347,7 +347,7 @@ void AckermannSteering::Configure(const Entity &_entity,
       odomTopic);
 
   std::vector<std::string> tfTopics;
-  if (_sdf->HasElement("tf_topic")) 
+  if (_sdf->HasElement("tf_topic"))
   {
     tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
   }
