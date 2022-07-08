@@ -25,7 +25,7 @@ import "qrc:/qml"
 // Item displaying 3D vector information.
 Rectangle {
 
-  height: header.height + gzVectorContent.height
+  height: header.height + gzVectorInstance.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -59,7 +59,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: gzVectorContent.expand ?
+          source: gzVectorInstance.expand ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -74,7 +74,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          gzVectorContent.expand = !gzVectorContent.expand
+          gzVectorInstance.expand = !gzVectorInstance.expand
         }
         onEntered: {
           header.color = highlightColor
@@ -84,18 +84,38 @@ Rectangle {
         }
       }
     }
-
-    // Content
-    GzVector3 {
-      id: gzVectorContent
+    Rectangle {
+      color: "transparent"
       width: parent.width
-      expand: false
-      gzUnit: unit
+      height: gzVectorInstance.height
+      RowLayout {
+        id: gzVectorRow
+        width: parent.width
 
-      xValue: model.data[0]
-      yValue: model.data[1]
-      zValue: model.data[2]
-    } // GzVector3 ends
+        // Left spacer
+        Item {
+          Layout.preferredWidth: margin + indentation
+        }
 
+        // Content
+        GzVector3 {
+          id: gzVectorInstance
+          Layout.fillWidth: true
+          gzUnit: unit
+
+          xValue: model.data[0]
+          yValue: model.data[1]
+          zValue: model.data[2]
+
+          // By default it is closed
+          expand: false
+        } // GzVector3 ends
+
+        // Right spacer
+        Item {
+          Layout.preferredWidth: margin
+        }
+      } // end RowLayout
+    } // end Rectangle
   } // Column ends
 } // Rectangle ends
