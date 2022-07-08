@@ -74,19 +74,20 @@ std::string createQuickStart(
     // Set default config file for Gazebo
     defaultConfig = getDefaultConfigFile(_guiConfig);
 
-  app->SetDefaultConfigPath(defaultConfig);
-  app->LoadWindowConfig(defaultConfig);
-
   auto quickStartHandler = new ignition::gazebo::gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
   auto dialog = new ignition::gui::Dialog();
-  dialog->SetName("quick_start");
+  dialog->setObjectName("quick_start");
+
+  igndbg << "Setting Quick start dialog default config." << std::endl;
   dialog->SetDefaultConfig(quickStartHandler->Config());
-  std::string defaultValue = dialog->ReadAttribute(app->DefaultConfigPath(),
-    "default");
-  if (defaultValue == "false")
+  igndbg << "Reading Quick start menu config." << std::endl;
+  std::string showDialog = dialog->ReadConfigAttribute(app->DefaultConfigPath(),
+    "show_again");
+  if (showDialog != "true")
   {
+    ignmsg << "Not showing Quick start menu." << std::endl;
     return "";
   }
 
@@ -111,7 +112,7 @@ std::string createQuickStart(
   }
 
   // Update dialog config
-  dialog->WriteAttribute(app->DefaultConfigPath(), "default",
+  dialog->UpdateConfigAttribute(app->DefaultConfigPath(), "show_again",
     quickStartHandler->ShowDefaultQuickStartOpts());
   return quickStartHandler->StartingWorld();
 }
