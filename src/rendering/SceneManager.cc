@@ -18,7 +18,6 @@
 
 #include <map>
 #include <memory>
-#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
@@ -29,6 +28,7 @@
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
 #include <ignition/common/Animation.hh>
@@ -39,6 +39,7 @@
 #include <ignition/common/MeshManager.hh>
 #include <ignition/common/Skeleton.hh>
 #include <ignition/common/SkeletonAnimation.hh>
+#include <ignition/common/Uuid.hh>
 
 #include <ignition/msgs/Utility.hh>
 
@@ -684,8 +685,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
   {
-    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
-        _geom.HeightmapShape()->FilePath());
+    auto fullPath = common::findFile(asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath()));
     if (fullPath.empty())
     {
       ignerr << "Heightmap geometry missing URI" << std::endl;
@@ -733,6 +734,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
     scale = _geom.HeightmapShape()->Size();
+  }
+  else if (_geom.Type() == sdf::GeometryType::POLYLINE)
+  {
+    std::vector<std::vector<math::Vector2d>> vertices;
+    for (const auto &polyline : _geom.PolylineShape())
+    {
+      vertices.push_back(polyline.Points());
+    }
+
+    std::string name("POLYLINE_" + common::Uuid().String());
+
+    auto meshManager = ignition::common::MeshManager::Instance();
+    meshManager->CreateExtrudedPolyline(name, vertices,
+        _geom.PolylineShape()[0].Height());
+
+    rendering::MeshDescriptor descriptor;
+    descriptor.meshName = name;
+    descriptor.mesh = meshManager->MeshByName(name);
+
+    geom = this->dataPtr->scene->CreateMesh(descriptor);
   }
   else
   {
@@ -888,6 +909,20 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   return material;
 }
 
+void SceneManager::SequenceTrajectories(
+    std::vector<common::TrajectoryInfo>& _trajectories,
+    TP _time)
+{
+  // sequencing all trajectories
+  for (auto &trajectory : _trajectories)
+  {
+    auto duration = trajectory.Duration();
+    trajectory.SetStartTime(_time);
+    _time += duration;
+    trajectory.SetEndTime(_time);
+  }
+}
+
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
@@ -946,112 +981,11 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return rendering::VisualPtr();
   }
 
-  unsigned int numAnims = 0;
-  std::unordered_map<std::string, unsigned int> mapAnimNameId;
-  mapAnimNameId[descriptor.meshName] = numAnims++;
-
   // Load all animations
-  for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
-  {
-    std::string animName = _actor.AnimationByIndex(i)->Name();
-    std::string animFilename = asFullPath(
-        _actor.AnimationByIndex(i)->Filename(),
-        _actor.AnimationByIndex(i)->FilePath());
+  auto mapAnimNameId = this->LoadAnimations(_actor);
+  if (mapAnimNameId.size() == 0)
+    return nullptr;
 
-    double animScale = _actor.AnimationByIndex(i)->Scale();
-
-    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
-                                  animFilename.size());
-    std::transform(extension.begin(), extension.end(),
-                    extension.begin(), ::tolower);
-
-    if (extension == "bvh")
-    {
-      // do not add duplicate animation
-      // start checking from index 1 since index 0 is reserved by skin mesh
-      bool addAnim = true;
-      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
-      {
-        if (meshSkel->Animation(a)->Name() == animFilename)
-        {
-          addAnim = false;
-          break;
-        }
-      }
-      if (addAnim)
-        meshSkel->AddBvhAnimation(animFilename, animScale);
-      mapAnimNameId[animName] = numAnims++;
-    }
-    else if (extension == "dae")
-    {
-      // Load the mesh if it has not been loaded before
-      const common::Mesh *animMesh = nullptr;
-      if (!meshManager->HasMesh(animFilename))
-      {
-        animMesh = meshManager->Load(animFilename);
-        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-        {
-          ignwarn << "File [" << animFilename
-              << "] has more than one animation, but only the 1st one is used."
-              << std::endl;
-        }
-      }
-      animMesh = meshManager->MeshByName(animFilename);
-
-      // add the first animation
-      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
-      if (nullptr == firstAnim)
-      {
-        ignerr << "Failed to get animations from [" << animFilename
-                << "]" << std::endl;
-        return nullptr;
-      }
-      // do not add duplicate animation
-      // start checking from index 1 since index 0 is reserved by skin mesh
-      bool addAnim = true;
-      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
-      {
-        if (meshSkel->Animation(a)->Name() == animName)
-        {
-          addAnim = false;
-          break;
-        }
-      }
-      if (addAnim)
-      {
-        // collada loader loads animations with name that defaults to
-        // "animation0", "animation"1", etc causing conflicts in names
-        // when multiple animations are added to meshSkel.
-        // We have to clone the skeleton animation before giving it a unique
-        // name otherwise if mulitple instances of the same animation were added
-        // to meshSkel, changing the name that would also change the name of
-        // other instances of the animation
-        // todo(anyone) cloning is inefficient and error-prone. We should
-        // add a copy constructor to animation classes in ign-common.
-        // The proper fix is probably to update ign-rendering to allow it to
-        // load multiple animations of the same name
-        common::SkeletonAnimation *skelAnim =
-            new common::SkeletonAnimation(animName);
-        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
-        {
-          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
-          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
-              node->Name());
-          if (!nodeAnim)
-            continue;
-          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
-          {
-            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
-            skelAnim->AddKeyFrame(
-                node->Name(), keyFrame.first, keyFrame.second);
-          }
-        }
-
-        meshSkel->AddAnimation(skelAnim);
-      }
-      mapAnimNameId[animName] = numAnims++;
-    }
-  }
   this->dataPtr->actorSkeletons[_id] = meshSkel;
 
   std::vector<common::TrajectoryInfo> trajectories;
@@ -1142,13 +1076,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   auto delayStartTime = std::chrono::milliseconds(
               static_cast<int>(_actor.ScriptDelayStart() * 1000));
   TP time(delayStartTime);
-  for (auto &trajectory : trajectories)
-  {
-    auto dura = trajectory.Duration();
-    trajectory.SetStartTime(time);
-    time += dura;
-    trajectory.SetEndTime(time);
-  }
+  this->SequenceTrajectories(trajectories, time);
+
 
   // loop flag: add a placeholder trajectory to indicate no loop
   if (!_actor.ScriptLoop())
@@ -1245,6 +1174,9 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
+
+  lightVisual->SetVisible(_light.Visualize());
+
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
   lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
@@ -1776,6 +1708,9 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     return false;
   }
 
+  // \todo(anyone) change to uint64_t once UserData supports this type
+  sensor->SetUserData("gazebo-entity", static_cast<int>(_gazeboId));
+
   if (parent)
   {
     sensor->RemoveParent();
@@ -2298,4 +2233,124 @@ AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
   animData.trajectory = traj;
   animData.valid = true;
   return animData;
+}
+
+std::unordered_map<std::string, unsigned int>
+SceneManager::LoadAnimations(const sdf::Actor &_actor)
+{
+  rendering::MeshDescriptor descriptor;
+  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
+  common::MeshManager *meshManager = common::MeshManager::Instance();
+  descriptor.mesh = meshManager->Load(descriptor.meshName);
+  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
+
+  unsigned int numAnims = 0;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
+  mapAnimNameId[descriptor.meshName] = numAnims++;
+
+  // Load all animations
+  for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
+  {
+    std::string animName = _actor.AnimationByIndex(i)->Name();
+    std::string animFilename = asFullPath(
+        _actor.AnimationByIndex(i)->Filename(),
+        _actor.AnimationByIndex(i)->FilePath());
+
+    double animScale = _actor.AnimationByIndex(i)->Scale();
+
+    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
+                                  animFilename.size());
+    std::transform(extension.begin(), extension.end(),
+                   extension.begin(), ::tolower);
+
+    if (extension == "bvh")
+    {
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animFilename)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+        meshSkel->AddBvhAnimation(animFilename, animScale);
+      mapAnimNameId[animName] = numAnims++;
+    }
+    else if (extension == "dae")
+    {
+      // Load the mesh if it has not been loaded before
+      const common::Mesh *animMesh = nullptr;
+      if (!meshManager->HasMesh(animFilename))
+      {
+        animMesh = meshManager->Load(animFilename);
+        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+        {
+          ignwarn << "File [" << animFilename
+                  << "] has more than one animation, "
+                  << "but only the 1st one is used."
+                  << std::endl;
+        }
+      }
+      animMesh = meshManager->MeshByName(animFilename);
+
+      // add the first animation
+      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
+      if (nullptr == firstAnim)
+      {
+        ignerr << "Failed to get animations from [" << animFilename
+               << "]" << std::endl;
+        mapAnimNameId.clear();
+        break;
+      }
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animName)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+      {
+        // collada loader loads animations with name that defaults to
+        // "animation0", "animation"1", etc causing conflicts in names
+        // when multiple animations are added to meshSkel.
+        // We have to clone the skeleton animation before giving it a unique
+        // name otherwise if mulitple instances of the same animation were added
+        // to meshSkel, changing the name that would also change the name of
+        // other instances of the animation
+        // todo(anyone) cloning is inefficient and error-prone. We should
+        // add a copy constructor to animation classes in ign-common.
+        // The proper fix is probably to update ign-rendering to allow it to
+        // load multiple animations of the same name
+        common::SkeletonAnimation *skelAnim =
+            new common::SkeletonAnimation(animName);
+        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
+        {
+          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
+          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
+              node->Name());
+          if (!nodeAnim)
+            continue;
+          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
+          {
+            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
+            skelAnim->AddKeyFrame(
+                node->Name(), keyFrame.first, keyFrame.second);
+          }
+        }
+
+        meshSkel->AddAnimation(skelAnim);
+      }
+      mapAnimNameId[animName] = numAnims++;
+    }
+  }
+  return mapAnimNameId;
 }

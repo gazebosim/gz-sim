@@ -161,8 +161,10 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       {
         topics.push_back(this->topic);
       }
-      topics.push_back(std::string("/world/") + worldName + "/model/"
-        + this->model.Name(_ecm) + "/joint_state");
+      std::string topicStr =
+          topicFromScopedName(this->model.Entity(), _ecm, false) +
+          "/joint_state";
+      topics.push_back(topicStr);
 
       this->topic = validTopic(topics);
       if (this->topic.empty())

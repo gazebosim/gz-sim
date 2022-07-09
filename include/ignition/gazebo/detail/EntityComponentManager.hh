@@ -372,6 +372,50 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
   }
 }
 
+namespace detail
+{
+/// \brief Helper template to call a callback function with each of the
+/// components in the _data vector expanded as arguments to the callback
+/// function.
+/// \tparam ComponentTypeTs The actual types of each of the components.
+/// \tparam FuncT The type of the callback function.
+/// \tparam BaseComponentT Either "BaseComponent" or "const BaseComponent"
+/// \tparam Is Index sequence that will be used to iterate through the vector
+/// _data.
+/// \param[in] _f The callback function
+/// \param[in] _entity The entity associated with the components.
+/// \param[in] _data A vector of component pointers that will be expanded to
+/// become the arguments of the callback function _f.
+/// \return The value of return by the function _f.
+template <typename... ComponentTypeTs, typename FuncT, typename BaseComponentT,
+          std::size_t... Is>
+constexpr bool applyFunctionImpl(const FuncT &_f, const Entity &_entity,
+                       const std::vector<BaseComponentT *> &_data,
+                       std::index_sequence<Is...>)
+{
+  return _f(_entity, static_cast<ComponentTypeTs *>(_data[Is])...);
+}
+
+/// \brief Helper template to call a callback function with each of the
+/// components in the _data vector expanded as arguments to the callback
+/// function.
+/// \tparam ComponentTypeTs The actual types of each of the components.
+/// \tparam FuncT The type of the callback function.
+/// \tparam BaseComponentT Either "BaseComponent" or "const BaseComponent"
+/// \param[in] _f The callback function
+/// \param[in] _entity The entity associated with the components.
+/// \param[in] _data A vector of component pointers that will be expanded to
+/// become the arguments of the callback function _f.
+/// \return The value of return by the function _f.
+template <typename... ComponentTypeTs, typename FuncT, typename BaseComponentT>
+constexpr bool applyFunction(const FuncT &_f, const Entity &_entity,
+                   const std::vector<BaseComponentT *> &_data)
+{
+  return applyFunctionImpl<ComponentTypeTs...>(
+      _f, _entity, _data, std::index_sequence_for<ComponentTypeTs...>{});
+}
+}  // namespace detail
+
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 void EntityComponentManager::Each(typename identity<std::function<
@@ -385,7 +429,8 @@ void EntityComponentManager::Each(typename identity<std::function<
   // function.
   for (const Entity entity : view->Entities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    const auto &data = view->EntityComponentData(entity);
+    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
     {
       break;
     }
@@ -405,7 +450,8 @@ void EntityComponentManager::Each(typename identity<std::function<
   // function.
   for (const Entity entity : view->Entities())
   {
-    if (!std::apply(_f, view->EntityComponentData(entity)))
+    const auto &data = view->EntityComponentData(entity);
+    if (!detail::applyFunction<ComponentTypeTs...>(_f, entity, data))
     {
       break;
     }
@@ -434,7 +480,8 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // function.
   for (const Entity entity : view->NewEntities())
   {
-    if (!std::apply(_f, view->EntityComponentData(entity)))
+    const auto &data = view->EntityComponentData(entity);
+    if (!detail::applyFunction<ComponentTypeTs...>(_f, entity, data))
     {
       break;
     }
@@ -455,7 +502,8 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // function.
   for (const Entity entity : view->NewEntities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    const auto &data = view->EntityComponentData(entity);
+    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
     {
       break;
     }
@@ -476,7 +524,8 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
   // function.
   for (const Entity entity : view->ToRemoveEntities())
   {
-    if (!std::apply(_f, view->EntityComponentConstData(entity)))
+    const auto &data = view->EntityComponentData(entity);
+    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
     {
       break;
     }
@@ -485,7 +534,7 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
-detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
+detail::View *EntityComponentManager::FindView() const
 {
   auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
 
@@ -493,7 +542,7 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
   auto baseViewPtr = baseViewMutexPair.first;
   if (nullptr != baseViewPtr)
   {
-    auto view = static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+    auto view = static_cast<detail::View*>(baseViewPtr);
 
     std::unique_ptr<std::lock_guard<std::mutex>> viewLock;
     if (this->LockAddingEntitiesToViews())
@@ -527,7 +576,7 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
   }
 
   // create a new view if one wasn't found
-  detail::View<ComponentTypeTs...> view;
+  detail::View view(std::set<ComponentTypeId>{ComponentTypeTs::typeId...});
 
   for (const auto &vertex : this->Entities().Vertices())
   {
@@ -547,8 +596,8 @@ detail::View<ComponentTypeTs...> *EntityComponentManager::FindView() const
   }
 
   baseViewPtr = this->AddView(viewKey,
-      std::make_unique<detail::View<ComponentTypeTs...>>(view));
-  return static_cast<detail::View<ComponentTypeTs...>*>(baseViewPtr);
+      std::make_unique<detail::View>(std::move(view)));
+  return static_cast<detail::View *>(baseViewPtr);
 }
 
 //////////////////////////////////////////////////

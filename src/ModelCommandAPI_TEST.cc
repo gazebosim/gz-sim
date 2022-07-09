@@ -20,7 +20,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
@@ -595,7 +595,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, RgbdCameraSensor)
+TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.

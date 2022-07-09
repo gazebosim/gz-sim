@@ -10,6 +10,7 @@ set (gui_sources
 set (gtest_sources
   Gui_TEST.cc
   GuiEvents_TEST.cc
+  Gui_clean_exit_TEST.cc
 )
 
 add_subdirectory(plugins)

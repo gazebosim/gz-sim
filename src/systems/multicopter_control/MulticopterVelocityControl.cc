@@ -36,6 +36,7 @@
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Inertial.hh"
 #include "ignition/gazebo/components/Link.hh"
+#include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Link.hh"
@@ -92,20 +93,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   VehicleParameters vehicleParams;
 
   math::Inertiald vehicleInertial;
-  // Compute the vehicle's moment of inertia and mass assuming that all the
-  // links in the model belong to the vehicle.
-  for (const Entity &link :
-       _ecm.ChildrenByComponents(this->model.Entity(), components::Link()))
-  {
-    auto inertial = _ecm.Component<components::Inertial>(link);
-    if (nullptr == inertial)
-    {
-      ignerr << "Could not find inertial component on on link "
-             << this->comLinkName << std::endl;
-      return;
-    }
-    vehicleInertial += inertial->Data();
-  }
+  vehicleInertial = this->VehicleInertial(_ecm, this->model.Entity());
 
   vehicleParams.mass = vehicleInertial.MassMatrix().Mass();
   vehicleParams.inertia = math::eigen3::convert(vehicleInertial.Moi());
@@ -316,6 +304,33 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
                        components::Actuators(this->rotorVelocitiesMsg));
 
   this->initialized = true;
+}
+
+//////////////////////////////////////////////////
+math::Inertiald MulticopterVelocityControl::VehicleInertial(
+    const EntityComponentManager &_ecm, Entity _entity)
+{
+  math::Inertiald vehicleInertial;
+
+  for (const Entity &link :
+       _ecm.ChildrenByComponents(_entity, components::Link()))
+  {
+    auto inertial = _ecm.Component<components::Inertial>(link);
+    if (nullptr == inertial)
+    {
+      ignerr << "Could not find inertial component on link "
+             << this->comLinkName << std::endl;
+      return vehicleInertial;
+    }
+    vehicleInertial += inertial->Data();
+  }
+
+  for (const Entity &modelEnt :
+       _ecm.ChildrenByComponents(_entity, components::Model()))
+  {
+    vehicleInertial += this->VehicleInertial(_ecm, modelEnt);
+  }
+  return vehicleInertial;
 }
 
 //////////////////////////////////////////////////

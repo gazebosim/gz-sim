@@ -1484,8 +1484,8 @@ TEST_P(SimulationRunnerTest,
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
-  runner.EventMgr().Emit<events::LoadPlugins>(boxEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(boxEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component registered by model plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
@@ -1494,8 +1494,8 @@ TEST_P(SimulationRunnerTest,
       componentId)) << componentId;
 
   // Emit plugin loading event again
-  runner.EventMgr().Emit<events::LoadPlugins>(sphereEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(sphereEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component for the other model
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
@@ -1522,14 +1522,38 @@ TEST_P(SimulationRunnerTest,
   EXPECT_FALSE(runner.EntityCompMgr().HasEntity(sphereEntity));
 
   // Emit plugin loading event after all previous instances have been removed
-  runner.EventMgr().Emit<events::LoadPlugins>(cylinderEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(cylinderEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component for the other model
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
       << componentId;
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(cylinderEntity,
       componentId)) << componentId;
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
+{
+  sdf::Root rootWithout;
+  rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "model_plugin_only.sdf"));
+  ASSERT_EQ(1u, rootWithout.WorldCount());
+
+  // ServerConfig will fall back to environment variable
+  auto config = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ServerConfig serverConfig;
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+      serverConfig);
+
+  // 1 model plugin from SDF and 2 world plugins from config
+  ASSERT_EQ(3u, runner.SystemCount());
 }
 
 /////////////////////////////////////////////////

@@ -3,13 +3,13 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.7.0)
+project(ignition-gazebo6 VERSION 6.10.0)
 
 #============================================================================
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.8.0 REQUIRED)
+find_package(ignition-cmake2 2.12.0 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -59,7 +59,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED VERSION 12.3)
+ign_find_package(sdformat12 REQUIRED VERSION 12.4)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -74,13 +74,13 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.2)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.5)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.4
+ign_find_package(ignition-common4 VERSION 4.5.1
   COMPONENTS
     profiler
     events
@@ -119,7 +119,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.6
   # component order is important
   COMPONENTS
     # non-rendering
@@ -138,6 +138,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
@@ -147,7 +148,7 @@ set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED)
+ign_find_package(ignition-rendering6 REQUIRED VERSION 6.5)
 set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -160,6 +161,9 @@ set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 ign_find_package(ignition-tools
                  REQUIRED
                  PKGCONFIG "ignition-tools")
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find ignition-utils
@@ -187,6 +191,7 @@ else()
   message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
   set(PYBIND11_PYTHON_VERSION 3)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
   find_package(pybind11 2.2 QUIET)
 
   if (${pybind11_FOUND})
@@ -224,6 +229,8 @@ endif()
 #============================================================================
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.desktop.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.desktop)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.svg)
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released

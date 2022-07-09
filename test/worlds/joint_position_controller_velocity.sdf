@@ -112,6 +112,7 @@
         <joint_name>j1</joint_name>
         <use_velocity_commands>true</use_velocity_commands>
         <cmd_max>1000</cmd_max>
+        <initial_position>-2.0</initial_position>
       </plugin>
     </model>
   </world>

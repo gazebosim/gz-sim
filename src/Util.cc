@@ -36,6 +36,9 @@
 #include <ignition/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
+#include <ignition/fuel_tools/Interface.hh>
+#include <ignition/fuel_tools/ClientConfig.hh>
+
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/Collision.hh"
 #include "ignition/gazebo/components/Joint.hh"
@@ -405,7 +408,7 @@ std::vector<std::string> resourcePaths()
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
@@ -425,7 +428,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
-    sdfPaths = common::Split(sdfPathCStr, ':');
+    sdfPaths = common::Split(sdfPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Ignition file paths (for <uri>s)
@@ -434,7 +437,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
-    ignPaths = common::Split(ignPathCStr, ':');
+    ignPaths = common::Split(ignPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Gazebo resource paths
@@ -442,7 +445,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Add new paths to gzPaths
@@ -471,20 +474,20 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   // Update the vars
   std::string sdfPathsStr;
   for (const auto &path : sdfPaths)
-    sdfPathsStr += ':' + path;
+    sdfPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
-    ignPathsStr += ':' + path;
+    ignPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(
     systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
-    gzPathsStr += ':' + path;
+    gzPathsStr += common::SystemPaths::Delimiter() + path;
 
   ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
@@ -579,7 +582,80 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
   // Return degrees
   return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
 }
-}
-}
+
+//////////////////////////////////////////////////
+// Getting the first .sdf file in the path
+std::string findFuelResourceSdf(const std::string &_path)
+{
+  if (!common::exists(_path))
+    return "";
+
+  for (common::DirIter file(_path); file != common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (!common::isFile(current))
+      continue;
+
+    auto fileName = common::basename(current);
+    auto fileExtensionIndex = fileName.rfind(".");
+    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+    if (fileExtension == "sdf")
+    {
+      return current;
+    }
+  }
+  return "";
 }
 
+//////////////////////////////////////////////////
+std::string resolveSdfWorldFile(const std::string &_sdfFile,
+    const std::string &_fuelResourceCache)
+{
+  std::string filePath;
+
+  // Check Fuel if it's a URL
+  auto sdfUri = common::URI(_sdfFile);
+  if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+  {
+    fuel_tools::ClientConfig config;
+    if (!_fuelResourceCache.empty())
+      config.SetCacheLocation(_fuelResourceCache);
+    fuel_tools::FuelClient fuelClient(config);
+
+    std::string fuelCachePath;
+    if (fuelClient.CachedWorld(common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else if (auto result = fuelClient.DownloadWorld(
+          common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else
+    {
+      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+        << "], error: [" << result.ReadableResult() << "]"
+        << std::endl;
+    }
+  }
+
+  if (filePath.empty())
+  {
+    common::SystemPaths systemPaths;
+
+    // Worlds from environment variable
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+
+    // Worlds installed with ign-gazebo
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+    filePath = systemPaths.FindFile(_sdfFile);
+  }
+
+  return filePath;
+}
+}
+}
+}

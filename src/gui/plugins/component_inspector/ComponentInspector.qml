@@ -101,12 +101,14 @@ Rectangle {
                    _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                    _attRange, _attLinear, _attConstant, _attQuadratic,
                    _castShadows, _directionX, _directionY, _directionZ,
-                   _innerAngle, _outerAngle, _falloff, _intensity, _type) {
+                   _innerAngle, _outerAngle, _falloff, _intensity, _type,
+                   _isLightOn, _visualizeVisual) {
     ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
                                _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                                _attRange, _attLinear, _attConstant, _attQuadratic,
                                _castShadows, _directionX, _directionY, _directionZ,
-                               _innerAngle, _outerAngle, _falloff, _intensity, _type)
+                               _innerAngle, _outerAngle, _falloff, _intensity, _type,
+                               _isLightOn, _visualizeVisual)
   }
 
   /*
@@ -243,6 +245,14 @@ Rectangle {
 
     delegate: Loader {
       id: loader
+
+      /**
+       * Most items can access model.data directly, but items like ListView,
+       * which have their own `model` property, can't. They can use
+       * `componentData` instead.
+       */
+      property var componentData: model.data
+
       source: delegateQml(model)
     }
   }

@@ -53,6 +53,22 @@ namespace systems
   /// * **Request type*: ignition.msgs.EntityFactory_V
   /// * **Response type*: ignition.msgs.Boolean
   ///
+  /// # Set entity pose
+  ///
+  /// This service set the pose of entities
+  ///
+  /// * **Service**: `/world/<world name>/set_pose`
+  /// * **Request type*: ignition.msgs.Pose
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
+  /// # Set multiple entity poses
+  ///
+  /// This service set the pose of multiple entities
+  ///
+  /// * **Service**: `/world/<world name>/set_pose_vector`
+  /// * **Request type*: ignition.msgs.Pose_V
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
   /// Try some examples described on examples/worlds/empty.sdf
   class UserCommands:
     public System,
