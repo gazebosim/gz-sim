@@ -89,13 +89,13 @@ class Cmd
       end
       opts.on('-e [arg]', '--export_type [arg]', String, 'Export type between colcon or plain-camke') do |e|
         options['export_type'] = e
-      end 
+      end
       opts.on('-d','--standard_dependecies', String, 'Package depends on standard ign packages') do
         options['standard_dependecies'] = 1
       end
       opts.on('-g [arg]', '--gazebo_version [arg]',String, 'Gazebo version name for dependencies') do |g|
         options['gazebo_version'] = g
-      end     
+      end
       
     end # opt_parser do
     begin
@@ -137,10 +137,10 @@ class Cmd
     end 
     if !options.key?('standard_dependecies')
       options['standard_dependecies'] = 0
-    end  
+    end
     if !options.key?('gazebo_version')
       options['gazebo_version'] = "fortress"
-    end  
+    end
 
     options['command'] = args[0]
 
@@ -173,7 +173,7 @@ class Cmd
     if Dir.exists?(options['name'])
       puts "ERROR:Folder with this name already exists."
       exit(-1)
-    end  
+    end
 
     #Creates Package folder
     Dir.mkdir(options['name'])
@@ -181,13 +181,12 @@ class Cmd
     #Fetching dependencies versions for standard dependencies
     if options['standard_dependecies']==1
       dependencies = URI.open('https://raw.githubusercontent.com/ignition-tooling/gazebodistro/master/collection-%s.yaml'% options['gazebo_version']){|f| f.read}
-      dependencies_yaml =  YAML.load(dependencies)
+      dependencies_yaml = YAML.load(dependencies)
       dependencies_dict={}
       for dependency in dependencies_yaml.fetch('repositories').keys
         dependencies_dict[dependency]=dependencies_yaml['repositories'][dependency]['version'].scan( /\d+$/ ).first
       end
     end
-
 
     resources_dir=__dir__+"/resources"
 
@@ -242,10 +241,7 @@ class Cmd
       model_sdf_file = File.new(options['name']+"/models/elevator/model.sdf", "w")
       model_sdf_file.puts(model_sdf_txt)
       model_sdf_file.close
-    end  
-
-
-
+    end
   # # execute
   end
 # class
