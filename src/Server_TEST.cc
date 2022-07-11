@@ -1004,7 +1004,9 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 TEST_P(ServerFixture, GetResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -1034,7 +1036,9 @@ TEST_P(ServerFixture, GetResourcePaths)
 TEST_P(ServerFixture, AddResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
   ignition::common::setenv("SDF_PATH", "");
   ignition::common::setenv("IGN_FILE_PATH", "");
 
@@ -1063,7 +1067,9 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Add path
   msgs::StringMsg_V req;
   req.add_data("/tmp/new_path");
-  req.add_data("/tmp/more:/tmp/even_more");
+  req.add_data(std::string("/tmp/more") +
+               common::SystemPaths::Delimiter() +
+               std::string("/tmp/even_more"));
   req.add_data("/tmp/some/path");
   bool executed = node.Request("/gazebo/resource_paths/add", req);
   EXPECT_TRUE(executed);
@@ -1082,7 +1088,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   {
     char *pathCStr = std::getenv(env);
 
-    auto paths = common::Split(pathCStr, ':');
+    auto paths = common::Split(pathCStr, common::SystemPaths::Delimiter());
     paths.erase(std::remove_if(paths.begin(), paths.end(),
         [](std::string const &_path)
         {
