@@ -1281,7 +1281,8 @@ void ComponentInspector::QuerySystems()
       "/entity/system/info"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "querying systems " << std::endl;
+    ignerr << "Unable to query available systems." << std::endl;
+    return;
   }
 
   this->dataPtr->systemFilenameList.clear();

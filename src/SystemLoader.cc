@@ -51,7 +51,8 @@ class ignition::gazebo::SystemLoaderPrivate
 
     std::string homePath;
     ignition::common::env(IGN_HOMEDIR, homePath);
-    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
+    systemPaths.AddPluginPaths(common::joinPaths(
+        homePath, ".ignition", "gazebo", "plugins"));
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
 
     return systemPaths.PluginPaths();
