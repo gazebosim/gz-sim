@@ -2260,6 +2260,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
   common::MeshManager *meshManager = common::MeshManager::Instance();
   descriptor.mesh = meshManager->Load(descriptor.meshName);
   common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
+
   unsigned int numAnims = 0;
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   mapAnimNameId[descriptor.meshName] = numAnims++;
