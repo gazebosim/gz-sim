@@ -8,7 +8,6 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
@@ -94,7 +93,7 @@
     </model>
 <include>
     <uri>
-    model://elevator
+      model://elevator
     </uri>
 </include>
   <plugin filename="HelloWorld" name="hello_world::HelloWorld">

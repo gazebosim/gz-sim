@@ -4,7 +4,7 @@ require 'open-uri'
 require 'yaml'
 require 'ostruct'
 
-# Copyright (C) 2021 Open Source Robotics Foundation
+# Copyright (C) 2022 Open Source Robotics Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ COMMANDS = { 'pkg_create' =>
 }
 
 #
-# Class for the Ignition Gazebo hi command line tools.
+# Class for the Gazebo pkg_create command line tools.
 #
 class Cmd
 

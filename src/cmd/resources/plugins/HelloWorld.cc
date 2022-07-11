@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,8 @@
  * limitations under the License.
  *
 */
-//This is a sample code showing how an ignition plugins works
+
+//This is a sample code showing how an Gazebo simulator plugins works
 // We'll use a string and the ignmsg command below for a brief example.
 // Remove these includes if your plugin doesn't need them.
 #include <string>
