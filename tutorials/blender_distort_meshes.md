@@ -87,7 +87,9 @@ For the latest arguments, see the script itself.
   or the prefix of the name if it contains automatically generated suffixes like
   `.001`, `.002`, etc. Blender automatically appends numerical suffixes if the
   script is repeatedly run.
-- `distort_extent`: A floating point number in the range of [0, 1]
+- `distort_extent`: A floating point number in the range of [0, 1]. This number
+  may need tuning depending on the object model. If using `vert_rand` method,
+  you may want to tune `VERT_RAND_MIN` and `VERT_RAND_MAX` to the model.
 - `method`: A list of strings. Distortion operations, in order of desired
   execution.
 
