@@ -13,7 +13,8 @@
 #     repeatedly run, Blender will append numerical suffixes .001, .002, etc.
 #     to the object name.
 #   distort_extent: A floating point number in the range of [0, 1]
-#   method: Distortion method. A list of strings.
+#   method: A list of strings. Distortion operations, in order of desired
+#     execution.
 #
 #   Example from command line:
 #   $ blender -b -P distort_mesh.py -- /path/to/mesh.obj object_prefix 0.005 "['subdiv_mod', 'vert_rand', 'edge_subdiv']"

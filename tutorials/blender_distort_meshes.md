@@ -13,7 +13,8 @@ It offers a Python API for most things available in its GUI.
 
 ## Prerequisites
 
-These instructions have been tested in [Blender](https://www.blender.org/) 2.92.
+These instructions have been tested in [Blender](https://www.blender.org/) 2.92
+and 3.0.1.
 Version 2.8x and above have a revamped user interface from previous versions.
 The version in packaging managers such as `apt-get` may be older.
 In that case, install manually as needed.
@@ -23,10 +24,10 @@ If newer versions do not work for you, Blender 2.92 can be found
 
 ## Usage
 
-Launch the Blender GUI.
-
 Locate or download the Blender Python
 [script](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo7/examples/scripts/blender/distort_mesh.py).
+
+Launch the Blender GUI.
 
 Helpful tip for Blender Python development:
 To show Python API in the tooltips when the cursor is hovered over a button or
@@ -78,6 +79,31 @@ result.
 
 ### Run the script
 
+The script takes a few arguments.
+For the latest arguments, see the script itself.
+
+- `mesh_path`: Absolute path to the mesh file
+- `object_prefix`: Name of the object in the Scene Collection panel in Blender,
+  or the prefix of the name if it contains automatically generated suffixes like
+  `.001`, `.002`, etc. Blender automatically appends numerical suffixes if the
+  script is repeatedly run.
+- `distort_extent`: A floating point number in the range of [0, 1]
+- `method`: A list of strings. Distortion operations, in order of desired
+  execution.
+
+#### From shell command prompt
+
+Run the Blender executable in the background (`-b`), passing it the Python
+(`-P`) script file and custom arguments to the distortion script (arguments
+after `--`):
+```
+blender -b -P distort_mesh.py -- '/path/to/models/Coke/meshes/coke.obj' 'LPCoke_Cube' 0.2 "['subdiv_mod', 'vert_rand', 'edge_subdiv']"
+```
+
+Note that the list needs to be in quotes.
+
+#### From Blender Scripting panel Python prompt
+
 At the top of Blender GUI, go to the Scripting tab.
 All commands will be executed in the Console panel in the middle-left of the
 screen.
@@ -93,14 +119,14 @@ Set optional arguments. If not specified, the default will be used.
 Make sure `method` is specified as a list in brackets, even if it contains only
 one element.
 ```
-distort_extent = 0.2
+distort_extent = 0.005
 method = ['subdiv_mod', 'vert_rand', 'edge_subdiv']
 ```
 
 Put the args into the input array:
 ```
 import sys
-sys.argv = ['distort_mesh.py', file_path, object_prefix, distort_extent, method]
+sys.argv = [file_path, object_prefix, distort_extent, method]
 ```
 
 Run the script, replacing its path with the one on your machine:
