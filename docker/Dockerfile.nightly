@@ -1,13 +1,13 @@
-FROM ign-gazebo:base
+FROM gz-sim:base
 
-COPY docker/scripts/enable_ign_stable.sh scripts/enable_ign_stable.sh
-RUN scripts/enable_ign_stable.sh
+COPY docker/scripts/enable_stable.sh scripts/enable_stable.sh
+RUN scripts/enable_stable.sh
 
-COPY docker/scripts/enable_ign_prerelease.sh scripts/enable_ign_prerelease.sh
-RUN scripts/enable_ign_prerelease.sh
+COPY docker/scripts/enable_prerelease.sh scripts/enable_prerelease.sh
+RUN scripts/enable_prerelease.sh
 
-COPY docker/scripts/enable_ign_nightly.sh scripts/enable_ign_nightly.sh
-RUN scripts/enable_ign_nightly.sh
+COPY docker/scripts/enable_nightly.sh scripts/enable_nightly.sh
+RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
@@ -25,9 +25,9 @@ RUN apt-get update \
     libignition-sensors7-dev \
     libsdformat13-dev
 
-COPY . ign-gazebo
-RUN cd ign-gazebo \
- && ./docker/scripts/build_ign_gazebo.sh
+COPY . gz-sim
+RUN cd gz-sim \
+ && ./docker/scripts/build_gz_sim.sh
 
 COPY ./docker/scripts/entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]

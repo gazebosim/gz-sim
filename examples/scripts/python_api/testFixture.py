@@ -13,28 +13,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# If you compiled Ignition Gazebo from source you should modify your
+# If you compiled Gazebo from source you should modify your
 # `PYTHONPATH`:
 #
 # export PYTHONPATH=$PYTHONPATH:<path to ws>/install/lib/python
 #
 # Now you can run the example:
 #
-# python3 examples/scripts/python_api/helperFixture.py
+# python3 examples/scripts/python_api/testFixture.py
 
 import os
-import time
 
 from ignition.common import set_verbosity
 from ignition.gazebo import TestFixture, World, world_entity
 from ignition.math import Vector3d
-from sdformat import Element
 
 set_verbosity(4)
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 
-helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
+fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 
 post_iterations = 0
 iterations = 0
@@ -48,7 +46,7 @@ def on_pre_udpate_cb(_info, _ecm):
     pre_iterations += 1
     if first_iteration:
         first_iteration = False
-        world_e = world_entity(_ecm);
+        world_e = world_entity(_ecm)
         print('World entity is ', world_e)
         w = World(world_e)
         v = w.gravity(_ecm)
@@ -69,16 +67,13 @@ def on_post_udpate_cb(_info, _ecm):
         print('Post update sim time: ', _info.sim_time)
 
 
-helper.on_post_update(on_post_udpate_cb)
-helper.on_update(on_udpate_cb)
-helper.on_pre_update(on_pre_udpate_cb)
-helper.finalize()
+fixture.on_post_update(on_post_udpate_cb)
+fixture.on_update(on_udpate_cb)
+fixture.on_pre_update(on_pre_udpate_cb)
+fixture.finalize()
 
-server = helper.server()
-server.run(False, 1000, False)
-
-while(server.is_running()):
-    time.sleep(0.1)
+server = fixture.server()
+server.run(True, 1000, False)
 
 print('iterations ', iterations)
 print('post_iterations ', post_iterations)

@@ -23,11 +23,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
 
 #include <sdf/Box.hh>
 #include <sdf/Ellipsoid.hh>
@@ -39,19 +39,19 @@
 #include <sdf/Sensor.hh>
 #include <sdf/parser.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/Util.hh"
 
 #include "ModelEditor.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class EntityToAdd
   {
@@ -130,8 +130,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 ModelEditor::ModelEditor()
@@ -145,15 +145,15 @@ ModelEditor::~ModelEditor() = default;
 /////////////////////////////////////////////////
 void ModelEditor::Load()
 {
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
 void ModelEditor::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ModelEditor::Update");
+  GZ_PROFILE("ModelEditor::Update");
 
   if (!this->dataPtr->entityCreator)
   {
@@ -170,7 +170,7 @@ void ModelEditor::Update(const UpdateInfo &,
   {
     if (eta.parentEntity == kNullEntity)
     {
-      ignerr << "Parent entity not defined." << std::endl;
+      gzerr << "Parent entity not defined." << std::endl;
        continue;
     }
 
@@ -236,12 +236,12 @@ void ModelEditor::Update(const UpdateInfo &,
   }
 
   // use GuiNewRemovedEntities event to update other gui plugins
-  // note this event will be removed in Ignition Garden
+  // note this event will be removed in Gazebo Garden
   std::set<Entity> removedEntities;
-  ignition::gazebo::gui::events::GuiNewRemovedEntities event(
+  gz::sim::gui::events::GuiNewRemovedEntities event(
       newEntities, removedEntities);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 
   this->dataPtr->entitiesToAdd.clear();
@@ -250,7 +250,7 @@ void ModelEditor::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 bool ModelEditor::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gazebo::gui::events::ModelEditorAddEntity::kType)
+  if (_event->type() == sim::gui::events::ModelEditorAddEntity::kType)
   {
     auto event = reinterpret_cast<gui::events::ModelEditorAddEntity *>(_event);
     if (event)
@@ -302,7 +302,7 @@ std::optional<sdf::Light> ModelEditorPrivate::CreateLight(
   }
   else
   {
-    ignwarn << "Light type not supported: "
+    gzwarn << "Light type not supported: "
       << _eta.geomOrLightType << std::endl;
     return std::nullopt;
   }
@@ -362,7 +362,7 @@ std::optional<sdf::Geometry> ModelEditorPrivate::CreateGeom(
   }
   else
   {
-    ignwarn << "Geometry type not supported: "
+    gzwarn << "Geometry type not supported: "
       << _eta.geomOrLightType << std::endl;
     return std::nullopt;
   }
@@ -377,7 +377,7 @@ std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
   sdf::Link link;
   if (_eta.parentEntity == kNullEntity)
   {
-    ignerr << "Parent entity not defined." << std::endl;
+    gzerr << "Parent entity not defined." << std::endl;
     return std::nullopt;
   }
 
@@ -432,7 +432,7 @@ std::optional<sdf::Sensor> ModelEditorPrivate::CreateSensor(
   // Exit early if there is no parent entity
   if (_eta.parentEntity == kNullEntity)
   {
-    ignerr << "Parent entity not defined." << std::endl;
+    gzerr << "Parent entity not defined." << std::endl;
     return std::nullopt;
   }
 
@@ -500,14 +500,14 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
     joint.SetType(sdf::JointType::SCREW);
   else
   {
-    ignwarn << "Joint type not supported: "
+    gzwarn << "Joint type not supported: "
       << _eta.geomOrLightType << std::endl;
 
     return std::nullopt;
   }
 
-  joint.SetParentLinkName(_eta.data.at("parent_link"));
-  joint.SetChildLinkName(_eta.data.at("child_link"));
+  joint.SetParentName(_eta.data.at("parent_link"));
+  joint.SetChildName(_eta.data.at("child_link"));
 
   std::string jointName = "joint";
   Entity jointEnt = _ecm.EntityByComponents(

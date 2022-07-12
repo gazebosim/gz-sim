@@ -14,24 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
-#define IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+#ifndef GZ_SIM_SYSTEMINTERNAL_HH_
+#define GZ_SIM_SYSTEMINTERNAL_HH_
 
 #include <chrono>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemPluginPtr.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Class to hold systems internally. It supports systems loaded
     /// from plugins, as well as systems created at runtime.
@@ -105,6 +106,14 @@ namespace ignition
       /// system during the `Configure` call.
       public: Entity parentEntity = {kNullEntity};
 
+      /// \brief Cached filename of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string fname = "";
+
+      /// \brief Cached plugin name of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string name = "";
+
       /// \brief Cached sdf that was used to call `Configure` on the system
       /// Useful for if a system needs to be reconfigured at runtime
       public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
@@ -113,7 +122,6 @@ namespace ignition
       public: std::vector<EntityQueryCallback> updates;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
-
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_SYSTEMINTERNAL_HH_

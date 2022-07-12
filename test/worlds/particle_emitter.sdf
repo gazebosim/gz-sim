@@ -8,8 +8,8 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-particle-emitter-system"
-      name="ignition::gazebo::systems::ParticleEmitter">
+      filename="gz-sim-particle-emitter-system"
+      name="gz::sim::systems::ParticleEmitter">
     </plugin>
 
     <light type="directional" name="sun">

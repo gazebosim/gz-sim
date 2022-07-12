@@ -17,36 +17,36 @@
 
 #include "Shapes.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include <ignition/gazebo/Primitives.hh>
+#include <gz/sim/Primitives.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ShapesPrivate
   {
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Shapes::Shapes()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ShapesPrivate>())
 {
 }
@@ -61,8 +61,8 @@ void Shapes::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Shapes";
 
   // For shapes requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -73,13 +73,13 @@ void Shapes::OnMode(const QString &_mode)
 
   if (!modelSdfString.empty())
   {
-    ignition::gui::events::SpawnFromDescription event(modelSdfString);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(modelSdfString);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
   }
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Shapes,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::Shapes,
+                    gz::gui::Plugin)

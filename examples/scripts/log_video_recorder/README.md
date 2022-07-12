@@ -10,7 +10,7 @@ box) where the entities are located at the start of the log.
 
 Run the `log_record_shapes.sdf` world to generate a state log of the simulation:
 
-    ign gazebo log_record_shapes.sdf
+    gz sim log_record_shapes.sdf
 
 Press Play and let the simulation run for 10 seconds of sim time. Stop and exit.
 You should now see a `state.tlog` generated in `/tmp/log` directory. Now, let's
@@ -24,18 +24,18 @@ e.g.
 
         bash record_one_run.bash /tmp/log
 
-Once the script is run, ign-gazebo window should pop-up and log playback
+Once the script is run, gz-sim window should pop-up and log playback
 should automatically start. The GUI camera will follow the first entity found
 and the video recorder will be started. When the log playback ends, the video
 is saved to the current working directory. The log playback rewinds and the
 process is repeated for next entity until there are no more entities left. Once
-all videos are done, ign-gazebo is killed and the videos are moved to a
+all videos are done, gz-sim is killed and the videos are moved to a
 timestamped directory where the `record_one_run.bash` is in.
 
 ## Changing camera follow behavior
 
 > This feature hasn't been ported to Fortress yet, see
-> https://github.com/ignitionrobotics/ign-gui/issues/298
+> https://github.com/gazebosim/gz-gui/issues/298
 
 ## Troubleshooting
 

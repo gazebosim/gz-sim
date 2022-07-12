@@ -6,8 +6,8 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-collada-world-exporter-system"
-      name="ignition::gazebo::systems::ColladaWorldExporter">
+      filename="gz-sim-collada-world-exporter-system"
+      name="gz::sim::systems::ColladaWorldExporter">
     </plugin>
 
     <model name="ground_plane">

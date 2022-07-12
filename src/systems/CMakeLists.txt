@@ -5,7 +5,7 @@
 #              [PRIVATE_LINK_LIBS <libraries...>]
 #              [PRIVATE_COMPILE_DEFS <definitions...>])
 #
-# Add a system component to Ignition Gazebo.
+# Add a system component to Gazebo.
 #
 # <system> Required. Name of the system.
 #
@@ -44,10 +44,9 @@ function(gz_add_system system_name)
   endif()
 
 
-  ign_add_component(${system_name}
+  gz_add_component(${system_name}
     SOURCES ${sources}
-    GET_TARGET_NAME system_target
-    CXX_STANDARD 17)
+    GET_TARGET_NAME system_target)
 
   target_link_libraries(${system_target}
     PUBLIC
@@ -55,7 +54,7 @@ function(gz_add_system system_name)
       ${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE
       ${gz_add_system_PRIVATE_LINK_LIBS}
-      ignition-plugin${IGN_PLUGIN_VER}::register
+      gz-plugin${GZ_PLUGIN_VER}::register
   )
 
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)
@@ -73,11 +72,14 @@ function(gz_add_system system_name)
   endif()
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
-  install(TARGETS ${system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+  install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
 
-  # The library created by `ign_add_component` includes the ign-gazebo version
-  # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
+  # The library created by `gz_add_component` includes the gz-sim version
+  # (i.e. libgz-gazebo1-name-system.so), but for portability of SDF
   # files, we also install an unversioned symlink into the same versioned folder.
+  #
+  # NOTE(CH3): On migration of the CMake project name, ignition-gazebo -> gz-sim
+  # so the generated library target WILL CHANGE
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(WIN32)
@@ -89,7 +91,7 @@ function(gz_add_system system_name)
   else()
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
   endif()
 endfunction()
 
@@ -102,6 +104,7 @@ add_subdirectory(breadcrumbs)
 add_subdirectory(buoyancy)
 add_subdirectory(buoyancy_engine)
 add_subdirectory(collada_world_exporter)
+add_subdirectory(comms_endpoint)
 add_subdirectory(contact)
 add_subdirectory(camera_video_recorder)
 add_subdirectory(detachable_joint)
@@ -136,8 +139,10 @@ add_subdirectory(optical_tactile_plugin)
 add_subdirectory(particle_emitter)
 add_subdirectory(particle_emitter2)
 add_subdirectory(performer_detector)
+add_subdirectory(perfect_comms)
 add_subdirectory(physics)
 add_subdirectory(pose_publisher)
+add_subdirectory(rf_comms)
 add_subdirectory(scene_broadcaster)
 add_subdirectory(sensors)
 add_subdirectory(shader_param)

@@ -6,12 +6,12 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-buoyancy-system.so"
-      name="ignition::gazebo::systems::Buoyancy">
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
        <graded_buoyancy>
 	    <default_density>1000</default_density>
       <density_change>
@@ -22,12 +22,12 @@
     </plugin>
 
      <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <model name='no_offset'>
       <pose>0 0 0 0 0 0</pose>

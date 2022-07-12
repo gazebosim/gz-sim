@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SERVERPRIVATE_HH_
-#define IGNITION_GAZEBO_SERVERPRIVATE_HH_
+#ifndef GZ_SIM_SERVERPRIVATE_HH_
+#define GZ_SIM_SERVERPRIVATE_HH_
 
-#include <ignition/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -32,33 +32,33 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/URI.hh>
-#include <ignition/common/WorkerPool.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/URI.hh>
+#include <gz/common/WorkerPool.hh>
 
-#include <ignition/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/FuelClient.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/msgs/server_control.pb.h>
+#include <gz/msgs/server_control.pb.h>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
 
 using namespace std::chrono_literals;
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     class SimulationRunner;
 
     // Private data for Server
-    class IGNITION_GAZEBO_HIDDEN ServerPrivate
+    class GZ_SIM_HIDDEN ServerPrivate
     {
       /// \brief Constructor
       public: ServerPrivate();
@@ -105,24 +105,46 @@ namespace ignition
       /// \brief Callback for worlds service.
       /// \param[out] _res Response containing the names of all the worlds.
       /// \return True if successful.
-      private: bool WorldsService(ignition::msgs::StringMsg_V &_res);
+      private: bool WorldsService(gz::msgs::StringMsg_V &_res);
 
       /// \brief Callback for add resource paths service.
       /// \param[out] _req Request containing the paths to be added.
       private: void AddResourcePathsService(
-          const ignition::msgs::StringMsg_V &_req);
+          const gz::msgs::StringMsg_V &_req);
 
       /// \brief Callback for get resource paths service.
       /// \param[out] _res Response filled with all current paths.
       /// \return True if successful.
-      private: bool ResourcePathsService(ignition::msgs::StringMsg_V &_res);
+      private: bool ResourcePathsService(gz::msgs::StringMsg_V &_res);
+
+      /// \brief Callback for a resource path resolve service. This service
+      /// will return the full path to a provided resource's URI. An empty
+      /// string and return value of false will be used if the resource could
+      /// not be found.
+      ///
+      /// Fuel will be checked and then the GZ_SIM_RESOURCE_PATH environment
+      /// variable paths. This service will not check for files relative to
+      /// working directory of the Gazebo server.
+      ///
+      /// \param[in] _req Request filled with a resource URI to resolve.
+      /// Example values could be:
+      ///   * https://URI_TO_A_FUEL_RESOURCE
+      ///   * model://MODLE_NAME/meshes/MESH_NAME
+      ///   * file://PATH/TO/FILE
+      ///
+      /// \param[out] _res Response filled with the resolved path, or empty
+      /// if the resource could not be found.
+      /// \return True if successful, false otherwise.
+      private: bool ResourcePathsResolveService(
+                   const msgs::StringMsg &_req,
+                   msgs::StringMsg &_res);
 
       /// \brief Callback for server control service.
       /// \param[out] _req The control request.
       /// \param[out] _res Whether the request was successfully fullfilled.
       /// \return True if successful.
       private: bool ServerControlService(
-        const ignition::msgs::ServerControl &_req, msgs::Boolean &_res);
+        const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
@@ -144,7 +166,7 @@ namespace ignition
       public: std::shared_ptr<std::thread> stopThread;
 
       /// \brief Our signal handler.
-      public: ignition::common::SignalHandler sigHandler;
+      public: gz::common::SignalHandler sigHandler;
 
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
@@ -157,7 +179,7 @@ namespace ignition
       /// \brief The server configuration.
       public: ServerConfig config;
 
-      /// \brief Client used to download resources from Ignition Fuel.
+      /// \brief Client used to download resources from Gazebo Fuel.
       public: std::unique_ptr<fuel_tools::FuelClient> fuelClient = nullptr;
 
       /// \brief Map from file paths to fuel URIs. This is set and updated by

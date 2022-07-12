@@ -15,10 +15,12 @@
  *
 */
 
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
@@ -45,8 +47,12 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
+    SystemInternal ss(system.value(), _entity);
+    ss.fname = _fname;
+    ss.name = _name;
+    ss.configureSdf = _sdf;
+    this->AddSystemImpl(ss, ss.configureSdf);
+    gzdbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -102,6 +108,82 @@ size_t SystemManager::ActivatePendingSystems()
 }
 
 //////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+};
+
+//////////////////////////////////////////////////
+void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+    this->pendingSystems.clear();
+  }
+
+  // Clear all iterable collections of systems
+  this->systemsConfigure.clear();
+  this->systemsReset.clear();
+  this->systemsPreupdate.clear();
+  this->systemsUpdate.clear();
+  this->systemsPostupdate.clear();
+
+  std::vector<PluginInfo> pluginsToBeLoaded;
+
+  for (auto &system : this->systems)
+  {
+    if (nullptr != system.reset)
+    {
+      // If implemented, call reset and add to pending systems.
+      system.reset->Reset(_info, _ecm);
+
+      {
+        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+        this->pendingSystems.push_back(system);
+      }
+    }
+    else
+    {
+      // Cannot reset systems that were created in memory rather than
+      // from a plugin, because there isn't access to the constructor.
+      if (nullptr != system.systemShared)
+      {
+        ignwarn << "In-memory without ISystemReset detected: ["
+          << system.name << "]\n"
+          << "Systems created without plugins that do not implement Reset"
+          << " will not be reloaded. Reset may not work correctly\n";
+        continue;
+      }
+      PluginInfo info = {
+        system.parentEntity, system.fname, system.name,
+        system.configureSdf->Clone()
+      };
+
+      pluginsToBeLoaded.push_back(info);
+    }
+  }
+
+  this->systems.clear();
+
+  // Load plugins which do not implement reset after clearing this->systems
+  // to ensure the previous instance is destroyed before the new one is created
+  // and configured.
+  for (const auto &pluginInfo : pluginsToBeLoaded)
+  {
+    this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name,
+        pluginInfo.sdf);
+  }
+  this->ActivatePendingSystems();
+}
+
+//////////////////////////////////////////////////
 void SystemManager::AddSystem(const SystemPluginPtr &_system,
       Entity _entity,
       std::shared_ptr<const sdf::Element> _sdf)
@@ -123,6 +205,29 @@ void SystemManager::AddSystemImpl(
       SystemInternal _system,
       std::shared_ptr<const sdf::Element> _sdf)
 {
+  // Add component
+  if (this->entityCompMgr && kNullEntity != _system.parentEntity)
+  {
+    msgs::Plugin_V systemInfoMsg;
+    auto systemInfoComp =
+        this->entityCompMgr->Component<components::SystemPluginInfo>(
+        _system.parentEntity);
+    if (systemInfoComp)
+    {
+      systemInfoMsg = systemInfoComp->Data();
+    }
+    if (_sdf)
+    {
+      auto pluginMsg = systemInfoMsg.add_plugins();
+      pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
+    }
+
+    this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
+        _system.parentEntity, systemInfoMsg);
+    this->entityCompMgr->SetChanged(_system.parentEntity,
+        components::SystemPluginInfo::typeId);
+  }
+
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
@@ -169,16 +274,15 @@ const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 //////////////////////////////////////////////////
 std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
 {
+  auto checkEntity = [&](const SystemInternal &_system)
+      {
+        return _system.parentEntity == _entity;
+      };
+
   std::vector<SystemInternal> result;
-  for (auto system : this->systems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
-  for (auto system : this->pendingSystems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
+  std::copy_if(this->systems.begin(), this->systems.end(),
+      std::back_inserter(result), checkEntity);
+  std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
+      std::back_inserter(result), checkEntity);
   return result;
 }

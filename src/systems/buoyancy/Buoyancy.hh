@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
+#ifndef GZ_SIM_SYSTEMS_BUOYANCY_HH_
+#define GZ_SIM_SYSTEMS_BUOYANCY_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -73,7 +73,7 @@ namespace systems
   /// floats. To run:
   ///
   /// ```
-  /// ign gazebo -v 4 buoyancy.sdf
+  /// gz sim -v 4 buoyancy.sdf
   /// ```
   ///
   /// ### `graded_buoyancy` world
@@ -86,7 +86,7 @@ namespace systems
   /// `graded_buoyancy.sdf` world.
   ///
   /// ```
-  /// ign gazebo -v 4 graded_buoyancy.sdf
+  /// gz sim -v 4 graded_buoyancy.sdf
   /// ```
   ///
   /// You should be able to see a sphere bobbing up and down undergoing simple
@@ -129,8 +129,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Check if an entity is enabled or not.
     /// \param[in] _entity Target entity

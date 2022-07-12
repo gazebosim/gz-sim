@@ -16,9 +16,9 @@
 */
 #include "CustomComponentPlugin.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(examples::CustomComponentPlugin,
-    ignition::gazebo::System,
+GZ_ADD_PLUGIN(examples::CustomComponentPlugin,
+    gz::sim::System,
     examples::CustomComponentPlugin::ISystemConfigure)
 

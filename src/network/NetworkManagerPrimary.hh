@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#define GZ_SIM_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
 #include <atomic>
 #include <future>
@@ -24,21 +24,21 @@
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     struct SecondaryControl
     {
       /// \brief indicate if the secondary is ready to execute
@@ -55,9 +55,9 @@ namespace ignition
     };
 
     /// \class NetworkManagerPrimary NetworkManagerPrimary.hh
-    ///   ignition/gazebo/network/NetworkManagerPrimary.hh
+    ///   gz/sim/network/NetworkManagerPrimary.hh
     /// \brief Simulation primary specific behaviors
-    class IGNITION_GAZEBO_VISIBLE NetworkManagerPrimary:
+    class GZ_SIM_VISIBLE NetworkManagerPrimary:
       public NetworkManager
     {
       // Documentation inherited
@@ -111,10 +111,10 @@ namespace ignition
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Publisher for network step sync
-      private: ignition::transport::Node::Publisher simStepPub;
+      private: gz::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
       private: std::vector<msgs::SerializedStateMap> secondaryStates;
@@ -123,8 +123,8 @@ namespace ignition
       private: std::promise<void> secondaryStatesPromise;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGERPRIMARY_HH_
+#endif  // GZ_SIM_NETWORKMANAGERPRIMARY_HH_
 

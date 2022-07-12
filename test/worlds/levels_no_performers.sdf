@@ -6,8 +6,8 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -1404,7 +1404,7 @@
       </link>
     </model>
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
     <level name="level1">
       <pose>40 0 2.5 0 0 0</pose>
       <geometry>

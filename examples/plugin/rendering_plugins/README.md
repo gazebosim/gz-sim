@@ -1,10 +1,10 @@
 # Rendering plugins
 
-Demo of 2 plugins that use Ignition Rendering, one for the server and one for the client.
+Demo of 2 plugins that use Gazebo Rendering, one for the server and one for the client.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugin/rendering_plugins
@@ -22,15 +22,15 @@ Add the libraries to the correct paths:
 
 ~~~
 cd examples/plugin/rendering_plugins
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
-export IGN_GAZEBO_SYSTEM_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Run the example world
 
 ~~~
 cd examples/plugin/rendering_plugins
-ign gazebo -v 4 -r rendering_plugins.sdf
+gz sim -v 4 -r rendering_plugins.sdf
 ~~~
 
 The ambient light on the server scene, visible from the camera sensor, will change every 2 seconds.

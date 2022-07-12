@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 import QtGraphicalEffects 1.0
 import QtQuick 2.9
 import QtQuick.Controls 2.2
@@ -86,7 +86,7 @@ Rectangle {
       height = Qt.binding(function() {return parent.parent.height})
   }
 
-  IgnGazebo.EntityContextMenu {
+  GzSim.EntityContextMenu {
     id: entityContextMenu
     anchors.fill: parent
   }

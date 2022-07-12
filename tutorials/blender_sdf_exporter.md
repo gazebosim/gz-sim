@@ -12,7 +12,7 @@ mesh/materials/lights feature set. As such feel free to customize the script as 
 
 ## Using the Blender SDF Exporter
 
-1. Download the blender script in [sdf_exporter.py](https://github.com/ignitionrobotics/ign-gazebo/tree/ign-gazebo5/examples/scripts/blender/sdf_exporter.py). 
+1. Download the blender script in [sdf_exporter.py](https://github.com/gazebosim/gz-sim/tree/ign-gazebo5/examples/scripts/blender/sdf_exporter.py). 
 
 2. Open the script under Blender's Scripting tab and run it.
 

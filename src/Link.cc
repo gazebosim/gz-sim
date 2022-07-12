@@ -15,41 +15,46 @@
  *
  */
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/Util.hh"
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/gazebo/Link.hh"
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/Util.hh"
 
-class ignition::gazebo::LinkPrivate
+#include "gz/sim/Link.hh"
+
+class gz::sim::LinkPrivate
 {
   /// \brief Id of link entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
-Link::Link(gazebo::Entity _entity)
+Link::Link(sim::Entity _entity)
   : dataPtr(std::make_unique<LinkPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -84,7 +89,7 @@ Entity Link::Entity() const
 }
 
 //////////////////////////////////////////////////
-void Link::ResetEntity(gazebo::Entity _newEntity)
+void Link::ResetEntity(sim::Entity _newEntity)
 {
   this->dataPtr->id = _newEntity;
 }

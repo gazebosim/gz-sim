@@ -11,16 +11,16 @@
 <sdf version="1.6">
   <world name="actors">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -216,8 +216,8 @@
       <!-- Root node pose (torso) -->
       <pose>0 -2 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
+      <plugin filename="gz-sim-follow-actor-system"
+              name="gz::sim::systems::FollowActor">
         <target>red_box</target>
         <min_distance>1.0</min_distance>
         <max_distance>8.0</max_distance>
@@ -230,8 +230,8 @@
       <name>walker_fast_green</name>
       <pose>0 0 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/chapulina/models/Walking actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
+      <plugin filename="gz-sim-follow-actor-system"
+              name="gz::sim::systems::FollowActor">
         <target>green_box</target>
         <min_distance>1.0</min_distance>
         <max_distance>8.0</max_distance>
@@ -244,8 +244,8 @@
       <name>runner_slow_blue</name>
       <pose>0 2 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
+      <plugin filename="gz-sim-follow-actor-system"
+              name="gz::sim::systems::FollowActor">
         <target>blue_box</target>
         <min_distance>1.0</min_distance>
         <max_distance>8.0</max_distance>
@@ -259,8 +259,8 @@
       <name>runner_fast_yellow</name>
       <pose>0 4 1.0 0 0 0</pose>
       <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
-      <plugin filename="ignition-gazebo-follow-actor-system"
-              name="ignition::gazebo::systems::FollowActor">
+      <plugin filename="gz-sim-follow-actor-system"
+              name="gz::sim::systems::FollowActor">
         <target>yellow_box</target>
         <min_distance>1.0</min_distance>
         <max_distance>8.0</max_distance>

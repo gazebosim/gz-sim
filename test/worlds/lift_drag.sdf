@@ -8,8 +8,8 @@
 
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="ground_plane">
@@ -171,8 +171,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>
@@ -189,8 +189,8 @@
         <link_name>wing_1</link_name>
       </plugin>
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>

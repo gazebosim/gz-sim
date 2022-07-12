@@ -24,16 +24,16 @@ listens to the topic `buoyancy_engine` or
 <fluid_density> - The fluid density of the liquid its suspended in kgm^-3.
   [optional, float, default=1000kgm^-3]
 ## Topics
-* Subscribes to a ignition::msgs::Double on `buoyancy_engine` or
+* Subscribes to a gz::msgs::Double on `buoyancy_engine` or
  `/model/{namespace}/buoyancy_engine`. This is the set point for the
  engine.
-* Publishes a ignition::msgs::Double on `buoyancy_engine` or
+* Publishes a gz::msgs::Double on `buoyancy_engine` or
  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
 ## Examples
 
 To get started run:
 ```
-ign gazebo buoyancy_engine.sdf
+gz sim buoyancy_engine.sdf
 ```
 You will see two boxes. The box on the right doesn't have a surface set whereas
 the box on the left does. When commanded to go up, the box on the left will rise
@@ -41,19 +41,19 @@ until it breaches and then start oscillating around the surface. On the other
 hand the box on the right will rise forever as no surface is set.
 Enter the following in a separate terminal:
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.003"
 ```
 The boxes will float up. Note that the box on the left will start oscillating
 once it breaches the surface.
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
+gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
    -p "data: 0.001"
 ```
 The boxes will go down.
 To see the current volume enter:
 ```
-ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
+gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
 ```
 -->
 <sdf version="1.6">
@@ -69,25 +69,25 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
     </plugin>
 
     <plugin
-      filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
@@ -132,8 +132,8 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
-        name="ignition::gazebo::systems::BuoyancyEngine">
+        filename="gz-sim-buoyancy-engine-system"
+        name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
         <min_volume>0.0</min_volume>
@@ -172,8 +172,8 @@ ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
-        name="ignition::gazebo::systems::BuoyancyEngine">
+        filename="gz-sim-buoyancy-engine-system"
+        name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
         <min_volume>0.0</min_volume>

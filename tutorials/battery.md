@@ -18,8 +18,8 @@ model:
 ```{.xml}
 <model>
   ...
-  <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+  <plugin filename="gz-sim-linearbatteryplugin-system"
+        name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
         <voltage>4.2</voltage>
@@ -53,8 +53,8 @@ Next, you can find a description of the SDF parameters used:
 
 * `<power_load>`: Power load on battery (W).
 
-* `<fix_issue_225>`: As reported [here](https://github.com/ignitionrobotics/ign-gazebo/issues/225),
-there are some issues affecting batteries in Ignition Blueprint and Citadel.
+* `<fix_issue_225>`: As reported [here](https://github.com/gazebosim/gz-sim/issues/225),
+there are some issues affecting batteries in Gazebo Blueprint and Citadel.
 This parameter fixes the issues. Feel free to omit the parameter if you have
 legacy code and want to preserve the old behavior.
 
@@ -99,26 +99,26 @@ this value assumes no battery load while charging. If the battery is under load,
 it will take a longer time to recharge.
 
 * `<recharge_by_topic>`: If true, the start/stop signals for recharging the
-battery will also be available via topics. The regular Ignition services will
+battery will also be available via topics. The regular Gazebo services will
 still be available.
 
-By default, two Ignition Transport services are available for managing charging:
+By default, two Gazebo Transport services are available for managing charging:
 
 * `/model/<model_name>/battery/<battery_name>/recharge/start`: Enable recharging.
 * `/model/<model_name>/battery/<battery_name>/recharge/stop`: Disable recharging.
 
-Both services accept an `ignition::msgs::Boolean` parameter.
+Both services accept an `gz::msgs::Boolean` parameter.
 
 ## Try out an example
 
 A battery has been added to a demo world, which can be run using:
 
 ```
-ign gazebo -v 4 linear_battery_demo.sdf -z 1000000
+gz sim -v 4 linear_battery_demo.sdf -z 1000000
 ```
 
 The blue vehicle on the left has a battery, while the one on the right does not. When the battery drains, the corresponding vehicle stops moving. Please, see
-`ign-gazebo/examples/worlds/linear_battery_demo.sdf`, where you can
+`gz-sim/examples/worlds/linear_battery_demo.sdf`, where you can
 find the commands to visualize the state of the battery, as well as commands to
 start and stop the recharging.
 
@@ -126,7 +126,7 @@ start and stop the recharging.
 To control the vehicles with keyboard, run
 
 ```
-cd ign-gazebo/examples/standalone/keyboard
+cd gz-sim/examples/standalone/keyboard
 mkdir build && cd build
 cmake .. && make
 ./keyboard ../keyboard.sdf

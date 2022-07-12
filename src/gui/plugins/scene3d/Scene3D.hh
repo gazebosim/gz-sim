@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_SCENE3D_HH_
-#define IGNITION_GAZEBO_GUI_SCENE3D_HH_
+#ifndef GZ_SIM_GUI_SCENE3D_HH_
+#define GZ_SIM_GUI_SCENE3D_HH_
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
-#include <ignition/msgs/video_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>
@@ -30,37 +30,37 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/math/Color.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/common/MouseEvent.hh>
-#include <ignition/common/KeyEvent.hh>
+#include <gz/common/MouseEvent.hh>
+#include <gz/common/KeyEvent.hh>
 
-#include <ignition/rendering/Camera.hh>
+#include <gz/rendering/Camera.hh>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
   class IgnRendererPrivate;
   class RenderWindowItemPrivate;
   class Scene3DPrivate;
   class RenderUtil;
 
-  /// \brief Creates an ignition rendering scene and user camera.
+  /// \brief Creates a Gazebo Rendering scene and user camera.
   /// It is possible to orbit the camera around the scene with
   /// the mouse. Use other plugins to manage objects in the scene.
   ///
-  /// Only one plugin displaying an Ignition Rendering scene can be used at a
+  /// Only one plugin displaying a Gazebo Rendering scene can be used at a
   /// time.
   ///
   /// ## Configuration
@@ -79,7 +79,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///     * \<p_gain\>    : Camera follow movement p gain.
   ///     * \<target\>    : Target to follow.
   /// * \<fullscreen\> : Optional starting the window in fullscreen.
-  class Scene3D : public ignition::gazebo::GuiSystem
+  class Scene3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -268,7 +268,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
   class RenderSync;
 
-  /// \brief Ign-rendering renderer.
+  /// \brief gz-rendering renderer.
   /// All ign-rendering calls should be performed inside this class as it makes
   /// sure that opengl calls in the underlying render engine do not interfere
   /// with QtQuick's opengl render operations. The main Render function will
@@ -646,7 +646,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief OpenGL context to be passed to the render engine
     public: QOpenGLContext *context = nullptr;
 
-    /// \brief Ign-rendering renderer
+    /// \brief gz-rendering renderer
     public: IgnRenderer ignRenderer;
   };
 
@@ -825,7 +825,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Called when the mouse hovers to a new position.
     /// \param[in] _hoverPos 2D coordinates of the hovered mouse position on
     /// the render window.
-    public: void OnHovered(const ignition::math::Vector2i &_hoverPos);
+    public: void OnHovered(const gz::math::Vector2i &_hoverPos);
 
     /// \brief Get whether the renderer is initialized. The renderer is
     /// initialized when the context is created and the render thread is

@@ -6,7 +6,7 @@
 
 if [ $# -lt 1 ]
 then
-    echo "Usage: $0 <docker image> [optional arguments to ign-gazebo]"
+    echo "Usage: $0 <docker image> [optional arguments to gz-sim]"
     exit 1
 fi
 
@@ -34,7 +34,7 @@ docker run -it \
   -e DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
   -e XAUTHORITY=$XAUTH \
-  -e IGN_PARTITION \
+  -e GZ_PARTITION \
   -v "$XAUTH:$XAUTH" \
   -v "/tmp/.X11-unix:/tmp/.X11-unix" \
   -v "/etc/localtime:/etc/localtime:ro" \

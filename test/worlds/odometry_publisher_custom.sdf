@@ -7,8 +7,8 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
@@ -220,8 +220,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-odometry-publisher-system"
-        name="ignition::gazebo::systems::OdometryPublisher">
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
         <odom_publish_frequency>50</odom_publish_frequency>
         <odom_topic>/model/bar/odom</odom_topic>
         <odom_frame>odomCustom</odom_frame>

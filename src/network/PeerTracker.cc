@@ -19,14 +19,14 @@
 #include <algorithm>
 #include <utility>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(
     PeerInfo _info,
     EventManager *_eventMgr,
-    const ignition::transport::NodeOptions &_options):
+    const gz::transport::NodeOptions &_options):
   info(std::move(_info)),
   eventMgr(_eventMgr),
   node(_options)
@@ -163,7 +163,7 @@ bool PeerTracker::RemovePeer(const PeerInfo &_info)
   auto iter = this->peers.find(_info.id);
   if (iter == this->peers.end())
   {
-    igndbg << "Attempting to remove peer [" << _info.id << "] from ["
+    gzdbg << "Attempting to remove peer [" << _info.id << "] from ["
            << this->info.id << "] but it wasn't connected" << std::endl;
     return false;
   }

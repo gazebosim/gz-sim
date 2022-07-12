@@ -12,15 +12,15 @@
 
 
     <plugin
-     filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     filename="gz-sim-physics-system"
+     name="gz::sim::systems::Physics">
     </plugin>
 
 
 
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
 
@@ -854,7 +854,7 @@
       </link>
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
 
 
       <performer name="perf_green_sphere">

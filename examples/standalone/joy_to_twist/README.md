@@ -1,14 +1,14 @@
 # Joy to Twist
 
 Standalone program that subscribes to
-[ignition::msgs::Joy](https://ignitionrobotics.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
+[gz::msgs::Joy](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
 messages and converts publishes
-[ignition::msgs::Twist](https://ignitionrobotics.org/api/msgs/5.6/classignition_1_1msgs_1_1Twist.html)
+[gz::msgs::Twist](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Twist.html)
 messages according to user-defined configuration.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/standalone/joy_to_twist
@@ -34,7 +34,7 @@ messages that it can consume. See the demo below for a full integrated example.
 
 ## Demo example
 
-Ignition Gazebo ships with an example file which has a differential drive vehicle
+Gazebo ships with an example file which has a differential drive vehicle
 that can be controlled using a joystick. You can run it as follows:
 
 1. In a terminal, run the joystick executable which will publish joystick
@@ -50,12 +50,11 @@ that can be controlled using a joystick. You can run it as follows:
         cd examples/standalone/joy_to_twist
         ./joy_to_twist ../joy_to_twist.sdf
 
-1. Finally, on a 3rd terminal, run `ign gazebo` with the vehicle that will
+1. Finally, on a 3rd terminal, run `gz sim` with the vehicle that will
    consume the twist messages:
 
         cd examples/worlds
-        ign gazebo -v 4 diff_drive.sdf
+        gz sim -v 4 diff_drive.sdf
 
 1. Now hold your joystick's A button (or equivalent) and move the directional
    stick to control the vehicle.
-

@@ -82,7 +82,7 @@ GridLayout {
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
     ToolTip.timeout: tooltipTimeout
-    ToolTip.text: qsTr("Ignition transport topics publishing LaserScan messages")
+    ToolTip.text: qsTr("Gazebo Transport topics publishing LaserScan messages")
   }
 
   Text {

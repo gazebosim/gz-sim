@@ -15,31 +15,31 @@
  *
 */
 
-#include <ignition/msgs/marker.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <mutex>
 #include <string>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/Util.hh"
 
 #include "Plot3D.hh"
 
-namespace ignition::gazebo::gui
+namespace gz::sim::gui
 {
   /// \brief Private data class for Plot3D
   class Plot3DPrivate
@@ -88,9 +88,9 @@ namespace ignition::gazebo::gui
   };
 }
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::gui;
 
 /////////////////////////////////////////////////
 Plot3D::Plot3D()
@@ -155,8 +155,8 @@ void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     }
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -165,7 +165,7 @@ void Plot3D::ClearPlot()
   // Clear previous plot
   if (this->dataPtr->markerMsg.point().size() > 0)
   {
-    this->dataPtr->markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+    this->dataPtr->markerMsg.set_action(gz::msgs::Marker::DELETE_MARKER);
     this->dataPtr->node.Request("/marker", this->dataPtr->markerMsg);
   }
 }
@@ -245,7 +245,7 @@ void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
     return;
 
   this->dataPtr->prevPos = point;
-  ignition::msgs::Set(this->dataPtr->markerMsg.add_point(), point);
+  gz::msgs::Set(this->dataPtr->markerMsg.add_point(), point);
 
   // Reduce message array
   if (this->dataPtr->markerMsg.point_size() > this->dataPtr->maxPoints)
@@ -265,7 +265,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -274,7 +274,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -401,5 +401,5 @@ void Plot3D::SetMaxPoints(int _maxPoints)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::gui::Plot3D,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::gui::Plot3D,
+                    gz::gui::Plugin)

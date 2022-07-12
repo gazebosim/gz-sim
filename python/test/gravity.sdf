@@ -2,8 +2,8 @@
 <sdf version="1.6">
   <world name="gravity">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="falling">

@@ -24,15 +24,15 @@
 
 #include "JointMonitor.hh"
 
-#include <ignition/gazebo/components/JointPosition.hh>
-#include <ignition/gazebo/components/JointVelocity.hh>
+#include <gz/sim/components/JointPosition.hh>
+#include <gz/sim/components/JointVelocity.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {
@@ -97,6 +97,6 @@ void JointMonitor::Update(const EntityComponentManager &_ecm)
 }
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz

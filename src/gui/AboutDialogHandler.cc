@@ -17,26 +17,26 @@
 
 #include "AboutDialogHandler.hh"
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()
 {
-  aboutText += std::string(IGNITION_GAZEBO_VERSION_HEADER);
+  aboutText += std::string(GZ_SIM_VERSION_HEADER);
   aboutText += "<table class='nostyle'>"
                  "<tr>"
                    "<td style='padding-right: 10px;'>Documentation:"
                    "</td>"
                    "<td>"
-                     "<a href='https://ignitionrobotics.org/libs/gazebo' "
+                     "<a href='https://gazebosim.org/libs/gazebo' "
                      "style='text-decoration: none; color: #f58113'>"
-                       "https://ignitionrobotics.org/libs/gazebo"
+                       "https://gazebosim.org/libs/gazebo"
                      "</a>"
                    "</td>"
                  "</tr>"
@@ -45,9 +45,9 @@ AboutDialogHandler::AboutDialogHandler()
                      "Tutorials:"
                    "</td>"
                    "<td>"
-                     "<a href='https://ignitionrobotics.org/docs/' "
+                     "<a href='https://gazebosim.org/docs/' "
                      "style='text-decoration: none; color: #f58113'>"
-                       "https://ignitionrobotics.org/docs/"
+                       "https://gazebosim.org/docs/"
                      "</a>"
                    "</td>"
                  "</tr>"

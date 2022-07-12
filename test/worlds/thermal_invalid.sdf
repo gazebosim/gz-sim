@@ -11,17 +11,17 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -60,8 +60,8 @@
             <specular>0 0 1 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            filename="gz-sim-thermal-system"
+            name="gz::sim::systems::Thermal">
             <temperature>600.0</temperature>
           </plugin>
         </visual>
@@ -94,8 +94,8 @@
             <specular>0 1 0 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            filename="gz-sim-thermal-system"
+            name="gz::sim::systems::Thermal">
             <temperature>800.0</temperature>
           </plugin>
         </visual>
@@ -126,8 +126,8 @@
             <specular>1 0 0 1</specular>
           </material>
           <plugin
-            filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            filename="gz-sim-thermal-system"
+            name="gz::sim::systems::Thermal">
             <temperature>-10.0</temperature>
           </plugin>
         </visual>
@@ -170,8 +170,8 @@
           <visualize>true</visualize>
           <topic>thermal_camera_invalid/image</topic>
           <plugin
-            filename="ignition-gazebo-thermal-sensor-system"
-            name="ignition::gazebo::systems::ThermalSensor">
+            filename="gz-sim-thermal-sensor-system"
+            name="gz::sim::systems::ThermalSensor">
             <min_temp>999</min_temp>
             <max_temp>-590</max_temp>
             <resolution>0.0</resolution>

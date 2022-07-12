@@ -1,18 +1,18 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo differential drive plugin demo
+  Gazebo differential drive plugin demo
 
   Try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
 
-    ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+    gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
 
   Listen to odometry:
 
-    ign topic -e -t /model/vehicle_blue/odometry
+    gz topic -e -t /model/vehicle_blue/odometry
 
-    ign topic -e -t /model/vehicle_green/odometry
+    gz topic -e -t /model/vehicle_green/odometry
 
 -->
 <sdf version="1.6">
@@ -23,16 +23,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -245,8 +245,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>
@@ -433,8 +433,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
         <wheel_separation>1.25</wheel_separation>

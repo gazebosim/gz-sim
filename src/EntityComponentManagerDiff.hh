@@ -15,26 +15,26 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_DIFF_HH_
-#define IGNITION_GAZEBO_ENTITYCOMPONENTMANAGER_DIFF_HH_
+#ifndef GZ_SIM_ENTITYCOMPONENTMANAGER_DIFF_HH_
+#define GZ_SIM_ENTITYCOMPONENTMANAGER_DIFF_HH_
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 #include <vector>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \\brief Used to track the changes in an EntityComponentManager
     ///
     /// Tracks added and removed entities for the purpose of a reset
-    class IGNITION_GAZEBO_VISIBLE EntityComponentManagerDiff
+    class GZ_SIM_VISIBLE EntityComponentManagerDiff
     {
       /// \brief Add an added entity to the current diff
       /// \param[in] _entity Entity that was added

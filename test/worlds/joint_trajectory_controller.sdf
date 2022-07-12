@@ -6,14 +6,14 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <!-- Scene -->
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <scene>
       <ambient>0.4 0.4 0.4</ambient>
@@ -179,8 +179,8 @@
       </joint>
       <!-- Controller -->
       <plugin
-        filename="libignition-gazebo-joint-trajectory-controller-system.so"
-        name="ignition::gazebo::systems::JointTrajectoryController">
+        filename="gz-sim-joint-trajectory-controller-system"
+        name="gz::sim::systems::JointTrajectoryController">
         <!-- Test a case where joint names do not follow the order specified in model -->
         <joint_name>RR_position_control_joint2</joint_name>
         <position_p_gain>25</position_p_gain>
@@ -342,8 +342,8 @@
       </joint>
       <!-- Controller -->
       <plugin
-        filename="libignition-gazebo-joint-trajectory-controller-system.so"
-        name="ignition::gazebo::systems::JointTrajectoryController">
+        filename="gz-sim-joint-trajectory-controller-system"
+        name="gz::sim::systems::JointTrajectoryController">
         <!-- Test custom topic name -->
         <topic>test_custom_topic/velocity_control</topic>
 

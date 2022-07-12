@@ -8,8 +8,8 @@
       <link name="base_link">
       </link>
       <plugin
-        filename="ignition-gazebo-joint-controller-system"
-        name="ignition::gazebo::systems::JointController">
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
         <joint_name>invalid</joint_name>
       </plugin>
     </model>

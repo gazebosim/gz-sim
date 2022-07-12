@@ -18,35 +18,35 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
@@ -267,7 +267,7 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
       return out;
     };
 
-    // Configure SDF to fetch assets from ignition fuel.
+    // Configure SDF to fetch assets from Gazebo Fuel.
     sdf::setFindCallback(fuelCb);
     creator = std::make_unique<SdfEntityCreator>(this->ecm, this->evm);
   }
@@ -791,7 +791,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
                 common::joinPaths(PROJECT_SOURCE_PATH, worldFile).c_str()));
 
   tinyxml2::XMLDocument genSdfDoc;
-  genSdfDoc.Parse(elem->ToString("").c_str());
+  sdf::PrintConfig config;
+  config.SetOutPrecision(6);
+  genSdfDoc.Parse(elem->ToString("", config).c_str());
 
   // Compare elements from the original sdf xml and the generated xml
   auto origWorld = originalSdfDoc.RootElement()->FirstChildElement("world");
@@ -893,9 +895,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ElementUpdateFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";
@@ -1016,7 +1018,7 @@ TEST_F(GenerateWorldFixture, PoseWithAttributes)
       auto model = newWorld->ModelByIndex(0);
       ASSERT_NE(nullptr, model);
       // Check that the generated element has the new pose
-      EXPECT_EQ(math::Pose3d(1, 2, 3, IGN_PI_2, 0, 0), model->RawPose());
+      EXPECT_EQ(math::Pose3d(1, 2, 3, GZ_PI_2, 0, 0), model->RawPose());
     }
     {
       auto model = newWorld->ModelByIndex(1);

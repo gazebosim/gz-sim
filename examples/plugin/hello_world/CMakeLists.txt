@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-find_package(ignition-cmake3 REQUIRED)
+find_package(gz-cmake3 REQUIRED)
 
 project(Hello_world)
 
-ign_find_package(ignition-plugin2 REQUIRED COMPONENTS register)
-set(IGN_PLUGIN_VER ${ignition-plugin2_VERSION_MAJOR})
+gz_find_package(gz-plugin2 REQUIRED COMPONENTS register)
+set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
-ign_find_package(ignition-gazebo7 REQUIRED)
-set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
+gz_find_package(gz-sim7 REQUIRED)
+set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 
 add_library(HelloWorld SHARED HelloWorld)
 set_property(TARGET HelloWorld PROPERTY CXX_STANDARD 17)
 target_link_libraries(HelloWorld
-  PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}
-  PRIVATE ignition-gazebo${IGN_GAZEBO_VER}::ignition-gazebo${IGN_GAZEBO_VER})
+  PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
+  PRIVATE gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER})

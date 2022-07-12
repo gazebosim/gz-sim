@@ -22,7 +22,7 @@ import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Dialogs 1.0
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 Rectangle {
   id: entityTree
@@ -378,7 +378,7 @@ Rectangle {
         height: itemHeight
 
 
-        IgnGazebo.TypeIcon {
+        GzSim.TypeIcon {
           id: icon
           height: itemHeight - 2
           width: itemHeight - 2
@@ -432,7 +432,7 @@ Rectangle {
       }
     }
 
-    IgnGazebo.EntityContextMenu {
+    GzSim.EntityContextMenu {
       id: entityContextMenu
     }
 

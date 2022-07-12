@@ -16,15 +16,15 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Util.hh>
+#include <gz/common/Util.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -37,7 +37,7 @@ TEST_P(FuelCachedServer, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
+  common::setenv("GZ_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =

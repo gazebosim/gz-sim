@@ -15,24 +15,24 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
-#define IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#ifndef GZ_SIM_GUI_PLAYBACK_SCRUBBER_HH_
+#define GZ_SIM_GUI_PLAYBACK_SCRUBBER_HH_
 
 #include <chrono>
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class PlaybackScrubberPrivate;
 
   /// \brief Provides slider and functionality for log playback.
   /// to the scene
-  class PlaybackScrubber : public ignition::gazebo::GuiSystem
+  class PlaybackScrubber : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

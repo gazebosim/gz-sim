@@ -13,10 +13,10 @@ in response to the motion of a vehicle. The tutorial also covers how Triggered
 Publisher systems can be chained together by showing how the falling of the box
 can trigger another box to fall. The finished world SDFormat file for this
 tutorial can be found in
-[examples/worlds/triggered_publisher.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
+[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-[examples/worlds/diff_drive.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
+[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
 but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of
 the change to the `DiffDrive` system is shown below:
 
@@ -25,8 +25,8 @@ the change to the `DiffDrive` system is shown below:
   ...
 
   <plugin
-    filename="ignition-gazebo-diff-drive-system"
-    name="ignition::gazebo::systems::DiffDrive">
+    filename="gz-sim-diff-drive-system"
+    name="gz::sim::systems::DiffDrive">
     <left_joint>front_left_wheel_joint</left_joint>
     <left_joint>rear_left_wheel_joint</left_joint>
     <right_joint>front_right_wheel_joint</right_joint>
@@ -44,22 +44,22 @@ a predetermined `Twist` message to the `DiffDrive` vehicle in response to
 a "start" message from the user:
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
-  <input type="ignition.msgs.Empty" topic="/start"/>
-  <output type="ignition.msgs.Twist" topic="/cmd_vel">
+<plugin filename="gz-sim-triggered-publisher-system"
+        name="gz::sim::systems::TriggeredPublisher">
+  <input type="gz.msgs.Empty" topic="/start"/>
+  <output type="gz.msgs.Twist" topic="/cmd_vel">
       linear: {x: 3}
   </output>
 </plugin>
 ```
 
 The `<input>` tag sets up the `TriggeredPublisher` to subscribe to the topic
-`/start` with a message type of `ignition.msgs.Empty`. The `<output>` tag
+`/start` with a message type of `gz.msgs.Empty`. The `<output>` tag
 specifies the topic of the output and the actual data to be published. The data
 is expressed in the human-readable form of Google Protobuf messages. This is
-the same format used by `ign topic` for publishing messages.
+the same format used by `gz topic` for publishing messages.
 
-Since the `TriggeredPublisher` only deals with Ignition topics, it can be
+Since the `TriggeredPublisher` only deals with Gazebo topics, it can be
 anywhere a `<plugin>` tag is allowed. For this example, we will put it under
 `<world>`.
 
@@ -117,15 +117,15 @@ indicating where the sensor is on the ground.
       </sensor>
     </link>
     <plugin
-      filename="ignition-gazebo-touchplugin-system"
-      name="ignition::gazebo::systems::TouchPlugin">
+      filename="gz-sim-touchplugin-system"
+      name="gz::sim::systems::TouchPlugin">
       <target>vehicle_blue</target>
       <namespace>trigger</namespace>
       <time>0.001</time>
       <enabled>true</enabled>
     </plugin>
-    <plugin filename="ignition-gazebo-detachable-joint-system"
-            name="ignition::gazebo::systems::DetachableJoint">
+    <plugin filename="gz-sim-detachable-joint-system"
+            name="gz::sim::systems::DetachableJoint">
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
       <child_link>box_body</child_link>
@@ -141,8 +141,8 @@ indicating where the sensor is on the ground.
     <world>
       ...
       <plugin
-        filename="ignition-gazebo-contact-system"
-        name="ignition::gazebo::systems::Contact">
+        filename="gz-sim-contact-system"
+        name="gz::sim::systems::Contact">
       </plugin>
       ...
     </world>
@@ -163,12 +163,12 @@ to demonstrate the use of matchers, we will only trigger when the Boolean input
 message is `true`
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
-  <input type="ignition.msgs.Boolean" topic="/trigger/touched">
+<plugin filename="gz-sim-triggered-publisher-system"
+        name="gz::sim::systems::TriggeredPublisher">
+  <input type="gz.msgs.Boolean" topic="/trigger/touched">
     <match>data: true</match>
   </input>
-  <output type="ignition.msgs.Empty" topic="/box1/detach"/>
+  <output type="gz.msgs.Empty" topic="/box1/detach"/>
 </plugin>
 ```
 
@@ -196,8 +196,8 @@ the link "box_body" in `box1`
 ```xml
     <world>
       ...
-      <plugin filename="ignition-gazebo-altimeter-system"
-        name="ignition::gazebo::systems::Altimeter">
+      <plugin filename="gz-sim-altimeter-system"
+        name="gz::sim::systems::Altimeter">
       </plugin>
       ...
     </world>
@@ -219,8 +219,8 @@ static model `trigger` by adding the following to `trigger`
 ```xml
 <model name="trigger">
   ...
-  <plugin filename="ignition-gazebo-detachable-joint-system"
-          name="ignition::gazebo::systems::DetachableJoint">
+  <plugin filename="gz-sim-detachable-joint-system"
+          name="gz::sim::systems::DetachableJoint">
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
     <child_link>box_body</child_link>
@@ -231,9 +231,9 @@ static model `trigger` by adding the following to `trigger`
 
 Similar to what we did for `box1`, we need to publish to `/box2/detach` when
 our desired trigger occurs. To setup our trigger, we observe that the altimeter
-publishes an `ignition.msgs.Altimeter` message that contains a
+publishes an `gz.msgs.Altimeter` message that contains a
 `vertical_position` field. Since we do not necessarily care about the values of
-the other fields inside `ignition.msgs.Altimeter`, we will create a
+the other fields inside `gz.msgs.Altimeter`, we will create a
 `TriggeredPublisher` matcher that matches a specific field.
 
 The value of the `vertical_position` field will be the altitude of the link
@@ -243,23 +243,23 @@ we do not know the exact value and an exact comparison of floating point
 numbers is not advised, we will set a tolerance of 0.2.
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
-  <input type="ignition.msgs.Altimeter" topic="/altimeter">
+<plugin filename="gz-sim-triggered-publisher-system"
+        name="gz::sim::systems::TriggeredPublisher">
+  <input type="gz.msgs.Altimeter" topic="/altimeter">
     <match field="vertical_position" tol="0.2">-7.5</match>
   </input>
-  <output type="ignition.msgs.Empty" topic="/box2/detach"/>
+  <output type="gz.msgs.Empty" topic="/box2/detach"/>
 </plugin>
 ```
 
 We can now run the simulation and from the command line by running
 
 ```
-ign gazebo -r triggered_publisher.sdf
+gz sim -r triggered_publisher.sdf
 ```
 
 and publish the start message
 
 ```
-ign topic -t "/start" -m ignition.msgs.Empty -p " "
+gz topic -t "/start" -m gz.msgs.Empty -p " "
 ```

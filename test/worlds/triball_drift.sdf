@@ -7,16 +7,16 @@
     </physics>
     <gravity>1 0 -9.8</gravity>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <model name="ground_plane">
@@ -844,8 +844,8 @@
         </axis>
       </joint>
       <plugin
-        filename="libignition-gazebo-wheel-slip-system.so"
-        name="ignition::gazebo::systems::WheelSlip">
+        filename="gz-sim-wheel-slip-system"
+        name="gz::sim::systems::WheelSlip">
         <wheel link_name="link_a">
           <wheel_radius>0.25</wheel_radius>
           <slip_compliance_lateral>1</slip_compliance_lateral>

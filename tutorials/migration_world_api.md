@@ -2,23 +2,23 @@
 
 # Migration from Gazebo-classic: World API
 
-When migrating plugins from Gazebo-classic to Ignition Gazebo, developers will
+When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
 check the [plugin migration tutorial](migrationplugins.html) to get a high-level
 view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::physics::World](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html)
+[sim::physics::World](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html)
 class.
 
-If you're trying to use some API which doesn't have an equivalent on Ignition
+If you're trying to use some API which doesn't have an equivalent on Gazebo
 yet, feel free to
-[ticket an issue](https://github.com/ignitionrobotics/ign-gazebo/issues/).
+[ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
 ## World API
 
-Gazebo-classic's `gazebo::physics::World` provides lots of functionality, which
+Gazebo-classic's `sim::physics::World` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties
@@ -32,45 +32,45 @@ can be divided in these categories:
 * **Others**: Functions that don't fit any of the categories above
     * Example: [World::UniqueModelName](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1World.html#a05934164af0cf95eb5a4be70e726846d)
 
-You'll find the Ignition APIs below on the following headers:
+You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/World.hh](https://ignitionrobotics.org/api/gazebo/3.3/World_8hh.html)
-* [ignition/gazebo/Util.hh](https://ignitionrobotics.org/api/gazebo/3.3/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://ignitionrobotics.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
+* [ignition/gazebo/World.hh](https://gazebosim.org/api/gazebo/3.3/World_8hh.html)
+* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
+* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
 
 It's worth remembering that most of this functionality can be performed using
 the
-[EntityComponentManager](https://ignitionrobotics.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+[EntityComponentManager](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
 directly. The functions presented here exist for convenience and readability.
 
 ### Properties
 
 Most of Gazebo-classic's World API is related to setting and getting
-properties. These functions are great candidates to have equivalents on Ignition
+properties. These functions are great candidates to have equivalents on Gazebo
 Gazebo, because the Entity-Component-System architecture is perfect for setting
 components (properties) into entities such as worlds.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
-Atmosphere | `ignition::gazebo::World::Atmosphere`
+Atmosphere | `gz::sim::World::Atmosphere`
 AtmosphereEnabled | TODO
 DisableAllModels | TODO
 EnableAllModels | TODO
 GetSDFDom | TODO
-Gravity | `ignition::gazebo::World::Gravity`
+Gravity | `gz::sim::World::Gravity`
 IsLoaded | Not applicable
-IsPaused | Use `ignition::gazebo::UpdateInfo`
-Iterations | Use `ignition::gazebo::UpdateInfo`
-MagneticField | `ignition::gazebo::World::MagneticField`
-Name | `ignition::gazebo::World::Name`
-PauseTime | Use `ignition::gazebo::UpdateInfo`
+IsPaused | Use `gz::sim::UpdateInfo`
+Iterations | Use `gz::sim::UpdateInfo`
+MagneticField | `gz::sim::World::MagneticField`
+Name | `gz::sim::World::Name`
+PauseTime | Use `gz::sim::UpdateInfo`
 Physics | TODO
 PhysicsEnabled | TODO
 PresetMgr | TODO
-PublishLightPose | Use `ignition::gazebo::systems::PosePublisher`
-PublishModelPose | Use `ignition::gazebo::systems::PosePublisher`
+PublishLightPose | Use `gz::sim::systems::PosePublisher`
+PublishModelPose | Use `gz::sim::systems::PosePublisher`
 PublishModelScale | TODO
-RealTime | Use `ignition::gazebo::UpdateInfo`
+RealTime | Use `gz::sim::UpdateInfo`
 Running | Not applicable
 SDF | TODO
 SetAtmosphereEnabled | TODO
@@ -82,9 +82,9 @@ SetPhysicsEnabled | TODO
 SetSimTime | Use world control service
 SetState | TODO
 SetWindEnabled | TODO
-SimTime | Use `ignition::gazebo::UpdateInfo`
+SimTime | Use `gz::sim::UpdateInfo`
 SphericalCoords | TODO
-StartTime | Use `ignition::gazebo::UpdateInfo`
+StartTime | Use `gz::sim::UpdateInfo`
 URI | TODO
 UpdateStateSDF | TODO
 Wind | TODO
@@ -96,20 +96,20 @@ These APIs deal with reading information related to child / parent
 relationships.
 
 The main difference in these APIs across Gazebo generations is that
-on classic, they deal with shared pointers to entities, while on Ignition,
+on classic, they deal with shared pointers to entities, while on Gazebo,
 they deal with entity IDs.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
-BaseByName | Use type-specific `ignition::gazebo::World::*ByName`
-EntityByName | Use type-specific `ignition::gazebo::World::*ByName`
-LightByName | `ignition::gazebo::World::LightByName`
-LightCount |  `ignition::gazebo::World::LightCount`
-Lights | `ignition::gazebo::World::Lights`
-ModelByIndex |  `ignition::gazebo::World::ModelByName`
-ModelByName | `ignition::gazebo::World::ModelByName`
-ModelCount | `ignition::gazebo::World::ModelCount`
-Models | `ignition::gazebo::World::Models`
+BaseByName | Use type-specific `gz::sim::World::*ByName`
+EntityByName | Use type-specific `gz::sim::World::*ByName`
+LightByName | `gz::sim::World::LightByName`
+LightCount |  `gz::sim::World::LightCount`
+Lights | `gz::sim::World::Lights`
+ModelByIndex |  `gz::sim::World::ModelByName`
+ModelByName | `gz::sim::World::ModelByName`
+ModelCount | `gz::sim::World::ModelCount`
+Models | `gz::sim::World::Models`
 PrintEntityTree | Use scene graph service
 
 ## Write family
@@ -117,12 +117,12 @@ PrintEntityTree | Use scene graph service
 These functions deal with modifying the entity tree, attaching children to new
 parents.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Clear | TODO
 ClearModels | TODO
 InsertModelFile | TODO
-InsertModelSDF | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+InsertModelSDF | `gz::sim::SdfEntityCreator::CreateEntities`
 InsertModelString | TODO
 RemoveModel | TODO
 RemovePlugin | TODO
@@ -133,12 +133,12 @@ These functions aren't related to the state of a model, but perform some
 processing related to the model's lifecycle, like initializing, updating or
 terminating it.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadLight | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadLight | `gz::sim::SdfEntityCreator::CreateEntities`
 LoadPlugin | TODO
 Reset | TODO
 ResetEntities | TODO
@@ -157,11 +157,11 @@ _SetSensorsInitialized | N/A
 Miscelaneous functions that don't fit the other categories. Most of them involve
 logic that should be performed from within a system.
 
-Classic | Ignition
+Classic | Gazebo
 -- | --
 EntityBelowPoint | Requires a system
 ModelBelowPoint | Requires a system
-SceneMsg | Use `ignition::gazebo::systems::SceneBoradcaster`
+SceneMsg | Use `gz::sim::systems::SceneBoradcaster`
 WorldPoseMutex | N/A
 StripWorldName | N/A
 UniqueModelName | TODO

@@ -18,68 +18,68 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/physics.pb.h>
-#include <ignition/msgs/visual.pb.h>
-#include <ignition/msgs/wheel_slip_parameters_cmd.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <string>
 #include <utility>
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include <sdf/Light.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/common/Profiler.hh"
+#include "gz/common/Profiler.hh"
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/PhysicsCmd.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/VisualCmd.hh"
-#include "ignition/gazebo/components/WheelSlipCmd.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightCmd.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/VisualCmd.hh"
+#include "gz/sim/components/WheelSlipCmd.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 
@@ -128,13 +128,13 @@ Entity topLevelEntityFromMessage(const EntityComponentManager &_ecm,
     }
     else
     {
-      ignerr << "Failed to handle entity type [" << _msg.type() << "]"
+      gzerr << "Failed to handle entity type [" << _msg.type() << "]"
              << std::endl;
     }
     return entity;
   }
 
-  ignerr << "Message missing either entity's ID or name + type" << std::endl;
+  gzerr << "Message missing either entity's ID or name + type" << std::endl;
   return kNullEntity;
 }
 
@@ -227,50 +227,9 @@ class LightCommand : public UserCommandBase
   public: std::function<bool(const msgs::Light &, const msgs::Light &)>
           lightEql { [](const msgs::Light &_a, const msgs::Light &_b)
             {
-              // todo(ahcorde) Use the field is_light_off in light.proto from
-              // Garden on.
-              auto getVisualizeVisual = [](const msgs::Light &_light) -> bool
-              {
-                bool visualizeVisual = true;
-                for (int i = 0; i < _light.header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _light.header().data(i).value_size(); ++j)
-                  {
-                    if (_light.header().data(i).key() ==
-                        "visualizeVisual")
-                    {
-                      visualizeVisual = ignition::math::parseInt(
-                        _light.header().data(i).value(0));
-                    }
-                  }
-                }
-                return visualizeVisual;
-              };
-
-              // todo(ahcorde) Use the field is_light_off in light.proto from
-              // Garden on.
-              auto getIsLightOn = [](const msgs::Light &_light) -> bool
-              {
-                bool isLightOn = true;
-                for (int i = 0; i < _light.header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _light.header().data(i).value_size(); ++j)
-                  {
-                    if (_light.header().data(i).key() ==
-                        "isLightOn")
-                    {
-                      isLightOn = ignition::math::parseInt(
-                        _light.header().data(i).value(0));
-                    }
-                  }
-                }
-                return isLightOn;
-               };
              return
-                getVisualizeVisual(_a) == getVisualizeVisual(_b) &&
-                getIsLightOn(_a) == getIsLightOn(_b) &&
+                _a.is_light_off() == _b.is_light_off() &&
+                _a.visualize_visual() == _b.visualize_visual() &&
                 _a.type() == _b.type() &&
                 _a.name() == _b.name() &&
                 math::equal(
@@ -505,7 +464,7 @@ class WheelSlipCommand : public UserCommandBase
 }
 
 /// \brief Private UserCommands data class.
-class ignition::gazebo::systems::UserCommandsPrivate
+class gz::sim::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.
@@ -607,7 +566,7 @@ class ignition::gazebo::systems::UserCommandsPrivate
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Object holding several interfaces that can be used by any command.
@@ -697,7 +656,7 @@ void UserCommands::Configure(const Entity &_entity,
   auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
   if (validWorldName.empty())
   {
-    ignerr << "World name [" << worldName
+    gzerr << "World name [" << worldName
            << "] doesn't work well with transport, services not advertised."
            << std::endl;
     return;
@@ -714,21 +673,21 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(createServiceMultiple,
       &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
 
-  ignmsg << "Create service on [" << createService << "]" << std::endl;
+  gzmsg << "Create service on [" << createService << "]" << std::endl;
 
   // Remove service
   std::string removeService{"/world/" + validWorldName + "/remove"};
   this->dataPtr->node.Advertise(removeService,
       &UserCommandsPrivate::RemoveService, this->dataPtr.get());
 
-  ignmsg << "Remove service on [" << removeService << "]" << std::endl;
+  gzmsg << "Remove service on [" << removeService << "]" << std::endl;
 
   // Pose service
   std::string poseService{"/world/" + validWorldName + "/set_pose"};
   this->dataPtr->node.Advertise(poseService,
       &UserCommandsPrivate::PoseService, this->dataPtr.get());
 
-  ignmsg << "Pose service on [" << poseService << "]" << std::endl;
+  gzmsg << "Pose service on [" << poseService << "]" << std::endl;
 
   // Pose vector service
   std::string poseVectorService{
@@ -736,14 +695,14 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(poseVectorService,
       &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
 
-  ignmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
+  gzmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
 
   // Light service
   std::string lightService{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Advertise(lightService,
       &UserCommandsPrivate::LightService, this->dataPtr.get());
 
-  ignmsg << "Light configuration service on [" << lightService << "]"
+  gzmsg << "Light configuration service on [" << lightService << "]"
     << std::endl;
 
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
@@ -755,7 +714,7 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(physicsService,
       &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
 
-  ignmsg << "Physics service on [" << physicsService << "]" << std::endl;
+  gzmsg << "Physics service on [" << physicsService << "]" << std::endl;
 
   // Spherical coordinates service
   std::string sphericalCoordinatesService{"/world/" + validWorldName +
@@ -763,7 +722,7 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(sphericalCoordinatesService,
       &UserCommandsPrivate::SphericalCoordinatesService, this->dataPtr.get());
 
-  ignmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
+  gzmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
          << "]" << std::endl;
 
   // Enable collision service
@@ -772,7 +731,7 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(enableCollisionService,
       &UserCommandsPrivate::EnableCollisionService, this->dataPtr.get());
 
-  ignmsg << "Enable collision service on [" << enableCollisionService << "]"
+  gzmsg << "Enable collision service on [" << enableCollisionService << "]"
     << std::endl;
 
   // Disable collision service
@@ -781,7 +740,7 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(disableCollisionService,
       &UserCommandsPrivate::DisableCollisionService, this->dataPtr.get());
 
-  ignmsg << "Disable collision service on [" << disableCollisionService << "]"
+  gzmsg << "Disable collision service on [" << disableCollisionService << "]"
     << std::endl;
 
   // Visual service
@@ -790,7 +749,7 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(visualService,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
-  ignmsg << "Material service on [" << visualService << "]" << std::endl;
+  gzmsg << "Material service on [" << visualService << "]" << std::endl;
 
   // Wheel slip service
   std::string wheelSlipService
@@ -798,14 +757,14 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Advertise(wheelSlipService,
       &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
 
-  ignmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
+  gzmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
-  IGN_PROFILE("UserCommands::PreUpdate");
+  GZ_PROFILE("UserCommands::PreUpdate");
   // make a copy the cmds so execution does not block receiving other
   // incoming cmds
   std::vector<std::unique_ptr<UserCommandBase>> cmds;
@@ -1102,7 +1061,7 @@ bool CreateCommand::Execute()
   auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
   if (nullptr == createMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    gzerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
@@ -1125,7 +1084,7 @@ bool CreateCommand::Execute()
     case msgs::EntityFactory::kModel:
     {
       // TODO(louise) Support model msg
-      ignerr << "model field not yet supported." << std::endl;
+      gzerr << "model field not yet supported." << std::endl;
       return false;
     }
     case msgs::EntityFactory::kLight:
@@ -1157,7 +1116,7 @@ bool CreateCommand::Execute()
 
       if (!validClone)
       {
-        ignerr << "Request to clone an entity named ["
+        gzerr << "Request to clone an entity named ["
           << createMsg->clone_name() << "] failed." << std::endl;
         return false;
       }
@@ -1165,7 +1124,7 @@ bool CreateCommand::Execute()
       if (createMsg->has_pose())
       {
         // TODO(anyone) handle if relative_to is filled
-        auto pose = gazebo::convert<math::Pose3d>(createMsg->pose());
+        auto pose = sim::convert<math::Pose3d>(createMsg->pose());
         this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
             pose);
       }
@@ -1173,7 +1132,7 @@ bool CreateCommand::Execute()
     }
     default:
     {
-      ignerr << "Missing [from] field in create message." << std::endl;
+      gzerr << "Missing [from] field in create message." << std::endl;
       return false;
     }
   }
@@ -1181,7 +1140,7 @@ bool CreateCommand::Execute()
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << std::endl;
+      gzerr << err << std::endl;
     return false;
   }
 
@@ -1210,14 +1169,14 @@ bool CreateCommand::Execute()
   }
   else
   {
-    ignerr << "Expected exactly one top-level <model>, <light> or <actor> on"
+    gzerr << "Expected exactly one top-level <model>, <light> or <actor> on"
            << " SDF." << std::endl;
     return false;
   }
 
   if ((isModel && isLight) || (isModel && isActor) || (isLight && isActor))
   {
-    ignwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
+    gzwarn << "Expected exactly one top-level <model>, <light> or <actor>, "
             << "but found more. Only the 1st will be spawned." << std::endl;
   }
 
@@ -1251,7 +1210,7 @@ bool CreateCommand::Execute()
   {
     if (!createMsg->allow_renaming())
     {
-      ignwarn << "Entity named [" << desiredName << "] already exists and "
+      gzwarn << "Entity named [" << desiredName << "] already exists and "
               << "[allow_renaming] is false. Entity not spawned."
               << std::endl;
       return false;
@@ -1311,7 +1270,7 @@ bool CreateCommand::Execute()
         this->iface->worldEntity);
     if (nullptr == scComp)
     {
-      ignwarn << "Trying to create entity [" << desiredName
+      gzwarn << "Trying to create entity [" << desiredName
               << "] with spherical coordinates, but world's spherical "
               << "coordinates aren't set. Entity will be created at the world "
               << "origin." << std::endl;
@@ -1320,8 +1279,8 @@ bool CreateCommand::Execute()
     {
       // deg to rad
       math::Vector3d latLonEle{
-          IGN_DTOR(createMsg->spherical_coordinates().latitude_deg()),
-          IGN_DTOR(createMsg->spherical_coordinates().longitude_deg()),
+          GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
+          GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
           createMsg->spherical_coordinates().elevation()};
 
       auto pos = scComp->Data().PositionTransform(latLonEle,
@@ -1335,7 +1294,7 @@ bool CreateCommand::Execute()
       createPose.value().SetY(pos.Y());
       createPose.value().SetZ(pos.Z());
       createPose.value().Rot() = math::Quaterniond(0, 0,
-          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+          GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
           createPose.value().Rot();
     }
   }
@@ -1346,7 +1305,7 @@ bool CreateCommand::Execute()
     *poseComp = components::Pose(createPose.value());
   }
 
-  igndbg << "Created entity [" << entity << "] named [" << desiredName << "]"
+  gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"
          << std::endl;
 
   return true;
@@ -1365,14 +1324,14 @@ bool RemoveCommand::Execute()
   auto removeMsg = dynamic_cast<const msgs::Entity *>(this->msg);
   if (nullptr == removeMsg)
   {
-    ignerr << "Internal error, null remove message" << std::endl;
+    gzerr << "Internal error, null remove message" << std::endl;
     return false;
   }
 
   auto entity = topLevelEntityFromMessage(*this->iface->ecm, *removeMsg);
   if (entity == kNullEntity)
   {
-    ignerr << "Entity named [" << removeMsg->name() << "] of type ["
+    gzerr << "Entity named [" << removeMsg->name() << "] of type ["
            << removeMsg->type() << "] not found, so not removed." << std::endl;
     return false;
   }
@@ -1381,7 +1340,7 @@ bool RemoveCommand::Execute()
   auto parent = this->iface->ecm->ParentEntity(entity);
   if (nullptr == this->iface->ecm->Component<components::World>(parent))
   {
-    ignerr << "Entity [" << entity
+    gzerr << "Entity [" << entity
            << "] is not a direct child of the world, so it can't be removed."
            << std::endl;
     return false;
@@ -1390,13 +1349,13 @@ bool RemoveCommand::Execute()
   if (nullptr == this->iface->ecm->Component<components::Model>(entity) &&
       nullptr == this->iface->ecm->Component<components::Light>(entity))
   {
-    ignerr << "Entity [" << entity
+    gzerr << "Entity [" << entity
            << "] is not a model or a light, so it can't be removed."
            << std::endl;
     return false;
   }
 
-  igndbg << "Requesting removal of entity [" << entity << "]" << std::endl;
+  gzdbg << "Requesting removal of entity [" << entity << "]" << std::endl;
   this->iface->creator->RequestRemoveEntity(entity);
   return true;
 }
@@ -1414,7 +1373,7 @@ bool LightCommand::Execute()
   auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
   if (nullptr == lightMsg)
   {
-    ignerr << "Internal error, null light message" << std::endl;
+    gzerr << "Internal error, null light message" << std::endl;
     return false;
   }
 
@@ -1440,7 +1399,7 @@ bool LightCommand::Execute()
   }
   if (kNullEntity == lightEntity)
   {
-    ignerr << "Failed to find light with name [" << lightMsg->name()
+    gzerr << "Failed to find light with name [" << lightMsg->name()
            << "], ID [" << lightMsg->id() << "] and parent ID ["
            << lightMsg->parent_id() << "]." << std::endl;
     return false;
@@ -1448,7 +1407,7 @@ bool LightCommand::Execute()
 
   if (!lightEntity)
   {
-    ignmsg << "Failed to find light entity named [" << lightMsg->name()
+    gzmsg << "Failed to find light entity named [" << lightMsg->name()
       << "]." << std::endl;
     return false;
   }
@@ -1459,7 +1418,7 @@ bool LightCommand::Execute()
 
   if (!lightEntity)
   {
-    ignmsg << "Pose component not available" << std::endl;
+    gzmsg << "Pose component not available" << std::endl;
     return false;
   }
 
@@ -1508,7 +1467,7 @@ bool updatePose(
 
   if (!_iface->ecm->HasEntity(entity))
   {
-    ignerr << "Unable to update the pose for entity id:[" << _poseMsg.id()
+    gzerr << "Unable to update the pose for entity id:[" << _poseMsg.id()
            << "], name[" << entityName << "]" << std::endl;
     return false;
   }
@@ -1545,7 +1504,7 @@ bool PoseCommand::Execute()
   auto poseMsg = dynamic_cast<const msgs::Pose *>(this->msg);
   if (nullptr == poseMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    gzerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
@@ -1565,7 +1524,7 @@ bool PoseVectorCommand::Execute()
   auto poseVectorMsg = dynamic_cast<const msgs::Pose_V *>(this->msg);
   if (nullptr == poseVectorMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    gzerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
@@ -1593,14 +1552,14 @@ bool PhysicsCommand::Execute()
   auto physicsMsg = dynamic_cast<const msgs::Physics *>(this->msg);
   if (nullptr == physicsMsg)
   {
-    ignerr << "Internal error, null physics message" << std::endl;
+    gzerr << "Internal error, null physics message" << std::endl;
     return false;
   }
 
   auto worldEntity = this->iface->ecm->EntityByComponents(components::World());
   if (worldEntity == kNullEntity)
   {
-    ignmsg << "Failed to find world entity" << std::endl;
+    gzmsg << "Failed to find world entity" << std::endl;
     return false;
   }
 
@@ -1629,7 +1588,7 @@ bool SphericalCoordinatesCommand::Execute()
       dynamic_cast<const msgs::SphericalCoordinates *>(this->msg);
   if (nullptr == sphericalCoordinatesMsg)
   {
-    ignerr << "Internal error, null SphericalCoordinates message" << std::endl;
+    gzerr << "Internal error, null SphericalCoordinates message" << std::endl;
     return false;
   }
 
@@ -1648,7 +1607,7 @@ bool SphericalCoordinatesCommand::Execute()
 
   if (!this->iface->ecm->HasEntity(entity))
   {
-    ignerr << "Unable to update the pose for entity [" << entity
+    gzerr << "Unable to update the pose for entity [" << entity
            << "]: entity doesn't exist." << std::endl;
     return false;
   }
@@ -1657,7 +1616,7 @@ bool SphericalCoordinatesCommand::Execute()
       this->iface->worldEntity);
   if (nullptr == scComp)
   {
-    ignerr << "Trying to move entity [" << entity
+    gzerr << "Trying to move entity [" << entity
            << "] using spherical coordinates, but world's spherical "
            << "coordinates aren't set." << std::endl;
     return false;
@@ -1665,8 +1624,8 @@ bool SphericalCoordinatesCommand::Execute()
 
   // deg to rad
   math::Vector3d latLonEle{
-      IGN_DTOR(sphericalCoordinatesMsg->latitude_deg()),
-      IGN_DTOR(sphericalCoordinatesMsg->longitude_deg()),
+      GZ_DTOR(sphericalCoordinatesMsg->latitude_deg()),
+      GZ_DTOR(sphericalCoordinatesMsg->longitude_deg()),
       sphericalCoordinatesMsg->elevation()};
 
   auto pos = scComp->Data().PositionTransform(latLonEle,
@@ -1674,7 +1633,7 @@ bool SphericalCoordinatesCommand::Execute()
       math::SphericalCoordinates::LOCAL2);
 
   math::Pose3d pose{pos.X(), pos.Y(), pos.Z(), 0, 0,
-          IGN_DTOR(sphericalCoordinatesMsg->heading_deg())};
+          GZ_DTOR(sphericalCoordinatesMsg->heading_deg())};
 
   auto poseCmdComp =
     this->iface->ecm->Component<components::WorldPoseCmd>(entity);
@@ -1707,14 +1666,14 @@ bool EnableCollisionCommand::Execute()
   auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
   if (nullptr == entityMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    gzerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
   // Check Entity type
   if (entityMsg->type() != msgs::Entity::COLLISION)
   {
-    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+    gzwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
       << std::endl;
     return false;
   }
@@ -1722,7 +1681,7 @@ bool EnableCollisionCommand::Execute()
   // Check if collision is connected to a contact sensor
   if (this->iface->HasContactSensor(entityMsg->id()))
   {
-    ignwarn << "Requested collision is connected to a contact sensor, "
+    gzwarn << "Requested collision is connected to a contact sensor, "
       << "exiting service..." << std::endl;
     return false;
   }
@@ -1733,13 +1692,13 @@ bool EnableCollisionCommand::Execute()
       components::ContactSensorData>(entityMsg->id());
   if (contactDataComp)
   {
-    ignwarn << "Can't create component that already exists" << std::endl;
+    gzwarn << "Can't create component that already exists" << std::endl;
     return false;
   }
 
   this->iface->ecm->
     CreateComponent(entityMsg->id(), components::ContactSensorData());
-  igndbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
+  gzdbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }
@@ -1757,14 +1716,14 @@ bool DisableCollisionCommand::Execute()
   auto entityMsg = dynamic_cast<const msgs::Entity *>(this->msg);
   if (nullptr == entityMsg)
   {
-    ignerr << "Internal error, null create message" << std::endl;
+    gzerr << "Internal error, null create message" << std::endl;
     return false;
   }
 
   // Check Entity type
   if (entityMsg->type() != msgs::Entity::COLLISION)
   {
-    ignwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
+    gzwarn << "Expected msgs::Entity::Type::COLLISION, exiting service..."
       << std::endl;
     return false;
   }
@@ -1772,7 +1731,7 @@ bool DisableCollisionCommand::Execute()
   // Check if collision is connected to a contact sensor
   if (this->iface->HasContactSensor(entityMsg->id()))
   {
-    ignwarn << "Requested collision is connected to a contact sensor, "
+    gzwarn << "Requested collision is connected to a contact sensor, "
       << "exiting service..." << std::endl;
     return false;
   }
@@ -1783,7 +1742,7 @@ bool DisableCollisionCommand::Execute()
       components::ContactSensorData>(entityMsg->id());
   if (!contactDataComp)
   {
-    ignwarn << "No ContactSensorData detected inside entity " << entityMsg->id()
+    gzwarn << "No ContactSensorData detected inside entity " << entityMsg->id()
       << std::endl;
     return false;
   }
@@ -1791,7 +1750,7 @@ bool DisableCollisionCommand::Execute()
   this->iface->ecm->
     RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
 
-  igndbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
+  gzdbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
 }
@@ -1809,13 +1768,13 @@ bool VisualCommand::Execute()
   auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
   if (nullptr == visualMsg)
   {
-    ignerr << "Internal error, null visual message" << std::endl;
+    gzerr << "Internal error, null visual message" << std::endl;
     return false;
   }
 
   if (visualMsg->id() == kNullEntity)
   {
-    ignerr << "Failed to find visual entity" << std::endl;
+    gzerr << "Failed to find visual entity" << std::endl;
     return false;
   }
 
@@ -1854,7 +1813,7 @@ Entity scopedEntityFromMsg(
   std::unordered_set<Entity> entities = entitiesFromScopedName(
     _msg.name(), _ecm);
   if (entities.empty()) {
-    ignerr << "Failed to find entity with scoped name [" << _msg.name()
+    gzerr << "Failed to find entity with scoped name [" << _msg.name()
           << "]." << std::endl;
     return kNullEntity;
   }
@@ -1901,7 +1860,7 @@ Entity scopedEntityFromMsg(
       return entity;
     }
   }
-  ignerr << "Found entity with scoped name [" << _msg.name()
+  gzerr << "Found entity with scoped name [" << _msg.name()
         << "], but it doesn't have a component of the required type ["
         << componentType << "]." << std::endl;
   return kNullEntity;
@@ -1914,7 +1873,7 @@ bool WheelSlipCommand::Execute()
       this->msg);
   if (nullptr == wheelSlipMsg)
   {
-    ignerr << "Internal error, null wheel slip message" << std::endl;
+    gzerr << "Internal error, null wheel slip message" << std::endl;
     return false;
   }
   const auto & ecm = *this->iface->ecm;
@@ -1956,15 +1915,19 @@ bool WheelSlipCommand::Execute()
     }
     return true;
   }
-  ignerr << "Found entity with scoped name [" << wheelSlipMsg->entity().name()
+  gzerr << "Found entity with scoped name [" << wheelSlipMsg->entity().name()
           << "], is neither a model or a link." << std::endl;
   return false;
 }
 
-IGNITION_ADD_PLUGIN(UserCommands, System,
+GZ_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
   UserCommands::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+GZ_ADD_PLUGIN_ALIAS(UserCommands,
+                          "gz::sim::systems::UserCommands")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "ignition::gazebo::systems::UserCommands")

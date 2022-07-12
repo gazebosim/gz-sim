@@ -15,18 +15,18 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_3DPLOT_HH_
-#define IGNITION_GAZEBO_GUI_3DPLOT_HH_
+#ifndef GZ_SIM_GUI_3DPLOT_HH_
+#define GZ_SIM_GUI_3DPLOT_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
@@ -59,7 +59,7 @@ namespace gui
   /// After this number is reached, the older points start being deleted.
   /// Defaults to 1000.
   ///
-  class Plot3D : public ignition::gazebo::GuiSystem
+  class Plot3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

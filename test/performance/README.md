@@ -20,11 +20,11 @@ Example: `./PERFORMANCE_sdf_runner cubes.sdf 5000 10000`
 
 ## Analyzing the output
 
-The runner will generate a `data.csv` file that can then be used with the `ign_perf.py` tool to generate statistics and plots of the real time factor information.
+The runner will generate a `data.csv` file that can then be used with the `gz_perf.py` tool to generate statistics and plots of the real time factor information.
 
 Examples:
 
-* `ign_perf.py data.csv --summarize` Summarize RTF statistics
+* `gz_perf.py data.csv --summarize` Summarize RTF statistics
 
 ```
 Iterations: 10000
@@ -40,7 +40,7 @@ Max RTF:    1.01867
   Real Time: 1.96814
 ```
 
-* `ign_perf.py data.csv --plot` Time series plot of RTF vs simualation time
+* `gz_perf.py data.csv --plot` Time series plot of RTF vs simualation time
 
-* `ign_perf.py data.csv --hist` Histogram of real time factors
+* `gz_perf.py data.csv --hist` Histogram of real time factors
 

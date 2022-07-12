@@ -14,22 +14,22 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
+#ifndef GZ_SIM_SYSTEMS_TRIGGEREDPUBLISHER_HH_
+#define GZ_SIM_SYSTEMS_TRIGGEREDPUBLISHER_HH_
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <ignition/transport/Node.hh>
-#include "ignition/gazebo/System.hh"
+#include <gz/transport/Node.hh>
+#include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -45,7 +45,7 @@ namespace systems
   /// - `<input>` The tag contains the input message type, topic and matcher
   /// information.
   ///   * Attributes:
-  ///     * `type`: Input message type (eg. `ignition.msgs.Boolean`)
+  ///     * `type`: Input message type (eg. `gz.msgs.Boolean`)
   ///     * `topic`: Input message topic name
   ///
   /// - `<input><match>`: Contains configuration for matchers. Multiple
@@ -62,18 +62,18 @@ namespace systems
   ///         message is compared for a match.
   ///   * Value: String used to construct the protobuf message against which
   ///       input messages are matched. This is the human-readable
-  ///       representation of a protobuf message as used by `ign topic` for
+  ///       representation of a protobuf message as used by `gz topic` for
   ///       publishing messages
   ///
   /// - `<output>`: Contains configuration for output messages: Multiple
   /// `<output>` tags are possible. A message will be published on each output
   /// topic for each input that matches.
   ///   * Attributes:
-  ///     * `type`: Output message type (eg. `ignition.msgs.Boolean`)
+  ///     * `type`: Output message type (eg. `gz.msgs.Boolean`)
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
-  ///     `ign topic` for publishing messages
+  ///     `gz topic` for publishing messages
   ///
   /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.
@@ -82,8 +82,8 @@ namespace systems
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
   /// \code{.xml}
   ///    <plugin>
-  ///      <input type="ignition.msgs.Boolean" topic="/input_topic"/>
-  ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///      <input type="gz.msgs.Boolean" topic="/input_topic"/>
+  ///      <output type="gz.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
   /// \endcode
   ///
@@ -91,23 +91,23 @@ namespace systems
   ///    of "true" is received
   /// \code{.xml}
   ///    <plugin>
-  ///      <input type="ignition.msgs.Boolean" topic="/input_topic">
+  ///      <input type="gz.msgs.Boolean" topic="/input_topic">
   ///        <match>
   ///            data: true
   ///        </match>
   ///      </input>
-  ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///      <output type="gz.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
   /// \endcode
   ///
   /// 3. Field match: An output is triggered when a specific field matches
   /// \code{.xml}
   ///    <plugin>
-  ///      <input type="ignition.msgs.Vector2d" topic="/input_topic">
+  ///      <input type="gz.msgs.Vector2d" topic="/input_topic">
   ///        <match field="x">1.0</match>
   ///        <match field="y">2.0</match>
   ///      </input>
-  ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///      <output type="gz.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
   /// \endcode
   ///
@@ -117,40 +117,40 @@ namespace systems
   /// equal 1 AND does not equal 2.
   /// \code{.xml}
   ///    <plugin>
-  ///      <input type="ignition.msgs.Int32" topic="/input_topic">
+  ///      <input type="gz.msgs.Int32" topic="/input_topic">
   ///        <match logic_type="negative">1</match>
   ///        <match logic_type="negative">2</match>
   ///      </input>
-  ///      <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///      <output type="gz.msgs.Empty" topic="/output_topic"/>
   ///    </plugin>
   /// \endcode
   ///
   /// ### Repeated Fields
   /// When a field matcher is used with repeated fields, the content of the
   /// repeated field is treated as a set and the comparison operator is set
-  /// containment. For example, the `data` field of `ignition.msgs.Int32_V` is a
+  /// containment. For example, the `data` field of `gz.msgs.Int32_V` is a
   /// repeated Int32 message. To match an input that contains the values 1 and 2
   /// the following matcher can be used:
   /// \code{.xml}
   ///  <plugin>
-  ///    <input type="ignition.msgs.Int32_V" topic="/input_topic">
+  ///    <input type="gz.msgs.Int32_V" topic="/input_topic">
   ///      <match field="data">1</match>
   ///      <match field="data">2</match>
   ///    </input>
-  ///    <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///    <output type="gz.msgs.Empty" topic="/output_topic"/>
   ///  </plugin>
   /// \endcode
   /// To match an Int32_V message with the exact contents {1, 2}, the full
   /// matcher is used instead
   /// \code{.xml}
   /// <plugin>
-  ///   <input type="ignition.msgs.Int32_V" topic="/input_topic">
+  ///   <input type="gz.msgs.Int32_V" topic="/input_topic">
   ///     <match>
   ///        data: 1
   ///        data: 2
   ///     </match>
   ///   </input>
-  ///   <output type="ignition.msgs.Empty" topic="/output_topic"/>
+  ///   <output type="gz.msgs.Empty" topic="/output_topic"/>
   /// </plugin>
   /// \endcode
   ///
@@ -176,8 +176,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
@@ -187,7 +187,7 @@ namespace systems
     /// \return True if all of the matchers return true
     public: bool MatchInput(const transport::ProtoMsg &_inputMsg);
 
-    /// \brief Input message type (eg. ignition.msgs.Boolean)
+    /// \brief Input message type (eg. gz.msgs.Boolean)
     private: std::string inputMsgType;
 
     /// \brief Input message topic
@@ -216,7 +216,7 @@ namespace systems
     /// \brief List of outputs
     private: std::vector<OutputInfo> outputInfo;
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Counter that tells the publisher how many times to publish

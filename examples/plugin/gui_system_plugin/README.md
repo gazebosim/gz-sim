@@ -2,8 +2,8 @@
 
 This example shows how to create a GUI system plugin.
 
-Ignition Gazebo supports any kind of Ignition GUI plugin
-(`ignition::gui::Plugin`). Gazebo GUI plugins are a special type of Ignition
+Gazebo supports any kind of Gazebo GUI plugin
+(`gz::gui::Plugin`). Gazebo GUI plugins are a special type of Gazebo
 GUI plugin which also have access to entity and component updates coming from
 the server.
 
@@ -11,7 +11,7 @@ See `GuiSystemPluginPlugin.hh` for more information.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugin/gui_system_plugin
@@ -29,12 +29,12 @@ Add the library to the path:
 
 ~~~
 cd examples/plugin/gui_system_plugin
-export IGN_GUI_PLUGIN_PATH=`pwd`/build
+export GZ_GUI_PLUGIN_PATH=`pwd`/build
 ~~~
 
 Then run a world, for example:
 
-    ign gazebo -v 4 shapes.sdf
+    gz sim -v 4 shapes.sdf
 
 From the GUI plugin menu on the top-right, choose "Gui System Plugin".
 

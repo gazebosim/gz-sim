@@ -5,8 +5,8 @@ RUN apt-get update \
       sudo wget lsb-release gnupg curl \
  && apt-get clean
 
-COPY docker/scripts/enable_ign_stable.sh scripts/enable_ign_stable.sh
-RUN scripts/enable_ign_stable.sh
+COPY docker/scripts/enable_stable.sh scripts/enable_stable.sh
+RUN scripts/enable_stable.sh
 
 COPY docker/scripts/install_common_deps.sh scripts/install_common_deps.sh
 RUN scripts/install_common_deps.sh

@@ -20,7 +20,7 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 Rectangle {
   id: componentInspector
@@ -155,7 +155,7 @@ Rectangle {
       anchors.fill: parent
       spacing: 0
 
-      IgnGazebo.TypeIcon {
+      GzSim.TypeIcon {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
@@ -245,6 +245,14 @@ Rectangle {
 
     delegate: Loader {
       id: loader
+
+      /**
+       * Most items can access model.data directly, but items like ListView,
+       * which have their own `model` property, can't. They can use
+       * `componentData` instead.
+       */
+      property var componentData: model.data
+
       source: delegateQml(model)
     }
   }

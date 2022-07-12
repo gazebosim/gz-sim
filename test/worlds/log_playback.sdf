@@ -5,12 +5,12 @@
       <real_time_factor>0</real_time_factor>
     </physics>
 
-    <plugin filename='ignition-gazebo-scene-broadcaster-system'
-            name='ignition::gazebo::systems::SceneBroadcaster'>
+    <plugin filename='gz-sim-scene-broadcaster-system'
+            name='gz::sim::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='ignition-gazebo-log-system'
-      name='ignition::gazebo::systems::LogPlayback'>
+      filename='gz-sim-log-system'
+      name='gz::sim::systems::LogPlayback'>
     </plugin>
   </world>
 </sdf>

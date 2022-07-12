@@ -2,16 +2,16 @@
 <sdf version="1.6">
   <world name="odometer_world">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <!-- The system is added to the world, so it handles all odometers in the world-->
     <plugin
@@ -86,23 +86,23 @@
           </geometry>
         </visual>
         <!-- Here's our custom sensor -->
-        <sensor name="an_odometer" type="custom" ignition:type="odometer">
+        <sensor name="an_odometer" type="custom" gz:type="odometer">
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <ignition:odometer>
+          <gz:odometer>
             <noise type="gaussian">
               <mean>0.00001</mean>
               <stddev>0.00001</stddev>
             </noise>
-          </ignition:odometer>
+          </gz:odometer>
         </sensor>
       </link>
 
       <!-- Use the velocity control plugin to give it some initial velocity -->
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
         <initial_linear>0.2 0 0</initial_linear>
       </plugin>
     </model>

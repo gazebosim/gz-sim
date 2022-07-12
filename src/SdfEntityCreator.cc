@@ -15,72 +15,72 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/CustomSensor.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/ForceTorque.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Lidar.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightType.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/NavSat.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include <ignition/gazebo/components/ParticleEmitter.hh>
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/SegmentationCamera.hh"
-#include "ignition/gazebo/components/SelfCollide.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/WideAngleCamera.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/CustomSensor.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/ForceTorque.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Lidar.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightType.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Magnetometer.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/NavSat.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include <gz/sim/components/ParticleEmitter.hh>
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/SegmentationCamera.hh"
+#include "gz/sim/components/SelfCollide.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visibility.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/WideAngleCamera.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/World.hh"
 
-class ignition::gazebo::SdfEntityCreatorPrivate
+class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -101,8 +101,8 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   public: std::map<Entity, sdf::ElementPtr> newVisuals;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to
@@ -127,7 +127,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors resolveAxisErrors = _unresolvedAxis.ResolveXyz(axisXyz);
   if (!resolveAxisErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -136,7 +136,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
   if (!setXyzErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -218,7 +218,7 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -335,7 +335,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
   auto ent = this->CreateEntities(_model, false);
 
@@ -447,13 +447,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     }
     else
     {
-      ignerr << "Could not find the canonical link entity for "
+      gzerr << "Could not find the canonical link entity for "
              << canonicalLinkPair.second << "\n";
     }
   }
   else if(!isStatic)
   {
-    ignerr << "Could not resolve the canonical link for " << _model->Name()
+    gzerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
   }
 
@@ -471,7 +471,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
 
   // Entity
   Entity actorEntity = this->dataPtr->ecm->CreateEntity();
@@ -493,7 +493,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -514,7 +514,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -598,7 +598,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     bool _resolved)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -624,7 +624,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -638,7 +638,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -658,7 +658,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedParentLinkName;
   if (_resolved)
   {
-    resolvedParentLinkName = _joint->ParentLinkName();
+    resolvedParentLinkName = _joint->ParentName();
   }
   else
   {
@@ -667,12 +667,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
       _joint->ResolveParentLink(resolvedParentLinkName);
     if (!resolveParentErrors.empty())
     {
-      ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
-             << "' with parent name '" << _joint->ParentLinkName() << "'"
+      gzerr << "Failed to resolve parent link for joint '" << _joint->Name()
+             << "' with parent name '" << _joint->ParentName() << "'"
              << std::endl;
       for (const auto &error : resolveParentErrors)
       {
-        ignerr << error << std::endl;
+        gzerr << error << std::endl;
       }
 
       return kNullEntity;
@@ -684,7 +684,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedChildLinkName;
   if (_resolved)
   {
-    resolvedChildLinkName = _joint->ChildLinkName();
+    resolvedChildLinkName = _joint->ChildName();
   }
   else
   {
@@ -692,12 +692,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
       _joint->ResolveChildLink(resolvedChildLinkName);
     if (!resolveChildErrors.empty())
     {
-      ignerr << "Failed to resolve child link for joint '" << _joint->Name()
-             << "' with child name '" << _joint->ChildLinkName() << "'"
+      gzerr << "Failed to resolve child link for joint '" << _joint->Name()
+             << "' with child name '" << _joint->ChildName() << "'"
              << std::endl;
       for (const auto &error : resolveChildErrors)
       {
-        ignerr << error << std::endl;
+        gzerr << error << std::endl;
       }
 
       return kNullEntity;
@@ -713,7 +713,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -771,7 +771,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
 
   // Entity
   Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
@@ -790,7 +790,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -818,7 +818,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
@@ -846,7 +846,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // \todo(anyone) Implement CPU-based lidar
     // this->dataPtr->ecm->CreateComponent(sensorEntity,
     //     components::Lidar(*_sensor));
-    ignwarn << "Sensor type LIDAR not supported yet. Try using"
+    gzwarn << "Sensor type LIDAR not supported yet. Try using"
       << "a GPU LIDAR instead." << std::endl;
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
@@ -959,7 +959,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else
   {
-    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
+    gzwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
             << "] not supported yet." << std::endl;
   }
 

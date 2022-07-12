@@ -19,37 +19,37 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 
 // Include all components so they have first-class support
-#include "ignition/gazebo/components/components.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include <ignition/gazebo/gui/GuiEvents.hh>
-#include "ignition/gazebo/gui/GuiSystem.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/components/components.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include <gz/sim/gui/GuiEvents.hh>
+#include "gz/sim/gui/GuiSystem.hh"
+#include "gz/sim/SystemLoader.hh"
 
 #include "GuiRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod
 Q_DECLARE_METATYPE(msgs::SerializedStepMap)
 
 /////////////////////////////////////////////////
-class ignition::gazebo::GuiRunner::Implementation
+class gz::sim::GuiRunner::Implementation
 {
   /// \brief Entity-component manager.
-  public: gazebo::EntityComponentManager ecm;
+  public: sim::EntityComponentManager ecm;
 
   /// \brief Transport node.
   public: transport::Node node{};
@@ -75,14 +75,14 @@ class ignition::gazebo::GuiRunner::Implementation
   /// \brief Name of WorldControl service
   public: std::string controlService;
 
-  /// \brief System loader for loading ign-gazebo systems
+  /// \brief System loader for loading gz-sim systems
   public: std::unique_ptr<SystemLoader> systemLoader;
 
   /// \brief Mutex to protect systemLoader
   public: std::mutex systemLoadMutex;
 
   /// \brief Events containing visual plugins to load
-  public: std::vector<std::pair<ignition::gazebo::Entity, sdf::ElementPtr>>
+  public: std::vector<std::pair<gz::sim::Entity, sdf::ElementPtr>>
       visualPlugins;
 
   /// \brief Systems implementing PreUpdate
@@ -119,11 +119,11 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // and add support for accepting uint64_t data in ign-rendering Node's
   // UserData object.
   // todo(anyone) address
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/1134
+  // https://github.com/gazebosim/gz-sim/issues/1134
   // so that an offset is not required
   this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 
-  auto win = ignition::gui::App()->findChild<ignition::gui::MainWindow *>();
+  auto win = gz::gui::App()->findChild<gz::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
@@ -132,7 +132,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
       _worldName + "/state");
   if (this->dataPtr->stateTopic.empty())
   {
-    ignerr << "Failed to generate valid topic for world [" << _worldName << "]"
+    gzerr << "Failed to generate valid topic for world [" << _worldName << "]"
            << std::endl;
     return;
   }
@@ -142,7 +142,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
     return fuel_tools::fetchResource(_uri.Str());
   });
 
-  igndbg << "Requesting initial state from [" << this->dataPtr->stateTopic
+  gzdbg << "Requesting initial state from [" << this->dataPtr->stateTopic
          << "]..." << std::endl;
 
   this->RequestState();
@@ -154,8 +154,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -164,10 +164,10 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  if (_event->type() == gz::gui::events::WorldControl::kType)
   {
     auto worldControlEvent =
-      reinterpret_cast<ignition::gui::events::WorldControl *>(_event);
+      reinterpret_cast<gz::gui::events::WorldControl *>(_event);
     if (worldControlEvent)
     {
       msgs::WorldControlState req;
@@ -184,16 +184,16 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       if (pressedPlay || pressedStepWhilePaused)
         req.mutable_state()->CopyFrom(this->dataPtr->ecm.State());
 
-      std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-          [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+      std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+          [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
-              ignerr << "Error sharing WorldControl info with the server.\n";
+              gzerr << "Error sharing WorldControl info with the server.\n";
           };
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
   }
-  else if (_event->type() == ignition::gazebo::gui::events::VisualPlugin::kType)
+  else if (_event->type() == gz::sim::gui::events::VisualPlugin::kType)
   {
     auto visualPluginEvent =
       reinterpret_cast<gui::events::VisualPlugin *>(_event);
@@ -216,13 +216,13 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 void GuiRunner::RequestState()
 {
   // set up service for async state response callback
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
   if (reqSrvValid.empty())
   {
-    ignerr << "Failed to generate valid service [" << reqSrv << "]"
+    gzerr << "Failed to generate valid service [" << reqSrv << "]"
            << std::endl;
     return;
   }
@@ -235,11 +235,11 @@ void GuiRunner::RequestState()
     if (!this->dataPtr->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService,
         this))
     {
-      ignerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
+      gzerr << "Failed to advertise [" << reqSrv << "]" << std::endl;
     }
   }
 
-  ignition::msgs::StringMsg req;
+  gz::msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // Subscribe to periodic updates.
@@ -270,7 +270,7 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   this->dataPtr->node.UnadvertiseSrv(reqSrv);
@@ -279,8 +279,8 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 /////////////////////////////////////////////////
 void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
-  IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
-  IGN_PROFILE("GuiRunner::Update");
+  GZ_PROFILE_THREAD_NAME("GuiRunner::OnState");
+  GZ_PROFILE("GuiRunner::Update");
 
   // Only process state updates after initial state has been received.
   if (!this->dataPtr->receivedInitialState)
@@ -297,8 +297,8 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 /////////////////////////////////////////////////
 void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("GuiRunner::Update");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("GuiRunner::Update");
   this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
@@ -310,7 +310,7 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 void GuiRunner::UpdatePlugins()
 {
   // gui plugins
-  auto plugins = ignition::gui::App()->findChildren<GuiSystem *>();
+  auto plugins = gz::gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
@@ -319,7 +319,7 @@ void GuiRunner::UpdatePlugins()
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
 
-  // ign-gazebo systems
+  // gz-sim systems
   this->LoadSystems();
   this->UpdateSystems();
 }
@@ -359,7 +359,7 @@ void GuiRunner::LoadSystems()
           sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
               this->dataPtr->eventMgr);
         }
-        igndbg << "Loaded system [" << name
+        gzdbg << "Loaded system [" << name
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
       }
@@ -371,10 +371,10 @@ void GuiRunner::LoadSystems()
 /////////////////////////////////////////////////
 void GuiRunner::UpdateSystems()
 {
-  IGN_PROFILE("GuiRunner::UpdateSystems");
+  GZ_PROFILE("GuiRunner::UpdateSystems");
 
   {
-    IGN_PROFILE("PreUpdate");
+    GZ_PROFILE("PreUpdate");
     for (auto& system : this->dataPtr->systemsPreupdate)
     {
       if (system)
@@ -383,7 +383,7 @@ void GuiRunner::UpdateSystems()
   }
 
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     for (auto& system : this->dataPtr->systemsUpdate)
     {
       if (system)
@@ -392,7 +392,7 @@ void GuiRunner::UpdateSystems()
   }
 
   {
-    IGN_PROFILE("PostUpdate");
+    GZ_PROFILE("PostUpdate");
     // \todo(anyone) Do PostUpdates in parallel
     for (auto& system : this->dataPtr->systemsPostupdate)
     {
