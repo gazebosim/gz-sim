@@ -5,15 +5,25 @@
 # Usage:
 #   This script is to be run from within the Blender GUI. Tested in Blender
 #   2.92.
-#   distort_mesh.py <file_path> <object_prefix> [distort_extent] [method]
+#   distort_mesh.py <mesh_path> <object_prefix> [distort_extent] [method]
+#   where
+#   mesh_path: Absolute path to mesh file
+#   object_prefix: Prefix of object name in Scene Collection in Blender. The
+#     prefix instead of the name is required, because if the script is
+#     repeatedly run, Blender will append numerical suffixes .001, .002, etc.
+#     to the object name.
+#   distort_extent: A floating point number in the range of [0, 1]
+#   method: Distortion method. A list of strings.
 #
-#   Example:
-#   From the console panel, run
-#   >>> file_path = '/path/to/file.dae'
+#   Example from command line:
+#   $ blender -b -P distort_mesh.py -- /path/to/mesh.obj object_prefix 0.005 "['subdiv_mod', 'vert_rand', 'edge_subdiv']"
+#
+#   Example from Blender Scripting GUI Python command line:
+#   >>> file_path = '/path/to/mesh.dae'
 #   >>> object_prefix = 'Cube'
-#   >>> distort_extent = 0.1  # float in range [0, 1]
-#   >>> method = 'deform'  # method of distortion
-#   >>> sys.argv = ['distort_mesh.py', file_path, object_prefix, distort_extent, method]
+#   >>> distort_extent = 0.005  # float in range [0, 1]
+#   >>> method = ['subdiv_mod', 'vert_rand', 'edge_subdiv']
+#   >>> sys.argv = [file_path, object_prefix, distort_extent, method]
 #   >>> exec(open('/path/to/distort_mesh.py').read());
 #
 
@@ -140,7 +150,7 @@ def distort(file_path, object_prefix, distort_extent, method):
             distort_extent))
         return
     if not isinstance(method, list):
-        print('ERROR: method parameter must be specified as a list')
+        print('ERROR: method parameter "%s" must be specified as a list' % method)
         return
 
     # Clear scene
@@ -226,16 +236,28 @@ if __name__ == '__main__':
     # Default values
     distort_extent = 0.1
     method = ['subdiv_mod', 'vert_rand', 'edge_subdiv']
-    
+
+    # Parse everything after `--`
+    argStartI = 0
+    for i in range(len(sys.argv)):
+        if sys.argv[i] == '--':
+            argStartI = i + 1
+            break
+
     # Parse args
-    if len(sys.argv) < 2:
-        print('ERROR: Mesh name not provided. No object to distort.')
+    if len(sys.argv) - argStartI < 2:
+        print('ERROR: Mesh name prefix not provided. No object to distort.')
     else:
-        file_path = sys.argv[1]
-        object_prefix = sys.argv[2]
-        if len(sys.argv) > 2:
-            distort_extent = float(sys.argv[3])
-        if len(sys.argv) > 3:
-            method = sys.argv[4]
+        file_path = sys.argv[argStartI]
+        object_prefix = sys.argv[argStartI + 1]
+        if len(sys.argv) - argStartI > 1:
+            distort_extent = float(sys.argv[argStartI + 2])
+        if len(sys.argv) - argStartI > 2:
+            # If arg is not already a list (happens when script run from
+            # bash command line, for example, as opposed to Blender Python
+            # prompt), convert string literal of a list, to a list.
+            if type(sys.argv[argStartI + 3]) != list:
+                import ast
+                method = ast.literal_eval(sys.argv[argStartI + 3])
 
         distort(file_path, object_prefix, distort_extent, method)
