@@ -953,8 +953,8 @@ TEST_P(ServerFixture, GetResourcePaths)
   int maxSleep{30};
   while (!executed && sleep < maxSleep)
   {
-    gzdbg << "Requesting /gazebo/resource_paths/get" << std::endl;
-    executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
+    gzdbg << "Requesting /sim/resource_paths/get" << std::endl;
+    executed = node.Request("/sim/resource_paths/get", 100, res, result);
     sleep++;
   }
   EXPECT_TRUE(executed);
@@ -992,14 +992,14 @@ TEST_P(ServerFixture, AddResourcePaths)
         EXPECT_EQ("/tmp/more", _msg.data(3));
         EXPECT_EQ("/tmp/even_more", _msg.data(4));
       });
-  node.Subscribe("/gazebo/resource_paths", resourceCb);
+  node.Subscribe("/sim/resource_paths", resourceCb);
 
   // Add path
   msgs::StringMsg_V req;
   req.add_data("/tmp/new_path");
   req.add_data("/tmp/more:/tmp/even_more");
   req.add_data("/tmp/some/path");
-  bool executed = node.Request("/gazebo/resource_paths/add", req);
+  bool executed = node.Request("/sim/resource_paths/add", req);
   EXPECT_TRUE(executed);
 
   int sleep{0};
@@ -1059,8 +1059,8 @@ TEST_P(ServerFixture, ResolveResourcePaths)
           req.set_data(_uri);
           while (!executed && sleep < maxSleep)
           {
-            gzdbg << "Requesting /gazebo/resource_paths/resolve" << std::endl;
-            executed = node.Request("/gazebo/resource_paths/resolve", req, 100,
+            gzdbg << "Requesting /sim/resource_paths/resolve" << std::endl;
+            executed = node.Request("/sim/resource_paths/resolve", req, 100,
                 res, result);
             sleep++;
           }

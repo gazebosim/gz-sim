@@ -44,7 +44,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
     suffix = "";
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
-  std::string service{"/gazebo/worlds"};
+  std::string service{"/sim/worlds"};
   gz::msgs::StringMsg_V worldsMsg;
 
   bool result{false};

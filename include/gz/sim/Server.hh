@@ -83,10 +83,10 @@ namespace gz
     ///   1. `/world/<world_name>/scene/info(none)` : gz::msgs::Scene
     ///     + Returns the current scene information.
     ///
-    ///   2. `/gazebo/resource_paths/get` : gz::msgs::StringMsg_V
+    ///   2. `/sim/resource_paths/get` : gz::msgs::StringMsg_V
     ///     + Get list of resource paths.
     ///
-    ///   3. `/gazebo/resource_paths/add` : gz::msgs::Empty
+    ///   3. `/sim/resource_paths/add` : gz::msgs::Empty
     ///     + Add new resource paths.
     ///
     ///   4. `/server_control`(gz::msgs::ServerControl) :
@@ -106,7 +106,7 @@ namespace gz
     /// 2. `/world/<world_name>/stats` : gz::msgs::WorldStatistics
     ///   + This topic is throttled to 5Hz.
     ///
-    /// 3. `/gazebo/resource_paths` : gz::msgs::StringMsg_V
+    /// 3. `/sim/resource_paths` : gz::msgs::StringMsg_V
     ///   + Updated list of resource paths.
     ///
     class GZ_SIM_VISIBLE Server

@@ -2,7 +2,7 @@
 <!--
   Gazebo lift-drag system with a battery plugin demo
 
-  This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
+  This file was adapted from osrf/sim/worlds/single_rotor_demo.world
 
   Try sending commands:
 

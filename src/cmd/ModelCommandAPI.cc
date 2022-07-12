@@ -63,7 +63,7 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 /// \brief Get the name of the world being used by calling
-/// `/gazebo/worlds` service.
+/// `/sim/worlds` service.
 /// \return The name of the world if service is available,
 /// an empty string otherwise.
 std::string getWorldName()
@@ -73,7 +73,7 @@ std::string getWorldName()
 
   bool result{false};
   const unsigned int timeout{5000};
-  const std::string service{"/gazebo/worlds"};
+  const std::string service{"/sim/worlds"};
 
   // Request and block
   msgs::StringMsg_V res;

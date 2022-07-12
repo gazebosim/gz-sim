@@ -6,11 +6,11 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
   Send commands to the quadcopter to go straight up:
 
-    gz topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
+    gz topic -t "/X3/sim/command/twist" -m gz.msgs.Twist -p "linear: {x:0 y: 0 z: 0.1} angular {z: 0}"
 
   To hover
 
-    gz topic -t "/X3/gazebo/command/twist" -m gz.msgs.Twist -p " "
+    gz topic -t "/X3/sim/command/twist" -m gz.msgs.Twist -p " "
 
   Listen to odometry:
 

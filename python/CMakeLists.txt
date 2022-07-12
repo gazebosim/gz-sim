@@ -21,19 +21,37 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   endif()
 
   if(USE_DIST_PACKAGES_FOR_PYTHON)
-    string(REPLACE "site-packages" "dist-packages" IGN_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
+    string(REPLACE "site-packages" "dist-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
   endif()
 else()
   # If not a system installation, respect local paths
-  set(IGN_PYTHON_INSTALL_PATH ${IGN_LIB_INSTALL_DIR}/python)
+  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
 
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${IGN_PYTHON_INSTALL_PATH}/ignition"
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/gz"
   )
+
+  # TODO(CH3): Deprecated. Remove on tock.
+  # Install Python library symlinks
+  string(REGEX REPLACE "gz$" "ignition" IGN_PYTHON_INSTALL_PATH ${GZ_PYTHON_INSTALL_PATH})
+  if (WIN32)  # Windows requires copy instead of symlink
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E copy \
+        ${GZ_PYTHON_INSTALL_PATH}\/gz/${_library_name} \
+        ${PROJECT_BINARY_DIR}\/${_library_name})")
+  else()
+    install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink \
+        ${GZ_PYTHON_INSTALL_PATH}\/gz/${_library_name} \
+        ${PROJECT_BINARY_DIR}\/${_library_name})")
+  endif()
+
+  install(FILES ${PROJECT_BINARY_DIR}\/${_library_name}
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}/ignition"
+  )
+
 endfunction()
 
 pybind11_add_module(gazebo SHARED
@@ -53,7 +71,7 @@ target_link_libraries(gazebo PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-# TODO(ahcorde): Move this module to ign-common
+# TODO(ahcorde): Move this module to gz-common
 pybind11_add_module(common SHARED
   src/gz/common/_gz_common_pybind11.cc
   src/gz/common/Console.cc

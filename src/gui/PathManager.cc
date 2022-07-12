@@ -61,13 +61,13 @@ void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
 PathManager::PathManager()
 {
   // Trigger an initial request to get all paths from server
-  std::string service{"/gazebo/resource_paths/get"};
+  std::string service{"/sim/resource_paths/get"};
 
   gzdbg << "Requesting resource paths through [" << service << "]"
          << std::endl;
   this->node.Request(service, onAddResourcePaths);
 
   // Get path updates through this topic
-  this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
+  this->node.Subscribe("/sim/resource_paths", onAddResourcePaths);
 }
 

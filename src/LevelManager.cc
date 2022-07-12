@@ -302,7 +302,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // the update cycle. This approach is thread-safe, but is unable to
   // provide the caller with feedback because
   // entityCompMgr.EntityByComponents() is not thread safe. It would better
-  // to have long running service calls in ign-transport so that this
+  // to have long running service calls in gz-transport so that this
   // function could get information out of the EntityComponent mangager
   // in a thread-safe manner and return information back to the caller.
   //

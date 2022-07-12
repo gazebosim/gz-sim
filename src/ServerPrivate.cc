@@ -318,7 +318,7 @@ void ServerPrivate::CreateEntities()
 void ServerPrivate::SetupTransport()
 {
   // Advertise available worlds.
-  std::string worldsService{"/gazebo/worlds"};
+  std::string worldsService{"/sim/worlds"};
   if (this->node.Advertise(worldsService, &ServerPrivate::WorldsService, this))
   {
     gzmsg << "Serving world names on [" << worldsService << "]" << std::endl;
@@ -330,7 +330,7 @@ void ServerPrivate::SetupTransport()
   }
 
   // Resource path management
-  std::string addPathService{"/gazebo/resource_paths/add"};
+  std::string addPathService{"/sim/resource_paths/add"};
   if (this->node.Advertise(addPathService,
       &ServerPrivate::AddResourcePathsService, this))
   {
@@ -343,7 +343,7 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
-  std::string getPathService{"/gazebo/resource_paths/get"};
+  std::string getPathService{"/sim/resource_paths/get"};
   if (this->node.Advertise(getPathService,
       &ServerPrivate::ResourcePathsService, this))
   {
@@ -358,7 +358,7 @@ void ServerPrivate::SetupTransport()
 
   // Advertise a service that returns the full path, on the Gazebo server's
   // host machine, based on a provided URI.
-  std::string resolvePathService{"/gazebo/resource_paths/resolve"};
+  std::string resolvePathService{"/sim/resource_paths/resolve"};
   if (this->node.Advertise(resolvePathService,
       &ServerPrivate::ResourcePathsResolveService, this))
   {
@@ -371,7 +371,7 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
-  std::string pathTopic{"/gazebo/resource_paths"};
+  std::string pathTopic{"/sim/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
   if (this->pathPub)

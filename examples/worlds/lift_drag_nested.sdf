@@ -3,7 +3,7 @@
   This is the same example as lift_drag.sdf but modified to show that links in
   nested models can be references in the link_name parameter.
 
-  This file was adapted from osrf/gazebo/worlds/single_rotor_demo.world
+  This file was adapted from osrf/sim/worlds/single_rotor_demo.world
 
   Try sending commands:
 

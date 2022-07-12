@@ -78,7 +78,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
   const std::string cmd = kGzModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
-        "\nService call to [/gazebo/worlds] timed out\n"
+        "\nService call to [/sim/worlds] timed out\n"
         "Command failed when trying to get the world name "
         "of the running simulation.\n";
   EXPECT_EQ(expectedOutput, output);

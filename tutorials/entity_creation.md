@@ -26,9 +26,9 @@ In another terminal, see if the create service is listed:
 
 ```bash
 gz service --list
-/gazebo/resource_paths/add
-/gazebo/resource_paths/get
-/gazebo/worlds
+/sim/resource_paths/add
+/sim/resource_paths/get
+/sim/worlds
 /gui/follow
 /gui/move_to
 /gui/move_to/pose

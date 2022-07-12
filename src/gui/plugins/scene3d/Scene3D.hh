@@ -269,7 +269,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
   class RenderSync;
 
   /// \brief gz-rendering renderer.
-  /// All ign-rendering calls should be performed inside this class as it makes
+  /// All gz-rendering calls should be performed inside this class as it makes
   /// sure that opengl calls in the underlying render engine do not interfere
   /// with QtQuick's opengl render operations. The main Render function will
   /// render to an offscreen texture and notify via signal and slots when it's
@@ -884,7 +884,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     private: std::unique_ptr<RenderWindowItemPrivate> dataPtr;
   };
 
-  /// \brief Texture node for displaying the render texture from ign-renderer
+  /// \brief Texture node for displaying the render texture from gz-renderer
   class TextureNode : public QObject, public QSGSimpleTextureNode
   {
     Q_OBJECT

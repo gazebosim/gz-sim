@@ -56,18 +56,18 @@ Now you can run the example:
 
 ```bash
 $ python3 examples/scripts/python_api/testFixture.py
-[Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
-[Dbg] [Physics.cc:789] Loaded [gz::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
+[Msg] Loading SDF world file[/home/ahcorde/gz_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
+[Dbg] [Physics.cc:789] Loaded [gz::physics::dartsim::Plugin] from library [/home/ahcorde/gz_fortress/install/lib/gz-physics-5/engine-plugins/libgz-physics-dartsim-plugin.so]
 [Dbg] [SimulationRunner.cc:909] Loaded system [gz::sim::systems::Physics] for entity [1]
 [Msg] Loaded level [3]
 [Msg] Serving world controls on [/world/gravity/control], [/world/gravity/control/state] and [/world/gravity/playback/control]
 [Msg] Serving GUI information on [/world/gravity/gui/info]
 [Msg] World [gravity] initialized with [default_physics] physics profile.
 [Msg] Serving world SDF generation service on [/world/gravity/generate_world_sdf]
-[Msg] Serving world names on [/gazebo/worlds]
-[Msg] Resource path add service on [/gazebo/resource_paths/add].
-[Msg] Resource path get service on [/gazebo/resource_paths/get].
-[Msg] Resource paths published on [/gazebo/resource_paths].
+[Msg] Serving world names on [/sim/worlds]
+[Msg] Resource path add service on [/sim/resource_paths/add].
+[Msg] Resource path get service on [/sim/resource_paths/get].
+[Msg] Resource paths published on [/sim/resource_paths].
 AddSystem1
 World entity is  1
 Gravity  0 0 -9.8

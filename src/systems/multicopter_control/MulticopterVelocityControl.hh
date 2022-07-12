@@ -69,7 +69,7 @@ namespace systems
   /// # Parameters
   /// The following parameters are used by the system
   ///
-  /// robotNamespace: All ign-transport topics subscribed to and published by
+  /// robotNamespace: All gz-transport topics subscribed to and published by
   ///  the system will be prefixed by this string. This is a required parameter.
   ///
   /// commandSubTopic: The system subscribes to this topic to receive twist

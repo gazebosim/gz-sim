@@ -144,7 +144,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
-  std::string service{"/gazebo/worlds"};
+  std::string service{"/sim/worlds"};
   gz::msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.

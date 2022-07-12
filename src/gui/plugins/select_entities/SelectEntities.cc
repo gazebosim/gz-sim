@@ -47,7 +47,7 @@ namespace sim
 namespace gui
 {
 /// \brief Helper to store selection requests to be handled in the render
-/// thread by `IgnRenderer::HandleEntitySelection`.
+/// thread by `GzRenderer::HandleEntitySelection`.
 struct SelectionHelper
 {
   /// \brief Entity to be selected
@@ -109,11 +109,11 @@ class gz::sim::gui::SelectEntitiesPrivate
   public: std::vector<Entity> selectedEntities;
 
   /// \brief Currently selected entities, organized by order of selection.
-  /// These are ign-rendering IDs
+  /// These are gz-rendering IDs
   public: std::vector<unsigned int> selectedEntitiesID;
 
   /// \brief New entities received from other plugins.
-  /// These are ign-rendering IDs
+  /// These are gz-rendering IDs
   public: std::vector<unsigned int> selectedEntitiesIDNew;
 
   //// \brief Pointer to the rendering scene

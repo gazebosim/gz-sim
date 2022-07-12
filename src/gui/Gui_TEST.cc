@@ -65,7 +65,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         worldsCalled = true;
         return true;
       };
-  node.Advertise("/gazebo/worlds", worldsCb);
+  node.Advertise("/sim/worlds", worldsCb);
   gzdbg << "Worlds advertised" << std::endl;
 
   // GUI info callback
@@ -88,7 +88,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         pathsCalled = true;
         return true;
       };
-  node.Advertise("/gazebo/resource_paths/get", pathsCb);
+  node.Advertise("/sim/resource_paths/get", pathsCb);
   gzdbg << "Paths advertised" << std::endl;
 
   auto app = gz::sim::gui::createGui(
@@ -127,14 +127,14 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
       {
         topicCalled = true;
       };
-  node.Subscribe("/gazebo/resource_paths", topicCb);
+  node.Subscribe("/sim/resource_paths", topicCb);
   gzdbg << "Paths subscribed" << std::endl;
 
   // Notify new path through a topic
   msgs::StringMsg_V msg;
   msg.add_data("/new/path");
 
-  auto pathPub = node.Advertise<msgs::StringMsg_V>("/gazebo/resource_paths");
+  auto pathPub = node.Advertise<msgs::StringMsg_V>("/sim/resource_paths");
   pathPub.Publish(msg);
 
   int sleep{0};

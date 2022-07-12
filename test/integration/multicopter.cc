@@ -77,7 +77,7 @@ TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
   test::Relay testSystem;
   transport::Node node;
   auto cmdMotorSpeed =
-      node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
+      node.Advertise<msgs::Actuators>("/X3/sim/command/motor_speed");
 
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
@@ -144,7 +144,7 @@ TEST_F(MulticopterTest,
 
   test::Relay testSystem;
   transport::Node node;
-  auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+  auto cmdVel = node.Advertise<msgs::Twist>("/X3/sim/command/twist");
 
   const std::size_t nIters{2000};
   testSystem.OnPreUpdate(
@@ -253,7 +253,7 @@ TEST_F(MulticopterTest,
 
   test::Relay testSystem;
   transport::Node node;
-  auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+  auto cmdVel = node.Advertise<msgs::Twist>("/X3/sim/command/twist");
 
   testSystem.OnPreUpdate(
       [&](const sim::UpdateInfo &_info, sim::EntityComponentManager &_ecm)
@@ -287,7 +287,7 @@ TEST_F(MulticopterTest,
   server->Run(true, 200, false);
 
   auto cmdMotorSpeed =
-      node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
+      node.Advertise<msgs::Actuators>("/X3/sim/command/motor_speed");
 
   testSystem.OnPostUpdate(
       [&](const sim::UpdateInfo &,
@@ -332,7 +332,7 @@ TEST_F(MulticopterTest,
 
   test::Relay testSystem;
   transport::Node node;
-  auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+  auto cmdVel = node.Advertise<msgs::Twist>("/X3/sim/command/twist");
 
   // Add the system
   server->AddSystem(testSystem.systemPtr);

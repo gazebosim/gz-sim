@@ -770,7 +770,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     return std::string();
   }
 
-  // Create within ign-sensors
+  // Create within gz-sensors
   sensors::Sensor *sensor{nullptr};
   if (_sdf.Type() == sdf::SensorType::CAMERA)
   {
@@ -872,7 +872,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
     // temperature gradient is in kelvin per meter - typically change in
     // temperature over change in altitude. However the implementation of
-    // thermal sensor in ign-sensors varies temperature for all objects in its
+    // thermal sensor in gz-sensors varies temperature for all objects in its
     // view. So we will do an approximation based on camera view's vertical
     // distance.
     auto camSdf = _sdf.CameraSensor();

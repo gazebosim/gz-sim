@@ -273,7 +273,7 @@ class OdometryPublisherTest
       };
     // Create node for publishing twist messages
     transport::Node node;
-    auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+    auto cmdVel = node.Advertise<msgs::Twist>("/X3/sim/command/twist");
     node.Subscribe(_odomTopic, odomCb);
 
     test::Relay velocityRamp;

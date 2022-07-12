@@ -2,7 +2,7 @@
 <!--
   Gazebo lift-drag system demo
 
-  This file was adapted from osrf/gazebo/worlds/propeller_plane_demo.world
+  This file was adapted from osrf/sim/worlds/propeller_plane_demo.world
 
   Try sending commands:
 

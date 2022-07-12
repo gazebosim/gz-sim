@@ -67,7 +67,7 @@ class gz::sim::systems::NavSat::Implementation
   /// sensors. After this initialization, we only check inserted entities.
   public: bool initialized = false;
 
-  /// \brief Create sensors in ign-sensors
+  /// \brief Create sensors in gz-sensors
   /// \param[in] _ecm Immutable reference to ECM.
   public: void CreateSensors(const EntityComponentManager &_ecm);
 
@@ -140,7 +140,7 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
     // check to see if update is necessary
     // we only update if there is at least one sensor that needs data
     // and that sensor has subscribers.
-    // note: ign-sensors does its own throttling. Here the check is mainly
+    // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the NavSat::Implementation::Update function
     bool needsUpdate = false;
     for (auto &it : this->dataPtr->entitySensorMap)
