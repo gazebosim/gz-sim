@@ -15,6 +15,9 @@
  *
 */
 
+#include <list>
+#include <set>
+
 #include <ignition/common/StringUtils.hh>
 
 #include "ignition/gazebo/components/SystemPluginInfo.hh"

@@ -17,6 +17,7 @@
 #ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
 #define IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
+#include <list>
 #include <memory>
 #include <optional>
 #include <string>
