@@ -95,7 +95,7 @@ void testImages(const std::string &_imageFile,
   EXPECT_EQ(image.PixelFormat(), testImage.PixelFormat());
   // Images should be almost equal (They might have
   // minimal color differences on a few pixels)
-  unsigned int equal_pixels = 0;
+  unsigned int equalPixels = 0;
   unsigned int total_pixels = testImage.Width() * testImage.Height();
   for (unsigned int x = 0; x < image.Width(); x++)
   {
