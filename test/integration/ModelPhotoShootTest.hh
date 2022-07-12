@@ -103,11 +103,11 @@ void testImages(const std::string &_imageFile,
     {
       if (image.Pixel(x, y) == testImage.Pixel(x, y))
       {
-        equal_pixels++;
+        equalPixels++;
       }
     }
   }
-  ASSERT_GT((float)equal_pixels/(float)total_pixels, 0.99);
+  ASSERT_GT((float)equalPixels/(float)totalPixels, 0.99);
 
   // Deleting files so they do not affect future tests
   EXPECT_EQ(remove(imageFilePath.c_str()), 0);
