@@ -96,7 +96,7 @@ void testImages(const std::string &_imageFile,
   // Images should be almost equal (They might have
   // minimal color differences on a few pixels)
   unsigned int equalPixels = 0;
-  unsigned int total_pixels = testImage.Width() * testImage.Height();
+  unsigned int totalPixels = testImage.Width() * testImage.Height();
   for (unsigned int x = 0; x < image.Width(); x++)
   {
     for (unsigned int y = 0; y < image.Height(); y++)
