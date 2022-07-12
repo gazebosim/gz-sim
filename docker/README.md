@@ -73,21 +73,21 @@ distribution using debians.
    image of Gazebo Fortress:
 
     ```
-    ./build.bash ignition-garden ./Dockerfile.gz
+    ./build.bash gz-garden ./Dockerfile.gz
     ```
 
 2. Run the docker image using `run.bash`, and pass in the name of the docker
    image (first argument to the build.bash script).
 
     ```
-    ./run.bash ignition-garden
+    ./run.bash gz-garden
     ```
 
 3. You can pass arguments to Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
     ```
-    ./run.bash ignition-garden -f shapes.sdf
+    ./run.bash gz-garden -f shapes.sdf
     ```
 
 ## Appendix

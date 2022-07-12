@@ -56,8 +56,8 @@ Now you can run the example:
 
 ```bash
 $ python3 examples/scripts/python_api/testFixture.py
-[Msg] Loading SDF world file[/home/ahcorde/ignition_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
-[Dbg] [Physics.cc:789] Loaded [gz::physics::dartsim::Plugin] from library [/home/ahcorde/ignition_fortress/install/lib/ign-physics-5/engine-plugins/libignition-physics-dartsim-plugin.so]
+[Msg] Loading SDF world file[/home/ahcorde/gz_fortress/src/ign-gazebo/examples/scripts/python_api/gravity.sdf].
+[Dbg] [Physics.cc:789] Loaded [gz::physics::dartsim::Plugin] from library [/home/ahcorde/gz_fortress/install/lib/gz-physics-5/engine-plugins/libgz-physics-dartsim-plugin.so]
 [Dbg] [SimulationRunner.cc:909] Loaded system [gz::sim::systems::Physics] for entity [1]
 [Msg] Loaded level [3]
 [Msg] Serving world controls on [/world/gravity/control], [/world/gravity/control/state] and [/world/gravity/playback/control]

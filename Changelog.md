@@ -3145,7 +3145,7 @@
 1. Update docker nightly dependencies
     * [BitBucket pull request 310](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/310)
 
-1. Ign tool
+1. Gz tool
     * [BitBucket pull request 296](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/296)
     * [BitBucket pull request 336](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/336)
 

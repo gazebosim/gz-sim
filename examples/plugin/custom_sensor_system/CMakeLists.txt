@@ -13,7 +13,7 @@ set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 find_package(gz-sensors7 REQUIRED)
 set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
 
-# Fetch the custom sensor example from ign-sensors
+# Fetch the custom sensor example from gz-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part
 # of the system's CMake project, or installed from another project, etc...
 include(FetchContent)

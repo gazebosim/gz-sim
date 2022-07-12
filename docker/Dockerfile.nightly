@@ -11,18 +11,18 @@ RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
-    libignition-cmake3-dev \
-    libignition-common5-dev \
-    libignition-fuel-tools8-dev \
-    libignition-math7-eigen3-dev \
-    libignition-plugin2-dev \
-    libignition-physics6-dev \
-    libignition-rendering7-dev \
-    libignition-tools2-dev \
-    libignition-transport12-dev \
-    libignition-gui7-dev \
-    libignition-msgs9-dev \
-    libignition-sensors7-dev \
+    libgz-cmake3-dev \
+    libgz-common5-dev \
+    libgz-fuel-tools8-dev \
+    libgz-math7-eigen3-dev \
+    libgz-plugin2-dev \
+    libgz-physics6-dev \
+    libgz-rendering7-dev \
+    libgz-tools2-dev \
+    libgz-transport12-dev \
+    libgz-gui7-dev \
+    libgz-msgs9-dev \
+    libgz-sensors7-dev \
     libsdformat13-dev
 
 COPY . gz-sim

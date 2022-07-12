@@ -860,7 +860,7 @@ TEST_P(SceneBroadcasterTest,
   received = false;
   hasState = false;
   server.Run(true, 10, false);
-  // (wait for a bit after running the server in case ign-transport is still
+  // (wait for a bit after running the server in case gz-transport is still
   // processing messages)
   unsigned int sleep = 0u;
   unsigned int maxSleep = 50u;

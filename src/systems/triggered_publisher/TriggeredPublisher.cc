@@ -148,7 +148,7 @@ class FieldMatcher : public InputMatcher
   /// \param[in] _fieldName Name of the field to compare
   /// \param[in] _fieldString String used to construct the protobuf message
   /// against which the specified field in the input messages are matched. This
-  /// is the human-readable representation of a protobuf message as used by `ign
+  /// is the human-readable representation of a protobuf message as used by `gz
   /// topic` for publishing messages
   public: FieldMatcher(const std::string &_msgType, bool _logicType,
                        const std::string &_fieldName,

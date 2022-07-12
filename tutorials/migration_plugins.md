@@ -28,8 +28,8 @@ World | Get/set properties of the world and its children | Gazebo system | Get/s
 Model | Get/set properties of the model and its children | Gazebo system | Get/set components.
 Visual | Get/set properties of the visual and its children | Gazebo system | Get/set components.
 Sensor | Get/set sensor properties and readings | Gazebo system | Get/set components.
-World / Model | Access physics-engine-specific features | Physics plugin | Loaded by ign-physics
-Visual | Access rendering-engine-specific features | Rendering plugin | Loaded by ign-rendering
+World / Model | Access physics-engine-specific features | Physics plugin | Loaded by gz-physics
+Visual | Access rendering-engine-specific features | Rendering plugin | Loaded by gz-rendering
 Sensor | Connect to callbacks | Standalone program | Subscribe to Gazebo Transport messages.
 All | Connect to simulation events | Gazebo system | Use `PreUpdate`, `Update` and `PostUpdate` callbacks for the update loop, and the event manager for other events.
 GUI | Add an overlay UI | GUI plugin | Support for overlays and docked widgets

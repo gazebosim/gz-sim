@@ -44,6 +44,7 @@ release will remove the deprecated code.
       * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
       * CMake `-config` files
       * Paths that depend on the project name
+* Python library `ignition` namespaces should be replaced with `gz`.
 
 ## Gazebo Sim 6.1 to 6.2
 
@@ -225,4 +226,4 @@ added an SDF message to the start of log files.
 ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
 `gz_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
-`libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
+`libgz-sim1::gui` target instead of `libgz-sim1-gui`

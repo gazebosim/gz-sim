@@ -40,10 +40,10 @@ namespace systems
   /// or leaves a specified region.
   ///
   /// A performer is detected when a performer's volume, which is
-  /// represented by an gz::math::AxisAlignedBox, intersects with the
+  /// represented by a gz::math::AxisAlignedBox, intersects with the
   /// PerformerDetector's region, which is also represented by an
   /// gz::math::AxisAlignedBox. When a performer is detected, the system
-  /// publishes an gz.msgs.Pose message with the pose of the detected
+  /// publishes a gz.msgs.Pose message with the pose of the detected
   /// performer with respect to the model containing the PerformerDetector. The
   /// name and id fields of the Pose message will be set to the name and the
   /// entity of the detected performer respectively. The header of the Pose
