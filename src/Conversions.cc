@@ -716,6 +716,32 @@ msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
   out.set_ixy(_in.MassMatrix().Ixy());
   out.set_ixz(_in.MassMatrix().Ixz());
   out.set_iyz(_in.MassMatrix().Iyz());
+
+  if (_in.FluidAddedMass().has_value())
+  {
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 0));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 1));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 2));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 3));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 4));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 5));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 1));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 2));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 3));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 4));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 5));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 2));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 3));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 4));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 5));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 3));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 4));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 5));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(4, 4));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(4, 5));
+    out.add_fluid_added_mass(_in.FluidAddedMass().value()(5, 5));
+  }
+
   return out;
 }
 
