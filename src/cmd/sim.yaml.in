@@ -1,6 +1,6 @@
 --- # Subcommands available inside Gazebo Sim
 format: 1.0.0
-library_name: gz-sim-ign
+library_name: gz-sim-gz
 library_version: @PROJECT_VERSION_FULL@
 library_path: @gz_library_path@
 commands:
