@@ -762,6 +762,54 @@ math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
   math::Inertiald out;
   out.SetMassMatrix(massMatrix);
   out.SetPose(msgs::Convert(_in.pose()));
+
+  if (!_in.fluid_added_mass().empty())
+  {
+    math::Matrix6d addedMass{
+      _in.fluid_added_mass(0),
+      _in.fluid_added_mass(1),
+      _in.fluid_added_mass(2),
+      _in.fluid_added_mass(3),
+      _in.fluid_added_mass(4),
+      _in.fluid_added_mass(5),
+
+      _in.fluid_added_mass(1),
+      _in.fluid_added_mass(6),
+      _in.fluid_added_mass(7),
+      _in.fluid_added_mass(8),
+      _in.fluid_added_mass(9),
+      _in.fluid_added_mass(10),
+
+      _in.fluid_added_mass(2),
+      _in.fluid_added_mass(7),
+      _in.fluid_added_mass(11),
+      _in.fluid_added_mass(12),
+      _in.fluid_added_mass(13),
+      _in.fluid_added_mass(14),
+
+      _in.fluid_added_mass(3),
+      _in.fluid_added_mass(8),
+      _in.fluid_added_mass(12),
+      _in.fluid_added_mass(15),
+      _in.fluid_added_mass(16),
+      _in.fluid_added_mass(17),
+
+      _in.fluid_added_mass(4),
+      _in.fluid_added_mass(9),
+      _in.fluid_added_mass(13),
+      _in.fluid_added_mass(16),
+      _in.fluid_added_mass(18),
+      _in.fluid_added_mass(19),
+
+      _in.fluid_added_mass(5),
+      _in.fluid_added_mass(10),
+      _in.fluid_added_mass(14),
+      _in.fluid_added_mass(17),
+      _in.fluid_added_mass(19),
+      _in.fluid_added_mass(20)
+    };
+   out.SetFluidAddedMass(addedMass);
+  }
   return out;
 }
 

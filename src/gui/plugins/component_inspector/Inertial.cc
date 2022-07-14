@@ -90,6 +90,6 @@ void Inertial::UpdateView(const EntityComponentManager &_ecm,
     dataList.append(QVariant(inertial.FluidAddedMass().value()(5, 5)));
   }
 
-  _item->setData(dataList), ComponentsModel::RoleNames().key("data");
+  _item->setData(dataList, ComponentsModel::RoleNames().key("data"));
 }
 
