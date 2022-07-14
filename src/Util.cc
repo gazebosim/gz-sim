@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/entity.pb.h>
+
 #include <gz/common/Filesystem.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
@@ -563,6 +565,56 @@ std::string validTopic(const std::vector<std::string> &_topics)
     return validTopic;
   }
   return std::string();
+}
+
+//////////////////////////////////////////////////
+Entity entityFromMsg(const EntityComponentManager &_ecm,
+    const msgs::Entity &_msg)
+{
+  if (_msg.id() != kNullEntity)
+  {
+    return _msg.id();
+  }
+
+  auto entities = entitiesFromScopedName(_msg.name(), _ecm);
+  if (entities.empty())
+  {
+    return kNullEntity;
+  }
+
+  if (_msg.type() == msgs::Entity::NONE)
+  {
+    return *entities.begin();
+  }
+
+  for (const auto entity : entities)
+  {
+    if (msgs::Entity::LIGHT && _ecm.Component<components::Light>(entity))
+      return entity;
+
+    if (msgs::Entity::MODEL && _ecm.Component<components::Model>(entity))
+      return entity;
+
+    if (msgs::Entity::LINK && _ecm.Component<components::Link>(entity))
+      return entity;
+
+    if (msgs::Entity::VISUAL && _ecm.Component<components::Visual>(entity))
+      return entity;
+
+    if (msgs::Entity::COLLISION && _ecm.Component<components::Collision>(entity))
+      return entity;
+
+    if (msgs::Entity::SENSOR && _ecm.Component<components::Sensor>(entity))
+      return entity;
+
+    if (msgs::Entity::JOINT && _ecm.Component<components::Joint>(entity))
+      return entity;
+
+    // TODO(chapulina) Add actor when forward-porting
+    // if (msgs::Entity::ACTOR && _ecm.Component<components::Actor>(entity))
+    //   return entity;
+  }
+  return kNullEntity;
 }
 
 //////////////////////////////////////////////////
