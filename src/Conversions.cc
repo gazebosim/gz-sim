@@ -64,6 +64,7 @@
 #include <sdf/NavSat.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
 #include <algorithm>
@@ -242,6 +243,20 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
       blendMsg->set_fade_dist(blendSdf->FadeDistance());
     }
   }
+  else if (_in.Type() == sdf::GeometryType::POLYLINE &&
+      !_in.PolylineShape().empty())
+  {
+    out.set_type(msgs::Geometry::POLYLINE);
+    for (const auto &polyline : _in.PolylineShape())
+    {
+      auto polylineMsg = out.add_polyline();
+      polylineMsg->set_height(polyline.Height());
+      for (const auto &point : polyline.Points())
+      {
+        msgs::Set(polylineMsg->add_point(), point);
+      }
+    }
+  }
   else
   {
     ignerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -356,6 +371,28 @@ sdf::Geometry ignition::gazebo::convert(const msgs::Geometry &_in)
     }
 
     out.SetHeightmapShape(heightmapShape);
+  }
+  else if (_in.type() == msgs::Geometry::POLYLINE && _in.polyline_size() > 0)
+  {
+    out.SetType(sdf::GeometryType::POLYLINE);
+
+    std::vector<sdf::Polyline> polylines;
+
+    for (auto i = 0; i < _in.polyline().size(); ++i)
+    {
+      auto polylineMsg = _in.polyline(i);
+      sdf::Polyline polylineShape;
+      polylineShape.SetHeight(polylineMsg.height());
+
+      for (auto j = 0; j < polylineMsg.point().size(); ++j)
+      {
+        polylineShape.AddPoint(msgs::Convert(polylineMsg.point(j)));
+      }
+
+      polylines.push_back(polylineShape);
+    }
+
+    out.SetPolylineShape(polylines);
   }
   else
   {
@@ -570,6 +607,25 @@ msgs::Light ignition::gazebo::convert(const sdf::Light &_in)
   out.set_spot_inner_angle(_in.SpotInnerAngle().Radian());
   out.set_spot_outer_angle(_in.SpotOuterAngle().Radian());
   out.set_spot_falloff(_in.SpotFalloff());
+
+  {
+    // todo(ahcorde) Use the field is_light_off in light.proto from
+    // Garden on.
+    auto header = out.mutable_header()->add_data();
+    header->set_key("isLightOn");
+    std::string *value = header->add_value();
+    *value = std::to_string(_in.LightOn());
+  }
+
+  {
+    // todo(ahcorde) Use the field visualize_visual in light.proto from
+    // Garden on.
+    auto header = out.mutable_header()->add_data();
+    header->set_key("visualizeVisual");
+    std::string *value = header->add_value();
+    *value = std::to_string(_in.Visualize());
+  }
+
   if (_in.Type() == sdf::LightType::POINT)
     out.set_type(msgs::Light_LightType_POINT);
   else if (_in.Type() == sdf::LightType::SPOT)
@@ -599,6 +655,43 @@ sdf::Light ignition::gazebo::convert(const msgs::Light &_in)
   out.SetSpotInnerAngle(math::Angle(_in.spot_inner_angle()));
   out.SetSpotOuterAngle(math::Angle(_in.spot_outer_angle()));
   out.SetSpotFalloff(_in.spot_falloff());
+
+  // todo(ahcorde) Use the field is_light_off in light.proto from
+  // Garden on.
+  bool visualizeVisual = true;
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _in.header().data(i).value_size(); ++j)
+    {
+      if (_in.header().data(i).key() ==
+          "visualizeVisual")
+      {
+        visualizeVisual = ignition::math::parseInt(
+          _in.header().data(i).value(0));
+      }
+    }
+  }
+  out.SetVisualize(visualizeVisual);
+
+  // todo(ahcorde) Use the field is_light_off in light.proto from
+  // Garden on.
+  bool isLightOn = true;
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    for (int j = 0;
+        j < _in.header().data(i).value_size(); ++j)
+    {
+      if (_in.header().data(i).key() ==
+          "isLightOn")
+      {
+        isLightOn = ignition::math::parseInt(
+          _in.header().data(i).value(0));
+      }
+    }
+  }
+  out.SetLightOn(isLightOn);
+
   if (_in.type() == msgs::Light_LightType_POINT)
     out.SetType(sdf::LightType::POINT);
   else if (_in.type() == msgs::Light_LightType_SPOT)
@@ -618,28 +711,13 @@ msgs::GUI ignition::gazebo::convert(const sdf::Gui &_in)
   out.set_fullscreen(_in.Fullscreen());
 
   // Set gui plugins
-  auto elem = _in.Element();
-  if (elem && elem->HasElement("plugin"))
+  for (uint64_t i = 0; i < _in.PluginCount(); ++i)
   {
-    auto pluginElem = elem->GetElement("plugin");
-    while (pluginElem)
-    {
-      auto pluginMsg = out.add_plugin();
-      pluginMsg->set_name(pluginElem->Get<std::string>("name"));
-      pluginMsg->set_filename(pluginElem->Get<std::string>("filename"));
-
-      std::stringstream ss;
-      for (auto innerElem = pluginElem->GetFirstElement();
-          innerElem; innerElem = innerElem->GetNextElement(""))
-      {
-        ss << innerElem->ToString("");
-      }
-      pluginMsg->set_innerxml(ss.str());
-      pluginElem = pluginElem->GetNextElement("plugin");
-    }
+    auto pluginMsg = out.add_plugin();
+    pluginMsg->CopyFrom(convert<msgs::Plugin>(*_in.PluginByIndex(i)));
   }
 
-  if (elem->HasElement("camera"))
+  if (_in.Element()->HasElement("camera"))
   {
     ignwarn << "<gui><camera> can't be converted yet" << std::endl;
   }
@@ -1665,4 +1743,84 @@ sdf::ParticleEmitter ignition::gazebo::convert(const msgs::ParticleEmitter &_in)
   }
 
   return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Plugin ignition::gazebo::convert(const sdf::Element &_in)
+{
+  msgs::Plugin result;
+
+  if (_in.GetName() != "plugin")
+  {
+    ignerr << "Tried to convert SDF [" << _in.GetName()
+           << "] into [plugin]" << std::endl;
+    return result;
+  }
+
+  result.set_name(_in.Get<std::string>("name"));
+  result.set_filename(_in.Get<std::string>("filename"));
+
+  std::stringstream ss;
+  for (auto innerElem = _in.GetFirstElement(); innerElem;
+      innerElem = innerElem->GetNextElement(""))
+  {
+    ss << innerElem->ToString("");
+  }
+  result.set_innerxml(ss.str());
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Plugin ignition::gazebo::convert(const sdf::Plugin &_in)
+{
+  msgs::Plugin result;
+
+  result.set_name(_in.Name());
+  result.set_filename(_in.Filename());
+
+  std::stringstream ss;
+  for (auto content : _in.Contents())
+  {
+    ss << content->ToString("");
+  }
+  result.set_innerxml(ss.str());
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+msgs::Plugin_V ignition::gazebo::convert(const sdf::Plugins &_in)
+{
+  msgs::Plugin_V result;
+  for (const sdf::Plugin &plugin : _in)
+  {
+    result.add_plugins()->CopyFrom(convert<msgs::Plugin>(plugin));
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Plugin ignition::gazebo::convert(const msgs::Plugin &_in)
+{
+  return sdf::Plugin(_in.filename(), _in.name(), _in.innerxml());
+}
+
+//////////////////////////////////////////////////
+template<>
+IGNITION_GAZEBO_VISIBLE
+sdf::Plugins ignition::gazebo::convert(const msgs::Plugin_V &_in)
+{
+  sdf::Plugins result;
+  for (int i = 0; i < _in.plugins_size(); ++i)
+    result.push_back(convert<sdf::Plugin>(_in.plugins(i)));
+  return result;
 }

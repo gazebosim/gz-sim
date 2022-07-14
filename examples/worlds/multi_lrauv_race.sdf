@@ -65,7 +65,7 @@
       See https://github.com/ignitionrobotics/ign-gazebo/pull/730 -->
     <include>
       <pose>-5 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/mabel/models/Turquoise turbidity generator</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/mabelzhang/models/Turquoise turbidity generator</uri>
     </include>
 
     <include>
@@ -352,12 +352,12 @@
     <!-- Swimming race lane signs -->
     <include>
       <pose>0 0 -1 0 0 3.1415926</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/mabel/models/ABCSign_5m</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/mabelzhang/models/ABCSign_5m</uri>
       <name>start_line</name>
     </include>
     <include>
       <pose>0 -25 -1 0 0 3.1415926</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/mabel/models/ABCSign_5m</uri>
+      <uri>https://fuel.ignitionrobotics.org/1.0/mabelzhang/models/ABCSign_5m</uri>
       <name>finish_line</name>
     </include>
 

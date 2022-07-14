@@ -203,6 +203,20 @@ namespace systems::physics_system
       return nullptr;
     }
 
+    /// \brief Get Gazebo entity that corresponds to the physics entity ID
+    /// \param[in] _id Physics entity ID
+    /// \return If found, returns the corresponding Gazebo entity. Otherwise,
+    /// kNullEntity
+    public: Entity GetByPhysicsId(std::size_t _id) const
+    {
+      auto it = this->entityByPhysId.find(_id);
+      if (it != this->entityByPhysId.end())
+      {
+        return it->second;
+      }
+      return kNullEntity;
+    }
+
     /// \brief Check whether there is a physics entity associated with the given
     /// Gazebo entity
     /// \param[in] _entity Gazebo entity.
@@ -232,6 +246,7 @@ namespace systems::physics_system
       this->entityMap[_entity] = _physicsEntity;
       this->reverseMap[_physicsEntity] = _entity;
       this->physEntityById[_physicsEntity->EntityID()] = _physicsEntity;
+      this->entityByPhysId[_physicsEntity->EntityID()] = _entity;
     }
 
     /// \brief Remove entity from all associated maps
@@ -244,6 +259,7 @@ namespace systems::physics_system
       {
         this->reverseMap.erase(it->second);
         this->physEntityById.erase(it->second->EntityID());
+        this->entityByPhysId.erase(it->second->EntityID());
         this->castCache.erase(_entity);
         this->entityMap.erase(it);
         return true;
@@ -261,6 +277,7 @@ namespace systems::physics_system
       {
         this->entityMap.erase(it->second);
         this->physEntityById.erase(it->first->EntityID());
+        this->entityByPhysId.erase(it->first->EntityID());
         this->castCache.erase(it->second);
         this->reverseMap.erase(it);
         return true;
@@ -282,7 +299,8 @@ namespace systems::physics_system
     public: std::size_t TotalMapEntryCount() const
     {
       return this->entityMap.size() + this->reverseMap.size() +
-             this->castCache.size() + this->physEntityById.size();
+             this->castCache.size() + this->physEntityById.size() +
+             this->entityByPhysId.size();
     }
 
     /// \brief Map from Gazebo entity to physics entities with required features
@@ -294,6 +312,9 @@ namespace systems::physics_system
     /// \brief Map of physics entity IDs to the corresponding physics entity
     /// with required features
     private: std::unordered_map<std::size_t, RequiredEntityPtr> physEntityById;
+
+    /// \brief Map of physics entity IDs to Gazebo entity
+    private: std::unordered_map<std::size_t, Entity> entityByPhysId;
 
     /// \brief Cache map from Gazebo entity to physics entities with optional
     /// features

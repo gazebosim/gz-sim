@@ -49,8 +49,10 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
@@ -63,6 +65,7 @@
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
@@ -154,6 +157,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
 
+  /// \brief Adds particle emitters to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the particle
+  /// emitters will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
+
   /// \brief Recursively remove entities from the graph
   /// \param[in] _entity Entity
   /// \param[in/out] _graph Scene graph
@@ -224,15 +236,22 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// paused. The not-paused (a.ka. running) period has a key=false and a
   /// default update rate of 60Hz. The paused period has a key=true and a
   /// default update rate of 30Hz.
-  public: std::map<bool, std::chrono::duration<int64_t, std::ratio<1, 1000>>>
-      statePublishPeriod{{false, std::chrono::milliseconds(1000/60)},
-                         {true,  std::chrono::milliseconds(1000/30)}};
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
 };
 
 //////////////////////////////////////////////////
@@ -261,16 +280,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod[false] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
 
-  // Set the paused update rate to half of the running update rate.
-  this->dataPtr->statePublishPeriod[true] =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000 /
-        static_cast<int>(std::max(stateHerz.first * 0.5, 1.0))));
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    ignerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
@@ -290,8 +318,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -329,10 +361,15 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
-    // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
+    // Publish full state if it has been explicitly requested
+    if (this->dataPtr->stateServiceRequest)
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
+    }
+    // Publish the changed state if a change occurred to the ECS
+    else if (changeEvent)
+    {
+      _manager.ChangedState(*this->dataPtr->stepMsg.mutable_state());
     }
     // Otherwise publish just periodic change components when running
     else if (!_info.paused)
@@ -598,6 +635,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -967,6 +1005,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Particle emitters
+  _manager.EachNew<components::ParticleEmitter, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitterComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto emitterMsg = std::make_shared<msgs::ParticleEmitter>();
+        emitterMsg->CopyFrom(_emitterComp->Data());
+        emitterMsg->set_id(_entity);
+        emitterMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
   // Update the whole scene graph from the new graph
   {
     std::lock_guard<std::mutex> lock(this->graphMutex);
@@ -995,6 +1053,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
@@ -1129,6 +1189,24 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto emitterMsg = std::dynamic_pointer_cast<msgs::ParticleEmitter>(
+        vertex.second.get().Data());
+    if (!emitterMsg)
+      continue;
+
+    _msg->add_particle_emitter()->CopyFrom(*emitterMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1153,6 +1231,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Sensors
     AddSensors(msgOut, vertex.second.get().Id(), _graph);
+
+    // Particle emitters
+    AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

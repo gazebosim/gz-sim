@@ -52,6 +52,7 @@
         <quadratic>0.01</quadratic>
       </attenuation>
       <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
     </light>
 
     <light type="spot" name="spot">

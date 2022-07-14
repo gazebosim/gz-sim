@@ -27,6 +27,10 @@ Rectangle {
   width: headerText.width
   color: "transparent"
 
+  // Custom tooltip text. If not set, the component's type name and ID will be
+  // shown.
+  property string customToolTip: ""
+
   function tooltipText(_model) {
     if (model === null)
       return "Unknown component"
@@ -50,7 +54,7 @@ Rectangle {
     ToolTip {
       visible: ma.containsMouse
       delay: tooltipDelay
-      text: tooltipText(model)
+      text: customToolTip.length > 0 ? customToolTip : typeHeader.tooltipText(componentData)
       y: typeHeader.y - 30
       enter: null
       exit: null

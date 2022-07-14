@@ -73,7 +73,7 @@ Alternatively, you can choose a plugin from the command line using the
 ### From C++ API
 
 All features available through the command line are also available through
-[ignition::gazebo::ServerConfig](https://ignitionrobotics.org/api/gazebo/2.0/classignition_1_1gazebo_1_1ServerConfig.html).
+[ignition::gazebo::ServerConfig](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1ServerConfig.html).
 When instantiating a server programmatically, a physics engine can be passed
 to the constructor, for example:
 

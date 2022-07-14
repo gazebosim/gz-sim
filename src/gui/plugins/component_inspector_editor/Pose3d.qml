@@ -315,7 +315,7 @@ Rectangle {
           id: zSpin
           Layout.fillWidth: true
           height: 40
-          numberValue: model.data[2] 
+          numberValue: model.data[2]
           minValue: -Number.MAX_VALUE
           maxValue: Number.MAX_VALUE
           stepValue: 0.1

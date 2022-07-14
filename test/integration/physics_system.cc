@@ -2196,3 +2196,71 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_NEAR(0.0, wrench.torque().z(), 1e-3);
   }
 }
+
+/////////////////////////////////////////////////
+// Test that joint velocity limit is applied
+TEST_F(PhysicsSystemFixtureWithDart6_10,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+          "/test/worlds/joint_velocity_limit.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  auto server = std::make_unique<Server>(serverConfig);
+  EXPECT_FALSE(server->Running());
+  EXPECT_FALSE(*server->Running(0));
+
+  server->SetUpdatePeriod(1ns);
+
+  test::Relay testSystem;
+
+  const std::size_t nIters{600};
+  testSystem.OnPreUpdate(
+      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      {
+        // Create components, if they don't exist on the first iteration
+        if (_info.iterations == 1)
+        {
+          for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
+          {
+            if (!_ecm.Component<components::JointVelocity>(e))
+            {
+              _ecm.CreateComponent(e, components::JointVelocity());
+            }
+          }
+        }
+      });
+
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &_info,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+        // At nIters iterations, check angular velocity of each of the joints
+        if (_info.iterations == nIters)
+        {
+          int count = 0;
+          for (const auto &e : _ecm.EntitiesByComponents(components::Joint()))
+          {
+            auto *jointVel = _ecm.Component<components::JointVelocity>(e);
+            EXPECT_NE(nullptr, jointVel);
+            EXPECT_FALSE(jointVel->Data().empty());
+            if (jointVel->Data().size() > 0)
+            {
+              ++count;
+              // Joint velocity should lie between
+              // - (kVelocityLimit + kTolerance) and
+              // + (kVelocityLimit + kTolerance)
+              const double kVelocityLimit = 1.0;
+              const double kTolerance = 1e-6;
+              EXPECT_NEAR(jointVel->Data()[0], 0, kVelocityLimit + kTolerance);
+            }
+          }
+          EXPECT_EQ(count, 2);
+        }
+      });
+
+  server->AddSystem(testSystem.systemPtr);
+  server->Run(true, nIters, false);
+}
