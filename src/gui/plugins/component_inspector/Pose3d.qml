@@ -15,7 +15,6 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
@@ -25,7 +24,7 @@ import "qrc:/qml"
 
 // Item displaying 3D pose information.
 Rectangle {
-  height: header.height + content.height
+  height: header.height + gzPoseInstance.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
 
@@ -35,83 +34,10 @@ Rectangle {
   // Horizontal margins
   property int margin: 5
 
-  // Maximum spinbox value
-  property double spinMax: 1000000
-
-  // Read-only / write
-  property bool readOnly: {
-    var isModel = entityType == "model"
-    return !(isModel) || nestedModel
-  }
-
-  // Loaded item for X
-  property var xItem: {}
-
-  // Loaded item for Y
-  property var yItem: {}
-
-  // Loaded item for Z
-  property var zItem: {}
-
-  // Loaded item for roll
-  property var rollItem: {}
-
-  // Loaded item for pitch
-  property var pitchItem: {}
-
-  // Loaded item for yaw
-  property var yawItem: {}
-
   // Send new pose to C++
-  function sendPose() {
+  function sendPose(x, y, z, roll, pitch, yaw) {
     // TODO(anyone) There's a loss of precision when these values get to C++
-    Pose3dImpl.OnPose(
-      xItem.value,
-      yItem.value,
-      zItem.value,
-      rollItem.value,
-      pitchItem.value,
-      yawItem.value
-    );
-  }
-
-  FontMetrics {
-    id: fontMetrics
-    font.family: "Roboto"
-  }
-
-  /**
-   * Used to create a spin box
-   */
-  Component {
-    id: writableNumber
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimals(writableSpin.width)
-      onEditingFinished: {
-        sendPose()
-      }
-    }
-  }
-
-  /**
-   * Used to create a read-only number
-   */
-  Component {
-    id: readOnlyNumber
-    Text {
-      id: numberText
-      anchors.fill: parent
-      horizontalAlignment: Text.AlignRight
-      verticalAlignment: Text.AlignVCenter
-      text: {
-        var decimals = getDecimals(numberText.width)
-        return numberValue.toFixed(decimals)
-      }
-    }
+    Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
   }
 
   Column {
@@ -135,7 +61,7 @@ Rectangle {
           sourceSize.width: indentation
           fillMode: Image.Pad
           Layout.alignment : Qt.AlignVCenter
-          source: content.show ?
+          source: gzPoseInstance.expand ?
               "qrc:/Gazebo/images/minus.png" : "qrc:/Gazebo/images/plus.png"
         }
         TypeHeader {
@@ -150,7 +76,7 @@ Rectangle {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
         onClicked: {
-          content.show = !content.show
+          gzPoseInstance.expand = !gzPoseInstance.expand
         }
         onEntered: {
           header.color = highlightColor
@@ -160,166 +86,51 @@ Rectangle {
         }
       }
     }
-
-    // Content
     Rectangle {
-      id: content
-      property bool show: false
-      width: parent.width
-      height: show ? grid.height : 0
-      clip: true
       color: "transparent"
-
-      Behavior on height {
-        NumberAnimation {
-          duration: 200;
-          easing.type: Easing.InOutQuad
-        }
-      }
-
-      GridLayout {
-        id: grid
+      width: parent.width
+      height: gzPoseInstance.height
+      RowLayout {
+        id: gzPoseRow
         width: parent.width
-        columns: 6
 
         // Left spacer
         Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
+          Layout.preferredWidth: margin + indentation
         }
 
-        Text {
-          text: 'X (m)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
+        // Content
+        GzPose {
+          id: gzPoseInstance
           Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: xLoader
-            anchors.fill: parent
-            property double numberValue: model.data[0]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              xItem = xLoader.item
-            }
-          }
-        }
 
-        Text {
-          text: 'Roll (rad)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: rollLoader
-            anchors.fill: parent
-            property double numberValue: model.data[3]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              rollItem = rollLoader.item
-            }
+          readOnly: {
+            var isModel = entityType == "model"
+            return !(isModel) || nestedModel
           }
-        }
+
+          xValue: model.data[0]
+          yValue: model.data[1]
+          zValue: model.data[2]
+          rollValue: model.data[3]
+          pitchValue: model.data[4]
+          yawValue: model.data[5]
+
+          onGzPoseSet: {
+            // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+            sendPose(_x, _y, _z, _roll, _pitch, _yaw)
+          }
+
+          // By default it is closed
+          expand: false
+
+        } // end gzPoseInstance
 
         // Right spacer
         Item {
-          Layout.rowSpan: 3
-          width: margin
+          Layout.preferredWidth: margin
         }
-
-        Text {
-          text: 'Y (m)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: yLoader
-            anchors.fill: parent
-            property double numberValue: model.data[1]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yItem = yLoader.item
-            }
-          }
-        }
-
-        Text {
-          text: 'Pitch (rad)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: pitchLoader
-            anchors.fill: parent
-            property double numberValue: model.data[4]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              pitchItem = pitchLoader.item
-            }
-          }
-        }
-
-        Text {
-          text: 'Z (m)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: zLoader
-            anchors.fill: parent
-            property double numberValue: model.data[2]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              zItem = zLoader.item
-            }
-          }
-        }
-
-        Text {
-          text: 'Yaw (rad)'
-          leftPadding: 5
-          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-          font.pointSize: 12
-        }
-
-        Item {
-          Layout.fillWidth: true
-          height: 40
-          Loader {
-            id: yawLoader
-            anchors.fill: parent
-            property double numberValue: model.data[5]
-            sourceComponent: readOnly ? readOnlyNumber : writableNumber
-            onLoaded: {
-              yawItem = yawLoader.item
-            }
-          }
-        }
-      }
-    }
-  }
-}
+      } // end RowLayout
+    } // end Rectangle
+  } // end Column
+} // end Rectangle
