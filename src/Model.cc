@@ -15,6 +15,7 @@
  *
 */
 
+#include "ignition/gazebo/components/CanonicalLink.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
@@ -191,5 +192,13 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
     _ecm.SetChanged(this->dataPtr->id,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
   }
+}
+
+//////////////////////////////////////////////////
+Entity Model::CanonicalLink(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::CanonicalLink());
 }
 

@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <ignition/msgs/entity.pb.h>
+
 #include <ignition/math/Pose3.hh>
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
@@ -217,6 +219,26 @@ namespace ignition
       }
       return changed;
     }
+
+    /// \brief Helper function to get an entity from an entity message.
+    ///
+    /// The message is used as follows:
+    ///
+    ///     if id not null
+    ///       use id
+    ///     else if name not null and type null
+    ///       use first entity with that scoped name
+    ///     else if name not null and type not null
+    ///       use name + type
+    ///     else
+    ///       error
+    ///     end
+    /// \param[in] _ecm Entity component manager
+    /// \param[in] _msg Entity message
+    /// \return Entity ID, or kNullEntity if a matching entity couldn't be
+    /// found.
+    Entity IGNITION_GAZEBO_VISIBLE entityFromMsg(
+      const EntityComponentManager &_ecm, const msgs::Entity &_msg);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
