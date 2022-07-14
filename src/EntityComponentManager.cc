@@ -499,9 +499,10 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     {
       // When a cloned entity is removed, it erases all components/data so a new
       // cloned entity should not have components to be updated
-      ignerr << "The component's data needs to be updated but this is not "
-             << "expected. Please submit an issue including your use case "
-             << "so that this can be resolved." << std::endl;
+      // LCOV_EXCL_START
+      ignerr << "Internal error: The component's data needs to be updated but "
+             << "this should not happen." << std::endl;
+      // LCOV_EXCL_STOP
     }
   }
 

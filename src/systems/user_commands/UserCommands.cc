@@ -1824,17 +1824,28 @@ bool VisualCommand::Execute()
   }
 
   Entity visualEntity = kNullEntity;
-  std::string entityName = visualMsg->name();
-  if (!entityName.empty())
-  {
-    visualEntity =
-        this->iface->ecm->EntityByComponents(components::Name(entityName));
-  }
-  else if (visualMsg->id() != kNullEntity)
+  if (visualMsg->id() != kNullEntity)
   {
     visualEntity = visualMsg->id();
   }
-  else
+  else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
+  {
+    Entity parentEntity =
+      this->iface->ecm->EntityByComponents(
+        components::Name(visualMsg->parent_name()));
+
+    auto entities =
+      this->iface->ecm->ChildrenByComponents(parentEntity,
+        components::Name(visualMsg->name()));
+
+    // When size > 1, we don't know which entity to modify
+    if (entities.size() == 1)
+    {
+      visualEntity = entities[0];
+    }
+  }
+
+  if (visualEntity == kNullEntity)
   {
     ignerr << "Failed to find visual entity" << std::endl;
     return false;
