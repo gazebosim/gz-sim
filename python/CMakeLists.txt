@@ -41,19 +41,20 @@ function(configure_build_install_location _library_name)
   # Install Python library symlinks
   if(${GZ_PYTHON_INSTALL_PATH} MATCHES "gz$")
     cmake_policy(SET CMP0087 NEW)  # Allow evaluation of generator expressions in install(CODE )
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ignition")
 
     string(REGEX REPLACE "gz$" "ignition" IGN_PYTHON_INSTALL_PATH ${GZ_PYTHON_INSTALL_PATH})
     if (WIN32)  # Windows requires copy instead of symlink
       install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E copy \
-          ${CMAKE_INSTALL_PREFIX}\/${GZ_PYTHON_INSTALL_PATH}\/$<TARGET_FILE_NAME:${_library_name}> \
-          ${PROJECT_BINARY_DIR}\/$<TARGET_FILE_NAME:${_library_name}>)")
+          ../gz/${GZ_PYTHON_INSTALL_PATH}\/$<TARGET_FILE_NAME:${_library_name}> \
+          ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>)")
     else()
       install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink \
-          ${CMAKE_INSTALL_PREFIX}\/${GZ_PYTHON_INSTALL_PATH}\/$<TARGET_FILE_NAME:${_library_name}> \
-          ${PROJECT_BINARY_DIR}\/$<TARGET_FILE_NAME:${_library_name}>)")
+          ../gz/$<TARGET_FILE_NAME:${_library_name}> \
+          ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>)")
     endif()
 
-    install(FILES ${PROJECT_BINARY_DIR}\/$<TARGET_FILE_NAME:${_library_name}>
+    install(FILES ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>
       DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
     )
   endif()
