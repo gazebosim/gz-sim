@@ -201,4 +201,3 @@ Entity Model::CanonicalLink(const EntityComponentManager &_ecm) const
       components::ParentEntity(this->dataPtr->id),
       components::CanonicalLink());
 }
-
