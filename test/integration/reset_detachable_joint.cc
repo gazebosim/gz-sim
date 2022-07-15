@@ -19,7 +19,7 @@
 /// The simulation starts with an arm (simple_arm) and an object to be
 /// maniupulated(object).
 /// When simulation runs:
-///  * At t=1.0, the arm is aligned with the object (x=+0.15), 
+///  * At t=1.0, the arm is aligned with the object (x=+0.15),
 ///  * At t=1.1, the arm forms the detchable joint
 ///  * At t=3.0, the arm moves over the end of the table (x=+0.3)
 ///  * At t=5.0, the simulation is reset
@@ -70,7 +70,7 @@ using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
 
-/// \brief Name of the arm model 
+/// \brief Name of the arm model
 constexpr const char* kArmName = "simple_arm";
 
 /// \brief Name of the manipulated object model
@@ -96,10 +96,10 @@ class TestPlugin:
 
   /// brief Flag to indicate if the gripper is in use or not
   bool grasping = false;
-  
+
   /// \brief Flag to indicate if error state has been reached
   bool errorLogged = false;
-  
+
   /// \brief Flag to indicate if the system has encountered a reset
   bool didReset = false;
 
@@ -118,10 +118,10 @@ class TestPlugin:
   /// \brief Entity for the link in the object to be manipulated
   Entity collidingObjectLinkEntity;
 
-  /// \brief Entity for the detachable joint created between the 
+  /// \brief Entity for the detachable joint created between the
   /// arm and the object
   Entity detachableJointEntity;
-  
+
   /// \brief Set point for the prismatic base joint
   double commandPosition = 0;
 };
@@ -166,7 +166,8 @@ void TestPlugin::Reset(const UpdateInfo &, EntityComponentManager &) {
 }
 
 /////////////////////////////////////////////////
-void TestPlugin::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm) {
+void TestPlugin::PreUpdate(const UpdateInfo &_info,
+                           EntityComponentManager &_ecm) {
 
   auto pose = worldPose(this->objectModelEntity, _ecm);
 
@@ -222,7 +223,8 @@ void TestPlugin::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm
   // Set joint position directly to commanded position by setting the
   // commanded position to the JointPositionReset component.
   auto& component =
-      *(_ecm.CreateComponent(this->jointEntity, components::JointPositionReset()));
+      *(_ecm.CreateComponent(this->jointEntity,
+                             components::JointPositionReset()));
   component.Data().resize(1);
   component.Data()[0] = this->commandPosition;
 }
