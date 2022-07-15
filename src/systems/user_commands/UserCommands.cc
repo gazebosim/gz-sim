@@ -50,6 +50,7 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
+#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -669,42 +670,7 @@ bool RemoveCommand::Execute()
     return false;
   }
 
-  Entity entity{kNullEntity};
-  if (removeMsg->id() != kNullEntity)
-  {
-    entity = removeMsg->id();
-  }
-  else if (!removeMsg->name().empty() &&
-      removeMsg->type() != msgs::Entity::NONE)
-  {
-    if (removeMsg->type() == msgs::Entity::MODEL)
-    {
-      entity = this->iface->ecm->EntityByComponents(components::Model(),
-        components::Name(removeMsg->name()));
-    }
-    else if (removeMsg->type() == msgs::Entity::LIGHT)
-    {
-      entity = this->iface->ecm->EntityByComponents(
-        components::Name(removeMsg->name()));
-
-      auto lightComp = this->iface->ecm->Component<components::Light>(entity);
-      if (nullptr == lightComp)
-        entity = kNullEntity;
-    }
-    else
-    {
-      ignerr << "Deleting entities of type [" << removeMsg->type()
-             << "] is not supported." << std::endl;
-      return false;
-    }
-  }
-  else
-  {
-    ignerr << "Remove command missing either entity's ID or name + type"
-           << std::endl;
-    return false;
-  }
-
+  auto entity = entityFromMsg(*this->iface->ecm, *removeMsg);
   if (entity == kNullEntity)
   {
     ignerr << "Entity named [" << removeMsg->name() << "] of type ["
