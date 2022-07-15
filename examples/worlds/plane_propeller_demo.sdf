@@ -25,7 +25,7 @@
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename='ignition-gazebo-sensors-system'
+      filename='gz-sim-sensors-system'
       name='gz::sim::systems::Sensors'>
     </plugin>
 
