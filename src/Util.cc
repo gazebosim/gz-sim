@@ -549,7 +549,7 @@ Entity entityFromMsg(const EntityComponentManager &_ecm,
     return kNullEntity;
   }
 
-  for (const auto entity : entities)
+  for (const auto &entity : entities)
   {
     if (_msg.type() == msgs::Entity::LIGHT &&
         _ecm.Component<components::Light>(entity))
