@@ -345,7 +345,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: xEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -368,7 +368,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: yEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -391,7 +391,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: zEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -423,7 +423,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: rollEntry
           minimumValue: 0.01
           maximumValue: 180.0
@@ -446,7 +446,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: pitchEntry
           minimumValue: 0.01
           maximumValue: 180.0
@@ -469,7 +469,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: yawEntry
           minimumValue: 0.01
           maximumValue: 180.0

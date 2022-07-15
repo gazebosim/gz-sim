@@ -69,7 +69,7 @@ Rectangle {
       }
     }
 
-    IgnSpinBox {
+    GzSpinBox {
       id: spin
       value: spin.activeFocus ? joint.targetValue : model.value
       minimumValue: model.min

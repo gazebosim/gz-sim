@@ -88,7 +88,7 @@ Rectangle {
    */
   Component {
     id: writableNumber
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -spinMax

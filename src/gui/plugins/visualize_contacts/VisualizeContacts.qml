@@ -60,7 +60,7 @@ GridLayout {
     text: "Radius (m)"
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: radius
@@ -79,7 +79,7 @@ GridLayout {
     text: "Update period (ms)"
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: updatePeriod

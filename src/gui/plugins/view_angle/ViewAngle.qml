@@ -227,7 +227,7 @@ ColumnLayout {
       Layout.column: 0
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: x
       Layout.fillWidth: true
       Layout.row: 0
@@ -246,7 +246,7 @@ ColumnLayout {
       Layout.column: 0
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: y
       Layout.fillWidth: true
       Layout.row: 1
@@ -265,7 +265,7 @@ ColumnLayout {
       Layout.column: 0
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: z
       Layout.fillWidth: true
       Layout.row: 2
@@ -285,7 +285,7 @@ ColumnLayout {
       Layout.column: 2
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: roll
       Layout.fillWidth: true
       Layout.row: 0
@@ -304,7 +304,7 @@ ColumnLayout {
       Layout.column: 2
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: pitch
       Layout.fillWidth: true
       Layout.row: 1
@@ -323,7 +323,7 @@ ColumnLayout {
       Layout.column: 2
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: yaw
       Layout.fillWidth: true
       Layout.row: 2
@@ -358,7 +358,7 @@ ColumnLayout {
       Layout.column: 0
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: nearClip
       Layout.fillWidth: true
       Layout.row: 0
@@ -377,7 +377,7 @@ ColumnLayout {
       Layout.column: 2
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: farClip
       Layout.fillWidth: true
       Layout.row: 0
