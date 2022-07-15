@@ -132,7 +132,7 @@ gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
+        filename="gz-sim-buoyancy-engine-system"
         name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>
@@ -172,7 +172,7 @@ gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
         </collision>
       </link>
       <plugin
-        filename="libignition-gazebo-buoyancy-engine-system.so"
+        filename="gz-sim-buoyancy-engine-system"
         name="gz::sim::systems::BuoyancyEngine">
         <link_name>body</link_name>
         <namespace>buoyant_box</namespace>

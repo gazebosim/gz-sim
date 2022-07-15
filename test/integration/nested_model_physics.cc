@@ -52,7 +52,7 @@ TEST_F(NestedModelPhysicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
