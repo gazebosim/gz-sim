@@ -111,7 +111,7 @@ class gz::sim::systems::ForceTorquePrivate
 
   /// \brief Update FT sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateForceTorques(const EntityComponentManager &_ecm);
+  public: void Update(const EntityComponentManager &_ecm);
 
   /// \brief Remove FT sensors if their entities have been removed from
   /// simulation.
@@ -193,7 +193,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
-    this->dataPtr->UpdateForceTorques(_ecm);
+    this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -342,9 +342,9 @@ void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void ForceTorquePrivate::UpdateForceTorques(const EntityComponentManager &_ecm)
+void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("ForceTorquePrivate::UpdateForceTorques");
+  GZ_PROFILE("ForceTorquePrivate::Update");
   _ecm.Each<components::ForceTorque>(
       [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
