@@ -235,7 +235,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Clear persistent wrenches
-  while (!this->dataPtr->newWrenches.empty())
+  while (!this->dataPtr->clearWrenches.empty())
   {
     auto clearMsg = this->dataPtr->clearWrenches.front();
     auto clearEntity = entityFromMsg(_ecm, clearMsg);
@@ -256,7 +256,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    this->dataPtr->newWrenches.pop();
+    this->dataPtr->clearWrenches.pop();
   }
 
   // Only apply wrenches when not paused
@@ -311,17 +311,14 @@ void ApplyLinkWrenchPrivate::OnWrench(const msgs::EntityWrench &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
-ignerr << "A" << std::endl;
   if (!_msg.has_entity() || !_msg.has_wrench())
   {
     ignerr << "Missing entity or wrench in message: " << std::endl
            << _msg.DebugString() << std::endl;
     return;
   }
-ignerr << "A" << std::endl;
 
   this->newWrenches.push(_msg);
-ignerr << "A" << std::endl;
 }
 
 //////////////////////////////////////////////////
