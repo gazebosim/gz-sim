@@ -232,7 +232,7 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     if (data.Load(heightmapMsg->filename()) < 0)
     {
       ignwarn << "Failed to load heightmap image data from ["
-        << heightmapMsg->filename() << "]. Heightmap message will not " <<
+        << heightmapMsg->filename() << "]. Heightmap message will not "
         << "contain heights." << std::endl;
     }
     else
