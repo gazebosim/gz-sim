@@ -42,6 +42,7 @@
 #include <ignition/math/Temperature.hh>
 
 #include <ignition/common/Console.hh>
+#include <ignition/common/ImageHeightmap.hh>
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
@@ -217,12 +218,42 @@ msgs::Geometry ignition::gazebo::convert(const sdf::Geometry &_in)
     out.set_type(msgs::Geometry::HEIGHTMAP);
     auto heightmapMsg = out.mutable_heightmap();
 
+    int sampling = heightmapSdf->Sampling();
+    math::Vector3d size = heightmapSdf->Size();
+
     heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
         heightmapSdf->FilePath()));
-    msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
+    msgs::Set(heightmapMsg->mutable_size(), size);
     msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
     heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
-    heightmapMsg->set_sampling(heightmapSdf->Sampling());
+    heightmapMsg->set_sampling(sampling);
+
+    common::ImageHeightmap data;
+    if (data.Load(heightmapMsg->filename()) < 0)
+    {
+      ignwarn << "Failed to load heightmap image data from ["
+        << heightmapMsg->filename() << "]. Heightmap message will not " <<
+        << "contain heights." << std::endl;
+    }
+    else
+    {
+      const int vertSize = (data.Width() * sampling) - sampling + 1;
+      math::Vector3d scale;
+      scale.X(size.X() / vertSize);
+      scale.Y(size.Y() / vertSize);
+
+      if (math::equal(data.MaxElevation(), 0.0f))
+        scale.Z(1.0);
+      else
+        scale.Z(fabs(size.Z()) / data.MaxElevation());
+
+      std::vector<float> heights;
+      data.FillHeightMap(sampling, vertSize, heightmapSdf->Size(), scale,
+                         false, heights);
+      *heightmapMsg->mutable_heights() = {heights.begin(), heights.end()};
+      heightmapMsg->set_width(vertSize);
+      heightmapMsg->set_height(vertSize);
+    }
 
     for (auto i = 0u; i < heightmapSdf->TextureCount(); ++i)
     {
