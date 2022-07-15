@@ -150,7 +150,7 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     // Enable JointTransmittedWrench to get force-torque measurements
     auto jointEntity =
         _ecm.Component<components::ParentEntity>(entity)->Data();
-    gzwarn << "Adding JointTransmittedWrench to: " << jointEntity << std::endl;
+    gzdbg << "Adding JointTransmittedWrench to: " << jointEntity << std::endl;
     _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
   }
   this->dataPtr->newSensors.clear();
@@ -303,7 +303,7 @@ void ForceTorquePrivate::AddForceTorque(
   const auto X_JS = _ecm.Component<components::Pose>(_entity)->Data();
   const auto X_WS = X_WJ * X_JS;
   const auto X_SC = X_WS.Inverse() * X_WC;
-  sensorIt->second->SetRotationChildInSensor(X_SC.Rot());
+  sensor->SetRotationChildInSensor(X_SC.Rot());
 
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
