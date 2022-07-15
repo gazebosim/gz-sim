@@ -32,6 +32,7 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/MessageReceiver.hh"
 #include "../helpers/Relay.hh"
 
 using namespace gz;
@@ -44,12 +45,12 @@ class SceneBroadcasterTest
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -94,12 +95,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -140,12 +141,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -180,12 +181,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -224,13 +225,13 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest,
+TEST_F(SceneBroadcasterTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/altimeter_with_pose.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "altimeter_with_pose.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -276,12 +277,12 @@ TEST_P(SceneBroadcasterTest,
 
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published only when new entities are added
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -336,12 +337,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 
 /////////////////////////////////////////////////
 /// Test whether the scene is updated when a model is spawned.
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -406,12 +407,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -517,12 +518,12 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
+TEST_F(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/empty.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "empty.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -619,264 +620,235 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
   EXPECT_TRUE(received);
 }
 
+enum class State
+{
+  kNoop,
+  kRemoveComponent,
+  kAddComponent,
+  kRemoveEntity,
+  kAddEntity,
+  kOneTimeChange,
+  kPeriodicChange,
+};
+
+/////////////////////////////////////////////////
+struct AddRemoveEntitiesComponentsPlugin:
+  public gz::sim::System,
+  public gz::sim::ISystemUpdate
+{
+
+State state = State::kNoop;
+    
+void Update(const gz::sim::UpdateInfo &,
+            gz::sim::EntityComponentManager &_ecm) override
+{
+  switch(this->state)
+  {
+    case State::kRemoveComponent:
+      this->RemoveComponentFromEntity(_ecm);
+      break;
+    case State::kAddComponent:
+      this->AddComponentToEntity(_ecm);
+      break;
+    case State::kRemoveEntity:
+      this->RemoveEntity(_ecm);
+      break;
+    case State::kAddEntity:
+      this->AddEntity(_ecm);
+      break;
+    case State::kOneTimeChange:
+      this->OneTimeChange(_ecm);
+      break;
+    case State::kPeriodicChange:
+      this->PeriodicChange(_ecm);
+      break;
+    case State::kNoop:
+    default:
+      break;
+  }
+  this->state = State::kNoop;
+
+}
+
+void RemoveComponentFromEntity(gz::sim::EntityComponentManager &_ecm)
+{
+  igndbg << "RemoveComponentFromEntity" << std::endl;
+  _ecm.Each<gz::sim::components::Model,
+            gz::sim::components::Name,
+            gz::sim::components::Pose>(
+    [&](const gz::sim::Entity &_entity,
+        const gz::sim::components::Model *,
+        const gz::sim::components::Name *_name,
+        const gz::sim::components::Pose *)->bool
+    {
+      if (_name->Data() == "box")
+      {
+        _ecm.RemoveComponent<gz::sim::components::Pose>(_entity);
+      }
+      return true;
+    });
+}
+
+void AddComponentToEntity(gz::sim::EntityComponentManager &_ecm)
+{
+  igndbg << "AddComponentToEntity" << std::endl;
+  auto boxEntity = _ecm.EntityByComponents(
+      sim::components::Name("box"), sim::components::Model());
+  ASSERT_NE(sim::kNullEntity, boxEntity);
+  EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
+        gz::sim::components::Pose::typeId));
+  _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
+      gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
+        gz::sim::components::Pose::typeId));
+}
+
+void RemoveEntity(gz::sim::EntityComponentManager &_ecm)
+{
+  igndbg << "RemoveEntity" << std::endl;
+  auto boxEntity = _ecm.EntityByComponents(
+      sim::components::Name("box"), sim::components::Model());
+  ASSERT_NE(sim::kNullEntity, boxEntity);
+  _ecm.RequestRemoveEntity(boxEntity);
+}
+
+void AddEntity(gz::sim::EntityComponentManager &_ecm)
+{
+  igndbg << "AddEntity" << std::endl;
+  EXPECT_EQ(sim::kNullEntity, _ecm.EntityByComponents(
+        sim::components::Name("newEntity"),
+        sim::components::Model()));
+  auto newEntity = _ecm.CreateEntity();
+  _ecm.CreateComponent(newEntity, sim::components::Name("newEntity"));
+  _ecm.CreateComponent(newEntity, sim::components::Model());
+  EXPECT_NE(sim::kNullEntity, _ecm.EntityByComponents(
+        sim::components::Name("newEntity"),
+        sim::components::Model()));
+}
+
+void OneTimeChange(gz::sim::EntityComponentManager &_ecm)
+{
+  igndbg << "OneTimeChange" << std::endl;
+  auto entity = _ecm.EntityByComponents(
+      sim::components::Name("newEntity"),
+      sim::components::Model());
+  ASSERT_NE(sim::kNullEntity, entity);
+  EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
+      "newEntity1"));
+  _ecm.SetChanged(entity, sim::components::Name::typeId,
+      sim::ComponentState::OneTimeChange);
+}
+
+void PeriodicChange(gz::sim::EntityComponentManager &_ecm)
+{
+    igndbg << "PeriodicChange" << std::endl;
+    auto entity = _ecm.EntityByComponents(
+        sim::components::Name("newEntity1"),
+        sim::components::Model());
+    ASSERT_NE(sim::kNullEntity, entity);
+    EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
+        "newEntity2"));
+    _ecm.SetChanged(entity, sim::components::Name::typeId,
+        sim::ComponentState::PeriodicChange);
+}
+};
+
+
 /////////////////////////////////////////////////
 /// Test whether the scene topic is published when entities and components are
 /// removed/added
-TEST_P(SceneBroadcasterTest,
+TEST_F(SceneBroadcasterTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveEntitiesComponents))
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-                          "/test/worlds/shapes_scene_broadcaster_only.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes_scene_broadcaster_only.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system that removes a component
-  gz::sim::test::Relay testSystem;
+  auto testSystem = std::make_shared<AddRemoveEntitiesComponentsPlugin>();
+  server.AddSystem(testSystem);
 
-  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
-    sim::EntityComponentManager &_ecm)
-    {
-      static bool periodicChangeMade = false;
-
-      // remove a component from an entity
-      if (_info.iterations == 2)
-      {
-        _ecm.Each<gz::sim::components::Model,
-                  gz::sim::components::Name,
-                  gz::sim::components::Pose>(
-          [&](const gz::sim::Entity &_entity,
-              const gz::sim::components::Model *,
-              const gz::sim::components::Name *_name,
-              const gz::sim::components::Pose *)->bool
-          {
-            if (_name->Data() == "box")
-            {
-              _ecm.RemoveComponent<gz::sim::components::Pose>(_entity);
-            }
-            return true;
-          });
-      }
-      // add a component to an entity
-      else if (_info.iterations == 3)
-      {
-        auto boxEntity = _ecm.EntityByComponents(
-            sim::components::Name("box"), sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, boxEntity);
-        EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
-        _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
-            gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
-        EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
-      }
-      // remove an entity
-      else if (_info.iterations == 4)
-      {
-        auto boxEntity = _ecm.EntityByComponents(
-            sim::components::Name("box"), sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, boxEntity);
-        _ecm.RequestRemoveEntity(boxEntity);
-      }
-      // create an entity
-      else if (_info.iterations == 5)
-      {
-        EXPECT_EQ(sim::kNullEntity, _ecm.EntityByComponents(
-              sim::components::Name("newEntity"),
-              sim::components::Model()));
-        auto newEntity = _ecm.CreateEntity();
-        _ecm.CreateComponent(newEntity, sim::components::Name("newEntity"));
-        _ecm.CreateComponent(newEntity, sim::components::Model());
-        EXPECT_NE(sim::kNullEntity, _ecm.EntityByComponents(
-              sim::components::Name("newEntity"),
-              sim::components::Model()));
-      }
-      // modify an existing component via OneTimeChange
-      else if (_info.iterations == 6)
-      {
-        auto entity = _ecm.EntityByComponents(
-            sim::components::Name("newEntity"),
-            sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
-            "newEntity1"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
-            sim::ComponentState::OneTimeChange);
-      }
-      // modify an existing component via PeriodicChange
-      else if (_info.iterations > 6 && !periodicChangeMade)
-      {
-        auto entity = _ecm.EntityByComponents(
-            sim::components::Name("newEntity1"),
-            sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
-            "newEntity2"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
-            sim::ComponentState::PeriodicChange);
-        periodicChangeMade = true;
-      }
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  int receivedStates = 0;
-  bool received = false;
-  bool hasState = false;
   gz::sim::EntityComponentManager localEcm;
-  std::function<void(const msgs::SerializedStepMap &)> cb =
-      [&](const msgs::SerializedStepMap &_res)
-  {
 
-    hasState = _res.has_state();
-    // Check the received state.
-    if (hasState)
-    {
-      receivedStates++;
-
-      localEcm.SetState(_res.state());
-      bool hasBox = false;
-      bool hasNewEntity = false;
-      bool hasModifiedComponent = false;
-      bool newEntityIteration = _res.stats().iterations() == 5;
-      bool oneTimeChangeIteration = _res.stats().iterations() == 6;
-      bool periodicChangeIteration = _res.stats().iterations() > 7;
-      localEcm.Each<gz::sim::components::Model,
-                  gz::sim::components::Name>(
-          [&](const gz::sim::Entity &_entity,
-              const gz::sim::components::Model *,
-              const gz::sim::components::Name *_name)->bool
-          {
-            if (_name->Data() == "box")
-            {
-              hasBox = true;
-              if (_res.stats().iterations() != 2)
-              {
-                // The pose component should exist
-                EXPECT_TRUE(localEcm.EntityHasComponentType(
-                      _entity, gz::sim::components::Pose::typeId));
-              }
-              else
-              {
-                // The pose component should be gone
-                EXPECT_FALSE(localEcm.EntityHasComponentType(
-                      _entity, gz::sim::components::Pose::typeId));
-              }
-            }
-
-            if (newEntityIteration && _name->Data() == "newEntity")
-              hasNewEntity = true;
-
-            if (oneTimeChangeIteration && _name->Data() == "newEntity1")
-              hasModifiedComponent = true;
-            else if (periodicChangeIteration && _name->Data() == "newEntity2")
-              hasModifiedComponent = true;
-
-            return true;
-          });
-
-      // make sure that the box entity is marked as removed
-      if (_res.stats().iterations() >= 4)
-      {
-        bool markedAsRemoved = false;
-        localEcm.EachRemoved<gz::sim::components::Model,
-                    gz::sim::components::Name>(
-            [&](const gz::sim::Entity &,
-                const gz::sim::components::Model *,
-                const gz::sim::components::Name *_name)->bool
-            {
-              if (_name->Data() == "box")
-                markedAsRemoved = true;
-              return true;
-            });
-        EXPECT_TRUE(markedAsRemoved);
-      }
-
-      EXPECT_TRUE(hasBox);
-      EXPECT_EQ(newEntityIteration, hasNewEntity);
-      EXPECT_EQ(periodicChangeIteration || oneTimeChangeIteration,
-          hasModifiedComponent);
-    }
-    received = true;
-  };
-
-  transport::Node node;
-  EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
-
-  // Helper method that runs the server one iteration and then checks that
-  // received data was processed correctly.
-  // The _shouldHaveState parameter defines whether the published
-  // msgs::SerializedStepMap should contain state info or not
-  std::function<void(bool)> runServerOnce =
-      [&](bool _shouldHaveState)
-      {
-        unsigned int sleep = 0u;
-        unsigned int maxSleep = 30u;
-        received = false;
-        hasState = false;
-
-        server.RunOnce(true);
-        // cppcheck-suppress unmatchedSuppression
-        // cppcheck-suppress knownConditionTrueFalse
-        while (!received && sleep++ < maxSleep)
-          GZ_SLEEP_MS(100);
-        EXPECT_TRUE(received);
-        EXPECT_EQ(_shouldHaveState, hasState);
-      };
+  auto stepReceiver = gz::sim::test::MessageReceiver<msgs::SerializedStepMap>();
+  EXPECT_TRUE(stepReceiver.Start("/world/default/state"));
 
   // Run server once. The first time should send the state message
-  runServerOnce(true);
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server again. The second time shouldn't have state info. The
   // message can still arrive due the passage of time (see `itsPubTime` in
   // SceneBroadcaster::PostUpdate.
-  runServerOnce(false);
+  // Sleep for more than 1/30 of a second (paused update rate) to guarantee
+  std::this_thread::sleep_for(std::chrono::milliseconds(33));
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_FALSE(stepReceiver.Last().has_state());
+  stepReceiver.Clear();
 
   // Run server again. The third time should send the state message because
   // the test system removed a component.
-  runServerOnce(true);
+  testSystem->state = State::kRemoveComponent;
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server again. The fourth time should send the state message because
   // the test system added a component.
-  runServerOnce(true);
+  testSystem->state = State::kAddComponent;
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server again. The fifth time should send the state message because
   // the test system requested to remove an entity.
-  runServerOnce(true);
+  testSystem->state = State::kRemoveEntity;
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server again. The sixth time should send the state message because
   // the test system created an entity.
-  runServerOnce(true);
+  testSystem->state = State::kAddEntity;
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server again. The seventh time should send the state message because
   // the test system modified a component and marked it as a OneTimeChange.
-  runServerOnce(true);
+  testSystem->state = State::kOneTimeChange;
+  server.RunOnce();
+  ASSERT_TRUE(stepReceiver.Spin());
+  ASSERT_TRUE(stepReceiver.Last().has_state());
+  localEcm.SetState(stepReceiver.Last().state());
+  stepReceiver.Clear();
 
   // Run server for a few iterations to make sure that the periodic change
   // made by the test system is received.
-  received = false;
-  hasState = false;
-  server.Run(true, 10, false);
-  // (wait for a bit after running the server in case ign-transport is still
-  // processing messages)
-  unsigned int sleep = 0u;
-  unsigned int maxSleep = 50u;
-  // cppcheck-suppress unmatchedSuppression
-  // cppcheck-suppress knownConditionTrueFalse
-  while (!received && sleep++ < maxSleep)
-    GZ_SLEEP_MS(100);
-  EXPECT_TRUE(received);
-  EXPECT_TRUE(hasState);
-
-  // Sanity check: make sure that at least 7 states were received and processed
-  EXPECT_GE(receivedStates, 7);
+  testSystem->state = State::kPeriodicChange;
+  server.Run(true, 20, false);
+  ASSERT_TRUE(stepReceiver.Spin());
 }
 
 /////////////////////////////////////////////////
 // Tests https://github.com/gazebosim/gz-sim/issues/1414
-TEST_P(SceneBroadcasterTest,
+TEST_F(SceneBroadcasterTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(DecimalStateHertz))
 {
   // Start server
@@ -915,13 +887,13 @@ TEST_P(SceneBroadcasterTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(SceneBroadcasterTest,
+TEST_F(SceneBroadcasterTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasSceneSdf))
 {
   // Start server
   sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      common::joinPaths("/", "test", "worlds", "conveyor.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "/", "test", "worlds", "conveyor.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -951,7 +923,3 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_FALSE(res.has_fog());
   EXPECT_FALSE(res.has_sky());
 }
-
-// Run multiple times
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
-    ::testing::Range(1, 2));

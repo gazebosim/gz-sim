@@ -393,6 +393,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     if (shouldPublish)
     {
       GZ_PROFILE("SceneBroadcast::PostUpdate Publish State");
+      gzwarn << "Publish Step message: " << this->dataPtr->stepMsg.has_state() << std::endl;
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
