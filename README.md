@@ -1,22 +1,22 @@
-# Ignition Gazebo : A Robotic Simulator
+# Gazebo Sim : A Robotic Simulator
 
 **Maintainer:** louise AT openrobotics DOT org
 
-[![GitHub open issues](https://img.shields.io/github/issues-raw/ignitionrobotics/ign-gazebo.svg)](https://github.com/ignitionrobotics/ign-gazebo/issues)
-[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/ignitionrobotics/ign-gazebo.svg)](https://github.com/ignitionrobotics/ign-gazebo/pulls)
+[![GitHub open issues](https://img.shields.io/github/issues-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/issues)
+[![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/pulls)
 [![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo3/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/ign-gazebo3/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/branch/ign-gazebo3)
 Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-bionic-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-windows7-amd64)
 
-Ignition Gazebo is an open source robotics simulator. Through Ignition Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Gazebo Sim is an open source robotics simulator. Through Gazebo sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
-Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Ignition Robotics](https://ignitionrobotics.org) project.
+Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
 
 # Table of Contents
 
@@ -52,34 +52,33 @@ Ignition Gazebo is derived from [Gazebo](http://gazebosim.org) and represents ov
 
 * **Dynamics simulation**: Access multiple high-performance physics engines
 through
-[Ignition Physics](https://github.com/ignitionrobotics/ign-physics).
+[Gazebo Physics](https://github.com/gazebosim/gz-physics).
 
 * **Advanced 3D graphics**: Through
-[Ignition Rendering](https://github.com/ignitionrobotics/ign-rendering),
+[Gazebo Rendering](https://github.com/gazebosim/gz-rendering),
 it's possible to use rendering engines such as OGRE v2 for realistic rendering
 of environments with high-quality lighting, shadows, and textures.
 
 * **Sensors and noise models**: Generate sensor data, optionally with noise,
 from laser range finders, 2D/3D cameras, Kinect style sensors, contact sensors,
 force-torque, IMU, GPS, and more, all powered by
-[Ignition Sensors](https://github.com/ignitionrobotics/ign-sensors)
+[Gazebo Sensors](https://github.com/gazebosim/gz-sensors)
 
 * **Plugins**: Develop custom plugins for robot, sensor, and
 environment control.
 
-* **Graphical interface**: Create, instrospect and interact with your simulations
+* **Graphical interface**: Create, introspect and interact with your simulations
 through plugin-based graphical interfaces powered by
-[Ignition GUI](https://github.com/ignitionrobotics/ign-gui).
+[Gazebo GUI](https://github.com/gazebosim/gz-gui).
 
 * **Simulation models**: Access numerous robots including PR2, Pioneer2 DX,
 iRobot Create, and TurtleBot, and construct environments using other physically
 accurate models available through
-[Ignition Fuel](https://app.ignitionrobotics.org/fuel). You can also build a
+[Gazebo Fuel](https://app.gazebosim.org/fuel). You can also build a
 new model using [SDF](http://sdformat.org).
 
-* **TCP/IP Transport**: Run simulation on remote servers and interface to Ignition
-Gazebo through socket-based message passing using
-[Ignition Transport](https://github.com/ignitionrobotics/ign-transport).
+* **TCP/IP Transport**: Run simulation on remote servers and interface to Gazebo Sim through socket-based message passing using
+[Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
 introspection and control.
@@ -97,7 +96,7 @@ available through a package management utility such as [Apt](https://wiki.debian
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
 the code. See [Source Install](#source-install) for information on
-installing Ignition Gazebo from source.
+installing Gazebo Sim from source.
 
 **Ubuntu Bionic**
 
@@ -119,7 +118,7 @@ installing Ignition Gazebo from source.
     sudo apt-get update
     ```
 
-2. Install Ignition Gazebo
+2. Install Gazebo Sim
 
     ```
     sudo apt-get install libignition-gazebo3-dev
@@ -132,12 +131,12 @@ feature which hasn't been released yet.
 
 ### Prerequisites
 
-Ignition Gazebo has a fairly large set of dependencies. Refer to the following sections
+Gazebo Sim has a fairly large set of dependencies. Refer to the following sections
 for dependency installation instructions for each supported operating system.
 
 **[Ubuntu Bionic](http://releases.ubuntu.com/18.04/)**
 
-1. Enable the Ignition software repositories:
+1. Enable the Gazebo software repositories:
 
     ```
     sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
@@ -156,10 +155,6 @@ for dependency installation instructions for each supported operating system.
     ```
 
 2. Install package dependencies:
-
-    ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
-    ```
 
     ```
     export SYSTEM_VERSION=bionic
@@ -186,13 +181,13 @@ for dependency installation instructions for each supported operating system.
 3. Clone the repository if you haven't already.
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo3
+    git clone https://github.com/gazebosim/gz-sim -b ign-gazebo3
     ```
 
 4. Configure and build.
 
     ```
-    cd ign-gazebo
+    cd gz-sim
     mkdir build
     cd build
     cmake ../
@@ -201,7 +196,7 @@ for dependency installation instructions for each supported operating system.
 
 # Usage
 
-Gazebo can be run from the command line, once [installed](#install), using:
+Gazebo Sim can be run from the command line, once [installed](#install), using:
 
 ```
 ign gazebo
@@ -219,7 +214,7 @@ In the event that the installation is a mix of Debian and from source, command
 line tools from `ign-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
-`IGN_CONFIG_PATH` to point to the location of the Ignition library installation,
+`IGN_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
 export IGN_CONFIG_PATH=/usr/local/share/ignition
@@ -228,7 +223,7 @@ export IGN_CONFIG_PATH=/usr/local/share/ignition
 However, that environment variable only takes a single path, which means if the
 installations from source are in different locations, only one can be specified.
 
-Another workaround for working with multiple Ignition libraries on the command
+Another workaround for working with multiple Gazebo libraries on the command
 line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.ignition/tools/configs -p
@@ -240,11 +235,11 @@ ln -s /usr/local/share/ignition/transportlog7.yaml .
 export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
 ```
 
-This issue is tracked [here](https://github.com/ignitionrobotics/ign-tools/issues/8).
+This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
 # Documentation
 
-API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
+API documentation and tutorials can be accessed at [https://gazebosim.org/libs/gazebo](https://gazebosim.org/libs/gazebo)
 
 You can also generate the documentation from a clone of this repository by following these steps.
 
@@ -254,16 +249,16 @@ You can also generate the documentation from a clone of this repository by follo
     sudo apt-get install doxygen
     ```
 
-2. Clone the repository
+2. Clone the repository if you haven't already
 
     ```
-    git clone https://github.com/ignitionrobotics/ign-gazebo
+    git clone https://github.com/gazebosim/gz-sim
     ```
 
 3. Configure and build the documentation.
 
     ```
-    cd ign-gazebo
+    cd gz-sim
     mkdir build
     cd build
     cmake ../
@@ -298,14 +293,14 @@ Follow these steps to run tests and static code analysis in your clone of this r
     make codecheck
     ```
 
-See the [Writing Tests section of the contributor guide](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://gazebosim.org/docs/all/contributing#writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
 Refer to the following table for information about important directories and files in this repository.
 
 ```
-ign-gazebo
+gz-sim
 ├── examples                     Various examples that can be run against binary or source installs of ign-gazebo.
 │   ├── plugin                   Example plugins.
 │   ├── standalone               Example standalone programs that use ign-gazebo as a library.
@@ -330,17 +325,17 @@ ign-gazebo
 # Contributing
 
 Please see
-[CONTRIBUTING.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
 
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/ignitionrobotics/ign-gazebo/blob/main/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/main/CODE_OF_CONDUCT.md).
 
 # Versioning
 
-This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Ignition Robotics project](https://ignitionrobotics.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Ignition Robotics website](https://ignitionrobotics.org) for version and release information.
+This library uses [Semantic Versioning](https://semver.org/). Additionally, this library is part of the [Gazebo project](https://gazebosim.org) which periodically releases a versioned set of compatible and complimentary libraries. See the [Gazebo website](https://gazebosim.org) for version and release information.
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/ignitionrobotics/ign-gazebo/blob/main/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/gazebosim/gz-sim/blob/main/LICENSE) file.
