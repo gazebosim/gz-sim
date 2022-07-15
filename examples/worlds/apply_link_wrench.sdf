@@ -8,11 +8,11 @@
   Wrenches can also be applied through transport.
   For example, apply a force to the cylinder model (i.e. its canonical link) with:
 
-    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: 1000, z: 10000}}"
+    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {y: 1000, z: 10000}}"
 
   Apply a wrench to the cylinder link with:
 
-    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder::link', type: LINK}, wrench: {force: {x: -1000, z: 10000}, torque: {y: -1000}}"
+    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder::link', type: LINK}, wrench: {force: {y: -1000, z: 10000}, torque: {x: -1000}}"
 
   Clear the persistent force from the box with:
 
@@ -20,7 +20,7 @@
 
   Apply a persistent force to the cylinder with:
 
-    ign topic -t "/world/apply_link_wrench/wrench/persistent" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {y: 10}}"
+    ign topic -t "/world/apply_link_wrench/wrench/persistent" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: -10}}"
 
 -->
 <sdf version="1.6">
@@ -36,6 +36,12 @@
     <plugin
       filename="ignition-gazebo-apply-link-wrench-system"
       name="ignition::gazebo::systems::ApplyLinkWrench">
+      <persistent>
+        <entity_name>box</entity_name>
+        <entity_type>model</entity_type>
+        <force>-10 0 0</force>
+        <torque>0 0 0.1</torque>
+      </persistent>
     </plugin>
 
     <light type="directional" name="sun">
@@ -79,7 +85,7 @@
     </model>
 
     <model name="box">
-      <pose>0 0 0.5 0 0 0</pose>
+      <pose>0 -2 0.5 0 0 0</pose>
       <link name="link">
         <inertial>
           <inertia>
@@ -110,6 +116,45 @@
             <ambient>1 0 0 1</ambient>
             <diffuse>1 0 0 1</diffuse>
             <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cylinder">
+      <pose>0 2 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
           </material>
         </visual>
       </link>
