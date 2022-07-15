@@ -10,7 +10,7 @@
 Build | Status
 -- | --
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/ign-gazebo3/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/branch/ign-gazebo3)
-Ubuntu Bionic | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-bionic-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-bionic-amd64)
+Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-focal-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo3-windows7-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo3-windows7-amd64)
 
@@ -155,6 +155,10 @@ for dependency installation instructions for each supported operating system.
     ```
 
 2. Install package dependencies:
+
+    ```
+    git clone https://github.com/gazebosim/gz-sim -b ign-gazebo3
+    ```
 
     ```
     export SYSTEM_VERSION=bionic
