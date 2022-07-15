@@ -401,5 +401,5 @@ void Plot3D::SetMaxPoints(int _maxPoints)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::gui::Plot3D,
+GZ_ADD_PLUGIN(gz::sim::gui::Plot3D,
                     gz::gui::Plugin)

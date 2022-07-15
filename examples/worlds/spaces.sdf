@@ -11,15 +11,15 @@ This demo shows that it's possible to have entities with spaces in their names.
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

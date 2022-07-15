@@ -382,7 +382,7 @@ namespace components
   /// register the component again, so we prevent that.
   /// \param[in] _compType Component type name.
   /// \param[in] _classname Class name for component.
-  #define IGN_GAZEBO_REGISTER_COMPONENT(_compType, _classname) \
+  #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
   class GzSimComponents##_classname \
   { \
     public: GzSimComponents##_classname() \
@@ -396,7 +396,7 @@ namespace components
     } \
   }; \
   static GzSimComponents##_classname\
-    IgnitionGazeboComponentsInitializer##_classname;
+    GzSimComponentsInitializer##_classname;
 }
 }
 }

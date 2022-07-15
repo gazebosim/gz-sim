@@ -153,7 +153,7 @@ void ModelEditor::Load()
 void ModelEditor::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ModelEditor::Update");
+  GZ_PROFILE("ModelEditor::Update");
 
   if (!this->dataPtr->entityCreator)
   {
@@ -506,8 +506,8 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
     return std::nullopt;
   }
 
-  joint.SetParentLinkName(_eta.data.at("parent_link"));
-  joint.SetChildLinkName(_eta.data.at("child_link"));
+  joint.SetParentName(_eta.data.at("parent_link"));
+  joint.SetChildName(_eta.data.at("child_link"));
 
   std::string jointName = "joint";
   Entity jointEnt = _ecm.EntityByComponents(

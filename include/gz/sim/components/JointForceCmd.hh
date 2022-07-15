@@ -36,7 +36,7 @@ namespace components
   /// std::vector and systems that set this component need to ensure that the
   /// vector has the same size as the degrees of freedom of the joint.
   using JointForceCmd = Component<std::vector<double>, class JointForceCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.JointForceCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.JointForceCmd",
                                 JointForceCmd)
 }
 }

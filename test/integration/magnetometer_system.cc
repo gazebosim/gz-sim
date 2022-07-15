@@ -33,7 +33,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -62,7 +62,7 @@ void magnetometerCb(const msgs::Magnetometer &_msg)
 /////////////////////////////////////////////////
 // The test checks the detected field from a rotated magnetometer
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(MagnetometerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
+TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;

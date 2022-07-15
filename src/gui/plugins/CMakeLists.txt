@@ -37,7 +37,7 @@ function(gz_add_gui_library library_name)
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE
-      ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+      gz-sim${PROJECT_VERSION_MAJOR}-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
   )
 endfunction()
@@ -89,18 +89,18 @@ function(gz_add_gui_plugin plugin_name)
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
     PUBLIC_LINK_LIBS ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
-    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} ignition-plugin${IGN_PLUGIN_VER}::register
+    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} gz-plugin${GZ_PLUGIN_VER}::register
   )
 
   if(gz_add_gui_plugin_TEST_SOURCES)
     # Plugin symbols failing to resolve on Windows:
     # error LNK2001: unresolved external symbol
     if(NOT WIN32)
-      ign_build_tests(TYPE UNIT
+      gz_build_tests(TYPE UNIT
         SOURCES
           ${gz_add_gui_plugin_TEST_SOURCES}
         LIB_DEPS
-          ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+          gz-sim${PROJECT_VERSION_MAJOR}-gui
           ${plugin_name}
         INCLUDE_DIRS
           # Used to make internal source file headers visible to the unit tests

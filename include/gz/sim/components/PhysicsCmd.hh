@@ -36,7 +36,7 @@ namespace components
   /// \brief A component type that contains the physics properties of
   /// the World entity.
   using PhysicsCmd = Component<msgs::Physics, class PhysicsCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PhysicsCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsCmd",
       PhysicsCmd)
 }
 }

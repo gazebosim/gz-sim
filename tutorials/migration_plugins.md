@@ -147,14 +147,14 @@ class MyPlugin
 };
 
 // Register plugin
-IGNITION_ADD_PLUGIN(MyPlugin,
+GZ_ADD_PLUGIN(MyPlugin,
                     gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
+GZ_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
 The example above uses headers like `Model.hh` and `Util.hh`, which offer
@@ -229,12 +229,12 @@ class MyPlugin
   private: Entity linkEntity;
 };
 
-IGNITION_ADD_PLUGIN(MyPlugin,
+GZ_ADD_PLUGIN(MyPlugin,
                     gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
+GZ_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
 In summary, the key differences between Gazebo Classic and Gazebo are:

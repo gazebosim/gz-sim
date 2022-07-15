@@ -73,7 +73,7 @@ feature which hasn't been released yet.
 
 3. Clone repository
   ```
-  git clone https://github.com/gazebosim/gz-sim -b ign-gazebo<#>
+  git clone https://github.com/gazebosim/gz-sim -b gz-sim<#>
   ```
 
 4. Install package dependencies (including other Gazebo libraries):
@@ -84,7 +84,7 @@ feature which hasn't been released yet.
 
 5. Configure and build.
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ../
@@ -95,7 +95,7 @@ feature which hasn't been released yet.
 
 1. Clone the repository
   ```
-  git clone https://github.com/gazebosim/gz-sim -b ign-gazebo<#>
+  git clone https://github.com/gazebosim/gz-sim -b gz-sim<#>
   ```
 
 2. Install dependencies
@@ -105,7 +105,7 @@ feature which hasn't been released yet.
 
 3. Configure and build
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ..
@@ -135,7 +135,7 @@ You can also generate the documentation from a clone of this repository by follo
 
 3. Configure and build the documentation.
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ../

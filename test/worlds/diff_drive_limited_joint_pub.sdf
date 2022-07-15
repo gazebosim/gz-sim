@@ -7,7 +7,7 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
 
@@ -221,7 +221,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
+        filename="gz-sim-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>
@@ -233,7 +233,7 @@
       </plugin>
 
       <plugin
-        filename="ignition-gazebo-joint-state-publisher-system"
+        filename="gz-sim-joint-state-publisher-system"
         name="gz::sim::systems::JointStatePublisher">
         <joint_name>left_wheel_joint</joint_name>
         <joint_name>right_wheel_joint</joint_name>

@@ -36,7 +36,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -565,7 +565,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
@@ -575,7 +575,7 @@ TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
 {
   this->TestConveyor(
     std::string(PROJECT_SOURCE_PATH) +

@@ -69,5 +69,5 @@ void GuiSystemPlugin::SetCustomProperty(const QString &_customProperty)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(GuiSystemPlugin,
+GZ_ADD_PLUGIN(GuiSystemPlugin,
                     gz::gui::Plugin)

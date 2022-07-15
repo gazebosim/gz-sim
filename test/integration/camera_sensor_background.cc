@@ -24,7 +24,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -71,7 +71,7 @@ void cameraCb(const msgs::Image & _msg)
 // Test the ability to set the background color using the sensor system
 // plugin.
 TEST_F(CameraSensorBackgroundFixture,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
 {
   // Start server
   sim::ServerConfig serverConfig;

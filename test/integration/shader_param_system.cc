@@ -25,7 +25,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -60,7 +60,7 @@ void imageCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 // The test checks camera image data to verify that the sphere is using
 // custom material shaders
-TEST_F(ShaderParamTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ShaderParam))
+TEST_F(ShaderParamTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ShaderParam))
 {
   // Start server
   ServerConfig serverConfig;

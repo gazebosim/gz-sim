@@ -85,25 +85,25 @@ See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.htm
 Gazebo Sim can be run from the command line, once [installed](#install), using:
 
 ```
-ign gazebo
+gz sim
 ```
 
 For help, and command line options use:
 
 ```
-ign gazebo -h
+gz sim -h
 ```
 
 ## Known issue of command line tools
 
 In the event that the installation is a mix of Debian and from source, command
-line tools from `ign-tools` may not work correctly.
+line tools from `gz-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
 `GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
-export GZ_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/gz
 ```
 
 However, that environment variable only takes a single path, which means if the
@@ -114,9 +114,9 @@ line is using symbolic links to each library's YAML file.
 ```
 mkdir ~/.gz/tools/configs -p
 cd ~/.gz/tools/configs/
-ln -s /usr/local/share/ignition/fuel8.yaml .
-ln -s /usr/local/share/ignition/transport12.yaml .
-ln -s /usr/local/share/ignition/transportlog12.yaml .
+ln -s /usr/local/share/gz/fuel8.yaml .
+ln -s /usr/local/share/gz/transport12.yaml .
+ln -s /usr/local/share/gz/transportlog12.yaml .
 ...
 export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
 ```
@@ -138,12 +138,12 @@ See the [Writing Tests section of the contributor guide](https://github.com/gaze
 Refer to the following table for information about important directories and files in this repository.
 
 ```
-ign-gazebo
-├── examples                     Various examples that can be run against binary or source installs of ign-gazebo.
+gz-sim
+├── examples                     Various examples that can be run against binary or source installs of gz-sim.
 │   ├── plugin                   Example plugins.
-│   ├── standalone               Example standalone programs that use ign-gazebo as a library.
+│   ├── standalone               Example standalone programs that use gz-sim as a library.
 │   └── worlds                   Example SDF world files.
-├── include/ignition/gazebo      Header files that downstream users are expected to use.
+├── include/gz/sim               Header files that downstream users are expected to use.
 │   └── detail                   Header files that are not intended for downstream use, mainly template implementations.
 ├── src                          Source files and unit tests.
 │   ├── gui                      Graphical interface source code.

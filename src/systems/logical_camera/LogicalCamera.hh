@@ -36,7 +36,7 @@ namespace systems
    *  gz/sim/systems/LogicalCamera.hh
   **/
   /// \brief A logical camera sensor that reports objects detected within its
-  /// frustum readings over ign transport
+  /// frustum readings over gz transport
   class LogicalCamera:
     public System,
     public ISystemPreUpdate,

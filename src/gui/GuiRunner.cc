@@ -75,7 +75,7 @@ class gz::sim::GuiRunner::Implementation
   /// \brief Name of WorldControl service
   public: std::string controlService;
 
-  /// \brief System loader for loading ign-gazebo systems
+  /// \brief System loader for loading gz-sim systems
   public: std::unique_ptr<SystemLoader> systemLoader;
 
   /// \brief Mutex to protect systemLoader
@@ -279,8 +279,8 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 /////////////////////////////////////////////////
 void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 {
-  IGN_PROFILE_THREAD_NAME("GuiRunner::OnState");
-  IGN_PROFILE("GuiRunner::Update");
+  GZ_PROFILE_THREAD_NAME("GuiRunner::OnState");
+  GZ_PROFILE("GuiRunner::Update");
 
   // Only process state updates after initial state has been received.
   if (!this->dataPtr->receivedInitialState)
@@ -297,8 +297,8 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
 /////////////////////////////////////////////////
 void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("GuiRunner::Update");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("GuiRunner::Update");
   this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
@@ -319,7 +319,7 @@ void GuiRunner::UpdatePlugins()
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
 
-  // ign-gazebo systems
+  // gz-sim systems
   this->LoadSystems();
   this->UpdateSystems();
 }
@@ -371,10 +371,10 @@ void GuiRunner::LoadSystems()
 /////////////////////////////////////////////////
 void GuiRunner::UpdateSystems()
 {
-  IGN_PROFILE("GuiRunner::UpdateSystems");
+  GZ_PROFILE("GuiRunner::UpdateSystems");
 
   {
-    IGN_PROFILE("PreUpdate");
+    GZ_PROFILE("PreUpdate");
     for (auto& system : this->dataPtr->systemsPreupdate)
     {
       if (system)
@@ -383,7 +383,7 @@ void GuiRunner::UpdateSystems()
   }
 
   {
-    IGN_PROFILE("Update");
+    GZ_PROFILE("Update");
     for (auto& system : this->dataPtr->systemsUpdate)
     {
       if (system)
@@ -392,7 +392,7 @@ void GuiRunner::UpdateSystems()
   }
 
   {
-    IGN_PROFILE("PostUpdate");
+    GZ_PROFILE("PostUpdate");
     // \todo(anyone) Do PostUpdates in parallel
     for (auto& system : this->dataPtr->systemsPostupdate)
     {

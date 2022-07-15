@@ -127,7 +127,7 @@ void RenderingServerPlugin::PreUpdate(const gz::sim::UpdateInfo &_info,
   this->simTime = _info.simTime;
 }
 
-IGNITION_ADD_PLUGIN(
+GZ_ADD_PLUGIN(
   RenderingServerPlugin,
   gz::sim::System,
   RenderingServerPlugin::ISystemConfigure,

@@ -204,5 +204,5 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::EntityContextMenu,
+GZ_ADD_PLUGIN(gz::sim::EntityContextMenu,
                     gz::gui::Plugin)

@@ -553,6 +553,6 @@ void Plotting::Update(const gz::sim::UpdateInfo &_info,
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::Plotting,
+GZ_ADD_PLUGIN(gz::sim::Plotting,
                     gz::sim::GuiSystem,
                     gz::gui::Plugin)

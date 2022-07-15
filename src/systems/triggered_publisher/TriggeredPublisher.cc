@@ -123,7 +123,7 @@ class FullMatcher : public InputMatcher
   /// return false.
   /// \param[in] _matchString String used to construct the protobuf message
   /// against which input messages are matched. This is the human-readable
-  /// representation of a protobuf message as used by `ign topic` for publishing
+  /// representation of a protobuf message as used by `gz topic` for publishing
   /// messages
   public: FullMatcher(const std::string &_msgType, bool _logicType,
                       const std::string &_matchString);
@@ -672,7 +672,7 @@ void TriggeredPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &/*_ecm*/)
 {
   using namespace std::chrono_literals;
-  IGN_PROFILE("TriggeredPublisher::PreUpdate");
+  GZ_PROFILE("TriggeredPublisher::PreUpdate");
 
   bool notify = false;
   {
@@ -723,14 +723,14 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
                      });
 }
 
-IGNITION_ADD_PLUGIN(TriggeredPublisher,
+GZ_ADD_PLUGIN(TriggeredPublisher,
                     gz::sim::System,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "gz::sim::systems::TriggeredPublisher")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "ignition::gazebo::systems::TriggeredPublisher")

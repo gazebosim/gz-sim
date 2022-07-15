@@ -94,7 +94,7 @@ namespace components
   using DetachableJoint =
       Component<DetachableJointInfo, class DetachableJointTag,
                 serializers::DetachableJointInfoSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.DetachableJoint",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DetachableJoint",
                                 DetachableJoint)
 }
 }

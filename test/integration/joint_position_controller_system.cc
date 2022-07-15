@@ -30,7 +30,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -50,7 +50,7 @@ class JointPositionControllerTestFixture
 // Tests that the JointPositionController accepts joint position commands
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(JointPositionControllerTestFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositionForceCommand))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointPositionForceCommand))
 {
   using namespace std::chrono_literals;
 
@@ -127,7 +127,7 @@ TEST_F(JointPositionControllerTestFixture,
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position commands
 TEST_F(JointPositionControllerTestFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositonVelocityCommand))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointPositonVelocityCommand))
 {
   using namespace std::chrono_literals;
 

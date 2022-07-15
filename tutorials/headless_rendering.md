@@ -13,7 +13,7 @@ An easier solution is through the use of [EGL](https://www.khronos.org/egl), whi
 Example usage:
 
 ```
-ign gazebo -v 4 -s --headless-rendering sensors_demo.sdf
+gz sim -v 4 -s --headless-rendering sensors_demo.sdf
 ```
 
 If you are using Gazebo as a library, then you can configure the
@@ -66,11 +66,11 @@ here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-hea
 11. [Install Gazebo](https://gazebosim.org/docs/latest/install).
 12. Run a Gazebo world that uses OGRE2 with camera sensors using headless rendering. This will enable EGL.
   ```
-  ign gazebo -v 4 -s -r --headless-rendering sensors_demo.sdf
+  gz sim -v 4 -s -r --headless-rendering sensors_demo.sdf
   ```
 13. Check that simulation is producing sensor data by ssh'ing into the EC2
     instance from a new terminal and echoing a sensor topic.
   ```
   ssh -i SSH_PEM_FILE_USED_DURING_LAUNCH ubuntu@EC_INSTANCE_PUBLIC_IP
-  ign topic -et /thermal_camera
+  gz topic -et /thermal_camera
   ```

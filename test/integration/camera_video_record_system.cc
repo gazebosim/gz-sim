@@ -23,7 +23,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -37,7 +37,7 @@ class CameraVideoRecorderTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
+TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
 {
   // Start server
   ServerConfig serverConfig;

@@ -85,13 +85,13 @@ void ThermalSensor::Configure(const Entity &_entity,
   }
 }
 
-IGNITION_ADD_PLUGIN(ThermalSensor, System,
+GZ_ADD_PLUGIN(ThermalSensor, System,
   ThermalSensor::ISystemConfigure
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
+GZ_ADD_PLUGIN_ALIAS(ThermalSensor,
     "gz::sim::systems::ThermalSensor")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ThermalSensor,
+GZ_ADD_PLUGIN_ALIAS(ThermalSensor,
     "ignition::gazebo::systems::ThermalSensor")

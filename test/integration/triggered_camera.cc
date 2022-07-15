@@ -26,7 +26,7 @@
 #endif
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -67,7 +67,7 @@ void imageCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 // The test checks the Triggered Camera readings
 TEST_F(TriggeredCameraTest,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

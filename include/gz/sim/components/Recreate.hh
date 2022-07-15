@@ -39,7 +39,7 @@ namespace components
   /// existing model. The existing model is tagged with this component so
   /// that it can be recreated by the server.
   using Recreate = Component<NoData, class RecreateTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Recreate", Recreate)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Recreate", Recreate)
 }
 }
 }

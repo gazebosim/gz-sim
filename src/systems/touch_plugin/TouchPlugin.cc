@@ -234,7 +234,7 @@ TouchPlugin::TouchPlugin()
 void TouchPluginPrivate::Update(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPluginPrivate::Update");
+  GZ_PROFILE("TouchPluginPrivate::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -372,7 +372,7 @@ void TouchPlugin::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPlugin::PreUpdate");
+  GZ_PROFILE("TouchPlugin::PreUpdate");
   if (!this->dataPtr->initialized)
   {
     // We call Load here instead of Configure because we can't be guaranteed
@@ -401,20 +401,20 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void TouchPlugin::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TouchPlugin::PostUpdate");
+  GZ_PROFILE("TouchPlugin::PostUpdate");
   if (this->dataPtr->validConfig)
   {
     this->dataPtr->Update(_info, _ecm);
   }
 }
 
-IGNITION_ADD_PLUGIN(TouchPlugin,
+GZ_ADD_PLUGIN(TouchPlugin,
                     gz::sim::System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
+GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")
+GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

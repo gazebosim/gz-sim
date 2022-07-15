@@ -7,7 +7,7 @@ using the C++ API, instead of using Gazebo from the command line.
 
 From this directory:
 
-    cd ign-gazebo/examples/standalone/custom_server
+    cd gz-sim/examples/standalone/custom_server
     mkdir build
     cd build
     cmake ..

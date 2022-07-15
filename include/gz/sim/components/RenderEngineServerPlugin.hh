@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the render engine server shared library.
   using RenderEngineServerPlugin = Component<std::string,
       class RenderEngineServerPluginTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.RenderEngineServerPlugin",
       RenderEngineServerPlugin)
 }

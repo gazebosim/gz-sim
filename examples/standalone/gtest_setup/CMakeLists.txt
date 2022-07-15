@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 project(GTestSetup)
 
 # Find Gazebo
-find_package(ignition-gazebo7 REQUIRED)
-set(IGN_GAZEBO_VER ${ignition-gazebo7_VERSION_MAJOR})
+find_package(gz-sim7 REQUIRED)
+set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
 
 # Fetch and configure GTest
 include(FetchContent)
@@ -29,7 +29,7 @@ foreach(TEST_TARGET
   )
   target_link_libraries(${TEST_TARGET}
     gtest_main
-    ignition-gazebo${IGN_GAZEBO_VER}::ignition-gazebo${IGN_GAZEBO_VER}
+    gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
   )
   include(GoogleTest)
   gtest_discover_tests(${TEST_TARGET})

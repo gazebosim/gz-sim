@@ -114,7 +114,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 void ApplyJointForce::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ApplyJointForce::PreUpdate");
+  GZ_PROFILE("ApplyJointForce::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -163,14 +163,14 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
   this->jointForceCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(ApplyJointForce,
+GZ_ADD_PLUGIN(ApplyJointForce,
                     gz::sim::System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "gz::sim::systems::ApplyJointForce")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "ignition::gazebo::systems::ApplyJointForce")

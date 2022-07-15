@@ -39,7 +39,7 @@ namespace components
   using Magnetometer = Component<sdf::Sensor, class MagnetometerTag,
                                  serializers::SensorSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.Magnetometer", Magnetometer)
 }
 }

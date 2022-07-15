@@ -250,7 +250,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
 void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::PreUpdate");
+  GZ_PROFILE("OdometryPublisher::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -274,7 +274,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
 void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::PostUpdate");
+  GZ_PROFILE("OdometryPublisher::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -287,7 +287,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OdometryPublisher::UpdateOdometry");
+  GZ_PROFILE("OdometryPublisher::UpdateOdometry");
   // Record start time.
   if (!this->initialized)
   {
@@ -323,8 +323,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   double currentYaw = pose.Rot().Yaw();
   const double lastYaw = this->lastUpdatePose.Rot().Yaw();
-  while (currentYaw < lastYaw - IGN_PI) currentYaw += 2 * IGN_PI;
-  while (currentYaw > lastYaw + IGN_PI) currentYaw -= 2 * IGN_PI;
+  while (currentYaw < lastYaw - GZ_PI) currentYaw += 2 * GZ_PI;
+  while (currentYaw > lastYaw + GZ_PI) currentYaw -= 2 * GZ_PI;
   const float yawDiff = currentYaw - lastYaw;
 
   // Get velocities assuming 2D
@@ -355,14 +355,14 @@ void OdometryPublisherPrivate::UpdateOdometry(
   {
     double currentRoll = pose.Rot().Roll();
     const double lastRoll = this->lastUpdatePose.Rot().Roll();
-    while (currentRoll < lastRoll - IGN_PI) currentRoll += 2 * IGN_PI;
-    while (currentRoll > lastRoll + IGN_PI) currentRoll -= 2 * IGN_PI;
+    while (currentRoll < lastRoll - GZ_PI) currentRoll += 2 * GZ_PI;
+    while (currentRoll > lastRoll + GZ_PI) currentRoll -= 2 * GZ_PI;
     const float rollDiff = currentRoll - lastRoll;
 
     double currentPitch = pose.Rot().Pitch();
     const double lastPitch = this->lastUpdatePose.Rot().Pitch();
-    while (currentPitch < lastPitch - IGN_PI) currentPitch += 2 * IGN_PI;
-    while (currentPitch > lastPitch + IGN_PI) currentPitch -= 2 * IGN_PI;
+    while (currentPitch < lastPitch - GZ_PI) currentPitch += 2 * GZ_PI;
+    while (currentPitch > lastPitch + GZ_PI) currentPitch -= 2 * GZ_PI;
     const float pitchDiff = currentPitch - lastPitch;
 
     double linearDisplacementZ =
@@ -491,15 +491,15 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 }
 
-IGNITION_ADD_PLUGIN(OdometryPublisher,
+GZ_ADD_PLUGIN(OdometryPublisher,
                     gz::sim::System,
                     OdometryPublisher::ISystemConfigure,
                     OdometryPublisher::ISystemPreUpdate,
                     OdometryPublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(OdometryPublisher,
+GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "gz::sim::systems::OdometryPublisher")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(OdometryPublisher,
+GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "ignition::gazebo::systems::OdometryPublisher")

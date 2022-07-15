@@ -32,7 +32,7 @@ ln -s $logDirPath $tmpDir
 echo "Starting log playback and video recording"
 
 sdfName="log_video_recorder"
-ign gazebo -v 4 $sdfName.sdf
+gz sim -v 4 $sdfName.sdf
 
 echo "Video recording ended. Shutting down playback"
 

@@ -214,7 +214,7 @@ On Gazebo, that would be:
 
 ```
 <model ...>
-   <plugin filename="ignition-gazebo-diff-drive-system"
+   <plugin filename="gz-sim-diff-drive-system"
      name="gz::sim::systems::DiffDrive">
      ...
    </plugin>

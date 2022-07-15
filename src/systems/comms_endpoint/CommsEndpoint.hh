@@ -53,7 +53,7 @@ namespace systems
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="ignition-gazebo-comms-endpoint-system"
+  ///   filename="gz-sim-comms-endpoint-system"
   ///   name="gz::sim::systems::CommsEndpoint">
   ///   <address>addr1</address>
   ///   <topic>addr1/rx</topic>
@@ -85,7 +85,7 @@ namespace systems
                 gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

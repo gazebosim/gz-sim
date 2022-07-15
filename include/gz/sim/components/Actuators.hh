@@ -37,7 +37,7 @@ namespace components
   using Actuators = Component<msgs::Actuators, class ActuatorsTag,
                               serializers::MsgSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Actuators", Actuators)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Actuators", Actuators)
 }
 }
 }

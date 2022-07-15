@@ -28,7 +28,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
@@ -41,7 +41,7 @@ class ForceTorqueTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 {
   using namespace std::chrono_literals;
   // Start server
@@ -99,7 +99,7 @@ TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
 {
   using namespace std::chrono_literals;
   // Start server

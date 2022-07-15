@@ -25,7 +25,7 @@
 #include "gz/sim/Link.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
@@ -59,7 +59,7 @@ class DetachableJointTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 {
   using namespace std::chrono_literals;
 
@@ -137,7 +137,7 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 }
 
 /////////////////////////////////////////////////
-TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
 

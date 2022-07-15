@@ -139,7 +139,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("KineticEnergyMonitor::PostUpdate");
+  GZ_PROFILE("KineticEnergyMonitor::PostUpdate");
   // Nothing left to do if paused or the publisher wasn't created.
   if (_info.paused || !this->dataPtr->pub)
     return;
@@ -168,14 +168,14 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
   }
 }
 
-IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
+GZ_ADD_PLUGIN(KineticEnergyMonitor,
                     gz::sim::System,
                     KineticEnergyMonitor::ISystemConfigure,
                     KineticEnergyMonitor::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "gz::sim::systems::KineticEnergyMonitor")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "ignition::gazebo::systems::KineticEnergyMonitor")

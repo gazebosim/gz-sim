@@ -37,14 +37,14 @@ namespace components
   /// represented by gz::math::Vector3d.
   using AngularVelocity =
     Component<math::Vector3d, class AngularVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.AngularVelocity",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AngularVelocity",
       AngularVelocity)
 
   /// \brief A component type that contains angular velocity of an entity in the
   /// world frame represented by gz::math::Vector3d.
   using WorldAngularVelocity =
       Component<math::Vector3d, class WorldAngularVelocityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldAngularVelocity",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldAngularVelocity",
       WorldAngularVelocity)
 }
 }

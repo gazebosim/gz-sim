@@ -49,13 +49,13 @@ class gz::sim::MarkerManagerPrivate
   /// \return True if the marker was processed successfully.
   public: bool ProcessMarkerMsg(const gz::msgs::Marker &_msg);
 
-  /// \brief Converts an Gazebo msg render type to Gazebo Sim Rendering
+  /// \brief Converts a Gazebo msg render type to Gazebo Sim Rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
   public: gz::rendering::MarkerType MsgToType(
                     const gz::msgs::Marker &_msg);
 
-  /// \brief Converts an Gazebo msg material to Gazebo Sim Rendering
+  /// \brief Converts a Gazebo msg material to Gazebo Sim Rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.

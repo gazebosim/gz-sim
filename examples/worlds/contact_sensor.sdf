@@ -5,24 +5,24 @@ Gazebo contact sensor example
 
 Run the following to print out contacts,
 
-  ign topic -e -t "/contact_example"
+  gz topic -e -t "/contact_example"
 -->
 
   <world name="contact_sensor">
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-contact-system"
+      filename="gz-sim-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

@@ -125,8 +125,8 @@ TreeModel::TreeModel() : QStandardItemModel()
 void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
     Entity _parentEntity, const QString &_type)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("TreeModel::AddEntity");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("TreeModel::AddEntity");
   QStandardItem *parentItem{nullptr};
 
   // check if entity has already been added or not.
@@ -185,7 +185,7 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
 /////////////////////////////////////////////////
 void TreeModel::RemoveEntity(Entity _entity)
 {
-  IGN_PROFILE("TreeModel::RemoveEntity");
+  GZ_PROFILE("TreeModel::RemoveEntity");
   QStandardItem *item{nullptr};
   auto itemIt = this->entityItems.find(_entity);
   if (itemIt != this->entityItems.end())
@@ -312,7 +312,7 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
 //////////////////////////////////////////////////
 void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("EntityTree::Update");
+  GZ_PROFILE("EntityTree::Update");
   // Treat all pre-existent entities as new at startup
   if (!this->dataPtr->initialized)
   {
@@ -577,5 +577,5 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::EntityTree,
+GZ_ADD_PLUGIN(gz::sim::EntityTree,
                     gz::gui::Plugin)

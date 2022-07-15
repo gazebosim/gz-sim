@@ -8,11 +8,11 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <model name="ground_plane">
@@ -211,7 +211,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
+        filename="gz-sim-diff-drive-system"
         name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint</left_joint>
         <right_joint>right_wheel_joint</right_joint>

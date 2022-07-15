@@ -39,7 +39,7 @@ namespace components
   /// entity in the world frame represented by msgs::Visual.
   using VisualCmd = Component<gz::msgs::Visual,
     class VisualCmdTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.VisualCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.VisualCmd",
       VisualCmd)
 }
 }

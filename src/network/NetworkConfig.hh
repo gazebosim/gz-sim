@@ -36,7 +36,7 @@ namespace gz
     ///
     /// NetworkConfig can either be created programatically, or populated from
     /// environment variables set before the execution of the Gazebo server.
-    class GZ_GAZEBO_VISIBLE NetworkConfig
+    class GZ_SIM_VISIBLE NetworkConfig
     {
       /// \brief Populate a new NetworkConfig object based on
       /// values.

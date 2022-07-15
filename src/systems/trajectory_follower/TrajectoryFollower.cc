@@ -195,7 +195,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
       // Add the local vector to the current position.
       // Store global position as a waypoint.
       this->localWaypoints.push_back(position + vec);
-      angle += 2 * IGN_PI / this->numSamples;
+      angle += 2 * GZ_PI / this->numSamples;
       vec.Set(radius * cos(angle), radius * sin(angle));
       gzdbg << "Entered circle waypoint " << position + vec << std::endl;
     }
@@ -311,7 +311,7 @@ void TrajectoryFollower::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrajectoryFollower::PreUpdate");
+  GZ_PROFILE("TrajectoryFollower::PreUpdate");
 
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -430,14 +430,14 @@ void TrajectoryFollower::PreUpdate(
   this->dataPtr->link.AddWorldWrench(_ecm, forceWorld, torqueWorld);
 }
 
-IGNITION_ADD_PLUGIN(TrajectoryFollower,
+GZ_ADD_PLUGIN(TrajectoryFollower,
                     gz::sim::System,
                     TrajectoryFollower::ISystemConfigure,
                     TrajectoryFollower::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TrajectoryFollower,
+GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
                           "gz::sim::systems::TrajectoryFollower")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TrajectoryFollower,
+GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
                           "ignition::gazebo::systems::TrajectoryFollower")

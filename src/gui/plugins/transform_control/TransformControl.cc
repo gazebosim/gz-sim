@@ -860,27 +860,27 @@ void TransformControlPrivate::HandleTransform()
 
         if (snapVals.X() <= 1e-4)
         {
-          snapVals.X() = IGN_PI/4;
+          snapVals.X() = GZ_PI/4;
         }
         else
         {
-          snapVals.X() = IGN_DTOR(snapVals.X());
+          snapVals.X() = GZ_DTOR(snapVals.X());
         }
         if (snapVals.Y() <= 1e-4)
         {
-          snapVals.Y() = IGN_PI/4;
+          snapVals.Y() = GZ_PI/4;
         }
         else
         {
-          snapVals.Y() = IGN_DTOR(snapVals.Y());
+          snapVals.Y() = GZ_DTOR(snapVals.Y());
         }
         if (snapVals.Z() <= 1e-4)
         {
-          snapVals.Z() = IGN_PI/4;
+          snapVals.Z() = GZ_PI/4;
         }
         else
         {
-          snapVals.Z() = IGN_DTOR(snapVals.Z());
+          snapVals.Z() = GZ_DTOR(snapVals.Z());
         }
 
         this->SnapPoint(currentRot, snapVals);
@@ -1015,5 +1015,5 @@ void TransformControlPrivate::SnapPoint(
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::TransformControl,
+GZ_ADD_PLUGIN(gz::sim::TransformControl,
                     gz::gui::Plugin)

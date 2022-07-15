@@ -62,7 +62,7 @@ namespace systems
   ///         message is compared for a match.
   ///   * Value: String used to construct the protobuf message against which
   ///       input messages are matched. This is the human-readable
-  ///       representation of a protobuf message as used by `ign topic` for
+  ///       representation of a protobuf message as used by `gz topic` for
   ///       publishing messages
   ///
   /// - `<output>`: Contains configuration for output messages: Multiple
@@ -73,7 +73,7 @@ namespace systems
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
-  ///     `ign topic` for publishing messages
+  ///     `gz topic` for publishing messages
   ///
   /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.

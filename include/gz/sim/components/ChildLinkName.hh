@@ -35,7 +35,7 @@ namespace components
   /// not moveable).
   using ChildLinkName = Component<std::string, class ChildLinkNameTag,
       serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.ChildLinkName", ChildLinkName)
 }
 }

@@ -6,11 +6,11 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <model name="ground_plane">
@@ -110,7 +110,7 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-controller-system"
+        filename="gz-sim-joint-controller-system"
         name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <initial_velocity>5.0</initial_velocity>
@@ -188,7 +188,7 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-controller-system"
+        filename="gz-sim-joint-controller-system"
         name="gz::sim::systems::JointController">
         <joint_name>j1</joint_name>
         <use_force_commands>true</use_force_commands>

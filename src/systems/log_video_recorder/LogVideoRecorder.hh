@@ -45,7 +45,7 @@ namespace systems
   ///     + `<max>`  Max corner position of box region.
   ///   - `<start_time>`     Sim time when recording should start
   ///   - `<end_time>`       Sim time when recording should end
-  ///   - `<exit_on_finish>` Exit ign-gazebo when log playback recording ends
+  ///   - `<exit_on_finish>` Exit gz-sim when log playback recording ends
   ///
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a

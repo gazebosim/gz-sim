@@ -27,8 +27,8 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then run a world that loads the plugin as follows:
 
-    ign gazebo -r -v 4 joint_position_randomizer.sdf
+    gz sim -r -v 4 joint_position_randomizer.sdf
 
 In another terminal, run the following to reset the world.
 
-    ign service -s /world/default/control --reqtype gz.msgs.WorldControl --reptype gz.msgs.Boolean --timeout 3000 --req 'reset: {all: true}'
+    gz service -s /world/default/control --reqtype gz.msgs.WorldControl --reptype gz.msgs.Boolean --timeout 3000 --req 'reset: {all: true}'

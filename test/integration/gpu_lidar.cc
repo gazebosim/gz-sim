@@ -25,7 +25,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -53,7 +53,7 @@ void laserCb(const msgs::LaserScan &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Gpu Lidar readings when it faces a box
-TEST_F(GpuLidarTest, IGN_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
+TEST_F(GpuLidarTest, GZ_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
 {
   const int horzSamples = 640;
 

@@ -36,7 +36,7 @@ Then you should open two terminals and run:
 
  - Terminal one:
  ```bash
- ign gazebo -r -v 4 empty.sdf
+ gz sim -r -v 4 empty.sdf
  ```
 
  - Terminal two:

@@ -34,7 +34,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/TestFixture.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -60,7 +60,7 @@ void navsatCb(const msgs::NavSat &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling navsat
-TEST_F(NavSatTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
+TEST_F(NavSatTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "navsat.sdf"));

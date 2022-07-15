@@ -31,7 +31,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -68,7 +68,7 @@ void logicalCamera2Cb(const msgs::LogicalCameraImage &_msg)
 // This test checks that both logical cameras in the world can see a box
 // at the correct relative pose.
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LogicalCameraTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
+TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

@@ -175,7 +175,7 @@ void Breadcrumbs::Configure(const Entity &_entity,
 void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Breadcrumbs::PreUpdate");
+  GZ_PROFILE("Breadcrumbs::PreUpdate");
 
   if (this->initialized)
   {
@@ -402,7 +402,7 @@ bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void Breadcrumbs::OnDeploy(const msgs::Empty &)
 {
-  IGN_PROFILE("Breadcrumbs::PreUpdate");
+  GZ_PROFILE("Breadcrumbs::PreUpdate");
   {
     std::lock_guard<std::mutex> lock(this->pendingCmdsMutex);
 
@@ -433,12 +433,12 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
   }
 }
 
-IGNITION_ADD_PLUGIN(Breadcrumbs,
+GZ_ADD_PLUGIN(Breadcrumbs,
                     gz::sim::System,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
+GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "ignition::gazebo::systems::Breadcrumbs")
+GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "ignition::gazebo::systems::Breadcrumbs")

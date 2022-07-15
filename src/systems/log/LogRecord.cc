@@ -638,7 +638,7 @@ void LogRecordPrivate::CompressStateAndResources()
 void LogRecord::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &)
 {
-  IGN_PROFILE("LogRecord::PreUpdate");
+  GZ_PROFILE("LogRecord::PreUpdate");
   // Safe guard to prevent seg faults if recorder could not be started
   if (!this->dataPtr->instStarted)
     return;
@@ -649,7 +649,7 @@ void LogRecord::PreUpdate(const UpdateInfo &_info,
 void LogRecord::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LogRecord::PostUpdate");
+  GZ_PROFILE("LogRecord::PostUpdate");
 
   // Safe guard to prevent seg faults if recorder could not be started
   if (!this->dataPtr->instStarted)
@@ -706,15 +706,15 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(gz::sim::systems::LogRecord,
+GZ_ADD_PLUGIN(gz::sim::systems::LogRecord,
                     gz::sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
+GZ_ADD_PLUGIN_ALIAS(LogRecord,
                           "gz::sim::systems::LogRecord")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
+GZ_ADD_PLUGIN_ALIAS(LogRecord,
                           "ignition::gazebo::systems::LogRecord")

@@ -17,7 +17,7 @@ tutorials to learn how to integrate a new engine.
 
 Gazebo automatically looks for all physics engine plugins that are
 installed with Gazebo Physics. At the moment, that's only DART
-(`ignition-physics-dartsim-plugin`).
+(`gz-physics-dartsim-plugin`).
 
 If you've created a custom engine plugin, you can tell Gazebo where to find it
 by setting the `GZ_SIM_PHYSICS_ENGINE_PATH` environment variable to the
@@ -55,7 +55,7 @@ For the example above, you can load it like this:
 
 ```{.xml}
 <plugin
-  filename="ignition-gazebo-physics-system"
+  filename="gz-sim-physics-system"
   name="gz::sim::systems::Physics">
   <engine>
     <filename>CustomEngine</filename>
@@ -68,7 +68,7 @@ For the example above, you can load it like this:
 Alternatively, you can choose a plugin from the command line using the
 `--physics-engine` option, for example:
 
-`ign gazebo --physics-engine CustomEngine`
+`gz sim --physics-engine CustomEngine`
 
 ### From C++ API
 

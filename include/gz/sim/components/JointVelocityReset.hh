@@ -40,7 +40,7 @@ namespace components
   using JointVelocityReset = Component<std::vector<double>,
                                        class JointVelocityResetTag,
                                        serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointVelocityReset", JointVelocityReset)
 }
 }

@@ -7,7 +7,7 @@ set -e
 make install
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 
-# For ign-tools
+# For gz-tools
 export GZ_CONFIG_PATH=/usr/local/share/ignition
 
 # For rendering / window tests

@@ -365,7 +365,7 @@ void OpticalTactilePlugin::Configure(const Entity &_entity,
 void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
   EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OpticalTactilePlugin::PreUpdate");
+  GZ_PROFILE("OpticalTactilePlugin::PreUpdate");
 
   // Nothing left to do if paused
   if (_info.paused || !this->dataPtr->enabled)
@@ -415,7 +415,7 @@ void OpticalTactilePlugin::PostUpdate(
   const gz::sim::UpdateInfo &_info,
   const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("OpticalTactilePlugin::PostUpdate");
+  GZ_PROFILE("OpticalTactilePlugin::PostUpdate");
 
   // Nothing left to do if paused or failed to initialize.
   if (_info.paused || !this->dataPtr->initialized || !this->dataPtr->enabled)
@@ -672,7 +672,7 @@ void OpticalTactilePluginPrivate::DepthCameraCallback(
 gz::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
   const uint64_t &_i, const uint64_t &_j, const char *_msgBuffer)
 {
-  IGN_PROFILE("OpticalTactilePlugin::MapPointCloudData");
+  GZ_PROFILE("OpticalTactilePlugin::MapPointCloudData");
 
   // Initialize return variable
   gz::math::Vector3f measuredPoint(0, 0, 0);
@@ -718,7 +718,7 @@ gz::math::Vector3f OpticalTactilePluginPrivate::MapPointCloudData(
 bool OpticalTactilePluginPrivate::PointInsideSensor(
   gz::math::Vector3f _point)
 {
-  IGN_PROFILE("OpticalTactilePlugin::PointInsideSensor");
+  GZ_PROFILE("OpticalTactilePlugin::PointInsideSensor");
 
   // Nothing left to do if failed to initialize.
   if (!this->initialized)
@@ -748,7 +748,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   const gz::msgs::PointCloudPacked &_msg,
   const bool _visualizeForces)
 {
-  IGN_PROFILE("OpticalTactilePlugin::ComputeNormalForces");
+  GZ_PROFILE("OpticalTactilePlugin::ComputeNormalForces");
 
   // Nothing left to do if failed to initialize.
   if (!this->initialized)
@@ -832,15 +832,15 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   }
 }
 
-IGNITION_ADD_PLUGIN(OpticalTactilePlugin,
+GZ_ADD_PLUGIN(OpticalTactilePlugin,
   gz::sim::System,
   OpticalTactilePlugin::ISystemConfigure,
   OpticalTactilePlugin::ISystemPreUpdate,
   OpticalTactilePlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
+GZ_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
   "gz::sim::systems::OpticalTactilePlugin")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
+GZ_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
   "ignition::gazebo::systems::OpticalTactilePlugin")

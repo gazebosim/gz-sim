@@ -26,7 +26,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -61,7 +61,7 @@ void depthCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Depth Camera readings when it faces a box
-TEST_F(DepthCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
+TEST_F(DepthCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

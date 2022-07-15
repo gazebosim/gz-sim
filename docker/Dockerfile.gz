@@ -1,7 +1,7 @@
 # Purpose
 #
 #   This docker file is used by build.bash and run.bash to build and run
-#   an Gazebo distribution based on binaries. See the README.md file.
+#   a Gazebo distribution based on binaries. See the README.md file.
 
 # Ubuntu 20.04 with nvidia opengl support
 FROM nvidia/opengl:1.2-glvnd-devel-ubuntu20.04

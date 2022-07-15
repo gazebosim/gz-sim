@@ -24,7 +24,7 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
 
@@ -41,7 +41,7 @@ TEST(SystemLoader, Constructor)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libignition-gazebo") +
+      "<plugin filename='libgz-sim") +
       GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
       "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");

@@ -33,19 +33,19 @@ namespace components
   /// \brief A component type that contains pose, gz::math::Pose3d,
   /// information.
   using Pose = Component<gz::math::Pose3d, class PoseTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Pose", Pose)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Pose", Pose)
 
   /// \brief A component type that contains pose, gz::math::Pose3d,
   /// information in world frame.
   using WorldPose = Component<gz::math::Pose3d, class WorldPoseTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.WorldPose", WorldPose)
 
   /// \brief A component type that contains pose, gz::math::Pose3d,
   /// information within a trajectory.
   using TrajectoryPose =
       Component<gz::math::Pose3d, class TrajectoryPoseTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.TrajectoryPose", TrajectoryPose)
 }
 }

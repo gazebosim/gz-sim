@@ -357,7 +357,7 @@ Entity EntityComponentManager::CreateEntity()
 /////////////////////////////////////////////////
 Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 {
-  IGN_PROFILE("EntityComponentManager::CreateEntityImplementation");
+  GZ_PROFILE("EntityComponentManager::CreateEntityImplementation");
   this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
 
   // Add entity to the list of newly created entities
@@ -781,12 +781,12 @@ void EntityComponentManager::RequestRemoveEntities()
 /////////////////////////////////////////////////
 void EntityComponentManager::ProcessRemoveEntityRequests()
 {
-  IGN_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
+  GZ_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   // Short-cut if erasing all entities
   if (this->dataPtr->removeAllEntities)
   {
-    IGN_PROFILE("RemoveAll");
+    GZ_PROFILE("RemoveAll");
     this->dataPtr->removeAllEntities = false;
     this->dataPtr->entities = EntityGraph();
     this->dataPtr->toRemoveEntities.clear();
@@ -802,7 +802,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
   }
   else
   {
-    IGN_PROFILE("Remove");
+    GZ_PROFILE("Remove");
     // Otherwise iterate through the list of entities to remove.
     for (const Entity entity : this->dataPtr->toRemoveEntities)
     {
@@ -836,7 +836,7 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
 bool EntityComponentManager::RemoveComponent(
     const Entity _entity, const ComponentTypeId &_typeId)
 {
-  IGN_PROFILE("EntityComponentManager::RemoveComponent");
+  GZ_PROFILE("EntityComponentManager::RemoveComponent");
   // Make sure the entity exists and has the component.
   if (!this->EntityHasComponentType(_entity, _typeId))
     return false;
@@ -1183,7 +1183,7 @@ const components::BaseComponent
     *EntityComponentManager::ComponentImplementation(
     const Entity _entity, const ComponentTypeId _type) const
 {
-  IGN_PROFILE("EntityComponentManager::ComponentImplementation");
+  GZ_PROFILE("EntityComponentManager::ComponentImplementation");
 
   // make sure the entity exists
   const auto typeMapIter = this->dataPtr->componentTypeIndex.find(_entity);
@@ -1278,7 +1278,7 @@ detail::BaseView *EntityComponentManager::AddView(
 //////////////////////////////////////////////////
 void EntityComponentManager::RebuildViews()
 {
-  IGN_PROFILE("EntityComponentManager::RebuildViews");
+  GZ_PROFILE("EntityComponentManager::RebuildViews");
   for (auto &viewPair : this->dataPtr->views)
   {
     auto &view = viewPair.second.first;
@@ -1712,7 +1712,7 @@ void EntityComponentManager::State(
 void EntityComponentManager::SetState(
     const gz::msgs::SerializedState &_stateMsg)
 {
-  IGN_PROFILE("EntityComponentManager::SetState Non-map");
+  GZ_PROFILE("EntityComponentManager::SetState Non-map");
   // Create / remove / update entities
   for (int e = 0; e < _stateMsg.entities_size(); ++e)
   {
@@ -1801,7 +1801,7 @@ void EntityComponentManager::SetState(
 void EntityComponentManager::SetState(
     const gz::msgs::SerializedStateMap &_stateMsg)
 {
-  IGN_PROFILE("EntityComponentManager::SetState Map");
+  GZ_PROFILE("EntityComponentManager::SetState Map");
   // Create / remove / update entities
   for (const auto &iter : _stateMsg.entities())
   {

@@ -60,11 +60,11 @@ namespace comms
   ///   <real_time_factor>1.0</real_time_factor>
   /// </physics>
   /// <plugin
-  ///   filename="ignition-gazebo-perfect-comms-system"
+  ///   filename="gz-sim-perfect-comms-system"
   ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
-  class GZ_GAZEBO_VISIBLE ICommsModel:
+  class GZ_SIM_VISIBLE ICommsModel:
 #ifdef _MSC_VER
   #pragma warning(push)
   #pragma warning(disable:4275)
@@ -125,7 +125,7 @@ namespace comms
                               EntityComponentManager &_ecm) = 0;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }

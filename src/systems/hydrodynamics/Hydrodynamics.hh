@@ -84,16 +84,16 @@ namespace systems
   /// thruster plugin to propel the craft and the buoyancy plugin for buoyant
   /// force. To run the example run.
   /// ```
-  /// ign gazebo auv_controls.sdf
+  /// gz sim auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following
   /// ```
-  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
+  /// gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
   ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// ```
-  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
+  /// gz topic -t /model/tethys/joint/propeller_joint/cmd_pos
   /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
@@ -103,7 +103,7 @@ namespace systems
   /// hydrodynamics plugin allows simulation of such currents. We can add
   /// a current simply by publishing the following:
   /// ```
-  /// ign topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
+  /// gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
   /// ```
   /// You should observe your vehicle slowly drift to the side.
   ///

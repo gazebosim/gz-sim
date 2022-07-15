@@ -25,7 +25,7 @@
 #include "gz/msgs/world_stats.pb.h"
 #include "gz/transport/Node.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -69,7 +69,7 @@ class NetworkHandshake : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
+TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -125,7 +125,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 }
 
 /////////////////////////////////////////////////
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
+TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
@@ -137,7 +137,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
-      "libignition-sim-scene-broadcaster-system.so");
+      "gz-sim-scene-broadcaster-system");
   primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
@@ -158,7 +158,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("libignition-sim-physics-system.so");
+  secondaryPluginInfo.SetFilename("gz-sim-physics-system");
   secondaryPluginInfo.SetName("gz::sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 

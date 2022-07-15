@@ -18,7 +18,7 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(examples::CustomComponentPlugin,
+GZ_ADD_PLUGIN(examples::CustomComponentPlugin,
     gz::sim::System,
     examples::CustomComponentPlugin::ISystemConfigure)
 

@@ -18,7 +18,7 @@
 
 #include <gz/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::TestSensorSystem,
+GZ_ADD_PLUGIN(gz::sim::TestSensorSystem,
     gz::sim::System,
     gz::sim::TestSensorSystem::ISystemConfigure)
 

@@ -37,14 +37,14 @@ namespace components
   /// represented by gz::math::Vector3d.
   using LinearAcceleration =
     Component<math::Vector3d, class LinearAccelerationTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LinearAcceleration",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LinearAcceleration",
       LinearAcceleration)
 
   /// \brief A component type that contains linear acceleration of an entity
   /// in the world frame represented by gz::math::Vector3d.
   using WorldLinearAcceleration =
       Component<math::Vector3d, class WorldLinearAccelerationTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WorldLinearAcceleration",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WorldLinearAcceleration",
       WorldLinearAcceleration)
 }
 }

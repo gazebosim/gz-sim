@@ -37,7 +37,7 @@ namespace components
   using SourceFilePath = Component<std::string, class SourceFilePathTag,
       serializers::StringSerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SourceFilePath",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SourceFilePath",
                                 SourceFilePath)
 }
 }

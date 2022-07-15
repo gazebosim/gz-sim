@@ -100,7 +100,7 @@ bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
 void NetworkManagerSecondary::OnStep(
     const private_msgs::SimulationStep &_msg)
 {
-  IGN_PROFILE("NetworkManagerSecondary::OnStep");
+  GZ_PROFILE("NetworkManagerSecondary::OnStep");
 
   // Throttle the number of step messages going to the debug output.
   if (!_msg.stats().paused() && _msg.stats().iterations() % 1000 == 0)

@@ -21,7 +21,7 @@
 
 // Test the Model Photo Shoot plugin on the example world.
 TEST_F(ModelPhotoShootTest,
-       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelPhotoShootRandomJoints))
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelPhotoShootRandomJoints))
 {
   this->ModelPhotoShootTestCmd(
       "test/worlds/model_photo_shoot_random_joints.sdf");

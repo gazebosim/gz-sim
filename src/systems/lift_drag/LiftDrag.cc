@@ -75,7 +75,7 @@ class gz::sim::systems::LiftDragPrivate
   public: double cma = 0.01;
 
   /// \brief angle of attach when airfoil stalls
-  public: double alphaStall = IGN_PI_2;
+  public: double alphaStall = GZ_PI_2;
 
   /// \brief Cl-alpha rate after stall
   public: double claStall = 0.0;
@@ -250,7 +250,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LiftDragPrivate::Update");
+  GZ_PROFILE("LiftDragPrivate::Update");
   // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
@@ -308,9 +308,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
-  while (std::fabs(sweep) > 0.5 * IGN_PI)
+  while (std::fabs(sweep) > 0.5 * GZ_PI)
   {
-    sweep = sweep > 0 ? sweep - IGN_PI : sweep + IGN_PI;
+    sweep = sweep > 0 ? sweep - GZ_PI : sweep + GZ_PI;
   }
 
   // angle of attack is the angle between
@@ -351,9 +351,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     alpha = this->alpha0 + std::acos(cosAlpha);
 
   // normalize to within +/-90 deg
-  while (fabs(alpha) > 0.5 * IGN_PI)
+  while (fabs(alpha) > 0.5 * GZ_PI)
   {
-    alpha = alpha > 0 ? alpha - IGN_PI : alpha + IGN_PI;
+    alpha = alpha > 0 ? alpha - GZ_PI : alpha + GZ_PI;
   }
 
   // compute dynamic pressure
@@ -513,7 +513,7 @@ void LiftDrag::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LiftDrag::PreUpdate");
+  GZ_PROFILE("LiftDrag::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -557,12 +557,12 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(LiftDrag,
+GZ_ADD_PLUGIN(LiftDrag,
                     gz::sim::System,
                     LiftDrag::ISystemConfigure,
                     LiftDrag::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
+GZ_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")
+GZ_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")

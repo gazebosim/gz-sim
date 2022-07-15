@@ -21,7 +21,7 @@
 #include <gz/fuel_tools.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -34,7 +34,7 @@ class SdfInclude : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(SdfInclude, IGN_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
+TEST_F(SdfInclude, GZ_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
 {
   std::string path = common::cwd() + "/test_cache";
 

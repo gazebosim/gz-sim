@@ -36,7 +36,7 @@ namespace components
   /// sdf::Camera, information.
   using RgbdCamera = Component<sdf::Sensor, class RgbdCameraTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.RgbdCamera", RgbdCamera)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RgbdCamera", RgbdCamera)
 }
 }
 }

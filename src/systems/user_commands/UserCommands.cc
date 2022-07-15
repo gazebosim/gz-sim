@@ -764,7 +764,7 @@ void UserCommands::Configure(const Entity &_entity,
 void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
-  IGN_PROFILE("UserCommands::PreUpdate");
+  GZ_PROFILE("UserCommands::PreUpdate");
   // make a copy the cmds so execution does not block receiving other
   // incoming cmds
   std::vector<std::unique_ptr<UserCommandBase>> cmds;
@@ -1279,8 +1279,8 @@ bool CreateCommand::Execute()
     {
       // deg to rad
       math::Vector3d latLonEle{
-          IGN_DTOR(createMsg->spherical_coordinates().latitude_deg()),
-          IGN_DTOR(createMsg->spherical_coordinates().longitude_deg()),
+          GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
+          GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
           createMsg->spherical_coordinates().elevation()};
 
       auto pos = scComp->Data().PositionTransform(latLonEle,
@@ -1294,7 +1294,7 @@ bool CreateCommand::Execute()
       createPose.value().SetY(pos.Y());
       createPose.value().SetZ(pos.Z());
       createPose.value().Rot() = math::Quaterniond(0, 0,
-          IGN_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+          GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
           createPose.value().Rot();
     }
   }
@@ -1624,8 +1624,8 @@ bool SphericalCoordinatesCommand::Execute()
 
   // deg to rad
   math::Vector3d latLonEle{
-      IGN_DTOR(sphericalCoordinatesMsg->latitude_deg()),
-      IGN_DTOR(sphericalCoordinatesMsg->longitude_deg()),
+      GZ_DTOR(sphericalCoordinatesMsg->latitude_deg()),
+      GZ_DTOR(sphericalCoordinatesMsg->longitude_deg()),
       sphericalCoordinatesMsg->elevation()};
 
   auto pos = scComp->Data().PositionTransform(latLonEle,
@@ -1633,7 +1633,7 @@ bool SphericalCoordinatesCommand::Execute()
       math::SphericalCoordinates::LOCAL2);
 
   math::Pose3d pose{pos.X(), pos.Y(), pos.Z(), 0, 0,
-          IGN_DTOR(sphericalCoordinatesMsg->heading_deg())};
+          GZ_DTOR(sphericalCoordinatesMsg->heading_deg())};
 
   auto poseCmdComp =
     this->iface->ecm->Component<components::WorldPoseCmd>(entity);
@@ -1920,14 +1920,14 @@ bool WheelSlipCommand::Execute()
   return false;
 }
 
-IGNITION_ADD_PLUGIN(UserCommands, System,
+GZ_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
   UserCommands::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "gz::sim::systems::UserCommands")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "ignition::gazebo::systems::UserCommands")

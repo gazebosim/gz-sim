@@ -100,6 +100,6 @@ void DoorTimer::Update(const UpdateInfo &_info, bool _isDoorwayBlocked)
 }
 
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz

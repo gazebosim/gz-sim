@@ -26,7 +26,7 @@ the buoyancy plugin all one needs to do is add the following under the `<world>`
 tag:
 ```xml
 <plugin
-      filename="ignition-gazebo-buoyancy-system"
+      filename="gz-sim-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
     <uniform_fluid_density>1000</uniform_fluid_density>
 </plugin>
@@ -37,7 +37,7 @@ thruster plugin takes in a force and applies it along with calculating the desir
 rpm. Under the `<include>` or `<model>` tag add the following:
 ```xml
 <plugin
-    filename="ignition-gazebo-thruster-system"
+    filename="gz-sim-thruster-system"
     name="gz::sim::systems::Thruster">
     <namespace>tethys</namespace>
     <joint_name>propeller_joint</joint_name>
@@ -48,7 +48,7 @@ rpm. Under the `<include>` or `<model>` tag add the following:
 ```
 Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_pos`
 ```
-ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
    -m gz.msgs.Double -p 'data: -31'
 ```
 we should see the model move. The thrusters are governed by the equation on
@@ -69,7 +69,7 @@ his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 ```xml
 <plugin
-filename="ignition-gazebo-hydrodynamics-system"
+filename="gz-sim-hydrodynamics-system"
 name="gz::sim::systems::Hydrodynamics">
     <link_name>base_link</link_name>
     <xDotU>-4.876161</xDotU>
@@ -107,7 +107,7 @@ turning when we move.
 ```xml
 <!-- Vertical fin -->
 <plugin
-filename="ignition-gazebo-lift-drag-system"
+filename="gz-sim-lift-drag-system"
 name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
@@ -125,7 +125,7 @@ name="gz::sim::systems::LiftDrag">
 
 <!-- Horizontal fin -->
 <plugin
-filename="ignition-gazebo-lift-drag-system"
+filename="gz-sim-lift-drag-system"
 name="gz::sim::systems::LiftDrag">
     <air_density>1000</air_density>
     <cla>4.13</cla>
@@ -146,14 +146,14 @@ We also need to be able to control the position of the thruster fins so we will
 use the joint controller plugin.
 ```xml
 <plugin
-filename="ignition-gazebo-joint-position-controller-system"
+filename="gz-sim-joint-position-controller-system"
 name="gz::sim::systems::JointPositionController">
     <joint_name>horizontal_fins_joint</joint_name>
     <p_gain>0.1</p_gain>
 </plugin>
 
 <plugin
-filename="ignition-gazebo-joint-position-controller-system"
+filename="gz-sim-joint-position-controller-system"
 name="gz::sim::systems::JointPositionController">
     <joint_name>vertical_fins_joint</joint_name>
     <p_gain>0.1</p_gain>
@@ -161,7 +161,7 @@ name="gz::sim::systems::JointPositionController">
 ```
 We should now be able to wiggle the fins using the following command:
 ```
-ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
   -m gz.msgs.Double -p 'data: -0.17'
 ```
 
@@ -169,12 +169,12 @@ ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
 
 To control the rudder of the craft run the following
 ```
-ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
    -m gz.msgs.Double -p 'data: -0.17'
 ```
 To apply a thrust you may run the following command
 ```
-ign topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
 -m gz.msgs.Double -p 'data: -31'
 ```
 The vehicle should move in a circle.
@@ -185,6 +185,6 @@ When underwater, vehicles are often subject to ocean currents. The hydrodynamics
 plugin allows simulation of such currents. We can add a current simply by
 publishing the following:
 ```
-ign topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
+gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
 ```
 You should observe your vehicle slowly drift to the side.

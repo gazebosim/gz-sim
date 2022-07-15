@@ -411,7 +411,7 @@ void JointTrajectoryController::PreUpdate(
     const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointTrajectoryController::PreUpdate");
+  GZ_PROFILE("JointTrajectoryController::PreUpdate");
 
   // Create required components for each joint (only once)
   if (!this->dataPtr->componentSetupFinished)
@@ -1058,15 +1058,15 @@ void Trajectory::Reset()
 }
 
 // Register plugin
-IGNITION_ADD_PLUGIN(JointTrajectoryController,
+GZ_ADD_PLUGIN(JointTrajectoryController,
                     gz::sim::System,
                     JointTrajectoryController::ISystemConfigure,
                     JointTrajectoryController::ISystemPreUpdate)
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
     "gz::sim::systems::JointTrajectoryController")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
     "ignition::gazebo::systems::JointTrajectoryController")

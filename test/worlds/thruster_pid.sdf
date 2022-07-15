@@ -11,11 +11,11 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -98,7 +98,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-thruster-system"
+        filename="gz-sim-thruster-system"
         name="gz::sim::systems::Thruster">
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.004</thrust_coefficient>

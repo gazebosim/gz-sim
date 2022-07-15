@@ -117,7 +117,7 @@ void DetachableJoint::PreUpdate(
   const gz::sim::UpdateInfo &/*_info*/,
   gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DetachableJoint::PreUpdate");
+  GZ_PROFILE("DetachableJoint::PreUpdate");
   if (this->validConfig && !this->initialized)
   {
     // Look for the child model and link
@@ -189,14 +189,14 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
   this->detachRequested = true;
 }
 
-IGNITION_ADD_PLUGIN(DetachableJoint,
+GZ_ADD_PLUGIN(DetachableJoint,
                     gz::sim::System,
                     DetachableJoint::ISystemConfigure,
                     DetachableJoint::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
+GZ_ADD_PLUGIN_ALIAS(DetachableJoint,
   "gz::sim::systems::DetachableJoint")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
+GZ_ADD_PLUGIN_ALIAS(DetachableJoint,
   "ignition::gazebo::systems::DetachableJoint")

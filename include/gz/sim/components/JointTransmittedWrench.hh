@@ -46,7 +46,7 @@ namespace components
 using JointTransmittedWrench =
     Component<msgs::Wrench, class JointTransmittedWrenchTag,
               serializers::MsgSerializer>;
-IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
                               JointTransmittedWrench)
 }  // namespace components
 }

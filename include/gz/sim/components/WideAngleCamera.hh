@@ -36,7 +36,7 @@ namespace components
   /// sdf::Camera, information.
   using WideAngleCamera = Component<sdf::Sensor, class WideAngleCameraTag,
       serializers::SensorSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.WideAngleCamera",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WideAngleCamera",
       WideAngleCamera)
 }
 }

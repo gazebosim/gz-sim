@@ -329,7 +329,7 @@ void MecanumDrive::Configure(const Entity &_entity,
 void MecanumDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MecanumDrive::PreUpdate");
+  GZ_PROFILE("MecanumDrive::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -495,7 +495,7 @@ void MecanumDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
 void MecanumDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MecanumDrive::PostUpdate");
+  GZ_PROFILE("MecanumDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -508,7 +508,7 @@ void MecanumDrivePrivate::UpdateVelocity(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("MecanumDrive::UpdateVelocity");
+  GZ_PROFILE("MecanumDrive::UpdateVelocity");
 
   double linVel;
   double latVel;
@@ -559,15 +559,15 @@ void MecanumDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
   this->targetVel = _msg;
 }
 
-IGNITION_ADD_PLUGIN(MecanumDrive,
+GZ_ADD_PLUGIN(MecanumDrive,
                     gz::sim::System,
                     MecanumDrive::ISystemConfigure,
                     MecanumDrive::ISystemPreUpdate,
                     MecanumDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
+GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
                           "gz::sim::systems::MecanumDrive")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(MecanumDrive,
+GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
                           "ignition::gazebo::systems::MecanumDrive")

@@ -32,7 +32,7 @@ namespace components
   /// \brief A component used to indicate that an entity casts shadows
   /// e.g. visual entities
   using CastShadows = Component<bool, class CastShadowsTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.CastShadows",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CastShadows",
       CastShadows)
 }
 }

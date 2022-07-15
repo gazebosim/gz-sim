@@ -22,7 +22,7 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "SystemManager.hh"
 

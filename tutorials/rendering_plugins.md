@@ -100,7 +100,7 @@ events. Here's how to do it:
 
 ### Render events on the server
 
-The server plugin will need to listen to `gz::sim::events::PreRender` or
+The server plugin will need to listen `gz::sim::events::PreRender`, `gz::sim::events::Render` or
 `gz::sim::events::PostRender` events.
 
 Here's how to do it:

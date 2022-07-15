@@ -289,7 +289,7 @@ void PosePublisher::Configure(const Entity &_entity,
 void PosePublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PosePublisher::PostUpdate");
+  GZ_PROFILE("PosePublisher::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -505,7 +505,7 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
 void PosePublisherPrivate::FillPoses(const EntityComponentManager &_ecm,
     std::vector<std::pair<Entity, math::Pose3d>> &_poses, bool _static)
 {
-  IGN_PROFILE("PosePublisher::FillPose");
+  GZ_PROFILE("PosePublisher::FillPose");
 
   for (const auto &entity : this->entitiesToPublish)
   {
@@ -527,7 +527,7 @@ void PosePublisherPrivate::PublishPoses(
     const msgs::Time &_stampMsg,
     transport::Node::Publisher &_publisher)
 {
-  IGN_PROFILE("PosePublisher::PublishPoses");
+  GZ_PROFILE("PosePublisher::PublishPoses");
 
   // publish poses
   gz::msgs::Pose *msg = nullptr;
@@ -554,7 +554,7 @@ void PosePublisherPrivate::PublishPoses(
     // frame_id: parent entity name
     // child_frame_id = entity name
     // pose is the transform from frame_id to child_frame_id
-    IGN_ASSERT(msg != nullptr, "Pose msg is null");
+    GZ_ASSERT(msg != nullptr, "Pose msg is null");
     auto header = msg->mutable_header();
 
     header->mutable_stamp()->CopyFrom(_stampMsg);
@@ -582,14 +582,14 @@ void PosePublisherPrivate::PublishPoses(
     _publisher.Publish(this->poseVMsg);
 }
 
-IGNITION_ADD_PLUGIN(PosePublisher,
+GZ_ADD_PLUGIN(PosePublisher,
                     System,
                     PosePublisher::ISystemConfigure,
                     PosePublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+GZ_ADD_PLUGIN_ALIAS(PosePublisher,
                           "gz::sim::systems::PosePublisher")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+GZ_ADD_PLUGIN_ALIAS(PosePublisher,
                           "ignition::gazebo::systems::PosePublisher")

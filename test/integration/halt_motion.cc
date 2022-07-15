@@ -28,7 +28,7 @@
 #include "gz/sim/components/HaltMotion.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -149,7 +149,7 @@ class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(HaltMotionTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_P(HaltMotionTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/diff_drive.sdf",

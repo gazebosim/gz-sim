@@ -161,7 +161,7 @@ void VisualizeContacts::OnVisualize(bool _checked)
 void VisualizeContacts::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VisualizeContacts::Update");
+  GZ_PROFILE("VisualizeContacts::Update");
 
   if (!this->dataPtr->initialized)
   {
@@ -310,5 +310,5 @@ void VisualizeContacts::UpdatePeriod(double _period)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::VisualizeContacts,
+GZ_ADD_PLUGIN(gz::sim::VisualizeContacts,
                     gz::gui::Plugin)

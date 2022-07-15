@@ -138,7 +138,7 @@ void ParticleEmitter::Configure(const Entity &_entity,
 void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ParticleEmitter::PreUpdate");
+  GZ_PROFILE("ParticleEmitter::PreUpdate");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
@@ -246,14 +246,14 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
   this->dataPtr->userCmd.clear();
 }
 
-IGNITION_ADD_PLUGIN(ParticleEmitter,
+GZ_ADD_PLUGIN(ParticleEmitter,
                     gz::sim::System,
                     ParticleEmitter::ISystemConfigure,
                     ParticleEmitter::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter,
+GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "gz::sim::systems::ParticleEmitter")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter,
+GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "ignition::gazebo::systems::ParticleEmitter")

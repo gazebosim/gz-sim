@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief A component that holds the buffer setting of a level's geometry
   using LevelBuffer = Component<double, class LevelBufferTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LevelBuffer",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LevelBuffer",
       LevelBuffer)
 }
 }

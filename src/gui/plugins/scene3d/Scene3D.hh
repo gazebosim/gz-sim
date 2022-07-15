@@ -268,7 +268,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 
   class RenderSync;
 
-  /// \brief Ign-rendering renderer.
+  /// \brief gz-rendering renderer.
   /// All ign-rendering calls should be performed inside this class as it makes
   /// sure that opengl calls in the underlying render engine do not interfere
   /// with QtQuick's opengl render operations. The main Render function will
@@ -646,7 +646,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief OpenGL context to be passed to the render engine
     public: QOpenGLContext *context = nullptr;
 
-    /// \brief Ign-rendering renderer
+    /// \brief gz-rendering renderer
     public: IgnRenderer ignRenderer;
   };
 

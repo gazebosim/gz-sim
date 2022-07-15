@@ -25,7 +25,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -37,7 +37,7 @@ class PerfectCommsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(PerfectCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerfectComms))
+TEST_F(PerfectCommsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerfectComms))
 {
   // Start server
   ServerConfig serverConfig;

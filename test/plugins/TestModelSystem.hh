@@ -33,7 +33,7 @@ namespace components
 {
 using ModelPluginComponent = components::Component<int,
     class ModelPluginComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ModelPluginComponent",
+GZ_SIM_REGISTER_COMPONENT("ModelPluginComponent",
     ModelPluginComponent)
 }
 }

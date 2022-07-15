@@ -33,7 +33,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/Link.hh"
@@ -74,7 +74,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Single model consuming single batter
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
+TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery.sdf");
@@ -164,7 +164,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 /////////////////////////////////////////////////
 // Battery with  power draining topics
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
+TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "battery.sdf");

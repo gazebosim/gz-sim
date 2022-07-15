@@ -449,7 +449,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
 void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::PreUpdate");
+  GZ_PROFILE("TrackedVehicle::PreUpdate");
 
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -535,7 +535,7 @@ void TrackedVehicle::PreUpdate(const gz::sim::UpdateInfo &_info,
 void TrackedVehicle::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::PostUpdate");
+  GZ_PROFILE("TrackedVehicle::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -549,7 +549,7 @@ void TrackedVehiclePrivate::UpdateOdometry(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::UpdateOdometry");
+  GZ_PROFILE("TrackedVehicle::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -632,7 +632,7 @@ void TrackedVehiclePrivate::UpdateVelocity(
   const gz::sim::UpdateInfo &_info,
   const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::UpdateVelocity");
+  GZ_PROFILE("TrackedVehicle::UpdateVelocity");
 
   // Read values protected by the mutex
   double linVel;
@@ -768,15 +768,15 @@ void TrackedVehiclePrivate::OnSteeringEfficiency(
   this->hasNewCommand = true;
 }
 
-IGNITION_ADD_PLUGIN(TrackedVehicle,
+GZ_ADD_PLUGIN(TrackedVehicle,
                     gz::sim::System,
                     TrackedVehicle::ISystemConfigure,
                     TrackedVehicle::ISystemPreUpdate,
                     TrackedVehicle::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "gz::sim::systems::TrackedVehicle")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "ignition::gazebo::systems::TrackedVehicle")

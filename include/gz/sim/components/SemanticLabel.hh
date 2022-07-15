@@ -34,7 +34,7 @@ namespace components
   /// case of the Label component is with Segmentation & Bounding box
   /// sensors to generate dataset annotations.
   using SemanticLabel = Component<uint32_t, class SemanticLabelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.SemanticLabel",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticLabel",
       SemanticLabel)
 }
 }

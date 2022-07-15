@@ -89,7 +89,7 @@ namespace systems
   ///
   /// Here are three examples:
   // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
+  //   filename="gz-sim-trajectory-follower-system"
   //   name="gz::sim::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
   //   <loop>true</loop>
@@ -99,7 +99,7 @@ namespace systems
   //   </waypoints>
   // </plugin>
   // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
+  //   filename="gz-sim-trajectory-follower-system"
   //   name="gz::sim::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
   //   <loop>true</loop>
@@ -109,7 +109,7 @@ namespace systems
   //   </line>
   // </plugin>
   // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
+  //   filename="gz-sim-trajectory-follower-system"
   //   name="gz::sim::systems::TrajectoryFollower">
   //   <link_name>base_link</link_name>
   //   <loop>true</loop>

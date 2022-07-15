@@ -133,7 +133,7 @@ void PerformerDetector::PostUpdate(
   const gz::sim::UpdateInfo &_info,
   const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("PerformerDetector::PostUpdate");
+  GZ_PROFILE("PerformerDetector::PostUpdate");
 
   if (this->initialized && !this->model.Valid(_ecm))
   {
@@ -259,14 +259,14 @@ void PerformerDetector::Publish(
   this->pub.Publish(msg);
 }
 
-IGNITION_ADD_PLUGIN(PerformerDetector,
+GZ_ADD_PLUGIN(PerformerDetector,
                     gz::sim::System,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
+GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
                           "gz::sim::systems::PerformerDetector")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
+GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
                           "ignition::gazebo::systems::PerformerDetector")

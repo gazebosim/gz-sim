@@ -302,7 +302,7 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcaster::PostUpdate");
+  GZ_PROFILE("SceneBroadcaster::PostUpdate");
 
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
@@ -364,7 +364,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Otherwise publish just periodic change components when running
     else if (!_info.paused)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
       auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
       _manager.State(*this->dataPtr->stepMsg.mutable_state(),
           {}, periodicComponents);
@@ -392,7 +392,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate Publish State");
+      GZ_PROFILE("SceneBroadcast::PostUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
@@ -400,10 +400,19 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Reset(const UpdateInfo &_info,
+                             EntityComponentManager &_manager)
+{
+  // Run Post Update so that GUI will be refreshed if reset is called while
+  // simulation is paused.
+  this->PostUpdate(_info, _manager);
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcast::PoseUpdate");
+  GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
   msgs::Pose_V poseMsg, dyPoseMsg;
   bool dyPoseConnections = this->dyPosePub.HasConnections();
@@ -1198,16 +1207,17 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 }
 
 
-IGNITION_ADD_PLUGIN(SceneBroadcaster,
+GZ_ADD_PLUGIN(SceneBroadcaster,
                     gz::sim::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate)
+                    SceneBroadcaster::ISystemPostUpdate,
+                    SceneBroadcaster::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "gz::sim::systems::SceneBroadcaster")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "ignition::gazebo::systems::SceneBroadcaster")

@@ -73,7 +73,7 @@ class gz::sim::systems::ForceTorquePrivate
   /// \brief Cache of the entities associated with the sensor
   public: std::unordered_map<Entity, SensorJointAndLinks> sensorJointLinkMap;
 
-  /// \brief Ign-sensors sensor factory for creating sensors
+  /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Keep list of sensors that were created during the previous
@@ -132,7 +132,7 @@ ForceTorque::~ForceTorque() = default;
 void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PreUpdate");
+  GZ_PROFILE("ForceTorque::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -160,7 +160,7 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 void ForceTorque::PostUpdate(const UpdateInfo &_info,
                      const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorque::PostUpdate");
+  GZ_PROFILE("ForceTorque::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -297,9 +297,6 @@ void ForceTorquePrivate::AddForceTorque(
   sensorJointLinkEntry.jointChildLink = jointChildLinkEntity;
   this->sensorJointLinkMap[_entity] = sensorJointLinkEntry;
 
-  auto sensorIt = this->entitySensorMap.insert(
-      std::make_pair(_entity, std::move(sensor))).first;
-
   const auto X_WC = worldPose(jointChildLinkEntity, _ecm);
   const auto X_CJ = _ecm.Component<components::Pose>(jointEntity)->Data();
   const auto X_WJ = X_WC * X_CJ;
@@ -316,7 +313,7 @@ void ForceTorquePrivate::AddForceTorque(
 //////////////////////////////////////////////////
 void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::CreateSensors");
+  GZ_PROFILE("ForceTorquePrivate::CreateSensors");
   if (!this->initialized)
   {
     // Create air pressure sensors
@@ -347,7 +344,7 @@ void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void ForceTorquePrivate::UpdateForceTorques(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::UpdateForceTorques");
+  GZ_PROFILE("ForceTorquePrivate::UpdateForceTorques");
   _ecm.Each<components::ForceTorque>(
       [&](const Entity &_entity, const components::ForceTorque *) -> bool
       {
@@ -419,7 +416,7 @@ void ForceTorquePrivate::UpdateForceTorques(const EntityComponentManager &_ecm)
 void ForceTorquePrivate::RemoveForceTorqueEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
+  GZ_PROFILE("ForceTorquePrivate::RemoveForceTorqueEntities");
   _ecm.EachRemoved<components::ForceTorque>(
     [&](const Entity &_entity,
         const components::ForceTorque *)->bool
@@ -438,12 +435,12 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(ForceTorque, System,
+GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPreUpdate,
   ForceTorque::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")
+GZ_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")

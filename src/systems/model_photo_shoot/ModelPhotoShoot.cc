@@ -247,28 +247,28 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
         pose.Pos().Set(1.6 / scaling + translation.X(),
                        -1.6 / scaling + translation.Y(),
                        1.2 / scaling + translation.Z());
-        pose.Rot().SetFromEuler(0, IGN_DTOR(30), IGN_DTOR(-225));
+        pose.Rot().SetFromEuler(0, GZ_DTOR(30), GZ_DTOR(-225));
         SavePicture(camera, pose, "1.png");
 
         // Top view
         pose.Pos().Set(0 + translation.X(),
                        0 + translation.Y(),
                        2.2 / scaling + translation.Z());
-        pose.Rot().SetFromEuler(0, IGN_DTOR(90), 0);
+        pose.Rot().SetFromEuler(0, GZ_DTOR(90), 0);
         SavePicture(camera, pose, "2.png");
 
         // Front view
         pose.Pos().Set(2.2 / scaling + translation.X(),
                        0 + translation.Y(),
                        0 + translation.Z());
-        pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-180));
+        pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-180));
         SavePicture(camera, pose, "3.png");
 
         // Side view
         pose.Pos().Set(0 + translation.X(),
                        2.2 / scaling + translation.Y(),
                        0 + translation.Z());
-        pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-90));
+        pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-90));
         SavePicture(camera, pose, "4.png");
 
         // Back view
@@ -306,13 +306,13 @@ void ModelPhotoShootPrivate::SavePicture(
   gzdbg << "Saved image to [" << _fileName << "]" << std::endl;
 }
 
-IGNITION_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,
+GZ_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,
                     ModelPhotoShoot::ISystemConfigure,
                     ModelPhotoShoot::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
+GZ_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
                           "gz::sim::systems::ModelPhotoShoot")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
+GZ_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
                           "ignition::gazebo::systems::ModelPhotoShoot")

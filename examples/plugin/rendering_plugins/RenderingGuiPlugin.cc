@@ -141,5 +141,5 @@ void RenderingGuiPlugin::FindScene()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(RenderingGuiPlugin,
+GZ_ADD_PLUGIN(RenderingGuiPlugin,
                     gz::gui::Plugin)

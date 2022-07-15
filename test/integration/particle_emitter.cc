@@ -30,7 +30,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
@@ -60,7 +60,7 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
+TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};

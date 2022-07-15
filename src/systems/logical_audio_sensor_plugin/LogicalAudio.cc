@@ -151,6 +151,6 @@ namespace logical_audio
       _volumeLevel = 1.0;
   }
 }  // namespace logical_audio
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz

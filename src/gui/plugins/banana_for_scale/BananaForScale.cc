@@ -108,5 +108,5 @@ void BananaForScale::OnMode(const QString &_mode)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::BananaForScale,
+GZ_ADD_PLUGIN(gz::sim::BananaForScale,
                     gz::gui::Plugin)

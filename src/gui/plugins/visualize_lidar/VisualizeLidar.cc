@@ -260,7 +260,7 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 void VisualizeLidar::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VisualizeLidar::Update");
+  GZ_PROFILE("VisualizeLidar::Update");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
@@ -526,5 +526,5 @@ QString VisualizeLidar::MinRange() const
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::VisualizeLidar,
+GZ_ADD_PLUGIN(gz::sim::VisualizeLidar,
                     gz::gui::Plugin)

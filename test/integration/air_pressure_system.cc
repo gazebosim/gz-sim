@@ -28,7 +28,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -43,7 +43,7 @@ class AirPressureTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
+TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 {
   // Start server
   ServerConfig serverConfig;

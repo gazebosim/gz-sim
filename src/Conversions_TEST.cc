@@ -54,7 +54,7 @@ TEST(Conversions, Light)
   sdf::Light light;
   light.SetName("test_convert_light");
   light.SetType(sdf::LightType::DIRECTIONAL);
-  light.SetRawPose({3, 2, 1, 0, IGN_PI, 0});
+  light.SetRawPose({3, 2, 1, 0, GZ_PI, 0});
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetVisualize(true);
@@ -75,7 +75,7 @@ TEST(Conversions, Light)
   lightMsg = convert<msgs::Light>(light);
   EXPECT_EQ("test_convert_light", lightMsg.name());
   EXPECT_EQ(msgs::Light_LightType_DIRECTIONAL, lightMsg.type());
-  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0),
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, GZ_PI, 0),
       msgs::Convert(lightMsg.pose()));
   /// \todo(anyone) add pose frame fields in ign-msgs?
   // EXPECT_EQ("world", lightMsg.pose_frame());
@@ -99,7 +99,7 @@ TEST(Conversions, Light)
   auto newLight = convert<sdf::Light>(lightMsg);
   EXPECT_EQ("test_convert_light", newLight.Name());
   EXPECT_EQ(sdf::LightType::DIRECTIONAL, newLight.Type());
-  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, IGN_PI, 0), newLight.RawPose());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, GZ_PI, 0), newLight.RawPose());
   /// \todo(anyone) add pose frame fields in ign-msgs?
   // EXPECT_EQ("world", newLight.PoseRelativeTo());
   EXPECT_TRUE(newLight.CastShadows());

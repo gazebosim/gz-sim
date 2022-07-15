@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
   You can echo lidar messages using:
-    ign topic -e -t /lidar
+    gz topic -e -t /lidar
 -->
 <sdf version="1.6">
   <world name="gpu_lidar_sensor">
@@ -10,16 +10,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
+      filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 

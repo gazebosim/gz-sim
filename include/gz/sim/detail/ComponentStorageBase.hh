@@ -29,7 +29,7 @@ namespace gz
     /// \brief All component instances of the same type are stored
     /// sequentially in memory. This is a base class for storing components
     /// of a particular type.
-    class GZ_GAZEBO_HIDDEN ComponentStorageBase
+    class GZ_SIM_HIDDEN ComponentStorageBase
     {
       /// \brief Constructor
       public: GZ_DEPRECATED(6) ComponentStorageBase() = default;
@@ -40,7 +40,7 @@ namespace gz
 
     /// \brief Templated implementation of component storage.
     template<typename ComponentTypeT>
-    class GZ_GAZEBO_HIDDEN ComponentStorage : public ComponentStorageBase
+    class GZ_SIM_HIDDEN ComponentStorage : public ComponentStorageBase
     {
       /// \brief Constructor
       public: explicit GZ_DEPRECATED(6) ComponentStorage()

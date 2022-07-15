@@ -9,7 +9,7 @@ You can include the `UserCommands` system plugin including these lines in your S
 
 ```xml
 <plugin
-  filename="ignition-gazebo-user-commands-system"
+  filename="gz-sim-user-commands-system"
   name="gz::sim::systems::UserCommands">
 </plugin>
 ```
@@ -19,13 +19,13 @@ You can check if this service is available typing:
 In one terminal
 
 ```bash
-ign gazebo -r -v 4 <your_world>.sdf
+gz sim -r -v 4 <your_world>.sdf
 ```
 
 In another terminal, see if the create service is listed:
 
 ```bash
-ign service --list
+gz service --list
 /gazebo/resource_paths/add
 /gazebo/resource_paths/get
 /gazebo/worlds

@@ -32,7 +32,7 @@ namespace components
 {
 using VisualPluginComponent = components::Component<int,
     class VisualPluginComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("VisualPluginComponent",
+GZ_SIM_REGISTER_COMPONENT("VisualPluginComponent",
     VisualPluginComponent)
 }
 }

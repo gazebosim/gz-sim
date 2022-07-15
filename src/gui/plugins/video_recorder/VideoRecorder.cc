@@ -178,7 +178,7 @@ void VideoRecorderPrivate::OnRender()
 
   // record video is requested
   {
-    IGN_PROFILE("VideoRecorder Record Video");
+    GZ_PROFILE("VideoRecorder Record Video");
     if (this->recordVideo)
     {
       unsigned int width = this->camera->ImageWidth();
@@ -462,5 +462,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::VideoRecorder,
+GZ_ADD_PLUGIN(gz::sim::VideoRecorder,
                     gz::gui::Plugin)

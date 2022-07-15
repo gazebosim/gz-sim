@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the physics engine shared library.
   using PhysicsEnginePlugin = Component<std::string,
       class PhysicsEnginePluginTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PhysicsEnginePlugin",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsEnginePlugin",
       PhysicsEnginePlugin)
 }
 }

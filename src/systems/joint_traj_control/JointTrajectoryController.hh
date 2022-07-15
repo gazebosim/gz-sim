@@ -157,7 +157,7 @@ namespace systems
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
   };
 }  // namespace systems
-}  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 

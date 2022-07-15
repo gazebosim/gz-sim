@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -105,6 +106,14 @@ namespace gz
       /// system during the `Configure` call.
       public: Entity parentEntity = {kNullEntity};
 
+      /// \brief Cached filename of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string fname = "";
+
+      /// \brief Cached plugin name of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string name = "";
+
       /// \brief Cached sdf that was used to call `Configure` on the system
       /// Useful for if a system needs to be reconfigured at runtime
       public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
@@ -116,4 +125,3 @@ namespace gz
   }  // namespace sim
 }  // namespace gz
 #endif  // GZ_SIM_SYSTEMINTERNAL_HH_
-

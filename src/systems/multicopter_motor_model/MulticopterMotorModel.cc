@@ -373,7 +373,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterMotorModel::PreUpdate");
+  GZ_PROFILE("MulticopterMotorModel::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -479,7 +479,7 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
 void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
+  GZ_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
 
   std::optional<msgs::Actuators> msg;
   auto actuatorMsgComp =
@@ -543,7 +543,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
       double motorRotVel = jointVelocity->Data()[0];
-      if (motorRotVel / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
+      if (motorRotVel / (2 * GZ_PI) > 1 / (2 * this->samplingTime))
       {
         gzerr << "Aliasing on motor [" << this->motorNumber
               << "] might occur. Consider making smaller simulation time "
@@ -671,14 +671,14 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
   }
 }
 
-IGNITION_ADD_PLUGIN(MulticopterMotorModel,
+GZ_ADD_PLUGIN(MulticopterMotorModel,
                     gz::sim::System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "gz::sim::systems::MulticopterMotorModel")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "ignition::gazebo::systems::MulticopterMotorModel")

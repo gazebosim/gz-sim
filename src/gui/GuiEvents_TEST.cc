@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
 using namespace gz;

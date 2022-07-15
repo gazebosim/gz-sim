@@ -35,7 +35,7 @@
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -49,7 +49,7 @@ class ThermalTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
+TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 {
   // Start server
   ServerConfig serverConfig;
@@ -173,7 +173,7 @@ TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThermalTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
+TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystem))
 {
   // Start server
   ServerConfig serverConfig;

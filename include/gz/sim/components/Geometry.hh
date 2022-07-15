@@ -45,7 +45,7 @@ namespace components
   using Geometry = Component<sdf::Geometry, class GeometryTag,
                              serializers::GeometrySerializer>;
 
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Geometry", Geometry)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Geometry", Geometry)
 
 }
 }

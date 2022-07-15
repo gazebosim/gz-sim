@@ -74,8 +74,8 @@ JointsModel::JointsModel() : QStandardItemModel()
 /////////////////////////////////////////////////
 QStandardItem *JointsModel::AddJoint(Entity _entity)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::AddJoint");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::AddJoint");
 
   auto itemIt = this->items.find(_entity);
 
@@ -96,8 +96,8 @@ QStandardItem *JointsModel::AddJoint(Entity _entity)
 /////////////////////////////////////////////////
 void JointsModel::RemoveJoint(Entity _entity)
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::RemoveJoint");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::RemoveJoint");
 
   auto itemIt = this->items.find(_entity);
 
@@ -112,8 +112,8 @@ void JointsModel::RemoveJoint(Entity _entity)
 /////////////////////////////////////////////////
 void JointsModel::Clear()
 {
-  IGN_PROFILE_THREAD_NAME("Qt thread");
-  IGN_PROFILE("JointsModel::Clear");
+  GZ_PROFILE_THREAD_NAME("Qt thread");
+  GZ_PROFILE("JointsModel::Clear");
 
   this->invisibleRootItem()->removeRows(0, this->rowCount());
   this->items.clear();
@@ -175,7 +175,7 @@ void JointPositionController::LoadConfig(
 void JointPositionController::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointPositionController::Update");
+  GZ_PROFILE("JointPositionController::Update");
 
   if (!this->dataPtr->xmlModelInitialized)
   {
@@ -259,8 +259,8 @@ void JointPositionController::Update(const UpdateInfo &,
           JointsModel::RoleNames().key("name"));
 
       // Limits
-      double min = -IGN_PI;
-      double max = IGN_PI;
+      double min = -GZ_PI;
+      double max = GZ_PI;
       auto axisComp = _ecm.Component<components::JointAxis>(jointEntity);
       if (axisComp)
       {
@@ -423,5 +423,5 @@ void JointPositionController::OnReset()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::gui::JointPositionController,
+GZ_ADD_PLUGIN(gz::sim::gui::JointPositionController,
                     gz::gui::Plugin)

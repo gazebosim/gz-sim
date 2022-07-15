@@ -32,7 +32,7 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Link.hh"
@@ -138,7 +138,7 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
 };
 
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(SdfFrameSemanticsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
+TEST_F(SdfFrameSemanticsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
 {
   const std::string modelSdf = R"sdf(
   <sdf version="1.7">
@@ -164,8 +164,8 @@ TEST_F(SdfFrameSemanticsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
   EXPECT_NE(link2, kNullEntity);
 
   // Expect the pose of L2 relative to model to be 0 0 1 0 0 pi
-  gz::math::Pose3d expRelPose(0, 0, 1, 0, 0, IGN_PI);
-  gz::math::Pose3d expWorldPose(0, 0, 3, 0, 0, IGN_PI);
+  gz::math::Pose3d expRelPose(0, 0, 1, 0, 0, GZ_PI);
+  gz::math::Pose3d expWorldPose(0, 0, 3, 0, 0, GZ_PI);
 
   EXPECT_EQ(expRelPose, this->GetPose(link2));
 
@@ -500,13 +500,13 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
 }
 
 TEST_F(SdfFrameSemanticsTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToTPE))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-tpe-plugin");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";
@@ -563,13 +563,13 @@ TEST_F(SdfFrameSemanticsTest,
 }
 
 TEST_F(SdfFrameSemanticsTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToDartsim))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelsRelativeToDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";

@@ -294,7 +294,7 @@ void SpawnPrivate::OnRender()
   }
 
   // Spawn
-  IGN_PROFILE("IgnRenderer::Render Spawn");
+  GZ_PROFILE("IgnRenderer::Render Spawn");
   if (this->generatePreview)
   {
     bool cloningResource = false;
@@ -646,5 +646,5 @@ void Spawn::SetErrorPopupText(const QString &_errorTxt)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::Spawn,
+GZ_ADD_PLUGIN(gz::sim::Spawn,
                     gz::gui::Plugin)

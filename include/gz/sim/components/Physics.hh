@@ -48,14 +48,14 @@ namespace components
   /// the World entity.
   using Physics = Component<sdf::Physics, class PhysicsTag,
       serializers::PhysicsSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Physics",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Physics",
       Physics)
 
   /// \brief The name of the collision detector to be used. The supported
   /// options will depend on the physics engine being used.
   using PhysicsCollisionDetector = Component<std::string,
       class PhysicsCollisionDetectorTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.PhysicsCollisionDetector",
        PhysicsCollisionDetector)
 
@@ -63,7 +63,7 @@ namespace components
   /// depend on the physics engine being used.
   using PhysicsSolver = Component<std::string,
       class PhysicsSolverTag, serializers::StringSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.PhysicsSolver",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsSolver",
        PhysicsSolver)
 }
 }

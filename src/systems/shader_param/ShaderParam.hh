@@ -56,7 +56,7 @@ namespace systems
   /// Example usage:
   ///
   /// \verbatim
-  ///     <plugin filename="ignition-gazebo-shader-param-system"
+  ///     <plugin filename="gz-sim-shader-param-system"
   ///             name="gz::sim::systems::ShaderParam">
   ///        <shader language='glsl'>
   ///          <vertex>materials/my_vs.glsl</vertex>

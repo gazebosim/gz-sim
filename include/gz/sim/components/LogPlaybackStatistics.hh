@@ -38,7 +38,7 @@ namespace components
   /// being loaded
   using LogPlaybackStatistics = Component<gz::msgs::LogPlaybackStatistics,
       class LogPlaybackStatisticsTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.LogPlaybackStatistics",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogPlaybackStatistics",
       LogPlaybackStatistics)
 }
 }

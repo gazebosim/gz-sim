@@ -42,7 +42,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
   class RenderUtilPrivate;
 
   /// \class RenderUtil RenderUtil.hh gz/sim/gui/plugins/RenderUtil.hh
-  class GZ_GAZEBO_RENDERING_VISIBLE RenderUtil
+  class GZ_SIM_RENDERING_VISIBLE RenderUtil
   {
     /// \brief Constructor
     public: explicit RenderUtil();

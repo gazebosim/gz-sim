@@ -34,7 +34,7 @@ namespace systems
 
   /// \class AirPressure AirPressure.hh gz/sim/systems/AirPressure.hh
   /// \brief An air pressure sensor that reports vertical position and velocity
-  /// readings over ign transport
+  /// readings over gz transport
   class AirPressure:
     public System,
     public ISystemPreUpdate,

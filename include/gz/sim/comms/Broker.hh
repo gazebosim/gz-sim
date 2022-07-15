@@ -74,7 +74,7 @@ namespace comms
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="ignition-gazebo-perfect-comms-system"
+  ///   filename="gz-sim-perfect-comms-system"
   ///   name="gz::sim::systems::PerfectComms">
   ///   <broker>
   ///     <messages_topic>/broker/inbound</messages_topic>
@@ -82,7 +82,7 @@ namespace comms
   ///     <unbind_service>/broker/unbind_address</unbind_service>
   ///   </broker>
   /// </plugin>
-  class GZ_GAZEBO_VISIBLE Broker
+  class GZ_SIM_VISIBLE Broker
   {
     /// \brief Constructor.
     public: Broker();
@@ -144,7 +144,7 @@ namespace comms
     public: void Unlock();
 
    /// \brief Private data pointer.
-   IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }

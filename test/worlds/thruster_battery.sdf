@@ -11,11 +11,11 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -95,7 +95,7 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-thruster-system"
+        filename="gz-sim-thruster-system"
         name="gz::sim::systems::Thruster">
         <namespace>lowbattery</namespace>
         <joint_name>propeller_joint</joint_name>
@@ -107,7 +107,7 @@
         <min_thrust_cmd>0</min_thrust_cmd>
       </plugin>
 
-      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+      <plugin filename="gz-sim-linearbatteryplugin-system"
       name="gz::sim::systems::LinearBatteryPlugin">
       <battery_name>linear_battery</battery_name>
       <voltage>14.4</voltage>

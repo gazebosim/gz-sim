@@ -218,7 +218,7 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -335,7 +335,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
   auto ent = this->CreateEntities(_model, false);
 
@@ -471,7 +471,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
 
   // Entity
   Entity actorEntity = this->dataPtr->ecm->CreateEntity();
@@ -493,7 +493,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -514,7 +514,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -598,7 +598,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     bool _resolved)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -658,7 +658,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedParentLinkName;
   if (_resolved)
   {
-    resolvedParentLinkName = _joint->ParentLinkName();
+    resolvedParentLinkName = _joint->ParentName();
   }
   else
   {
@@ -668,7 +668,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     if (!resolveParentErrors.empty())
     {
       gzerr << "Failed to resolve parent link for joint '" << _joint->Name()
-             << "' with parent name '" << _joint->ParentLinkName() << "'"
+             << "' with parent name '" << _joint->ParentName() << "'"
              << std::endl;
       for (const auto &error : resolveParentErrors)
       {
@@ -684,7 +684,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
   std::string resolvedChildLinkName;
   if (_resolved)
   {
-    resolvedChildLinkName = _joint->ChildLinkName();
+    resolvedChildLinkName = _joint->ChildName();
   }
   else
   {
@@ -693,7 +693,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     if (!resolveChildErrors.empty())
     {
       gzerr << "Failed to resolve child link for joint '" << _joint->Name()
-             << "' with child name '" << _joint->ChildLinkName() << "'"
+             << "' with child name '" << _joint->ChildName() << "'"
              << std::endl;
       for (const auto &error : resolveChildErrors)
       {
@@ -713,7 +713,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -771,7 +771,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
 
   // Entity
   Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
@@ -790,7 +790,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -818,7 +818,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();

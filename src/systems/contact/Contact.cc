@@ -62,7 +62,7 @@ class ContactSensor
   public: void AddContacts(const std::chrono::steady_clock::duration &_stamp,
                            const msgs::Contacts &_contacts);
 
-  /// \brief Publish sensor data over ign transport
+  /// \brief Publish sensor data over gz transport
   public: void Publish();
 
   /// \brief Topic to publish data to
@@ -156,7 +156,7 @@ void ContactSensor::Publish()
 //////////////////////////////////////////////////
 void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::CreateSensors");
+  GZ_PROFILE("ContactPrivate::CreateSensors");
   _ecm.EachNew<components::ContactSensor>(
       [&](const Entity &_entity,
           const components::ContactSensor *_contact) -> bool
@@ -215,7 +215,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
                                    const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::UpdateSensors");
+  GZ_PROFILE("ContactPrivate::UpdateSensors");
   for (const auto &item : this->entitySensorMap)
   {
     for (const Entity &entity : item.second->collisionEntities)
@@ -236,7 +236,7 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
 void ContactPrivate::RemoveSensors(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::RemoveSensors");
+  GZ_PROFILE("ContactPrivate::RemoveSensors");
   _ecm.EachRemoved<components::ContactSensor>(
     [&](const Entity &_entity,
         const components::ContactSensor *)->bool
@@ -262,7 +262,7 @@ Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 //////////////////////////////////////////////////
 void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Contact::PreUpdate");
+  GZ_PROFILE("Contact::PreUpdate");
   this->dataPtr->CreateSensors(_ecm);
 }
 
@@ -270,7 +270,7 @@ void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void Contact::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Contact::PostUpdate");
+  GZ_PROFILE("Contact::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -294,13 +294,13 @@ void Contact::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->RemoveSensors(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(Contact, System,
+GZ_ADD_PLUGIN(Contact, System,
   Contact::ISystemPreUpdate,
   Contact::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
+GZ_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
+GZ_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
 

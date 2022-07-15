@@ -60,7 +60,7 @@ Try out an example world that ships with Gazebo and has the coordinates above
 as follows:
 
 ```
-ign gazebo spherical_coordinates.sdf
+gz sim spherical_coordinates.sdf
 ```
 
 On the component inspector, expand the `Spherical Coordinates` component to see
@@ -81,7 +81,7 @@ through the `/world/<world_name>/set_spherical_coordinates` service.
 Loading the world above, try calling for example:
 
 ```.bash
-ign service \
+gz service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
@@ -105,7 +105,7 @@ For example, you can spawn a sphere into the `spherical_coordinates.sdf` world
 as follows:
 
 ```.bash
-ign service -s /world/spherical_coordinates/create \
+gz service -s /world/spherical_coordinates/create \
 --reqtype gz.msgs.EntityFactory \
 --reptype gz.msgs.Boolean \
 --timeout 300 \
@@ -135,7 +135,7 @@ specify the entity to be moved.
 For example, to move the sphere created above:
 
 ```.bash
-ign service -s /world/spherical_coordinates/set_spherical_coordinates \
+gz service -s /world/spherical_coordinates/set_spherical_coordinates \
 --reqtype gz.msgs.SphericalCoordinates \
 --reptype gz.msgs.Boolean \
 --timeout 300 \

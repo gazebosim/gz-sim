@@ -36,14 +36,14 @@ namespace components
   /// an entity, in its own frame, represented by gz::math::Vector3d.
   using AngularVelocityCmd =
     Component<math::Vector3d, class AngularVelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.AngularVelocityCmd", AngularVelocityCmd)
 
   /// \brief A component type that contains the commanded angular velocity
   /// of an entity in the world frame represented by gz::math::Vector3d.
   using WorldAngularVelocityCmd =
       Component<math::Vector3d, class WorldAngularVelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.WorldAngularVelocityCmd", WorldAngularVelocityCmd)
 }
 }

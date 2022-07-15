@@ -389,7 +389,7 @@ void DiffDrive::Configure(const Entity &_entity,
 void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PreUpdate");
+  GZ_PROFILE("DiffDrive::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -514,7 +514,7 @@ void DiffDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
 void DiffDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PostUpdate");
+  GZ_PROFILE("DiffDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -527,7 +527,7 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 void DiffDrivePrivate::UpdateOdometry(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::UpdateOdometry");
+  GZ_PROFILE("DiffDrive::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -622,7 +622,7 @@ void DiffDrivePrivate::UpdateOdometry(const gz::sim::UpdateInfo &_info,
 void DiffDrivePrivate::UpdateVelocity(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("DiffDrive::UpdateVelocity");
+  GZ_PROFILE("DiffDrive::UpdateVelocity");
 
   double linVel;
   double angVel;
@@ -673,13 +673,13 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
   }
 }
 
-IGNITION_ADD_PLUGIN(DiffDrive,
+GZ_ADD_PLUGIN(DiffDrive,
                     gz::sim::System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
+GZ_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
+GZ_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

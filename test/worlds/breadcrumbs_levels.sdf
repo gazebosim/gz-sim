@@ -7,15 +7,15 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="libignition-gazebo-user-commands-system.so"
+      filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -43,7 +43,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="libignition-gazebo-breadcrumbs-system.so" name="gz::sim::systems::Breadcrumbs">
+      <plugin filename="gz-sim-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <disable_physics_time>15</disable_physics_time>
        <allow_renaming>true</allow_renaming>

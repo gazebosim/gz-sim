@@ -6,11 +6,11 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -18,7 +18,7 @@
 
       <!-- 3D scene -->
       <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -27,7 +27,7 @@
           <anchor line="left" target="window" target_line="left"/>
           <anchor line="top" target="window" target_line="top"/>
           <anchor line="bottom" target="window" target_line="bottom"/>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre</engine>
         <scene>scene</scene>
@@ -38,7 +38,7 @@
 
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -47,7 +47,7 @@
           <property type="double" key="z">1</property>
           <anchor line="left" target="window" target_line="left"/>
           <anchor line="bottom" target="window" target_line="bottom"/>
-        </ignition-gui>
+        </gz-gui>
 
         <play_pause>true</play_pause>
         <step>true</step>

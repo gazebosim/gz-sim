@@ -73,7 +73,7 @@ namespace systems
   /// floats. To run:
   ///
   /// ```
-  /// ign gazebo -v 4 buoyancy.sdf
+  /// gz sim -v 4 buoyancy.sdf
   /// ```
   ///
   /// ### `graded_buoyancy` world
@@ -86,7 +86,7 @@ namespace systems
   /// `graded_buoyancy.sdf` world.
   ///
   /// ```
-  /// ign gazebo -v 4 graded_buoyancy.sdf
+  /// gz sim -v 4 graded_buoyancy.sdf
   /// ```
   ///
   /// You should be able to see a sphere bobbing up and down undergoing simple

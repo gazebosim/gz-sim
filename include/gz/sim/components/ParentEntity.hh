@@ -39,7 +39,7 @@ namespace components
   /// edited by hand, and instead, entities should be created using
   /// the `sim::SdfEntityCreator` class.
   using ParentEntity = Component<Entity, class ParentEntityTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.ParentEntity", ParentEntity)
 }
 }

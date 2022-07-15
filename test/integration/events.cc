@@ -22,7 +22,7 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "plugins/EventTriggerSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -36,7 +36,7 @@ class EventTrigger : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(EventTrigger, IGN_UTILS_TEST_DISABLED_ON_WIN32(TriggerPause))
+TEST_F(EventTrigger, GZ_UTILS_TEST_DISABLED_ON_WIN32(TriggerPause))
 {
   // Create server
   ServerConfig config;

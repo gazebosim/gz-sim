@@ -35,14 +35,14 @@ namespace components
   using ParticleEmitter = Component<msgs::ParticleEmitter,
         class ParticleEmitterTag,
         serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ParticleEmitter",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ParticleEmitter",
       ParticleEmitter)
 
   /// \brief A component that contains a particle emitter command.
   using ParticleEmitterCmd = Component<msgs::ParticleEmitter,
         class ParticleEmitterCmdTag,
         serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ParticleEmitterCmd",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ParticleEmitterCmd",
       ParticleEmitterCmd)
 }
 }

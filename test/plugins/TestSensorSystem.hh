@@ -32,7 +32,7 @@ namespace components
 {
 using SensorPluginComponent = components::Component<int,
     class SensorPluginComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("SensorPluginComponent",
+GZ_SIM_REGISTER_COMPONENT("SensorPluginComponent",
     SensorPluginComponent)
 }
 }

@@ -25,7 +25,7 @@
 #include "gz/sim/components/Name.hh"
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -39,7 +39,7 @@ class WorldControlState : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
+TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
 {
   common::Console::SetVerbosity(4);
 
@@ -108,7 +108,7 @@ TEST_F(WorldControlState, IGN_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   unsigned int sleep = 0u;
   unsigned int maxSleep = 30u;
   while (!received && sleep++ < maxSleep)
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
 
   // Run again, and the test system should now find an entity with the name
   // "box"

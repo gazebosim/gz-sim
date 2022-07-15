@@ -26,7 +26,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 #include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -38,7 +38,7 @@ class RFCommsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
+TEST_F(RFCommsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
 {
   // Start server
   ServerConfig serverConfig;

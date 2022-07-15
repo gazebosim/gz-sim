@@ -47,7 +47,11 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _sdf);
+    SystemInternal ss(system.value(), _entity);
+    ss.fname = _fname;
+    ss.name = _name;
+    ss.configureSdf = _sdf;
+    this->AddSystemImpl(ss, ss.configureSdf);
     gzdbg << "Loaded system [" << _name
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -101,6 +105,82 @@ size_t SystemManager::ActivatePendingSystems()
 
   this->pendingSystems.clear();
   return count;
+}
+
+//////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+};
+
+//////////////////////////////////////////////////
+void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+    this->pendingSystems.clear();
+  }
+
+  // Clear all iterable collections of systems
+  this->systemsConfigure.clear();
+  this->systemsReset.clear();
+  this->systemsPreupdate.clear();
+  this->systemsUpdate.clear();
+  this->systemsPostupdate.clear();
+
+  std::vector<PluginInfo> pluginsToBeLoaded;
+
+  for (auto &system : this->systems)
+  {
+    if (nullptr != system.reset)
+    {
+      // If implemented, call reset and add to pending systems.
+      system.reset->Reset(_info, _ecm);
+
+      {
+        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+        this->pendingSystems.push_back(system);
+      }
+    }
+    else
+    {
+      // Cannot reset systems that were created in memory rather than
+      // from a plugin, because there isn't access to the constructor.
+      if (nullptr != system.systemShared)
+      {
+        ignwarn << "In-memory without ISystemReset detected: ["
+          << system.name << "]\n"
+          << "Systems created without plugins that do not implement Reset"
+          << " will not be reloaded. Reset may not work correctly\n";
+        continue;
+      }
+      PluginInfo info = {
+        system.parentEntity, system.fname, system.name,
+        system.configureSdf->Clone()
+      };
+
+      pluginsToBeLoaded.push_back(info);
+    }
+  }
+
+  this->systems.clear();
+
+  // Load plugins which do not implement reset after clearing this->systems
+  // to ensure the previous instance is destroyed before the new one is created
+  // and configured.
+  for (const auto &pluginInfo : pluginsToBeLoaded)
+  {
+    this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name,
+        pluginInfo.sdf);
+  }
+  this->ActivatePendingSystems();
 }
 
 //////////////////////////////////////////////////

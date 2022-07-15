@@ -54,7 +54,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    const std::string pluginLib = "libignition-physics-dartsim-plugin.so";
+    const std::string pluginLib = "gz-physics-dartsim-plugin";
 
     common::SystemPaths systemPaths;
     systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
@@ -95,7 +95,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
 
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(EntityFeatureMapFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
 {
   struct TestOptionalFeatures1
       : physics::FeatureList<physics::LinkFrameSemantics>

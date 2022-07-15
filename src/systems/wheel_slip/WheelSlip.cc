@@ -349,7 +349,7 @@ void WheelSlip::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WheelSlip::PreUpdate");
+  GZ_PROFILE("WheelSlip::PreUpdate");
 
   if (!this->dataPtr->validConfig)
     return;
@@ -385,14 +385,14 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(WheelSlip,
+GZ_ADD_PLUGIN(WheelSlip,
                     gz::sim::System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
+GZ_ADD_PLUGIN_ALIAS(WheelSlip,
                           "gz::sim::systems::WheelSlip")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
+GZ_ADD_PLUGIN_ALIAS(WheelSlip,
                           "ignition::gazebo::systems::WheelSlip")

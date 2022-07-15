@@ -194,7 +194,7 @@ void FollowActor::Configure(const Entity &_entity,
 void FollowActor::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("FollowActor::PreUpdate");
+  GZ_PROFILE("FollowActor::PreUpdate");
 
   if (_info.paused)
     return;
@@ -286,12 +286,12 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
       components::AnimationTime::typeId, ComponentState::OneTimeChange);
 }
 
-IGNITION_ADD_PLUGIN(FollowActor, System,
+GZ_ADD_PLUGIN(FollowActor, System,
   FollowActor::ISystemConfigure,
   FollowActor::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(FollowActor, "gz::sim::systems::FollowActor")
+GZ_ADD_PLUGIN_ALIAS(FollowActor, "gz::sim::systems::FollowActor")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(FollowActor, "ignition::gazebo::systems::FollowActor")
+GZ_ADD_PLUGIN_ALIAS(FollowActor, "ignition::gazebo::systems::FollowActor")

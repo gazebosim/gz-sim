@@ -586,7 +586,7 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
       math::SphericalCoordinates::SPHERICAL);
 
   // Return degrees
-  return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
+  return math::Vector3d(GZ_RTOD(rad.X()), GZ_RTOD(rad.Y()), rad.Z());
 }
 
 //////////////////////////////////////////////////
@@ -654,7 +654,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     // Worlds from environment variable
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
-    // Worlds installed with ign-gazebo
+    // Worlds installed with gz-sim
     systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     filePath = systemPaths.FindFile(_sdfFile);

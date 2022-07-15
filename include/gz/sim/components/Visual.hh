@@ -78,13 +78,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a visual.
   using Visual = Component<NoData, class VisualTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Visual", Visual)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Visual", Visual)
 
   /// \brief A component that contains a visual plugin's SDF element.
   using VisualPlugin = Component<sdf::ElementPtr,
                                  class VisualPluginTag,
                                  serializers::SdfElementSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.VisualPlugin",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.VisualPlugin",
       VisualPlugin)
 }
 }

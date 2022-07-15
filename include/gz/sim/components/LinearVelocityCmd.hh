@@ -37,7 +37,7 @@ namespace components
   /// frame.
   using LinearVelocityCmd = Component<
     math::Vector3d, class LinearVelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.LinearVelocityCmd", LinearVelocityCmd)
 
   /// \brief A component type that contains the commanded linear velocity of an
@@ -45,7 +45,7 @@ namespace components
   /// frame.
   using WorldLinearVelocityCmd =
       Component<math::Vector3d, class WorldLinearVelocityCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.WorldLinearVelocityCmd", WorldLinearVelocityCmd)
 }
 }

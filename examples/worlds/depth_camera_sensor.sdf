@@ -9,16 +9,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
+      filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
+      filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
+      filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
@@ -26,11 +26,11 @@
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -41,45 +41,45 @@
 
       <!-- Plugins that add functionality to the scene -->
       <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">docked</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
     </gui>
 

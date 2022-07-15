@@ -78,5 +78,5 @@ void Lights::OnNewLightClicked(const QString &_sdfString)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::Lights,
+GZ_ADD_PLUGIN(gz::sim::Lights,
                     gz::gui::Plugin)

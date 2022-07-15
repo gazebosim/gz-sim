@@ -32,13 +32,13 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a canonical link.
   using CanonicalLink = Component<NoData, class CanonicalLinkTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.CanonicalLink", CanonicalLink)
 
   /// \brief A component that contains a reference to the canonical link entity
   /// of a model.
   using ModelCanonicalLink = Component<Entity, class ModelCanonicalLinkTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.ModelCanonicalLink", ModelCanonicalLink)
 }
 }

@@ -34,7 +34,6 @@
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
 #include "gz/sim/TestFixture.hh"
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/Model.hh"
@@ -49,6 +48,8 @@
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
+
+#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;
@@ -133,27 +134,27 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
           pose.Pos().Set(1.6 / scaling + translation.X(),
                         -1.6 / scaling + translation.Y(),
                         1.2 / scaling + translation.Z());
-          pose.Rot().SetFromEuler(0, IGN_DTOR(30), IGN_DTOR(-225));
+          pose.Rot().SetFromEuler(0, GZ_DTOR(30), GZ_DTOR(-225));
           SavePicture(camera, pose, "1_test.png");
           // Top view
           pose.Pos().Set(0 + translation.X(),
                         0 + translation.Y(),
                         2.2 / scaling + translation.Z());
-          pose.Rot().SetFromEuler(0, IGN_DTOR(90), 0);
+          pose.Rot().SetFromEuler(0, GZ_DTOR(90), 0);
           SavePicture(camera, pose, "2_test.png");
 
           // Front view
           pose.Pos().Set(2.2 / scaling + translation.X(),
                         0 + translation.Y(),
                         0 + translation.Z());
-          pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-180));
+          pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-180));
           SavePicture(camera, pose, "3_test.png");
 
           // Side view
           pose.Pos().Set(0 + translation.X(),
                         2.2 / scaling + translation.Y(),
                         0 + translation.Z());
-          pose.Rot().SetFromEuler(0, 0, IGN_DTOR(-90));
+          pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-90));
           SavePicture(camera, pose, "4_test.png");
 
           // Back view

@@ -36,7 +36,7 @@ namespace components
   using ContactSensorData =
       Component<msgs::Contacts,
       class ContactSensorDataTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.ContactSensorData",
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ContactSensorData",
                                 ContactSensorData)
 }
 }

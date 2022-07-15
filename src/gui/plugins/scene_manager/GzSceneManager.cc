@@ -120,7 +120,7 @@ void GzSceneManager::Update(const UpdateInfo &_info,
   if (!this->dataPtr->initialized)
     return;
 
-  IGN_PROFILE("GzSceneManager::Update");
+  GZ_PROFILE("GzSceneManager::Update");
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
 
@@ -246,5 +246,5 @@ void GzSceneManagerPrivate::OnRender()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gz::sim::GzSceneManager,
+GZ_ADD_PLUGIN(gz::sim::GzSceneManager,
                     gz::gui::Plugin)

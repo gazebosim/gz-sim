@@ -357,7 +357,7 @@ void AckermannSteering::Configure(const Entity &_entity,
 void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::PreUpdate");
+  GZ_PROFILE("AckermannSteering::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -555,7 +555,7 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
 void AckermannSteering::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::PostUpdate");
+  GZ_PROFILE("AckermannSteering::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -569,7 +569,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::UpdateOdometry");
+  GZ_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
 
   if (this->leftJoints.empty() || this->rightJoints.empty() ||
@@ -676,7 +676,7 @@ void AckermannSteeringPrivate::UpdateVelocity(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::UpdateVelocity");
+  GZ_PROFILE("AckermannSteering::UpdateVelocity");
 
   double linVel;
   double angVel;
@@ -758,15 +758,15 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
   this->targetVel = _msg;
 }
 
-IGNITION_ADD_PLUGIN(AckermannSteering,
+GZ_ADD_PLUGIN(AckermannSteering,
                     gz::sim::System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "gz::sim::systems::AckermannSteering")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "ignition::gazebo::systems::AckermannSteering")

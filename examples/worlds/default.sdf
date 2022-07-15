@@ -2,7 +2,7 @@
 <!--
   This world has no GUI configurations of its own.
 
-  When loading `ign gazebo default.sdf` for the first time, this will be loaded
+  When loading `gz sim default.sdf` for the first time, this will be loaded
   using the default configuration, saved at `~/.gz/sim/gui.config`.
 
   The default configuration can be edited manually, or by choosing

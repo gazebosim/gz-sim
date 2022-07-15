@@ -183,7 +183,7 @@ void VelocityControl::Configure(const Entity &_entity,
 void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
     gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VelocityControl::PreUpdate");
+  GZ_PROFILE("VelocityControl::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -311,7 +311,7 @@ void VelocityControl::PreUpdate(const gz::sim::UpdateInfo &_info,
 void VelocityControl::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VelocityControl::PostUpdate");
+  GZ_PROFILE("VelocityControl::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -327,7 +327,7 @@ void VelocityControlPrivate::UpdateVelocity(
     const gz::sim::UpdateInfo &/*_info*/,
     const gz::sim::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("VeocityControl::UpdateVelocity");
+  GZ_PROFILE("VeocityControl::UpdateVelocity");
 
   std::lock_guard<std::mutex> lock(this->mutex);
   this->linearVelocity = msgs::Convert(this->targetVel.linear());
@@ -339,7 +339,7 @@ void VelocityControlPrivate::UpdateLinkVelocity(
     const gz::sim::UpdateInfo &/*_info*/,
     const gz::sim::EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("VelocityControl::UpdateLinkVelocity");
+  GZ_PROFILE("VelocityControl::UpdateLinkVelocity");
 
   std::lock_guard<std::mutex> lock(this->mutex);
   for (const auto& [linkName, msg] : this->linkVels)
@@ -374,15 +374,15 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
   }
 }
 
-IGNITION_ADD_PLUGIN(VelocityControl,
+GZ_ADD_PLUGIN(VelocityControl,
                     gz::sim::System,
                     VelocityControl::ISystemConfigure,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "gz::sim::systems::VelocityControl")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "ignition::gazebo::systems::VelocityControl")

@@ -36,7 +36,7 @@ namespace components
   /// \brief Base class which can be extended to add serialization
   using JointVelocity = Component<std::vector<double>, class JointVelocityTag,
                                   serializers::VectorDoubleSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.JointVelocity", JointVelocity)
 }
 }

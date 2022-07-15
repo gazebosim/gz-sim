@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief This component identifies an entity as being a performer.
   using Performer = Component<NoData, class PerformerTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("gz_sim_components.Performer", Performer)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Performer", Performer)
 }
 }
 }

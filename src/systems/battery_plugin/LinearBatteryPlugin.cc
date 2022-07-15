@@ -437,7 +437,7 @@ void LinearBatteryPlugin::PreUpdate(
   const gz::sim::UpdateInfo &/*_info*/,
   gz::sim::EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
+  GZ_PROFILE("LinearBatteryPlugin::PreUpdate");
 
   // \todo(anyone) Add in the ability to stop the battery from draining
   // after it has been started by a topic. See this comment:
@@ -487,7 +487,7 @@ void LinearBatteryPlugin::PreUpdate(
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinearBatteryPlugin::Update");
+  GZ_PROFILE("LinearBatteryPlugin::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -548,7 +548,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("LinearBatteryPlugin::PostUpdate");
+  GZ_PROFILE("LinearBatteryPlugin::PostUpdate");
   // Nothing left to do if paused or the publisher wasn't created.
   if (_info.paused || !this->dataPtr->statePub)
     return;
@@ -582,7 +582,7 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
+  GZ_ASSERT(_battery != nullptr, "common::Battery is null.");
 
   if (fabs(_battery->Voltage()) < 1e-3 && !this->dataPtr->startCharging)
     return 0.0;
@@ -669,16 +669,16 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   return voltage;
 }
 
-IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
+GZ_ADD_PLUGIN(LinearBatteryPlugin,
                     gz::sim::System,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "gz::sim::systems::LinearBatteryPlugin")
 
 // TODO(CH3): Deprecated, remove on version 8
-IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "ignition::gazebo::systems::LinearBatteryPlugin")

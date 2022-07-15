@@ -58,7 +58,7 @@ namespace systems
   ///
   /// To run the example:
   /// ```
-  /// ign gazebo model_photo_shoot.sdf -s -r --iterations 50
+  /// gz sim model_photo_shoot.sdf -s -r --iterations 50
   /// ```
   /// This will start gazebo, load the model take the pictures and shutdown
   /// after 50 iterations. You will find the pictures in the same location you

@@ -26,7 +26,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -61,7 +61,7 @@ void imageCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Wide Angle Camera readings
-TEST_F(WideAngleCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
+TEST_F(WideAngleCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WideAngleCameraBox))
 {
   // Start server
   ServerConfig serverConfig;

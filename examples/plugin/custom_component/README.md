@@ -6,7 +6,7 @@ See `CustomComponentPlugin.hh` for more information.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
 cd examples/plugin/custom_component
@@ -29,5 +29,4 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 
 Then run a world that loads the plugin as follows:
 
-    ign gazebo -s -v 4 custom_component.sdf
-
+    gz sim -s -v 4 custom_component.sdf

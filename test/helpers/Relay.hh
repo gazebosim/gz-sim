@@ -17,7 +17,7 @@
 #ifndef GZ_SIM_TEST_HELPERS_RELAY_HH_
 #define GZ_SIM_TEST_HELPERS_RELAY_HH_
 
-#include <gz/sim/test_config.hh>
+#include "test_config.hh"
 
 #include "../plugins/MockSystem.hh"
 

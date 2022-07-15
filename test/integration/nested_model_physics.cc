@@ -28,7 +28,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Model.hh"
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
@@ -43,7 +43,7 @@ class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 /// Test that a tower of 3 boxes built with an <include> and further nesting
 /// moves appropriately with joints in dartsim
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
+TEST_F(NestedModelPhysicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   // Start server
   ServerConfig serverConfig;
@@ -52,7 +52,7 @@ TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
   gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

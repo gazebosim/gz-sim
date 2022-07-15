@@ -28,7 +28,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -232,7 +232,7 @@ class VelocityControlTest
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
@@ -240,7 +240,7 @@ TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
+TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
 {
   TestPublishLinkCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
