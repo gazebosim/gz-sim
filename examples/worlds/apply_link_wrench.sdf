@@ -1,13 +1,26 @@
 <?xml version="1.0" ?>
 <!--
 
-  Apply a force to the model (i.e. its canonical link):
+  Demostrates the ApplyLinkWrench world.
 
-    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'box'}, wrench: {force: {x: 1000, z: 10000}}"
+  When simulation starts, the box model starts moving due to the persistent force defined in this file.
 
-  Apply a wrench to the link:
+  Wrenches can also be applied through transport.
+  For example, apply a force to the cylinder model (i.e. its canonical link) with:
 
-    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'box::link'}, wrench: {force: {x: -1000, z: 10000}, torque: {y: -1000}}"
+    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: 1000, z: 10000}}"
+
+  Apply a wrench to the cylinder link with:
+
+    ign topic -t "/world/apply_link_wrench/wrench" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder::link', type: LINK}, wrench: {force: {x: -1000, z: 10000}, torque: {y: -1000}}"
+
+  Clear the persistent force from the box with:
+
+    ign topic -t "/world/apply_link_wrench/wrench/clear" -m ignition.msgs.Entity  -p "entity: {name: 'box', type: MODEL}"
+
+  Apply a persistent force to the cylinder with:
+
+    ign topic -t "/world/apply_link_wrench/wrench/persistent" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {y: 10}}"
 
 -->
 <sdf version="1.6">

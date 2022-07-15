@@ -31,11 +31,34 @@ namespace systems
   // Forward declaration
   class ApplyLinkWrenchPrivate;
 
-  /// \brief
+  /// \brief This system exposes transport topics for applying forces and
+  /// torques to links in simulation. It should be attached to a world.
+  ///
+  /// The target link is defined in each message. If a link entity is provided,
+  /// that will receive a wrench. If a model is provided, its canonical link
+  /// will receive it. No other entity types are supported.
+  ///
+  /// ## Topics
+  ///
+  /// * /world/<world_name>/wrench
+  ///     * Message type: msgs::EntityWrench
+  ///     * Effect: Applies the given wrench during a single time step.
+  ///
+  /// * /world/<world_name>/wrench/persistent
+  ///     * Message type: msgs::EntityWrench
+  ///     * Effect: Keeps applying the given wrench every time step. Persistent
+  ///               wrenches can be applied to entities that aren't in
+  ///               simulation yet, and will start taking effect once they do.
+  ///
+  /// * /world/<world_name>/wrench/clear
+  ///     * Message type: msgs::Entity
+  ///     * Effect: Clears any persistent wrenches that are being applied to
+  ///               the given entity.
   ///
   /// ## System Parameters
   ///
-  /// ## Example
+  ///  Persistent wrenches
+  ///
   class ApplyLinkWrench
       : public System,
         public ISystemConfigure,

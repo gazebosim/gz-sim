@@ -30,8 +30,6 @@
   #endif
 #endif
 
-#include <ignition/msgs/entity.pb.h>
-
 #include <ignition/common/Filesystem.hh>
 #include <ignition/common/StringUtils.hh>
 #include <ignition/common/Util.hh>
