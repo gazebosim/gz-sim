@@ -2533,7 +2533,6 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->CreatePhysicsEntities(_ecm, false);
   this->canonicalLinkModelTracker.AddAllModels(_ecm);
 
-
   // Update link pose, linear velocity, and angular velocity
   _ecm.Each<components::Link>(
       [&](const Entity &_entity, const components::Link *)
