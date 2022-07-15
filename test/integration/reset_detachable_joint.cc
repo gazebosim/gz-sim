@@ -15,6 +15,22 @@
  *
  */
 
+/// This test exercises resetting a world with a detachable joint.
+/// The simulation starts with an arm (simple_arm) and an object to be
+/// maniupulated(object).
+/// When simulation runs:
+///  * At t=1.0, the arm is aligned with the object (x=+0.15), 
+///  * At t=1.1, the arm forms the detchable joint
+///  * At t=3.0, the arm moves over the end of the table (x=+0.3)
+///  * At t=5.0, the simulation is reset
+///
+/// If physics and reset are implemented correctly, when the position of
+/// the arm is reset to x=-0.06, the block should not follow or stay
+/// attached via the detachable joint.
+///
+/// If physics and reset are implemented incorrectly, the block will move
+/// with the arm and fail the test.
+
 #include <gtest/gtest.h>
 
 #include <string>
@@ -37,7 +53,7 @@
 #include "gz/sim/Types.hh"
 #include "gz/sim/Util.hh"
 
-#include "gz/sim/test_config.hh"
+#include "test_config.hh"
 
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/DetachableJoint.hh"
@@ -53,6 +69,12 @@
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+/// \brief Name of the arm model 
+constexpr const char* kArmName = "simple_arm";
+
+/// \brief Name of the manipulated object model
+constexpr const char* kObjectName = "object";
 
 /////////////////////////////////////////////////
 class TestPlugin:
@@ -72,16 +94,36 @@ class TestPlugin:
   public: void Reset(const UpdateInfo &_info,
                      EntityComponentManager &_ecm) override;
 
-  bool grasping_ = false;
-  Entity object_model_entity_;
-  Entity joint_entity_;
-  Link link_;
-  Entity link_collision_entity_;
-  Entity colliding_object_link_entity_;
-  Entity detachable_joint_entity_;
-  double command_position_ = 0;
-  bool error_logged_ = false;
-  bool did_reset_ = false;
+  /// brief Flag to indicate if the gripper is in use or not
+  bool grasping = false;
+  
+  /// \brief Flag to indicate if error state has been reached
+  bool errorLogged = false;
+  
+  /// \brief Flag to indicate if the system has encountered a reset
+  bool didReset = false;
+
+  /// \brief Link object simple_arm::arm_link
+  Link link;
+
+  /// \brief Entity for simple_arm::arm_link::arm_link_collision
+  Entity linkCollisionEntity;
+
+  /// \brief Entity for simple_arm::base_joint
+  Entity jointEntity;
+
+  /// \brief Entity for the object to be manipulated
+  Entity objectModelEntity;
+
+  /// \brief Entity for the link in the object to be manipulated
+  Entity collidingObjectLinkEntity;
+
+  /// \brief Entity for the detachable joint created between the 
+  /// arm and the object
+  Entity detachableJointEntity;
+  
+  /// \brief Set point for the prismatic base joint
+  double commandPosition = 0;
 };
 
 /////////////////////////////////////////////////
@@ -89,84 +131,81 @@ void TestPlugin::Configure(const Entity &,
                const std::shared_ptr<const sdf::Element>&,
                EntityComponentManager &_ecm, EventManager&) {
 
-  Entity simple_arm_entity;
+  Entity simpleArmEntity;
+
   _ecm.Each<components::Model, components::Name>(
       [&](const Entity &_entityIt,
           const components::Model *,
           const components::Name *_name) -> bool
       {
-        if (_name->Data() == "simple_arm")
+        if (_name->Data() == kArmName)
         {
-          simple_arm_entity = _entityIt;
+          simpleArmEntity = _entityIt;
           return false;
         }
         return true;
       });
 
-  auto model = Model(simple_arm_entity);
-
-  link_ = Link(model.Links(_ecm)[0]);
-  joint_entity_ = model.Joints(_ecm)[0];
-
-  link_collision_entity_ = link_.Collisions(_ecm)[0];
+  auto model = Model(simpleArmEntity);
+  this->link = Link(model.Links(_ecm)[0]);
+  this->jointEntity = model.Joints(_ecm)[0];
+  this->linkCollisionEntity = this->link.Collisions(_ecm)[0];
 
   // Add ContactSensorData component to link collision so that we can grasp
   // the object when the arm is in contact with it.
-  _ecm.CreateComponent(link_collision_entity_,
+  _ecm.CreateComponent(this->linkCollisionEntity,
                       components::ContactSensorData());
 
-  auto objects = gz::sim::entitiesFromScopedName("object", _ecm);
-  object_model_entity_ = *objects.begin();
+  auto objects = gz::sim::entitiesFromScopedName(kObjectName, _ecm);
+  this->objectModelEntity = *objects.begin();
 }
 
 /////////////////////////////////////////////////
-void TestPlugin::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm) {
-  igndbg << "TestPlugin::Reset" << std::endl;
-  this->did_reset_ = true;
+void TestPlugin::Reset(const UpdateInfo &, EntityComponentManager &) {
+  this->didReset = true;
 }
 
 /////////////////////////////////////////////////
 void TestPlugin::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm) {
 
-  auto pose = worldPose(object_model_entity_, _ecm);
-  // igndbg << "Object pose: " << pose.X() << " " << pose.Y() << " " << pose.Z() << "\n";
+  auto pose = worldPose(this->objectModelEntity, _ecm);
 
-  if (pose.Y() < -0.01 && !error_logged_) {
-    error_logged_ = true;
+  if (pose.Y() < -0.01 && !this->errorLogged) {
+    this->errorLogged = true;
     ignerr << "Object moved unexpectedly to left of table! \n";
   }
 
   // The plugin behavior below is only for the first time the simulation runs,
   // so if we did reset already, just ignore.
-  if (this->did_reset_) return;
+  if (this->didReset) return;
 
   // Try grasping object with arm after 1.1 seconds
-  if (!grasping_ && _info.iterations > 1100) {
-    std::optional<gz::msgs::Contacts> contact_data_optional =
+  if (!this->grasping && _info.iterations > 1100) {
+    std::optional<gz::msgs::Contacts> contactDataOptional =
         _ecm.ComponentData<components::ContactSensorData>(
-            link_collision_entity_);
+            this->linkCollisionEntity);
 
-    if (contact_data_optional &&
-        contact_data_optional.value().contact_size() > 0) {
-      auto collision1 = contact_data_optional.value().contact(0).collision1();
-      if (collision1.id() != link_collision_entity_) {
-        colliding_object_link_entity_ = _ecm.ParentEntity(collision1.id());
+    if (contactDataOptional &&
+        contactDataOptional.value().contact_size() > 0) {
+      auto collision1 = contactDataOptional.value().contact(0).collision1();
+      if (collision1.id() != this->linkCollisionEntity) {
+        this->collidingObjectLinkEntity = _ecm.ParentEntity(collision1.id());
       }
-      auto collision2 = contact_data_optional.value().contact(0).collision2();
-      if (collision2.id() != link_collision_entity_) {
-        colliding_object_link_entity_ = _ecm.ParentEntity(collision2.id());
+      auto collision2 = contactDataOptional.value().contact(0).collision2();
+      if (collision2.id() != this->linkCollisionEntity) {
+        this->collidingObjectLinkEntity = _ecm.ParentEntity(collision2.id());
       }
 
       // Add a DetachableJoint between arm link and object to emulate a
       // suction gripper.
-      detachable_joint_entity_ = _ecm.CreateEntity();
+      this->detachableJointEntity = _ecm.CreateEntity();
       components::DetachableJointInfo info;
-      info.parentLink = link_.Entity();
-      info.childLink = colliding_object_link_entity_;
+      info.parentLink = this->link.Entity();
+      info.childLink = this->collidingObjectLinkEntity;
 
-      _ecm.CreateComponent(detachable_joint_entity_,
+      _ecm.CreateComponent(this->detachableJointEntity,
                           components::DetachableJoint(info));
-      grasping_ = true;
+      this->grasping = true;
     }
   }
 
@@ -175,27 +214,29 @@ void TestPlugin::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm
   // At 3 seconds, set command position to 0.3, which corresponds to the arm
   // hanging out to the right of the table.
   if (_info.iterations == 1000) {
-    command_position_ = 0.15;
+    this->commandPosition = 0.15;
   } else if (_info.iterations == 3000) {
-    command_position_ = 0.3;
+    this->commandPosition = 0.3;
   }
 
   // Set joint position directly to commanded position by setting the
   // commanded position to the JointPositionReset component.
   auto& component =
-      *(_ecm.CreateComponent(joint_entity_, components::JointPositionReset()));
+      *(_ecm.CreateComponent(this->jointEntity, components::JointPositionReset()));
   component.Data().resize(1);
-  component.Data()[0] = command_position_;
+  component.Data()[0] = this->commandPosition;
 }
 
 /////////////////////////////////////////////////
 /// \brief Test DetachableJoint system
 class ResetDetachableJointTest : public InternalFixture<::testing::Test>
 {
+  /// \brief Start the server with a test plugin
+  /// \param[in] _sdfFile sdf world to load
   public: void StartServer(const std::string &_sdfFile)
   {
     ServerConfig serverConfig;
-    serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
+    serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH, _sdfFile));
     this->server = std::make_unique<Server>(serverConfig);
 
     this->system = std::make_shared<TestPlugin>();
@@ -205,13 +246,15 @@ class ResetDetachableJointTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*this->server->Running(0));
   }
 
+  /// \brief the Simulation server instance
   public: std::unique_ptr<Server> server;
-  public: std::shared_ptr<TestPlugin> system;
 
+  /// \brief the Simulation system instance
+  public: std::shared_ptr<TestPlugin> system;
 };
 
-
 /////////////////////////////////////////////////
+/// \brief Reset the simulation world via transport
 void worldReset()
 {
   gz::msgs::WorldControl req;
@@ -229,25 +272,23 @@ void worldReset()
   ASSERT_TRUE(rep.data());
 }
 
+/////////////////////////////////////////////////
 TEST_F(ResetDetachableJointTest, Reset)
 {
   this->StartServer("/test/worlds/reset_detachable_joint.sdf");
-
   this->server->Run(true, 5000, false);
-  ignmsg << "Server ran for " << server->IterationCount().value_or(0)
-            << " iterations \n";
+  ASSERT_FALSE(this->system->didReset);
+  ASSERT_FALSE(this->system->errorLogged);
 
   // First Reset
   worldReset();
-
   this->server->Run(true, 5000, false);
-  ignmsg << "Server ran for " << server->IterationCount().value_or(0)
-            << " iterations \n";
+  ASSERT_TRUE(this->system->didReset);
+  ASSERT_FALSE(this->system->errorLogged);
 
   // Second Reset
   worldReset();
-
   server->Run(true, 1000, false);
-  ignmsg << "Server ran for " << server->IterationCount().value_or(0)
-            << " iterations \n";
+  ASSERT_TRUE(this->system->didReset);
+  ASSERT_FALSE(this->system->errorLogged);
 }
