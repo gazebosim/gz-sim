@@ -122,7 +122,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics,
-    int _headless)
+    int _headless, int _assimp)
 {
   gz::sim::ServerConfig serverConfig;
 
