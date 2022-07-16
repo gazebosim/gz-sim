@@ -369,7 +369,7 @@ namespace gz
 
       /// \brief Get the assimp mode
       /// \return True if assimp mode is enable, false otherwise.
-      public: bool Assimp() const;
+      public: bool UseAssimp() const;
 
       /// \brief Set the render engine server plugin library.
       /// \param[in] _renderEngineServer File containing render engine library.

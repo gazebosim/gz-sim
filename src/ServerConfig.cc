@@ -237,7 +237,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            useAssimp(_cfg->assimp) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -301,6 +302,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief is the headless mode active.
   public: bool isHeadlessRendering{false};
+
+  /// \brief is the assimp mode active.
+  public: bool useAssimp{false};
 
   /// \brief Optional SDF root object.
   public: std::optional<sdf::Root> sdfRoot;
@@ -559,6 +563,18 @@ void ServerConfig::SetHeadlessRendering(const bool _headless)
 bool ServerConfig::HeadlessRendering() const
 {
   return this->dataPtr->isHeadlessRendering;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetUseAssimp(const bool _useAssimp)
+{
+  this->dataPtr->useAssimp = _useAssimp;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::UseAssimp() const
+{
+  return this->dataPtr->useAssimp;
 }
 
 /////////////////////////////////////////////////
