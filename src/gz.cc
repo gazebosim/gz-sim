@@ -347,7 +347,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
-  serverConfig.SetMeshLoader(_assimp);
+  serverConfig.SetUseAssimp(_assimp);
 
   // Create the Gazebo server
   gz::sim::Server server(serverConfig);

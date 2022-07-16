@@ -2291,6 +2291,14 @@ Entity SceneManager::UniqueId() const
   }
 }
 
+
+/////////////////////////////////////////////////
+void SceneManager::SetUseAssimp(bool useAssimp) const
+{
+  gz::common::MeshManager *meshManager = gz::common::MeshManager::Instance();
+  meshManager->SetUseAssimp(useAssimp);
+}
+
 /////////////////////////////////////////////////
 AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
     Entity _id,

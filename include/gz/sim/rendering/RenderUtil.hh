@@ -101,6 +101,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \return True if headless mode is enable, false otherwise.
     public: bool HeadlessRendering() const;
 
+    /// \brief Set the assimp mode
+    /// \param[in] _assimp Set to true to enable assimp mode.
+    public: void SetUseAssimp(const bool &_assimp);
+
+    /// \brief Get the assimp mode
+    /// \return True if assimp mode is enable, false otherwise.
+    public: bool UseAssimp() const;
+
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.
     public: void SetSceneName(const std::string &_sceneName);

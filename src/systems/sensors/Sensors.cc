@@ -49,6 +49,7 @@
 #include "gz/sim/components/GpuLidar.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/UseAssimp.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/SegmentationCamera.hh"
@@ -552,6 +553,14 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       this->dataPtr->renderUtil.SetHeadlessRendering(
         renderEngineServerHeadlessComp->Data());
+    }
+    // Set assimp mode if specified from command line
+    auto useAssimpComp =
+      _ecm.Component<components::UseAssimp>(worldEntity);
+    if (useAssimpComp)
+    {
+      this->dataPtr->renderUtil.SetUseAssimp(
+        useAssimpComp->Data());
     }
   }
 

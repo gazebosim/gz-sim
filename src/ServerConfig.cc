@@ -238,7 +238,7 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
-            useAssimp(_cfg->assimp) { }
+            useAssimp(_cfg->useAssimp) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";

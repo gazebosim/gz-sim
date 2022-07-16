@@ -352,6 +352,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// IDs are available
     public: Entity UniqueId() const;
 
+    /// \brief Set the assimp mode
+    /// \param[in] _useAssimp Set to true to enable assimp mode.
+    public: void SetUseAssimp(bool useAssimp) const;
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;

@@ -365,7 +365,7 @@ namespace gz
 
       /// \brief Set the assimp mode
       /// \param[in] _headless Set to true to enable assimp mode.
-      public: void SetUseAssimp(const bool _headless);
+      public: void SetUseAssimp(const bool _useAssimp);
 
       /// \brief Get the assimp mode
       /// \return True if assimp mode is enable, false otherwise.

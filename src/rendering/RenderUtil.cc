@@ -246,6 +246,9 @@ class gz::sim::RenderUtilPrivate
   /// \brief is headless mode active
   public: bool isHeadlessRendering = false;
 
+  /// \brief is assimp mode active
+  public: bool useAssimp = false;
+
   /// \brief New models to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
   public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
@@ -2496,6 +2499,18 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetUseAssimp(const bool &_useAssimp)
+{
+  this->dataPtr->useAssimp = _useAssimp;
+}
+
+/////////////////////////////////////////////////
+bool RenderUtil::UseAssimp() const
+{
+  return this->dataPtr->useAssimp;
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::Init()
 {
   // Already initialized
@@ -2531,6 +2546,8 @@ void RenderUtil::Init()
     params["useCurrentGLContext"] = "1";
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
+
+  this->dataPtr->sceneManager.SetUseAssimp(this->dataPtr->useAssimp);
   params["winID"] = this->dataPtr->winID;
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
