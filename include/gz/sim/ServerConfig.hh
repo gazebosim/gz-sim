@@ -363,6 +363,14 @@ namespace gz
       /// \return True if headless mode is enable, false otherwise.
       public: bool HeadlessRendering() const;
 
+      /// \brief Set the assimp mode
+      /// \param[in] _headless Set to true to enable assimp mode.
+      public: void SetUseAssimp(const bool _headless);
+
+      /// \brief Get the assimp mode
+      /// \return True if assimp mode is enable, false otherwise.
+      public: bool Assimp() const;
+
       /// \brief Set the render engine server plugin library.
       /// \param[in] _renderEngineServer File containing render engine library.
       public: void SetRenderEngineServer(
