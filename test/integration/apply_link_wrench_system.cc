@@ -17,29 +17,28 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test fixture for ApplyLinkWrench system
@@ -59,8 +58,8 @@ TEST_F(ApplyLinkWrenchTestFixture, FromSdf)
   math::Pose3d prevPose1;
   math::Pose3d prevPose2;
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm)
       {
         Model model1(_ecm.EntityByComponents(components::Model(),
                                              components::Name("model1")));
@@ -137,8 +136,8 @@ TEST_F(ApplyLinkWrenchTestFixture, FromTopic)
   math::Pose3d prevPose4;
   bool wrenchesCleared{false};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         Model model3(_ecm.EntityByComponents(components::Model(),
                                              components::Name("model3")));
