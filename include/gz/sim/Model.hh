@@ -175,6 +175,12 @@ namespace gz
       public: void SetWorldPoseCmd(EntityComponentManager &_ecm,
           const math::Pose3d &_pose);
 
+      /// \brief Get the model's canonical link entity.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Link entity.
+      public: sim::Entity CanonicalLink(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<ModelPrivate> dataPtr;
     };

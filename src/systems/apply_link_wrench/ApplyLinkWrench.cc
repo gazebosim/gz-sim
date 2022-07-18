@@ -14,33 +14,34 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <mutex>
+#include <queue>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/Util.hh"
 
 #include "ApplyLinkWrench.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyLinkWrenchPrivate
+class gz::sim::systems::ApplyLinkWrenchPrivate
 {
   /// \brief Callback for wrench subscription
   /// \param[in] _msg Wrench message
@@ -90,7 +91,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
 void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ApplyLinkWrench::PreUpdate");
+  GZ_PROFILE("ApplyLinkWrench::PreUpdate");
 
   // Only update if not paused.
   if (_info.paused)
@@ -166,10 +167,10 @@ void ApplyLinkWrenchPrivate::OnWrench(const msgs::EntityWrench &_msg)
   this->newWrenches.push(_msg);
 }
 
-IGNITION_ADD_PLUGIN(ApplyLinkWrench,
+GZ_ADD_PLUGIN(ApplyLinkWrench,
                     System,
                     ApplyLinkWrench::ISystemConfigure,
                     ApplyLinkWrench::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
-                          "ignition::gazebo::systems::ApplyLinkWrench")
+GZ_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
+                    "gz::sim::systems::ApplyLinkWrench")

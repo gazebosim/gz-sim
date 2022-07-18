@@ -365,8 +365,7 @@ TEST_F(UtilTest, EntityFromMsg)
       Entity _relativeTo, const std::unordered_set<Entity> &_result,
       const std::string &_delim)
   {
-    auto res = gazebo::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
-        _delim);
+    auto res = entitiesFromScopedName(_scopedName, ecm, _relativeTo, _delim);
     EXPECT_EQ(_result.size(), res.size()) << _scopedName;
 
     for (auto it : _result)

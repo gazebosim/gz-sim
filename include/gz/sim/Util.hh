@@ -21,6 +21,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gz/msgs/entity.pb.h>
+
 #include <gz/math/Pose3.hh>
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
@@ -256,6 +258,26 @@ namespace gz
       }
       return changed;
     }
+
+    /// \brief Helper function to get an entity from an entity message.
+    ///
+    /// The message is used as follows:
+    ///
+    ///     if id not null
+    ///       use id
+    ///     else if name not null and type null
+    ///       use first entity with that scoped name
+    ///     else if name not null and type not null
+    ///       use name + type
+    ///     else
+    ///       error
+    ///     end
+    /// \param[in] _ecm Entity component manager
+    /// \param[in] _msg Entity message
+    /// \return Entity ID, or kNullEntity if a matching entity couldn't be
+    /// found.
+    Entity GZ_SIM_VISIBLE entityFromMsg(
+      const EntityComponentManager &_ecm, const msgs::Entity &_msg);
 
     /// \brief Get the spherical coordinates for an entity.
     /// \param[in] _entity Entity whose coordinates we want.
