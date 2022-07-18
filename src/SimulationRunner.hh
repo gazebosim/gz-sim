@@ -96,7 +96,7 @@ namespace gz
       public: bool Run(const uint64_t _iterations);
 
       /// \brief This will add a world to the scene
-      /// \param[in] _light SDF world to add to the scene
+      /// \param[in] _world SDF world to add to the scene
       public: void AddWorld(const sdf::World *_world);
 
       /// \brief Check if there is any model being downloaded in the backgound.

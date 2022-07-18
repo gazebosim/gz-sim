@@ -244,7 +244,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
           << system.name << "]\n"
           << "Systems created without plugins that do not implement Reset"
           << " will not be reloaded. Reset may not work correctly\n";
-        index++;
+        ++index;
         continue;
       }
 
@@ -258,7 +258,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
         pluginsToBeLoaded.push_back(info);
       }
     }
-    index++;
+    ++index;
   }
 
   this->removeSystems.clear();

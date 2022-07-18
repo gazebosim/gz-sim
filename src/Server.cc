@@ -175,7 +175,7 @@ void Server::Init()
     config.SetCacheLocation(this->dataPtr->config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
-  // Configure SDF to fetch assets from ignition fuel.
+  // Configure SDF to fetch assets from gazebo fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
@@ -197,7 +197,7 @@ void Server::Init()
     // Worlds from environment variable
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
-    // Worlds installed with ign-gazebo
+    // Worlds installed with gz-sim
     systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     std::string filePath = systemPaths.FindFile(
@@ -209,7 +209,8 @@ void Server::Init()
 
     if (worldNames.size() > 0)
     {
-      // we only support one world for now
+      // TODO(ahcorde): Add support for more worlds, for now we only support,
+      // we only support one world.
       errors = this->dataPtr->sdfRoot.LoadSdfString(
         DefaultWorld::World(worldNames[0]));
     }

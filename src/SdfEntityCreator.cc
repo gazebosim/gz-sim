@@ -221,11 +221,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   Entity worldEntity = kNullEntity;
-  this->dataPtr->ecm->Each<gz::sim::components::Name,
-            gz::sim::components::World>(
-    [&](const gz::sim::Entity &_entity,
-        const gz::sim::components::Name *_name,
-        const gz::sim::components::World *)->bool
+  this->dataPtr->ecm->Each<components::Name, components::World>(
+    [&](const Entity &_entity,
+        const components::Name *_name,
+        const components::World *)->bool
   {
     if (_world->Name() == _name->Data())
     {

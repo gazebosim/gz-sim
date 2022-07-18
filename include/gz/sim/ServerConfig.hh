@@ -220,7 +220,7 @@ namespace gz
       public: void SetRunOption(bool _run);
 
       /// \brief Get the run option
-      /// \return True if -r is setted or False otherwise
+      /// \return True if the server should run on start, false otherwise
       public: bool RunOption() const;
 
       /// \brief True if the models are downloaded in a thread false otherwise
