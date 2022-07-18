@@ -15,6 +15,7 @@
  *
 */
 
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -316,7 +317,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/ackermann_steering_slow_odom.sdf"));
+      "test", "worlds", "ackermann_steering_slow_odom.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -372,7 +373,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
 
       odomPoses.push_back(msgs::Convert(_msg.pose()));
     };
-    
+
   // Capture Tf data to compare to odom
   double periodTf{1.0};
   double lastMsgTimeTf{1.0};
@@ -423,7 +424,7 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
   ASSERT_EQ(odomPoses.size(), tfPoses.size());
 
   // Ensure all data is equal between the two topics
-  for (unsigned long i = 0; i < odomPoses.size(); i++) 
+  for (uint64_t i = 0; i < odomPoses.size(); i++)
   {
     ASSERT_EQ(odomPoses[i], tfPoses[i]);
   }
