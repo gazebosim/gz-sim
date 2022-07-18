@@ -128,6 +128,10 @@ class gz::sim::SceneManagerPrivate
   /// also sets the time point in which the animation should be played
   public: AnimationUpdateData ActorTrajectoryAt(
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
+
+  /// \brief Holds the spherical coordinates from the world.
+  public: math::SphericalCoordinates sphericalCoordinates =
+          math::SphericalCoordinates();
 };
 
 
@@ -618,6 +622,14 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
   collisionVis->SetUserData("gui-only", static_cast<bool>(true));
   return collisionVis;
 }
+
+/////////////////////////////////////////////////
+void SceneManager::SetSphericalCoordinates(
+    math::SphericalCoordinates _sphericalCoordinates)
+{
+  this->dataPtr->sphericalCoordinates = _sphericalCoordinates;
+}
+
 /////////////////////////////////////////////////
 rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     math::Vector3d &_scale, math::Pose3d &_localPose)
@@ -726,6 +738,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     else
     {
       auto dem = std::make_shared<common::Dem>();
+      dem->SetSphericalCoordinates(this->dataPtr->sphericalCoordinates);
+      std::cout << "dbg: " << this->dataPtr->sphericalCoordinates.Surface() << std::endl;
       if (dem->Load(fullPath) < 0)
       {
         gzerr << "Failed to load heightmap dem data from ["

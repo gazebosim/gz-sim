@@ -79,6 +79,7 @@
 #include "gz/sim/components/SegmentationCamera.hh"
 #include "gz/sim/components/SemanticLabel.hh"
 #include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Temperature.hh"
 #include "gz/sim/components/TemperatureRange.hh"
 #include "gz/sim/components/ThermalCamera.hh"
@@ -1608,6 +1609,18 @@ void RenderUtilPrivate::CreateRenderingEntities(
   if (!this->initialized)
   {
     this->CreateEntitiesFirstUpdate(_ecm, _info);
+    // Get the SphericalCoordinate object from the world
+    // and supply it to the SceneManager
+    auto worldEntity = _ecm.EntityByComponents(components::World());
+    auto sphericalCoordinatesComponent =
+      _ecm.Component<components::SphericalCoordinates>(
+          worldEntity);
+    if (sphericalCoordinatesComponent)
+    {
+      this->sceneManager.SetSphericalCoordinates(
+          sphericalCoordinatesComponent->Data());
+    }
+
     this->initialized = true;
   }
   else
