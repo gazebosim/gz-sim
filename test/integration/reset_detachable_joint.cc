@@ -275,7 +275,7 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-TEST_F(ResetDetachableJointTest, Reset)
+TEST_F(ResetDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   this->StartServer("/test/worlds/reset_detachable_joint.sdf");
   this->server->Run(true, 5000, false);
