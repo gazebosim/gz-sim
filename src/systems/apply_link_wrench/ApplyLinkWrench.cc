@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <mutex>
 #include <queue>
