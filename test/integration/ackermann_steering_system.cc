@@ -381,17 +381,18 @@ TEST_P(AckermannSteeringTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
   std::function<void(const msgs::Pose_V &)> tfCb =
     [&](const msgs::Pose_V &_msg)
     {
-      ASSERT_TRUE(_msg.pose()[0].has_header());
+      ASSERT_TRUE(_msg.pose().Get(0).has_header());
 
       double msgTime =
-          static_cast<double>(_msg.pose()[0].header().stamp().sec()) +
-          static_cast<double>(_msg.pose()[0].header().stamp().nsec()) * 1e-9;
+          static_cast<double>(_msg.pose().Get(0).header().stamp().sec()) +
+          static_cast<double>(_msg.pose().Get(0).header().stamp().nsec()) *
+            1e-9;
 
       EXPECT_DOUBLE_EQ(msgTime, lastMsgTimeTf + periodTf);
       lastMsgTimeTf = msgTime;
 
       // Use position pose to match odom (index 0)
-      tfPoses.push_back(msgs::Convert(_msg.pose()[0]));
+      tfPoses.push_back(msgs::Convert(_msg.pose().Get(0)));
     };
 
   transport::Node node;
