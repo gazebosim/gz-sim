@@ -27,6 +27,7 @@
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 
+#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/TestFixture.hh"
@@ -54,6 +55,7 @@ TEST_F(ApplyLinkWrenchTestFixture, FromSdf)
     "test", "worlds", "apply_link_wrench.sdf"));
 
   std::size_t iterations{0};
+  // TODO CHECK ACCELERATIONS INSTEAD OF POSES
   math::Pose3d prevPose1;
   math::Pose3d prevPose2;
   fixture.OnPostUpdate([&](
@@ -70,6 +72,14 @@ TEST_F(ApplyLinkWrenchTestFixture, FromSdf)
 
         auto pose1 = worldPose(model1.Entity(), _ecm);
         auto pose2 = worldPose(model2.Entity(), _ecm);
+
+        auto wrenchComp1 = _ecm.Component<components::ExternalWorldWrenchCmd>(
+            model1.CanonicalLink(_ecm));
+        auto wrenchComp2 = _ecm.Component<components::ExternalWorldWrenchCmd>(
+            model2.CanonicalLink(_ecm));
+
+        EXPECT_NE(nullptr, wrenchComp1);
+        EXPECT_NE(nullptr, wrenchComp2);
 
         if (_info.iterations == 1)
         {
@@ -119,11 +129,15 @@ TEST_F(ApplyLinkWrenchTestFixture, FromTopic)
     "test", "worlds", "apply_link_wrench.sdf"));
 
   std::size_t iterations{0};
-  bool startedMoving{false};
+  std::size_t movingIterations3{0};
+  std::size_t movingIterations4{0};
+  std::size_t clearedIterations3{0};
+  std::size_t clearedIterations4{0};
   math::Pose3d prevPose3;
   math::Pose3d prevPose4;
+  bool wrenchesCleared{false};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &_info,
+      const gazebo::UpdateInfo &,
       const gazebo::EntityComponentManager &_ecm)
       {
         Model model3(_ecm.EntityByComponents(components::Model(),
@@ -137,29 +151,75 @@ TEST_F(ApplyLinkWrenchTestFixture, FromTopic)
         auto pose3 = worldPose(model3.Entity(), _ecm);
         auto pose4 = worldPose(model4.Entity(), _ecm);
 
-        if (!startedMoving)
-          startedMoving = (pose4.Pos().X() + tol) > prevPose4.Pos().X();
+        auto wrenchComp3 = _ecm.Component<components::ExternalWorldWrenchCmd>(
+            model3.CanonicalLink(_ecm));
+        auto wrenchComp4 = _ecm.Component<components::ExternalWorldWrenchCmd>(
+            model4.CanonicalLink(_ecm));
 
-        if (!startedMoving)
+        if (wrenchComp3 == nullptr)
         {
-          EXPECT_NEAR(pose3.Pos().X(), 0.0, tol);
-          EXPECT_NEAR(pose3.Rot().Yaw(), 0.0, tol);
-
-          EXPECT_NEAR(pose4.Pos().X(), 0.0, tol);
-          EXPECT_NEAR(pose4.Rot().Yaw(), 0.0, tol);
+          EXPECT_NEAR(pose3.Pos().X(), 0.0, tol) << iterations;
+          EXPECT_NEAR(pose3.Rot().Yaw(), 0.0, tol) << iterations;
         }
-        // Give it a few iterations for messages to be received
+        else if (!wrenchesCleared)
+        {
+          EXPECT_GT(pose3.Pos().X(), prevPose3.Pos().X()) << iterations;
+          EXPECT_GT(pose3.Rot().Yaw(), prevPose3.Rot().Yaw()) << iterations;
+
+          ++movingIterations3;
+        }
         else
         {
-          EXPECT_GT(pose3.Pos().X(), prevPose3.Pos().X());
-          EXPECT_GT(pose3.Rot().Yaw(), prevPose3.Rot().Yaw());
+          EXPECT_NEAR(pose3.Pos().X(), prevPose3.Pos().X(), tol) << iterations;
+          EXPECT_NEAR(pose3.Rot().Yaw(), prevPose3.Rot().Yaw(), tol) << iterations;
 
-          EXPECT_LT(pose4.Pos().X(), prevPose4.Pos().X());
-          EXPECT_LT(pose4.Rot().Yaw(), prevPose4.Rot().Yaw());
+          ++clearedIterations3;
+        }
 
-          // model 4 moves faster than 3
-          EXPECT_LT(std::abs(pose3.Pos().X()), std::abs(pose4.Pos().X())) << _info.iterations;
-          EXPECT_LT(std::abs(pose3.Rot().Yaw()), std::abs(pose4.Rot().Yaw())) << _info.iterations;
+        if (wrenchComp4 == nullptr)
+        {
+          EXPECT_NEAR(pose4.Pos().X(), 0.0, tol) << iterations;
+          EXPECT_NEAR(pose4.Rot().Yaw(), 0.0, tol) << iterations;
+        }
+        else if (!wrenchesCleared)
+        {
+          EXPECT_LT(pose4.Pos().X(), prevPose4.Pos().X()) << iterations;
+          EXPECT_LT(pose4.Rot().Yaw(), prevPose4.Rot().Yaw()) << iterations;
+
+          ++movingIterations4;
+        }
+        else
+        {
+          EXPECT_NEAR(pose4.Pos().X(), prevPose4.Pos().X(), tol) << iterations;
+          EXPECT_NEAR(pose4.Rot().Yaw(), prevPose4.Rot().Yaw(), tol) << iterations;
+
+          ++clearedIterations4;
+        }
+
+        if (wrenchComp3 != nullptr && wrenchComp4 != nullptr)
+        {
+          if (!wrenchesCleared)
+          {
+            EXPECT_GT(pose3.Pos().X(), prevPose3.Pos().X());
+            EXPECT_GT(pose3.Rot().Yaw(), prevPose3.Rot().Yaw());
+
+            EXPECT_LT(pose4.Pos().X(), prevPose4.Pos().X());
+            EXPECT_LT(pose4.Rot().Yaw(), prevPose4.Rot().Yaw());
+
+            // model 4 moves faster than 3
+            EXPECT_LT(std::abs(pose3.Pos().X()), std::abs(pose4.Pos().X()))
+                << iterations;
+            EXPECT_LT(std::abs(pose3.Rot().Yaw()), std::abs(pose4.Rot().Yaw()))
+                << iterations;
+          }
+          else
+          {
+            // EXPECT_NEAR(pose3.Pos().X(), prevPose3.Pos().X(), tol);
+            // EXPECT_NEAR(pose3.Rot().Yaw(), prevPose3.Rot().Yaw(), tol);
+
+            // EXPECT_NEAR(pose4.Pos().X(), prevPose4.Pos().X(), tol);
+            // EXPECT_NEAR(pose4.Rot().Yaw(), prevPose4.Rot().Yaw(), tol);
+          }
         }
 
         EXPECT_NEAR(pose3.Pos().Y(), 4.0, tol);
@@ -172,17 +232,27 @@ TEST_F(ApplyLinkWrenchTestFixture, FromTopic)
         EXPECT_NEAR(pose4.Rot().Roll(), 0.0, tol);
         EXPECT_NEAR(pose4.Rot().Pitch(), 0.0, tol);
 
-        prevPose3 = pose3;
+        if (!wrenchesCleared)
+        {
+          prevPose3 = pose3;
+          prevPose4 = pose4;
+        }
         ++iterations;
       }).Finalize();
 
   // Publish messages
-
-  // TODO: USE SERVICES
-
   transport::Node node;
   auto pubPersistent = node.Advertise<msgs::EntityWrench>(
-      "/model/apply_link_wrench/wrench/persistent");
+      "/world/apply_link_wrench/wrench/persistent");
+
+  int sleep{0};
+  int maxSleep{30};
+  for (; !pubPersistent.HasConnections() && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+  EXPECT_TRUE(pubPersistent.HasConnections());
 
   {
     msgs::EntityWrench msg;
@@ -203,13 +273,38 @@ TEST_F(ApplyLinkWrenchTestFixture, FromTopic)
   }
 
   auto pubWrench = node.Advertise<msgs::EntityWrench>(
-      "/model/apply_link_wrench/wrench");
-  auto pubClear = node.Advertise<msgs::Entity>(
-      "/model/apply_link_wrench/wrench/clear");
+      "/world/apply_link_wrench/wrench");
 
-  std::size_t targetIterations{10};
+  std::size_t targetIterations{100};
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
-  EXPECT_TRUE(startedMoving);
+  EXPECT_GT(movingIterations3, 0u);
+  EXPECT_GT(movingIterations4, 0u);
+  EXPECT_LE(movingIterations3, iterations);
+  EXPECT_LE(movingIterations4, iterations);
+  EXPECT_GE(movingIterations3, movingIterations4);
+
+  // Clear wrenches
+  auto pubClear = node.Advertise<msgs::Entity>(
+      "/world/apply_link_wrench/wrench/clear");
+  EXPECT_TRUE(pubClear.HasConnections());
+
+  {
+    msgs::Entity msg;
+    msg.set_name("model3");
+    msg.set_type(msgs::Entity::MODEL);
+    pubClear.Publish(msg);
+  }
+
+  {
+    msgs::Entity msg;
+    msg.set_name("model4::link");
+    msg.set_type(msgs::Entity::LINK);
+    pubClear.Publish(msg);
+  }
+
+  wrenchesCleared = true;
+  fixture.Server()->Run(true, targetIterations, false);
+  EXPECT_EQ(targetIterations * 2, iterations);
 }
 

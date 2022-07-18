@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
 <!--
 
-  Apply a force to the model (i.e. its canonical link):
+  Demostrates the ApplyLinkWrench plugin.
 
-    gz topic -t "/world/apply_link_wrench/wrench" -m gz.msgs.EntityWrench  -p "entity: {name: 'box'}, wrench: {force: {x: 1000, z: 10000}}"
+  When simulation starts, the box model starts moving due to the persistent force defined in this file.
 
-  Apply a wrench to the link:
+  Wrenches can also be applied through transport.
+  For example, apply a force to the cylinder model (i.e. its canonical link) with:
 
     gz topic -t "/world/apply_link_wrench/wrench" -m gz.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {y: 1000, z: 10000}}"
 
