@@ -354,7 +354,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Set the assimp mode
     /// \param[in] _useAssimp Set to true to enable assimp mode.
-    public: void SetUseAssimp(bool useAssimp) const;
+    public: void SetUseAssimp(bool useAssimp);
 
     /// \internal
     /// \brief Pointer to private data class
