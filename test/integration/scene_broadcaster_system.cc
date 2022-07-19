@@ -327,7 +327,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 
   // The id of the deleted entity should have been published
   // Note: Only model entities are currently supported for deletion
-  EXPECT_TRUE(std::find_if(delMsg.data().cbegin(), delMsg.data().cend(),
+  EXPECT_NE(delMsg.data().cend(),
+      std::find_if(delMsg.data().cbegin(), delMsg.data().cend(),
       [&cylinderModelId](const auto &_val)
       {
         return _val == cylinderModelId;
