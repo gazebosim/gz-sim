@@ -232,7 +232,7 @@ void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
           const components::ForceTorque *_forceTorque,
           const components::ParentEntity *_parent)->bool
         {
-          this->AddForceTorque(_ecm, _entity, _forceTorque, _parent);
+          this->AddSensor(_ecm, _entity, _forceTorque, _parent);
           return true;
         });
     this->initialized = true;
@@ -245,7 +245,7 @@ void ForceTorquePrivate::CreateSensors(const EntityComponentManager &_ecm)
           const components::ForceTorque *_forceTorque,
           const components::ParentEntity *_parent)->bool
         {
-          this->AddForceTorque(_ecm, _entity, _forceTorque, _parent);
+          this->AddSensor(_ecm, _entity, _forceTorque, _parent);
           return true;
         });
   }
