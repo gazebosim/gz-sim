@@ -377,3 +377,9 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 
   return false;
 }
+
+//////////////////////////////////////////////////
+void Server::Stop()
+{
+  this->dataPtr->Stop();
+}

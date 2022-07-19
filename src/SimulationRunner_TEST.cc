@@ -1484,8 +1484,8 @@ TEST_P(SimulationRunnerTest,
   ASSERT_EQ(1u, rootWith.WorldCount());
 
   // Emit plugin loading event
-  runner.EventMgr().Emit<events::LoadPlugins>(boxEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(boxEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component registered by model plugin
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
@@ -1494,8 +1494,8 @@ TEST_P(SimulationRunnerTest,
       componentId)) << componentId;
 
   // Emit plugin loading event again
-  runner.EventMgr().Emit<events::LoadPlugins>(sphereEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(sphereEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component for the other model
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
@@ -1522,8 +1522,8 @@ TEST_P(SimulationRunnerTest,
   EXPECT_FALSE(runner.EntityCompMgr().HasEntity(sphereEntity));
 
   // Emit plugin loading event after all previous instances have been removed
-  runner.EventMgr().Emit<events::LoadPlugins>(cylinderEntity,
-      rootWith.WorldByIndex(0)->ModelByIndex(0)->Element());
+  runner.EventMgr().Emit<events::LoadSdfPlugins>(cylinderEntity,
+      rootWith.WorldByIndex(0)->ModelByIndex(0)->Plugins());
 
   // Check component for the other model
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))

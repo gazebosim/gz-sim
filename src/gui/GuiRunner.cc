@@ -82,7 +82,7 @@ class ignition::gazebo::GuiRunner::Implementation
   public: std::mutex systemLoadMutex;
 
   /// \brief Events containing visual plugins to load
-  public: std::vector<std::pair<ignition::gazebo::Entity, sdf::ElementPtr>>
+  public: std::vector<std::pair<ignition::gazebo::Entity, sdf::Plugin>>
       visualPlugins;
 
   /// \brief Systems implementing PreUpdate
@@ -193,6 +193,22 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
   }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::VisualPlugins::kType)
+  {
+    auto visualPluginEvent =
+      reinterpret_cast<gui::events::VisualPlugins *>(_event);
+    if (visualPluginEvent)
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
+
+      Entity entity = visualPluginEvent->Entity();
+      for (const sdf::Plugin &plugin : visualPluginEvent->Plugins())
+      {
+        this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
+      }
+    }
+  }
   else if (_event->type() == ignition::gazebo::gui::events::VisualPlugin::kType)
   {
     auto visualPluginEvent =
@@ -203,11 +219,11 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 
       Entity entity = visualPluginEvent->Entity();
       sdf::ElementPtr pluginElem = visualPluginEvent->Element();
-      this->dataPtr->visualPlugins.push_back(
-         std::make_pair(entity, pluginElem));
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
     }
   }
-
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
@@ -332,16 +348,13 @@ void GuiRunner::LoadSystems()
   for (auto &visualPlugin : this->dataPtr->visualPlugins)
   {
     Entity entity = visualPlugin.first;
-    sdf::ElementPtr pluginElem = visualPlugin.second;
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
-    if (filename != "__default__" && name != "__default__")
+    sdf::Plugin plugin = visualPlugin.second;
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
       std::optional<SystemPluginPtr> system;
       if (!this->dataPtr->systemLoader)
         this->dataPtr->systemLoader = std::make_unique<SystemLoader>();
-      system = this->dataPtr->systemLoader->LoadPlugin(
-          filename, name, pluginElem);
+      system = this->dataPtr->systemLoader->LoadPlugin(plugin);
       if (system)
       {
         SystemPluginPtr sys = system.value();
@@ -356,10 +369,10 @@ void GuiRunner::LoadSystems()
         auto sysConfigure = sys->QueryInterface<ISystemConfigure>();
         if (sysConfigure)
         {
-          sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
-              this->dataPtr->eventMgr);
+          sysConfigure->Configure(entity, plugin.ToElement(),
+              this->dataPtr->ecm, this->dataPtr->eventMgr);
         }
-        igndbg << "Loaded system [" << name
+        igndbg << "Loaded system [" << plugin.Name()
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
       }
