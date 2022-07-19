@@ -24,7 +24,6 @@ import "qrc:/qml"
 
 // Item displaying 3D vector information.
 Rectangle {
-
   height: header.height + gzVectorInstance.height
   width: componentInspector.width
   color: index % 2 == 0 ? lightGrey : darkGrey
@@ -34,9 +33,6 @@ Rectangle {
 
   // Horizontal margins
   property int margin: 5
-
-  // Units, defaults to meters.
-  property string unit: model && model.unit != undefined ? model.unit : 'm'
 
   Column {
     anchors.fill: parent
@@ -101,7 +97,7 @@ Rectangle {
         GzVector3 {
           id: gzVectorInstance
           Layout.fillWidth: true
-          gzUnit: unit
+          gzUnit: model && model.unit != undefined ? model.unit : 'm'
 
           xValue: model.data[0]
           yValue: model.data[1]
