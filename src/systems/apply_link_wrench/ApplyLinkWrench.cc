@@ -18,6 +18,7 @@
 
 #include <mutex>
 #include <string>
+#include <queue>
 #include <vector>
 
 #include <ignition/common/Profiler.hh>

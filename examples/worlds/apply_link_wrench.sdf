@@ -16,11 +16,11 @@
 
   Clear the persistent force from the box with:
 
-    ign topic -t "/world/apply_link_wrench/wrench/clear" -m ignition.msgs.Entity  -p "entity: {name: 'box', type: MODEL}"
+    ign topic -t "/world/apply_link_wrench/wrench/clear" -m ignition.msgs.Entity  -p "name: 'box', type: MODEL"
 
   Apply a persistent force to the cylinder with:
 
-    ign topic -t "/world/apply_link_wrench/wrench/persistent" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: -10}}"
+    ign topic -t "/world/apply_link_wrench/wrench/persistent" -m ignition.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: -20}}"
 
 -->
 <sdf version="1.6">

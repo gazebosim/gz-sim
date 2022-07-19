@@ -31,7 +31,7 @@ namespace systems
   // Forward declaration
   class ApplyLinkWrenchPrivate;
 
-  /// \brief This system exposes transport topics for applying forces and
+  /// \brief Exposes transport topics and SDF params for applying forces and
   /// torques to links in simulation. It should be attached to a world.
   ///
   /// The target link is defined in each message. If a link entity is provided,
@@ -57,8 +57,16 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  ///  Persistent wrenches
+  /// Persistent wrenches can be defined from SDF, for example:
   ///
+  /// ```
+  /// <persistent>
+  ///   <entity_name>box</entity_name>
+  ///   <entity_type>model</entity_type>
+  ///   <force>-10 0 0</force>
+  ///   <torque>0 0 0.1</torque>
+  /// </persistent>
+  /// ```
   class ApplyLinkWrench
       : public System,
         public ISystemConfigure,
