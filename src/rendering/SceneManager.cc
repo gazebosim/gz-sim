@@ -739,7 +739,6 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     {
       auto dem = std::make_shared<common::Dem>();
       dem->SetSphericalCoordinates(this->dataPtr->sphericalCoordinates);
-      std::cout << "dbg: " << this->dataPtr->sphericalCoordinates.Surface() << std::endl;
       if (dem->Load(fullPath) < 0)
       {
         gzerr << "Failed to load heightmap dem data from ["

@@ -778,6 +778,18 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
+
+  // Get the SphericalCoordinate object from the world
+  // and supply it to the SceneManager
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  auto sphericalCoordinatesComponent =
+    _ecm.Component<components::SphericalCoordinates>(
+        worldEntity);
+  if (sphericalCoordinatesComponent)
+  {
+    this->dataPtr->sceneManager.SetSphericalCoordinates(
+        sphericalCoordinatesComponent->Data());
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1609,18 +1621,6 @@ void RenderUtilPrivate::CreateRenderingEntities(
   if (!this->initialized)
   {
     this->CreateEntitiesFirstUpdate(_ecm, _info);
-    // Get the SphericalCoordinate object from the world
-    // and supply it to the SceneManager
-    auto worldEntity = _ecm.EntityByComponents(components::World());
-    auto sphericalCoordinatesComponent =
-      _ecm.Component<components::SphericalCoordinates>(
-          worldEntity);
-    if (sphericalCoordinatesComponent)
-    {
-      this->sceneManager.SetSphericalCoordinates(
-          sphericalCoordinatesComponent->Data());
-    }
-
     this->initialized = true;
   }
   else
