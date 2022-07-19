@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <ignition/utils/ExtraTestMacros.hh>
+
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
