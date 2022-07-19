@@ -851,4 +851,6 @@ TEST_F(UtilTest, EntityFromMsg)
       "blueberry")));
   EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity, "banana",
       msgs::Entity::COLLISION)));
+  EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity, "peach",
+      msgs::Entity::WORLD)));
 }
