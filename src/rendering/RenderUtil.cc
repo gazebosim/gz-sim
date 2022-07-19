@@ -2546,7 +2546,6 @@ void RenderUtil::Init()
     params["useCurrentGLContext"] = "1";
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
-
   this->dataPtr->sceneManager.SetUseAssimp(this->dataPtr->useAssimp);
   params["winID"] = this->dataPtr->winID;
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
