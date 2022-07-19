@@ -364,7 +364,7 @@ namespace gz
       public: bool HeadlessRendering() const;
 
       /// \brief Set the assimp mode
-      /// \param[in] _headless Set to true to enable assimp mode.
+      /// \param[in] _useAssimp Set to true to enable assimp mode.
       public: void SetUseAssimp(const bool _useAssimp);
 
       /// \brief Get the assimp mode
