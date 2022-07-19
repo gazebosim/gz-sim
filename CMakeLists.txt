@@ -17,9 +17,7 @@ find_package(gz-cmake3 REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(
-  REPLACE_IGNITION_INCLUDE_PATH gz/sim
-  VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -177,7 +175,7 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 #--------------------------------------
 # Find protobuf
 set(REQ_PROTOBUF_VER 3)
-gz_find_package(IgnProtobuf
+gz_find_package(GzProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
@@ -186,10 +184,10 @@ set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
-include(IgnPython)
+include(GzPython)
 find_package(PythonLibs QUIET)
 if (NOT PYTHONLIBS_FOUND)
-  IGN_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+  GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
   message (STATUS "Searching for Python - not found.")
 else()
   message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
@@ -201,16 +199,16 @@ else()
   if (${pybind11_FOUND})
     message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
 	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+		GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
 		message (STATUS "Searching for pybind11 - not found.")
 	endif()
 endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/gz-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/gz-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 
 #============================================================================
@@ -260,12 +258,12 @@ if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
 
-# TICKTOCK MASTER HEADER (to bypass IGN_DESIGNATION)
+# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
 # TODO(CH3): Deprecated. Remove on tock
 configure_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${IGN_DESIGNATION}.hh
+  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
   ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
   COPYONLY)
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL}/gz)
+  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

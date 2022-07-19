@@ -360,7 +360,7 @@ void ShaderParamPrivate::OnUpdate()
     // if no <value> is specified, this could be a constant
     if (spv.value.empty())
     {
-      // \todo handle args for constants in ign-rendering
+      // \todo handle args for constants in gz-rendering
       (*params)[spv.name] = 1;
       continue;
     }

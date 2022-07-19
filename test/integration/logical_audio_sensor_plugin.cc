@@ -192,7 +192,7 @@ TEST_F(LogicalAudioTest,
   // make sure close microphone detection occurred, and that the far microphone
   // didn't detect anything
   server.Run(true, 100, false);
-  // (wait on ignition-transport for close detection message to be received.
+  // (wait on gz-transport for close detection message to be received.
   // Don't exit when a close microphone detection is received because we want to
   // make sure a far microphone detection is never received)
   for (auto sleep = 0; sleep < 30; ++sleep)

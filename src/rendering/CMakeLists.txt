@@ -25,6 +25,6 @@ target_link_libraries(${rendering_target}
     gz-plugin${GZ_PLUGIN_VER}::register
 )
 
-install(TARGETS ${rendering_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
+install(TARGETS ${rendering_target} DESTINATION ${GZ_LIB_INSTALL_DIR})
 
 set(rendering_target ${rendering_target} PARENT_SCOPE)

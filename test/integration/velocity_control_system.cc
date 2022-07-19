@@ -133,7 +133,7 @@ class VelocityControlTest
     serverConfig.SetSdfFile(_sdfFile);
 
     // currently only tpe supports link velocity cmds
-    serverConfig.SetPhysicsEngine("ignition-physics-tpe-plugin");
+    serverConfig.SetPhysicsEngine("gz-physics-tpe-plugin");
 
     Server server(serverConfig);
     EXPECT_FALSE(server.Running());

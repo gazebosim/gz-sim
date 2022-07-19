@@ -13,5 +13,5 @@ configure_file(
 
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/components.hh
-  DESTINATION ${IGN_INCLUDE_INSTALL_DIR_FULL}/gz/sim
+  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz/sim
 )

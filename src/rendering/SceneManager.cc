@@ -348,10 +348,10 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     else if (_visual.Geom()->Type() != sdf::GeometryType::MESH)
     {
       // create default material
-      material = this->dataPtr->scene->Material("ign-grey");
+      material = this->dataPtr->scene->Material("gz-grey");
       if (!material)
       {
-        material = this->dataPtr->scene->CreateMaterial("ign-grey");
+        material = this->dataPtr->scene->CreateMaterial("gz-grey");
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
@@ -378,7 +378,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           // notified about the the cast shadows changes. So we need to set
           // the material back to the submesh.
           // \todo(anyone) find way to propate cast shadows changes tos submesh
-          // in ign-rendering
+          // in gz-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
           submesh->SetMaterial(submeshMat);
         }
@@ -396,7 +396,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.
-      // This is not ideal. We should let ign-rendering handle the lifetime
+      // This is not ideal. We should let gz-rendering handle the lifetime
       // of this material
       this->dataPtr->scene->DestroyMaterial(material);
     }
@@ -1083,8 +1083,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         // to meshSkel, changing the name that would also change the name of
         // other instances of the animation
         // todo(anyone) cloning is inefficient and error-prone. We should
-        // add a copy constructor to animation classes in ign-common.
-        // The proper fix is probably to update ign-rendering to allow it to
+        // add a copy constructor to animation classes in gz-common.
+        // The proper fix is probably to update gz-rendering to allow it to
         // load multiple animations of the same name
         common::SkeletonAnimation *skelAnim =
             new common::SkeletonAnimation(animName);
@@ -2124,7 +2124,7 @@ void SceneManager::RemoveEntity(Entity _id)
     if (it != this->dataPtr->sensors.end())
     {
       // Stop keeping track of it but don't destroy it;
-      // ign-sensors is the one responsible for that.
+      // gz-sensors is the one responsible for that.
       this->dataPtr->sensors.erase(it);
       return;
     }

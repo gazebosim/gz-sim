@@ -530,7 +530,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an gz::common::WorkerPool. There is overhead associated with
+  // a gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
