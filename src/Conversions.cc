@@ -707,42 +707,7 @@ template<>
 GZ_SIM_VISIBLE
 msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 {
-  msgs::Inertial out;
-  msgs::Set(out.mutable_pose(), _in.Pose());
-  out.set_mass(_in.MassMatrix().Mass());
-  out.set_ixx(_in.MassMatrix().Ixx());
-  out.set_iyy(_in.MassMatrix().Iyy());
-  out.set_izz(_in.MassMatrix().Izz());
-  out.set_ixy(_in.MassMatrix().Ixy());
-  out.set_ixz(_in.MassMatrix().Ixz());
-  out.set_iyz(_in.MassMatrix().Iyz());
-
-  if (_in.FluidAddedMass().has_value())
-  {
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 0));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 1));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 2));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 3));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 4));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(0, 5));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 1));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 2));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 3));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 4));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(1, 5));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 2));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 3));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 4));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(2, 5));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 3));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 4));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(3, 5));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(4, 4));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(4, 5));
-    out.add_fluid_added_mass(_in.FluidAddedMass().value()(5, 5));
-  }
-
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
@@ -750,67 +715,7 @@ template<>
 GZ_SIM_VISIBLE
 math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 {
-  math::MassMatrix3d massMatrix;
-  massMatrix.SetMass(_in.mass());
-  massMatrix.SetIxx(_in.ixx());
-  massMatrix.SetIyy(_in.iyy());
-  massMatrix.SetIzz(_in.izz());
-  massMatrix.SetIxy(_in.ixy());
-  massMatrix.SetIxz(_in.ixz());
-  massMatrix.SetIyz(_in.iyz());
-
-  math::Inertiald out;
-  out.SetMassMatrix(massMatrix);
-  out.SetPose(msgs::Convert(_in.pose()));
-
-  if (!_in.fluid_added_mass().empty())
-  {
-    math::Matrix6d addedMass{
-      _in.fluid_added_mass(0),
-      _in.fluid_added_mass(1),
-      _in.fluid_added_mass(2),
-      _in.fluid_added_mass(3),
-      _in.fluid_added_mass(4),
-      _in.fluid_added_mass(5),
-
-      _in.fluid_added_mass(1),
-      _in.fluid_added_mass(6),
-      _in.fluid_added_mass(7),
-      _in.fluid_added_mass(8),
-      _in.fluid_added_mass(9),
-      _in.fluid_added_mass(10),
-
-      _in.fluid_added_mass(2),
-      _in.fluid_added_mass(7),
-      _in.fluid_added_mass(11),
-      _in.fluid_added_mass(12),
-      _in.fluid_added_mass(13),
-      _in.fluid_added_mass(14),
-
-      _in.fluid_added_mass(3),
-      _in.fluid_added_mass(8),
-      _in.fluid_added_mass(12),
-      _in.fluid_added_mass(15),
-      _in.fluid_added_mass(16),
-      _in.fluid_added_mass(17),
-
-      _in.fluid_added_mass(4),
-      _in.fluid_added_mass(9),
-      _in.fluid_added_mass(13),
-      _in.fluid_added_mass(16),
-      _in.fluid_added_mass(18),
-      _in.fluid_added_mass(19),
-
-      _in.fluid_added_mass(5),
-      _in.fluid_added_mass(10),
-      _in.fluid_added_mass(14),
-      _in.fluid_added_mass(17),
-      _in.fluid_added_mass(19),
-      _in.fluid_added_mass(20)
-    };
-   out.SetFluidAddedMass(addedMass);
-  }
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
