@@ -552,7 +552,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);

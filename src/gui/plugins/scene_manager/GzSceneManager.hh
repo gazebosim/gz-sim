@@ -33,7 +33,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
   /// \brief Updates a 3D scene based on information coming from the ECM.
   /// This plugin doesn't instantiate a new 3D scene. Instead, it relies on
   /// another plugin being loaded alongside it that will create and paint the
-  /// scene to the window, such as `gz::gui::plugins::Scene3D`.
+  /// scene to the window, such as `gz::gui::plugins::MinimalScene`.
   ///
   /// Only one GzSceneManager can be used at a time.
   class GzSceneManager : public GuiSystem

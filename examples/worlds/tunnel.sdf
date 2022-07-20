@@ -89,9 +89,6 @@
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#666666</property>
         </gz-gui>
-
-        <!-- disable legacy features used to connect this plugin to GzScene3D -->
-        <legacy>false</legacy>
       </plugin>
 
       <!-- Insert simple shapes -->
