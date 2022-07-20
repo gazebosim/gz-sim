@@ -596,32 +596,105 @@ void TriggeredPublisher::Configure(const Entity &,
     }
   }
   else
-  {
     ignerr << "No ouptut specified" << std::endl;
-    return;
+
+  if (sdfClone->HasElement("service"))
+  {
+    for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
+         serviceElem = serviceElem->GetNextElement("service"))
+    {
+       this->hasService = true;
+       ignerr<< "TESTING ---------------------------" <<std::endl;
+       auto outputServElem = sdfClone->GetElement("service");
+       ServiceOutputInfo s_info; 
+       s_info.serviceName = outputServElem->Get<std::string>("name");
+       if (s_info.serviceName.empty())
+       {
+         ignerr << "Service name cannot be empty\n";
+       }
+       s_info.reqType = outputServElem->Get<std::string>("reqType");
+       if (s_info.reqType.empty())
+       {
+         ignerr << "Service request type cannot be empty\n";
+       }
+       s_info.repType = outputServElem->Get<std::string>("repType");
+       if (s_info.repType.empty())
+       {
+         ignerr << "Service response type cannot be empty\n";
+       }
+       s_info.reqMsg = outputServElem->Get<std::string>("reqMsg");
+       if (s_info.reqMsg.empty())
+       {
+         ignerr << "Service request string cannot be empty\n";
+       }
+       s_info.timeout = outputServElem->Get<std::string>("timeout");
+
+       //TODO: check if service is available before adding?
+       this->serviceOutputInfo.push_back(std::move(s_info));
+    }
+  // if (s_info.timeout.empty())
+  // {
+  //   ignerr << "Service timeout cannot be empty\n";
+  // }
   }
+//   
+//  ignition::msgs::StringMsg req;
+//  ignition::msgs::StringMsg rep;
+//  req.set_data(s_info.reqString);
+//  bool result;
+//  ignerr <<"before executed" <<std::endl;
+  //bool executed = this->node.Request(s_info.serviceName, req, 300, rep, result);
+
+  //auto cb = std::function<void(const transport::ProtoMsg &)>([this](const ignition::msgs::StringMsg &_rep, const bool _result){});
+  
+
+  //bool executed = this->node.Request(s_info.serviceName, req, &TriggeredPublisher::cb,this);
+  //ignerr << "executed is " <<executed <<std::endl;
+
+  // TODO: add the timeout feature later
+  //  if (outputServElem->Get<std::string>("timeout").empty())
+  //    ignerr <<"WTF"<<std::endl;
+
+
+//   ignerr << "Service name is " << s_info.serviceName << " req type is "
+//   << s_info.reqType << " res type is " << s_info.repType << std::endl;
+   
+//  }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
       [this](const auto &_msg)
       {
+      // liam
+        ignerr<<"inside the callback" <<std::endl;
+
         if (this->MatchInput(_msg))
         {
+          if (this->delay > 0ms)
           {
-            if (this->delay > 0ms)
+            std::lock_guard<std::mutex> lock(this->publishQueueMutex);
+            this->publishQueue.push_back(this->delay);
+          }
+	  //////////////////////
+          else if (this->hasService)
+          {
+            ignerr <<"CB service read "<< std::endl;
+	    {
+              std::lock_guard<std::mutex> lock(this->serviceCountMutex);
+	      ++this->serviceCount;
+	    }
+	    this->serviceMatchSignal.notify_one();
+	  }
+	  //////////////////////
+          else
+          {
             {
-              std::lock_guard<std::mutex> lock(this->publishQueueMutex);
-              this->publishQueue.push_back(this->delay);
+              std::lock_guard<std::mutex> lock(this->publishCountMutex);
+              ++this->publishCount;
             }
-            else
-            {
-              {
-                std::lock_guard<std::mutex> lock(this->publishCountMutex);
-                ++this->publishCount;
-              }
-              this->newMatchSignal.notify_one();
-            }
+            this->newMatchSignal.notify_one();
           }
         }
+
       });
   if (!this->node.Subscribe(this->inputTopic, msgCb))
   {
@@ -643,7 +716,68 @@ void TriggeredPublisher::Configure(const Entity &,
 
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
+  this->serviceWorkerThread =
+      std::thread(std::bind(&TriggeredPublisher::DoServiceWork, this));
 }
+
+////////////
+void TriggeredPublisher::cb(const ignition::msgs::Boolean &_rep, const bool _result){
+ignerr<<"LIAM"<<std::endl;
+}
+///////////////////
+//LIAM
+void TriggeredPublisher::DoServiceWork()
+{
+  while (!this->done)
+  {
+    //TODO: add mutex and use the serviceOutpuInfo later
+    std::size_t pending{0};
+    {
+      using namespace std::chrono_literals;
+      std::unique_lock<std::mutex> lock(this->serviceCountMutex);
+      this->serviceMatchSignal.wait_for(lock, 1s,
+        [this]
+	{
+	  return (this->serviceCount > 0) || this->done;
+	});
+
+      if (this->serviceCount == 0 || this->done)
+        continue;
+
+	std::swap(pending, this->serviceCount);
+    }
+    ignerr << "ready to call service"<<std::endl;
+    for (auto &s_info : this->serviceOutputInfo)
+    {
+      for (std::size_t i = 0; i < pending; ++i)
+        {
+          ignition::msgs::Pose req;
+          ignition::msgs::Boolean rep;
+          bool result;
+	  auto cb1 = std::function<void(ignition::msgs::Boolean &_rep, const bool _result)>(
+      [this](const ignition::msgs::Boolean &_rep, const bool _result){});
+
+          req.set_id(8);
+          msgs::Set(req.mutable_position(), math::Vector3d(5, 5, 5));
+          msgs::Set(req.mutable_orientation(), math::Quaterniond(0, 0, 0));
+          std::string poseCmdService("/world/triggered_publisher/set_pose");
+          this->node.Request(poseCmdService,req, &TriggeredPublisher::cb, this);
+
+
+
+
+ // auto msgCb = std::function<void(const transport::ProtoMsg &)>(
+ //     [this](const auto &_msg)
+
+          
+          //req.set_data("'name: 'blue_vehicle', position: {x:1.0,z: 5.0}'");
+          //bool exe = this->node.Request("/world/triggered_publisher/set_pose", req, 3000,rep, result);
+          ignerr<< "executed is "  <<std::endl;
+	}
+    }
+  }
+}
+
 
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
@@ -711,8 +845,28 @@ void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
   }
 
-  if (notify)
+  if (notify){
     this->newMatchSignal.notify_one();
+ignerr<<"notifying"<<std::endl;
+}
+
+//  ignition::msgs::StringMsg req;
+//  ignition::msgs::StringMsg res;
+//  req.set_data("'name: 'blue_vehicle', position: {x:13.0,z: 5.0}'");
+//
+//
+//  bool result;
+//  bool executed = this->node.Request("/world/triggered_publisher/set_pose", req, 300, res, result);
+
+  // TODO: add the timeout feature later
+  //  if (outputServElem->Get<std::string>("timeout").empty())
+  //    ignerr <<"WTF"<<std::endl;
+
+
+
+//   ignerr << "Service name is " << s_info.serviceName << " req type is "
+//   << s_info.reqType << " res type is " << s_info.repType << std::endl;
+   
 }
 
 //////////////////////////////////////////////////
