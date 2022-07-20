@@ -42,6 +42,10 @@ namespace gui
   /// ign-tools. Set to the name of the application if using ign-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+  /// \param[in] _file The world file path passed as a command line argument.
+  /// If set, QuickStart Dialog will not be shown.
+  /// \param[in] _waitGui Flag indicating whether the server waits until
+  /// it receives a world path from GUI.
   IGNITION_GAZEBO_GUI_VISIBLE int runGui(int &_argc, char **_argv,
         const char *_guiConfig, const char*_file, int _waitGui);
 
