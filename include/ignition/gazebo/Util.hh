@@ -177,8 +177,9 @@ namespace ignition
         const Entity &_entity, const EntityComponentManager &_ecm);
 
     /// \brief Get the default config file for gazebo
-    /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
-    /// configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config will be used.
+    /// \param[in] _guiConfig The GUI configuration file. If nullptr,
+    /// the default configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config
+    /// will be used.
     /// \return Path to Gazebo GUI default configuration file.
     std::string IGNITION_GAZEBO_VISIBLE getDefaultConfigFile(
       const char *_guiConfig);
