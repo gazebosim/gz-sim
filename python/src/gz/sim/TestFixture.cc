@@ -30,7 +30,7 @@ namespace sim
 namespace python
 {
 void
-defineGazeboTestFixture(pybind11::object module)
+defineSimTestFixture(pybind11::object module)
 {
   pybind11::class_<TestFixture, std::shared_ptr<TestFixture>> testFixture(module, "TestFixture");
 

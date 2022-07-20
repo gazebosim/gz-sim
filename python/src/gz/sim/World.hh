@@ -32,7 +32,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboWorld(pybind11::object module);
+defineSimWorld(pybind11::object module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

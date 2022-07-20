@@ -31,7 +31,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboUpdateInfo(pybind11::object module);
+defineSimUpdateInfo(pybind11::object module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz
