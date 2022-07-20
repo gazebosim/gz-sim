@@ -57,9 +57,9 @@ target_link_libraries(${gui_target}
 set(CMAKE_AUTOMOC OFF)
 set(CMAKE_AUTORCC OFF)
 
-install(TARGETS ${gui_target} DESTINATION ${IGN_LIB_INSTALL_DIR})
-install (FILES gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
-install (FILES playback_gui.config DESTINATION ${IGN_DATA_INSTALL_DIR}/gui)
+install(TARGETS ${gui_target} DESTINATION ${GZ_LIB_INSTALL_DIR})
+install (FILES gui.config DESTINATION ${GZ_DATA_INSTALL_DIR}/gui)
+install (FILES playback_gui.config DESTINATION ${GZ_DATA_INSTALL_DIR}/gui)
 
 # Tests
 include_directories(${PROJECT_SOURCE_DIR}/test)

@@ -327,7 +327,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 
   // The id of the deleted entity should have been published
   // Note: Only model entities are currently supported for deletion
-  EXPECT_TRUE(std::find_if(delMsg.data().cbegin(), delMsg.data().cend(),
+  EXPECT_NE(delMsg.data().cend(),
+      std::find_if(delMsg.data().cbegin(), delMsg.data().cend(),
       [&cylinderModelId](const auto &_val)
       {
         return _val == cylinderModelId;
@@ -859,7 +860,7 @@ TEST_P(SceneBroadcasterTest,
   received = false;
   hasState = false;
   server.Run(true, 10, false);
-  // (wait for a bit after running the server in case ign-transport is still
+  // (wait for a bit after running the server in case gz-transport is still
   // processing messages)
   unsigned int sleep = 0u;
   unsigned int maxSleep = 50u;

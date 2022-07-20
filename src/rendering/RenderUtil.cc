@@ -1233,7 +1233,7 @@ void RenderUtil::Update()
 
         // two sensors with the same name cause conflicts. We'll need to use
         // scoped names
-        // TODO(anyone) do this in ign-sensors?
+        // TODO(anyone) do this in gz-sensors?
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
         if (!parentNode)
         {
@@ -2211,7 +2211,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
         auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
 
-        // Animation time set through ECM so ign-rendering can calculate bone
+        // Animation time set through ECM so gz-rendering can calculate bone
         // transforms
         if (animTimeComp && animNameComp)
         {
@@ -2228,14 +2228,14 @@ void RenderUtilPrivate::UpdateRenderingEntities(
             this->actorAnimationData[_entity] = animData;
           }
         }
-        // Bone poses calculated by ign-common
+        // Bone poses calculated by gz-common
         else if (this->actorManualSkeletonUpdate)
         {
           this->actorTransforms[_entity] =
               this->sceneManager.ActorSkeletonTransformsAt(
               _entity, this->simTime);
         }
-        // Trajectory info from SDF so ign-rendering can calculate bone poses
+        // Trajectory info from SDF so gz-rendering can calculate bone poses
         else
         {
           auto animData =

@@ -305,7 +305,7 @@ class gz::sim::systems::PhysicsPrivate
   public: void UpdateCollisions(EntityComponentManager &_ecm);
 
   /// \brief FrameData relative to world at a given offset pose
-  /// \param[in] _link ign-physics link
+  /// \param[in] _link gz-physics link
   /// \param[in] _pose Offset pose in which to compute the frame data
   /// \returns FrameData at the given offset pose
   public: physics::FrameData3d LinkFrameDataAtOffset(
@@ -363,7 +363,7 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief used to store whether physics objects have been created.
   public: bool initialized = false;
 
-  /// \brief Pointer to the underlying ign-physics Engine entity.
+  /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
 
   /// \brief Vector3d equality comparison function.
@@ -623,7 +623,7 @@ class gz::sim::systems::PhysicsPrivate
           SolverFeatureList>;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
-  /// ign-physics.
+  /// gz-physics.
   public: WorldEntityMap entityWorldMap;
 
   /// \brief Model EntityFeatureMap
@@ -635,7 +635,7 @@ class gz::sim::systems::PhysicsPrivate
             NestedModelFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
-  /// ign-physics.
+  /// gz-physics.
   public: ModelEntityMap entityModelMap;
 
   /// \brief Link EntityFeatureMap
@@ -649,7 +649,7 @@ class gz::sim::systems::PhysicsPrivate
             MeshFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
-  /// ign-physics.
+  /// gz-physics.
   public: EntityLinkMap entityLinkMap;
 
   /// \brief Joint EntityFeatureMap
@@ -665,7 +665,7 @@ class gz::sim::systems::PhysicsPrivate
             >;
 
   /// \brief A map between joint entity ids in the ECM to Joint Entities in
-  /// ign-physics
+  /// gz-physics
   public: EntityJointMap entityJointMap;
 
   /// \brief Collision EntityFeatureMap
@@ -678,7 +678,7 @@ class gz::sim::systems::PhysicsPrivate
             >;
 
   /// \brief A map between collision entity ids in the ECM to Shape Entities in
-  /// ign-physics.
+  /// gz-physics.
   public: EntityCollisionMap entityCollisionMap;
 
   /// \brief FreeGroup EntityFeatureMap
@@ -689,7 +689,7 @@ class gz::sim::systems::PhysicsPrivate
             >;
 
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
-  /// in ign-physics.
+  /// in gz-physics.
   public: EntityFreeGroupMap entityFreeGroupMap;
 
   /// \brief Event manager from simulation runner.
@@ -784,7 +784,7 @@ void Physics::Configure(const Entity &_entity,
   // Find engine shared library
   // Look in:
   // * Paths from environment variable
-  // * Engines installed with ign-physics
+  // * Engines installed with gz-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
   systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
@@ -1757,7 +1757,7 @@ void PhysicsPrivate::CreateBatteryEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 {
   // Assume the world will not be erased
-  // Only removing models is supported by ign-physics right now so we only
+  // Only removing models is supported by gz-physics right now so we only
   // remove links, joints and collisions if they are children of the removed
   // model.
   // We assume the links, joints and collisions will be removed from the
@@ -3489,7 +3489,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
-  // Each contact object we get from ign-physics contains the EntityPtrs of the
+  // Each contact object we get from gz-physics contains the EntityPtrs of the
   // two colliding entities and other data about the contact such as the
   // position. This map groups contacts so that it is easy to query all the
   // contacts of one entity.

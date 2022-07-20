@@ -41,7 +41,7 @@ namespace systems
   /// Alternatively, one may send angular velocity commands to calculate the
   /// force to be applied using the said equation. In the default mode the
   /// plugin will publish angular velocity in radians per second on
-  /// `/model/{ns}/joint/{joint_name}/ang_vel` as an gz.msgs.double. If
+  /// `/model/{ns}/joint/{joint_name}/ang_vel` as a gz.msgs.double. If
   /// <use_angvel_cmd> is set to true it publishes force in Newtons instead to
   /// `/model/{ns}/joint/{joint_name}/force`.
   ///

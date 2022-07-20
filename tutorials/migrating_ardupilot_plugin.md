@@ -224,7 +224,7 @@ To better understand the ECS pattern as it is used in Gazebo, it's helpful to
 learn about the EntityComponentManager (ECM), which is responsible for managing
 the ECS graph. A great resource to understand the logic under the hood of the
 ECM is the `SdfEntityCreator` class
-([header](https://github.com/gazebosim/gz-sim/blob/main/include/ignition/gazebo/SdfEntityCreator.hh),
+([header](https://github.com/gazebosim/gz-sim/blob/main/include/gz/sim/SdfEntityCreator.hh),
 [source](https://github.com/gazebosim/gz-sim/blob/main/src/SdfEntityCreator.cc)).
 This class is responsible for mapping the content of an SDF file to the
 entities and components that form the graph handled by the ECM. For example, if

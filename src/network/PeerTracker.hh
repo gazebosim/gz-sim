@@ -66,7 +66,7 @@ namespace gz
       /// and start executing heartbeats and peer tracking.
       ///
       /// \param[in] _eventMgr Event Manager to emit network events on.
-      /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _options Advanced options for underlying gz-transport
       /// \param[in] _info Peer information to announce
       public: explicit PeerTracker(
                   PeerInfo _info,
