@@ -209,6 +209,34 @@ namespace systems
       /// \brief Transport publisher
       transport::Node::Publisher pub;
     };
+    
+    /// \brief TODO: added by liam
+    private: struct ServiceOutputInfo
+    {
+      std::string serviceName;
+      std::string reqType;
+      std::string repType;
+      std::string reqMsg;
+      std::string timeout;
+      // TODO: implement later
+//      std::chrono::steady_clock::duration timeout{0};
+
+    };
+    public: void DoServiceWork();
+    private: bool hasService;
+    private: std::mutex serviceCountMutex;
+    private: std::size_t serviceCount{0};
+    private: std::condition_variable serviceMatchSignal;
+    private: std::thread serviceWorkerThread;
+    private: std::vector<ServiceOutputInfo> serviceOutputInfo;
+
+    private: void cb(const ignition::msgs::Boolean &_rep, const bool _result);
+    /// \brief TODO: added by liam
+    private: std::string service;
+
+
+
+
 
     /// \brief List of InputMatchers
     private: std::vector<std::unique_ptr<InputMatcher>> matchers;
