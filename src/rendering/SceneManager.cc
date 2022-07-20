@@ -2293,7 +2293,7 @@ Entity SceneManager::UniqueId() const
 
 
 /////////////////////////////////////////////////
-void SceneManager::SetUseAssimp(bool useAssimp)
+void SceneManager::SetUseAssimp(const bool useAssimp)
 {
   gz::common::MeshManager *meshManager = gz::common::MeshManager::Instance();
   meshManager->SetUseAssimp(useAssimp);
