@@ -230,7 +230,7 @@ namespace systems
     private: std::thread serviceWorkerThread;
     private: std::vector<ServiceOutputInfo> serviceOutputInfo;
 
-    private: void cb(const ignition::msgs::Boolean &_rep, const bool _result);
+    private: void serviceCb(const ignition::msgs::Boolean &_rep, const bool _result);
     /// \brief TODO: added by liam
     private: std::string service;
 
