@@ -48,13 +48,13 @@ QuickStartHandler::QuickStartHandler()
 }
 
 /////////////////////////////////////////////////
-QString QuickStartHandler::WorldsPath() const
+QString QuickStartHandler::WorldsPath()
 {
   return QString::fromUtf8(this->worldsPath.c_str());
 }
 
 /////////////////////////////////////////////////
-std::string QuickStartHandler::StartingWorld() const
+std::string QuickStartHandler::StartingWorld()
 {
   return this->startingWorld;
 }

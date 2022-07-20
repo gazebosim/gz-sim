@@ -39,7 +39,7 @@ class QuickStartHandler : public QObject
 
   /// \brief Get worlds path
   /// \return worlds directory path
-  Q_INVOKABLE QString WorldsPath() const;
+  Q_INVOKABLE QString WorldsPath();
 
   /// \brief Get Gazebo version
   /// \return gazebo version
@@ -51,7 +51,7 @@ class QuickStartHandler : public QObject
 
   /// \brief Get starting world url from GUI.
   /// \return World url
-  std::string StartingWorld() const;
+  std::string StartingWorld();
 
   /// \brief Get default config of the dialog.
   /// \return config as string
