@@ -64,6 +64,7 @@ std::string createQuickStart(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
+  // Gui application in dialog mode
   auto app = std::make_unique<ignition::gui::Application>(
     _argc, _argv, ignition::gui::WindowType::kDialog);
 
@@ -74,6 +75,8 @@ std::string createQuickStart(
     // Set default config file for Gazebo
     defaultConfig = getDefaultConfigFile(_guiConfig);
 
+  app->SetDefaultConfigPath(defaultConfig);
+
   auto quickStartHandler = new ignition::gazebo::gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
@@ -82,12 +85,15 @@ std::string createQuickStart(
 
   igndbg << "Setting Quick start dialog default config." << std::endl;
   dialog->SetDefaultConfig(quickStartHandler->Config());
+
   igndbg << "Reading Quick start menu config." << std::endl;
   std::string showDialog = dialog->ReadConfigAttribute(app->DefaultConfigPath(),
     "show_again");
   if (showDialog != "true")
   {
     ignmsg << "Not showing Quick start menu." << std::endl;
+    ignmsg << "To change this, edit the " << dialog->objectName().toStdString()
+      << " config located at " << defaultConfig << std::endl;
     return "";
   }
 
@@ -129,7 +135,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
     sigKilled = true;
   });
 
-  ignmsg << "Ignition Gazebo GUI   v" << IGNITION_GAZEBO_VERSION_FULL
+  ignmsg << "Ignition Gazebo GUI    v" << IGNITION_GAZEBO_VERSION_FULL
          << std::endl;
 
   // Set auto scaling factor for HiDPI displays
@@ -139,7 +145,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kDialog);
+    _argc, _argv, ignition::gui::WindowType::kMainWindow);
 
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
@@ -165,9 +171,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
     defaultConfig = getDefaultConfigFile(_guiConfig);
 
   app->SetDefaultConfigPath(defaultConfig);
-
-  if (!app->CreateMainWindow())
-    ignerr << "Failed to initialize main window." << std::endl;
 
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
@@ -353,7 +356,7 @@ int runGui(int &_argc, char **_argv,
   startingWorldPub = node.Advertise<msgs::StringMsg>("/gazebo/starting_world");
   msgs::StringMsg msg;
 
-  // Don't show quick start menu if a file is set as a command line arg
+  // Don't show quick start menu if a file is set from command line
   if(strlen(_file) == 0 && _waitGui == 1)
   {
     // Don't show quick start menu in playback mode

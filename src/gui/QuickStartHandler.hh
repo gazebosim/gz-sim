@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,6 @@
 #include <QDesktopServices>
 #include <string>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-
 namespace ignition
 {
 namespace gazebo
@@ -32,7 +29,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
-/// \brief Class for handling about dialog
+/// \brief Class for handling quick start dialog
 class QuickStartHandler : public QObject
 {
   Q_OBJECT
@@ -42,7 +39,7 @@ class QuickStartHandler : public QObject
 
   /// \brief Get worlds path
   /// \return worlds directory path
-  Q_INVOKABLE QString WorldsPath();
+  Q_INVOKABLE QString WorldsPath() const;
 
   /// \brief Get Gazebo version
   /// \return gazebo version
@@ -54,21 +51,21 @@ class QuickStartHandler : public QObject
 
   /// \brief Get starting world url from GUI.
   /// \return World url
-  std::string StartingWorld();
+  std::string StartingWorld() const;
 
   /// \brief Get default config of the dialog.
   /// \return config as string
   std::string Config() const;
 
-  /// \brief Set the flag to show the side drawer's default options.
+  /// \brief Set the flag to show quick start menu again.
   /// \param[in] _showQuickStartOpts True to show.
   Q_INVOKABLE void SetShowDefaultQuickStartOpts(
       const bool _showQuickStartOpts);
 
-  /// \brief Show the default options of the drawer
+  /// \brief Show quick start menu option.
   bool ShowDefaultQuickStartOpts() const;
 
-  /// \brief Show the default options of the drawer
+  /// \brief Show the quick start menu again.
   private: bool showDefaultQuickStartOpts{true};
 
   /// \brief Installed worlds path.

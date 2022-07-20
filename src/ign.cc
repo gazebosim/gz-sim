@@ -126,6 +126,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_file, const char *_recordTopics, int _waitGui)
 {
   std::string startingWorldPath{""};
+  ignition::gazebo::ServerConfig serverConfig;
 
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
@@ -144,16 +145,17 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         };
 
     std::unique_lock<std::mutex> lock(mutex);
+    igndbg << "Subscribing to /gazebo/starting_world." << std::endl;
     node.Subscribe("/gazebo/starting_world", topicCb);
-    condition.wait(lock);
     igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
-    node.Unsubscribe("/gazebo/starting_world");
+    condition.wait(lock);
     ignmsg << "Received world [" << startingWorldPath << "] from the GUI."
           << std::endl;
+    igndbg << "Unsubscribing from /gazebo/starting_world." << std::endl;
+    node.Unsubscribe("/gazebo/starting_world");
   }
 
   // Path for logs
-  ignition::gazebo::ServerConfig serverConfig;
   std::string recordPathMod = serverConfig.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates
@@ -330,6 +332,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     }
   }
 
+  // This ensures if the server was run stand alone with a world from
+  // command line, the correct world would be loaded.
   if(_waitGui == 1)
     serverConfig.SetSdfFile(startingWorldPath);
   else

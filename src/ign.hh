@@ -66,6 +66,10 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _file The world file path passed as a command line argument.
+/// If set, QuickStart Dialog will not be shown.
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
     const char *_guiConfig, const char *_file, int _waitGui);
