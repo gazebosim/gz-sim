@@ -50,31 +50,31 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
 using UIntComponent = components::Component<int, class IntComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.UIntComponent",
     UIntComponent)
 
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
     components::Component<std::string, class StringComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.StringComponent",
     StringComponent)
 
 using BoolComponent = components::Component<bool, class BoolComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BoolComponent",
     BoolComponent)
 
 using Even = components::Component<components::NoData, class EvenTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Even", Even)
 
 using Odd = components::Component<components::NoData, class OddTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Odd", Odd)
 
 struct Custom
 {
@@ -82,7 +82,7 @@ struct Custom
 };
 
 using CustomComponent = components::Component<Custom, class CustomTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.CustomComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomComponent",
     CustomComponent)
 }
 }

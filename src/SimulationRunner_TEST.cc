@@ -73,11 +73,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DoubleComponent",
     DoubleComponent)
 }
 }

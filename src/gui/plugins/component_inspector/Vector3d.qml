@@ -53,7 +53,7 @@ Rectangle {
    */
   Component {
     id: writableNumber
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: numberValue
       minimumValue: -spinMax

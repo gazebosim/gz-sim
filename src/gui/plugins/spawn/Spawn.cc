@@ -294,7 +294,7 @@ void SpawnPrivate::OnRender()
   }
 
   // Spawn
-  GZ_PROFILE("IgnRenderer::Render Spawn");
+  GZ_PROFILE("GzRenderer::Render Spawn");
   if (this->generatePreview)
   {
     bool cloningResource = false;

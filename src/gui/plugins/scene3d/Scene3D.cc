@@ -85,7 +85,7 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
-  /// thread by `IgnRenderer::HandleEntitySelection`.
+  /// thread by `GzRenderer::HandleEntitySelection`.
   // SelectEntities
   struct SelectionHelper
   {
@@ -99,8 +99,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     bool sendEvent{false};
   };
 
-  /// \brief Private data class for IgnRenderer
-  class IgnRendererPrivate
+  /// \brief Private data class for GzRenderer
+  class GzRendererPrivate
   {
     // --------------------------------------------------------------
     // InteractiveViewControl
@@ -631,8 +631,8 @@ void RenderSync::Shutdown()
 }
 
 /////////////////////////////////////////////////
-IgnRenderer::IgnRenderer()
-  : dataPtr(new IgnRendererPrivate)
+GzRenderer::GzRenderer()
+  : dataPtr(new GzRendererPrivate)
 {
   this->dataPtr->moveToHelper.SetInitCameraPose(this->cameraPose);
 
@@ -646,16 +646,16 @@ IgnRenderer::IgnRenderer()
 
 
 /////////////////////////////////////////////////
-IgnRenderer::~IgnRenderer() = default;
+GzRenderer::~GzRenderer() = default;
 
 ////////////////////////////////////////////////
-RenderUtil *IgnRenderer::RenderUtil() const
+RenderUtil *GzRenderer::RenderUtil() const
 {
   return &this->dataPtr->renderUtil;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Render(RenderSync *_renderSync)
+void GzRenderer::Render(RenderSync *_renderSync)
 {
   rendering::ScenePtr scene = this->dataPtr->renderUtil.Scene();
   if (!scene)
@@ -668,7 +668,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   this->dataPtr->renderThreadId = std::this_thread::get_id();
 
   GZ_PROFILE_THREAD_NAME("RenderThread");
-  GZ_PROFILE("IgnRenderer::Render");
+  GZ_PROFILE("GzRenderer::Render");
 
   std::unique_lock<std::mutex> lock(_renderSync->mutex);
   _renderSync->WaitForQtThreadAndBlock(lock);
@@ -689,7 +689,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
         static_cast<double>(this->textureSize.height()));
     // setting the size should cause the render texture to be rebuilt
     {
-      GZ_PROFILE("IgnRenderer::Render Pre-render camera");
+      GZ_PROFILE("GzRenderer::Render Pre-render camera");
       this->dataPtr->camera->Update();
     }
     // mark mouse dirty to force update view projection in HandleMouseEvent
@@ -747,13 +747,13 @@ void IgnRenderer::Render(RenderSync *_renderSync)
   // update and render to texture
   if (update)
   {
-    GZ_PROFILE("IgnRenderer::Render Update camera");
+    GZ_PROFILE("GzRenderer::Render Update camera");
     this->dataPtr->camera->Update();
   }
 
   // record video is requested
   {
-    GZ_PROFILE("IgnRenderer::Render Record Video");
+    GZ_PROFILE("GzRenderer::Render Record Video");
     if (this->dataPtr->recordVideo)
     {
       unsigned int width = this->dataPtr->camera->ImageWidth();
@@ -832,7 +832,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Move To
   {
-    GZ_PROFILE("IgnRenderer::Render MoveTo");
+    GZ_PROFILE("GzRenderer::Render MoveTo");
     if (!this->dataPtr->moveToTarget.empty())
     {
       if (this->dataPtr->moveToHelper.Idle())
@@ -842,7 +842,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
         if (target)
         {
           this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera, target, 0.5,
-              std::bind(&IgnRenderer::OnMoveToComplete, this));
+              std::bind(&GzRenderer::OnMoveToComplete, this));
           this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
         }
         else
@@ -864,14 +864,14 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Move to pose
   {
-    GZ_PROFILE("IgnRenderer::Render MoveToPose");
+    GZ_PROFILE("GzRenderer::Render MoveToPose");
     if (this->dataPtr->moveToPoseValue)
     {
       if (this->dataPtr->moveToHelper.Idle())
       {
         this->dataPtr->moveToHelper.MoveTo(this->dataPtr->camera,
             *(this->dataPtr->moveToPoseValue),
-            0.5, std::bind(&IgnRenderer::OnMoveToPoseComplete, this));
+            0.5, std::bind(&GzRenderer::OnMoveToPoseComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
       else
@@ -886,7 +886,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Follow
   {
-    GZ_PROFILE("IgnRenderer::Render Follow");
+    GZ_PROFILE("GzRenderer::Render Follow");
     if (!this->dataPtr->moveToTarget.empty())
     {
       _renderSync->ReleaseQtThreadFromBlock(lock);
@@ -940,7 +940,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View Angle
   {
-    GZ_PROFILE("IgnRenderer::Render ViewAngle");
+    GZ_PROFILE("GzRenderer::Render ViewAngle");
     if (this->dataPtr->viewAngle)
     {
       if (this->dataPtr->moveToHelper.Idle())
@@ -968,7 +968,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
         this->dataPtr->moveToHelper.LookDirection(this->dataPtr->camera,
             this->dataPtr->viewAngleDirection, lookAt,
-            0.5, std::bind(&IgnRenderer::OnViewAngleComplete, this));
+            0.5, std::bind(&GzRenderer::OnViewAngleComplete, this));
         this->dataPtr->prevMoveToTime = std::chrono::system_clock::now();
       }
       else
@@ -983,7 +983,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // Shapes
   {
-    GZ_PROFILE("IgnRenderer::Render Shapes");
+    GZ_PROFILE("GzRenderer::Render Shapes");
     if (this->dataPtr->isSpawning)
     {
       // Generate spawn preview
@@ -1019,7 +1019,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View as transparent
   {
-    GZ_PROFILE("IgnRenderer::Render ViewTransparent");
+    GZ_PROFILE("GzRenderer::Render ViewTransparent");
     if (!this->dataPtr->viewTransparentTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1045,7 +1045,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View center of mass
   {
-    GZ_PROFILE("IgnRenderer::Render ViewCOM");
+    GZ_PROFILE("GzRenderer::Render ViewCOM");
     if (!this->dataPtr->viewCOMTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1071,7 +1071,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View inertia
   {
-    GZ_PROFILE("IgnRenderer::Render ViewInertia");
+    GZ_PROFILE("GzRenderer::Render ViewInertia");
     if (!this->dataPtr->viewInertiaTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1097,7 +1097,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View joints
   {
-    GZ_PROFILE("IgnRenderer::Render ViewJoints");
+    GZ_PROFILE("GzRenderer::Render ViewJoints");
     if (!this->dataPtr->viewJointsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1123,7 +1123,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View wireframes
   {
-    GZ_PROFILE("IgnRenderer::Render ViewWireframes");
+    GZ_PROFILE("GzRenderer::Render ViewWireframes");
     if (!this->dataPtr->viewWireframesTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1149,7 +1149,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 
   // View collisions
   {
-    GZ_PROFILE("IgnRenderer::Render ViewCollisions");
+    GZ_PROFILE("GzRenderer::Render ViewCollisions");
     if (!this->dataPtr->viewCollisionsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -1195,7 +1195,7 @@ void IgnRenderer::Render(RenderSync *_renderSync)
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
+bool GzRenderer::GeneratePreview(const sdf::Root &_sdf)
 {
   // Terminate any pre-existing spawned entities
   this->TerminateSpawnPreview();
@@ -1286,7 +1286,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::TerminateSpawnPreview()
+void GzRenderer::TerminateSpawnPreview()
 {
   for (auto _id : this->dataPtr->previewIds)
     this->dataPtr->renderUtil.SceneManager().RemoveEntity(_id);
@@ -1295,7 +1295,7 @@ void IgnRenderer::TerminateSpawnPreview()
 }
 
 /////////////////////////////////////////////////
-Entity IgnRenderer::UniqueId()
+Entity GzRenderer::UniqueId()
 {
   auto timeout = 100000u;
   for (auto i = 0u; i < timeout; ++i)
@@ -1308,7 +1308,7 @@ Entity IgnRenderer::UniqueId()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleMouseEvent()
+void GzRenderer::HandleMouseEvent()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->BroadcastHoverPos();
@@ -1321,7 +1321,7 @@ void IgnRenderer::HandleMouseEvent()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::BroadcastHoverPos()
+void GzRenderer::BroadcastHoverPos()
 {
   if (this->dataPtr->hoverDirty)
   {
@@ -1335,7 +1335,7 @@ void IgnRenderer::BroadcastHoverPos()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::BroadcastLeftClick()
+void GzRenderer::BroadcastLeftClick()
 {
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
       this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
@@ -1351,7 +1351,7 @@ void IgnRenderer::BroadcastLeftClick()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::BroadcastRightClick()
+void GzRenderer::BroadcastRightClick()
 {
   if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::RIGHT &&
       this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE &&
@@ -1371,7 +1371,7 @@ void IgnRenderer::BroadcastRightClick()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleMouseContextMenu()
+void GzRenderer::HandleMouseContextMenu()
 {
   if (!this->dataPtr->mouseDirty)
     return;
@@ -1407,7 +1407,7 @@ void IgnRenderer::HandleMouseContextMenu()
 }
 
 ////////////////////////////////////////////////
-void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
+void GzRenderer::HandleKeyPress(QKeyEvent *_e)
 {
   if (_e->isAutoRepeat())
     return;
@@ -1474,7 +1474,7 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
 }
 
 ////////////////////////////////////////////////
-void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
+void GzRenderer::HandleKeyRelease(QKeyEvent *_e)
 {
   if (_e->isAutoRepeat())
     return;
@@ -1530,7 +1530,7 @@ void IgnRenderer::HandleKeyRelease(QKeyEvent *_e)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleModelPlacement()
+void GzRenderer::HandleModelPlacement()
 {
   if (!this->dataPtr->isPlacing)
     return;
@@ -1597,7 +1597,7 @@ void IgnRenderer::HandleModelPlacement()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleEntitySelection()
+void GzRenderer::HandleEntitySelection()
 {
   if (this->dataPtr->selectionHelper.deselectAll)
   {
@@ -1617,7 +1617,7 @@ void IgnRenderer::HandleEntitySelection()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::DeselectAllEntities(bool _sendEvent)
+void GzRenderer::DeselectAllEntities(bool _sendEvent)
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
@@ -1637,7 +1637,7 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
 }
 
 /////////////////////////////////////////////////
-double IgnRenderer::SnapValue(
+double GzRenderer::SnapValue(
     double _coord, double _interval, double _sensitivity) const
 {
   double snap = _interval * _sensitivity;
@@ -1664,7 +1664,7 @@ double IgnRenderer::SnapValue(
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SnapPoint(
+void GzRenderer::SnapPoint(
     gz::math::Vector3d &_point, math::Vector3d &_snapVals,
     double _sensitivity) const
 {
@@ -1687,7 +1687,7 @@ void IgnRenderer::SnapPoint(
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
+void GzRenderer::XYZConstraint(math::Vector3d &_axis)
 {
   math::Vector3d translationAxis = math::Vector3d::Zero;
 
@@ -1713,7 +1713,7 @@ void IgnRenderer::XYZConstraint(math::Vector3d &_axis)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleMouseTransformControl()
+void GzRenderer::HandleMouseTransformControl()
 {
   if (this->dataPtr->renderThreadId != std::this_thread::get_id())
   {
@@ -1999,7 +1999,7 @@ void IgnRenderer::HandleMouseTransformControl()
 
 
 /////////////////////////////////////////////////
-void IgnRenderer::HandleMouseViewControl()
+void GzRenderer::HandleMouseViewControl()
 {
   if (!this->dataPtr->mouseDirty)
     return;
@@ -2096,7 +2096,7 @@ void IgnRenderer::HandleMouseViewControl()
 }
 
 /////////////////////////////////////////////////
-std::string IgnRenderer::Initialize()
+std::string GzRenderer::Initialize()
 {
   if (this->initialized)
     return std::string();
@@ -2146,7 +2146,7 @@ std::string IgnRenderer::Initialize()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::Destroy()
+void GzRenderer::Destroy()
 {
   auto engine = rendering::engine(this->dataPtr->renderUtil.EngineName());
   if (!engine)
@@ -2168,42 +2168,42 @@ void IgnRenderer::Destroy()
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetXYZSnap(const math::Vector3d &_xyz)
+void GzRenderer::SetXYZSnap(const math::Vector3d &_xyz)
 {
   this->dataPtr->xyzSnap = _xyz;
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::XYZSnap() const
+math::Vector3d GzRenderer::XYZSnap() const
 {
   return this->dataPtr->xyzSnap;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRPYSnap(const math::Vector3d &_rpy)
+void GzRenderer::SetRPYSnap(const math::Vector3d &_rpy)
 {
   this->dataPtr->rpySnap = _rpy;
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::RPYSnap() const
+math::Vector3d GzRenderer::RPYSnap() const
 {
   return this->dataPtr->rpySnap;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetScaleSnap(const math::Vector3d &_scale)
+void GzRenderer::SetScaleSnap(const math::Vector3d &_scale)
 {
   this->dataPtr->scaleSnap = _scale;
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::ScaleSnap() const
+math::Vector3d GzRenderer::ScaleSnap() const
 {
   return this->dataPtr->scaleSnap;
 }
 /////////////////////////////////////////////////
-void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
+void GzRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
     bool _sendEvent)
 {
   if (!_node)
@@ -2265,7 +2265,7 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetTransformMode(const std::string &_mode)
+void GzRenderer::SetTransformMode(const std::string &_mode)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   if (_mode == "select")
@@ -2288,7 +2288,7 @@ void IgnRenderer::SetTransformMode(const std::string &_mode)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetModel(const std::string &_model)
+void GzRenderer::SetModel(const std::string &_model)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
@@ -2296,7 +2296,7 @@ void IgnRenderer::SetModel(const std::string &_model)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetModelPath(const std::string &_filePath)
+void GzRenderer::SetModelPath(const std::string &_filePath)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->isSpawning = true;
@@ -2304,13 +2304,13 @@ void IgnRenderer::SetModelPath(const std::string &_filePath)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
+void GzRenderer::SetDropdownMenuEnabled(bool _enableDropdownMenu)
 {
   this->dataPtr->dropdownMenuEnabled = _enableDropdownMenu;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
+void GzRenderer::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2320,35 +2320,35 @@ void IgnRenderer::SetRecordVideo(bool _record, const std::string &_format,
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
+void GzRenderer::SetRecordVideoUseSimTime(bool _useSimTime)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->recordVideoUseSimTime = _useSimTime;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoLockstep(bool _useSimTime)
+void GzRenderer::SetRecordVideoLockstep(bool _useSimTime)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->recordVideoLockstep = _useSimTime;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
+void GzRenderer::SetRecordVideoBitrate(unsigned int _bitrate)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->recordVideoBitrate = _bitrate;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetMoveTo(const std::string &_target)
+void GzRenderer::SetMoveTo(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetFollowTarget(const std::string &_target,
+void GzRenderer::SetFollowTarget(const std::string &_target,
     bool _waitForTarget)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2357,7 +2357,7 @@ void IgnRenderer::SetFollowTarget(const std::string &_target,
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
+void GzRenderer::SetViewAngle(const math::Vector3d &_direction)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewAngle = true;
@@ -2365,56 +2365,56 @@ void IgnRenderer::SetViewAngle(const math::Vector3d &_direction)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetMoveToPose(const math::Pose3d &_pose)
+void GzRenderer::SetMoveToPose(const math::Pose3d &_pose)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToPoseValue = _pose;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewTransparentTarget(const std::string &_target)
+void GzRenderer::SetViewTransparentTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewTransparentTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewCOMTarget(const std::string &_target)
+void GzRenderer::SetViewCOMTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewCOMTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewInertiaTarget(const std::string &_target)
+void GzRenderer::SetViewInertiaTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewInertiaTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewJointsTarget(const std::string &_target)
+void GzRenderer::SetViewJointsTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewJointsTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewWireframesTarget(const std::string &_target)
+void GzRenderer::SetViewWireframesTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewWireframesTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewCollisionsTarget(const std::string &_target)
+void GzRenderer::SetViewCollisionsTarget(const std::string &_target)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewCollisionsTarget = _target;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetViewController(const std::string &_controller)
+void GzRenderer::SetViewController(const std::string &_controller)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewController = _controller;
@@ -2425,35 +2425,35 @@ void IgnRenderer::SetViewController(const std::string &_controller)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetFollowPGain(double _gain)
+void GzRenderer::SetFollowPGain(double _gain)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followPGain = _gain;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetFollowWorldFrame(bool _worldFrame)
+void GzRenderer::SetFollowWorldFrame(bool _worldFrame)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followWorldFrame = _worldFrame;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetInitCameraPose(const math::Pose3d &_pose)
+void GzRenderer::SetInitCameraPose(const math::Pose3d &_pose)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToHelper.SetInitCameraPose(_pose);
 }
 
 /////////////////////////////////////////////////
-bool IgnRenderer::FollowWorldFrame() const
+bool GzRenderer::FollowWorldFrame() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->followWorldFrame;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
+void GzRenderer::SetFollowOffset(const math::Vector3d &_offset)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->followOffset = _offset;
@@ -2463,42 +2463,42 @@ void IgnRenderer::SetFollowOffset(const math::Vector3d &_offset)
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::FollowOffset() const
+math::Vector3d GzRenderer::FollowOffset() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->followOffset;
 }
 
 /////////////////////////////////////////////////
-std::string IgnRenderer::FollowTarget() const
+std::string GzRenderer::FollowTarget() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->followTarget;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::OnMoveToComplete()
+void GzRenderer::OnMoveToComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToTarget.clear();
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::OnViewAngleComplete()
+void GzRenderer::OnViewAngleComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->viewAngle = false;
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::OnMoveToPoseComplete()
+void GzRenderer::OnMoveToPoseComplete()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->moveToPoseValue.reset();
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
+void GzRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->mouseHoverPos = _hoverPos;
@@ -2506,7 +2506,7 @@ void IgnRenderer::NewHoverEvent(const math::Vector2i &_hoverPos)
 }
 
 /////////////////////////////////////////////////
-void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
+void GzRenderer::NewMouseEvent(const common::MouseEvent &_e,
     const math::Vector2d &_drag)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -2516,7 +2516,7 @@ void IgnRenderer::NewMouseEvent(const common::MouseEvent &_e,
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::ScreenToPlane(
+math::Vector3d GzRenderer::ScreenToPlane(
     const math::Vector2i &_screenPos) const
 {
   // Normalize point on the image
@@ -2539,7 +2539,7 @@ math::Vector3d IgnRenderer::ScreenToPlane(
 }
 
 /////////////////////////////////////////////////
-math::Pose3d IgnRenderer::CameraPose() const
+math::Pose3d GzRenderer::CameraPose() const
 {
   if (this->dataPtr->camera)
     return this->dataPtr->camera->WorldPose();
@@ -2547,7 +2547,7 @@ math::Pose3d IgnRenderer::CameraPose() const
 }
 
 /////////////////////////////////////////////////
-math::Vector3d IgnRenderer::ScreenToScene(
+math::Vector3d GzRenderer::ScreenToScene(
     const math::Vector2i &_screenPos) const
 {
   // Normalize point on the image
@@ -2571,7 +2571,7 @@ math::Vector3d IgnRenderer::ScreenToScene(
 }
 
 ////////////////////////////////////////////////
-void IgnRenderer::RequestSelectionChange(Entity _selectedEntity,
+void GzRenderer::RequestSelectionChange(Entity _selectedEntity,
     bool _deselectAll, bool _sendEvent)
 {
   this->dataPtr->selectionHelper = {_selectedEntity, _deselectAll, _sendEvent};
@@ -2596,10 +2596,10 @@ void RenderThread::RenderNext(RenderSync *_renderSync)
 {
   this->context->makeCurrent(this->surface);
 
-  if (!this->ignRenderer.initialized)
+  if (!this->gzRenderer.initialized)
   {
     // Initialize renderer
-    auto loadingError = this->ignRenderer.Initialize();
+    auto loadingError = this->gzRenderer.Initialize();
     if (!loadingError.empty())
     {
       this->errorCb(QString::fromStdString(loadingError));
@@ -2608,15 +2608,15 @@ void RenderThread::RenderNext(RenderSync *_renderSync)
   }
 
   // check if engine has been successfully initialized
-  if (!this->ignRenderer.initialized)
+  if (!this->gzRenderer.initialized)
   {
     gzerr << "Unable to initialize renderer" << std::endl;
     return;
   }
 
-  this->ignRenderer.Render(_renderSync);
+  this->gzRenderer.Render(_renderSync);
 
-  emit TextureReady(this->ignRenderer.textureId, this->ignRenderer.textureSize);
+  emit TextureReady(this->gzRenderer.textureId, this->gzRenderer.textureSize);
 }
 
 /////////////////////////////////////////////////
@@ -2625,7 +2625,7 @@ void RenderThread::ShutDown()
   if (this->context && this->surface)
     this->context->makeCurrent(this->surface);
 
-  this->ignRenderer.Destroy();
+  this->gzRenderer.Destroy();
 
   if (this->context)
   {
@@ -2639,7 +2639,7 @@ void RenderThread::ShutDown()
 
   // Stop event processing, move the thread to GUI and make sure it is deleted.
   this->exit();
-  if (this->ignRenderer.initialized)
+  if (this->gzRenderer.initialized)
     this->moveToThread(QGuiApplication::instance()->thread());
 }
 
@@ -2657,8 +2657,8 @@ void RenderThread::SizeChanged()
   if (item->width() <= 0 || item->height() <= 0)
     return;
 
-  this->ignRenderer.textureSize = QSize(item->width(), item->height());
-  this->ignRenderer.textureDirty = true;
+  this->gzRenderer.textureSize = QSize(item->width(), item->height());
+  this->gzRenderer.textureDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -2800,15 +2800,15 @@ void RenderWindowItem::Ready()
       this->dataPtr->renderThread->context->format());
   this->dataPtr->renderThread->surface->create();
 
-  this->dataPtr->renderThread->ignRenderer.textureSize =
+  this->dataPtr->renderThread->gzRenderer.textureSize =
       QSize(std::max({this->width(), 1.0}), std::max({this->height(), 1.0}));
 
-  this->connect(&this->dataPtr->renderThread->ignRenderer,
-      &IgnRenderer::ContextMenuRequested,
+  this->connect(&this->dataPtr->renderThread->gzRenderer,
+      &GzRenderer::ContextMenuRequested,
       this, &RenderWindowItem::OnContextMenuRequested, Qt::QueuedConnection);
 
-  this->connect(&this->dataPtr->renderThread->ignRenderer,
-      &IgnRenderer::FollowTargetChanged,
+  this->connect(&this->dataPtr->renderThread->gzRenderer,
+      &GzRenderer::FollowTargetChanged,
       this, &RenderWindowItem::SetFollowTarget, Qt::QueuedConnection);
 
   this->dataPtr->renderThread->moveToThread(this->dataPtr->renderThread);
@@ -2923,13 +2923,13 @@ void RenderWindowItem::OnContextMenuRequested(QString _entity)
 ///////////////////////////////////////////////////
 math::Vector3d RenderWindowItem::ScreenToScene(const math::Vector2i &_screenPos)
 {
-  return this->dataPtr->renderThread->ignRenderer.ScreenToScene(_screenPos);
+  return this->dataPtr->renderThread->gzRenderer.ScreenToScene(_screenPos);
 }
 
 ////////////////////////////////////////////////
 RenderUtil *RenderWindowItem::RenderUtil() const
 {
-  return this->dataPtr->renderThread->ignRenderer.RenderUtil();
+  return this->dataPtr->renderThread->gzRenderer.RenderUtil();
 }
 
 /////////////////////////////////////////////////
@@ -3640,19 +3640,19 @@ void Scene3D::SetLoadingError(const QString &_loadingError)
 /////////////////////////////////////////////////
 void RenderWindowItem::SetXYZSnap(const math::Vector3d &_xyz)
 {
-  this->dataPtr->renderThread->ignRenderer.SetXYZSnap(_xyz);
+  this->dataPtr->renderThread->gzRenderer.SetXYZSnap(_xyz);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetRPYSnap(const math::Vector3d &_rpy)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRPYSnap(_rpy);
+  this->dataPtr->renderThread->gzRenderer.SetRPYSnap(_rpy);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetScaleSnap(const math::Vector3d &_scale)
 {
-  this->dataPtr->renderThread->ignRenderer.SetScaleSnap(_scale);
+  this->dataPtr->renderThread->gzRenderer.SetScaleSnap(_scale);
 }
 
 /////////////////////////////////////////////////
@@ -3779,32 +3779,32 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
 void RenderWindowItem::UpdateSelectedEntity(Entity _entity,
     bool _sendEvent)
 {
-  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+  this->dataPtr->renderThread->gzRenderer.RequestSelectionChange(
       _entity, false, _sendEvent);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetTransformMode(const std::string &_mode)
 {
-  this->dataPtr->renderThread->ignRenderer.SetTransformMode(_mode);
+  this->dataPtr->renderThread->gzRenderer.SetTransformMode(_mode);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetModel(const std::string &_model)
 {
-  this->dataPtr->renderThread->ignRenderer.SetModel(_model);
+  this->dataPtr->renderThread->gzRenderer.SetModel(_model);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetModelPath(const std::string &_filePath)
 {
-  this->dataPtr->renderThread->ignRenderer.SetModelPath(_filePath);
+  this->dataPtr->renderThread->gzRenderer.SetModelPath(_filePath);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
 {
-  this->dataPtr->renderThread->ignRenderer.SetDropdownMenuEnabled(
+  this->dataPtr->renderThread->gzRenderer.SetDropdownMenuEnabled(
       _enableDropdownMenu);
 }
 
@@ -3812,20 +3812,20 @@ void RenderWindowItem::SetDropdownMenuEnabled(bool _enableDropdownMenu)
 void RenderWindowItem::SetRecordVideo(bool _record, const std::string &_format,
     const std::string &_savePath)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideo(_record, _format,
+  this->dataPtr->renderThread->gzRenderer.SetRecordVideo(_record, _format,
       _savePath);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetMoveTo(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetMoveTo(_target);
+  this->dataPtr->renderThread->gzRenderer.SetMoveTo(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::DeselectAllEntities(bool _sendEvent)
 {
-  this->dataPtr->renderThread->ignRenderer.RequestSelectionChange(
+  this->dataPtr->renderThread->gzRenderer.RequestSelectionChange(
       kNullEntity, true, _sendEvent);
 }
 
@@ -3835,139 +3835,139 @@ void RenderWindowItem::SetFollowTarget(const std::string &_target,
 {
   this->setProperty("message", _target.empty() ? "" :
       "Press Escape to exit Follow mode");
-  this->dataPtr->renderThread->ignRenderer.SetFollowTarget(_target,
+  this->dataPtr->renderThread->gzRenderer.SetFollowTarget(_target,
       _waitForTarget);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewAngle(const math::Vector3d &_direction)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewAngle(_direction);
+  this->dataPtr->renderThread->gzRenderer.SetViewAngle(_direction);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetMoveToPose(const math::Pose3d &_pose)
 {
-  this->dataPtr->renderThread->ignRenderer.SetMoveToPose(_pose);
+  this->dataPtr->renderThread->gzRenderer.SetMoveToPose(_pose);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewTransparentTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewTransparentTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewTransparentTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewCOMTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewCOMTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewCOMTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewInertiaTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewInertiaTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewInertiaTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewJointsTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewJointsTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewJointsTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewWireframesTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewWireframesTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewWireframesTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewCollisionsTarget(const std::string &_target)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewCollisionsTarget(_target);
+  this->dataPtr->renderThread->gzRenderer.SetViewCollisionsTarget(_target);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetViewController(const std::string &_controller)
 {
-  this->dataPtr->renderThread->ignRenderer.SetViewController(_controller);
+  this->dataPtr->renderThread->gzRenderer.SetViewController(_controller);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetFollowPGain(double _gain)
 {
-  this->dataPtr->renderThread->ignRenderer.SetFollowPGain(_gain);
+  this->dataPtr->renderThread->gzRenderer.SetFollowPGain(_gain);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetFollowWorldFrame(bool _worldFrame)
 {
-  this->dataPtr->renderThread->ignRenderer.SetFollowWorldFrame(_worldFrame);
+  this->dataPtr->renderThread->gzRenderer.SetFollowWorldFrame(_worldFrame);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetFollowOffset(const math::Vector3d &_offset)
 {
-  this->dataPtr->renderThread->ignRenderer.SetFollowOffset(_offset);
+  this->dataPtr->renderThread->gzRenderer.SetFollowOffset(_offset);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetCameraPose(const math::Pose3d &_pose)
 {
-  this->dataPtr->renderThread->ignRenderer.cameraPose = _pose;
+  this->dataPtr->renderThread->gzRenderer.cameraPose = _pose;
 }
 
 /////////////////////////////////////////////////
 math::Pose3d RenderWindowItem::CameraPose() const
 {
   if (this->dataPtr->renderThread)
-    return this->dataPtr->renderThread->ignRenderer.CameraPose();
+    return this->dataPtr->renderThread->gzRenderer.CameraPose();
   return math::Pose3d::Zero;
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetInitCameraPose(const math::Pose3d &_pose)
 {
-  this->dataPtr->renderThread->ignRenderer.SetInitCameraPose(_pose);
+  this->dataPtr->renderThread->gzRenderer.SetInitCameraPose(_pose);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetWorldName(const std::string &_name)
 {
-  this->dataPtr->renderThread->ignRenderer.worldName = _name;
+  this->dataPtr->renderThread->gzRenderer.worldName = _name;
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetRecordVideoUseSimTime(bool _useSimTime)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoUseSimTime(
+  this->dataPtr->renderThread->gzRenderer.SetRecordVideoUseSimTime(
       _useSimTime);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetRecordVideoLockstep(bool _lockstep)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoLockstep(
+  this->dataPtr->renderThread->gzRenderer.SetRecordVideoLockstep(
       _lockstep);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 {
-  this->dataPtr->renderThread->ignRenderer.SetRecordVideoBitrate(
+  this->dataPtr->renderThread->gzRenderer.SetRecordVideoBitrate(
       _bitrate);
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::SetVisibilityMask(uint32_t _mask)
 {
-  this->dataPtr->renderThread->ignRenderer.visibilityMask = _mask;
+  this->dataPtr->renderThread->gzRenderer.visibilityMask = _mask;
 }
 
 /////////////////////////////////////////////////
 void RenderWindowItem::OnHovered(const gz::math::Vector2i &_hoverPos)
 {
-  this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
+  this->dataPtr->renderThread->gzRenderer.NewHoverEvent(_hoverPos);
 }
 
 /////////////////////////////////////////////////
@@ -3986,7 +3986,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
 
-  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
+  this->dataPtr->renderThread->gzRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent);
 }
 
@@ -4003,7 +4003,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::RELEASE);
 
-  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
+  this->dataPtr->renderThread->gzRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent);
 }
 
@@ -4022,7 +4022,7 @@ void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::MOVE);
-  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
+  this->dataPtr->renderThread->gzRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, dragDistance);
 }
 
@@ -4038,24 +4038,24 @@ void RenderWindowItem::wheelEvent(QWheelEvent *_e)
   this->dataPtr->mouseEvent.SetPos(_e->position().x(), _e->position().y());
 #endif
   double scroll = (_e->angleDelta().y() > 0) ? -1.0 : 1.0;
-  this->dataPtr->renderThread->ignRenderer.NewMouseEvent(
+  this->dataPtr->renderThread->gzRenderer.NewMouseEvent(
       this->dataPtr->mouseEvent, math::Vector2d(scroll, scroll));
 }
 
 ////////////////////////////////////////////////
 void RenderWindowItem::HandleKeyPress(QKeyEvent *_e)
 {
-  this->dataPtr->renderThread->ignRenderer.HandleKeyPress(_e);
+  this->dataPtr->renderThread->gzRenderer.HandleKeyPress(_e);
 }
 
 ////////////////////////////////////////////////
 void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 {
-  this->dataPtr->renderThread->ignRenderer.HandleKeyRelease(_e);
+  this->dataPtr->renderThread->gzRenderer.HandleKeyRelease(_e);
 
   if (_e->key() == Qt::Key_Escape)
   {
-    if (!this->dataPtr->renderThread->ignRenderer.FollowTarget().empty())
+    if (!this->dataPtr->renderThread->gzRenderer.FollowTarget().empty())
     {
       this->SetFollowTarget(std::string());
       this->setProperty("message", "");
