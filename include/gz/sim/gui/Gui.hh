@@ -34,11 +34,11 @@ namespace gui
 {
   /// \brief Run GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
-  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// without gz-tools. Set to 1 if using gz-tools). Note: The object
   /// referenced by this variable must continue to exist for the lifetime of the
   /// application.
   /// \param[in] _argv Command line arguments (Used when running without
-  /// ign-tools. Set to the name of the application if using ign-tools)
+  /// gz-tools. Set to the name of the application if using gz-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from GZ_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _renderEngineGui --render-engine-gui option
@@ -48,11 +48,11 @@ namespace gui
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
-  /// without ign-tools. Set to 1 if using ign-tools). Note: The object
+  /// without gz-tools. Set to 1 if using gz-tools). Note: The object
   /// referenced by this variable must continue to exist for the lifetime of the
   /// application.
   /// \param[in] _argv Command line arguments (Used when running without
-  /// ign-tools. Set to the name of the application if using ign-tools)
+  /// gz-tools. Set to the name of the application if using gz-tools)
   /// \param[in] _guiConfig The GUI configuration file. If nullptr, the default
   /// configuration from GZ_HOMEDIR/.gz/sim/gui.config will be used.
   /// \param[in] _defaultGuiConfig The default GUI configuration file. If no

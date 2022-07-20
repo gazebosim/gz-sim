@@ -8,7 +8,7 @@
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
-      <engine><filename>ignition-physics-tpe-plugin</filename></engine>
+      <engine><filename>gz-physics-tpe-plugin</filename></engine>
     </plugin>
     <plugin
       filename="gz-sim-scene-broadcaster-system"

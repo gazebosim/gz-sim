@@ -15,9 +15,9 @@
 import os
 import unittest
 
-from ignition.common import set_verbosity
-from ignition.gazebo import TestFixture, World, world_entity
-from ignition.math import Vector3d
+from gz.common import set_verbosity
+from gz.sim import TestFixture, World, world_entity
+from gz.math import Vector3d
 
 post_iterations = 0
 iterations = 0

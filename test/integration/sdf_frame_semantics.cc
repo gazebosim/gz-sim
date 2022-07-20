@@ -236,7 +236,7 @@ TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
   // Expect the pose of J2 relative to model to be the same as L2 (non default
   // behavior due to "relative_to='L2'")
   // TODO(anyone) Enable the following expectations when a joint's WorldPose
-  // can be computed by ign-physics.
+  // can be computed by gz-physics.
   // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
   // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint2));
 }
@@ -391,7 +391,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
   // Expect the pose of J1 relative to model to be the same as F1 in world
   gz::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
   // TODO(anyone) Enable the following expectation when a joint's WorldPose
-  // can be computed by ign-physics.
+  // can be computed by gz-physics.
   // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
 }
 

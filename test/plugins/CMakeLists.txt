@@ -19,7 +19,7 @@ set (test_plugins
   Null
 )
 
-# TODO: someone with knowledge of ign-plugin please resolve:
+# TODO: someone with knowledge of gz-plugin please resolve:
 # TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
 if(NOT WIN32)
   set (test_plugins

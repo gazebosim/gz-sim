@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_SIM_IGN_HH_
-#define GZ_SIM_IGN_HH_
+#ifndef GZ_SIM_GZ_HH_
+#define GZ_SIM_GZ_HH_
 
 #include "gz/sim/Export.hh"
 

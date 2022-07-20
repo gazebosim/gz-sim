@@ -27,7 +27,7 @@ namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an gz::sim::EntityComponentManager
+/// Define a pybind11 wrapper for a gz::sim::EntityComponentManager
 /**
  * \param[in] module a pybind11 module to add the definition to
  */

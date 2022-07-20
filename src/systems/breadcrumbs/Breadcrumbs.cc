@@ -352,7 +352,7 @@ bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
 {
   // make breadcrumb static by spawning a static model and attaching the
   // breadcrumb to the static model
-  // todo(anyone) Add a feature in ign-physics to support making a model
+  // todo(anyone) Add a feature in gz-physics to support making a model
   // static
   if (this->staticModelToSpawn.LinkCount() == 0u)
   {

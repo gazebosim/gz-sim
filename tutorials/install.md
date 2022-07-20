@@ -36,7 +36,7 @@ installing Gazebo from source.
 
 2. Install Gazebo
   ```
-  sudo apt-get install libignition-gazebo<#>-dev
+  sudo apt-get install libgz-sim<#>-dev
   ```
 
 ### macOS
@@ -49,7 +49,7 @@ installing Gazebo from source.
 
 2. Install Gazebo:
   ```
-  brew install ignition-gazebo<#>
+  brew install gz-sim<#>
   ```
 
 ## Source Install

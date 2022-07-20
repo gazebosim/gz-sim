@@ -77,7 +77,7 @@ TEST(Conversions, Light)
   EXPECT_EQ(msgs::Light_LightType_DIRECTIONAL, lightMsg.type());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, GZ_PI, 0),
       msgs::Convert(lightMsg.pose()));
-  /// \todo(anyone) add pose frame fields in ign-msgs?
+  /// \todo(anyone) add pose frame fields in gz-msgs?
   // EXPECT_EQ("world", lightMsg.pose_frame());
   EXPECT_TRUE(lightMsg.cast_shadows());
   EXPECT_FALSE(lightMsg.is_light_off());
@@ -100,7 +100,7 @@ TEST(Conversions, Light)
   EXPECT_EQ("test_convert_light", newLight.Name());
   EXPECT_EQ(sdf::LightType::DIRECTIONAL, newLight.Type());
   EXPECT_EQ(math::Pose3d(3, 2, 1, 0, GZ_PI, 0), newLight.RawPose());
-  /// \todo(anyone) add pose frame fields in ign-msgs?
+  /// \todo(anyone) add pose frame fields in gz-msgs?
   // EXPECT_EQ("world", newLight.PoseRelativeTo());
   EXPECT_TRUE(newLight.CastShadows());
   EXPECT_TRUE(newLight.Visualize());
