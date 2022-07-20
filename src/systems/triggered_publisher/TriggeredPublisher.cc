@@ -632,41 +632,11 @@ void TriggeredPublisher::Configure(const Entity &,
        //TODO: check if service is available before adding?
        this->serviceOutputInfo.push_back(std::move(s_info));
     }
-  // if (s_info.timeout.empty())
-  // {
-  //   ignerr << "Service timeout cannot be empty\n";
-  // }
   }
-//   
-//  ignition::msgs::StringMsg req;
-//  ignition::msgs::StringMsg rep;
-//  req.set_data(s_info.reqString);
-//  bool result;
-//  ignerr <<"before executed" <<std::endl;
-  //bool executed = this->node.Request(s_info.serviceName, req, 300, rep, result);
-
-  //auto cb = std::function<void(const transport::ProtoMsg &)>([this](const ignition::msgs::StringMsg &_rep, const bool _result){});
-  
-
-  //bool executed = this->node.Request(s_info.serviceName, req, &TriggeredPublisher::cb,this);
-  //ignerr << "executed is " <<executed <<std::endl;
-
-  // TODO: add the timeout feature later
-  //  if (outputServElem->Get<std::string>("timeout").empty())
-  //    ignerr <<"WTF"<<std::endl;
-
-
-//   ignerr << "Service name is " << s_info.serviceName << " req type is "
-//   << s_info.reqType << " res type is " << s_info.repType << std::endl;
-   
-//  }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
       [this](const auto &_msg)
       {
-      // liam
-        ignerr<<"inside the callback" <<std::endl;
-
         if (this->MatchInput(_msg))
         {
           if (this->delay > 0ms)
@@ -674,17 +644,6 @@ void TriggeredPublisher::Configure(const Entity &,
             std::lock_guard<std::mutex> lock(this->publishQueueMutex);
             this->publishQueue.push_back(this->delay);
           }
-	  //////////////////////
-          else if (this->hasService)
-          {
-            ignerr <<"CB service read "<< std::endl;
-	    {
-              std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-	      ++this->serviceCount;
-	    }
-	    this->serviceMatchSignal.notify_one();
-	  }
-	  //////////////////////
           else
           {
             {
@@ -693,8 +652,15 @@ void TriggeredPublisher::Configure(const Entity &,
             }
             this->newMatchSignal.notify_one();
           }
+          if (this->hasService)
+          {
+	    {
+              std::lock_guard<std::mutex> lock(this->serviceCountMutex);
+	      ++this->serviceCount;
+	    }
+	    this->serviceMatchSignal.notify_one();
+	  }
         }
-
       });
   if (!this->node.Subscribe(this->inputTopic, msgCb))
   {
@@ -720,17 +686,16 @@ void TriggeredPublisher::Configure(const Entity &,
       std::thread(std::bind(&TriggeredPublisher::DoServiceWork, this));
 }
 
-////////////
-void TriggeredPublisher::cb(const ignition::msgs::Boolean &_rep, const bool _result){
-ignerr<<"LIAM"<<std::endl;
+//////////////////////////////////////////////////
+void TriggeredPublisher::serviceCb(const ignition::msgs::Boolean &_rep, const bool _result){
+   ignerr<<"In service callback"<<std::endl;
 }
-///////////////////
-//LIAM
+
+//////////////////////////////////////////////////
 void TriggeredPublisher::DoServiceWork()
 {
   while (!this->done)
   {
-    //TODO: add mutex and use the serviceOutpuInfo later
     std::size_t pending{0};
     {
       using namespace std::chrono_literals;
@@ -751,18 +716,37 @@ void TriggeredPublisher::DoServiceWork()
     {
       for (std::size_t i = 0; i < pending; ++i)
         {
-          ignition::msgs::Pose req;
-          ignition::msgs::Boolean rep;
+	//	ignition::msgs::Pose req;
+        //  ignition::msgs::Boolean rep;
           bool result;
-	  auto cb1 = std::function<void(ignition::msgs::Boolean &_rep, const bool _result)>(
-      [this](const ignition::msgs::Boolean &_rep, const bool _result){});
+// TODO: Find out why lambda method doesn't work
+//	  auto cb1 = std::function<void(const ignition::msgs::Boolean &_rep, const bool _result)>(
+//      [this](const auto &_rep, const auto _result){});
 
-          req.set_id(8);
-          msgs::Set(req.mutable_position(), math::Vector3d(5, 5, 5));
-          msgs::Set(req.mutable_orientation(), math::Quaterniond(0, 0, 0));
-          std::string poseCmdService("/world/triggered_publisher/set_pose");
-          this->node.Request(poseCmdService,req, &TriggeredPublisher::cb, this);
+   //       req.set_id(8);
+   //       msgs::Set(req.mutable_position(), math::Vector3d(-10,0,2 ));
+   //       msgs::Set(req.mutable_orientation(), math::Quaterniond(0, 0, 0));
+   //       std::string poseCmdService("/world/triggered_publisher/set_pose");
+   //       this->node.Request(poseCmdService,req, &TriggeredPublisher::serviceCb, this);
+//        this->node.Request(poseCmdService,req, cb1);
+        auto req = msgs::Factory::New(s_info.reqType, s_info.reqMsg);
+	if (!req)
+	{
+          ignerr << "Unable to create request fo type[" << s_info.reqType << "].\n";
+	  return;
+	}
+	auto rep = msgs::Factory::New(s_info.repType);
 
+	bool executed = this->node.Request(s_info.serviceName, *req, 3000, *rep, result);
+	if (!executed)
+	{
+          if(result)
+	    ignerr << rep->DebugString() <<std::endl;
+	  else
+	    ignerr << "Service call failed" << std::endl;
+	}
+	//TODO: maybe have a cb??
+        //this->node.Request(s_info.serviceName, *reqa, &TriggeredPublisher::serviceCb, this);
 
 
 
@@ -804,6 +788,7 @@ void TriggeredPublisher::DoWork()
     {
       for (std::size_t i = 0; i < pending; ++i)
       {
+        ignerr << "publishing.. "<<std::endl;
         info.pub.Publish(*info.msgData);
       }
     }
@@ -847,26 +832,7 @@ void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   if (notify){
     this->newMatchSignal.notify_one();
-ignerr<<"notifying"<<std::endl;
-}
-
-//  ignition::msgs::StringMsg req;
-//  ignition::msgs::StringMsg res;
-//  req.set_data("'name: 'blue_vehicle', position: {x:13.0,z: 5.0}'");
-//
-//
-//  bool result;
-//  bool executed = this->node.Request("/world/triggered_publisher/set_pose", req, 300, res, result);
-
-  // TODO: add the timeout feature later
-  //  if (outputServElem->Get<std::string>("timeout").empty())
-  //    ignerr <<"WTF"<<std::endl;
-
-
-
-//   ignerr << "Service name is " << s_info.serviceName << " req type is "
-//   << s_info.reqType << " res type is " << s_info.repType << std::endl;
-   
+  }
 }
 
 //////////////////////////////////////////////////
