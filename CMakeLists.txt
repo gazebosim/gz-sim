@@ -184,27 +184,6 @@ gz_find_package(IgnProtobuf
                  PRETTY Protobuf)
 set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
-#--------------------------------------
-# Find python
-include(IgnPython)
-find_package(PythonLibs QUIET)
-if (NOT PYTHONLIBS_FOUND)
-  IGN_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
-  message (STATUS "Searching for Python - not found.")
-else()
-  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
-
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
-
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
-endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/gz-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
@@ -225,9 +204,6 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (${pybind11_FOUND})
-	add_subdirectory(python)
-endif()
 #============================================================================
 # Configure documentation
 #============================================================================

@@ -1596,6 +1596,7 @@ void EntityComponentManager::ChangedState(
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
+  gzdbg << "CalculateStateThreadLoad" << std::endl;
   // If the entity component vector is dirty, we need to recalculate the
   // threads and each thread's work load
   if (!this->componentTypeIndexDirty)
@@ -1668,6 +1669,8 @@ void EntityComponentManager::State(
 {
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
+
+  gzwarn << "EntityComponentManager::State" << std::endl;
 
   this->dataPtr->CalculateStateThreadLoad();
 

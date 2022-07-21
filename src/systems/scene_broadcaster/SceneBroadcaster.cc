@@ -229,9 +229,9 @@ class gz::sim::systems::SceneBroadcasterPrivate
   public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
       statePublishPeriod{
         {false, std::chrono::duration<double,
-        std::ratio<1, 1000>>(1000/60.0)},
+        std::ratio<1, 1000>>(1000)},
           {true,  std::chrono::duration<double,
-            std::ratio<1, 1000>>(1000/30.0)}};
+            std::ratio<1, 1000>>(1000)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
@@ -339,13 +339,27 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
     jumpBackInTime || _manager.HasRemovedComponents();
   auto now = std::chrono::system_clock::now();
-  bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod[_info.paused]);
+  bool itsPubTime = false;
+
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
        (changeEvent || itsPubTime);
 
+  /*
+  gzwarn << (_manager.HasEntitiesMarkedForRemoval() ? "hasRemovedEntities[yes]" : "hasRemovedEntities[no]") << " "
+    << (_manager.HasNewEntities() ? "hasNewEntities[yes]" : "hasNewEntities[no]") << " " 
+    << (_manager.HasOneTimeComponentChanges() ? "hasonetimecomponentchanges[yes]" : "hasonetimecomponentchanges[no]") << " " 
+    << (jumpBackInTime ? "jumpBackInTime[yes]" : "jumpBackInTime[no]") << " " 
+    << (_manager.HasRemovedComponents() ? "hasRemovedComponents[yes]" : "hasRemovedComponents[no]") << std::endl;
+    */
+
+  gzwarn << (this->dataPtr->statePub.HasConnections() ? "hasconnections[yes]" : "hasconnections[no]") << " && ("
+    << (changeEvent ? "changeEvent[yes]" : "changeEvent[no]") << "||" 
+    << (itsPubTime ? "itsPubTime[yes]" : "itsPubTime[no]") << ")" << std::endl;
+
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
+    gzwarn << "shouldPublish" << std::endl;
+
     std::unique_lock<std::mutex> lock(this->dataPtr->stateMutex);
     this->dataPtr->stepMsg.Clear();
 
@@ -398,6 +412,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->lastStatePubTime = now;
     }
   }
+
 }
 
 //////////////////////////////////////////////////
