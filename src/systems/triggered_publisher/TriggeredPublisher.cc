@@ -479,10 +479,11 @@ TriggeredPublisher::~TriggeredPublisher()
   this->done = true;
   this->s_done = true;
   this->newMatchSignal.notify_one();
+  this->serviceMatchSignal.notify_one();
   if (this->workerThread.joinable())
-  {
     this->workerThread.join();
-  }
+  if (this->serviceWorkerThread.joinable())
+    this->serviceWorkerThread.join();
 }
 
 //////////////////////////////////////////////////
@@ -594,27 +595,19 @@ void TriggeredPublisher::Configure(const Entity &,
                << "] with data [" << msgStr << "] when creating output"
                << " publisher on topic " << info.topic << ".\n";
       }
-
-     ignerr<<"TOPIC\ntype "<< info.msgType <<" topic " << info.topic<<" str" << msgStr <<std::endl;
-
-
-
     }
-ignerr<<"----------------------\n";
   }
   else
     ignerr << "No ouptut specified" << std::endl;
 
   if (sdfClone->HasElement("service"))
   {
-   
-    this->hasService = true;
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
        ServiceOutputInfo s_info; 
-       s_info.serviceName = serviceElem->Get<std::string>("name");
-       if (s_info.serviceName.empty())
+       s_info.servName = serviceElem->Get<std::string>("name");
+       if (s_info.servName.empty())
        {
          ignerr << "Service name cannot be empty\n";
        }
@@ -633,14 +626,20 @@ ignerr<<"----------------------\n";
        {
          ignerr << "Service request string cannot be empty\n";
        }
-       s_info.timeout = serviceElem->Get<std::string>("timeout");
-     ignerr <<"SERVICE\nname " << s_info.serviceName << "msg " <<s_info.reqMsg <<std::endl;
+       std::string _timeout = serviceElem->Get<std::string>("timeout");
+       if (_timeout.empty())
+         {
+           ignwarn << "timeout value not spcified for service name ["
+                  << s_info.servName << "] with service type ["
+                  << s_info.reqType << "]. Using default value of 3000\n";
+           // Use default timeout value of 3000ms
+           s_info.timeout = 3000;
+         }
+       else
+           s_info.timeout = std::stoi(_timeout);
 
-       //TODO: check if service is available before adding?
        this->serviceOutputInfo.push_back(std::move(s_info));
-     //  ignerr<<"service output info vec size: " << this->serviceOutputInfo.size() <<std::endl;
     }
-    ignerr <<"----------------------"<<std::endl;
   }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
@@ -661,16 +660,17 @@ ignerr<<"----------------------\n";
             }
             this->newMatchSignal.notify_one();
           }
-          if (this->hasService)
+          if (this->serviceOutputInfo.size() > 0)
           {
-	    {
+            {
               std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-	      ++this->serviceCount;
-	    }
-	    this->serviceMatchSignal.notify_one();
-	  }
+              ++this->serviceCount;
+            }
+            this->serviceMatchSignal.notify_one();
+          }
         }
       });
+
   if (!this->node.Subscribe(this->inputTopic, msgCb))
   {
     ignerr << "Input subscriber could not be created for topic ["
@@ -696,11 +696,6 @@ ignerr<<"----------------------\n";
 }
 
 //////////////////////////////////////////////////
-void TriggeredPublisher::serviceCb(const ignition::msgs::Boolean &_rep, const bool _result){
-   ignerr<<"In service callback"<<std::endl;
-}
-
-//////////////////////////////////////////////////
 void TriggeredPublisher::DoServiceWork()
 {
   while (!this->s_done)
@@ -711,60 +706,38 @@ void TriggeredPublisher::DoServiceWork()
       std::unique_lock<std::mutex> lock(this->serviceCountMutex);
       this->serviceMatchSignal.wait_for(lock, 1s,
         [this]
-	{
-	  return (this->serviceCount > 0) || this->s_done;
-	});
+        {
+          return (this->serviceCount > 0) || this->s_done;
+        });
 
-      ignerr <<"service count" << this->serviceCount << std::endl;
       if (this->serviceCount == 0 || this->s_done)
         continue;
 
-    ignerr<<"before"<<std::endl;
-    ignerr <<"pending count is " << pending <<std::endl;
-    ignerr << "serviceoutput size " << this->serviceOutputInfo.size() <<std::endl;
-    ignerr<<"-------"<<std::endl;
-
-	std::swap(pending, this->serviceCount);
-       ignerr <<"pending count is " << pending <<std::endl;
-    ignerr << "serviceoutputinfo size " << this->serviceOutputInfo.size() <<std::endl;
+      std::swap(pending, this->serviceCount);
     }
     for (auto &s_info : this->serviceOutputInfo)
     {
-     ignerr <<"service info " << s_info.serviceName << "msg " <<s_info.reqMsg <<std::endl;
       for (std::size_t i = 0; i < pending; ++i)
-        {
-          bool result;
-// TODO: Find out why lambda method doesn't work
-//	  auto cb1 = std::function<void(const ignition::msgs::Boolean &_rep, const bool _result)>(
-//      [this](const auto &_rep, const auto _result){});
-
-        auto req = msgs::Factory::New(s_info.reqType, s_info.reqMsg);
-	if (!req)
-	{
-          ignerr << "Unable to create request fo type[" << s_info.reqType << "].\n";
-	  return;
-	}
-	auto rep = msgs::Factory::New(s_info.repType);
-
-	bool executed = this->node.Request(s_info.serviceName, *req, 3000, *rep, result);
-	if (!executed)
-	{
-          if(result)
-	    ignerr << rep->DebugString() <<std::endl;
-	  else
-		  ignerr << "Service call failed" << std::endl;
-	}
-	//TODO: maybe have a cb??
-        //this->node.Request(s_info.serviceName, *reqa, &TriggeredPublisher::serviceCb, this);
-
-
-
- // auto msgCb = std::function<void(const transport::ProtoMsg &)>(
- //     [this](const auto &_msg)
-
-          
-          ignerr<< "executed is "  <<std::endl;
-	}
+      {
+         bool result;
+         auto req = msgs::Factory::New(s_info.reqType, s_info.reqMsg);
+         if (!req)
+         {
+           ignerr << "Unable to create request for type["
+                  << s_info.reqType << "].\n";
+           return;
+         }
+         auto rep = msgs::Factory::New(s_info.repType);
+         bool executed = this->node.Request(s_info.servName, *req,
+                                            s_info.timeout, *rep, result);
+         if (executed)
+         {
+           if (!result)
+             ignerr << "Service call [" << s_info.servName << "] failed\n";
+         }
+         else
+           ignerr << "Service call [" << s_info.servName << "] timed out\n";
+      }
     }
   }
 }
@@ -795,7 +768,6 @@ void TriggeredPublisher::DoWork()
     {
       for (std::size_t i = 0; i < pending; ++i)
       {
-        ignerr << "publishing.. "<<std::endl;
         info.pub.Publish(*info.msgData);
       }
     }
