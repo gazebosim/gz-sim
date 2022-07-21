@@ -477,6 +477,7 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
+  this->s_done = true;
   this->newMatchSignal.notify_one();
   if (this->workerThread.joinable())
   {
@@ -593,45 +594,53 @@ void TriggeredPublisher::Configure(const Entity &,
                << "] with data [" << msgStr << "] when creating output"
                << " publisher on topic " << info.topic << ".\n";
       }
+
+     ignerr<<"TOPIC\ntype "<< info.msgType <<" topic " << info.topic<<" str" << msgStr <<std::endl;
+
+
+
     }
+ignerr<<"----------------------\n";
   }
   else
     ignerr << "No ouptut specified" << std::endl;
 
   if (sdfClone->HasElement("service"))
   {
+   
+    this->hasService = true;
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
-       this->hasService = true;
-       ignerr<< "TESTING ---------------------------" <<std::endl;
-       auto outputServElem = sdfClone->GetElement("service");
        ServiceOutputInfo s_info; 
-       s_info.serviceName = outputServElem->Get<std::string>("name");
+       s_info.serviceName = serviceElem->Get<std::string>("name");
        if (s_info.serviceName.empty())
        {
          ignerr << "Service name cannot be empty\n";
        }
-       s_info.reqType = outputServElem->Get<std::string>("reqType");
+       s_info.reqType = serviceElem->Get<std::string>("reqType");
        if (s_info.reqType.empty())
        {
          ignerr << "Service request type cannot be empty\n";
        }
-       s_info.repType = outputServElem->Get<std::string>("repType");
+       s_info.repType = serviceElem->Get<std::string>("repType");
        if (s_info.repType.empty())
        {
          ignerr << "Service response type cannot be empty\n";
        }
-       s_info.reqMsg = outputServElem->Get<std::string>("reqMsg");
+       s_info.reqMsg = serviceElem->Get<std::string>("reqMsg");
        if (s_info.reqMsg.empty())
        {
          ignerr << "Service request string cannot be empty\n";
        }
-       s_info.timeout = outputServElem->Get<std::string>("timeout");
+       s_info.timeout = serviceElem->Get<std::string>("timeout");
+     ignerr <<"SERVICE\nname " << s_info.serviceName << "msg " <<s_info.reqMsg <<std::endl;
 
        //TODO: check if service is available before adding?
        this->serviceOutputInfo.push_back(std::move(s_info));
+     //  ignerr<<"service output info vec size: " << this->serviceOutputInfo.size() <<std::endl;
     }
+    ignerr <<"----------------------"<<std::endl;
   }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
@@ -694,7 +703,7 @@ void TriggeredPublisher::serviceCb(const ignition::msgs::Boolean &_rep, const bo
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoServiceWork()
 {
-  while (!this->done)
+  while (!this->s_done)
   {
     std::size_t pending{0};
     {
@@ -703,32 +712,32 @@ void TriggeredPublisher::DoServiceWork()
       this->serviceMatchSignal.wait_for(lock, 1s,
         [this]
 	{
-	  return (this->serviceCount > 0) || this->done;
+	  return (this->serviceCount > 0) || this->s_done;
 	});
 
-      if (this->serviceCount == 0 || this->done)
+      ignerr <<"service count" << this->serviceCount << std::endl;
+      if (this->serviceCount == 0 || this->s_done)
         continue;
 
+    ignerr<<"before"<<std::endl;
+    ignerr <<"pending count is " << pending <<std::endl;
+    ignerr << "serviceoutput size " << this->serviceOutputInfo.size() <<std::endl;
+    ignerr<<"-------"<<std::endl;
+
 	std::swap(pending, this->serviceCount);
+       ignerr <<"pending count is " << pending <<std::endl;
+    ignerr << "serviceoutputinfo size " << this->serviceOutputInfo.size() <<std::endl;
     }
-    ignerr << "ready to call service"<<std::endl;
     for (auto &s_info : this->serviceOutputInfo)
     {
+     ignerr <<"service info " << s_info.serviceName << "msg " <<s_info.reqMsg <<std::endl;
       for (std::size_t i = 0; i < pending; ++i)
         {
-	//	ignition::msgs::Pose req;
-        //  ignition::msgs::Boolean rep;
           bool result;
 // TODO: Find out why lambda method doesn't work
 //	  auto cb1 = std::function<void(const ignition::msgs::Boolean &_rep, const bool _result)>(
 //      [this](const auto &_rep, const auto _result){});
 
-   //       req.set_id(8);
-   //       msgs::Set(req.mutable_position(), math::Vector3d(-10,0,2 ));
-   //       msgs::Set(req.mutable_orientation(), math::Quaterniond(0, 0, 0));
-   //       std::string poseCmdService("/world/triggered_publisher/set_pose");
-   //       this->node.Request(poseCmdService,req, &TriggeredPublisher::serviceCb, this);
-//        this->node.Request(poseCmdService,req, cb1);
         auto req = msgs::Factory::New(s_info.reqType, s_info.reqMsg);
 	if (!req)
 	{
@@ -743,7 +752,7 @@ void TriggeredPublisher::DoServiceWork()
           if(result)
 	    ignerr << rep->DebugString() <<std::endl;
 	  else
-	    ignerr << "Service call failed" << std::endl;
+		  ignerr << "Service call failed" << std::endl;
 	}
 	//TODO: maybe have a cb??
         //this->node.Request(s_info.serviceName, *reqa, &TriggeredPublisher::serviceCb, this);
@@ -754,8 +763,6 @@ void TriggeredPublisher::DoServiceWork()
  //     [this](const auto &_msg)
 
           
-          //req.set_data("'name: 'blue_vehicle', position: {x:1.0,z: 5.0}'");
-          //bool exe = this->node.Request("/world/triggered_publisher/set_pose", req, 3000,rep, result);
           ignerr<< "executed is "  <<std::endl;
 	}
     }
