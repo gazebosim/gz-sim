@@ -605,7 +605,7 @@ void TriggeredPublisher::Configure(const Entity &,
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
-       ServiceOutputInfo s_info; 
+       ServiceOutputInfo s_info;
        s_info.servName = serviceElem->Get<std::string>("name");
        if (s_info.servName.empty())
        {
