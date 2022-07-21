@@ -96,6 +96,7 @@ function(gz_add_system system_name)
 endfunction()
 
 add_subdirectory(ackermann_steering)
+add_subdirectory(acoustic_comms)
 add_subdirectory(air_pressure)
 add_subdirectory(altimeter)
 add_subdirectory(apply_joint_force)
