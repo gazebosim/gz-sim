@@ -234,6 +234,8 @@ namespace systems
     /// \brief TODO: added by liam
     private: std::string service;
 
+    private: std::atomic<bool> s_done{false};
+
 
 
 
