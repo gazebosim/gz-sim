@@ -37,10 +37,10 @@ using namespace systems;
 class AcousticComms::Implementation
 {
   // Default max range for acoustic comms in metres.
-  public: double maxRange = 500;
+  public: double maxRange = 1000.0;
   
   // Default speed of sound in air (m/s).
-  public: double speedOfSound = 343;
+  public: double speedOfSound = 343.0;
 
   public: double DistanceBetweenBodies(
               math::Vector3<double> _src,
@@ -73,7 +73,7 @@ void AcousticComms::Load(
   }
   if (_sdf->HasElement("speed_of_sound"))
   {
-    this->dataPtr->maxRange = _sdf->Get<double>("speed_of_sound");
+    this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
   }
 }
 
@@ -150,7 +150,8 @@ void AcousticComms::Step(
           static_cast<double>(timeOfTransmission.nsec()) / 1000000000.0;
 
         double deltaT = currTimestamp - packetTimestamp;
-        double distanceCoveredByMessage = deltaT * this->dataPtr->speedOfSound;
+        double distanceCoveredByMessage = deltaT *
+          this->dataPtr->speedOfSound;
 
         // Only check msgs that haven't exceeded the maxRange.
         if (distanceCoveredByMessage <= this->dataPtr->maxRange)
