@@ -20,6 +20,8 @@
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
 
+#include <cmath>
+
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Entity.hh>
@@ -34,10 +36,25 @@ using namespace systems;
 
 class AcousticComms::Implementation
 {
-  public: double maxRange;
-  public: double speedOfSound;
-  public: double DistanceBetweenBodies(Entity _src, Entity _dst);
+  // Default max range for acoustic comms in metres.
+  public: double maxRange = 500;
+  
+  // Default speed of sound in air (m/s).
+  public: double speedOfSound = 343;
+
+  public: double DistanceBetweenBodies(
+              math::Vector3<double> _src,
+              math::Vector3<double> _dst);
 };
+
+double AcousticComms::Implementation::DistanceBetweenBodies(
+    math::Vector3<double> _src, math::Vector3<double> _dst)
+{
+  double x = _src.X() - _dst.X();
+  double y = _src.Y() - _dst.Y();
+  double z = _src.Z() - _dst.Z();
+  return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+}
 
 AcousticComms::AcousticComms()
   : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
@@ -96,6 +113,8 @@ void AcousticComms::Step(
     bool srcAddressAttachedToModel =
       srcAddressBound && itSrc->second.entity != kNullEntity;
 
+    comms::DataQueue newOutbound;
+
     if (srcAddressAttachedToModel)
     {
       // All these messages need to be processed.
@@ -109,13 +128,51 @@ void AcousticComms::Step(
         bool dstAddressAttachedToModel =
           dstAddressBound && itDst->second.entity != kNullEntity;
 
-        if (dstAddressAttachedToModel)
-          _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+        if (!dstAddressAttachedToModel)
+          continue;
+
+        // Calculate distance between the bodies.
+        auto poseSrc = worldPose(itSrc->second.entity, _ecm).Pos();
+        auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
+
+        auto distanceToTransmitter =
+          this->dataPtr->DistanceBetweenBodies(poseSrc,
+              poseDst);
+
+        // Calculate distance covered by the message.
+        std::chrono::steady_clock::time_point currTime(_info.simTime);
+        auto timeOfTransmission = msg->mutable_header()->stamp();
+
+        double currTimestamp =
+          currTime.time_since_epoch().count() / 1000000000.0;
+        double packetTimestamp =
+          static_cast<double>(timeOfTransmission.sec()) +
+          static_cast<double>(timeOfTransmission.nsec()) / 1000000000.0;
+
+        double deltaT = currTimestamp - packetTimestamp;
+        double distanceCoveredByMessage = deltaT * this->dataPtr->speedOfSound;
+
+        // Only check msgs that haven't exceeded the maxRange.
+        if (distanceCoveredByMessage <= this->dataPtr->maxRange)
+        {
+          if (distanceCoveredByMessage >= distanceToTransmitter)
+          {
+            // This message needs to be processed.
+            _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+          }
+          else
+          {
+            // This message is still in transit, should be kept in the
+            // outbound buffer of source and not moved to inbound of
+            // the destination.
+            newOutbound.push_back(msg);
+          }
+        }
       }
     }
 
-    // Clear the outbound queue.
-    _newRegistry[address].outboundMsgs.clear();
+    // Clear the outbound queue, leaving the message in transit.
+    _newRegistry[address].outboundMsgs = newOutbound;
   }
 }
 
