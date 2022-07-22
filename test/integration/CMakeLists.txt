@@ -22,6 +22,7 @@ set(tests
   force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
+  hydrodynamics.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
