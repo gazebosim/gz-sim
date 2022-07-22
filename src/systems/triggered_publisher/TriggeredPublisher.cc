@@ -641,6 +641,8 @@ void TriggeredPublisher::Configure(const Entity &,
        this->serviceOutputInfo.push_back(std::move(s_info));
     }
   }
+  else
+    ignwarn << "No service specified" << std::endl;
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
       [this](const auto &_msg)
@@ -728,6 +730,12 @@ void TriggeredPublisher::DoServiceWork()
            return;
          }
          auto rep = msgs::Factory::New(s_info.repType);
+         if (!rep)
+         {
+           ignerr << "Unable to create response for type["
+                  << s_info.repType << "].\n";
+           return;
+         }
          bool executed = this->node.Request(s_info.servName, *req,
                                             s_info.timeout, *rep, result);
          if (executed)
