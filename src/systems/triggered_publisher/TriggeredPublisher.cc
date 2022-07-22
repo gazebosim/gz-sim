@@ -817,9 +817,8 @@ void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
   }
 
-  if (notify){
+  if (notify)
     this->newMatchSignal.notify_one();
-  }
 }
 
 //////////////////////////////////////////////////
