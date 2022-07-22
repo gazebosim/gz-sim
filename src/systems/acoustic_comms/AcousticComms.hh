@@ -44,19 +44,19 @@ namespace systems
     public gz::sim::comms::ICommsModel
   {
     public: explicit AcousticComms();
-  
+
     // Documentation inherited.
     public: void Load(const gz::sim::Entity &_entity,
                         std::shared_ptr<const sdf::Element> _sdf,
                         gz::sim::EntityComponentManager &_ecm,
                         gz::sim::EventManager &_eventMgr) override;
-  
+
     // Documentation inherited.
     public: void Step(const gz::sim::UpdateInfo &_info,
                         const gz::sim::comms::Registry &_currentRegistry,
                         gz::sim::comms::Registry &_newRegistry,
                         gz::sim::EntityComponentManager &_ecm) override;
-  
+
     // Impl pointer
     GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
