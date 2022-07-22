@@ -36,8 +36,8 @@ namespace systems
   class InputMatcher;
 
   /// \brief The triggered publisher system publishes a user specified message
-  /// on an output topic in response to an input message that matches user
-  /// specified criteria. An optional simulation time delay can be used
+  /// on an output topic or service in response to an input message that matches
+  /// user specified criteria. An optional simulation time delay can be used
   /// delay message publication.
   ///
   /// ## System Parameters
@@ -77,6 +77,16 @@ namespace systems
   ///
   /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.
+  ///
+  /// - `<service>`: Contains configuration for service to call: Multiple
+  /// `<service>` tags are possible. A service will be called for each input
+  /// that matches.
+  ///   * Attributes:
+  ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
+  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
+  ///     * `repType`: Service respond message type (eg. ignition.msgs.Boolean)
+  ///     * `timeout`: Service request timeout
+  ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
