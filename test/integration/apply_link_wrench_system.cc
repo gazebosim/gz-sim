@@ -230,6 +230,8 @@ TEST_F(ApplyLinkWrenchTestFixture, PersistentFromTopic)
     pubClear.Publish(msg);
   }
 
+  // \todo(chapulina) Arbitrarily sleeping here isn't very robust
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
   wrenchesCleared = true;
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations * 2, iterations);
