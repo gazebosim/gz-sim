@@ -9,7 +9,7 @@ project(ignition-gazebo1 VERSION 1.1.0)
 # Find ignition-cmake
 #============================================================================
 # If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 REQUIRED)
+find_package(ignition-cmake2 2.13 REQUIRED)
 
 #============================================================================
 # Configure the project
