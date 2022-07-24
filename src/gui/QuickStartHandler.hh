@@ -21,6 +21,9 @@
 #include <QDesktopServices>
 #include <string>
 
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Export.hh"
+
 namespace ignition
 {
 namespace gazebo
