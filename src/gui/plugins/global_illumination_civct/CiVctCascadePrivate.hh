@@ -49,7 +49,23 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   class GlobalIlluminationCiVct;
 
   /// \brief Cascade container for QML to control all of its settings,
-  /// per cascade
+  /// per cascade.
+  ///
+  /// Due to how QML bindings work, we must split Vectors
+  /// into each component so e.g. the following Javascript code:
+  ///
+  ///   cascade.areaHalfSizeX = 5.0
+  ///   cascade.areaHalfSizeY = 6.0
+  ///   cascade.areaHalfSizeZ = 7.0
+  ///
+  /// Will end up calling:
+  ///
+  ///   cascade->SetAreaHalfSizeX(5.0f);
+  ///   cascade->SetAreaHalfSizeY(6.0f);
+  ///   cascade->SetAreaHalfSizeZ(7.0f);
+  ///
+  /// Even though in C++ we would normally do math::Vector3d(5.0f, 6.0f, 7.0f)
+  /// The same goes for each property.
   class GZ_SIM_HIDDEN CiVctCascadePrivate : public QObject
   {
     friend class GlobalIlluminationCiVct;
@@ -121,6 +137,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     )
 
     /// \brief Constructor
+    /// \param _serviceMutex Mutex owned by our creator so we don't access
+    /// this data from the UI thread while the render thread is using it
+    /// \param _creator Our creator & owner
+    /// \param _cascade The cascade we will be manipulating via GUI
     public: CiVctCascadePrivate(std::mutex &_serviceMutex,
                                 GlobalIlluminationCiVct &_creator,
                                 rendering::CiVctCascadePtr _cascade);
@@ -142,7 +162,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Set the area half size
     /// \param[in] _axis Axis (width, height, depth). In range [0; 3)
-    /// \param[in] _res New size for that axis
+    /// \param[in] _halfSize New half size for that axis
     public: Q_INVOKABLE void UpdateAreaHalfSize(int _axis, float _halfSize)
         EXCLUDES(serviceMutex);
 
@@ -150,28 +170,31 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     signals: void SettingsChanged();
 
     /// \brief See rendering::CiVctCascade::SetAreaHalfSize
-    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
-    public: Q_INVOKABLE void SetAreaHalfSizeX(const float _x)
+    /// \param[in] _v See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeX(const float _v)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// Affects X component only
     /// \return See rendering::CiVctCascade::AreaHalfSize
     public: Q_INVOKABLE float AreaHalfSizeX() const
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetAreaHalfSize
-    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
-    public: Q_INVOKABLE void SetAreaHalfSizeY(const float _x)
+    /// Affects Y component only
+    /// \param[in] _v See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeY(const float _v)
         EXCLUDES(serviceMutex);
 
-    /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// \brief See rendering::CiVctCascade::AreaHalfSize.
+    /// Affects Y component only
     /// \return See rendering::CiVctCascade::AreaHalfSize
     public: Q_INVOKABLE float AreaHalfSizeY() const
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetAreaHalfSize
-    /// \param[in] _enabled See CiVctCascade::SetAreaHalfSize
-    public: Q_INVOKABLE void SetAreaHalfSizeZ(const float _x)
+    /// \param[in] _v See CiVctCascade::SetAreaHalfSize
+    public: Q_INVOKABLE void SetAreaHalfSizeZ(const float _v)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::AreaHalfSize
@@ -180,7 +203,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetResolution
-    /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
+    /// \param[in] _res See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionX(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
@@ -190,7 +213,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetResolution
-    /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
+    /// \param[in] _res See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionY(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
@@ -200,7 +223,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetResolution
-    /// \param[in] _enabled See CiVctCascadePrivate::SetResolution
+    /// \param[in] _res See CiVctCascadePrivate::SetResolution
     public: Q_INVOKABLE void SetResolutionZ(const uint32_t _res)
         EXCLUDES(serviceMutex);
 
@@ -210,8 +233,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetOctantCount
-    /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountX(const uint32_t _res)
+    /// \param[in] _octantCount See CiVctCascadePrivate::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountX(const uint32_t _octantCount)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::OctantCount
@@ -220,8 +243,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetOctantCount
-    /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountY(const uint32_t _res)
+    /// \param[in] _octantCount See CiVctCascadePrivate::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountY(const uint32_t _octantCount)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::OctantCount
@@ -230,8 +253,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetOctantCount
-    /// \param[in] _enabled See CiVctCascadePrivate::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _res)
+    /// \param[in] _octantCount See CiVctCascadePrivate::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _octantCount)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::OctantCount
@@ -240,7 +263,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetThinWallCounter
-    /// \param[in] _enabled See CiVctCascadePrivate::SetThinWallCounter
+    /// \param[in] _thinWallCounter See CiVctCascadePrivate::SetThinWallCounter
     public: Q_INVOKABLE void SetThinWallCounter(const float _thinWallCounter)
         EXCLUDES(serviceMutex);
 

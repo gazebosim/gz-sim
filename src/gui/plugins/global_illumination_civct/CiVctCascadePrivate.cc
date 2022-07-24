@@ -75,9 +75,9 @@ void CiVctCascadePrivate::UpdateAreaHalfSize(int _axis, float _halfSize)
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetAreaHalfSizeX(const float _x)
+void CiVctCascadePrivate::SetAreaHalfSizeX(const float _v)
 {
-  this->UpdateAreaHalfSize(0, _x);
+  this->UpdateAreaHalfSize(0, _v);
 }
 
 /////////////////////////////////////////////////
@@ -88,9 +88,9 @@ float CiVctCascadePrivate::AreaHalfSizeX() const
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetAreaHalfSizeY(const float _x)
+void CiVctCascadePrivate::SetAreaHalfSizeY(const float _v)
 {
-  this->UpdateAreaHalfSize(1, _x);
+  this->UpdateAreaHalfSize(1, _v);
 }
 
 /////////////////////////////////////////////////
@@ -101,9 +101,9 @@ float CiVctCascadePrivate::AreaHalfSizeY() const
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetAreaHalfSizeZ(const float _x)
+void CiVctCascadePrivate::SetAreaHalfSizeZ(const float _v)
 {
-  this->UpdateAreaHalfSize(2, _x);
+  this->UpdateAreaHalfSize(2, _v);
 }
 
 /////////////////////////////////////////////////
@@ -153,9 +153,9 @@ uint32_t CiVctCascadePrivate::ResolutionZ() const
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetOctantCountX(const uint32_t _res)
+void CiVctCascadePrivate::SetOctantCountX(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(0, _res);
+  this->UpdateOctantCount(0, _octantCount);
 }
 
 /////////////////////////////////////////////////
@@ -166,9 +166,9 @@ uint32_t CiVctCascadePrivate::OctantCountX() const
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetOctantCountY(const uint32_t _res)
+void CiVctCascadePrivate::SetOctantCountY(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(1, _res);
+  this->UpdateOctantCount(1, _octantCount);
 }
 
 /////////////////////////////////////////////////
@@ -179,9 +179,9 @@ uint32_t CiVctCascadePrivate::OctantCountY() const
 }
 
 /////////////////////////////////////////////////
-void CiVctCascadePrivate::SetOctantCountZ(const uint32_t _res)
+void CiVctCascadePrivate::SetOctantCountZ(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(2, _res);
+  this->UpdateOctantCount(2, _octantCount);
 }
 
 /////////////////////////////////////////////////
