@@ -196,6 +196,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t DebugVisualizationMode() const;
 
     /// \brief Binds the given camera as active for the center of all cascades
+    /// \param[in] _cameraName Name of an existing camera to track
+    /// Currently it must be a Camera in the GUI. In the future something
+    /// more advanced to synchronize with Server will be needed.
     public: Q_INVOKABLE void OnCamareBind(const QString &_cameraName);
 
     /// \brief See OnRefreshCameras. Does not lock.
@@ -215,6 +218,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE void PopCascade();
 
     /// \brief Retrieves an existing cascade
+    /// \param _idx Index of the cascade. Must be in range (you must track how
+    /// many times AddCascade() & PopCascade() has been called).
     /// \return A CiVctCascade ptr to be used by QML
     public: Q_INVOKABLE QObject* GetCascade(int _idx) const;
 
