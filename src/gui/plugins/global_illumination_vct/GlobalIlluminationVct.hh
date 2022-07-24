@@ -155,10 +155,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // Documentation Inherited
     public: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
-    // Documentation inherited
-    public: void Update(const UpdateInfo &,
-                        EntityComponentManager &_ecm) override;
-
     /// \brief Load the scene and attach LidarVisual to the scene
     public: void LoadGlobalIlluminationVct();
 
@@ -175,10 +171,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \param[in] _axis Axis (width, height, depth). In range [0; 3)
     /// \param[in] _count New octant count
     public: Q_INVOKABLE void UpdateOctantCount(int _axis, uint32_t _count);
-
-    /// \brief Set topic to subscribe for LidarSensor data
-    /// \param[in] _topicName Name of selected topic
-    public: Q_INVOKABLE void OnTopic(const QString &_topicName);
 
     /// \brief See rendering::GlobalIlluminationVct::SetEnabled &
     /// rendering::Scene::SetActiveGlobalIllumination
