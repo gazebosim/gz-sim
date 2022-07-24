@@ -156,7 +156,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Set VCT octant count
     /// \param[in] _axis Axis (width, height, depth). In range [0; 3)
-    /// \param[in] _res New octant count
+    /// \param[in] _count New octant count
     public: Q_INVOKABLE void UpdateOctantCount(int _axis, uint32_t _count)
         EXCLUDES(serviceMutex);
 
