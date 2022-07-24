@@ -81,7 +81,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   /// \brief Private data class for GlobalIlluminationVct
-  class GZ_GAZEBO_HIDDEN GlobalIlluminationVctPrivate
+  class GZ_SIM_HIDDEN GlobalIlluminationVctPrivate
   {
     /// \brief Transport node
     public: transport::Node node;

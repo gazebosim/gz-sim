@@ -50,7 +50,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   /// \brief Cascade container for QML to control all of its settings,
   /// per cascade
-  class GZ_GAZEBO_HIDDEN CiVctCascadePrivate : public QObject
+  class GZ_SIM_HIDDEN CiVctCascadePrivate : public QObject
   {
     friend class GlobalIlluminationCiVct;
 

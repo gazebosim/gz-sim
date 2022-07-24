@@ -71,7 +71,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   /// from XML. We must do this because we require Ogre-Next
   /// engine to be loaded and there are also thread synchronization
   /// issues (GUI vs internal data) that needs to be accounted
-  struct GZ_GAZEBO_HIDDEN GiCiVctXmlInitData
+  struct GZ_SIM_HIDDEN GiCiVctXmlInitData
   {
     uint32_t resolution[3]{ 16u, 16u, 16u };
     uint32_t octantCount[3]{ 1u, 1u, 1u };
@@ -80,7 +80,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   };
 
   /// \brief Private data class for GlobalIlluminationCiVct
-  class GZ_GAZEBO_HIDDEN GlobalIlluminationCiVctPrivate
+  class GZ_SIM_HIDDEN GlobalIlluminationCiVctPrivate
   {
     /// \brief Transport node
     public: transport::Node node;
