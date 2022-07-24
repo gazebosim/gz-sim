@@ -34,6 +34,22 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   /// \brief Enable and configure Global Illumination using VCT
   /// (Voxel Cone Tracing)
+  ///
+  /// Due to how QML bindings work, we must split Vectors
+  /// into each component so e.g. the following Javascript code:
+  ///
+  ///   cascade.resolutionX = 16
+  ///   cascade.resolutionY = 32
+  ///   cascade.resolutionZ = 64
+  ///
+  /// Will end up calling:
+  ///
+  ///   cascade->SetResolutionX(16);
+  ///   cascade->SetResolutionY(32);
+  ///   cascade->SetResolutionZ(64);
+  ///
+  /// Even though in C++ we would normally do resolution = {16, 32, 64};
+  /// The same goes for each property.
   class GlobalIlluminationVct : public gz::sim::GuiSystem
   {
     Q_OBJECT
@@ -186,7 +202,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     signals: void DebugVisualizationModeChanged();
 
     /// \brief See rendering::GlobalIlluminationVct::SetResolution
-    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    /// \param[in] _res See GlobalIlluminationVct::SetResolution
     public: Q_INVOKABLE void SetResolutionX(const uint32_t _res);
 
     /// \brief See rendering::GlobalIlluminationVct::Resolution
@@ -194,7 +210,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t ResolutionX() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetResolution
-    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    /// \param[in] _res See GlobalIlluminationVct::SetResolution
     public: Q_INVOKABLE void SetResolutionY(const uint32_t _res);
 
     /// \brief See rendering::GlobalIlluminationVct::Resolution
@@ -202,7 +218,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t ResolutionY() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetResolution
-    /// \param[in] _enabled See GlobalIlluminationVct::SetResolution
+    /// \param[in] _res See GlobalIlluminationVct::SetResolution
     public: Q_INVOKABLE void SetResolutionZ(const uint32_t _res);
 
     /// \brief See rendering::GlobalIlluminationVct::Resolution
@@ -210,31 +226,31 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t ResolutionZ() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
-    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountX(const uint32_t _res);
+    /// \param[in] _octantCount See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountX(const uint32_t _octantCount);
 
     /// \brief See rendering::GlobalIlluminationVct::OctantCount
     /// \return See rendering::GlobalIlluminationVct::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountX() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
-    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountY(const uint32_t _res);
+    /// \param[in] _octantCount See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountY(const uint32_t _octantCount);
 
     /// \brief See rendering::GlobalIlluminationVct::OctantCount
     /// \return See rendering::GlobalIlluminationVct::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountY() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
-    /// \param[in] _enabled See GlobalIlluminationVct::SetOctantCount
-    public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _res);
+    /// \param[in] _octantCount See GlobalIlluminationVct::SetOctantCount
+    public: Q_INVOKABLE void SetOctantCountZ(const uint32_t _octantCount);
 
     /// \brief See rendering::GlobalIlluminationVct::OctantCount
     /// \return See rendering::GlobalIlluminationVct::OctantCount
     public: Q_INVOKABLE uint32_t OctantCountZ() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
-    /// \param[in] _enabled See GlobalIlluminationVct::SetBounceCount
+    /// \param[in] _bounces See GlobalIlluminationVct::SetBounceCount
     public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);
 
     /// \brief See rendering::GlobalIlluminationVct::BounceCount
@@ -242,7 +258,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t BounceCount() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
-    /// \param[in] _enabled See GlobalIlluminationVct::SetHighQuality
+    /// \param[in] _quality See GlobalIlluminationVct::SetHighQuality
     public: Q_INVOKABLE void SetHighQuality(const bool _quality);
 
     /// \brief See rendering::GlobalIlluminationVct::HighQuality
@@ -250,7 +266,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE bool HighQuality() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
-    /// \param[in] _enabled See GlobalIlluminationVct::SetAnisotropic
+    /// \param[in] _anisotropic See GlobalIlluminationVct::SetAnisotropic
     public: Q_INVOKABLE void SetAnisotropic(const bool _anisotropic);
 
     /// \brief See rendering::GlobalIlluminationVct::Anisotropic
@@ -258,7 +274,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE bool Anisotropic() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
-    /// \param[in] _enabled See GlobalIlluminationVct::SetConserveMemory
+    /// \param[in] _conserveMemory See GlobalIlluminationVct::SetConserveMemory
     public: Q_INVOKABLE void SetConserveMemory(const bool _conserveMemory);
 
     /// \brief See rendering::GlobalIlluminationVct::ConserveMemory
@@ -266,7 +282,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE bool ConserveMemory() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
-    /// \param[in] _enabled See GlobalIlluminationVct::SetThinWallCounter
+    /// \param[in] _thinWallCounter See
+    /// GlobalIlluminationVct::SetThinWallCounter
     public: Q_INVOKABLE void SetThinWallCounter(const float _thinWallCounter);
 
     /// \brief See rendering::GlobalIlluminationVct::ThinWallCounter
@@ -274,7 +291,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE float ThinWallCounter() const;
 
     /// \brief See rendering::GlobalIlluminationVct::SetDebugVisualizationMode
-    /// \param[in] _enabled See GlobalIlluminationVct::SetDebugVisualizationMode
+    /// \param[in] _visMode See GlobalIlluminationVct::SetDebugVisualizationMode
     public: Q_INVOKABLE void SetDebugVisualizationMode(const uint32_t _visMode);
 
     /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode

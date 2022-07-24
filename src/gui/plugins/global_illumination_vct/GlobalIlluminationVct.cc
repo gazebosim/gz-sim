@@ -726,9 +726,9 @@ uint32_t GlobalIlluminationVct::ResolutionZ() const
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationVct::SetOctantCountX(const uint32_t _res)
+void GlobalIlluminationVct::SetOctantCountX(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(0, _res);
+  this->UpdateOctantCount(0, _octantCount);
 }
 
 //////////////////////////////////////////////////
@@ -739,9 +739,9 @@ uint32_t GlobalIlluminationVct::OctantCountX() const
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationVct::SetOctantCountY(const uint32_t _res)
+void GlobalIlluminationVct::SetOctantCountY(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(1, _res);
+  this->UpdateOctantCount(1, _octantCount);
 }
 
 //////////////////////////////////////////////////
@@ -752,9 +752,9 @@ uint32_t GlobalIlluminationVct::OctantCountY() const
 }
 
 //////////////////////////////////////////////////
-void GlobalIlluminationVct::SetOctantCountZ(const uint32_t _res)
+void GlobalIlluminationVct::SetOctantCountZ(const uint32_t _octantCount)
 {
-  this->UpdateOctantCount(2, _res);
+  this->UpdateOctantCount(2, _octantCount);
 }
 
 //////////////////////////////////////////////////

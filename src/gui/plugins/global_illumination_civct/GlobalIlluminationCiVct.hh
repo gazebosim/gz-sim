@@ -163,7 +163,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
                                  float _thinWallCounter);
 
     /// \brief See rendering::GlobalIlluminationCiVct::SetBounceCount
-    /// \param[in] _enabled See GlobalIlluminationCiVct::SetBounceCount
+    /// \param[in] _bounces See GlobalIlluminationCiVct::SetBounceCount
     public: Q_INVOKABLE void SetBounceCount(const uint32_t _bounces);
 
     /// \brief See rendering::GlobalIlluminationCiVct::BounceCount
@@ -171,7 +171,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE uint32_t BounceCount() const;
 
     /// \brief See rendering::GlobalIlluminationCiVct::SetHighQuality
-    /// \param[in] _enabled See GlobalIlluminationCiVct::SetHighQuality
+    /// \param[in] _quality See GlobalIlluminationCiVct::SetHighQuality
     public: Q_INVOKABLE void SetHighQuality(const bool _quality);
 
     /// \brief See rendering::GlobalIlluminationCiVct::HighQuality
@@ -179,7 +179,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE bool HighQuality() const;
 
     /// \brief See rendering::GlobalIlluminationCiVct::SetAnisotropic
-    /// \param[in] _enabled See GlobalIlluminationCiVct::SetAnisotropic
+    /// \param[in] _anisotropic See GlobalIlluminationCiVct::SetAnisotropic
     public: Q_INVOKABLE void SetAnisotropic(const bool _anisotropic);
 
     /// \brief See rendering::GlobalIlluminationCiVct::Anisotropic
@@ -187,7 +187,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: Q_INVOKABLE bool Anisotropic() const;
 
     /// \brief See rendering::GlobalIlluminationCiVct::SetDebugVisualizationMode
-    /// \param[in] _enabled
+    /// \param[in] _visMode
     /// See GlobalIlluminationCiVct::SetDebugVisualizationMode
     public: Q_INVOKABLE void SetDebugVisualizationMode(const uint32_t _visMode);
 
