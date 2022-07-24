@@ -193,11 +193,13 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::SetAreaHalfSize
+    /// Affects Z component only
     /// \param[in] _v See CiVctCascade::SetAreaHalfSize
     public: Q_INVOKABLE void SetAreaHalfSizeZ(const float _v)
         EXCLUDES(serviceMutex);
 
     /// \brief See rendering::CiVctCascade::AreaHalfSize
+    /// Affects Z component only
     /// \return See rendering::CiVctCascade::AreaHalfSize
     public: Q_INVOKABLE float AreaHalfSizeZ() const
         EXCLUDES(serviceMutex);
