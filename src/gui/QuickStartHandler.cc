@@ -31,20 +31,8 @@ using namespace gazebo::gui;
 /////////////////////////////////////////////////
 QuickStartHandler::QuickStartHandler()
 {
-  common::SystemPaths systemPaths;
-
-  // Worlds from environment variable
-  systemPaths.SetFilePathEnv(kResourcePathEnv);
-
-  // Worlds installed with ign-gazebo
-  systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
-
-  for (const std::string &filePath : systemPaths.FilePaths())
-  {
-    if(filePath.find("world") !=std::string::npos){
-      worldsPath += filePath;
-    }
-  }
+  // Only show worlds installed with ign-gazebo
+  worldsPath += IGN_GAZEBO_WORLD_INSTALL_DIR;
 }
 
 /////////////////////////////////////////////////
