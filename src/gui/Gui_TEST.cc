@@ -85,18 +85,6 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  // Starting world callback
-  bool startingWorldSet{false};
-  std::function<bool(msgs::StringMsg &)> startingWorldCb =
-      [&startingWorldSet](msgs::StringMsg &_res)
-      {
-        _res.set_data("/test/worlds/shapes.sdf");
-        startingWorldSet = true;
-        return true;
-      };
-  node.Advertise("/gazebo/starting_world", startingWorldCb);
-  igndbg << "Starting world set" << std::endl;
-
   auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
@@ -104,7 +92,6 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
   EXPECT_TRUE(pathsCalled);
-  EXPECT_TRUE(startingWorldSet);
 
   // Check paths
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
