@@ -373,11 +373,11 @@ int runGui(int &_argc, char **_argv,
   // or an empty string if not specified
   if(startingWorldPub.ThrottledUpdateReady())
   {
-    while (startingWorldPub.HasConnections())
+    while (!startingWorldPub.HasConnections())
     {
-      startingWorldPub.Publish(msg);
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+    startingWorldPub.Publish(msg);
   }
 
   // Start gazebo main GUI application
