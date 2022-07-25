@@ -629,9 +629,9 @@ void TriggeredPublisher::Configure(const Entity &,
        std::string _timeout = serviceElem->Get<std::string>("timeout");
        if (_timeout.empty())
          {
-           ignwarn << "timeout value not spcified for service name ["
-                  << s_info.servName << "] with service type ["
-                  << s_info.reqType << "]. Using default value of 3000\n";
+           ignwarn << "Timeout value not specified for service name ["
+                   << s_info.servName << "] with service type ["
+                   << s_info.reqType << "]. Using default value of 3000\n";
            // Use default timeout value of 3000ms
            s_info.timeout = 3000;
          }
