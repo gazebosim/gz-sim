@@ -104,7 +104,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
   EXPECT_TRUE(pathsCalled);
-  EXPECT_TRUE{startingWorldSet};
+  EXPECT_TRUE(startingWorldSet);
 
   // Check paths
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
