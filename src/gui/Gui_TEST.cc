@@ -78,7 +78,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   std::function<bool(msgs::StringMsg_V &)> pathsCb =
       [&pathsCalled](msgs::StringMsg_V &_res)
       {
-        _res.set_data("/from_callback");
+        _res.add_data("/from_callback");
         pathsCalled = true;
         return true;
       };
@@ -104,7 +104,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
   EXPECT_TRUE(pathsCalled);
-  EXPECT_TRUE{startingWorldSet}
+  EXPECT_TRUE{startingWorldSet};
 
   // Check paths
   for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
