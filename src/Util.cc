@@ -483,7 +483,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-std::string getDefaultConfigFile(const char *_guiConfig)
+std::string getDefaultGuiConfigFile(const char *_guiConfig)
 {
   // Set default config file for Gazebo
   std::string defaultGuiConfigName = "gui.config";

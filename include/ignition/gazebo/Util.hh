@@ -182,7 +182,7 @@ namespace ignition
     /// will be used, if _playback_ it returns 
     /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config instead
     /// \return Path to Gazebo GUI default configuration file.
-    std::string IGNITION_GAZEBO_VISIBLE getDefaultConfigFile(
+    std::string IGNITION_GAZEBO_VISIBLE getDefaultGuiConfigFile(
       const char *_guiConfig);
 
     /// \brief Helper function to generate a valid transport topic, given
