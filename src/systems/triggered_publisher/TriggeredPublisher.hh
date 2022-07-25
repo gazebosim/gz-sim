@@ -229,16 +229,16 @@ namespace systems
       /// \brief Service name
       std::string servName;
 
-      /// \brief Serivce request type
+      /// \brief Service request type
       std::string reqType;
 
-      /// \brief Serivce response type
+      /// \brief Service response type
       std::string repType;
 
-      /// \brief Serivce request message
+      /// \brief Service request message
       std::string reqMsg;
 
-      /// \brief Service reques timeoutt
+      /// \brief Service request timeout
       unsigned int timeout;
     };
 
