@@ -36,8 +36,8 @@ namespace systems
   class InputMatcher;
 
   /// \brief The triggered publisher system publishes a user specified message
-  /// on an output topic in response to an input message that matches user
-  /// specified criteria. An optional simulation time delay can be used
+  /// on an output topic or service in response to an input message that matches
+  /// user specified criteria. An optional simulation time delay can be used
   /// delay message publication.
   ///
   /// ## System Parameters
@@ -77,6 +77,16 @@ namespace systems
   ///
   /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.
+  ///
+  /// - `<service>`: Contains configuration for service to call: Multiple
+  /// `<service>` tags are possible. A service will be called for each input
+  /// that matches.
+  ///   * Attributes:
+  ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
+  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
+  ///     * `repType`: Service respond message type (eg. ignition.msgs.Boolean)
+  ///     * `timeout`: Service request timeout
+  ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
@@ -182,6 +192,9 @@ namespace systems
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
 
+    /// \brief Thread that handles calling services
+    public: void DoServiceWork();
+
     /// \brief Helper function that calls Match on every InputMatcher available
     /// \param[in] _inputMsg Input message
     /// \return True if all of the matchers return true
@@ -210,11 +223,33 @@ namespace systems
       transport::Node::Publisher pub;
     };
 
+    /// \brief Class that holds necessary bits for each specified service output
+    private: struct ServiceOutputInfo
+    {
+      /// \brief Service name
+      std::string servName;
+
+      /// \brief Service request type
+      std::string reqType;
+
+      /// \brief Service response type
+      std::string repType;
+
+      /// \brief Service request message
+      std::string reqMsg;
+
+      /// \brief Service request timeout
+      unsigned int timeout;
+    };
+
     /// \brief List of InputMatchers
     private: std::vector<std::unique_ptr<InputMatcher>> matchers;
 
     /// \brief List of outputs
     private: std::vector<OutputInfo> outputInfo;
+
+    /// \brief List of service outputs
+    private: std::vector<ServiceOutputInfo> serviceOutputInfo;
 
     /// \brief Ignition communication node.
     private: transport::Node node;
@@ -222,18 +257,33 @@ namespace systems
     /// \brief Counter that tells the publisher how many times to publish
     private: std::size_t publishCount{0};
 
+    /// \brief Counter that tells how many times to call the service
+    private: std::size_t serviceCount{0};
+
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
+
+    /// \brief Mutex to synchronize access to serviceCount
+    private: std::mutex serviceCountMutex;
 
     /// \brief Condition variable to signal that new matches have occured
     private: std::condition_variable newMatchSignal;
 
+    /// \brief Condition variable to signal to call a service
+    private: std::condition_variable serviceMatchSignal;
+
     /// \brief Thread handle for worker thread
     private: std::thread workerThread;
+
+    /// \brief Thread handle for service worker thread
+    private: std::thread serviceWorkerThread;
 
     /// \brief Flag for when the system is done and the worker thread should
     /// stop
     private: std::atomic<bool> done{false};
+
+    /// \brief Flag used for the service worker thread
+    private: std::atomic<bool> s_done{false};
 
     /// \brief Publish delay time. This is in simulation time.
     private: std::chrono::steady_clock::duration delay{0};
