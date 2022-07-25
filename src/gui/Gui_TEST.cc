@@ -94,7 +94,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
         startingWorldSet = true;
         return true;
       };
-  node.Advertise("/gazebo/starting_world", pathsCb);
+  node.Advertise("/gazebo/starting_world", startingWorldCb);
   igndbg << "Starting world set" << std::endl;
 
   auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr);
