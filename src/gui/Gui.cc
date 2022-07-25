@@ -373,7 +373,7 @@ int runGui(int &_argc, char **_argv,
   // or an empty string if not specified
   if(startingWorldPub.ThrottledUpdateReady())
   {
-    for (auto i = 0; i < 5; ++i)
+    while (startingWorldPub.HasConnections())
     {
       startingWorldPub.Publish(msg);
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
