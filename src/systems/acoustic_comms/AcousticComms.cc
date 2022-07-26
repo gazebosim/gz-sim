@@ -20,8 +20,6 @@
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
 
-#include <cmath>
-
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Entity.hh>
@@ -41,20 +39,7 @@ class AcousticComms::Implementation
 
   // Default speed of sound in air (m/s).
   public: double speedOfSound = 343.0;
-
-  public: double DistanceBetweenBodies(
-              math::Vector3<double> _src,
-              math::Vector3<double> _dst);
 };
-
-double AcousticComms::Implementation::DistanceBetweenBodies(
-    math::Vector3<double> _src, math::Vector3<double> _dst)
-{
-  double x = _src.X() - _dst.X();
-  double y = _src.Y() - _dst.Y();
-  double z = _src.Z() - _dst.Z();
-  return sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
-}
 
 AcousticComms::AcousticComms()
   : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
@@ -136,21 +121,21 @@ void AcousticComms::Step(
         auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
 
         auto distanceToTransmitter =
-          this->dataPtr->DistanceBetweenBodies(poseSrc,
-              poseDst);
+          (poseSrc - poseDst).Length();
 
         // Calculate distance covered by the message.
         std::chrono::steady_clock::time_point currTime(_info.simTime);
         auto timeOfTransmission = msg->mutable_header()->stamp();
 
-        double currTimestamp =
-          currTime.time_since_epoch().count() / 1000000000.0;
-        double packetTimestamp =
-          static_cast<double>(timeOfTransmission.sec()) +
-          static_cast<double>(timeOfTransmission.nsec()) / 1000000000.0;
+        auto currTimestamp =
+          std::chrono::nanoseconds(currTime.time_since_epoch().count());
+        auto packetTimestamp =
+          std::chrono::seconds(timeOfTransmission.sec()) +
+          std::chrono::nanoseconds(timeOfTransmission.nsec());
 
-        double deltaT = currTimestamp - packetTimestamp;
-        double distanceCoveredByMessage = deltaT *
+        std::chrono::duration<double> deltaT =
+          currTimestamp - packetTimestamp;
+        double distanceCoveredByMessage = deltaT.count() *
           this->dataPtr->speedOfSound;
 
         // Only check msgs that haven't exceeded the maxRange.
