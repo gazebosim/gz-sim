@@ -428,7 +428,7 @@ void SimulationRunner::PublishStats()
 
   if (this->Stepping())
   {
-    // Remove this header in Gazebo H
+    // (deprecated) Remove this header in Gazebo H
     auto headerData = msg.mutable_header()->add_data();
     headerData->set_key("step");
 
