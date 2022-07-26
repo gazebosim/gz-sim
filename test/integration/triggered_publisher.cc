@@ -637,3 +637,48 @@ TEST_F(TriggeredPublisherTest,
 
   EXPECT_EQ(0u, recvCount);
 }
+
+
+// TODO: add test for no service call (aka timeout)
+// TODO: add test for multiple services
+// TODO: add test for correct service (x)
+// TODO: add more Request options (some requests take different param)
+
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerServices))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_14");
+  std::atomic<std::size_t> recvCount{0};
+
+  // Responser (https://gazebosim.org/api/transport/11.0/services.html)
+
+  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
+      msgs::StringMsg &)>(
+      [&recvCount](const auto &_req, auto &_rep)
+        {
+          ++recvCount;
+          _rep.set_data(_req.data());
+          EXPECT_TRUE(_req.data() == "test");
+          if (_req.data() != "test")
+            return false;
+          return true;
+        });
+
+  // Advertise a dummy service
+  std::string service = "/srv-test";
+  node.Advertise(service, srvEchoCb);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+    IGN_SLEEP_MS(100);
+  }
+
+  waitUntil(5000, [&]{return pubCount == recvCount;});
+  EXPECT_EQ(pubCount, recvCount);
+}
+
+/////////////////////////////////////////////////
