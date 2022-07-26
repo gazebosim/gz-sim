@@ -682,3 +682,52 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleServiceForOneInput))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_15");
+  std::mutex recvMsgMutex;
+  std::vector<bool> recvMsgs0;
+  std::vector<bool> recvMsgs1;
+  auto cbCreator = [&recvMsgMutex](std::vector<bool> &_msgVector)
+  {
+    return std::function<bool(const msgs::Boolean &, msgs::Boolean &)>(
+        [&_msgVector, &recvMsgMutex](const auto &_req, auto &_rep)
+        {
+          std::lock_guard<std::mutex> lock(recvMsgMutex);
+          _msgVector.push_back(_req.data());
+          if (_req.data() || !_req.data())
+            return true;
+          return false;
+        });
+  };
+
+  auto msgCb0 = cbCreator(recvMsgs0);
+  auto msgCb1 = cbCreator(recvMsgs1);
+
+  // Advertise two dummy services
+  node.Advertise("/srv-test-0", msgCb0);
+  node.Advertise("/srv-test-1", msgCb1);
+
+  const int pubCount{10};
+  for (int i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+    IGN_SLEEP_MS(10);
+  }
+
+  waitUntil(5000, [&]
+            {
+              std::lock_guard<std::mutex> lock(recvMsgMutex);
+              return static_cast<std::size_t>(pubCount) == recvMsgs0.size() &&
+                     static_cast<std::size_t>(pubCount) == recvMsgs1.size();
+            });
+
+  EXPECT_EQ(static_cast<std::size_t>(pubCount), recvMsgs0.size());
+  EXPECT_EQ(static_cast<std::size_t>(pubCount), recvMsgs1.size());
+
+  // The plugin has two outputs. We expect 10 messages in each output topic
+  EXPECT_EQ(pubCount, std::count(recvMsgs0.begin(), recvMsgs0.end(), true));
+  EXPECT_EQ(pubCount, std::count(recvMsgs1.begin(), recvMsgs1.end(), false));
+}
