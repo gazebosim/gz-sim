@@ -638,12 +638,51 @@ TEST_F(TriggeredPublisherTest,
   EXPECT_EQ(0u, recvCount);
 }
 
+/////////////////////////////////////////////////
+// Test for invalid service name. It'll timeout
+// when matching service name can't be found.
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(InvalidServiceName))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_14");
+  std::atomic<std::size_t> recvCount{0};
 
-// TODO: add test for no service call (aka timeout)
-// TODO: add test for multiple services
-// TODO: add test for correct service (x)
-// TODO: add more Request options (some requests take different param)
+  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
+      msgs::StringMsg &)>(
+      [&recvCount](const auto &_req, auto &_rep)
+        {
+          EXPECT_TRUE(_req.data() == "test");
+          if (_req.data() == "test")
+            {
+              ++recvCount;
+              _rep.set_data(_req.data());
+              return true;
+            }
+          return false;
+        });
 
+  // Advertise a dummy service
+  std::string service = "/srv-dummy-test";
+  node.Advertise(service, srvEchoCb);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+    IGN_SLEEP_MS(100);
+  }
+
+  waitUntil(5000, [&]{return recvCount == 0u;});
+  EXPECT_EQ(recvCount, 0u);
+}
+
+/////////////////////////////////////////////////
+// Test for triggering a service call in response
+// to input ign msg by publishing 10 times. Service
+// call will also occur 10 times. It'll compare
+// pubCount and recvCount.
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerServices))
@@ -652,18 +691,18 @@ TEST_F(TriggeredPublisherTest,
   auto inputPub = node.Advertise<msgs::Empty>("/in_14");
   std::atomic<std::size_t> recvCount{0};
 
-  // Responser (https://gazebosim.org/api/transport/11.0/services.html)
-
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &_req, auto &_rep)
         {
-          ++recvCount;
-          _rep.set_data(_req.data());
           EXPECT_TRUE(_req.data() == "test");
-          if (_req.data() != "test")
-            return false;
-          return true;
+          if (_req.data() == "test")
+            {
+              ++recvCount;
+              _rep.set_data(_req.data());
+              return true;
+            }
+          return false;
         });
 
   // Advertise a dummy service
@@ -682,6 +721,12 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
+// Test for triggering multiple services in response
+// to a input ign msg by publishing 10 times. Service
+// call will also occur 10 times for each service.
+// It'll compare pubCount and recvCount for each
+// services.
+/////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleServiceForOneInput))
 {
@@ -696,9 +741,11 @@ TEST_F(TriggeredPublisherTest,
         [&_msgVector, &recvMsgMutex](const auto &_req, auto &_rep)
         {
           std::lock_guard<std::mutex> lock(recvMsgMutex);
-          _msgVector.push_back(_req.data());
           if (_req.data() || !_req.data())
-            return true;
+            {
+              _msgVector.push_back(_req.data());
+              return true;
+            }
           return false;
         });
   };

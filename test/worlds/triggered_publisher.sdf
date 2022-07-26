@@ -172,6 +172,14 @@
       <service name="/srv-test" reqType="ignition.msgs.StringMsg" repType="ignition.msgs.StringMsg"
                timeout="100" reqMsg="data: 'test'"></service>
     </plugin>
+
+    <plugin filename="ignition-gazebo-triggered-publisher-system" name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_15"/>
+      <service name="/srv-test-0" reqType="ignition.msgs.Boolean" repType="ignition.msgs.Boolean"
+               timeout="100" reqMsg="data: true"></service>
+      <service name="/srv-test-1" reqType="ignition.msgs.Boolean" repType="ignition.msgs.Boolean"
+               timeout="100" reqMsg="data: false"></service>
+    </plugin>
   </world>
 </sdf>
 
