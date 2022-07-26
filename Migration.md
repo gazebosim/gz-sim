@@ -37,6 +37,10 @@ release will remove the deprecated code.
 * The shared libraries have `gz` where there used to be `ignition`.
   * Using the un-migrated version is still possible due to tick-tocks, but will be removed in future versions.
 
+* The WorldStatistics message published on the 'stats' topic now has
+a `stepping` field that should be used in place the 'step' field in the
+message's header.
+
 * **Breaking Changes**
   * The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
     * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
