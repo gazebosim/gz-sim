@@ -4,4 +4,4 @@ libdart-external-ikfast-dev
 libdart-external-odelcpsolver-dev
 libdart-utils-urdf-dev
 libogre-next-dev
-python3-ignition-math7
+python3-gz-math7
