@@ -283,7 +283,7 @@ namespace systems
     private: std::atomic<bool> done{false};
 
     /// \brief Flag used for the service worker thread
-    private: std::atomic<bool> s_done{false};
+    private: std::atomic<bool> srvDone{false};
 
     /// \brief Publish delay time. This is in simulation time.
     private: std::chrono::steady_clock::duration delay{0};
