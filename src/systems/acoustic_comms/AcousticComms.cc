@@ -37,7 +37,7 @@ class AcousticComms::Implementation
   // Default max range for acoustic comms in metres.
   public: double maxRange = 1000.0;
 
-  // Default speed of sound in air (m/s).
+  // Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 };
 
