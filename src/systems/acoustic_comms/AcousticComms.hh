@@ -39,6 +39,27 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
+  /// \brief A comms model that simulates communication using acoustic
+  /// devices. The model uses simple distance based acoustics model.
+  ///
+  /// This communication model has been ported from:
+  /// https://github.com/osrf/subt .
+  ///
+  /// This system can be configured with the following SDF parameters:
+  ///
+  /// * Optional parameters:
+  ///    * <max_range>: Hard limit on range (meters). No communication will
+  ///                   happen beyond this range. Default is 1000.
+  ///    * <speed_of_sound>: Speed of sound in the medium (meters/sec).
+  ///                         Default is 343.0
+  ///
+  /// Here's an example:
+  ///  <plugin
+  ///    filename="gz-sim-acoustic-comms-system"
+  ///    name="gz::sim::systems::AcousticComms">
+  ///    <max_range>6</max_range>
+  ///    <speed_of_sound>1400</speed_of_sound>
+  ///  </plugin>
 
   class AcousticComms:
     public gz::sim::comms::ICommsModel

@@ -116,6 +116,14 @@ void AcousticComms::Step(
         if (!dstAddressAttachedToModel)
           continue;
 
+        // The plugin checks the distance travelled by the signal
+        // so far. If it is more than the maxRange, it is dropped
+        // and would never reach the destination.
+        // If it has already reached the destination but not as far
+        // as maxRange, it is processed.
+        // If it has reached neither the destination nor the maxRange,
+        // it is considered in transit.
+
         // Check if the message header contains the position of sender
         // at the time the message was sent. If yes, use that as poseSrc,
         // else use current position of the sender.

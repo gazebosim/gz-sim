@@ -95,7 +95,7 @@ TEST_F(AcousticCommsTest,
   frame->add_value("0");
   frame->add_value("0.5");
 
-  // Publish 10 messages.
+  // Publish some messages.
   gz::msgs::StringMsg payload;
   unsigned int pubCount = 3u;
   for (unsigned int i = 0u; i < pubCount; ++i)
@@ -169,7 +169,7 @@ TEST_F(AcousticCommsTest,
   msg.set_src_address("addr4");
   msg.set_dst_address(addr);
 
-  // Publish 10 messages.
+  // Publish some messages.
   gz::msgs::StringMsg payload;
   unsigned int pubCount = 3u;
   for (unsigned int i = 0u; i < pubCount; ++i)
@@ -246,7 +246,7 @@ TEST_F(AcousticCommsTest,
   msg.set_src_address("addr2");
   msg.set_dst_address(addr);
 
-  // Publish 10 messages.
+  // Publish some messages.
   gz::msgs::StringMsg payload;
   unsigned int pubCount = 3u;
   for (unsigned int i = 0u; i < pubCount; ++i)
@@ -325,7 +325,7 @@ TEST_F(AcousticCommsTest,
   msg.set_src_address("addr4");
   msg.set_dst_address(addr);
 
-  // Publish 10 messages.
+  // Publish some messages.
   gz::msgs::StringMsg payload;
   unsigned int pubCount = 3u;
   for (unsigned int i = 0u; i < pubCount; ++i)
