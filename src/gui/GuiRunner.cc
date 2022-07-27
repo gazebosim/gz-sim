@@ -116,7 +116,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // because currently many plugins cast entity ids to a 32 bit signed/unsigned
   // int.
   // todo(anyone) fix all gui plugins to use 64bit unsigned int for Entity ids
-  // and add support for accepting uint64_t data in ign-rendering Node's
+  // and add support for accepting uint64_t data in gz-rendering Node's
   // UserData object.
   // todo(anyone) address
   // https://github.com/gazebosim/gz-sim/issues/1134

@@ -29,7 +29,7 @@ namespace sim
 {
 namespace python
 {
-void defineGazeboUtil(pybind11::module &_module)
+void defineSimUtil(pybind11::module &_module)
 {
   _module.def("world_entity",
       pybind11::overload_cast<const EntityComponentManager &>(

@@ -46,7 +46,7 @@ http://answers.gazebosim.org instead.-->
       - On Windows, run `dxdiag` and report the GPU-related information.
       - On Mac OS, open a terminal and type `system_profiler SPDisplaysDataType`. Copy the output here.
         <!-- Please note that GUI rendering is not supported on macOS. -->
-    - [ ] Please, attach the ogre.log or ogre2.log file from  `~/.ignition/rendering` <!-- Choose the relevant version based on what you checked in the "Rendering plugin" question. -->
+    - [ ] Please, attach the ogre.log or ogre2.log file from  `~/.gz/rendering` <!-- Choose the relevant version based on what you checked in the "Rendering plugin" question. -->
 
 <details>
 

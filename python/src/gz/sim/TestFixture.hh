@@ -25,12 +25,12 @@ namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an gz::sim::TestFixture
+/// Define a pybind11 wrapper for a gz::sim::TestFixture
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboTestFixture(pybind11::object module);
+defineSimTestFixture(pybind11::object module);
 }
 }
 }

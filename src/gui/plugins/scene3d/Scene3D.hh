@@ -51,7 +51,7 @@ namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
-  class IgnRendererPrivate;
+  class GzRendererPrivate;
   class RenderWindowItemPrivate;
   class Scene3DPrivate;
   class RenderUtil;
@@ -269,20 +269,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
   class RenderSync;
 
   /// \brief gz-rendering renderer.
-  /// All ign-rendering calls should be performed inside this class as it makes
+  /// All gz-rendering calls should be performed inside this class as it makes
   /// sure that opengl calls in the underlying render engine do not interfere
   /// with QtQuick's opengl render operations. The main Render function will
   /// render to an offscreen texture and notify via signal and slots when it's
   /// ready to be displayed.
-  class IgnRenderer : public QObject
+  class GzRenderer : public QObject
   {
     Q_OBJECT
 
     ///  \brief Constructor
-    public: IgnRenderer();
+    public: GzRenderer();
 
     ///  \brief Destructor
-    public: ~IgnRenderer() override;
+    public: ~GzRenderer() override;
 
     ///  \brief Main render function
     /// \param[in] _renderSync RenderSync to safely
@@ -605,7 +605,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \internal
     /// \brief Pointer to private data.
-    private: std::unique_ptr<IgnRendererPrivate> dataPtr;
+    private: std::unique_ptr<GzRendererPrivate> dataPtr;
   };
 
   /// \brief Rendering thread
@@ -647,7 +647,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     public: QOpenGLContext *context = nullptr;
 
     /// \brief gz-rendering renderer
-    public: IgnRenderer ignRenderer;
+    public: GzRenderer gzRenderer;
   };
 
 
@@ -884,7 +884,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     private: std::unique_ptr<RenderWindowItemPrivate> dataPtr;
   };
 
-  /// \brief Texture node for displaying the render texture from ign-renderer
+  /// \brief Texture node for displaying the render texture from gz-renderer
   class TextureNode : public QObject, public QSGSimpleTextureNode
   {
     Q_OBJECT

@@ -111,7 +111,7 @@ TEST_F(EntityFeatureMapFixture,
       physics::World<physics::FeaturePolicy3d, MinimumFeatureList>>;
 
   // Making these entities different from 1 and 2 ensures that the implicit
-  // conversion in ign-physics between EntityPtr and std::size_t doesn't cause
+  // conversion in gz-physics between EntityPtr and std::size_t doesn't cause
   // false positive tests
   sim::Entity gazeboWorld1Entity = 123;
   sim::Entity gazeboWorld2Entity = 456;

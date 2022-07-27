@@ -71,7 +71,7 @@ class gz::sim::systems::ImuPrivate
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
-  /// \brief Create IMU sensors in ign-sensors
+  /// \brief Create IMU sensors in gz-sensors
   /// \param[in] _ecm Immutable reference to ECM.
   public: void CreateSensors(const EntityComponentManager &_ecm);
 
@@ -148,7 +148,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
     // check to see if update is necessary
     // we only update if there is at least one sensor that needs data
     // and that sensor has subscribers.
-    // note: ign-sensors does its own throttling. Here the check is mainly
+    // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the ImuPrivate::Update function
     bool needsUpdate = false;
     for (auto &it : this->dataPtr->entitySensorMap)

@@ -136,7 +136,7 @@ Rectangle {
         Layout.column: 0
         leftPadding: 5
       }
-      IgnSpinBox {
+      GzSpinBox {
         id: x
         Layout.fillWidth: true
         Layout.row: 1
@@ -155,7 +155,7 @@ Rectangle {
         Layout.column: 2
         leftPadding: 5
       }
-      IgnSpinBox {
+      GzSpinBox {
         id: y
         Layout.fillWidth: true
         value: Plot3D.offset.y
@@ -172,7 +172,7 @@ Rectangle {
         Layout.column: 4
         leftPadding: 5
       }
-      IgnSpinBox {
+      GzSpinBox {
         id: z
         Layout.fillWidth: true
         Layout.row: 1
@@ -204,7 +204,7 @@ Rectangle {
         leftPadding: 5
       }
 
-      IgnSpinBox {
+      GzSpinBox {
         id: r
         Layout.fillWidth: true
         Layout.row: 3
@@ -225,7 +225,7 @@ Rectangle {
         leftPadding: 5
       }
 
-      IgnSpinBox {
+      GzSpinBox {
         id: g
         Layout.fillWidth: true
         Layout.row: 3
@@ -246,7 +246,7 @@ Rectangle {
         leftPadding: 5
       }
 
-      IgnSpinBox {
+      GzSpinBox {
         id: b
         Layout.fillWidth: true
         Layout.row: 3
@@ -271,7 +271,7 @@ Rectangle {
         Layout.column: 0
         leftPadding: 5
       }
-      IgnSpinBox {
+      GzSpinBox {
         id: minDist
         Layout.fillWidth: true
         Layout.row: 0
@@ -291,7 +291,7 @@ Rectangle {
         Layout.column: 0
         leftPadding: 5
       }
-      IgnSpinBox {
+      GzSpinBox {
         id: maxPoints
         Layout.fillWidth: true
         Layout.row: 1

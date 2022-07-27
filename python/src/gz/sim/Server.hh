@@ -26,7 +26,7 @@ namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an gz::sim::Server
+/// Define a pybind11 wrapper for a gz::sim::Server
 /**
  * \param[in] module a pybind11 module to add the definition to
  */

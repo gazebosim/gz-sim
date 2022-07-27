@@ -428,8 +428,11 @@ void SimulationRunner::PublishStats()
 
   if (this->Stepping())
   {
+    // (deprecated) Remove this header in Gazebo H
     auto headerData = msg.mutable_header()->add_data();
     headerData->set_key("step");
+
+    msg.set_stepping(true);
   }
 
   // Publish the stats message. The stats message is throttled.
@@ -530,7 +533,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an gz::common::WorkerPool. There is overhead associated with
+  // a gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.

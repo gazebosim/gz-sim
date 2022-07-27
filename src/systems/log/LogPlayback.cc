@@ -88,7 +88,7 @@ class gz::sim::systems::LogPlaybackPrivate
   /// \brief A batch of data from log file, of all pose messages
   public: transport::log::Batch batch;
 
-  /// \brief Pointer to ign-transport Log
+  /// \brief Pointer to gz-transport Log
   public: std::unique_ptr<transport::log::Log> log;
 
   /// \brief Indicator of whether any playback instance has ever been started

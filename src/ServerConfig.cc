@@ -808,7 +808,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 
   const tinyxml2::XMLElement *elem{nullptr};
 
-  // Note, this was taken from ign-launch, where this type of parsing happens.
+  // Note, this was taken from gz-launch, where this type of parsing happens.
   // Process all the plugins.
   for (elem = plugins->FirstChildElement("plugin"); elem;
        elem = elem->NextSiblingElement("plugin"))
