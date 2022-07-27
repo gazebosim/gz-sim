@@ -45,7 +45,7 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
   ignmsg << "Serving entity system service on ["
          << "/" << entitySystemAddService << "]" << std::endl;
 
-  std::string entitySystemInfoService{"entity/system/info"};
+  std::string entitySystemInfoService{"system/info"};
   this->node->Advertise(entitySystemInfoService,
       &SystemManager::EntitySystemInfoService, this);
 }
@@ -260,7 +260,7 @@ bool SystemManager::EntitySystemInfoService(const msgs::Empty &,
     }
   }
 
-  for (auto fn : filenames)
+  for (const auto &fn : filenames)
   {
     auto plugin = _res.add_plugins();
     plugin->set_filename(fn);

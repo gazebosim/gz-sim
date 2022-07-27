@@ -62,7 +62,8 @@ namespace ignition
 
       /// \brief Load and instantiate system plugin from name/filename.
       /// \param[in] _filename Shared library filename to load plugin from.
-      /// \param[in] _name Class name to be instantiated.
+      /// \param[in] _name Class name to be instantiated. If empty, the first
+      /// the first plugin in the shared library will be loaded.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
       /// \note This will be deprecated in Gazebo 7 (Garden), please the use

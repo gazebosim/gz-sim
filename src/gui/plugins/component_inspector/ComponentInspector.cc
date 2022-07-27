@@ -1278,7 +1278,7 @@ void ComponentInspector::QuerySystems()
   bool result;
   unsigned int timeout = 5000;
   std::string service{"/world/" + this->dataPtr->worldName +
-      "/entity/system/info"};
+      "/system/info"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
     ignerr << "Unable to query available systems." << std::endl;

@@ -99,6 +99,7 @@ class ignition::gazebo::SystemLoaderPrivate
       return false;
     }
 
+    // use the first plugin name in the library if not specified
     std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
         pluginName : _sdfPlugin.Name();
 
