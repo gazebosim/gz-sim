@@ -37,7 +37,6 @@ Rectangle {
   function loadWorld(fileURL){
     // Remove "file://" from the QML url.
     var url = fileURL.toString().split("file://")[1]
-    console.log(url);
     QuickStartHandler.SetStartingWorld(url)
     // openWorld.color = 'green';
     openWorld.text = "Run selected world";
@@ -45,6 +44,10 @@ Rectangle {
   }
 
   function loadFuelWorld(fileName, uploader){
+    if (fileName === "Empty World"){
+      quickStart.Window.window.close();
+    }
+    else {
     // Construct fuel URL
     var fuel_url = "https://app.gazebosim.org/"
     fuel_url += uploader + "/fuel/worlds/" + fileName
@@ -52,6 +55,7 @@ Rectangle {
     openWorld.text = "Run selected world"
     openWorld.Material.background = Material.Green
     quickStart.selectedWorld = fileName
+    }
   }
 
   function getWorlds(){
@@ -59,7 +63,6 @@ Rectangle {
   }
 
   function getColor(fileName){
-    console.log(fileName, selectedWorld)
     if(fileName == selectedWorld)
       return "green";
     return "white";
