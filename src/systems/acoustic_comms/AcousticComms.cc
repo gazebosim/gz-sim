@@ -116,10 +116,27 @@ void AcousticComms::Step(
         if (!dstAddressAttachedToModel)
           continue;
 
-        // Calculate distance between the bodies.
-        auto poseSrc = worldPose(itSrc->second.entity, _ecm).Pos();
-        auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
+        // Check if the message header contains the position of sender
+        // at the time the message was sent. If yes, use that as poseSrc,
+        // else use current position of the sender.
+        math::Vector3d poseSrc =
+          worldPose(itSrc->second.entity, _ecm).Pos();
 
+        for (int i = 0; i < msg->header().data_size(); i++)
+        {
+          if (msg->header().data(i).key() == "transmitter_position"
+              && msg->header().data(i).value_size() == 3)
+          {
+            auto poseSrcX = std::stod(msg->header().data(i).value().Get(0));
+            auto poseSrcY = std::stod(msg->header().data(i).value().Get(1));
+            auto poseSrcZ = std::stod(msg->header().data(i).value().Get(2));
+            poseSrc = math::Vector3d(poseSrcX, poseSrcY, poseSrcZ);
+            break;
+          }
+        }
+
+        // Calculate distance between the bodies.
+        auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
         auto distanceToTransmitter =
           (poseSrc - poseDst).Length();
 
