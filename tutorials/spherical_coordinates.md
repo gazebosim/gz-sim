@@ -68,6 +68,13 @@ that the coordinates were set correctly:
 
 @image html files/spherical_coordinates/inspector.png
 
+For loading lunar DEMs using the ``MOON_SCS`` surface tag:
+
+```
+cd gazebo_workspace/install/share/gz/gz-sim7/worlds
+gz sim dem_moon/dem_moon.sdf
+```
+
 ### GUI
 
 To change the world origin through the GUI, edit values within the component
