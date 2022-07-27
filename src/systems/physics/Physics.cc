@@ -1386,7 +1386,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           else
           {
             auto worldEntity = _ecm.EntityByComponents(components::World());
-            auto sphericalCoordinatesComponent = 
+            auto sphericalCoordinatesComponent =
               _ecm.Component<components::SphericalCoordinates>(
                 worldEntity);
 
