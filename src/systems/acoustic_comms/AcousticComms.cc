@@ -157,7 +157,8 @@ void AcousticComms::Step(
       }
     }
 
-    // Clear the outbound queue, leaving the message in transit.
+    // Clear the outbound queue, except for messages that were
+    // in transit.
     _newRegistry[address].outboundMsgs = newOutbound;
   }
 }
