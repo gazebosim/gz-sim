@@ -53,6 +53,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _renderEngineGui --render-engine-gui option
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// null to record the default topics.
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
