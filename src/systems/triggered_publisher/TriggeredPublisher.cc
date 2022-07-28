@@ -764,12 +764,14 @@ void TriggeredPublisher::DoServiceWork()
          {
            if (!result)
            {
-             ignerr << "Service call [" << serviceInfo.servName << "] failed\n";
+             ignerr << "Service call [" << serviceInfo.servName
+                    << "] failed\n";
            }
          }
          else
          {
-           ignerr << "Service call [" << serviceInfo.servName << "] timed out\n";
+           ignerr << "Service call [" << serviceInfo.servName
+                  << "] timed out\n";
          }
       }
     }
