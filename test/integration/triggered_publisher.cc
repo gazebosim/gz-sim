@@ -653,7 +653,7 @@ TEST_F(TriggeredPublisherTest,
       msgs::StringMsg &)>(
       [&recvCount](const auto &_req, auto &_rep)
         {
-          EXPECT_EQ(_req.data() == "test");
+          EXPECT_EQ(_req.data(), "test");
           if (_req.data() == "test")
             {
               ++recvCount;
@@ -695,7 +695,7 @@ TEST_F(TriggeredPublisherTest,
       msgs::StringMsg &)>(
       [&recvCount](const auto &_req, auto &_rep)
         {
-          EXPECT_EQ(_req.data() == "test");
+          EXPECT_EQ(_req.data(), "test");
           if (_req.data() == "test")
             {
               ++recvCount;
