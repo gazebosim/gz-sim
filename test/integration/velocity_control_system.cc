@@ -231,8 +231,9 @@ class VelocityControlTest
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_P(VelocityControlTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(VelocityControlTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
