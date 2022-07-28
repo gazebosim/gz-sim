@@ -36,9 +36,11 @@ namespace systems
   class InputMatcher;
 
   /// \brief The triggered publisher system publishes a user specified message
-  /// on an output topic or service in response to an input message that matches
-  /// user specified criteria. An optional simulation time delay can be used
-  /// delay message publication.
+  /// on an output topic in response to an input message that matches user
+  /// specified criteria. It can also call a user specified service as an
+  /// output in response to an input message. An optional simulation time delay
+  /// can be used delay message
+  /// publication.
   ///
   /// ## System Parameters
   ///
@@ -75,7 +77,7 @@ namespace systems
   ///     the human-readable representation of a protobuf message as used by
   ///     `ign topic` for publishing messages
   ///
-  /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
+  /// - `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.
   ///
   /// - `<service>`: Contains configuration for service to call: Multiple

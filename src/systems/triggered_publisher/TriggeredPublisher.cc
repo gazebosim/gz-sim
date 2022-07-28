@@ -252,7 +252,9 @@ FullMatcher::FullMatcher(const std::string &_msgType, bool _logicType,
     : InputMatcher(_msgType), logicType(_logicType)
 {
   if (nullptr == this->matchMsg || !this->matchMsg->IsInitialized())
+  {
     return;
+  }
 
   this->valid = google::protobuf::TextFormat::ParseFromString(
       _matchString, this->matchMsg.get());
@@ -273,7 +275,9 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
       fieldName(_fieldName)
 {
   if (nullptr == this->matchMsg || !this->matchMsg->IsInitialized())
+  {
     return;
+  }
 
   transport::ProtoMsg *matcherSubMsg{nullptr};
   if (!FindFieldSubMessage(this->matchMsg.get(), _fieldName,
@@ -294,7 +298,9 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
   }
 
   if (nullptr == matcherSubMsg)
+  {
     return;
+  }
 
   bool result = google::protobuf::TextFormat::ParseFieldValueFromString(
       _fieldString, this->fieldDescMatcher.back(), matcherSubMsg);
@@ -481,9 +487,13 @@ TriggeredPublisher::~TriggeredPublisher()
   this->newMatchSignal.notify_one();
   this->serviceMatchSignal.notify_one();
   if (this->workerThread.joinable())
+  {
     this->workerThread.join();
+  }
   if (this->serviceWorkerThread.joinable())
+  {
     this->serviceWorkerThread.join();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -550,7 +560,9 @@ void TriggeredPublisher::Configure(const Entity &,
   {
     int ms = sdfClone->Get<int>("delay_ms");
     if (ms > 0)
+    {
       this->delay = std::chrono::milliseconds(ms);
+    }
   }
 
   if (sdfClone->HasElement("output"))
@@ -598,51 +610,57 @@ void TriggeredPublisher::Configure(const Entity &,
     }
   }
   else
+  {
     ignerr << "No ouptut specified" << std::endl;
+  }
 
   if (sdfClone->HasElement("service"))
   {
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
-       ServiceOutputInfo serviceInfo;
-       serviceInfo.servName = serviceElem->Get<std::string>("name");
-       if (serviceInfo.servName.empty())
-       {
-         ignerr << "Service name cannot be empty\n";
-       }
-       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
-       if (serviceInfo.reqType.empty())
-       {
-         ignerr << "Service request type cannot be empty\n";
-       }
-       serviceInfo.repType = serviceElem->Get<std::string>("repType");
-       if (serviceInfo.repType.empty())
-       {
-         ignerr << "Service response type cannot be empty\n";
-       }
-       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
-       if (serviceInfo.reqMsg.empty())
-       {
-         ignerr << "Service request string cannot be empty\n";
-       }
-       std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
-       if (timeoutInfo.empty())
-         {
-           ignwarn << "Timeout value not specified for service name ["
-                   << serviceInfo.servName << "] with service type ["
-                   << serviceInfo.reqType << "]. Using default value of 3000\n";
-           // Use default timeout value of 3000ms
-           serviceInfo.timeout = 3000;
-         }
-       else
-           serviceInfo.timeout = std::stoi(timeoutInfo);
+      ServiceOutputInfo serviceInfo;
+      serviceInfo.servName = serviceElem->Get<std::string>("name");
+      if (serviceInfo.servName.empty())
+      {
+        ignerr << "Service name cannot be empty\n";
+      }
+      serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
+      if (serviceInfo.reqType.empty())
+      {
+        ignerr << "Service request type cannot be empty\n";
+      }
+      serviceInfo.repType = serviceElem->Get<std::string>("repType");
+      if (serviceInfo.repType.empty())
+      {
+        ignerr << "Service response type cannot be empty\n";
+      }
+      serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
+      if (serviceInfo.reqMsg.empty())
+      {
+        ignerr << "Service request string cannot be empty\n";
+      }
+      std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
+      if (timeoutInfo.empty())
+      {
+        ignwarn << "Timeout value not specified for service name ["
+                << serviceInfo.servName << "] with service type ["
+                << serviceInfo.reqType << "]. Using default value of 3000\n";
+        // Use default timeout value of 3000ms
+        serviceInfo.timeout = 3000;
+      }
+      else
+      {
+        serviceInfo.timeout = std::stoi(timeoutInfo);
+      }
 
-       this->serviceOutputInfo.push_back(std::move(serviceInfo));
+      this->serviceOutputInfo.push_back(std::move(serviceInfo));
     }
   }
   else
+  {
     ignwarn << "No service specified" << std::endl;
+  }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
       [this](const auto &_msg)
@@ -713,7 +731,9 @@ void TriggeredPublisher::DoServiceWork()
         });
 
       if (this->serviceCount == 0 || this->srvDone)
+      {
         continue;
+      }
 
       std::swap(pending, this->serviceCount);
     }
@@ -729,6 +749,7 @@ void TriggeredPublisher::DoServiceWork()
                   << serviceInfo.reqType << "].\n";
            return;
          }
+
          auto rep = msgs::Factory::New(serviceInfo.repType);
          if (!rep)
          {
@@ -736,20 +757,24 @@ void TriggeredPublisher::DoServiceWork()
                   << serviceInfo.repType << "].\n";
            return;
          }
+
          bool executed = this->node.Request(serviceInfo.servName, *req,
                                             serviceInfo.timeout, *rep, result);
          if (executed)
          {
            if (!result)
+           {
              ignerr << "Service call [" << serviceInfo.servName << "] failed\n";
+           }
          }
          else
+         {
            ignerr << "Service call [" << serviceInfo.servName << "] timed out\n";
+         }
       }
     }
   }
 }
-
 
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
@@ -767,7 +792,9 @@ void TriggeredPublisher::DoWork()
         });
 
       if (this->publishCount == 0 || this->done)
+      {
         continue;
+      }
 
       std::swap(pending, this->publishCount);
     }
@@ -818,7 +845,9 @@ void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   }
 
   if (notify)
+  {
     this->newMatchSignal.notify_one();
+  }
 }
 
 //////////////////////////////////////////////////
