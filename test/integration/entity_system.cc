@@ -193,7 +193,7 @@ TEST_P(EntitySystemTest, SystemInfo)
 
   for (const auto &plugin : res.plugins())
   {
-    for (const auto &kp: knownPlugins)
+    for (const auto &kp : knownPlugins)
     {
       if (plugin.filename().find(kp) != std::string::npos)
       {
