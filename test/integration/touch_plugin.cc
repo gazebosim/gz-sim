@@ -187,7 +187,9 @@ TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(TouchPluginTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
