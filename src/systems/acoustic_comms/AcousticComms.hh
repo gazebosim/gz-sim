@@ -53,14 +53,6 @@ namespace systems
   ///    * <speed_of_sound>: Speed of sound in the medium (meters/sec).
   ///                         Default is 343.0
   ///
-  /// This plugin expects the message publishers to include the position
-  /// of the transmitter as a part of the header data map. It must be
-  /// in the form of a key value pair, with the key being
-  /// "transmitter_position" and the value being 3 strings, one for X,Y,Z
-  /// position of the sender. Defaults to current position of the sender
-  /// if not provided. This can cause issues if the sender is moving fast
-  /// compared to "<speed_of_sound>".
-  ///
   /// Here's an example:
   ///  <plugin
   ///    filename="gz-sim-acoustic-comms-system"

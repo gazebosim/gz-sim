@@ -88,13 +88,6 @@ TEST_F(AcousticCommsTest,
   msg.set_src_address("addr2");
   msg.set_dst_address(addr);
 
-  // Set the pose of sender in header.
-  gz::msgs::Header::Map *frame = msg.mutable_header()->add_data();
-  frame->set_key("transmitter_position");
-  frame->add_value("-2");
-  frame->add_value("0");
-  frame->add_value("0.5");
-
   // Publish some messages.
   gz::msgs::StringMsg payload;
   unsigned int pubCount = 3u;

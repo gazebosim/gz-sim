@@ -19,6 +19,7 @@
  * Development of this module has been funded by the Monterey Bay Aquarium
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
+#include <unordered_map>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -39,6 +40,12 @@ class AcousticComms::Implementation
 
   // Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
+
+  // Position of the transmitter at the time the message was
+  // sent, or first processed.
+  public: std::unordered_map
+          <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
+          poseSrcAtMsgTimestamp;
 };
 
 AcousticComms::AcousticComms()
@@ -124,24 +131,17 @@ void AcousticComms::Step(
         // If it has reached neither the destination nor the maxRange,
         // it is considered in transit.
 
-        // Check if the message header contains the position of sender
-        // at the time the message was sent. If yes, use that as poseSrc,
-        // else use current position of the sender.
-        math::Vector3d poseSrc =
-          worldPose(itSrc->second.entity, _ecm).Pos();
-
-        for (int i = 0; i < msg->header().data_size(); i++)
+        if (this->dataPtr->poseSrcAtMsgTimestamp.count(msg) == 0)
         {
-          if (msg->header().data(i).key() == "transmitter_position"
-              && msg->header().data(i).value_size() == 3)
-          {
-            auto poseSrcX = std::stod(msg->header().data(i).value().Get(0));
-            auto poseSrcY = std::stod(msg->header().data(i).value().Get(1));
-            auto poseSrcZ = std::stod(msg->header().data(i).value().Get(2));
-            poseSrc = math::Vector3d(poseSrcX, poseSrcY, poseSrcZ);
-            break;
-          }
+          // This message is being processed for the first time.
+          // Record the current position of the sender and use it
+          // for distance calculations.
+          this->dataPtr->poseSrcAtMsgTimestamp[msg] =
+            worldPose(itSrc->second.entity, _ecm).Pos();
         }
+
+        math::Vector3d poseSrc =
+          this->dataPtr->poseSrcAtMsgTimestamp[msg];
 
         // Calculate distance between the bodies.
         auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
@@ -163,13 +163,14 @@ void AcousticComms::Step(
         double distanceCoveredByMessage = deltaT.count() *
           this->dataPtr->speedOfSound;
 
-        // Only check msgs that haven't exceeded the maxRange.
+        // Check the msgs that haven't exceeded the maxRange.
         if (distanceCoveredByMessage <= this->dataPtr->maxRange)
         {
           if (distanceCoveredByMessage >= distanceToTransmitter)
           {
             // This message needs to be processed.
             _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+            this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
           }
           else
           {
@@ -178,6 +179,12 @@ void AcousticComms::Step(
             // the destination.
             newOutbound.push_back(msg);
           }
+        }
+        else
+        {
+          // This message exceeded the maxRange.
+          // Stop keeping track of the position of its source.
+          this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
         }
       }
     }
