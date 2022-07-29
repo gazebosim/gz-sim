@@ -68,11 +68,18 @@ that the coordinates were set correctly:
 
 @image html files/spherical_coordinates/inspector.png
 
-For loading lunar DEMs using the ``MOON_SCS`` surface tag:
+For loading Earth lunar DEMs, use the `MOON_SCS` surface tag:
+
+```.xml
+<spherical_coordinates>
+  <surface_model>MOON_SCS</surface_model>
+</spherical_coordinates>
+```
+
+Try the Gazebo moon example:
 
 ```
-cd gazebo_workspace/install/share/gz/gz-sim7/worlds
-gz sim dem_moon/dem_moon.sdf
+gz sim dem_moon.sdf
 ```
 
 ### GUI
@@ -154,4 +161,3 @@ gz service -s /world/spherical_coordinates/set_spherical_coordinates \
 When writing plugins, developers can use the
 `gz::sim::sphericalCoordinates` helper function to query the current
 coordinates for any entity that has a pose.
-
