@@ -42,9 +42,6 @@ namespace systems
   /// \brief A comms model that simulates communication using acoustic
   /// devices. The model uses simple distance based acoustics model.
   ///
-  /// This communication model has been ported from:
-  /// https://github.com/osrf/subt .
-  ///
   /// This system can be configured with the following SDF parameters:
   ///
   /// * Optional parameters:
