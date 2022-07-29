@@ -6,9 +6,6 @@ include_directories(
   ${PROJECT_SOURCE_DIR}
 )
 
-link_directories(
-)
-
 set (test_plugins
   EventTriggerSystem
   TestModelSystem
@@ -19,7 +16,21 @@ set (test_plugins
   Null
 )
 
-# TODO: someone with knowledge of gz-plugin please resolve:
+add_library(TestPlugins STATIC
+  MockSystem.cc
+)  
+target_link_libraries(TestPlugins
+  PRIVATE
+    gz-plugin${GZ_PLUGIN_VER}::register
+    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+)
+target_compile_options(TestPlugins
+  PUBLIC
+  "-DBUILD_STATIC_PLUGINS=1"
+)
+
+# TODO: someone with knowledge of ign-plugin please resolve:
 # TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
 if(NOT WIN32)
   set (test_plugins

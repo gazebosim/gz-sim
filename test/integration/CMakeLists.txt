@@ -188,6 +188,13 @@ if(TARGET INTEGRATION_reset_sensors)
   target_link_libraries(INTEGRATION_reset_sensors
     gz-common${GZ_COMMON_VER}::graphics
   )
+
+  target_link_libraries(INTEGRATION_reset_sensors
+      $<$<CXX_COMPILER_ID:GNU>:-Wl,--whole-archive>
+      $<$<CXX_COMPILER_ID:Clang>:-Wl,--whole-archive>
+      $<$<CXX_COMPILER_ID:AppleClang>:-force_load> TestPlugins 
+      $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-whole-archive>
+      $<$<CXX_COMPILER_ID:Clang>:-Wl,--no-whole-archive>)
 endif()
 
 # The default timeout (240s) doesn't seem to be enough for this test.

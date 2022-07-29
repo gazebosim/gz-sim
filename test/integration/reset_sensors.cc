@@ -54,7 +54,7 @@ class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
   {
     InternalFixture::SetUp();
 
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
+    auto plugin = sm.LoadPlugin("static",
                                 "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());

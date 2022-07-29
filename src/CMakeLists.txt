@@ -187,6 +187,25 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
 )
 
+if (TARGET UNIT_SystemLoader_TEST)
+  target_link_libraries(UNIT_SystemLoader_TEST TestPlugins)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # MSVC link flag doesn't work with generator expressions
+    # TODO(mjcarroll) When CMake 3.24 is genrally available, use
+    # linking generator expressions as described here:
+    # https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html#genex:LINK_LIBRARY
+    target_link_libraries(UNIT_SystemLoader_TEST -WHOLEARCHIVE:$<TARGET_FILE:TestPlugins>)
+  else()
+    target_link_libraries(UNIT_SystemLoader_TEST
+        $<$<CXX_COMPILER_ID:GNU>:-Wl,--whole-archive>
+        $<$<CXX_COMPILER_ID:Clang>:-Wl,--whole-archive>
+        $<$<CXX_COMPILER_ID:AppleClang>:-force_load> TestPlugins 
+        $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-whole-archive>
+        $<$<CXX_COMPILER_ID:Clang>:-Wl,--no-whole-archive>)
+  endif()
+
+endif()
+
 # Command line tests need extra settings
 foreach(CMD_TEST
   UNIT_gz_TEST

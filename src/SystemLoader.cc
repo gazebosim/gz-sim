@@ -139,6 +139,30 @@ class gz::sim::SystemLoaderPrivate
     return true;
   }
 
+  //////////////////////////////////////////////////
+  public: bool InstantiateSystemStaticPlugin(const std::string &_name,
+              const sdf::ElementPtr &/*_sdf*/,
+              gz::plugin::PluginPtr &_plugin)
+  {
+    _plugin = this->loader.Instantiate(_name);
+    if (!_plugin)
+    {
+      gzerr << "Failed to load system plugin [" << _name <<
+                "] : could not instantiate from static linkage." << std::endl;
+      return false;
+    }
+
+    if (!_plugin->HasInterface<System>())
+    {
+      gzerr << "Failed to load static system plugin [" << _name <<
+        "] : system not found ." << std::endl;
+
+      return false;
+    }
+
+    return true;
+  }
+
   // Default plugin search path environment variable
   public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
   public: std::string pluginPathEnvDeprecated{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
@@ -175,7 +199,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 {
   gz::plugin::PluginPtr plugin;
 
-  if (_filename == "" || _name == "")
+  if (_name == "")
   {
     gzerr << "Failed to instantiate system plugin: empty argument "
               "[(filename): " << _filename << "] " <<
@@ -183,9 +207,18 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
     return {};
   }
 
-  auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
-                                                    _name,
-                                                    _sdf, plugin);
+  bool ret;
+  if (_filename == "" || _filename == "static")
+  {
+    ret = this->dataPtr->InstantiateSystemStaticPlugin(_name, _sdf, plugin);
+  } 
+  else 
+  {
+    ret = this->dataPtr->InstantiateSystemPlugin(_filename,
+                                                 _name,
+                                                 _sdf, plugin);
+  }
+
   if (ret && plugin)
   {
     return plugin;
