@@ -98,7 +98,7 @@ std::string createQuickStart(
   }
 
   // Hint to the window manager to prevent resizing below the specified size.
-  QSize size(720, 720);
+  QSize size(1080, 720);
   auto dialogWin = dialog->QuickWindow();
   dialogWin->setMinimumSize(size);
  
