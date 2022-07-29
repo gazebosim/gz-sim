@@ -122,7 +122,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics,
-    int _headless)
+    int _headless, int _seed)
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -345,6 +345,11 @@ extern "C" int runServer(const char *_sdfString,
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
     serverConfig.SetRenderEngineGui(_renderEngineGui);
+  }
+
+  if (_seed != 0)
+  {
+    serverConfig.SetSeed(_seed);
   }
 
   // Create the Gazebo server

@@ -106,6 +106,9 @@ COMMANDS = { 'sim' =>
   "  --log-compress               When recording, compress final log files.        \n"\
   "                               Only valid if recording is enabled.              \n"\
   "\n"\
+  "  --seed                       Pass a custom seed value to the random           \n"\
+  "                               number generator.                                \n"\
+  "\n"\
   "  --playback [arg]             Use logging system to play back states.          \n"\
   "                               Argument is path to recorded states.             \n"\
   "\n"\
@@ -221,7 +224,8 @@ class Cmd
       'physics_engine' => '',
       'render_engine_gui' => '',
       'render_engine_server' => '',
-      'headless-rendering' => 0
+      'headless-rendering' => 0,
+      'seed' => 0
     }
 
     usage = COMMANDS[args[0]]
@@ -309,6 +313,9 @@ class Cmd
       end
       opts.on('--version') do
         options['version'] = '1'
+      end
+      opts.on('--seed', Integer) do |i|
+        options['seed'] = i
       end
 
     end # opt_parser do
@@ -482,7 +489,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['headless-rendering'])
+            options['headless-rendering'], options['seed'])
         end
 
         guiPid = Process.fork do
@@ -518,7 +525,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['headless-rendering'])
+            options['headless-rendering'], options['seed'])
       # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dylib"
