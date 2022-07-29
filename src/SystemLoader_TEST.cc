@@ -27,6 +27,7 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 using namespace ignition;
+using namespace gazebo;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
@@ -71,7 +72,7 @@ TEST(SystemLoader, EmptyNames)
 /////////////////////////////////////////////////
 TEST(SystemLoader, PluginPaths)
 {
-  gazebo::SystemLoader sm;
+  SystemLoader sm;
 
   // verify that there should exist some default paths
   std::list<std::string> paths = sm.PluginPaths();
@@ -79,7 +80,7 @@ TEST(SystemLoader, PluginPaths)
   EXPECT_LT(0u, pathCount);
 
   // Add test path and verify that the loader now contains this path
-  auto testBuildPath = ignition::common::joinPaths(
+  auto testBuildPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
   paths = sm.PluginPaths();

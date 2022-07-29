@@ -63,7 +63,7 @@ class ignition::gazebo::SystemLoaderPrivate
               ignition::plugin::PluginPtr &_gzPlugin)
   {
     std::list<std::string> paths = this->PluginPaths();
-    ignition::common::SystemPaths systemPaths;
+    common::SystemPaths systemPaths;
     for (const auto &p : paths)
     {
       systemPaths.AddPluginPaths(p);
@@ -168,8 +168,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   if (_filename == "")
   {
     ignerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _filename << "] " <<
-              "[(name): " << _name << "]." << std::endl;
+              "[(filename): " << _filename << "] " << std::endl;
     return {};
   }
 
@@ -202,8 +201,7 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   if (_plugin.Filename() == "")
   {
     ignerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _plugin.Filename() << "] " <<
-              "[(name): " << _plugin.Name() << "]." << std::endl;
+              "[(filename): " << _plugin.Filename() << "] " << std::endl;
     return {};
   }
 

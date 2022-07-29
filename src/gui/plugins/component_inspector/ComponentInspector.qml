@@ -254,8 +254,10 @@ Rectangle {
     focus: true
     title: "Add System"
     closePolicy: Popup.CloseOnEscape
+    width: parent.width
 
     ColumnLayout {
+      width: parent.width
       GridLayout {
         columns: 2
         columnSpacing: 30
@@ -270,6 +272,7 @@ Rectangle {
           selectByMouse: true
           Layout.row: 0
           Layout.column: 1
+          Layout.fillWidth: true
           Layout.minimumWidth: 250
           onTextEdited: {
             addSystemDialog.updateButtonState();
@@ -289,7 +292,7 @@ Rectangle {
           Layout.column: 1
           Layout.fillWidth: true
           Layout.minimumWidth: 250
-          model: ComponentInspector.systemFilenameList
+          model: ComponentInspector.systemNameList
           currentIndex: 0
           onCurrentIndexChanged: {
             if (currentIndex < 0)
