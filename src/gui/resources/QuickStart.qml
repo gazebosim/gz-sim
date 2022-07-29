@@ -20,38 +20,59 @@ import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
+import QtQml.Models 2.3
 import Qt.labs.folderlistmodel 2.1
 import QtQuick.Window 2.2
+import "qrc:/qml"
 
 Rectangle {
+
+  /**
+   * Color for search bar
+   */
+  property color searchColor: (Material.theme == Material.Light) ?
+      Material.color(Material.Grey, Material.Shade200):
+      Material.color(Material.Grey, Material.Shade900);
+
+
   id: quickStart
-  width: 720
-  height: 720
-  property var selectedWorld: "Blank world"
+  anchors.fill: parent
+  property var selectedWorld: ""
 
-  function changeDefault(checked){
-    console.log("default changed to ", checked);
-    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
+  function changeDefault(checked) {
+    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);;
   }
 
-  function loadWorld(fileURL){
-    // Remove "file://" from the QML url.
-    var url = fileURL.toString().split("file://")[1]
-    console.log(url);
-    QuickStartHandler.SetStartingWorld(url)
-    // openWorld.color = 'green';
-    openWorld.text = "Run selected world";
-    openWorld.Material.background= Material.Green
+  function loadWorld(file){
+    if (file === quickStart.selectedWorld) {
+      openWorld.enabled = false;
+      quickStart.selectedWorld = "";
+    } else {
+      QuickStartHandler.SetStartingWorld(file);
+      openWorld.enabled = true;
+      quickStart.selectedWorld = file;
+    }
   }
 
-  function loadFuelWorld(fileName, uploader){
-    // Construct fuel URL
-    var fuel_url = "https://app.gazebosim.org/"
-    fuel_url += uploader + "/fuel/worlds/" + fileName
-    QuickStartHandler.SetStartingWorld(fuel_url)
-    openWorld.text = "Run selected world"
-    openWorld.Material.background = Material.Green
-    quickStart.selectedWorld = fileName
+  function loadFuelWorld(fileName, owner){
+    if (quickStart.selectedWorld === fileName) {
+      openWorld.enabled = false;
+      quickStart.selectedWorld = '';
+    } else {
+
+      quickStart.selectedWorld = fileName;
+
+      if (fileName === "empty") {
+        QuickStartHandler.SetStartingWorld("empty.sdf");
+        openWorld.enabled = true;
+      } else {
+        // Construct fuel URL
+        var fuelUrl = "https://fuel.gazebosim.org/1.0/" + owner + "/worlds/";
+        fuelUrl += fileName;
+        QuickStartHandler.SetStartingWorld(fuelUrl);
+        openWorld.enabled = true;
+      }
+    }
   }
 
   function getWorlds(){
@@ -59,198 +80,262 @@ Rectangle {
   }
 
   function getColor(fileName){
-    console.log(fileName, selectedWorld)
     if(fileName == selectedWorld)
-      return "green";
-    return "white";
+      return Material.primary;
+    return "#e0e0e0";
   }
 
-  RowLayout {
-    id: layout
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.verticalCenter: parent.verticalTop
-    spacing: 6
+  ColumnLayout {
+    anchors.fill: parent
+    spacing: 0
 
-    ColumnLayout {
-      id: localColumn
-      Layout.minimumHeight: 100
+    // Top row, which holds the logo and version.
+    Rectangle {
       Layout.fillWidth: true
-      spacing: 0
-      Rectangle {
-        color: 'transparent'
+      Layout.preferredHeight: 100
+      color:'transparent'
+
+      RowLayout {
+        anchors.fill: parent
+        Rectangle {
+          color: 'transparent'
           Layout.fillWidth: true
-          Layout.minimumWidth: 100
-          Layout.preferredWidth: 720
-          Layout.minimumHeight: 150
+          Layout.preferredWidth: 960
+          Layout.preferredHeight: 100
+          Layout.minimumHeight: 100
           Image{
             source: "images/gazebo_horz_pos_topbar.svg"
             fillMode: Image.PreserveAspectFit
-            x: (parent.width - width)  / 2 - width / 3
+            x: 30
             y: (parent.height - height) / 2
+          }
+        }
+        ColumnLayout {
+          Text{
+            text: QuickStartHandler.Distribution()
           }
           Text{
             text: 'v ' + QuickStartHandler.GazeboVersion()
           }
+        }
+        Item {
+          width: 30
+        }
       }
+    }
 
-      Rectangle {
-        color: 'transparent'
-        Layout.fillWidth: true
-        Layout.minimumWidth: 100
-        Layout.preferredWidth: 700
-        Layout.minimumHeight: 400
-        RowLayout{
-          ColumnLayout {
-            Rectangle {
-              Layout.topMargin: 10
-              Layout.bottomMargin: 10
-              color: 'transparent'
-              Layout.preferredWidth: 500
-              Layout.preferredHeight: 50
-              Label {
-                id: labelFuel
-                text: qsTr("Choose a world to open")
-                anchors.centerIn: parent
-                color: "#443224"
-                font.pixelSize: 16
-              }
-            }
-            Rectangle {
-              Layout.preferredWidth: 500
-              Layout.preferredHeight: 350
-
-              color: 'transparent'
-              FolderListModel {
-                id: folderModel
-                showDirs: false
-                nameFilters: ["*.png"]
-                folder: getWorlds()+ "/thumbnails/"
-              }
-
-              Component {
-                id: fileDelegate
-
-                FuelThumbnail {
-                  id: filePath
-                  text: fileName.split('.')[1]
-                  uploader: fileName.split('.')[0]
-                  width: gridView.cellWidth - 5
-                  height: gridView.cellHeight - 5
-                  smooth: true
-                  source: fileURL
-                  color: getColor(fileName.split('.')[1])
-                }
-              }
-              GridView {
-                  id: gridView
-                  width: parent.width
-                  height: parent.height
-
-                  anchors {
-                      fill: parent
-                      leftMargin: 5
-                      topMargin: 5
-                  }
-
-                  cellWidth: width / 2
-                  cellHeight: height / 2
-
-                  model: folderModel
-                  delegate: fileDelegate
-                }
-              }
-            }
-
-              ColumnLayout {
-                Rectangle {
-                  color: "transparent";
-                  width: 200; height: 50
-                  Layout.topMargin: 10
-
-                  Label {
-                    id: label
-                    text: qsTr("Installed worlds")
-                    anchors.centerIn: parent
-                    color: "#443224"
-                    font.pixelSize: 16
-                  }
-                }
-
-                Rectangle {
-                  color: "transparent";
-                  width: 200; height: 180
-                    
-                  FolderListModel {
-                      id: sdfsModel
-                      showDirs: false
-                      showFiles: true
-                      folder: getWorlds()
-                      nameFilters: [ "*.sdf" ]
-                  }
-                  ComboBox {
-                    id: comboBox
-                    currentIndex : -1
-                    model: sdfsModel
-                    textRole: 'fileName'
-                    width: parent.width
-                    onCurrentIndexChanged: quickStart.loadWorld(model.get(currentIndex, 'fileURL'))
-                  }
-                  MouseArea {
-                    onClicked: comboBox.popup.close()
-                  }
-                }
-                Rectangle { color: "transparent"; width: 200; height: 200 }
-              }
-          }
-      }
-      Rectangle {
-        color: 'transparent'
-        Layout.fillWidth: true
-        Layout.minimumWidth: 100
-        Layout.preferredWidth: 700
-        Layout.minimumHeight: 100
-      }
-
+    // Middle row, which holds the world selection elements.
+    Rectangle {
+      Layout.fillWidth: true
+      height: 360
+      RowLayout {
+        spacing: 0
+        anchors {
+          fill: parent
+          leftMargin: 15 
+          rightMargin: 20
+        }
+        
+        // Card grid view
         Rectangle {
           color: 'transparent'
           Layout.fillWidth: true
-          Layout.preferredWidth: 720
-          Layout.minimumHeight: 50
-          RowLayout {
-            id: skip
-            anchors {
-                fill: parent
-                leftMargin: 10
-                topMargin: 10
+          Layout.fillHeight: true
+
+          FolderListModel {
+            id: folderModel
+            showDirs: false
+            nameFilters: ["*.png"]
+            folder: getWorlds() + "/thumbnails/"
+          }
+
+          Component {
+            id: fileDelegate
+          
+            FuelThumbnail {
+              id: filePath
+              text: fileName.split('.')[1]
+              owner: fileName.split('.')[0]
+              width: 220
+              height: 150
+              smooth: true
+              source: fileURL
+              border.color: getColor(fileName.split('.')[1])
             }
-            CheckBox {
-              id: showByDefault
-              text: "Don't show again"
-              Layout.fillWidth: true
-              Layout.leftMargin: 20
-              onClicked: {
-                quickStart.changeDefault(showByDefault.checked)
+          }
+          GridView {
+            id: gridView
+            width: parent.width
+            height: parent.height
+          
+            anchors {
+              fill: parent
+              leftMargin: 5
+              topMargin: 5
+            }
+          
+            cellWidth: 240
+            cellHeight: 205
+          
+            model: folderModel
+            delegate: fileDelegate
+          }
+        }
+
+        // SDF file list with search bar
+        Rectangle {
+          color: 'transparent'
+          width: 200
+          Layout.fillHeight: true
+          Layout.topMargin: 5
+          border {
+            width: 1
+            color: searchColor
+          }
+
+          ColumnLayout {
+            anchors.fill: parent
+            spacing: 0
+        
+            Rectangle {
+              id: searchSortBar
+              color: searchColor
+              height: 50
+              width: parent.width
+              RowLayout {
+                id: rowLayout
+                anchors.fill: parent
+                spacing: 0
+                Rectangle {
+                  color: "transparent"
+                  height: 25
+                  width: 25
+                  Layout.leftMargin: 5
+                  Image {
+                    id: searchIcon
+                    source: "images/search.svg"
+                    anchors.verticalCenter: parent.verticalCenter
+                  }
+                }
+                TextField {
+                  id: searchField
+                  Layout.fillHeight: true
+                  Layout.preferredWidth: parent.width - 50
+                  selectByMouse: true
+                  onTextEdited: {
+                    sdfFileModel.update();
+                  }
+                  Keys.onReturnPressed: {
+                    /*MainWindow.OnAddPlugin(
+                      pluginMenuListView.currentItem.pluginModel.modelData);
+                    drawer.close();
+                    pluginMenu.close();
+                    */
+                  }
+                  Keys.onDownPressed: {
+                    // pluginMenuListView.incrementCurrentIndex();
+                  }
+                  Keys.onUpPressed: {
+                    // pluginMenuListView.decrementCurrentIndex();
+                  } 
+                }
               }
             }
-            Button {
-              id: openWorld
-              Layout.fillWidth: true
-              Layout.rightMargin: 20
-              visible: true
-              text: "Run Empty World"
-              enabled: true
-              onClicked: {
-                quickStart.Window.window.close()
+
+            Component {
+              id: sdfFileDelegate
+        
+              ItemDelegate {
+                width: parent.width-11
+                x: 1
+                text: fileName 
+                highlighted: selectedWorld == fileName
+                onClicked: {
+                  quickStart.loadWorld(fileName);
+                }
+              }
+            }
+
+            IgnSortFilterModel {
+              id: sdfFileModel
+
+              lessThan: function(left, right) {
+                var leftStr = left.fileName.toLowerCase();
+                var rightStr = right.fileName.toLowerCase();
+                return leftStr < rightStr;
               }
 
-              Material.background: Material.primary
-              ToolTip.visible: hovered
-              ToolTip.delay: tooltipDelay
-              ToolTip.timeout: tooltipTimeout
-              ToolTip.text: qsTr("Run")
+              filterAcceptsItem: function(item) {
+                var itemStr = item.fileName.toLowerCase();
+                var filterStr = searchField.text.toLowerCase();
+                return itemStr.includes(filterStr);
+              }
+
+              model: FolderListModel {
+                showDirs: false
+                showFiles: true
+                folder: getWorlds()
+                nameFilters: [ "*.sdf" ]
+              }
+
+              delegate: sdfFileDelegate
+            }
+ 
+              
+            ListView {
+              id: pluginMenuListView
+
+              Layout.fillHeight: true
+              width: parent.width
+              clip: true
+              model: sdfFileModel
             }
           }
         }
+      }
+    }
+ 
+    // Bottom row, which holds the run button and don't show checkbox.
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      height: 60
+      color: 'transparent'
+
+      RowLayout {
+        anchors {
+          fill: parent
+          leftMargin: 20
+          rightMargin: 20
+        }
+        CheckBox {
+          id: showByDefault
+          text: "Don't show this dialog again"
+          Layout.fillWidth: true
+          onClicked: {
+            quickStart.changeDefault(showByDefault.checked)
+          }
+        }
+        Button {
+          id: openWorld
+          visible: true
+          text: "Run"
+          enabled: false
+          onClicked: {
+            quickStart.Window.window.close()
+          }
+          background: Rectangle {
+            implicitWidth: 60
+            implicitHeight: 40
+            radius: 4
+            color: openWorld.hovered ? "#efefef" : 'transparent'
+            border {
+              width: 2
+              color: openWorld.enabled ? Material.primary : "#efefef"
+            }
+         }
+        }
+      }
     }
   }
 }

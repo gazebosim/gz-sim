@@ -22,6 +22,7 @@
 #include <ignition/common/Profiler.hh>
 #include <ignition/gui/Application.hh>
 
+#include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
@@ -45,6 +46,12 @@ QString QuickStartHandler::WorldsPath()
 std::string QuickStartHandler::StartingWorld()
 {
   return this->startingWorld;
+}
+
+/////////////////////////////////////////////////
+QString QuickStartHandler::Distribution()
+{
+  return QString::fromUtf8(GAZEBO_DISTRIBUTION);
 }
 
 /////////////////////////////////////////////////

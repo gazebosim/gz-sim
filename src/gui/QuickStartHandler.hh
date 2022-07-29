@@ -44,6 +44,10 @@ class QuickStartHandler : public QObject
   /// \return worlds directory path
   Q_INVOKABLE QString WorldsPath();
 
+  /// \brief Get the distribution name
+  /// \return Distribution name, such as 'Citadel'
+  Q_INVOKABLE QString Distribution();
+
   /// \brief Get Gazebo version
   /// \return gazebo version
   Q_INVOKABLE QString GazeboVersion();

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <QScreen>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
@@ -97,7 +98,16 @@ std::string createQuickStart(
     return "";
   }
 
-  dialog->QuickWindow();
+  // This is the fixed window size for the quick start dialog
+  QSize winSize(960, 540);
+  dialog->QuickWindow()->resize(winSize);
+  dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
+
+  // Position the quick start in the center of the screen
+  QSize screenSize = dialog->QuickWindow()->screen()->size();
+  screenSize /= 2.0;
+  screenSize -= winSize / 2.0;
+  dialog->QuickWindow()->setPosition(screenSize.width(), screenSize.height());
 
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("QuickStartHandler", quickStartHandler);
