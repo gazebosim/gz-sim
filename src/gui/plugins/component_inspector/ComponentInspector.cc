@@ -1326,7 +1326,9 @@ void ComponentInspector::QuerySystems()
     removePrefix("ignition-gazebo" + std::string(IGNITION_GAZEBO_MAJOR_VERSION_STR)
         + "-", humanReadable);
     removeSuffix("-system", humanReadable);
+    removeSuffix("system", humanReadable);
     removeSuffix("-plugin", humanReadable);
+    removeSuffix("plugin", humanReadable);
 
     // Replace - with space, capitalize
     std::replace(humanReadable.begin(), humanReadable.end(), '-', ' ');
