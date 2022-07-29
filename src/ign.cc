@@ -58,7 +58,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
   // console output with zero verbosity.
   if (verbosity == 0)
   {
-    sdf::Console::SetQuiet(true);
+    sdf::Console::Instance()->SetQuiet(true);
   }
 }
 
