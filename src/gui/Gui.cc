@@ -101,7 +101,7 @@ std::string createQuickStart(
   QSize size(1080, 720);
   auto dialogWin = dialog->QuickWindow();
   dialogWin->setMinimumSize(size);
- 
+
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("QuickStartHandler", quickStartHandler);
 
