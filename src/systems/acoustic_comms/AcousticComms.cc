@@ -33,26 +33,29 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
+/// \brief Private Acoustic comms data class.
 class AcousticComms::Implementation
 {
-  // Default max range for acoustic comms in metres.
+  /// \brief Default max range for acoustic comms in metres.
   public: double maxRange = 1000.0;
 
-  // Default speed of sound in air in metres/sec.
+  /// \brief Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 
-  // Position of the transmitter at the time the message was
-  // sent, or first processed.
+  /// \brief Position of the transmitter at the time the message was
+  /// sent, or first processed.
   public: std::unordered_map
           <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
           poseSrcAtMsgTimestamp;
 };
 
+//////////////////////////////////////////////////
 AcousticComms::AcousticComms()
   : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
+//////////////////////////////////////////////////
 void AcousticComms::Load(
     const Entity &_entity,
     std::shared_ptr<const sdf::Element> _sdf,
@@ -69,6 +72,7 @@ void AcousticComms::Load(
   }
 }
 
+//////////////////////////////////////////////////
 void AcousticComms::Step(
     const UpdateInfo &_info,
     const comms::Registry &_currentRegistry,
