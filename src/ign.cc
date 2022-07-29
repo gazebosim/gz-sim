@@ -52,7 +52,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
     const char *_verbosity)
 {
   int verbosity = std::atoi(_verbosity);
-  gz::common::Console::SetVerbosity(verbosity);
+  ignition::common::Console::SetVerbosity(verbosity);
 
   // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
   // console output with zero verbosity.
