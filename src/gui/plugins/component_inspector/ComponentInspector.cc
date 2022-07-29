@@ -18,6 +18,7 @@
 #include <iostream>
 #include <list>
 #include <regex>
+#include <unordered_map>
 #include <QColorDialog>
 #include <ignition/common/Console.hh>
 #include <ignition/common/Profiler.hh>
@@ -1323,8 +1324,8 @@ void ComponentInspector::QuerySystems()
     // Remove common prefixes and suffixes
     auto humanReadable = plugin.filename();
     removePrefix("ignition-gazebo-", humanReadable);
-    removePrefix("ignition-gazebo" + std::string(IGNITION_GAZEBO_MAJOR_VERSION_STR)
-        + "-", humanReadable);
+    removePrefix("ignition-gazebo" +
+        std::string(IGNITION_GAZEBO_MAJOR_VERSION_STR) + "-", humanReadable);
     removeSuffix("-system", humanReadable);
     removeSuffix("system", humanReadable);
     removeSuffix("-plugin", humanReadable);
