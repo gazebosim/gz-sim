@@ -3,11 +3,13 @@
 Gazebo supports the use of real world latitude and longitude coordinates in its
 simulations using the
 [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version)
-geodetic system.
+geodetic system for the Earth, and
+[MOON_SCS](https://en.wikipedia.org/wiki/Selenographic_coordinate_system)
+for the Moon.
 
 Gazebo Sim's simulation is always performed in Cartesian coordinates (good old XYZ).
 Therefore, in order to use spherical coordinates, it's necessary to project
-coordinates expressed in the `WGS84` frame to Cartesian and back.
+coordinates expressed in the `WGS84` frame (for Earth) to Cartesian and back.
 
 This tutorial will go over how to:
 
@@ -68,7 +70,7 @@ that the coordinates were set correctly:
 
 @image html files/spherical_coordinates/inspector.png
 
-For loading Earth lunar DEMs, use the `MOON_SCS` surface tag:
+For loading lunar DEMs, use the `MOON_SCS` surface tag:
 
 ```.xml
 <spherical_coordinates>
@@ -80,6 +82,18 @@ Try the Gazebo moon example:
 
 ```
 gz sim dem_moon.sdf
+```
+
+Similarly, ``CUSTOM_SURFACE`` is also accepted as a surface model.
+So equivalently, one can have the following instead of
+the ``MOON_SCS`` tag :
+
+```.xml
+<spherical_coordinates>
+  <surface_model>CUSTOM_SURFACE</surface_model>
+  <surface_axis_equatorial>1738100.0</surface_axis_equatorial>
+  <surface_axis_polar>1736000.0</surface_axis_polar>
+</spherical_coordinates>
 ```
 
 ### GUI
