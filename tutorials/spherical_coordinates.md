@@ -55,8 +55,12 @@ For example:
 </spherical_coordinates>
 ```
 
-At the moment, the only surface model supported is WGS84 and the only world
-frame orientation is ENU.
+Currently, the supported surface models are WGS84 for the Earth,
+MOON_SCS for the Moon, and CUSTOM_SURFACE for other celestial bodies.
+CUSTOM_SURFACE requires the equatorial and polar axes to be specified
+in meters.
+
+The only world frame currently supported is ENU.
 
 Try out an example world that ships with Gazebo and has the coordinates above
 as follows:

@@ -130,8 +130,7 @@ class gz::sim::SceneManagerPrivate
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
 
   /// \brief Holds the spherical coordinates from the world.
-  public: math::SphericalCoordinates sphericalCoordinates =
-          math::SphericalCoordinates();
+  public: math::SphericalCoordinates sphericalCoordinates;
 };
 
 
@@ -625,7 +624,7 @@ rendering::VisualPtr SceneManager::CreateCollision(Entity _id,
 
 /////////////////////////////////////////////////
 void SceneManager::SetSphericalCoordinates(
-    math::SphericalCoordinates _sphericalCoordinates)
+    const math::SphericalCoordinates &_sphericalCoordinates)
 {
   this->dataPtr->sphericalCoordinates = _sphericalCoordinates;
 }

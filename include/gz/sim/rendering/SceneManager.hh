@@ -122,7 +122,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \param[in] _sphericalCoordinates SphericalCoordinates
     /// from the world.
     public: void SetSphericalCoordinates(
-        math::SphericalCoordinates _sphericalCoordinates);
+        const math::SphericalCoordinates &_sphericalCoordinates);
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
