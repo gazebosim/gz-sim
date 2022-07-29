@@ -179,7 +179,7 @@ namespace ignition
     /// \brief Get the default config file for gazebo
     /// \param[in] _guiConfig The GUI configuration file. If nullptr,
     /// the default configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config
-    /// will be used, if _playback_ it returns 
+    /// will be used, if _playback_ it returns
     /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config instead
     /// \return Path to Gazebo GUI default configuration file.
     std::string IGNITION_GAZEBO_VISIBLE getDefaultGuiConfigFile(
