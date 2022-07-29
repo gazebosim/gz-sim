@@ -118,6 +118,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \return World ID
     public: Entity WorldId() const;
 
+    /// \brief Set the spherical coordinates from world.
+    /// \param[in] _sphericalCoordinates SphericalCoordinates
+    /// from the world.
+    public: void SetSphericalCoordinates(
+        const math::SphericalCoordinates &_sphericalCoordinates);
+
     /// \brief Create a model
     /// \param[in] _id Unique model id
     /// \param[in] _model Model sdf dom
