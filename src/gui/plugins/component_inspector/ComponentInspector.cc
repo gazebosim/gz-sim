@@ -69,6 +69,7 @@
 #include "ignition/gazebo/components/Volume.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
+#include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
@@ -119,7 +120,33 @@ namespace ignition::gazebo
 
     /// \brief Handles all system info components.
     public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
+
+    /// \brief A list of system plugin human readable names.
+    public: QStringList systemNameList;
+
+    /// \brief Maps plugin display names to their filenames.
+    public: std::unordered_map<std::string, std::string> systemMap;
   };
+}
+
+// Helper to remove a prefix from a string if present
+void removePrefix(const std::string &_prefix, std::string &_s)
+{
+  auto id = _s.find(_prefix);
+  if (id != std::string::npos)
+  {
+    _s = _s.substr(_prefix.length());
+  }
+}
+
+// Helper to remove a suffix from a string if present
+void removeSuffix(const std::string &_suffix, std::string &_s)
+{
+  auto id = _s.find(_suffix);
+  if (id != std::string::npos && id + _suffix.length() == _s.length())
+  {
+    _s.erase(id, _suffix.length());
+  }
 }
 
 using namespace ignition;
@@ -1268,15 +1295,85 @@ transport::Node &ComponentInspector::TransportNode()
 }
 
 /////////////////////////////////////////////////
+void ComponentInspector::QuerySystems()
+{
+  msgs::Empty req;
+  msgs::EntityPlugin_V res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/system/info"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Unable to query available systems." << std::endl;
+    return;
+  }
+
+  this->dataPtr->systemNameList.clear();
+  this->dataPtr->systemMap.clear();
+  for (const auto &plugin : res.plugins())
+  {
+    if (plugin.filename().empty())
+    {
+      ignerr << "Received empty plugin name. This shouldn't happen."
+             << std::endl;
+      continue;
+    }
+
+    // Remove common prefixes and suffixes
+    auto humanReadable = plugin.filename();
+    removePrefix("ignition-gazebo-", humanReadable);
+    removePrefix("ignition-gazebo" + std::string(IGNITION_GAZEBO_MAJOR_VERSION_STR)
+        + "-", humanReadable);
+    removeSuffix("-system", humanReadable);
+    removeSuffix("system", humanReadable);
+    removeSuffix("-plugin", humanReadable);
+    removeSuffix("plugin", humanReadable);
+
+    // Replace - with space, capitalize
+    std::replace(humanReadable.begin(), humanReadable.end(), '-', ' ');
+    humanReadable[0] = std::toupper(humanReadable[0]);
+
+    this->dataPtr->systemMap[humanReadable] = plugin.filename();
+    this->dataPtr->systemNameList.push_back(
+        QString::fromStdString(humanReadable));
+  }
+  this->dataPtr->systemNameList.sort();
+  this->dataPtr->systemNameList.removeDuplicates();
+  this->SystemNameListChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspector::SystemNameList() const
+{
+  return this->dataPtr->systemNameList;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSystemNameList(const QStringList &_list)
+{
+  this->dataPtr->systemNameList = _list;
+}
+
+/////////////////////////////////////////////////
 void ComponentInspector::OnAddSystem(const QString &_name,
     const QString &_filename, const QString &_innerxml)
 {
+  auto filenameStr = _filename.toStdString();
+  auto it = this->dataPtr->systemMap.find(filenameStr);
+  if (it == this->dataPtr->systemMap.end())
+  {
+    ignerr << "Internal error: failed to find [" << filenameStr
+           << "] in system map." << std::endl;
+    return;
+  }
+
   msgs::EntityPlugin_V req;
   auto ent = req.mutable_entity();
   ent->set_id(this->dataPtr->entity);
   auto plugin = req.add_plugins();
   std::string name = _name.toStdString();
-  std::string filename = _filename.toStdString();
+  std::string filename = this->dataPtr->systemMap[filenameStr];
   std::string innerxml = _innerxml.toStdString();
   plugin->set_name(name);
   plugin->set_filename(filename);
