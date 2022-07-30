@@ -25,33 +25,39 @@ import QtQuick.Window 2.2
 
 Rectangle {
   id: quickStart
-  width: 720
+  width: 1080
   height: 720
-  property var selectedWorld: "Blank world"
+  property var selectedWorld: ""
+  property string worldURL: ""
 
   function changeDefault(checked){
-    console.log("default changed to ", checked);
     QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
   }
 
   function loadWorld(fileURL){
     // Remove "file://" from the QML url.
     var url = fileURL.toString().split("file://")[1]
-    console.log(url);
-    QuickStartHandler.SetStartingWorld(url)
-    // openWorld.color = 'green';
-    openWorld.text = "Run selected world";
+    quickStart.worldURL = url
+    openWorld.enabled = true
     openWorld.Material.background= Material.Green
   }
 
   function loadFuelWorld(fileName, uploader){
-    // Construct fuel URL
-    var fuel_url = "https://app.gazebosim.org/"
-    fuel_url += uploader + "/fuel/worlds/" + fileName
-    QuickStartHandler.SetStartingWorld(fuel_url)
-    openWorld.text = "Run selected world"
-    openWorld.Material.background = Material.Green
-    quickStart.selectedWorld = fileName
+    if (fileName === "Empty World"){
+      openWorld.Material.background = Material.Green
+      quickStart.worldURL = ""
+      openWorld.enabled = true
+      quickStart.selectedWorld = "Empty World"
+    }
+    else {
+      // Construct fuel URL
+      var fuel_url = "https://app.gazebosim.org/"
+      fuel_url += uploader + "/fuel/worlds/" + fileName
+      quickStart.worldURL = fuel_url
+      openWorld.Material.background = Material.Green
+      openWorld.enabled = true
+      quickStart.selectedWorld = fileName
+    }
   }
 
   function getWorlds(){
@@ -59,8 +65,7 @@ Rectangle {
   }
 
   function getColor(fileName){
-    console.log(fileName, selectedWorld)
-    if(fileName == selectedWorld)
+    if(fileName === quickStart.selectedWorld)
       return "green";
     return "white";
   }
@@ -69,7 +74,7 @@ Rectangle {
     id: layout
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalTop
-    spacing: 6
+    spacing: 0
 
     ColumnLayout {
       id: localColumn
@@ -79,17 +84,18 @@ Rectangle {
       Rectangle {
         color: 'transparent'
           Layout.fillWidth: true
-          Layout.minimumWidth: 100
-          Layout.preferredWidth: 720
+          Layout.minimumWidth: 1080
+          Layout.preferredWidth: 1080
           Layout.minimumHeight: 150
           Image{
             source: "images/gazebo_horz_pos_topbar.svg"
             fillMode: Image.PreserveAspectFit
-            x: (parent.width - width)  / 2 - width / 3
+            horizontalAlignment: Image.AlignLeft
             y: (parent.height - height) / 2
           }
           Text{
             text: 'v ' + QuickStartHandler.GazeboVersion()
+            horizontalAlignment: Image.AlignRight
           }
       }
 
@@ -100,24 +106,13 @@ Rectangle {
         Layout.preferredWidth: 700
         Layout.minimumHeight: 400
         RowLayout{
+          spacing: 0
+          Layout.rightMargin: 20
+
           ColumnLayout {
             Rectangle {
-              Layout.topMargin: 10
-              Layout.bottomMargin: 10
-              color: 'transparent'
-              Layout.preferredWidth: 500
-              Layout.preferredHeight: 50
-              Label {
-                id: labelFuel
-                text: qsTr("Choose a world to open")
-                anchors.centerIn: parent
-                color: "#443224"
-                font.pixelSize: 16
-              }
-            }
-            Rectangle {
-              Layout.preferredWidth: 500
-              Layout.preferredHeight: 350
+              Layout.preferredWidth: 720
+              Layout.preferredHeight: 450
 
               color: 'transparent'
               FolderListModel {
@@ -152,7 +147,7 @@ Rectangle {
                       topMargin: 5
                   }
 
-                  cellWidth: width / 2
+                  cellWidth: width / 3
                   cellHeight: height / 2
 
                   model: folderModel
@@ -162,10 +157,11 @@ Rectangle {
             }
 
               ColumnLayout {
+                Layout.rightMargin: 20
+
                 Rectangle {
                   color: "transparent";
-                  width: 200; height: 50
-                  Layout.topMargin: 10
+                  width: 340; height: 50
 
                   Label {
                     id: label
@@ -178,7 +174,7 @@ Rectangle {
 
                 Rectangle {
                   color: "transparent";
-                  width: 200; height: 180
+                  width: 340; height: 180;
                     
                   FolderListModel {
                       id: sdfsModel
@@ -237,9 +233,10 @@ Rectangle {
               Layout.fillWidth: true
               Layout.rightMargin: 20
               visible: true
-              text: "Run Empty World"
-              enabled: true
+              text: "Run"
+              enabled: false
               onClicked: {
+                QuickStartHandler.SetStartingWorld(quickStart.worldURL)
                 quickStart.Window.window.close()
               }
 

@@ -24,11 +24,11 @@ Rectangle{
     id: main
     property alias source: root.source
     property alias text: label.text
-    property alias uploader: uploader.text
     property alias color: main.color
+    property string uploader: "OpenRobotics"
     border.color: "white"
-    border.width: 5
-    radius: 10
+    border.width: 0
+    radius: 0
 
     DropShadow {
         anchors.fill: root
@@ -41,7 +41,6 @@ Rectangle{
     }
 
     ColumnLayout{
-        anchors.horizontalCenter: parent.horizontalCenter
 
         Rectangle{
             y: 15 
@@ -50,16 +49,8 @@ Rectangle{
                 text: qsTr("Label")
                 color: "#443224"
                 font.pixelSize: 14
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-        }
-        Rectangle{
-            Text {
-                id: uploader
-                text: qsTr("Label")
-                color: "grey"
-                font.pixelSize: 14
-                anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignLeft
+                leftPadding: 20
             }
         }
     }
