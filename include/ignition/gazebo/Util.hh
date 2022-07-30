@@ -183,7 +183,7 @@ namespace ignition
     /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config instead
     /// \return Path to Gazebo GUI default configuration file.
     std::string IGNITION_GAZEBO_VISIBLE getDefaultGuiConfigFile(
-      const char *_guiConfig);
+      const std::string &_guiConfig);
 
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,

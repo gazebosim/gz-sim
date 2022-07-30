@@ -362,12 +362,12 @@ int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char*_file, int _waitGui)
 {
   transport::Node node;
-  transport::Node::Publisher startingWorldPub;
-  startingWorldPub = node.Advertise<msgs::StringMsg>("/gazebo/starting_world");
+  transport::Node::Publisher startingWorldPub =
+    node.Advertise<msgs::StringMsg>("/gazebo/starting_world");
   msgs::StringMsg msg;
 
   // Don't show quick start menu if a file is set from command line
-  if(strlen(_file) == 0 && _waitGui == 1)
+  if (strlen(_file) == 0 && _waitGui == 1)
   {
     // Don't show quick start menu in playback mode
     if ((nullptr != _guiConfig && std::string(_guiConfig) != "_playback_")
