@@ -10,8 +10,8 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.1"
-   width="554"
-   height="234"
+   width="323.18533"
+   height="78.004997"
    id="svg2"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="gazebo_horz_pos_topbar.svg">
@@ -28,21 +28,19 @@
      inkscape:window-height="1081"
      id="namedview3542"
      showgrid="false"
-     inkscape:zoom="2.9788235"
-     inkscape:cx="245.65637"
-     inkscape:cy="48.508091"
+     inkscape:zoom="1.4894118"
+     inkscape:cx="-43.263047"
+     inkscape:cy="-16.884552"
      inkscape:window-x="755"
      inkscape:window-y="915"
      inkscape:window-maximized="0"
      inkscape:current-layer="svg2"
      showguides="true"
-     inkscape:guide-bbox="true">
-    <sodipodi:guide
-       position="266.88389,94.668247"
-       orientation="0,1"
-       id="guide1616"
-       inkscape:locked="false" />
-  </sodipodi:namedview>
+     inkscape:guide-bbox="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <defs
      id="defs4">
     <clipPath
@@ -73,7 +71,8 @@
     </rdf:RDF>
   </metadata>
   <g
-     id="g1614">
+     id="g1614"
+     transform="translate(-115.40735,-81.817619)">
     <path
        inkscape:connector-curvature="0"
        id="path4004"
@@ -97,7 +96,7 @@
   </g>
   <g
      id="g1608"
-     transform="translate(0,0.42642)">
+     transform="translate(-115.40735,-81.391199)">
     <path
        d="m 237.02928,122.27496 c -0.82401,10.67005 -10.13511,17.12124 -18.9639,17.12124 -10.71828,0 -19.25549,-8.68098 -19.25549,-18.57616 0,-9.31208 7.71259,-18.57666 19.2072,-18.57666 9.5061,0 15.56821,6.54797 16.976,10.18536 h -4.1708 c -2.0368,-3.54001 -6.79138,-6.93546 -12.75691,-6.93546 -9.06903,0 -15.66602,7.37216 -15.66602,15.37572 0,8.00161 6.59699,15.27804 15.81273,15.27804 7.61356,0 13.24044,-5.62688 14.50091,-10.62249 h -20.0306 v -3.24959 h 24.34688"
        id="path3121"

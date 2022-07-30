@@ -1,10 +1,10 @@
 set (gui_sources
   AboutDialogHandler.cc
-  QuickStartHandler.cc
   Gui.cc
   GuiFileHandler.cc
   GuiRunner.cc
   PathManager.cc
+  QuickStartHandler.cc
   TmpIface.cc
 )
 

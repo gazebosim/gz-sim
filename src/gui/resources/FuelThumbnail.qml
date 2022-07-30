@@ -21,130 +21,47 @@ import QtQuick.Layouts 1.3
 import QtGraphicalEffects 1.12
 
 Rectangle{
-    id: main
-    property alias source: root.source
-    property alias text: label.text
-    property alias color: main.color
-    property string uploader: "OpenRobotics"
-    border.color: "white"
-    border.width: 0
-    radius: 0
+  id: main
+  property alias source: root.source
+  property alias text: label.text
+  property string owner: ''
+  property alias color: main.color
+  border.color: "#e0e0e0"
+  border.width: 2
 
-    DropShadow {
-        anchors.fill: root
-        horizontalOffset: 3
-        verticalOffset: 3
-        radius: 8.0
-        samples: 17
-        color: "#80000000"
-        source: root
+  ColumnLayout {
+    Rectangle {
+      Text {
+        x: 10
+        y: 5
+        id: label
+        font.capitalization: Font.Capitalize
+        text: qsTr("Label")
+        color: "#443224"
+        font.pixelSize: 14
+      }
     }
 
-    ColumnLayout{
-
-        Rectangle{
-            y: 15 
-            Text {
-            id: label
-                text: qsTr("Label")
-                color: "#443224"
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignLeft
-                leftPadding: 20
-            }
-        }
-    }
-
-    Image {
+    Rectangle {
+      Image {
         id: root
         source: ""
-        x: (parent.width - width) / 2
-        y: (parent.height - height) / 2 + 10
-        width: parent.width - 40
-        height: parent.height - 40
+        fillMode: Image.PreserveAspectCrop
+        width: 216
+        height: 124
+  
+        x: 2 
+        y: 24
         signal clicked
         property int duration: 250
-
+  
         MouseArea {
-            anchors.fill: parent
-            onPressed: {
-                glow.visible = true
-                animation1.start()
-                animation2.start()
-            }
-            onClicked: quickStart.loadFuelWorld(main.text, main.uploader);
+          anchors.fill: parent
+          onPressed: {
+          }
+          onClicked: quickStart.loadFuelWorld(main.text, main.owner);
         }
-
-        Rectangle {
-            id: glow
-            visible: false
-
-            width: parent.width - 10
-            height: parent.height - 10
-            color: "#00000000"
-            scale: 1.05
-            border.color: "#ffffff"
-        }
-
-
-        PropertyAnimation {
-            target: glow
-            id: animation1
-            duration: root.duration
-            loops: 1
-            from: 1.05
-            to: 1.2
-            property: "scale"
-        }
-
-        ParallelAnimation {
-            id: animation2
-            SequentialAnimation {
-                PropertyAnimation {
-                    target: glow
-                    duration: root.duration
-                    loops: 1
-                    from: 0.2
-                    to: 1.0
-                    property: "opacity"
-                }
-                PropertyAnimation {
-                    target: glow
-                    duration: root.duration
-                    loops: 1
-                    from: 1.0
-                    to: 0.0
-                    property: "opacity"
-                }
-
-                PropertyAction {
-                    target: glow
-                    property: "visible"
-                    value: false
-                }
-            }
-
-            SequentialAnimation {
-                PropertyAction {
-                    target: glow
-                    property: "border.width"
-                    running: false
-                    value: 20
-                }
-
-                PauseAnimation {
-                    duration: 200
-                }
-
-                PropertyAnimation {
-                    target: glow
-                    duration: root.duration
-                    loops: 1
-                    from: 20
-                    to: 10
-                    property: "border.width"
-                }
-            }
-        }
+      }
     }
+  }
 }
