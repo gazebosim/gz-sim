@@ -80,7 +80,7 @@ std::string createQuickStart(
 
   app->SetDefaultConfigPath(defaultConfig);
 
-  auto quickStartHandler = new ignition::gazebo::gui::QuickStartHandler();
+  auto quickStartHandler = new gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
   auto dialog = new ignition::gui::Dialog();
@@ -90,6 +90,8 @@ std::string createQuickStart(
   dialog->SetDefaultConfig(quickStartHandler->Config());
 
   igndbg << "Reading Quick start menu config." << std::endl;
+  // FIXME(chapulina) This is creating a gui.config file with just the <dialog>
+  // stuff, then loading a world without <gui> results in an empty GUI.
   std::string showDialog = dialog->ReadConfigAttribute(app->DefaultConfigPath(),
     "show_again");
   if (showDialog != "true")
@@ -104,6 +106,7 @@ std::string createQuickStart(
   QSize winSize(960, 540);
   dialog->QuickWindow()->resize(winSize);
   dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
+  dialog->QuickWindow()->setFlags(Qt::SplashScreen);
 
   // Position the quick start in the center of the screen
   QSize screenSize = dialog->QuickWindow()->screen()->size();

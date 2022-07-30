@@ -37,46 +37,43 @@ class QuickStartHandler : public QObject
 {
   Q_OBJECT
 
-  /// \brief Constructor
-  public: QuickStartHandler();
-
   /// \brief Get worlds path
   /// \return worlds directory path
-  Q_INVOKABLE QString WorldsPath();
+  public: Q_INVOKABLE QString WorldsPath() const;
 
   /// \brief Get the distribution name
   /// \return Distribution name, such as 'Citadel'
-  Q_INVOKABLE QString Distribution();
+  public: Q_INVOKABLE QString Distribution() const;
 
   /// \brief Get Gazebo version
   /// \return gazebo version
-  Q_INVOKABLE QString GazeboVersion();
+  public: Q_INVOKABLE QString GazeboVersion() const;
 
   /// \brief Set starting world
   /// \param[in] _url Url to the world file.
-  Q_INVOKABLE void SetStartingWorld(QString _url);
+  public: Q_INVOKABLE void SetStartingWorld(const QString &_url);
 
   /// \brief Get starting world url from GUI.
   /// \return World url
-  std::string StartingWorld();
+  public: std::string StartingWorld() const;
 
   /// \brief Get default config of the dialog.
   /// \return config as string
-  std::string Config() const;
+  public: std::string Config() const;
 
   /// \brief Set the flag to show quick start menu again.
   /// \param[in] _showQuickStartOpts True to show.
-  Q_INVOKABLE void SetShowDefaultQuickStartOpts(
+  public: Q_INVOKABLE void SetShowDefaultQuickStartOpts(
       const bool _showQuickStartOpts);
 
   /// \brief Show quick start menu option.
-  bool ShowDefaultQuickStartOpts() const;
+  public: bool ShowDefaultQuickStartOpts() const;
 
   /// \brief Show the quick start menu again.
   private: bool showDefaultQuickStartOpts{true};
 
   /// \brief Installed worlds path.
-  private: std::string worldsPath{""};
+  private: std::string worldsPath{IGN_GAZEBO_WORLD_INSTALL_DIR};
 
   /// \brief Get starting world url.
   private: std::string startingWorld{""};

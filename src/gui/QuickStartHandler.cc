@@ -17,53 +17,40 @@
 
 #include "QuickStartHandler.hh"
 
-#include <ignition/common/SystemPaths.hh>
 #include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace gazebo::gui;
 
 /////////////////////////////////////////////////
-QuickStartHandler::QuickStartHandler()
-{
-  // Only show worlds installed with ign-gazebo
-  worldsPath += IGN_GAZEBO_WORLD_INSTALL_DIR;
-}
-
-/////////////////////////////////////////////////
-QString QuickStartHandler::WorldsPath()
+QString QuickStartHandler::WorldsPath() const
 {
   return QString::fromUtf8(this->worldsPath.c_str());
 }
 
 /////////////////////////////////////////////////
-std::string QuickStartHandler::StartingWorld()
+std::string QuickStartHandler::StartingWorld() const
 {
   return this->startingWorld;
 }
 
 /////////////////////////////////////////////////
-QString QuickStartHandler::Distribution()
+QString QuickStartHandler::Distribution() const
 {
   return QString::fromUtf8(GZ_DISTRIBUTION);
 }
 
 /////////////////////////////////////////////////
-QString QuickStartHandler::GazeboVersion()
+QString QuickStartHandler::GazeboVersion() const
 {
   return QString::fromUtf8(IGNITION_GAZEBO_VERSION_FULL);
 }
 
 /////////////////////////////////////////////////
-void QuickStartHandler::SetStartingWorld(QString _url)
+void QuickStartHandler::SetStartingWorld(const QString &_url)
 {
-  startingWorld = _url.toStdString();
+  this->startingWorld = _url.toStdString();
 }
 
 /////////////////////////////////////////////////
