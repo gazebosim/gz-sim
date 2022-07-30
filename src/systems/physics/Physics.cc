@@ -59,6 +59,7 @@
 #include <gz/physics/FixedJoint.hh>
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/GetEntities.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
@@ -167,9 +168,10 @@ class gz::sim::systems::PhysicsPrivate
           gz::physics::LinkFrameSemantics,
           gz::physics::ForwardStep,
           gz::physics::RemoveModelFromWorld,
-          gz::physics::sdf::ConstructSdfLink,
           gz::physics::sdf::ConstructSdfModel,
-          gz::physics::sdf::ConstructSdfWorld
+          gz::physics::sdf::ConstructSdfWorld,
+          gz::physics::GetLinkFromModel,
+          gz::physics::GetShapeFromLink
           >{};
 
   /// \brief Engine type with just the minimum features.
@@ -464,11 +466,15 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list to handle joints.
   public: struct JointFeatureList : gz::physics::FeatureList<
             MinimumFeatureList,
+            gz::physics::GetJointFromModel,
             gz::physics::GetBasicJointProperties,
             gz::physics::GetBasicJointState,
-            gz::physics::SetBasicJointState,
-            gz::physics::sdf::ConstructSdfJoint>{};
+            gz::physics::SetBasicJointState>{};
 
+  /// \brief Feature list to construct joints
+  public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<
+            JointFeatureList,
+            gz::physics::sdf::ConstructSdfJoint>{};
 
   //////////////////////////////////////////////////
   // Detachable joints
@@ -573,7 +579,6 @@ class gz::sim::systems::PhysicsPrivate
 
   //////////////////////////////////////////////////
   // Meshes
-
   /// \brief Feature list for meshes.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
@@ -582,8 +587,14 @@ class gz::sim::systems::PhysicsPrivate
             physics::mesh::AttachMeshShapeFeature>{};
 
   //////////////////////////////////////////////////
-  // Heightmap
+  // Construct Links
+  /// \brief Feature list for constructing links
+  public: struct ConstructSdfLinkFeatureList : gz::physics::FeatureList<
+            MinimumFeatureList,
+            gz::physics::sdf::ConstructSdfLink>{};
 
+  //////////////////////////////////////////////////
+  // Heightmap
   /// \brief Feature list for heightmaps.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
@@ -633,7 +644,9 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             JointFeatureList,
             BoundingBoxFeatureList,
-            NestedModelFeatureList>;
+            NestedModelFeatureList,
+            ConstructSdfLinkFeatureList,
+            ConstructSdfJointFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -1101,6 +1114,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           else
           {
             auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+
             this->entityModelMap.AddEntity(_entity, modelPtrPhys);
             this->topLevelModelMap.insert(std::make_pair(_entity,
                 topLevelModel(_entity, _ecm)));
@@ -1229,7 +1243,24 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetInertial(inertial->Data());
         }
 
-        auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
+        auto constructLinkFeature =
+          this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
+            _parent->Data());
+
+        if (!constructLinkFeature)
+        {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to construct sdf link, but the "
+                     << "physics engine doesn't support feature "
+                     << "[ConstructSdfLinkFeature]." << std::endl;
+              informed = true;
+            }
+            return true;
+        }
+
+        auto linkPtrPhys = constructLinkFeature->ConstructLink(link);
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
@@ -1573,7 +1604,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         auto modelPtrPhys = this->entityModelMap.Get(_parentModel->Data());
 
         auto modelJointFeature =
-            this->entityModelMap.EntityCast<JointFeatureList>(
+            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
                 _parentModel->Data());
         if (!modelJointFeature)
         {
