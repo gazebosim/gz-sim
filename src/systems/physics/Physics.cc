@@ -470,7 +470,7 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::GetBasicJointState,
             gz::physics::SetBasicJointState>{};
 
- /// \brief Feature list to construct joints
+  /// \brief Feature list to construct joints
   public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<
             JointFeatureList,
             gz::physics::sdf::ConstructSdfJoint>{};
@@ -1242,8 +1242,9 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetInertial(inertial->Data());
         }
 
-        auto constructLinkFeature = 
-          this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(_parent->Data());
+        auto constructLinkFeature =
+          this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
+            _parent->Data());
 
         if (!constructLinkFeature)
         {
