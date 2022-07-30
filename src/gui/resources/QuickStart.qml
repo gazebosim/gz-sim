@@ -39,7 +39,7 @@ Rectangle {
   property var selectedWorld: ""
 
   function changeDefault(checked) {
-    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);;
+    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
   }
 
   function loadWorld(file){
