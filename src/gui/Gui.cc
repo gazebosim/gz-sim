@@ -73,8 +73,11 @@ std::string createQuickStart(
 
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
+  {
     // Set default config file for Gazebo
-    defaultConfig = getDefaultGuiConfigFile(_guiConfig);
+    defaultConfig = defaultGuiConfigFile(
+        std::string(_guiConfig) == "_playback_");
+  }
 
   app->SetDefaultConfigPath(defaultConfig);
 
@@ -177,8 +180,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   std::string defaultConfig;
   if (nullptr == _defaultGuiConfig)
+  {
     // Set default config file for Gazebo
-    defaultConfig = getDefaultGuiConfigFile(_guiConfig);
+    defaultConfig = defaultGuiConfigFile(
+        std::string(_guiConfig) == "_playback_");
+  }
 
   app->SetDefaultConfigPath(defaultConfig);
 

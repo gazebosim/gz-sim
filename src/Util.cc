@@ -483,19 +483,21 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-std::string getDefaultGuiConfigFile(const std::string &_guiConfig)
+std::string defaultGuiConfigFile(bool _playback)
 {
-  // Set default config file for Gazebo
   std::string defaultGuiConfigName = "gui.config";
-  std::string defaultConfig;
-  // The playback flag (and not the gui-config flag) was
-  // specified from the command line
-  if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
+  if (_playback)
   {
     defaultGuiConfigName = "playback_gui.config";
   }
+
+  std::string defaultConfig;
   common::env(IGN_HOMEDIR, defaultConfig);
-  return :common::joinPaths(defaultConfig, ".ignition",
+
+  // TODO(chapulina) Add IGNITION_MAJOR_VERSION_STR when merging forward to
+  // Fortress.
+  // TODO(chapulina) Update to .gz/sim when merging forward to Garden
+  return common::joinPaths(defaultConfig, ".ignition",
       "gazebo", defaultGuiConfigName);
 }
 

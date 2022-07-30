@@ -153,15 +153,16 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
           condition.notify_all();
         };
 
+    std::string topic{"/gazebo/starting_world"};
     std::unique_lock<std::mutex> lock(mutex);
-    igndbg << "Subscribing to /gazebo/starting_world." << std::endl;
-    node.Subscribe("/gazebo/starting_world", topicCb);
+    igndbg << "Subscribing to [" << topic << "]." << std::endl;
+    node.Subscribe(topic, topicCb);
     igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
     condition.wait(lock);
     ignmsg << "Received world [" << startingWorldPath << "] from the GUI."
           << std::endl;
-    igndbg << "Unsubscribing from /gazebo/starting_world." << std::endl;
-    node.Unsubscribe("/gazebo/starting_world");
+    igndbg << "Unsubscribing from [" << topic << "]." << std::endl;
+    node.Unsubscribe(topic);
   }
 
   // Path for logs

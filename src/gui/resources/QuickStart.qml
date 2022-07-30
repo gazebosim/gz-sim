@@ -76,7 +76,7 @@ Rectangle {
   }
 
   function getWorlds(){
-    return "file://"+QuickStartHandler.WorldsPath()
+    return "file://" + QuickStartHandler.WorldsPath()
   }
 
   function getColor(fileName){
@@ -132,10 +132,10 @@ Rectangle {
         spacing: 0
         anchors {
           fill: parent
-          leftMargin: 15 
+          leftMargin: 15
           rightMargin: 20
         }
-        
+
         // Card grid view
         Rectangle {
           color: 'transparent'
@@ -151,7 +151,7 @@ Rectangle {
 
           Component {
             id: fileDelegate
-          
+
             FuelThumbnail {
               id: filePath
               text: fileName.split('.')[1]
@@ -167,16 +167,16 @@ Rectangle {
             id: gridView
             width: parent.width
             height: parent.height
-          
+
             anchors {
               fill: parent
               leftMargin: 5
               topMargin: 5
             }
-          
+
             cellWidth: 240
             cellHeight: 205
-          
+
             model: folderModel
             delegate: fileDelegate
           }
@@ -196,7 +196,7 @@ Rectangle {
           ColumnLayout {
             anchors.fill: parent
             spacing: 0
-        
+
             Rectangle {
               id: searchSortBar
               color: searchColor
@@ -237,18 +237,18 @@ Rectangle {
                   }
                   Keys.onUpPressed: {
                     // pluginMenuListView.decrementCurrentIndex();
-                  } 
+                  }
                 }
               }
             }
 
             Component {
               id: sdfFileDelegate
-        
+
               ItemDelegate {
                 width: parent.width-11
                 x: 1
-                text: fileName 
+                text: fileName
                 highlighted: selectedWorld == fileName
                 onClicked: {
                   quickStart.loadWorld(fileName);
@@ -280,8 +280,8 @@ Rectangle {
 
               delegate: sdfFileDelegate
             }
- 
-              
+
+
             ListView {
               id: pluginMenuListView
 
@@ -294,7 +294,7 @@ Rectangle {
         }
       }
     }
- 
+
     // Bottom row, which holds the run button and don't show checkbox.
     Rectangle {
       Layout.fillWidth: true

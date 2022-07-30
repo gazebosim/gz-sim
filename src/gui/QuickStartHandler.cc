@@ -51,7 +51,7 @@ std::string QuickStartHandler::StartingWorld()
 /////////////////////////////////////////////////
 QString QuickStartHandler::Distribution()
 {
-  return QString::fromUtf8(GAZEBO_DISTRIBUTION);
+  return QString::fromUtf8(GZ_DISTRIBUTION);
 }
 
 /////////////////////////////////////////////////

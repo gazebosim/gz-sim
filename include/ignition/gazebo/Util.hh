@@ -176,14 +176,12 @@ namespace ignition
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity, const EntityComponentManager &_ecm);
 
-    /// \brief Get the default config file for gazebo
-    /// \param[in] _guiConfig The GUI configuration file. If nullptr,
-    /// the default configuration from IGN_HOMEDIR/.ignition/gazebo/gui.config
-    /// will be used, if _playback_ it returns
-    /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config instead
-    /// \return Path to Gazebo GUI default configuration file.
-    std::string IGNITION_GAZEBO_VISIBLE getDefaultGuiConfigFile(
-      const std::string &_guiConfig);
+    /// \brief Get the path to the default GUI config file.
+    /// \param[in] _playback Whether playing back a log file.
+    /// \return $IGN_HOMEDIR/.ignition/gazebo/gui.config, or
+    /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config for playback.
+    std::string IGNITION_GAZEBO_VISIBLE defaultGuiConfigFile(
+      bool _playback = false);
 
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,

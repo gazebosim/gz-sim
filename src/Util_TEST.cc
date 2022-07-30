@@ -853,3 +853,14 @@ TEST_F(UtilTest, EntityFromMsg)
   EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity, "peach",
       msgs::Entity::WORLD)));
 }
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, DefaultGuiConfigFilePath)
+{
+  std::string home;
+  common::env(IGN_HOMEDIR, home);
+  EXPECT_EQ(common::joinPaths(home, ".ignition", "gazebo", "gui.config"),
+      defaultGuiConfigFile());
+  EXPECT_EQ(common::joinPaths(home, ".ignition", "gazebo",
+      "playback_gui.config"), defaultGuiConfigFile(true));
+}
