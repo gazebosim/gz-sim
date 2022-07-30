@@ -1657,9 +1657,10 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           return true;
         }
 
-        auto basicModelPtrPhys = this->entityModelMap
-            .EntityCast<JointFeatureList>(_parentModel->Data());
-        if (!basicModelPtrPhys)
+        auto modelJointFeature =
+            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
+                _parentModel->Data());
+        if (!modelJointFeature)
         {
           static bool informed{false};
           if (!informed)
