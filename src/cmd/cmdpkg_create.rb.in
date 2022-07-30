@@ -1,0 +1,248 @@
+#!/usr/bin/ruby
+require 'erb'
+require 'open-uri'
+require 'yaml'
+require 'ostruct'
+
+# Copyright (C) 2022 Open Source Robotics Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# We use 'dl' for Ruby <= 1.9.x and 'fiddle' for Ruby >= 2.0.x
+if RUBY_VERSION.split('.')[0] < '2'
+  require 'dl'
+  require 'dl/import'
+  include DL
+else
+  require 'fiddle'
+  require 'fiddle/import'
+  include Fiddle
+end
+
+require 'optparse'
+
+# Constants.
+LIBRARY_NAME = '@library_location@'
+LIBRARY_VERSION = '@PROJECT_VERSION_FULL@'
+
+COMMON_OPTIONS =
+               "  -h [--help]                 Print this help message.\n"\
+               "                                                    \n"        +
+               "  --force-version <VERSION>   Use a specific library version.\n"\
+               "                                                    \n"        +
+               '  --versions                  Show the available versions.'
+
+COMMANDS = { 'pkg_create' =>
+  "Create a new gazebo package.\n"+
+  "                                                                        \n"\
+  "  gz pkg_create [options]                                               \n\n"\
+  "                                                                         \n"\
+  "Available Options:                                                       \n\n"\
+  "  -n [--name] arg             Name of new package [Required]             \n\n"\
+  "  -a [--advance_pkg]          Package with various example resources     \n\n"+
+  "  -b [--built_type] arg       Build type between ament_cmake or cmake    \n\n"+
+  "  -e [--export_type] arg      Export type between colcon or plain-camke] \n\n"+
+  "  -d [--standard_dependecies] Package depends on standard gz packages    \n\n"+
+  "  -g [--gazebo_version] arg   Gazebo version name for dependencies       \n\n"+
+  
+  COMMON_OPTIONS
+}
+
+#
+# Class for the Gazebo pkg_create command line tools.
+#
+class Cmd
+
+  #
+  # Return a structure describing the options.
+  #
+  def parse(args)
+    options = {
+    }
+    usage = COMMANDS[args[0]]
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = usage
+
+      opts.on('-h', '--help') do
+        puts usage
+        exit
+      end
+      opts.on('-n [arg]', '--name [arg]', String, 'Name of new package') do |n|
+        options['name'] = n
+      end
+      opts.on('-a','--advance_pkg', String, 'Package with various example resources') do
+        options['advance_pkg'] = 1
+      end
+      opts.on('-b [arg]', '--built_type [arg]', String, 'Build type between ament_cmake or cmake') do |b|
+        options['built_type'] = b
+      end
+      opts.on('-e [arg]', '--export_type [arg]', String, 'Export type between colcon or plain-camke') do |e|
+        options['export_type'] = e
+      end
+      opts.on('-d','--standard_dependecies', String, 'Package depends on standard gz packages') do
+        options['standard_dependecies'] = 1
+      end
+      opts.on('-g [arg]', '--gazebo_version [arg]',String, 'Gazebo version name for dependencies') do |g|
+        options['gazebo_version'] = g
+      end
+      
+    end # opt_parser do
+    begin
+      opt_parser.parse!(args)
+    rescue
+      puts usage
+      exit(-1)
+    end
+
+    # Check if all options are correct
+
+    if !(options.key?('name') && options['name'].class()==String)
+     puts "ERROR: Please provide proper package name.\n"
+     puts usage
+     exit(-1)
+    end
+    if (options.key?('built_type') && !(['ament_cmake','cmake'].include? options["built_type"]))
+      puts "WARNING: Invalid Built-type,defaulting to cmake\n"
+      options['built_type'] = "cmake"
+    end
+    if (options.key?('export_type') && !(['plain_cmake','colcon'].include? options["export_type"]))
+      puts "WARNING: Invalid Export-type,defaulting to colcon\n"
+      options['export_type'] = "colcon"
+    end
+    if (options.key?('gazebo_version') && !(['garden'].include? options["gazebo_version"]))
+      puts "WARNING: Invalid Gazebo Version,defaulting to fortress\n"
+      options['gazebo_version'] = "fortress"
+    end
+    #Giving default values
+
+    if !options.key?('advance_pkg')
+      options['advance_pkg'] = 0
+    end 
+    if !options.key?('built_type')
+      options['built_type'] = "cmake"
+    end 
+    if !options.key?('export_type')
+      options['export_type'] = "colcon"
+    end 
+    if !options.key?('standard_dependecies')
+      options['standard_dependecies'] = 0
+    end
+    if !options.key?('gazebo_version')
+      options['gazebo_version'] = "garden"
+    end
+
+    options['command'] = args[0]
+
+    options
+  end # parse()
+
+  def execute(args)
+    options = parse(args)
+
+    # Read the plugin that handles the command.
+    if LIBRARY_NAME[0] == '/'
+      # If the first character is a slash, we'll assume that we've been given an
+      # absolute path to the library. This is only used during test mode.
+      plugin = LIBRARY_NAME
+    else
+      # We're assuming that the library path is relative to the current
+      # location of this script.
+      plugin = File.expand_path(File.join(File.dirname(__FILE__), LIBRARY_NAME))
+    end
+    conf_version = LIBRARY_VERSION
+
+    begin
+      Importer.dlload plugin
+    rescue DLError => e
+      puts "Library error for [#{plugin}]: #{e.to_s}"
+      exit(-1)
+    end
+
+    ##Code for package generation
+    if Dir.exists?(options['name'])
+      puts "ERROR:Folder with this name already exists."
+      exit(-1)
+    end
+
+    #Creates Package folder
+    Dir.mkdir(options['name'])
+
+    #Fetching dependencies versions for standard dependencies
+    if options['standard_dependecies']==1
+      dependencies = URI.open('https://raw.githubusercontent.com/ignition-tooling/gazebodistro/master/collection-%s.yaml'% options['gazebo_version']){|f| f.read}
+      dependencies_yaml = YAML.load(dependencies)
+      dependencies_dict={}
+      for dependency in dependencies_yaml.fetch('repositories').keys
+        dependencies_dict[dependency]=dependencies_yaml['repositories'][dependency]['version'].scan( /\d+$/ ).first
+      end
+    end
+
+    resources_dir=__dir__+"/resources"
+
+    #Creates CMakeLists.txt using erb
+    cmakelists_render = ERB.new(File.read(resources_dir+"/CMakeLists.erb"),trim_mode: ">")
+    cmakelists_file = File.new(options['name']+"/CMakeLists.txt", "w")
+    cmakelists_file.puts(cmakelists_render.result(OpenStruct.new(options).instance_eval { binding }))
+    cmakelists_file.close
+    
+    #Creates package.xml for ament dependent
+    if options['built_type']=='ament_cmake'
+      package_xml_render = ERB.new(File.read(resources_dir+"/package_xml.erb"),trim_mode: ">")
+      package_xml_file = File.new(options['name']+"/package.xml", "w")
+      package_xml_file.puts(package_xml_render.result(OpenStruct.new(options).instance_eval { binding }))
+      package_xml_file.close
+    end
+
+    #Creates example resources for advance package
+    if options['advance_pkg']==1
+      Dir.mkdir(options['name']+"/worlds")
+      Dir.mkdir(options['name']+"/models")
+      Dir.mkdir(options['name']+"/models/elevator")
+      Dir.mkdir(options['name']+"/plugins")
+      Dir.mkdir(options['name']+"/src")
+
+      executable_txt=File.read(resources_dir+"/executables/random_points.cc")
+      executable_file = File.new(options['name']+"/src/random_points.cc", "w")
+      executable_file.puts(executable_txt)
+      executable_file.close
+
+      plugin_txt=File.read(resources_dir+"/plugins/HelloWorld.cc")
+      plugin_file = File.new(options['name']+"/plugins/HelloWorld.cc", "w")
+      plugin_file.puts(plugin_txt)
+      plugin_file.close 
+
+      plugin_header_txt=File.read(resources_dir+"/plugins/HelloWorld.hh")
+      plugin_header_file = File.new(options['name']+"/plugins/HelloWorld.hh", "w")
+      plugin_header_file.puts(plugin_header_txt)
+      plugin_header_file.close
+
+      world_txt=File.read(resources_dir+"/worlds/empty_platform_with_elevator.sdf")
+      world_file = File.new(options['name']+"/worlds/empty_platform_with_elevator.sdf", "w")
+      world_file.puts(world_txt)
+      world_file.close
+
+      model_config_txt=File.read(resources_dir+"/models/elevator/model.config")
+      model_config_file = File.new(options['name']+"/models/elevator/model.config", "w")
+      model_config_file.puts(model_config_txt)
+      model_config_file.close
+
+      model_sdf_txt=File.read(resources_dir+"/models/elevator/model.sdf")
+      model_sdf_file = File.new(options['name']+"/models/elevator/model.sdf", "w")
+      model_sdf_file.puts(model_sdf_txt)
+      model_sdf_file.close
+    end
+  # # execute
+  end
+# class
+end

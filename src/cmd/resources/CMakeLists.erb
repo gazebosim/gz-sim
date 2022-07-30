@@ -1,0 +1,80 @@
+#These lines will set minimum required version of cmake and declare the name of the project.
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
+project(<%= options['name'] %>)
+<% if options['standard_dependecies']==1 %>
+
+#This is a list of general packages on which your gz package will depend,find_package function will find and source theses packages.
+#You can add or delete dependencies based on your requirement.
+<% if options['built_type']=='ament_cmake' %>
+#Since,the package is amnet dependent we will find and call ament_cmake.
+
+find_package(ament_cmake REQUIRED)
+<% end %>
+
+find_package(gz-cmake<%= dependencies_dict["gz-cmake"]%> REQUIRED)
+
+find_package(gz-sim<%= dependencies_dict["gz-sim"]%> REQUIRED COMPONENTS gui)
+set(GZ_SIM_VER ${gz-sim<%= dependencies_dict["gz-sim"]%>_VERSION_MAJOR})
+
+find_package(gz-gui<%= dependencies_dict["gz-gui"]%> REQUIRED)
+set(GZ_GUI_VER ${gz-gui<%= dependencies_dict["gz-gui"]%>_VERSION_MAJOR})
+
+find_package(gz-rendering<%= dependencies_dict["gz-rendering"]%> REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering<%= dependencies_dict["gz-rendering"]%>_VERSION_MAJOR})
+
+find_package(gz-sensors<%= dependencies_dict["gz-sensors"]%> REQUIRED)
+set(GZ_SENSORS_VER ${gz-sensors<%= dependencies_dict["gz-sensors"]%>_VERSION_MAJOR})
+
+find_package(gz-msgs<%= dependencies_dict["gz-msgs"]%> REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs<%= dependencies_dict["gz-msgs"]%>_VERSION_MAJOR})
+
+find_package(gz-plugin<%= dependencies_dict["gz-plugin"]%> REQUIRED COMPONENTS register)
+set(GZ_PLUGIN_VER ${gz-plugin<%= dependencies_dict["gz-plugin"]%>_VERSION_MAJOR})
+
+find_package(gz-utils<%= dependencies_dict["gz-utils"]%> REQUIRED)
+set(GZ_UTILS_VER ${gz-utils<%= dependencies_dict["gz-utils"]%>_VERSION_MAJOR})
+
+find_package(gz-common<%= dependencies_dict["gz-common"]%> REQUIRED COMPONENTS profiler)
+set(GZ_COMMON_VER ${gz-common<%= dependencies_dict["gz-common"]%>_VERSION_MAJOR})
+<% end %>
+<% if options['advance_pkg']==1 %>
+
+#These will install directories with various resources like worlds,plugins etc.
+gz_add_resources(worlds)
+gz_add_resources(models)
+gz_export_variable(LD_LIBRARY_PATH @CMAKE_INSTALL_PREFIX@/lib)
+gz_add_plugins(plugins COMMON_PUBLIC_LIBRARIES 
+ gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
+ gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+ gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER})
+gz_add_executables(src COMMON_PUBLIC_LIBRARIES 
+gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER})
+
+#This line will export paths of all the above mentioned resources.
+<% if options['export_type']=="colcon"%>
+gz_environment_hook(colcon)
+<% end %>
+<% if options['export_type']=="plain_cmake"%>
+gz_environment_hook(plain-cmake)
+<% end %>
+<% end %>
+
+#These line will run tests for the package, if build testing is set to be TRUE
+#You can add your tests here
+
+if(BUILD_TESTING)
+
+<% if options['built_type']=='ament_cmake' %>
+find_package(ament_cmake_gtest REQUIRED)
+<% end %>
+set("PROJECT_BINARY_PATH" ${CMAKE_CURRENT_BINARY_DIR})
+set("PROJECT_SOURCE_PATH" ${CMAKE_CURRENT_SOURCE_DIR})
+
+endif()
+<% if options['built_type']=='ament_cmake' %>
+
+#The project setup is done by ament_package().
+#It installs the package.xml, registers the package with the ament index, and installs config (and possibly target) files
+#for CMake so that it can be found by other packages using find_package.
+ament_package()
+<% end %>
