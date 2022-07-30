@@ -29,6 +29,7 @@
 #include <ignition/fuel_tools/WorldIdentifier.hh>
 #include <ignition/msgs/stringmsg.pb.h>
 #include <ignition/transport/Node.hh>
+#include <sdf/Console.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
@@ -52,7 +53,15 @@ extern "C" IGNITION_GAZEBO_VISIBLE char *gazeboVersionHeader()
 extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
     const char *_verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  int verbosity = std::atoi(_verbosity);
+  ignition::common::Console::SetVerbosity(verbosity);
+
+  // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
+  // console output with zero verbosity.
+  if (verbosity == 0)
+  {
+    sdf::Console::Instance()->SetQuiet(true);
+  }
 }
 
 //////////////////////////////////////////////////
