@@ -778,3 +778,85 @@ TEST_F(TriggeredPublisherTest,
   EXPECT_EQ(pubCount, std::count(recvMsgs0.begin(), recvMsgs0.end(), true));
   EXPECT_EQ(pubCount, std::count(recvMsgs1.begin(), recvMsgs1.end(), false));
 }
+
+/////////////////////////////////////////////////
+// Test for triggering a service call with incorrect
+// request type or reseponse type. The server callback
+// will not be triggered hence the recvCount will be 0
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongRequestOrResponseType))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_16");
+  std::atomic<std::size_t> recvCount{0};
+
+  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
+      msgs::StringMsg &)>(
+      [&recvCount](const auto &_req, auto &_rep)
+        {
+          EXPECT_EQ(_req.data(), "test");
+          if (_req.data() == "test")
+            {
+              ++recvCount;
+              _rep.set_data(_req.data());
+              return true;
+            }
+          return false;
+        });
+
+  // Advertise a dummy service
+  std::string service = "/srv-test";
+  node.Advertise(service, srvEchoCb);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+    IGN_SLEEP_MS(100);
+  }
+
+  waitUntil(5000, [&]{return recvCount == 0u;});
+  EXPECT_EQ(0u, recvCount);
+}
+
+/////////////////////////////////////////////////
+// Test for triggering a service call that'll return
+// False result. The server callback will be triggered
+// but it'll +1 to the recvCout but return False.
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(FailedReesultServiceCall))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_17");
+  std::atomic<std::size_t> recvCount{0};
+
+  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
+      msgs::StringMsg &)>(
+      [&recvCount](const auto &_req, auto &_rep)
+        {
+          EXPECT_EQ(_req.data(), "test");
+          if (_req.data() == "test")
+            {
+              ++recvCount;
+              _rep.set_data(_req.data());
+              // return True was substitued with False
+              return false;
+            }
+        });
+
+  // Advertise a dummy service
+  std::string service = "/srv-test";
+  node.Advertise(service, srvEchoCb);
+
+  const std::size_t pubCount{10};
+  for (std::size_t i = 0; i < pubCount; ++i)
+  {
+    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+    IGN_SLEEP_MS(100);
+  }
+
+  waitUntil(5000, [&]{return pubCount == recvCount;});
+  EXPECT_EQ(pubCount, recvCount);
+}

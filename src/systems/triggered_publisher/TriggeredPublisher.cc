@@ -624,36 +624,34 @@ void TriggeredPublisher::Configure(const Entity &,
       if (serviceInfo.servName.empty())
       {
         ignerr << "Service name cannot be empty\n";
+        return;
       }
       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
       if (serviceInfo.reqType.empty())
       {
         ignerr << "Service request type cannot be empty\n";
+        return;
       }
       serviceInfo.repType = serviceElem->Get<std::string>("repType");
       if (serviceInfo.repType.empty())
       {
         ignerr << "Service response type cannot be empty\n";
+        return;
       }
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
         ignerr << "Service request string cannot be empty\n";
+        return;
       }
       std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
       if (timeoutInfo.empty())
       {
-        ignwarn << "Timeout value not specified for service name ["
-                << serviceInfo.servName << "] with service type ["
-                << serviceInfo.reqType << "]. Using default value of 3000\n";
-        // Use default timeout value of 3000ms
-        serviceInfo.timeout = 3000;
-      }
-      else
-      {
-        serviceInfo.timeout = std::stoi(timeoutInfo);
+        ignwarn << "Timeout value cannot be empty\n";
+        return;
       }
 
+      serviceInfo.timeout = std::stoi(timeoutInfo);
       this->serviceOutputInfo.push_back(std::move(serviceInfo));
     }
   }
@@ -745,7 +743,7 @@ void TriggeredPublisher::DoServiceWork()
          auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
          if (!req)
          {
-           ignerr << "Unable to create request for type["
+           ignerr << "Unable to create request for type ["
                   << serviceInfo.reqType << "].\n";
            return;
          }
@@ -753,7 +751,7 @@ void TriggeredPublisher::DoServiceWork()
          auto rep = msgs::Factory::New(serviceInfo.repType);
          if (!rep)
          {
-           ignerr << "Unable to create response for type["
+           ignerr << "Unable to create response for type ["
                   << serviceInfo.repType << "].\n";
            return;
          }
@@ -766,6 +764,11 @@ void TriggeredPublisher::DoServiceWork()
            {
              ignerr << "Service call [" << serviceInfo.servName
                     << "] failed\n";
+           }
+           else
+           {
+             ignmsg << "Service call [" << serviceInfo.servName
+                    << "] succeeded\n";
            }
          }
          else
