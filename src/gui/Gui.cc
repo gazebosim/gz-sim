@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <QScreen>
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/SignalHandler.hh>
@@ -22,13 +23,16 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/MainWindow.hh>
 #include <ignition/gui/Plugin.hh>
+#include <ignition/gui/Dialog.hh>
 
+#include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/TmpIface.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
 #include "AboutDialogHandler.hh"
+#include "QuickStartHandler.hh"
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
@@ -40,11 +44,148 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
+/// \brief Get the path to the default config file. If the file doesn't exist
+/// yet, this function will copy the installed file into its location.
+/// \param[in] _isPlayback True if playing back a log file
+/// \param[in] _customDefaultConfig A default config passed by the CLI or
+/// another caller.
+/// \return Path to the default config file.
+std::string defaultGuiConfigFile(bool _isPlayback,
+    const char *_customDefaultConfig)
+{
+  std::string defaultConfig;
+  std::string defaultGuiConfigName = "gui.config";
+  if (nullptr == _customDefaultConfig)
+  {
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    if (_isPlayback)
+    {
+      defaultGuiConfigName = "playback_gui.config";
+    }
+    common::env(IGN_HOMEDIR, defaultConfig);
+    // TODO(chapulina) Add IGNITION_MAJOR_VERSION_STR when merging forward to
+    // Fortress.
+    // TODO(chapulina) Update to .gz/sim when merging forward to Garden
+    defaultConfig = common::joinPaths(defaultConfig, ".ignition",
+        "gazebo", defaultGuiConfigName);
+  }
+  else
+  {
+    // Downstream applications can override the default path
+    defaultConfig = _customDefaultConfig;
+  }
+
+  // Check if the default config file exists. If it doesn't, copy the installed
+  // file there first.
+  if (!common::exists(defaultConfig))
+  {
+    common::createDirectories(common::parentPath(defaultConfig));
+
+    auto installedConfig = common::joinPaths(
+        IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
+    if (!common::copyFile(installedConfig, defaultConfig))
+    {
+      ignerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+      return nullptr;
+    }
+    else
+    {
+      ignmsg << "Copied installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+    }
+  }
+
+  return defaultConfig;
+}
+
+//////////////////////////////////////////////////
+/// \brief Launch the quick start dialog
+/// \param[in] _argc Number of command line arguments.
+/// \param[in] _argv Command line arguments.
+/// \param[in] _defaultConfig Path to the default configuration file.
+/// \param[in] _configInUse The config that the user chose to load. If the user
+/// didn't pass one, this will be equal to _defaultConfig
+/// \return The path to the starting world or an empty string if none was
+/// chosen.
+std::string launchQuickStart(int &_argc, char **_argv,
+    const std::string &_defaultConfig,
+    const std::string &_configInUse)
+{
+  ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
+
+  // Gui application in dialog mode
+  auto app = std::make_unique<ignition::gui::Application>(
+    _argc, _argv, ignition::gui::WindowType::kDialog);
+  app->SetDefaultConfigPath(_defaultConfig);
+
+  auto quickStartHandler = new gui::QuickStartHandler();
+  quickStartHandler->setParent(app->Engine());
+
+  auto dialog = new ignition::gui::Dialog();
+  dialog->setObjectName("quick_start");
+
+  igndbg << "Reading Quick start menu config." << std::endl;
+  auto showDialog = dialog->ReadConfigAttribute(_configInUse, "show_again");
+  if (showDialog == "false")
+  {
+    ignmsg << "Not showing Quick start menu." << std::endl;
+    return "";
+  }
+
+  // This is the fixed window size for the quick start dialog
+  QSize winSize(960, 540);
+  dialog->QuickWindow()->resize(winSize);
+  dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
+  dialog->QuickWindow()->setTitle("Gazebo quick start");
+
+  // Position the quick start in the center of the screen
+  QSize screenSize = dialog->QuickWindow()->screen()->size();
+  screenSize /= 2.0;
+  screenSize -= winSize / 2.0;
+  dialog->QuickWindow()->setPosition(screenSize.width(), screenSize.height());
+
+  auto context = new QQmlContext(app->Engine()->rootContext());
+  context->setContextProperty("QuickStartHandler", quickStartHandler);
+
+  std::string qmlFile("qrc:/Gazebo/QuickStart.qml");
+
+  QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
+      QString(QString::fromStdString(qmlFile)));
+
+  auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
+  dialogItem->setParentItem(dialog->RootItem());
+
+  // Run qt application and show quick dialog
+  if (nullptr != app)
+  {
+    app->exec();
+    igndbg << "Shutting quick setup dialog" << std::endl;
+  }
+
+  // Update dialog config
+  dialog->UpdateConfigAttribute(_configInUse, "show_again",
+    quickStartHandler->ShowAgain());
+  return quickStartHandler->StartingWorld();
+}
 
 //////////////////////////////////////////////////
 std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
+{
+  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig,
+    _loadPluginsFromSdf, nullptr, 0);
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_sdfFile, int _waitGui)
 {
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -62,8 +203,55 @@ std::unique_ptr<ignition::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  // Initialize Qt app
-  auto app = std::make_unique<ignition::gui::Application>(_argc, _argv);
+  bool isPlayback = (nullptr != _guiConfig &&
+      std::string(_guiConfig) == "_playback_");
+  auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
+
+  bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
+  bool configFromCli = (nullptr != _guiConfig && std::strlen(_guiConfig) > 0 &&
+      std::string(_guiConfig) != "_playback_");
+
+  transport::Node node;
+
+  // Quick start dialog if no specific SDF file was passed and it's not playback
+  std::string startingWorld;
+  if (!hasSdfFile && _waitGui && !isPlayback)
+  {
+    std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
+    startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+
+    std::string topic{"/gazebo/starting_world"};
+    auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
+    msgs::StringMsg msg;
+    msg.set_data(startingWorld);
+
+    for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
+        ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (!startingWorldPub.HasConnections())
+    {
+      ignwarn << "Waited for 10s for a subscriber to [" << topic
+              << "] and got none." << std::endl;
+    }
+    startingWorldPub.Publish(msg);
+  }
+  else if (hasSdfFile)
+  {
+    startingWorld = _sdfFile;
+  }
+
+  if (sigKilled)
+  {
+    igndbg << "Received kill signal. Not starting main window." << std::endl;
+    return nullptr;
+  }
+
+  // Launch main window
+  auto app = std::make_unique<ignition::gui::Application>(
+    _argc, _argv, ignition::gui::WindowType::kMainWindow);
+
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Temporary transport interface
@@ -81,26 +269,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
-  std::string defaultGuiConfigName = "gui.config";
-
-  // Set default config file for Gazebo
-  std::string defaultConfig;
-  if (nullptr == _defaultGuiConfig)
-  {
-    // The playback flag (and not the gui-config flag) was
-    // specified from the command line
-    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
-    {
-      defaultGuiConfigName = "playback_gui.config";
-    }
-    ignition::common::env(IGN_HOMEDIR, defaultConfig);
-    defaultConfig = ignition::common::joinPaths(defaultConfig, ".ignition",
-        "gazebo", defaultGuiConfigName);
-  }
-  else
-  {
-    defaultConfig = _defaultGuiConfig;
-  }
 
   app->SetDefaultConfigPath(defaultConfig);
 
@@ -135,12 +303,11 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  ignition::transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -168,8 +335,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
-      std::string(_guiConfig) != "_playback_")
+  if (configFromCli)
   {
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
@@ -246,28 +412,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
   if (plugins.empty())
   {
-    // Check if there's a default config file under
-    // ~/.ignition/gazebo and use that. If there isn't, copy
-    // the installed file there first.
-    if (!ignition::common::exists(defaultConfig))
-    {
-      auto installedConfig = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
-      if (!ignition::common::copyFile(installedConfig, defaultConfig))
-      {
-        ignerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-        return nullptr;
-      }
-      else
-      {
-        ignmsg << "Copied installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-      }
-    }
-
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
@@ -276,14 +420,21 @@ std::unique_ptr<ignition::gui::Application> createGui(
       return nullptr;
     }
   }
-
   return app;
 }
 
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv, const char *_guiConfig)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig);
+  return runGui(_argc, _argv, _guiConfig, nullptr, 0);
+}
+
+//////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv,
+  const char *_guiConfig, const char *_sdfFile, int _waitGui)
+{
+  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+      _sdfFile, _waitGui);
   if (nullptr != app)
   {
     // Run main window.

@@ -4,6 +4,7 @@ set (gui_sources
   GuiFileHandler.cc
   GuiRunner.cc
   PathManager.cc
+  QuickStartHandler.cc
   TmpIface.cc
 )
 

@@ -174,8 +174,7 @@ namespace ignition
     /// \return Entity of top level model. If _entity has no top level model,
     /// kNullEntity is returned.
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
-        const Entity &_entity,
-        const EntityComponentManager &_ecm);
+        const Entity &_entity, const EntityComponentManager &_ecm);
 
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,

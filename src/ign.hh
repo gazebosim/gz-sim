@@ -53,6 +53,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *worldInstallDir();
 /// \param[in] _renderEngineGui --render-engine-gui option
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// null to record the default topics.
 /// \return 0 if successful, 1 if not.
 extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
@@ -62,12 +64,17 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics);
+    const char *_recordTopics, int _waitGui);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.
+/// \param[in] _file The world file path passed as a command line argument.
+/// If set, QuickStart Dialog will not be shown.
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// \return 0 if successful, 1 if not.
-extern "C" IGNITION_GAZEBO_VISIBLE int runGui(const char *_guiConfig);
+extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
+    const char *_guiConfig, const char *_file, int _waitGui);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

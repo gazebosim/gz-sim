@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # Initialize the project
 #============================================================================
 project(ignition-gazebo3 VERSION 3.13.0)
+set (GZ_DISTRIBUTION "Citadel")
 
 #============================================================================
 # Find ignition-cmake
@@ -84,7 +85,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools4_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui3 REQUIRED VERSION 3.10)
+ign_find_package(ignition-gui3 REQUIRED VERSION 3.11)
 set(IGN_GUI_VER ${ignition-gui3_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
