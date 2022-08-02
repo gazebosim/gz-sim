@@ -268,7 +268,6 @@ Rectangle {
               delegate: sdfFileDelegate
             }
 
-
             ListView {
               id: pluginMenuListView
 
