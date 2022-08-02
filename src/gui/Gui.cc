@@ -424,6 +424,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv, const char *_guiConfig)
+{
+  return runGui(_argc, _argv, _guiConfig, nullptr, 0);
+}
+
+//////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui)
 {
