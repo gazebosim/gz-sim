@@ -103,11 +103,16 @@ std::string defaultGuiConfigFile(bool _isPlayback,
 }
 
 //////////////////////////////////////////////////
+/// \brief Launch the quick start dialog
+/// \param[in] _argc Number of command line arguments.
+/// \param[in] _argv Command line arguments.
 /// \param[in] _defaultConfig Path to the default configuration file.
 /// \param[in] _configInUse The config that the user chose to load. If the user
 /// didn't pass one, this will be equal to _defaultConfig
-std::string launchQuickStart(
-    int &_argc, char **_argv, const std::string &_defaultConfig,
+/// \return The path to the starting world or an empty string if none was
+/// chosen.
+std::string launchQuickStart(int &_argc, char **_argv,
+    const std::string &_defaultConfig,
     const std::string &_configInUse)
 {
   ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
@@ -135,7 +140,7 @@ std::string launchQuickStart(
   QSize winSize(960, 540);
   dialog->QuickWindow()->resize(winSize);
   dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
-  dialog->QuickWindow()->setFlags(Qt::SplashScreen);
+  dialog->QuickWindow()->setTitle("Gazebo quick start");
 
   // Position the quick start in the center of the screen
   QSize screenSize = dialog->QuickWindow()->screen()->size();
@@ -162,7 +167,7 @@ std::string launchQuickStart(
   }
 
   // Update dialog config
-  dialog->UpdateConfigAttribute(app->DefaultConfigPath(), "show_again",
+  dialog->UpdateConfigAttribute(_configInUse, "show_again",
     quickStartHandler->ShowDefaultQuickStartOpts());
   return quickStartHandler->StartingWorld();
 }
@@ -202,20 +207,26 @@ std::unique_ptr<ignition::gui::Application> createGui(
       std::string(_guiConfig) == "_playback_");
   auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
 
-  std::string startingWorld;
-
-  // Quick start dialog if no specific SDF file was passed and it's not playback
   bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
   bool configFromCli = (nullptr != _guiConfig && std::strlen(_guiConfig) > 0 &&
       std::string(_guiConfig) != "_playback_");
+
+  // Quick start dialog if no specific SDF file was passed and it's not playback
+  std::string startingWorld;
   if (!hasSdfFile && _waitGui && !isPlayback)
   {
     std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
     startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
   }
-  else
+  else if (hasSdfFile)
   {
     startingWorld = _sdfFile;
+  }
+
+  if (sigKilled)
+  {
+    igndbg << "Received kill signal. Not starting main window." << std::endl;
+    return nullptr;
   }
 
   std::string topic{"/gazebo/starting_world"};
@@ -272,7 +283,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
-  QQmlComponent component(app->Engine(), "qrc:/Gazebo/GazeboDrawer.qml");
+  QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
   auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
   if (gzDrawerItem)
   {

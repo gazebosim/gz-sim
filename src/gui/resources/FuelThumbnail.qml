@@ -25,7 +25,6 @@ Rectangle{
   property alias source: root.source
   property alias text: label.text
   property string owner: ''
-  property alias color: main.color
   border.color: "#e0e0e0"
   border.width: 2
 
@@ -49,16 +48,13 @@ Rectangle{
         fillMode: Image.PreserveAspectCrop
         width: 216
         height: 124
-  
-        x: 2 
+
+        x: 2
         y: 24
         signal clicked
-        property int duration: 250
-  
+
         MouseArea {
           anchors.fill: parent
-          onPressed: {
-          }
           onClicked: quickStart.loadFuelWorld(main.text, main.owner);
         }
       }
