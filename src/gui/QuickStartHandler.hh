@@ -47,7 +47,7 @@ class QuickStartHandler : public QObject
 
   /// \brief Get Gazebo version
   /// \return gazebo version
-  public: Q_INVOKABLE QString GazeboVersion() const;
+  public: Q_INVOKABLE QString SimVersion() const;
 
   /// \brief Set starting world
   /// \param[in] _url Url to the world file.
@@ -59,14 +59,14 @@ class QuickStartHandler : public QObject
 
   /// \brief Set the flag to show quick start menu again.
   /// \param[in] _showQuickStartOpts True to show.
-  public: Q_INVOKABLE void SetShowDefaultQuickStartOpts(
-      const bool _showQuickStartOpts);
+  public: Q_INVOKABLE void SetShowAgain(const bool _showAgain);
 
-  /// \brief Show quick start menu option.
-  public: bool ShowDefaultQuickStartOpts() const;
+  /// \brief Show again option.
+  /// \return True to show again.
+  public: bool ShowAgain() const;
 
   /// \brief Show the quick start menu again.
-  private: bool showDefaultQuickStartOpts{true};
+  private: bool showAgain{true};
 
   /// \brief Installed worlds path.
   private: std::string worldsPath{IGN_GAZEBO_WORLD_INSTALL_DIR};

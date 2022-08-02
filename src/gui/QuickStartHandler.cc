@@ -42,7 +42,7 @@ QString QuickStartHandler::Distribution() const
 }
 
 /////////////////////////////////////////////////
-QString QuickStartHandler::GazeboVersion() const
+QString QuickStartHandler::SimVersion() const
 {
   return QString::fromUtf8(IGNITION_GAZEBO_VERSION_FULL);
 }
@@ -54,14 +54,13 @@ void QuickStartHandler::SetStartingWorld(const QString &_url)
 }
 
 /////////////////////////////////////////////////
-void QuickStartHandler::SetShowDefaultQuickStartOpts(
-  const bool _showQuickStartOpts)
+void QuickStartHandler::SetShowAgain(const bool _showAgain)
 {
-  this->showDefaultQuickStartOpts = !_showQuickStartOpts;
+  this->showAgain = !_showAgain;
 }
 
 /////////////////////////////////////////////////
-bool QuickStartHandler::ShowDefaultQuickStartOpts() const
+bool QuickStartHandler::ShowAgain() const
 {
-  return this->showDefaultQuickStartOpts;
+  return this->showAgain;
 }

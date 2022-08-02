@@ -39,7 +39,7 @@ Rectangle {
   property var selectedWorld: ""
 
   function changeDefault(checked) {
-    QuickStartHandler.SetShowDefaultQuickStartOpts(checked);
+    QuickStartHandler.SetShowAgain(checked);
   }
 
   function loadWorld(file){
@@ -114,7 +114,7 @@ Rectangle {
             text: QuickStartHandler.Distribution()
           }
           Text{
-            text: 'v ' + QuickStartHandler.GazeboVersion()
+            text: 'v ' + QuickStartHandler.SimVersion()
           }
         }
         Item {

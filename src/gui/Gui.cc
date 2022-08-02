@@ -168,7 +168,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
 
   // Update dialog config
   dialog->UpdateConfigAttribute(_configInUse, "show_again",
-    quickStartHandler->ShowDefaultQuickStartOpts());
+    quickStartHandler->ShowAgain());
   return quickStartHandler->StartingWorld();
 }
 
@@ -211,12 +211,31 @@ std::unique_ptr<ignition::gui::Application> createGui(
   bool configFromCli = (nullptr != _guiConfig && std::strlen(_guiConfig) > 0 &&
       std::string(_guiConfig) != "_playback_");
 
+  transport::Node node;
+
   // Quick start dialog if no specific SDF file was passed and it's not playback
   std::string startingWorld;
   if (!hasSdfFile && _waitGui && !isPlayback)
   {
     std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
     startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+
+    std::string topic{"/gazebo/starting_world"};
+    auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
+    msgs::StringMsg msg;
+    msg.set_data(startingWorld);
+
+    for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
+        ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (!startingWorldPub.HasConnections())
+    {
+      ignwarn << "Waited for 10s for a subscriber to [" << topic
+              << "] and got none." << std::endl;
+    }
+    startingWorldPub.Publish(msg);
   }
   else if (hasSdfFile)
   {
@@ -228,24 +247,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
     igndbg << "Received kill signal. Not starting main window." << std::endl;
     return nullptr;
   }
-
-  std::string topic{"/gazebo/starting_world"};
-  transport::Node node;
-  auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
-  msgs::StringMsg msg;
-  msg.set_data(startingWorld);
-
-  for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
-      ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  if (!startingWorldPub.HasConnections())
-  {
-    ignwarn << "Waited for 10s for a subscriber to [" << topic
-            << "] and got none." << std::endl;
-  }
-  startingWorldPub.Publish(msg);
 
   // Launch main window
   auto app = std::make_unique<ignition::gui::Application>(
@@ -334,8 +335,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
-      std::string(_guiConfig) != "_playback_")
+  if (configFromCli)
   {
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,

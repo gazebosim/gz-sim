@@ -37,6 +37,8 @@
 
 #include "ignition/gazebo/gui/Gui.hh"
 
+using namespace ignition;
+
 //////////////////////////////////////////////////
 extern "C" IGNITION_GAZEBO_VISIBLE char *ignitionGazeboVersion()
 {
@@ -140,12 +142,12 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
   {
-    ignition::transport::Node node;
+    transport::Node node;
     std::condition_variable condition;
     std::mutex mutex;
 
     // Create a subscriber just so we can check when the message has propagated
-    std::function<void(const ignition::msgs::StringMsg &)> topicCb =
+    std::function<void(const msgs::StringMsg &)> topicCb =
         [&startingWorldPath, &mutex, &condition](const auto &_msg)
         {
           std::unique_lock<std::mutex> lock(mutex);
