@@ -176,13 +176,6 @@ namespace ignition
     ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity, const EntityComponentManager &_ecm);
 
-    /// \brief Get the path to the default GUI config file.
-    /// \param[in] _playback Whether playing back a log file.
-    /// \return $IGN_HOMEDIR/.ignition/gazebo/gui.config, or
-    /// IGN_HOMEDIR/.ignition/gazebo/playback_gui.config for playback.
-    std::string IGNITION_GAZEBO_VISIBLE defaultGuiConfigFile(
-      bool _playback = false);
-
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,
     /// in this order:

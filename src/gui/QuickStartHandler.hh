@@ -57,10 +57,6 @@ class QuickStartHandler : public QObject
   /// \return World url
   public: std::string StartingWorld() const;
 
-  /// \brief Get default config of the dialog.
-  /// \return config as string
-  public: std::string Config() const;
-
   /// \brief Set the flag to show quick start menu again.
   /// \param[in] _showQuickStartOpts True to show.
   public: Q_INVOKABLE void SetShowDefaultQuickStartOpts(

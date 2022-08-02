@@ -483,25 +483,6 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-std::string defaultGuiConfigFile(bool _playback)
-{
-  std::string defaultGuiConfigName = "gui.config";
-  if (_playback)
-  {
-    defaultGuiConfigName = "playback_gui.config";
-  }
-
-  std::string defaultConfig;
-  common::env(IGN_HOMEDIR, defaultConfig);
-
-  // TODO(chapulina) Add IGNITION_MAJOR_VERSION_STR when merging forward to
-  // Fortress.
-  // TODO(chapulina) Update to .gz/sim when merging forward to Garden
-  return common::joinPaths(defaultConfig, ".ignition",
-      "gazebo", defaultGuiConfigName);
-}
-
-//////////////////////////////////////////////////
 gazebo::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
