@@ -186,6 +186,16 @@ std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
+  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig, _loadPluginsFromSdf,
+      nullptr, 0);
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<ignition::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_sdfFile, int _waitGui)
+{
   ignition::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -202,6 +212,39 @@ std::unique_ptr<ignition::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
+  std::string startingWorld;
+
+  // Quick start dialog if no specific SDF file was passed and it's not playback
+  bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
+  bool isPlayback = (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_");
+  if (!hasSdfFile && _waitGui && !isPlayback)
+  {
+    startingWorld = launchQuickStart(_argc, _argv, _guiConfig, nullptr);
+  }
+  else
+  {
+    startingWorld = _sdfFile;
+  }
+
+  std::string topic{"/gazebo/starting_world"};
+  transport::Node node;
+  auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
+  msgs::StringMsg msg;
+  msg.set_data(startingWorld);
+
+  for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  if (!startingWorldPub.HasConnections())
+  {
+    ignwarn << "Waited for 10s for a subscriber to [" << topic
+            << "] and got none." << std::endl;
+  }
+  startingWorldPub.Publish(msg);
+
+  // Launch main window
   auto app = std::make_unique<ignition::gui::Application>(
     _argc, _argv, ignition::gui::WindowType::kMainWindow);
 
@@ -223,8 +266,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  bool isPlayback = (nullptr != _guiConfig &&
-      std::string(_guiConfig) == "_playback_");
   auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
   app->SetDefaultConfigPath(defaultConfig);
 
@@ -258,7 +299,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
-  transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -407,48 +447,16 @@ std::unique_ptr<ignition::gui::Application> createGui(
 
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv,
-  const char *_guiConfig, const char*_file, int _waitGui)
+  const char *_guiConfig, const char *_sdfFile, int _waitGui)
 {
-  std::string topic{"/gazebo/starting_world"};
-  transport::Node node;
-  transport::Node::Publisher startingWorldPub =
-    node.Advertise<msgs::StringMsg>(topic);
-  msgs::StringMsg msg;
-
-  // Don't show quick start menu if a file is set from command line
-  if (strlen(_file) == 0 && _waitGui == 1)
-  {
-    // Don't show quick start menu in playback mode
-    if ((nullptr != _guiConfig && std::string(_guiConfig) != "_playback_")
-      || nullptr == _guiConfig)
-      msg.set_data(launchQuickStart(_argc, _argv, _guiConfig, nullptr));
-  }
-  else
-  {
-    msg.set_data(_file);
-  }
-
-  // Notify the server with the starting world path
-  // or an empty string if not specified
-  for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
-      ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  if (!startingWorldPub.HasConnections())
-  {
-    ignwarn << "Waited for 10s for a subscriber to [" << topic
-            << "] and got none." << std::endl;
-  }
-  startingWorldPub.Publish(msg);
-
   // Start gazebo main GUI application
-  auto mainApp = gazebo::gui::createGui(_argc, _argv, _guiConfig);
-  if (nullptr != mainApp)
+  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+      _sdfFile, _waitGui);
+  if (nullptr != app)
   {
     // Run main window.
     // This blocks until the window is closed or we receive a SIGINT
-    mainApp->exec();
+    app->exec();
     igndbg << "Shutting down ign-gazebo-gui" << std::endl;
     return 0;
   }
