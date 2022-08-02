@@ -103,18 +103,11 @@ std::string defaultGuiConfigFile(bool _isPlayback,
 }
 
 //////////////////////////////////////////////////
-std::string createQuickStart(
+std::string launchQuickStart(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig)
 {
-  ignition::common::SignalHandler sigHandler;
-  bool sigKilled = false;
-  sigHandler.AddCallback([&](const int /*_sig*/)
-  {
-    sigKilled = true;
-  });
-
-  ignmsg << "Ignition Gazebo Quick setup menu" << std::endl;
+  ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
 
   // Set auto scaling factor for HiDPI displays
   if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
@@ -428,7 +421,7 @@ int runGui(int &_argc, char **_argv,
     // Don't show quick start menu in playback mode
     if ((nullptr != _guiConfig && std::string(_guiConfig) != "_playback_")
       || nullptr == _guiConfig)
-      msg.set_data(gazebo::gui::createQuickStart(_argc, _argv, _guiConfig));
+      msg.set_data(launchQuickStart(_argc, _argv, _guiConfig, nullptr));
   }
   else
   {
