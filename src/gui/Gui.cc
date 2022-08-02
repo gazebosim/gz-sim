@@ -172,8 +172,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
-  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig, _loadPluginsFromSdf,
-      nullptr, 0);
+  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig,
+    _loadPluginsFromSdf, nullptr, 0);
 }
 
 //////////////////////////////////////////////////
