@@ -106,16 +106,22 @@ std::string defaultGuiConfigFile(bool _isPlayback,
 /// \param[in] _defaultConfig Path to the default configuration file.
 /// \param[in] _configInUse The config that the user chose to load. If the user
 /// didn't pass one, this will be equal to _defaultConfig
-std::string launchQuickStart(
+std::unique_ptr<ignition::gui::Application> launchQuickStart(
     int &_argc, char **_argv, const std::string &_defaultConfig,
     const std::string &_configInUse)
 {
   ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
 
-  // Gui application in dialog mode
+  // Application in dialog mode
   auto app = std::make_unique<ignition::gui::Application>(
     _argc, _argv, ignition::gui::WindowType::kDialog);
   app->SetDefaultConfigPath(_defaultConfig);
+
+  if (nullptr == app)
+  {
+    ignerr << "Internal error: Failed to initialize application." << std::endl;
+    return nullptr;
+  }
 
   auto quickStartHandler = new gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
@@ -123,19 +129,18 @@ std::string launchQuickStart(
   auto dialog = new ignition::gui::Dialog();
   dialog->setObjectName("quick_start");
 
-  igndbg << "Reading Quick start menu config." << std::endl;
   auto showDialog = dialog->ReadConfigAttribute(_configInUse, "show_again");
   if (showDialog == "false")
   {
     ignmsg << "Not showing Quick start menu." << std::endl;
-    return "";
+    return app;
   }
 
   // This is the fixed window size for the quick start dialog
   QSize winSize(960, 540);
   dialog->QuickWindow()->resize(winSize);
   dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
-  dialog->QuickWindow()->setFlags(Qt::SplashScreen);
+  // dialog->QuickWindow()->setFlags(Qt::SplashScreen);
 
   // Position the quick start in the center of the screen
   QSize screenSize = dialog->QuickWindow()->screen()->size();
@@ -154,17 +159,39 @@ std::string launchQuickStart(
   auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
   dialogItem->setParentItem(dialog->RootItem());
 
-  // Run qt application and show quick dialog
-  if (nullptr != app)
-  {
-    app->exec();
-    igndbg << "Shutting quick setup dialog" << std::endl;
-  }
+  // Show dialog and block
+  app->exec();
+  igndbg << "Shutting quick start dialog" << std::endl;
 
   // Update dialog config
   dialog->UpdateConfigAttribute(app->DefaultConfigPath(), "show_again",
     quickStartHandler->ShowDefaultQuickStartOpts());
-  return quickStartHandler->StartingWorld();
+
+  dialog->deleteLater();
+
+  // Notify server
+  auto startingWorld = quickStartHandler->StartingWorld();
+  igndbg << "Selected starting world [" << startingWorld << "]." << std::endl;
+
+  std::string topic{"/gazebo/starting_world"};
+  transport::Node node;
+  auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
+  msgs::StringMsg msg;
+  msg.set_data(startingWorld);
+
+  for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
+      ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  if (!startingWorldPub.HasConnections())
+  {
+    ignwarn << "Waited for 10s for a subscriber to [" << topic
+            << "] and got none." << std::endl;
+  }
+  startingWorldPub.Publish(msg);
+
+  return app;
 }
 
 //////////////////////////////////////////////////
@@ -202,7 +229,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       std::string(_guiConfig) == "_playback_");
   auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
 
-  std::string startingWorld;
+
+  std::unique_ptr<ignition::gui::Application> app{nullptr};
 
   // Quick start dialog if no specific SDF file was passed and it's not playback
   bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
@@ -211,35 +239,20 @@ std::unique_ptr<ignition::gui::Application> createGui(
   if (!hasSdfFile && _waitGui && !isPlayback)
   {
     std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
-    startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+    app = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+    if (!app->CreateMainWindow())
+    {
+      ignerr << "Failed to create main window." << std::endl;
+      return app;
+    }
   }
-  else
+
+  // Initialize Qt app
+  if (nullptr == app)
   {
-    startingWorld = _sdfFile;
+    app = std::make_unique<ignition::gui::Application>(_argc, _argv);
   }
-
-  std::string topic{"/gazebo/starting_world"};
-  transport::Node node;
-  auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
-  msgs::StringMsg msg;
-  msg.set_data(startingWorld);
-
-  for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
-      ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  if (!startingWorldPub.HasConnections())
-  {
-    ignwarn << "Waited for 10s for a subscriber to [" << topic
-            << "] and got none." << std::endl;
-  }
-  startingWorldPub.Publish(msg);
-
-  // Launch main window
-  auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kMainWindow);
-
+  app->SetDefaultConfigPath(defaultConfig);
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Temporary transport interface
@@ -258,10 +271,13 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  app->SetDefaultConfigPath(defaultConfig);
-
   // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  if (nullptr == mainWin)
+  {
+    ignerr << "Internal error: failed to find main window." << std::endl;
+    return nullptr;
+  }
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -272,7 +288,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   context->setContextProperty("GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
-  QQmlComponent component(app->Engine(), "qrc:/Gazebo/GazeboDrawer.qml");
+  QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
   auto gzDrawerItem = qobject_cast<QQuickItem *>(component.create(context));
   if (gzDrawerItem)
   {
@@ -291,6 +307,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Get list of worlds
+  transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
@@ -323,8 +340,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
-      std::string(_guiConfig) != "_playback_")
+  if (configFromCli)
   {
     // Use the first world name with the config file
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
