@@ -103,28 +103,19 @@ std::string defaultGuiConfigFile(bool _isPlayback,
 }
 
 //////////////////////////////////////////////////
+/// \param[in] _defaultConfig Path to the default configuration file.
+/// \param[in] _configInUse The config that the user chose to load. If the user
+/// didn't pass one, this will be equal to _defaultConfig
 std::string launchQuickStart(
-    int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig)
+    int &_argc, char **_argv, const std::string &_defaultConfig,
+    const std::string &_configInUse)
 {
   ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
-
-  // Set auto scaling factor for HiDPI displays
-  if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
-  {
-    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
-  }
 
   // Gui application in dialog mode
   auto app = std::make_unique<ignition::gui::Application>(
     _argc, _argv, ignition::gui::WindowType::kDialog);
-
-  app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
-
-  bool isPlayback = (nullptr != _guiConfig &&
-      std::string(_guiConfig) == "_playback_");
-  auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
-  app->SetDefaultConfigPath(defaultConfig);
+  app->SetDefaultConfigPath(_defaultConfig);
 
   auto quickStartHandler = new gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
@@ -133,15 +124,10 @@ std::string launchQuickStart(
   dialog->setObjectName("quick_start");
 
   igndbg << "Reading Quick start menu config." << std::endl;
-  // FIXME(chapulina) This is creating a gui.config file with just the <dialog>
-  // stuff, then loading a world without <gui> results in an empty GUI.
-  std::string showDialog = dialog->ReadConfigAttribute(app->DefaultConfigPath(),
-    "show_again");
+  auto showDialog = dialog->ReadConfigAttribute(_configInUse, "show_again");
   if (showDialog == "false")
   {
     ignmsg << "Not showing Quick start menu." << std::endl;
-    ignmsg << "To change this, edit the " << dialog->objectName().toStdString()
-      << " config located at " << defaultConfig << std::endl;
     return "";
   }
 
@@ -212,14 +198,20 @@ std::unique_ptr<ignition::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
+  bool isPlayback = (nullptr != _guiConfig &&
+      std::string(_guiConfig) == "_playback_");
+  auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
+
   std::string startingWorld;
 
   // Quick start dialog if no specific SDF file was passed and it's not playback
   bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
-  bool isPlayback = (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_");
+  bool configFromCli = (nullptr != _guiConfig && std::strlen(_guiConfig) > 0 &&
+      std::string(_guiConfig) != "_playback_");
   if (!hasSdfFile && _waitGui && !isPlayback)
   {
-    startingWorld = launchQuickStart(_argc, _argv, _guiConfig, nullptr);
+    std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
+    startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
   }
   else
   {
@@ -266,9 +258,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
   // add import path so we can load custom modules
   app->Engine()->addImportPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
   app->SetDefaultConfigPath(defaultConfig);
 
+  // Customize window
   auto mainWin = app->findChild<ignition::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
@@ -405,35 +397,10 @@ std::unique_ptr<ignition::gui::Application> createGui(
     return nullptr;
   }
 
-  std::string defaultGuiConfigName = "gui.config";
   // If no plugins have been added, load default config file
   auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
   if (plugins.empty())
   {
-    // Check if there's a default config file under
-    // ~/.ignition/gazebo and use that. If there isn't, copy
-    // the installed file there first.
-    if (!ignition::common::exists(defaultConfig))
-    {
-      common::createDirectories(common::parentPath(defaultConfig));
-
-      auto installedConfig = ignition::common::joinPaths(
-          IGNITION_GAZEBO_GUI_CONFIG_PATH, defaultGuiConfigName);
-      if (!ignition::common::copyFile(installedConfig, defaultConfig))
-      {
-        ignerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-        return nullptr;
-      }
-      else
-      {
-        ignmsg << "Copied installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-      }
-    }
-
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
@@ -449,7 +416,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
 int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui)
 {
-  // Start gazebo main GUI application
   auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
       _sdfFile, _waitGui);
   if (nullptr != app)
