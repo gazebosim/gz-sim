@@ -239,9 +239,6 @@ namespace systems
 
       /// \brief Service request message
       std::string reqMsg;
-
-      /// \brief Service request timeout
-      unsigned int timeout;
     };
 
     /// \brief List of InputMatchers
@@ -260,7 +257,8 @@ namespace systems
     private: std::size_t publishCount{0};
 
     /// \brief Counter that tells how many times to call the service
-    private: std::size_t serviceCount{0};
+    //private: std::size_t serviceCount{0};
+    private: bool callService{false};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
@@ -295,8 +293,98 @@ namespace systems
 
     /// \brief Mutex to synchronize access to publishQueue
     private: std::mutex publishQueueMutex;
+
+    private: class ResponseHandler
+    {
+      public: virtual void operator() (const msgs::StringMsg &msg,
+                                       ServiceOutputInfo &srvInfo);
+      public: virtual void operator() (const msgs::Boolean &msg,
+                                       ServiceOutputInfo &srvInfo);
+      public: virtual void operator() (const msgs::Empty &msg,
+                                       ServiceOutputInfo &srvInfo);
+      //NOTE: add more msgs here
+    };
+
+    private: template<typename ReplyT>
+    std::function<void(const ReplyT &rep, const bool res)> ReplyCallback(
+      ServiceOutputInfo& serviceInfo)
+    {
+      return std::function<void(const ReplyT &, const bool)>(
+        [&serviceInfo] (const ReplyT &msg, const bool res){
+          if (res)
+          {
+            ResponseHandler()(msg, serviceInfo);
+          }
+          else
+          {
+            ignerr << "Service call [" << serviceInfo.servName
+                   << "] failed\n";
+          }
+        });
+    }
+
+    private: template<typename ReplyT, typename RequestT>
+    bool HandleResponse(ServiceOutputInfo& serviceInfo, RequestT& req)
+    {
+      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
+      return this->node.Request(serviceInfo.servName, req, reqCb);
+    }
+   
+    private: template<typename ReplyT>
+    bool HandleNoInputRequest(ServiceOutputInfo& serviceInfo)
+    {
+      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
+      return this->node.Request(serviceInfo.servName, reqCb);
+    }
+
+    private: template<typename ReplyT>
+    bool HandleNoReply(ServiceOutputInfo& serviceInfo)
+    {
+      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
+      return this->node.Request(serviceInfo.servName, reqCb);
+    }
+
+    #define HANDLE_REPLY(repT, typeString) \
+    if(serviceInfo.repType == typeString) \
+    { \
+      if(serviceInfo.repType.empty()) \
+      { \
+        executed = HandleNoReply<repT>(serviceInfo); \
+      } \
+      else \
+      { \
+        executed = HandleResponse<repT, reqT>(serviceInfo, *req); \
+      } \
+    }
+    private: template<typename reqT>
+    void HandleRequest(ServiceOutputInfo& serviceInfo)
+    {
+      bool executed {false};
+      auto req = msgs::Factory::New<reqT>(serviceInfo.reqType,
+        serviceInfo.reqMsg);
+      if (!req)
+      {
+        ignerr << "Unable to create request for type ["
+               << serviceInfo.reqType << "].\n";
+        return;
+      }
+
+      HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
+      HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
+
+      if (!executed)
+      {
+        ignerr << "Service call [" << serviceInfo.servName
+               << "] timed out\n";
+      }
+      {
+        std::lock_guard<std::mutex> lock(this->serviceCountMutex);
+        this->callService = false;
+      }
+      ignerr << "=====================\n";
+    }
   };
-  }
+}
 }
 }
 }

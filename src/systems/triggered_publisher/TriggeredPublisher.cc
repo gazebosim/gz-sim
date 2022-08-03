@@ -480,6 +480,28 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 }
 
 //////////////////////////////////////////////////
+
+void TriggeredPublisher::ResponseHandler::operator() (const msgs::StringMsg &msg, ServiceOutputInfo &srvInfo)
+{
+  ignmsg << "Service call [" << srvInfo.servName
+         << "] succeeded. Response message [" << std::boolalpha << msg.data() 
+         << "]\n";
+}
+void TriggeredPublisher::ResponseHandler::operator() (const msgs::Boolean &msg, ServiceOutputInfo &srvInfo)
+{
+  ignmsg << "Service call [" << srvInfo.servName
+         << "] succeeded. Response message [" << std::boolalpha << msg.data() 
+         << "]\n";
+}
+void TriggeredPublisher::ResponseHandler::operator() (const msgs::Empty &msg, ServiceOutputInfo &srvInfo)
+{
+  ignmsg << "Service call [" << srvInfo.servName
+         << "] succeeded. Response message [" << msg.unused() 
+         << "]\n";
+}
+// NOTE: add more msgs here
+
+//////////////////////////////////////////////////
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
@@ -629,14 +651,13 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
       if (serviceInfo.reqType.empty())
       {
-        ignerr << "Service request type cannot be empty\n";
-        return;
+        ignwarn << "Service request type cannot be empty\n";
       }
       serviceInfo.repType = serviceElem->Get<std::string>("repType");
       if (serviceInfo.repType.empty())
       {
-        ignerr << "Service response type cannot be empty\n";
-        return;
+        ignwarn << "Service response type cannot be empty\n";
+        //todo: change to warn
       }
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
@@ -644,14 +665,14 @@ void TriggeredPublisher::Configure(const Entity &,
         ignerr << "Service request string cannot be empty\n";
         return;
       }
-      std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
-      if (timeoutInfo.empty())
-      {
-        ignwarn << "Timeout value cannot be empty\n";
-        return;
-      }
+    //  std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
+    //  if (timeoutInfo.empty())
+    //  {
+    //    ignwarn << "Timeout value cannot be empty\n";
+    //    return;
+    //  }
 
-      serviceInfo.timeout = std::stoi(timeoutInfo);
+    //  serviceInfo.timeout = std::stoi(timeoutInfo);
       this->serviceOutputInfo.push_back(std::move(serviceInfo));
     }
   }
@@ -678,11 +699,14 @@ void TriggeredPublisher::Configure(const Entity &,
             }
             this->newMatchSignal.notify_one();
           }
+          // only perform when service tag is specified in sdf
+            ignerr<<"out\n";
           if (this->serviceOutputInfo.size() > 0)
           {
             {
+            ignerr<<"in\n";
               std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-              ++this->serviceCount;
+              this->callService = true;
             }
             this->serviceMatchSignal.notify_one();
           }
@@ -714,69 +738,43 @@ void TriggeredPublisher::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
+
+#define HANDLE_REQUEST(type, typeString) \
+if(serviceInfo.reqType == typeString) \
+{ \
+  if(serviceInfo.reqType.empty()) \
+  { \
+    this->HandleNoInputRequest<type>(serviceInfo); \
+  } \
+  else \
+  { \
+    this->HandleRequest<type>(serviceInfo); \
+  } \
+}
+
 void TriggeredPublisher::DoServiceWork()
 {
   while (!this->srvDone)
   {
-    std::size_t pending{0};
     {
       using namespace std::chrono_literals;
       std::unique_lock<std::mutex> lock(this->serviceCountMutex);
-      this->serviceMatchSignal.wait_for(lock, 1s,
+      this->serviceMatchSignal.wait(lock,
         [this]
         {
-          return (this->serviceCount > 0) || this->srvDone;
+          return (this->callService) || this->srvDone;
         });
 
-      if (this->serviceCount == 0 || this->srvDone)
+      if (this->srvDone)
       {
         continue;
       }
-
-      std::swap(pending, this->serviceCount);
     }
+    ignerr <<"================================\n";
     for (auto &serviceInfo : this->serviceOutputInfo)
     {
-      for (std::size_t i = 0; i < pending; ++i)
-      {
-         bool result;
-         auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
-         if (!req)
-         {
-           ignerr << "Unable to create request for type ["
-                  << serviceInfo.reqType << "].\n";
-           return;
-         }
-
-         auto rep = msgs::Factory::New(serviceInfo.repType);
-         if (!rep)
-         {
-           ignerr << "Unable to create response for type ["
-                  << serviceInfo.repType << "].\n";
-           return;
-         }
-
-         bool executed = this->node.Request(serviceInfo.servName, *req,
-                                            serviceInfo.timeout, *rep, result);
-         if (executed)
-         {
-           if (!result)
-           {
-             ignerr << "Service call [" << serviceInfo.servName
-                    << "] failed\n";
-           }
-           else
-           {
-             ignmsg << "Service call [" << serviceInfo.servName
-                    << "] succeeded\n";
-           }
-         }
-         else
-         {
-           ignerr << "Service call [" << serviceInfo.servName
-                  << "] timed out\n";
-         }
-      }
+      HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
+      HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
     }
   }
 }
