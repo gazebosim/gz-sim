@@ -106,7 +106,7 @@ COMMANDS = { 'sim' =>
   "  --log-compress               When recording, compress final log files.        \n"\
   "                               Only valid if recording is enabled.              \n"\
   "\n"\
-  "  --seed                       Pass a custom seed value to the random           \n"\
+  "  --seed [arg]                 Pass a custom seed value to the random           \n"\
   "                               number generator.                                \n"\
   "\n"\
   "  --playback [arg]             Use logging system to play back states.          \n"\
