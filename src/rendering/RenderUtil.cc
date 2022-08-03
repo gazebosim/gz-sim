@@ -79,6 +79,7 @@
 #include "gz/sim/components/SegmentationCamera.hh"
 #include "gz/sim/components/SemanticLabel.hh"
 #include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Temperature.hh"
 #include "gz/sim/components/TemperatureRange.hh"
 #include "gz/sim/components/ThermalCamera.hh"
@@ -777,6 +778,18 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
+
+  // Get the SphericalCoordinate object from the world
+  // and supply it to the SceneManager
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  auto sphericalCoordinatesComponent =
+    _ecm.Component<components::SphericalCoordinates>(
+        worldEntity);
+  if (sphericalCoordinatesComponent)
+  {
+    this->dataPtr->sceneManager.SetSphericalCoordinates(
+        sphericalCoordinatesComponent->Data());
+  }
 }
 
 //////////////////////////////////////////////////
