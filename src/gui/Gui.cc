@@ -240,7 +240,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
     msgs::StringMsg msg;
     msg.set_data(startingWorld);
 
-    // Wait for the server to be listening, so we're sure it receives the message.
+    // Wait for the server to be listening, so we're sure it receives the
+    // message.
     igndbg << "Waiting for subscribers to [" << topic << "]..." << std::endl;
     for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
         ++sleep)
