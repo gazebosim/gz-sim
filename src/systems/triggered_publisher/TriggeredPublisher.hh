@@ -337,25 +337,23 @@ namespace systems
       return this->node.Request(serviceInfo.servName, reqCb);
     }
 
-    private: template<typename ReplyT>
-    bool HandleNoReply(ServiceOutputInfo& serviceInfo)
+    private: template<typename RequestT>
+    bool HandleNoReply(ServiceOutputInfo& serviceInfo, RequestT& req)
     {
-      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
-      return this->node.Request(serviceInfo.servName, reqCb);
+    //  auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
+      return this->node.Request(serviceInfo.servName, req);
     }
 
     #define HANDLE_REPLY(repT, typeString) \
     if(serviceInfo.repType == typeString) \
     { \
-      if(serviceInfo.repType.empty()) \
-      { \
-        executed = HandleNoReply<repT>(serviceInfo); \
-      } \
-      else \
-      { \
-        executed = HandleResponse<repT, reqT>(serviceInfo, *req); \
-      } \
-    }
+      executed = HandleResponse<repT, reqT>(serviceInfo, *req); \
+    } \
+    else if (serviceInfo.repType.empty()) \
+    { \
+        executed = HandleNoReply<reqT>(serviceInfo, *req); \
+    } \
+
     private: template<typename reqT>
     void HandleRequest(ServiceOutputInfo& serviceInfo)
     {
@@ -371,6 +369,7 @@ namespace systems
 
       HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
       HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
+      HANDLE_REPLY(msgs::Empty, "ignition.msgs.Empty");
 
       if (!executed)
       {

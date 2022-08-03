@@ -662,8 +662,7 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
-        ignerr << "Service request string cannot be empty\n";
-        return;
+        ignwarn << "Service request string cannot be empty\n";
       }
     //  std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
     //  if (timeoutInfo.empty())
@@ -740,17 +739,14 @@ void TriggeredPublisher::Configure(const Entity &,
 //////////////////////////////////////////////////
 
 #define HANDLE_REQUEST(type, typeString) \
-if(serviceInfo.reqType == typeString) \
+if (serviceInfo.reqType == typeString) \
 { \
-  if(serviceInfo.reqType.empty()) \
-  { \
-    this->HandleNoInputRequest<type>(serviceInfo); \
-  } \
-  else \
-  { \
-    this->HandleRequest<type>(serviceInfo); \
-  } \
-}
+  this->HandleRequest<type>(serviceInfo); \
+} \
+else if (serviceInfo.reqType.empty()) \
+{ \
+  this->HandleNoInputRequest<type>(serviceInfo); \
+} \
 
 void TriggeredPublisher::DoServiceWork()
 {
@@ -775,6 +771,7 @@ void TriggeredPublisher::DoServiceWork()
     {
       HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
       HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
+      HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
     }
   }
 }

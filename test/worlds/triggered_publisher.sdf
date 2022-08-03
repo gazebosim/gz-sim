@@ -324,8 +324,7 @@
       <service
         name="/srv-4"
         reqType=""
-        repType="ignition.msgs.StringMsg"
-        reqMsg="data: 'test'">
+        repType="ignition.msgs.StringMsg">
       </service>
     </plugin>
   </world>

@@ -923,7 +923,7 @@ TEST_F(TriggeredPublisherTest,
      msgs::StringMsg &)>(
       [&recvCount](const auto &_req, auto &_rep)
         {
-        ignerr <<"IN CALLBACK - 4\n";
+        ignerr <<"IN srv-2 CALLBACK\n";
           EXPECT_EQ(_req.data(), true);
           if (_req.data() == true)
             {
@@ -940,7 +940,7 @@ TEST_F(TriggeredPublisherTest,
   auto srvCb3 = std::function<void(const msgs::StringMsg &)>(
       [&recvCount](const auto &_req)
         {
-        ignerr <<"IN CALLBACK - 3\n";
+        ignerr <<"IN srv-3 CALLBACK\n";
           EXPECT_EQ(_req.data(), "test");
           if (_req.data() == "test")
             {
@@ -951,12 +951,28 @@ TEST_F(TriggeredPublisherTest,
               ignerr <<"DONE\n";
             }
         });
+
+  auto srvCb4 = std::function<bool(msgs::StringMsg &)>(
+      [&recvCount](auto &rep)
+        {
+        ignerr <<"IN srv-4 CALLBACK\n";
+            {
+              ++recvCount;
+              rep.set_data("callback srv-4");
+              ignerr <<"starting to wait\n";
+              IGN_SLEEP_MS(100);
+              ignerr <<"3seconds passed\n";
+              ignerr <<"DONE4444\n";
+              return true;
+            }
+        });
   // Advertise a dummy service
  // std::string service = "/srv-test-th";
   node.Advertise("srv-0", srvCb0);
   node.Advertise("srv-1", srvCb1);
   node.Advertise("srv-2", srvCb2);
   node.Advertise("srv-3", srvCb3);
+  node.Advertise("srv-4", srvCb4);
   //node.Advertise("srv-0", srvEchoCb2);
 //  node.Advertise(service, srvEchoCb1);
 
