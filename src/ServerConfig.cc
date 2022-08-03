@@ -91,6 +91,7 @@ class ignition::gazebo::ServerConfig::PluginInfoPrivate
 
   /// \brief XML elements associated with this plugin
   public: sdf::ElementPtr sdf = nullptr;
+
 };
 
 //////////////////////////////////////////////////
