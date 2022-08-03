@@ -15,15 +15,22 @@
  *
 */
 
-#include "gz/sim/gui/EnvironmentalDataLoader.hh"
+#include "EnvironmentalDataLoader.hh"
 
-#include "gz/sim/components/EnvironmentalData.hh"
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/sim/components/EnvironmentalData.hh>
+#include <gz/sim/Util.hh>
+
+#include <gz/plugin/Register.hh>
 
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <vector>
 
-#include <gz/common/CSVFile.hh>
+#include <gz/common/CSVStreams.hh>
+#include <gz/common/DataFrame.hh>
 
 using namespace gz;
 using namespace sim;
@@ -37,9 +44,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 /// \brief Private data class for EnvironmentalDataLoader
 class EnvironmentalDataLoaderPrivate
 {
-  public: QStringList dimensionsList;
+  public: QString dataPath;
 
-  public: std::string dataPath{};
+  public: QStringList dimensionList;
 
   public: int timeIndex{-1};
 
@@ -68,7 +75,7 @@ EnvironmentalDataLoader::~EnvironmentalDataLoader()
 {
 }
 
-void EnvironmentalDataLoader::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void EnvironmentalDataLoader::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Environmental Data Loader";
@@ -76,17 +83,34 @@ void EnvironmentalDataLoader::LoadConfig(const tinyxml2::XMLElement *_pluginElem
   gui::App()->findChild<gui::MainWindow *>()->installEventFilter(this);
 }
 
-void EnvironmentalDataLoader::Update(const UpdateInfo &, EntityComponentManager &_ecm)
+void EnvironmentalDataLoader::Update(const UpdateInfo &,
+                                     EntityComponentManager &_ecm)
 {
   if (this->dataPtr->needsUpdate)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-    using ComponentT = components::EnvironmentalData;
-    auto data = common::IO<ComponentT::Type>::ReadFrom(
-        common::CSVFile(this->dataPtr->dataPath), this->dataPtr->timeIndex,
-        {this->dataPtr->xIndex, this->dataPtr->yIndex, this->dataPtr->zIndex});
-    _ecm.CreateComponent<ComponentT>(worldEntity(_ecm), data);
     this->dataPtr->needsUpdate = false;
+
+    std::ifstream dataFile(this->dataPtr->dataPath.toStdString());
+    gzmsg << "Loading environmental data from "
+          << this->dataPtr->dataPath.toStdString()
+          << std::endl;
+    try
+    {
+      using ComponentT = components::EnvironmentalData;
+      auto component = ComponentT{common::IO<ComponentT::Type>::ReadFrom(
+          common::CSVIStreamIterator(dataFile), common::CSVIStreamIterator(),
+          this->dataPtr->timeIndex, {
+            static_cast<size_t>(this->dataPtr->xIndex),
+            static_cast<size_t>(this->dataPtr->yIndex),
+            static_cast<size_t>(this->dataPtr->zIndex)})};
+      _ecm.CreateComponent<ComponentT>(worldEntity(_ecm), component);
+    }
+    catch (const std::invalid_argument &exc)
+    {
+      gzerr << "Failed to load environmental data" << std::endl
+            << exc.what() << std::endl;
+    }
   }
 }
 
@@ -95,46 +119,53 @@ void EnvironmentalDataLoader::ScheduleUpdate()
   this->dataPtr->needsUpdate = this->IsConfigured();
 }
 
-void EnvironmentalDataLoader::SetDataPath(QUrl _dataPath)
+QString EnvironmentalDataLoader::DataPath() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->dataPath = _dataPath.path().toStdString();
+  return this->dataPtr->dataPath;
+}
 
-  const common::CSVFile dataFile(this->dataPtr->dataPath);
-  const std::vector<std::string> &header = dataFile.Header();
-  this->dataPtr->dimensionList.clear();
-  this->dataPtr->dimensionList.reserve(header.size());
-  for (const std::string &dimension : header)
+void EnvironmentalDataLoader::SetDataUrl(QUrl _dataUrl)
+{
+  this->SetDataPath(_dataUrl.path());
+}
+
+void EnvironmentalDataLoader::SetDataPath(QString _dataPath)
+{
   {
-    this->dataPtr->dimensionList.push_back(
-        QString::fromStdString(dimension));
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->dataPath = _dataPath;
+
+    std::ifstream dataFile(_dataPath.toStdString());
+    if (!dataFile.is_open())
+    {
+      gzerr << "No environmental data file was found at "
+            << this->dataPtr->dataPath.toStdString()
+            << std::endl;
+      this->dataPtr->dataPath.clear();
+      return;
+    }
+    const common::CSVIStreamIterator iterator(dataFile);
+    if (iterator == common::CSVIStreamIterator())
+    {
+      gzerr << "Failed to load environmental data at "
+            << this->dataPtr->dataPath.toStdString()
+            << std::endl;
+      this->dataPtr->dataPath.clear();
+      return;
+    }
+    const std::vector<std::string> &header = *iterator;
+    this->dataPtr->dimensionList.clear();
+    this->dataPtr->dimensionList.reserve(header.size());
+    for (const std::string &dimension : header)
+    {
+      this->dataPtr->dimensionList.push_back(
+          QString::fromStdString(dimension));
+    }
   }
+
+  this->DataPathChanged();
   this->DimensionListChanged();
-
-  if (!this->dataPtr->dimensionList.empty())
-  {
-    this->dataPtr->timeIndex = std::min(
-        this->dataPtr->dimensionList.size(), 0);
-    this->dataPtr->xIndex = std::min(
-        this->dataPtr->dimensionList.size(), 1);
-    this->dataPtr->yIndex = std::min(
-        this->dataPtr->dimensionList.size(), 2);
-    this->dataPtr->zIndex = std::min(
-        this->dataPtr->dimensionList.size(), 3);
-  }
-  else
-  {
-    this->dataPtr->timeIndex = -1;
-    this->dataPtr->xIndex = -1;
-    this->dataPtr->yIndex = -1;
-    this->dataPtr->zIndex = -1;
-  }
-
-  this->TimeIndexChanged();
-  this->XIndexChanged();
-  this->YIndexChanged();
-  this->ZIndexChanged();
-
   this->IsConfiguredChanged();
 }
 
@@ -142,6 +173,21 @@ QStringList EnvironmentalDataLoader::DimensionList() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->dimensionList;
+}
+
+int EnvironmentalDataLoader::TimeIndex() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->timeIndex;
+}
+
+void EnvironmentalDataLoader::SetTimeIndex(int _timeIndex)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->timeIndex = _timeIndex;
+  }
+  this->IsConfiguredChanged();
 }
 
 int EnvironmentalDataLoader::XIndex() const
@@ -152,9 +198,11 @@ int EnvironmentalDataLoader::XIndex() const
 
 void EnvironmentalDataLoader::SetXIndex(int _xIndex)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->xIndex = _xIndex;
-  this->XIndexChanged();
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->xIndex = _xIndex;
+  }
+  this->IsConfiguredChanged();
 }
 
 int EnvironmentalDataLoader::YIndex() const
@@ -165,9 +213,11 @@ int EnvironmentalDataLoader::YIndex() const
 
 void EnvironmentalDataLoader::SetYIndex(int _yIndex)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->yIndex = _yIndex;
-  this->YIndexChanged();
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->yIndex = _yIndex;
+  }
+  this->IsConfiguredChanged();
 }
 
 int EnvironmentalDataLoader::ZIndex() const
@@ -178,16 +228,19 @@ int EnvironmentalDataLoader::ZIndex() const
 
 void EnvironmentalDataLoader::SetZIndex(int _zIndex)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->zIndex = _zIndex;
-  this->ZIndexChanged();
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->zIndex = _zIndex;
+  }
+  this->IsConfiguredChanged();
 }
 
 bool EnvironmentalDataLoader::IsConfigured() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return (
-      !this->dataPtr->dataPath.empty() &&
+      !this->dataPtr->dataPath.isEmpty() &&
+      this->dataPtr->timeIndex != -1 &&
       this->dataPtr->xIndex != -1 &&
       this->dataPtr->yIndex != -1 &&
       this->dataPtr->zIndex != -1);

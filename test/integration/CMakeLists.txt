@@ -19,6 +19,7 @@ set(tests
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
+  environmental_data_preload_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc

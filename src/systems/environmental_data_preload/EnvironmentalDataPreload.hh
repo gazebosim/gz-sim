@@ -17,6 +17,8 @@
 #ifndef GZ_SIM_SYSTEMS_ENVIRONMENTALDATAPRELOAD_HH_
 #define GZ_SIM_SYSTEMS_ENVIRONMENTALDATAPRELOAD_HH_
 
+#include <memory>
+
 #include "gz/sim/config.hh"
 #include "gz/sim/System.hh"
 
@@ -28,6 +30,10 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
+  /// \class EnvironmentalDataPreload EnvironmentalDataPreload.hh
+  ///     gz/sim/systems/EnvironmentalDataPreload.hh
+  /// \brief A plugin to preload an EnvironmentalData component
+  /// into the ECM upon simulation start-up.
   class EnvironmentalDataPreload :
     public System,
     public ISystemConfigure
@@ -45,7 +51,7 @@ namespace systems
         EntityComponentManager &_ecm,
         sim::EventManager &_eventMgr) final;
   };
-  };
+  }
 }
 }
 }

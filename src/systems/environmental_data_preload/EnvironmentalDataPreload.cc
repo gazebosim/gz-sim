@@ -18,40 +18,92 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
-#include <gz/common/CSVFile.hh>
+#include <gz/common/CSVStreams.hh>
+#include <gz/common/DataFrame.hh>
+
+#include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/EnvironmentalData.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
+using namespace systems;
+
+//////////////////////////////////////////////////
+EnvironmentalDataPreload::EnvironmentalDataPreload() : System()
+{
+}
+
+//////////////////////////////////////////////////
+EnvironmentalDataPreload::~EnvironmentalDataPreload() = default;
 
 //////////////////////////////////////////////////
 void EnvironmentalDataPreload::Configure(
-    const Entity &_entity,
+    const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   if (!_sdf->HasElement("data"))
   {
-    gzerr << "No environmental data file was found";
+    gzerr << "No environmental data file was specified";
     return;
   }
-  common::CSVFile dataFile(_sdf->Get<std::string>("data"));
 
-  std::string timeColumn;
-  std::array<std::string, 3> coordinateColumns;
+  const std::string dataPath =
+      _sdf->Get<std::string>("data");
+  std::ifstream dataFile(dataPath);
+  if (!dataFile.is_open())
+  {
+    gzerr << "No environmental data file was found at " << dataPath;
+    return;
+  }
 
-  sdf::ElementPtr elem = _sdf->GetElement("dimensions");
-  elem->Get<std::string>("time", timeColumn, "t");
-  elem = elem->GetElement("space");
-  elem->Get<std::string>("x", coordinateColumns[0], "x");
-  elem->Get<std::string>("y", coordinateColumns[1], "y");
-  elem->Get<std::string>("z", coordinateColumns[2], "z");
+  std::string timeColumnName{"t"};
+  std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
 
-  using ComponentT = components::EnvironmentalData;
-  auto data = common::IO<ComponentT::Type>::ReadFrom(
-      dataFile, timeColumn, coordinateColumns);
-  _ecm.CreateComponent<ComponenT>(worldEntity(_ecm), data);
+  sdf::ElementConstPtr elem = _sdf->FindElement("dimensions");
+  if (elem)
+  {
+    if (elem->HasElement("time"))
+    {
+      timeColumnName = elem->Get<std::string>("time");
+    }
+    elem = elem->FindElement("space");
+    if (elem)
+    {
+      for (size_t i = 0; i < spatialColumnNames.size(); ++i)
+      {
+        if (elem->HasElement(spatialColumnNames[i]))
+        {
+          spatialColumnNames[i] =
+              elem->Get<std::string>(spatialColumnNames[i]);
+        }
+      }
+    }
+  }
+
+  try
+  {
+    using ComponentT = components::EnvironmentalData;
+    auto component = ComponentT{
+      common::IO<ComponentT::Type>::ReadFrom(
+          common::CSVIStreamIterator(dataFile),
+          common::CSVIStreamIterator(),
+          timeColumnName, spatialColumnNames)};
+    _ecm.CreateComponent<ComponentT>(worldEntity(_ecm), component);
+  }
+  catch (const std::invalid_argument &exc)
+  {
+    gzerr << "Failed to load environmental data" << std::endl
+          << exc.what() << std::endl;
+  }
 }
+
+GZ_ADD_PLUGIN(EnvironmentalDataPreload, System,
+    EnvironmentalDataPreload::ISystemConfigure)
+GZ_ADD_PLUGIN_ALIAS(EnvironmentalDataPreload,
+    "gz::sim::systems::EnvironmentalDataPreload")

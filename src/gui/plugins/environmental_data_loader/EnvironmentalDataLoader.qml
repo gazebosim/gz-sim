@@ -21,8 +21,9 @@ import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
+
 GridLayout {
-  columns: 5
+  columns: 8
   columnSpacing: 10
   Layout.minimumWidth: 350
   Layout.minimumHeight: 400
@@ -30,123 +31,159 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
-  Text {
-    Layout.columnSpan: 1
+  Label {
+    Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
     id: dataFileText
     color: "dimgrey"
-    text: "Data"
+    text: qsTr("Data file path")
+  }
+
+  RowLayout {
+    Layout.column: 2
+    Layout.columnSpan: 6
+
+    TextField {
+      id: dataFilePathInput
+      Layout.fillWidth: true
+      text: EnvironmentalDataLoader.dataPath
+      placeholderText: qsTr("Path to data file")
+      onEditingFinished: {
+        EnvironmentalDataLoader.dataPath = text
+      }
+    }
+
+    Button {
+      id: browseDataFile
+      Layout.preferredWidth: 20
+      display: AbstractButton.IconOnly
+      text: EnvironmentalDataLoader.dataFileName
+      onClicked: dataFileDialog.open()
+      icon.source: "qrc:/Gazebo/images/chevron-right.svg"
+      ToolTip.visible: hovered
+      ToolTip.text: qsTr("Browse files...")
+    }
   }
 
   FileDialog {
-    Layout.columnSpan: 4
+    Layout.columnSpan: 8
     id: dataFileDialog
-    title: "Please choose a data file"
+    title: qsTr("Please choose a data file")
     folder: shortcuts.home
     visible: false
     onAccepted: {
-      EnvironmentalDataLoader.SetDataPath(fileDialog.fileUrl)
+      EnvironmentalDataLoader.SetDataUrl(dataFileDialog.fileUrl)
     }
+    onRejected: {
+    }
+    Component.onCompleted: visible = false
   }
 
-  Text {
-    Layout.columnSpan: 1
+  Label {
+    Layout.row: 1
+    Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
     id: timeDimensionText
     color: "dimgrey"
-    text: "Time"
+    text: qsTr("Time dimension")
   }
 
   ComboBox {
-    Layout.columnSpan: 4
+    Layout.row: 1
+    Layout.column: 2
+    Layout.columnSpan: 6
     id: timeDimensionCombo
     Layout.fillWidth: true
+    enabled: EnvironmentalDataLoader.configured
     model: EnvironmentalDataLoader.dimensionList
     currentIndex: EnvironmentalDataLoader.timeIndex
     onCurrentIndexChanged: {
-      if (currentIndex < 0)
-        return;
-      EnvironmentalDataLoader.SetTimeIndex(currentIndex);
+      EnvironmentalDataLoader.timeIndex = currentIndex
     }
     ToolTip.visible: hovered
-    ToolTip.delay: tooltipDelay
-    ToolTip.timeout: tooltipTimeout
     ToolTip.text: qsTr("Data field to be used as time dimension")
   }
 
-  Text {
+  Label {
+    Layout.row: 2
     Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
     id: xDimensionText
     color: "dimgrey"
-    text: "X"
+    text: qsTr("X dimension")
   }
 
   ComboBox {
-    Layout.columnSpan: 4
+    Layout.row: 2
+    Layout.column: 2
+    Layout.columnSpan: 6
     id: xDimensionCombo
     Layout.fillWidth: true
+    enabled: EnvironmentalDataLoader.configured
     model: EnvironmentalDataLoader.dimensionList
     currentIndex: EnvironmentalDataLoader.xIndex
     onCurrentIndexChanged: {
-      if (currentIndex < 0)
-        return;
-      EnvironmentalDataLoader.SetXIndex(currentIndex);
+      EnvironmentalDataLoader.xIndex = currentIndex
     }
     ToolTip.visible: hovered
-    ToolTip.delay: tooltipDelay
-    ToolTip.timeout: tooltipTimeout
     ToolTip.text: qsTr("Data field to be used as x dimension")
   }
 
-  Text {
+  Label {
+    Layout.row: 3
     Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
     id: yDimensionText
     color: "dimgrey"
-    text: "Y"
+    text: qsTr("Y dimension")
   }
 
   ComboBox {
-    Layout.columnSpan: 4
+    Layout.row: 3
+    Layout.column: 2
+    Layout.columnSpan: 6
     id: yDimensionCombo
     Layout.fillWidth: true
+    enabled: EnvironmentalDataLoader.configured
     model: EnvironmentalDataLoader.dimensionList
     currentIndex: EnvironmentalDataLoader.yIndex
     onCurrentIndexChanged: {
-      if (currentIndex < 0)
-        return;
-      EnvironmentalDataLoader.SetYIndex(currentIndex);
+      EnvironmentalDataLoader.yIndex = currentIndex
     }
     ToolTip.visible: hovered
-    ToolTip.delay: tooltipDelay
-    ToolTip.timeout: tooltipTimeout
-    ToolTip.teyt: qsTr("Data field to be used as y dimension")
+    ToolTip.text: qsTr("Data field to be used as y dimension")
   }
 
-  Text {
+  Label {
+    Layout.row: 4
     Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
     id: zDimensionText
     color: "dimgrey"
-    text: "Z"
+    text: qsTr("Z dimension")
   }
 
   ComboBox {
-    Layout.columnSpan: 4
+    Layout.row: 4
+    Layout.column: 2
+    Layout.columnSpan: 6
     id: zDimensionCombo
     Layout.fillWidth: true
+    enabled: EnvironmentalDataLoader.configured
     model: EnvironmentalDataLoader.dimensionList
     currentIndex: EnvironmentalDataLoader.zIndex
     onCurrentIndexChanged: {
-      if (currentIndex < 0)
-        return;
-      EnvironmentalDataLoader.SetZIndex(currentIndex);
+      EnvironmentalDataLoader.zIndex = currentIndex
     }
     ToolTip.visible: hovered
-    ToolTip.delay: tooltipDelay
-    ToolTip.timeout: tooltipTimeout
-    ToolTip.teyt: qsTr("Data field to be used as z dimension")
+    ToolTip.text: qsTr("Data field to be used as z dimension")
   }
 
   Button {
-    text: "Load"
-    Layout.columnSpan: 5
+    text: qsTr("Load")
+    Layout.row: 5
+    Layout.columnSpan: 8
+    Layout.fillWidth: true
     enabled: EnvironmentalDataLoader.configured
     onClicked: function() {
       EnvironmentalDataLoader.ScheduleUpdate()

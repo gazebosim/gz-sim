@@ -38,14 +38,15 @@ namespace components
   /// environmental data across time and space. This is used for example to
   /// introduce other physical quantities that may be of interest even if not
   /// modelled in simulation.
-  using EnvironmentalData = Component<
-    common::DataFrame<std::string, math::InMemoryTimeVaryingVolumetricGrid<double>>,
+  using EnvironmentalData = Component<common::DataFrame<std::string,
+      math::InMemoryTimeVaryingVolumetricGrid<double, double, double>>,
     class EnvironmentalDataTag>;
 
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.EnvironmentalData", EnvironmentalData)
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.EnvironmentalData", EnvironmentalData)
 }
 }
-}  // namespace sim
-}  // namespace gz
+}
+}
 
-#endif // GZ_SIM_ENVIRONMENTAL_DATA_HH_
+#endif
