@@ -17,7 +17,6 @@
 #ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
 #define IGNITION_GAZEBO_SYSTEMLOADER_HH_
 
-#include <list>
 #include <memory>
 #include <optional>
 #include <string>
@@ -62,8 +61,7 @@ namespace ignition
 
       /// \brief Load and instantiate system plugin from name/filename.
       /// \param[in] _filename Shared library filename to load plugin from.
-      /// \param[in] _name Class name to be instantiated. If empty, the first
-      /// plugin in the shared library will be loaded.
+      /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
       /// \note This will be deprecated in Gazebo 7 (Garden), please the use
@@ -82,10 +80,6 @@ namespace ignition
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
       public: std::string PrettyStr() const;
-
-      /// \brief Get the plugin search paths used for loading system plugins
-      /// \return Paths to search for plugins
-      public: std::list<std::string> PluginPaths() const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
