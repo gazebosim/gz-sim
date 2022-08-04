@@ -219,12 +219,30 @@ std::unique_ptr<ignition::gui::Application> createGui(
   {
     std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
     startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+  }
+  else if (hasSdfFile)
+  {
+    startingWorld = _sdfFile;
+  }
 
+  if (sigKilled)
+  {
+    igndbg << "Received kill signal. Not starting main window." << std::endl;
+    return nullptr;
+  }
+
+  // Publish starting world even if it's empty. The server is blocking waiting
+  // for it.
+  if (_waitGui)
+  {
     std::string topic{"/gazebo/starting_world"};
     auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
     msgs::StringMsg msg;
     msg.set_data(startingWorld);
 
+    // Wait for the server to be listening, so we're sure it receives the
+    // message.
+    igndbg << "Waiting for subscribers to [" << topic << "]..." << std::endl;
     for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
         ++sleep)
     {
@@ -236,16 +254,6 @@ std::unique_ptr<ignition::gui::Application> createGui(
               << "] and got none." << std::endl;
     }
     startingWorldPub.Publish(msg);
-  }
-  else if (hasSdfFile)
-  {
-    startingWorld = _sdfFile;
-  }
-
-  if (sigKilled)
-  {
-    igndbg << "Received kill signal. Not starting main window." << std::endl;
-    return nullptr;
   }
 
   // Launch main window
