@@ -762,7 +762,7 @@ void TriggeredPublisher::CallService()
         this->triggerServ = false;
       }
     }
-
+  }
 }
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
