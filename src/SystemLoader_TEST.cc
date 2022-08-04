@@ -27,7 +27,6 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
 using namespace ignition;
-using namespace gazebo;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
@@ -67,39 +66,4 @@ TEST(SystemLoader, EmptyNames)
   sdf::Plugin plugin;
   auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());
-}
-
-/////////////////////////////////////////////////
-TEST(SystemLoader, PluginPaths)
-{
-  SystemLoader sm;
-
-  // verify that there should exist some default paths
-  std::list<std::string> paths = sm.PluginPaths();
-  unsigned int pathCount = paths.size();
-  EXPECT_LT(0u, pathCount);
-
-  // Add test path and verify that the loader now contains this path
-  auto testBuildPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "lib");
-  sm.AddSystemPluginPath(testBuildPath);
-  paths = sm.PluginPaths();
-
-  // Number of paths should increase by 1
-  EXPECT_EQ(pathCount + 1, paths.size());
-
-  // verify newly added paths exists
-  bool hasPath = false;
-  for (const auto &s : paths)
-  {
-    // the returned path string may not be exact match due to extra '/'
-    // appended at the end of the string. So use absPath to generate
-    // a path string that matches the format returned by joinPaths
-    if (common::absPath(s) == testBuildPath)
-    {
-      hasPath = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(hasPath);
 }

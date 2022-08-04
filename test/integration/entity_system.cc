@@ -158,54 +158,6 @@ TEST_P(EntitySystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
       "/model/vehicle/cmd_vel");
 }
 
-/////////////////////////////////////////////////
-TEST_P(EntitySystemTest, SystemInfo)
-{
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/empty.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  // get info on systems available
-  msgs::Empty req;
-  msgs::EntityPlugin_V res;
-  bool result;
-  unsigned int timeout = 5000;
-  std::string service{"/world/empty/system/info"};
-  transport::Node node;
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-
-  // verify plugins are not empty
-  EXPECT_FALSE(res.plugins().empty());
-
-  // check for a few known plugins that we know should exist in gazebo
-  std::set<std::string> knownPlugins;
-  knownPlugins.insert("user-commands-system");
-  knownPlugins.insert("physics-system");
-  knownPlugins.insert("scene-broadcaster-system");
-  knownPlugins.insert("sensors-system");
-
-  for (const auto &plugin : res.plugins())
-  {
-    for (const auto &kp : knownPlugins)
-    {
-      if (plugin.filename().find(kp) != std::string::npos)
-      {
-        knownPlugins.erase(kp);
-        break;
-      }
-    }
-  }
-  // verify all known plugins are found and removed from the set
-  EXPECT_TRUE(knownPlugins.empty());
-}
-
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, EntitySystemTest,
     ::testing::Range(1, 2));

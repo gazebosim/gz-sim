@@ -142,14 +142,6 @@ namespace ignition
       private: bool EntitySystemAddService(const msgs::EntityPlugin_V &_req,
                                            msgs::Boolean &_res);
 
-      /// \brief Callback for entity info system service.
-      /// \param[in] _req Empty request message
-      /// \param[out] _res Response containing a list of plugin names
-      /// and filenames
-      /// \return True if request received.
-      private: bool EntitySystemInfoService(const msgs::Empty &_req,
-                                            msgs::EntityPlugin_V &_res);
-
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
 
