@@ -350,6 +350,7 @@ extern "C" int runServer(const char *_sdfString,
   if (_seed != 0)
   {
     serverConfig.SetSeed(_seed);
+    gzmsg << "Setting seed value: " << _seed << "\n";
   }
 
   // Create the Gazebo server
