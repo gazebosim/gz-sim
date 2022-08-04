@@ -116,7 +116,7 @@ since pose information is being logged in the `changed_state` topic.
       + `ViewAndle`: Move camera to preset angles
 
 * The `gui.config` and `server.config` files are now located in a versioned
-  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+  folder inside `$HOME/.gz/sim`, i.e. `$HOME/.gz/sim/6/gui.config`.
 
 * The `Component::Clone` method has been marked `const` to reflect that it
   should not mutate internal component state. Component implementations that
