@@ -480,28 +480,6 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 }
 
 //////////////////////////////////////////////////
-
-void TriggeredPublisher::ResponseHandler::operator() (const msgs::StringMsg &msg, ServiceOutputInfo &srvInfo)
-{
-  ignmsg << "Service call [" << srvInfo.servName
-         << "] succeeded. Response message [" << std::boolalpha << msg.data() 
-         << "]\n";
-}
-void TriggeredPublisher::ResponseHandler::operator() (const msgs::Boolean &msg, ServiceOutputInfo &srvInfo)
-{
-  ignmsg << "Service call [" << srvInfo.servName
-         << "] succeeded. Response message [" << std::boolalpha << msg.data() 
-         << "]\n";
-}
-void TriggeredPublisher::ResponseHandler::operator() (const msgs::Empty &msg, ServiceOutputInfo &srvInfo)
-{
-  ignmsg << "Service call [" << srvInfo.servName
-         << "] succeeded. Response message [" << msg.unused() 
-         << "]\n";
-}
-// NOTE: add more msgs here
-
-//////////////////////////////////////////////////
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
@@ -651,27 +629,27 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
       if (serviceInfo.reqType.empty())
       {
-        ignwarn << "Service request type cannot be empty\n";
+        ignwarn << "Service request type is empty\n";
       }
       serviceInfo.repType = serviceElem->Get<std::string>("repType");
       if (serviceInfo.repType.empty())
       {
-        ignwarn << "Service response type cannot be empty\n";
-        //todo: change to warn
+        ignwarn << "Service reply type is empty\n";
       }
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
-        ignwarn << "Service request string cannot be empty\n";
+        ignwarn << "Service request string is empty\n";
       }
-    //  std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
-    //  if (timeoutInfo.empty())
-    //  {
-    //    ignwarn << "Timeout value cannot be empty\n";
-    //    return;
-    //  }
-
-    //  serviceInfo.timeout = std::stoi(timeoutInfo);
+   //   serviceInfo.timeout = serviceElem->Get<std::string>("timeout");
+   //   if (serviceInfo.reqMsg.empty())
+   //   {
+   //     ignwarn << "Service timeout is empty\n";
+   //   }
+   //   else
+   //   {
+   //     serviceInfo.timeout = std::stoi(serviceInfo.timeout);
+   //   }
       this->serviceOutputInfo.push_back(std::move(serviceInfo));
     }
   }
@@ -699,11 +677,9 @@ void TriggeredPublisher::Configure(const Entity &,
             this->newMatchSignal.notify_one();
           }
           // only perform when service tag is specified in sdf
-            ignerr<<"out\n";
           if (this->serviceOutputInfo.size() > 0)
           {
             {
-            ignerr<<"in\n";
               std::lock_guard<std::mutex> lock(this->serviceCountMutex);
               this->callService = true;
             }
@@ -738,15 +714,14 @@ void TriggeredPublisher::Configure(const Entity &,
 
 //////////////////////////////////////////////////
 
-#define HANDLE_REQUEST(type, typeString) \
-if (serviceInfo.reqType == typeString) \
+#define HANDLE_REQUEST(requestT, typeString) \
+if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) && !isProcessing) \
 { \
-  this->HandleRequest<type>(serviceInfo); \
+  this->HandleRequest<requestT>(serviceInfo); \
+  isProcessing = true; \
 } \
-else if (serviceInfo.reqType.empty()) \
-{ \
-  this->HandleNoInputRequest<type>(serviceInfo); \
-} \
+
+  //this->HandleNoRequestMsg<requestT>(serviceInfo); 
 
 void TriggeredPublisher::DoServiceWork()
 {
@@ -766,12 +741,15 @@ void TriggeredPublisher::DoServiceWork()
         continue;
       }
     }
-    ignerr <<"================================\n";
+    bool isProcessing {false};
     for (auto &serviceInfo : this->serviceOutputInfo)
     {
+      HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
       HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
       HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
       HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
+      ignerr<<"-------\n";
+      //NOTE: add more protobuf msgs for the Request
     }
   }
 }

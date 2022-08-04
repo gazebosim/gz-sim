@@ -234,7 +234,7 @@ namespace systems
       /// \brief Service request type
       std::string reqType;
 
-      /// \brief Service response type
+      /// \brief Service reply type
       std::string repType;
 
       /// \brief Service request message
@@ -294,15 +294,37 @@ namespace systems
     /// \brief Mutex to synchronize access to publishQueue
     private: std::mutex publishQueueMutex;
 
-    private: class ResponseHandler
+    private: class ReplyHandler
     {
       public: virtual void operator() (const msgs::StringMsg &msg,
-                                       ServiceOutputInfo &srvInfo);
+                                       ServiceOutputInfo &srvInfo)
+      {
+        ignmsg << "Service call [" << srvInfo.servName
+               << "] succeeded. Response message [" << std::boolalpha
+               << msg.data() << "]\n";
+      }
       public: virtual void operator() (const msgs::Boolean &msg,
-                                       ServiceOutputInfo &srvInfo);
+                                       ServiceOutputInfo &srvInfo)
+      {
+        ignmsg << "Service call [" << srvInfo.servName
+               << "] succeeded. Response message [" << std::boolalpha
+               << msg.data() << "]\n";
+      }
       public: virtual void operator() (const msgs::Empty &msg,
-                                       ServiceOutputInfo &srvInfo);
-      //NOTE: add more msgs here
+                                       ServiceOutputInfo &srvInfo)
+      {
+        ignmsg << "Service call [" << srvInfo.servName
+               << "] succeeded. Response message [" << msg.unused() 
+               << "]\n";
+      }
+      public: virtual void operator() (const msgs::Pose &msg,
+                                       ServiceOutputInfo &srvInfo)
+      {
+        ignmsg << "Service call [" << srvInfo.servName
+               << "] succeeded. Response message [" 
+               << "]\n";
+      }
+      //NOTE: add more replys for different types
     };
 
     private: template<typename ReplyT>
@@ -313,7 +335,7 @@ namespace systems
         [&serviceInfo] (const ReplyT &msg, const bool res){
           if (res)
           {
-            ResponseHandler()(msg, serviceInfo);
+            ReplyHandler()(msg, serviceInfo);
           }
           else
           {
@@ -324,15 +346,19 @@ namespace systems
     }
 
     private: template<typename ReplyT, typename RequestT>
-    bool HandleResponse(ServiceOutputInfo& serviceInfo, RequestT& req)
+    bool HandleReply(ServiceOutputInfo& serviceInfo, RequestT& req)
     {
+      // Non-blocking request with request type and callback
       auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
       return this->node.Request(serviceInfo.servName, req, reqCb);
     }
-   
+
     private: template<typename ReplyT>
-    bool HandleNoInputRequest(ServiceOutputInfo& serviceInfo)
+    bool HandleNoRequestMsg(ServiceOutputInfo& serviceInfo)
     {
+      // Non-blocking request with no request type
+      //ignerr<<"here\n";
+
       auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
       return this->node.Request(serviceInfo.servName, reqCb);
     }
@@ -340,36 +366,50 @@ namespace systems
     private: template<typename RequestT>
     bool HandleNoReply(ServiceOutputInfo& serviceInfo, RequestT& req)
     {
-    //  auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
+      // Non-blocking request with no callback
       return this->node.Request(serviceInfo.servName, req);
     }
 
     #define HANDLE_REPLY(repT, typeString) \
-    if(serviceInfo.repType == typeString) \
+    if (((serviceInfo.repType == typeString) && \
+      (serviceInfo.reqType.empty())) && !isProcessing) \
     { \
-      executed = HandleResponse<repT, reqT>(serviceInfo, *req); \
+      executed = HandleNoRequestMsg<repT>(serviceInfo); \
+      isProcessing = true; \
     } \
-    else if (serviceInfo.repType.empty()) \
+    else if (serviceInfo.repType.empty() && !isProcessing) \
     { \
-        executed = HandleNoReply<reqT>(serviceInfo, *req); \
+      executed = HandleNoReply<reqT>(serviceInfo, *req); \
+      isProcessing = true; \
+    } \
+    else if((serviceInfo.repType == typeString) && !isProcessing)\
+    { \
+      executed = HandleReply<repT, reqT>(serviceInfo, *req); \
+      isProcessing = true; \
     } \
 
     private: template<typename reqT>
     void HandleRequest(ServiceOutputInfo& serviceInfo)
     {
       bool executed {false};
-      auto req = msgs::Factory::New<reqT>(serviceInfo.reqType,
-        serviceInfo.reqMsg);
-      if (!req)
+      bool isProcessing {false};
+     // msgs::Factory::New<reqT> req;
+      std::unique_ptr<reqT> req;
+      if (!serviceInfo.reqType.empty())
       {
-        ignerr << "Unable to create request for type ["
-               << serviceInfo.reqType << "].\n";
-        return;
+        req = msgs::Factory::New<reqT>(serviceInfo.reqType,
+          serviceInfo.reqMsg);
+        if (!req)
+        {
+          ignerr << "Unable to create request for type ["
+                 << serviceInfo.reqType << "].\n";
+          return;
+        }
       }
-
       HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
       HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
       HANDLE_REPLY(msgs::Empty, "ignition.msgs.Empty");
+      //NOTE: add more protobuf msgs for the Reply
 
       if (!executed)
       {
@@ -380,7 +420,6 @@ namespace systems
         std::lock_guard<std::mutex> lock(this->serviceCountMutex);
         this->callService = false;
       }
-      ignerr << "=====================\n";
     }
   };
 }

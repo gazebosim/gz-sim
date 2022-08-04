@@ -651,13 +651,13 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 //
 //  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
 //      msgs::StringMsg &)>(
-//      [&recvCount](const auto &_req, auto &_rep)
+//      [&recvCount](const auto &req, auto &rep)
 //        {
-//          EXPECT_EQ(_req.data(), "test");
-//          if (_req.data() == "test")
+//          EXPECT_EQ(req.data(), "test");
+//          if (req.data() == "test")
 //            {
 //              ++recvCount;
-//              _rep.set_data(_req.data());
+//              rep.set_data(req.data());
 //              return true;
 //            }
 //          return false;
@@ -693,13 +693,13 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 //
 //  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
 //      msgs::StringMsg &)>(
-//      [&recvCount](const auto &_req, auto &_rep)
+//      [&recvCount](const auto &req, auto &rep)
 //        {
-//          EXPECT_EQ(_req.data(), "test");
-//          if (_req.data() == "test")
+//          EXPECT_EQ(req.data(), "test");
+//          if (req.data() == "test")
 //            {
 //              ++recvCount;
-//              _rep.set_data(_req.data());
+//              rep.set_data(req.data());
 //              return true;
 //            }
 //          return false;
@@ -738,12 +738,12 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 //  auto cbCreator = [&recvMsgMutex](std::vector<bool> &_msgVector)
 //  {
 //    return std::function<bool(const msgs::Boolean &, msgs::Boolean &)>(
-//        [&_msgVector, &recvMsgMutex](const auto &_req, auto &_rep)
+//        [&_msgVector, &recvMsgMutex](const auto &req, auto &rep)
 //        {
 //          std::lock_guard<std::mutex> lock(recvMsgMutex);
-//          if (_req.data() || !_req.data())
+//          if (req.data() || !req.data())
 //            {
-//              _msgVector.push_back(_req.data());
+//              _msgVector.push_back(req.data());
 //              return true;
 //            }
 //          return false;
@@ -793,13 +793,13 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 //
 //  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
 //      msgs::StringMsg &)>(
-//      [&recvCount](const auto &_req, auto &_rep)
+//      [&recvCount](const auto &req, auto &rep)
 //        {
-//          EXPECT_EQ(_req.data(), "test");
-//          if (_req.data() == "test")
+//          EXPECT_EQ(req.data(), "test");
+//          if (req.data() == "test")
 //            {
 //              ++recvCount;
-//              _rep.set_data(_req.data());
+//              rep.set_data(req.data());
 //              return true;
 //            }
 //          return false;
@@ -834,13 +834,13 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 //
 //  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
 //      msgs::StringMsg &)>(
-//      [&recvCount](const auto &_req, auto &_rep)
+//      [&recvCount](const auto &req, auto &rep)
 //        {
-//          EXPECT_EQ(_req.data(), "test");
-//          if (_req.data() == "test")
+//          EXPECT_EQ(req.data(), "test");
+//          if (req.data() == "test")
 //            {
 //              ++recvCount;
-//              _rep.set_data(_req.data());
+//              rep.set_data(req.data());
 //              // return True was substitued with False
 //              return false;
 //            }
@@ -868,124 +868,276 @@ bool waitUntil(int _timeoutMs, Pred _pred)
 
 
 
+///////////////////////////////////////////////////
+//// Test for triggering a service call with same
+//// Request and Reply type
+//// ---
+//// Request Type: msgs::StringMsg
+//// Reply Type: msgs::StringMsg
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingSameRequestReplyTypeServ))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_20");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<bool(const msgs::StringMsg &,
+//    msgs::StringMsg &)>([&recvCount](const auto &req, auto &rep)
+//      {
+//        EXPECT_EQ(req.data(), "srv-0");
+//        if (req.data() == "srv-0")
+//          {
+//            ++recvCount;
+//            rep.set_data(req.data());
+//            return true;
+//          }
+//        return false;
+//      });
+//  node.Advertise("srv-0", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}
+//
+//
+///////////////////////////////////////////////////
+//// Test for triggering a service call with different
+//// Request and Reply type
+//// ---
+//// Request Type: msgs::StringMsg
+//// Reply Type: msgs::Boolean
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingDifferntRequestReplyTypeServ1))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_21");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<bool(const msgs::StringMsg &,
+//    msgs::Boolean &)>([&recvCount](const auto &req, auto &rep)
+//      {
+//        EXPECT_EQ(req.data(), "srv-1");
+//        if (req.data() == "srv-1")
+//          {
+//            ++recvCount;
+//            rep.set_data(true);
+//            return true;
+//          }
+//        return false;
+//      });
+//  node.Advertise("srv-1", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}
+//
+///////////////////////////////////////////////////
+//// Test for triggering a service call with different
+//// Request and Reply type
+//// ---
+//// Request Type: msgs::Boolean
+//// Reply Type: msgs::StringMsg
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingDifferntRequestReplyTypeServ2))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_22");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<bool(const msgs::Boolean &,
+//    msgs::StringMsg &)>([&recvCount](const auto &req, auto &rep)
+//      {
+//        EXPECT_EQ(req.data(), true);
+//        if (req.data() == true)
+//          {
+//            ++recvCount;
+//            rep.set_data("srv-2");
+//            return true;
+//          }
+//        return false;
+//      });
+//  node.Advertise("srv-2", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}
+//
+///////////////////////////////////////////////////
+//// Test for triggering a service call with no
+//// Reply type specified
+//// ---
+//// Request Type: msgs::StringMsg
+//// Reply Type: null
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingNoReplyTypeService))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_23");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<void(const msgs::StringMsg &)>
+//    ([&recvCount](const auto &req)
+//      {
+//        EXPECT_EQ(req.data(), "srv-3");
+//        if (req.data() == "srv-3")
+//          {
+//            ++recvCount;
+//          }
+//      });
+//  node.Advertise("srv-3", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}
+
+
+
 /////////////////////////////////////////////////
-// Test for triggering a service call in response
-// to input ign msg by publishing 10 times. Service
-// call will also occur 10 times. It'll compare
-// pubCount and recvCount.
+// Test for triggering a service call with no
+// Request type
+// ---
+// Request Type: null
+// Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingServiceInProgress))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingNoRequestTypeServ))
 {
   transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_20");
+  auto inputPub = node.Advertise<msgs::Empty>("/in_24");
   std::atomic<std::size_t> recvCount{0};
-//TODO: change recvCount to be two different entitites
-// TODO: take out timeout
 
-  auto srvCb0 = std::function<bool(const msgs::StringMsg &,
-      msgs::StringMsg &)>(
-      [&recvCount](const auto &_req, auto &_rep)
-        {
-        ignerr <<"IN srv-0 CALLBACK\n";
-          EXPECT_EQ(_req.data(), "test");
-          if (_req.data() == "test")
-            {
-             // ++recvCount;
-              _rep.set_data(_req.data());
-              ignerr <<"starting to wait\n";
-              std::this_thread::sleep_for(std::chrono::milliseconds(200));
-           //   IGN_SLEEP_MS(1200);
-              ignerr <<"3seconds passed\n";
-              return true;
-            }
-          return false;
-        });
-
-  auto srvCb1 = std::function<bool(const msgs::StringMsg &,
-      msgs::Boolean &)>(
-      [&recvCount](const auto &_req, auto &_rep)
-        {
-        ignerr <<"IN srv-1 CALLBACK\n";
-          EXPECT_EQ(_req.data(), "test2");
-          if (_req.data() == "test2")
-            {
-              ++recvCount;
-              _rep.set_data(false);
-              ignerr <<"starting to wait\n";
-              IGN_SLEEP_MS(100);
-              ignerr <<"3seconds passed\n";
-              return true;
-            }
-          return false;
-        });
-  auto srvCb2 = std::function<bool(const msgs::Boolean &,
-     msgs::StringMsg &)>(
-      [&recvCount](const auto &_req, auto &_rep)
-        {
-        ignerr <<"IN srv-2 CALLBACK\n";
-          EXPECT_EQ(_req.data(), true);
-          if (_req.data() == true)
-            {
-              ++recvCount;
-              _rep.set_data("meh");
-              ignerr <<"starting to wait\n";
-              IGN_SLEEP_MS(200);
-              ignerr <<"3seconds passed\n";
-              return true;
-            }
-          return false;
-        });
-
-  auto srvCb3 = std::function<void(const msgs::StringMsg &)>(
-      [&recvCount](const auto &_req)
-        {
-        ignerr <<"IN srv-3 CALLBACK\n";
-          EXPECT_EQ(_req.data(), "test");
-          if (_req.data() == "test")
-            {
-              ++recvCount;
-              ignerr <<"starting to wait\n";
-              IGN_SLEEP_MS(100);
-              ignerr <<"3seconds passed\n";
-              ignerr <<"DONE\n";
-            }
-        });
-
-  auto srvCb4 = std::function<bool(msgs::StringMsg &)>(
-      [&recvCount](auto &rep)
-        {
-        ignerr <<"IN srv-4 CALLBACK\n";
-            {
-              ++recvCount;
-              rep.set_data("callback srv-4");
-              ignerr <<"starting to wait\n";
-              IGN_SLEEP_MS(100);
-              ignerr <<"3seconds passed\n";
-              ignerr <<"DONE4444\n";
-              return true;
-            }
-        });
-  // Advertise a dummy service
- // std::string service = "/srv-test-th";
-  node.Advertise("srv-0", srvCb0);
-  node.Advertise("srv-1", srvCb1);
-  node.Advertise("srv-2", srvCb2);
-  node.Advertise("srv-3", srvCb3);
-  node.Advertise("srv-4", srvCb4);
-  //node.Advertise("srv-0", srvEchoCb2);
-//  node.Advertise(service, srvEchoCb1);
-
-//  node.Advertise("/test1", srvE);
+  auto srvCb = std::function<bool(msgs::StringMsg &)>
+    ([&recvCount](auto &rep)
+      {
+        ++recvCount;
+        rep.set_data("srv-4");
+        return true;
+      });
+  node.Advertise("srv-4", srvCb);
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
   {
     EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    ignerr <<"publishing " << i <<std::endl;
+    ignerr <<"publing..\n";
     IGN_SLEEP_MS(100);
   }
 
   waitUntil(5000, [&]{return pubCount == recvCount;});
   EXPECT_EQ(pubCount, recvCount);
 }
+
+///////////////////////////////////////////////////
+//// Test for triggering a service call with different
+//// Request and Reply type
+//// ---
+//// Request Type: Empty
+//// Reply Type: Empty
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingEmptyRequestTypeServ))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_25");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<bool(const msgs::Empty &, msgs::Empty &)>
+//    ([&recvCount](const auto &req, auto &rep)
+//      {
+//        EXPECT_EQ(req.unused(), true);
+//        if (req.unused() == true)
+//          {
+//            ++recvCount;
+//            rep.set_unused(false);
+//            return true;
+//          }
+//        return false;
+//      });
+//  node.Advertise("srv-5", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}
+//
+///////////////////////////////////////////////////
+//// Test for triggering a service call for Pose
+//// Request and Boolean Reply type
+//// ---
+//// Request Type: msgs::Pose
+//// Reply Type: msgs::StringMsg
+///////////////////////////////////////////////////
+//TEST_F(TriggeredPublisherTest,
+//       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingPoseReqTypeServ))
+//{
+//  transport::Node node;
+//  auto inputPub = node.Advertise<msgs::Empty>("/in_26");
+//  std::atomic<std::size_t> recvCount{0};
+//
+//  auto srvCb = std::function<bool(const msgs::Pose &,
+//    msgs::Boolean &)>([&recvCount](const auto &req, auto &rep)
+//      {
+//        EXPECT_EQ(req.name(), "blue_vehicle");
+//        EXPECT_EQ(req.id(), 8);
+//        EXPECT_EQ(req.position().x(), -3);
+//        EXPECT_EQ(req.position().z(), 0.325);
+//
+//        if (req.name() == "blue_vehicle" && req.id() == 8 && 
+//            req.position().x() == -3 && req.position().z() == 0.325)
+//          {
+//            ++recvCount;
+//            rep.set_data(true);
+//            return true;
+//          }
+//        return false;
+//      });
+//  node.Advertise("srv-6", srvCb);
+//
+//  const std::size_t pubCount{10};
+//  for (std::size_t i = 0; i < pubCount; ++i)
+//  {
+//    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+//    IGN_SLEEP_MS(100);
+//  }
+//
+//  waitUntil(5000, [&]{return pubCount == recvCount;});
+//  EXPECT_EQ(pubCount, recvCount);
+//}

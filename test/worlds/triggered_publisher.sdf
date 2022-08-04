@@ -293,6 +293,7 @@
         reqMsg="data: false">
       </service>
     </plugin>
+
     <plugin
       filename="ignition-gazebo-triggered-publisher-system"
       name="ignition::gazebo::systems::TriggeredPublisher">
@@ -301,32 +302,81 @@
         name="/srv-0"
         reqType="ignition.msgs.StringMsg"
         repType="ignition.msgs.StringMsg"
-        reqMsg="data: 'test'">
+        reqMsg="data: 'srv-0'">
       </service>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_21"/>
       <service
         name="/srv-1"
         reqType="ignition.msgs.StringMsg"
         repType="ignition.msgs.Boolean"
-        reqMsg="data: 'test2'">
+        reqMsg="data: 'srv-1'">
       </service>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_22"/>
       <service
         name="/srv-2"
         reqType="ignition.msgs.Boolean"
         repType="ignition.msgs.StringMsg"
         reqMsg="data: true">
       </service>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_23"/>
       <service
         name="/srv-3"
         reqType="ignition.msgs.StringMsg"
         repType=""
-        reqMsg="data: 'test'">
+        reqMsg="data: 'srv-3'">
       </service>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_24"/>
       <service
         name="/srv-4"
         reqType=""
         repType="ignition.msgs.StringMsg">
       </service>
     </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_25"/>
+      <service
+        name="/srv-5"
+        reqType="ignition.msgs.Empty"
+        repType="ignition.msgs.Empty"
+        reqMsg="unused: true">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="ignition-gazebo-triggered-publisher-system"
+      name="ignition::gazebo::systems::TriggeredPublisher">
+      <input type="ignition.msgs.Empty" topic="/in_26"/>
+      <service
+        name="/srv-6"
+        reqType="ignition.msgs.Pose"
+        repType="ignition.msgs.Boolean"
+        reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 0.325}">
+      </service>
+    </plugin>
+
   </world>
 </sdf>
 
