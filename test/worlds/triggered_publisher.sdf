@@ -373,7 +373,7 @@
         name="/srv-6"
         reqType="ignition.msgs.Pose"
         repType="ignition.msgs.Boolean"
-        reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 0.325}">
+        reqMsg="name: 'blue_vehicle', id: 8, position: {x: 3, z: 0.325}">
       </service>
     </plugin>
 

@@ -641,15 +641,6 @@ void TriggeredPublisher::Configure(const Entity &,
       {
         ignwarn << "Service request string is empty\n";
       }
-   //   serviceInfo.timeout = serviceElem->Get<std::string>("timeout");
-   //   if (serviceInfo.reqMsg.empty())
-   //   {
-   //     ignwarn << "Service timeout is empty\n";
-   //   }
-   //   else
-   //   {
-   //     serviceInfo.timeout = std::stoi(serviceInfo.timeout);
-   //   }
       this->serviceOutputInfo.push_back(std::move(serviceInfo));
     }
   }
@@ -711,7 +702,6 @@ void TriggeredPublisher::Configure(const Entity &,
   this->serviceWorkerThread =
       std::thread(std::bind(&TriggeredPublisher::DoServiceWork, this));
 }
-
 //////////////////////////////////////////////////
 
 #define HANDLE_REQUEST(requestT, typeString) \
@@ -720,8 +710,6 @@ if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) && !isPr
   this->HandleRequest<requestT>(serviceInfo); \
   isProcessing = true; \
 } \
-
-  //this->HandleNoRequestMsg<requestT>(serviceInfo); 
 
 void TriggeredPublisher::DoServiceWork()
 {
@@ -741,15 +729,24 @@ void TriggeredPublisher::DoServiceWork()
         continue;
       }
     }
-    bool isProcessing {false};
     for (auto &serviceInfo : this->serviceOutputInfo)
     {
-      HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
-      HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
-      HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
-      HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
-      ignerr<<"-------\n";
+     // bool isProcessing {false};
+     // HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
+     // HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
+     // HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
+     // HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
       //NOTE: add more protobuf msgs for the Request
+
+      //CheckServRepType(msgs::Pose, "ignition.msgs.Pose");
+      //CheckServRepType(msgs::StringMsg, "ignition.msgs.StringMsg");
+      //CheckServRepType(msgs::Boolean, "ignition.msgs.Boolean");
+      //CheckServRepType(msgs::Empty, "ignition.msgs.Empty");
+      
+      Logic<msgs::Pose>(serviceInfo, "ignition.msgs.Pose");
+      Logic<msgs::StringMsg>(serviceInfo, "ignition.msgs.StringMsg");
+      Logic<msgs::Boolean>(serviceInfo, "ignition.msgs.Boolean");
+      Logic<msgs::Empty>(serviceInfo, "ignition.msgs.Empty");
     }
   }
 }
