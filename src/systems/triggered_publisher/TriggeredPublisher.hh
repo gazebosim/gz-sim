@@ -237,10 +237,6 @@ namespace systems
 
       /// \brief Service request message
       std::string reqMsg;
-
-
-      bool reqTypeMatchFound{false};
-      bool repTypeMatchFound{false};
     };
 
     /// \brief List of InputMatchers
@@ -361,9 +357,6 @@ namespace systems
     private: template<typename ReplyT>
     bool HandleNoRequestMsg(ServiceOutputInfo& serviceInfo)
     {
-      // Non-blocking request with no request type
-      //ignerr<<"here\n";
-
       auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
       return this->node.Request(serviceInfo.servName, reqCb);
     }
@@ -376,104 +369,45 @@ namespace systems
     }
 
     #define HANDLE_REPLY(repT, typeString) \
-    if (((serviceInfo.repType == typeString) && \
-      (serviceInfo.reqType.empty())) && !isProcessing) \
-    { \
-      executed = HandleNoRequestMsg<repT>(serviceInfo); \
-      isProcessing = true; \
-    } \
+    if (serviceInfo.repType == typeString && \
+        serviceInfo.reqType.empty() && !isProcessing) \
+      { \
+        executed = HandleNoRequestMsg<repT>(serviceInfo); \
+        isProcessing = true; \
+      } \
     else if (serviceInfo.repType.empty() && !isProcessing) \
-    { \
-      executed = HandleNoReply<reqT>(serviceInfo, *req); \
-      isProcessing = true; \
-    } \
-    else if((serviceInfo.repType == typeString) && !isProcessing)\
-    { \
-      executed = HandleReply<repT, reqT>(serviceInfo, *req); \
-      isProcessing = true; \
-    } \
+      { \
+        executed = HandleNoReply<reqT>(serviceInfo, *req); \
+        isProcessing = true; \
+      } \
+    else if (serviceInfo.repType == typeString && !isProcessing) \
+      { \
+        executed = HandleReply<repT, reqT>(serviceInfo, *req); \
+        isProcessing = true; \
+      } \
 
-   // private: template<typename reqT>
-   // void HandleRequest(ServiceOutputInfo& serviceInfo)
-   // {
-   //   bool executed {false};
-   //   bool isProcessing {false};
-   //  // msgs::Factory::New<reqT> req;
-   //   std::unique_ptr<reqT> req;
-   //   if (!serviceInfo.reqType.empty())
-   //   {
-   //     req = msgs::Factory::New<reqT>(serviceInfo.reqType,
-   //       serviceInfo.reqMsg);
-   //     if (!req)
-   //     {
-   //       ignerr << "Unable to create request for type ["
-   //              << serviceInfo.reqType << "].\n";
-   //       return;
-   //     }
-   //   }
-   //   HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
-   //   HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
-   //   HANDLE_REPLY(msgs::Empty, "ignition.msgs.Empty");
-   //   //NOTE: add more protobuf msgs for the Reply
-
-   //   if (!executed)
-   //   {
-   //     ignerr << "Service call [" << serviceInfo.servName
-   //            << "] timed out\n";
-   //   }
-   //   {
-   //     std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-   //     this->callService = false;
-   //   }
-   // }
-
-
-
-
-    private: template<typename repT, typename reqT>
-    bool CallRequest(ServiceOutputInfo& serviceInfo, 
-                          std::string repTypeString,
-                          const std::unique_ptr<reqT>& req)
-    {
-      if (serviceInfo.repTypeMatchFound)
-      {
-        return false;
-      }
-      if (serviceInfo.repType == repTypeString)
-      {
-        serviceInfo.repTypeMatchFound = true;
-
-        if (serviceInfo.reqType.empty())
-        {
-          return HandleNoRequestMsg<repT>(serviceInfo);
-        }
-
-        else if (serviceInfo.repType.empty())
-        {
-          return HandleNoReply<reqT>(serviceInfo, *req);
-        }
-
-        else if (!serviceInfo.reqType.empty() && !serviceInfo.repType.empty())
-        {
-          return HandleReply<repT, reqT>(serviceInfo, *req);
-        }
-      }
-      return false;
-    }
-
- // function that takees reqT and repT template and figures out which fucntions to call
     private: template<typename reqT>
-    void Logic(ServiceOutputInfo& serviceInfo, std::string repTypeString)
+    void HandleRequest(ServiceOutputInfo& serviceInfo)
     {
       bool executed {false};
-      std::unique_ptr<reqT> req;
-      bool result = CreateReqMsg<reqT>(serviceInfo, repTypeString, req);
-      if (!result)
-        return;
+      bool isProcessing {false};
 
-      executed = CallRequest<msgs::StringMsg, reqT>(serviceInfo, "ignition.msgs.StringMsg", req);
-      executed = CallRequest<msgs::Boolean, reqT>(serviceInfo, "ignition.msgs.Boolean", req);
-      executed = CallRequest<msgs::Empty, reqT>(serviceInfo, "ignition.msgs.Empty", req);
+      std::unique_ptr<reqT> req;
+      if (!serviceInfo.reqType.empty())
+      {
+        req = msgs::Factory::New<reqT>(serviceInfo.reqType,
+          serviceInfo.reqMsg);
+        if (!req)
+        {
+          ignerr << "Unable to create request for type ["
+                 << serviceInfo.reqType << "].\n";
+          return;
+        }
+      }
+      HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
+      HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
+      HANDLE_REPLY(msgs::Empty, "ignition.msgs.Empty");
+      //NOTE: add more protobuf msgs for the Reply
 
       if (!executed)
       {
@@ -485,38 +419,8 @@ namespace systems
         this->callService = false;
       }
     }
-
-
-    private: template<typename reqT>
-    bool CreateReqMsg(ServiceOutputInfo& serviceInfo,
-                          std::string reqTypeString,
-                          std::unique_ptr<reqT>& r)
-    {
-      if (serviceInfo.reqTypeMatchFound)
-      {
-        return false;
-      }
-     // std::unique_ptr<reqT> req;
-      if (serviceInfo.reqType == reqTypeString)
-      {// if reqMsg missingjust create one without it
-        r = msgs::Factory::New<reqT>(serviceInfo.reqType,
-          serviceInfo.reqMsg);
-      }
-      else if (serviceInfo.reqType.empty())
-      {
-        return true;
-//set serviceinfo requesttypeenum to e.g.2 
-      }
-      return false;
-    }
-
   };
- 
- //method that just creates msgType unique ptr => will require a map
- // mapping of string and unq ptr<msgs>
-
-
-}//
+}
 }
 }
 }

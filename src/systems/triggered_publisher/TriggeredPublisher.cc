@@ -705,7 +705,8 @@ void TriggeredPublisher::Configure(const Entity &,
 //////////////////////////////////////////////////
 
 #define HANDLE_REQUEST(requestT, typeString) \
-if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) && !isProcessing) \
+if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) \
+  && !isProcessing) \
 { \
   this->HandleRequest<requestT>(serviceInfo); \
   isProcessing = true; \
@@ -731,22 +732,12 @@ void TriggeredPublisher::DoServiceWork()
     }
     for (auto &serviceInfo : this->serviceOutputInfo)
     {
-     // bool isProcessing {false};
-     // HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
-     // HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
-     // HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
-     // HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
+      bool isProcessing {false};
+      HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
+      HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
+      HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
+      HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
       //NOTE: add more protobuf msgs for the Request
-
-      //CheckServRepType(msgs::Pose, "ignition.msgs.Pose");
-      //CheckServRepType(msgs::StringMsg, "ignition.msgs.StringMsg");
-      //CheckServRepType(msgs::Boolean, "ignition.msgs.Boolean");
-      //CheckServRepType(msgs::Empty, "ignition.msgs.Empty");
-      
-      Logic<msgs::Pose>(serviceInfo, "ignition.msgs.Pose");
-      Logic<msgs::StringMsg>(serviceInfo, "ignition.msgs.StringMsg");
-      Logic<msgs::Boolean>(serviceInfo, "ignition.msgs.Boolean");
-      Logic<msgs::Empty>(serviceInfo, "ignition.msgs.Empty");
     }
   }
 }
