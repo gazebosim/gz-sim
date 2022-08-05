@@ -119,12 +119,12 @@ class ignition::gazebo::SceneManagerPrivate
   /// \brief Load Actor trajectories
   /// \param[in] _actor Actor
   /// \param[in] _mapAnimNameId  Animation name to id map.
-  /// \param[in] _id Entity id
+  /// \param[in] _skel Mesh skeleton
   /// \return Trajectory vector
   public: std::vector<common::TrajectoryInfo>
       LoadTrajectories(const sdf::Actor &_actor,
       std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
-      Entity &_id, common::SkeletonPtr _skel);
+      common::SkeletonPtr _skel);
 };
 
 
@@ -998,7 +998,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   this->dataPtr->actorSkeletons[_id] = meshSkel;
 
-  auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId, _id,
+  auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId,
                       meshSkel);
 
   // sequencing all trajectories
@@ -2168,7 +2168,7 @@ AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
 std::vector<common::TrajectoryInfo>
 SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
   std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
-  Entity &_id, common::SkeletonPtr _meshSkel)
+  common::SkeletonPtr _meshSkel)
 {
   std::vector<common::TrajectoryInfo> trajectories;
   if (_actor.TrajectoryCount() != 0)
@@ -2242,13 +2242,12 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
   // if there are no trajectories, but there are animations, add a trajectory
   else
   {
-    common::SkeletonPtr skel = this->actorSkeletons[_id];
     common::TrajectoryInfo trajInfo;
     trajInfo.SetId(0);
     trajInfo.SetAnimIndex(0);
     trajInfo.SetStartTime(TP(0ms));
     auto timepoint = std::chrono::milliseconds(
-                  static_cast<int>(skel->Animation(0)->Length() * 1000));
+                  static_cast<int>(_meshSkel->Animation(0)->Length() * 1000));
     trajInfo.SetEndTime(TP(timepoint));
     trajInfo.SetTranslated(false);
     trajectories.push_back(trajInfo);
@@ -2376,4 +2375,3 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
   }
   return mapAnimNameId;
 }
-
