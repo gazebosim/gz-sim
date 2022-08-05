@@ -16,6 +16,10 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
     gz topic -e -t "/model/x3/odometry"
 
+  Listen to poses:
+
+    ign topic -e -t "/model/x3/pose"
+
 
   Send commands to the hexacopter to go straight up:
 

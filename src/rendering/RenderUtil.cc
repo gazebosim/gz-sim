@@ -52,6 +52,7 @@
 #include <gz/rendering/Scene.hh>
 
 #include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/CastShadows.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -1658,6 +1659,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
@@ -1900,6 +1902,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           return true;
         });
 
+    // Create bounding box cameras
+    _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
+          return true;
+        });
+
     // Create wide angle cameras
     _ecm.Each<components::WideAngleCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1923,6 +1936,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
@@ -2166,6 +2180,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           return true;
         });
 
+    // Create bounding box cameras
+    _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
+          return true;
+        });
+
     // Create wide angle cameras
     _ecm.EachNew<components::WideAngleCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2337,6 +2362,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
+  // Update bounding box cameras
+  _ecm.Each<components::BoundingBoxCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::BoundingBoxCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
   // Update wide angle cameras
   _ecm.Each<components::WideAngleCamera, components::Pose>(
       [&](const Entity &_entity,
@@ -2472,6 +2507,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // segmentation cameras
   _ecm.EachRemoved<components::SegmentationCamera>(
     [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // bounding box cameras
+  _ecm.EachRemoved<components::BoundingBoxCamera>(
+    [&](const Entity &_entity, const components::BoundingBoxCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

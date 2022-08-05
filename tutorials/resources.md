@@ -111,7 +111,9 @@ Top-level entities such as models, lights and actors may be loaded through:
     * Path / URL to SDF file
     * (TODO) `gz::msgs::Model`, `gz::msgs::Light`
 * Within a system, using
-  [SdfEntityCreator](https://gazebosim.org/api/gazebo/4.6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
+==== BASE ====
+  [SdfEntityCreator](https://ignitionrobotics.org/api/gazebo/4.6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
+==== BASE ====
   or directly creating components and entities.
 
 Gazebo will look for URIs (path / URL) in the following, in order:

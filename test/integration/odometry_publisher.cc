@@ -208,8 +208,16 @@ class OdometryPublisherTest
 
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
+  /// \param[in] _tfTopic TF / Pose_V topic.
+  /// \param[in] _frameId Name of the world-fixed coordinate frame
+  /// for the odometry message.
+  /// \param[in] _childFrameId Name of the coordinate frame rigidly
+  /// attached to the mobile robot base.
   protected: void TestMovement3d(const std::string &_sdfFile,
-                                 const std::string &_odomTopic)
+                                 const std::string &_odomTopic,
+                                 const std::string &_tfTopic,
+                                 const std::string &_frameId,
+                                 const std::string &_childFrameId)
   {
     // Start server
     ServerConfig serverConfig;
@@ -253,6 +261,7 @@ class OdometryPublisherTest
     std::vector<math::Pose3d> odomPoses;
     std::vector<math::Vector3d> odomLinVels;
     std::vector<math::Vector3d> odomAngVels;
+    std::vector<math::Pose3d> tfPoses;
     // Create function to store data from odometry messages
     std::function<void(const msgs::Odometry &)> odomCb =
       [&](const msgs::Odometry &_msg)
@@ -271,10 +280,30 @@ class OdometryPublisherTest
         odomLinVels.push_back(msgs::Convert(_msg.twist().linear()));
         odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
       };
+    // Create function to store data from Pose_V messages
+    std::function<void(const msgs::Pose_V &)> tfCb =
+      [&](const msgs::Pose_V &_msg)
+      {
+        ASSERT_EQ(_msg.pose_size(), 1);
+        EXPECT_TRUE(_msg.pose(0).has_header());
+        EXPECT_TRUE(_msg.pose(0).has_position());
+        EXPECT_TRUE(_msg.pose(0).has_orientation());
+
+        ASSERT_EQ(_msg.pose(0).header().data_size(), 2);
+
+        EXPECT_EQ(_msg.pose(0).header().data(0).key(), "frame_id");
+        EXPECT_EQ(_msg.pose(0).header().data(0).value().Get(0), _frameId);
+
+        EXPECT_EQ(_msg.pose(0).header().data(1).key(), "child_frame_id");
+        EXPECT_EQ(_msg.pose(0).header().data(1).value().Get(0), _childFrameId);
+
+        tfPoses.push_back(msgs::Convert(_msg.pose(0)));
+      };
     // Create node for publishing twist messages
     transport::Node node;
     auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
     node.Subscribe(_odomTopic, odomCb);
+    node.Subscribe(_tfTopic, tfCb);
 
     test::Relay velocityRamp;
     math::Vector3d linVelCmd(0.5, 0.3, 1.5);
@@ -299,17 +328,19 @@ class OdometryPublisherTest
 
     int sleep = 0;
     int maxSleep = 30;
-    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    for (; (odomPoses.size() < 150 || tfPoses.size() < 150) &&
+        sleep < maxSleep; ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    ASSERT_NE(maxSleep, sleep);
+    EXPECT_NE(maxSleep, sleep);
 
     // Odom for 3s
     ASSERT_FALSE(odomPoses.empty());
     EXPECT_EQ(150u, odomPoses.size());
     EXPECT_EQ(150u, odomLinVels.size());
     EXPECT_EQ(150u, odomAngVels.size());
+    EXPECT_EQ(150u, tfPoses.size());
 
     // Check accuracy of poses published in the odometry message
     auto finalModelFramePose = odomPoses.back();
@@ -333,6 +364,14 @@ class OdometryPublisherTest
     EXPECT_NEAR(odomAngVels.back().X(), 0.0, 1e-1);
     EXPECT_NEAR(odomAngVels.back().Y(), 0.0, 1e-1);
     EXPECT_NEAR(odomAngVels.back().Z(), angVelCmd[2], 1e-1);
+
+    // Check TF
+    EXPECT_NEAR(poses.back().Pos().X(), tfPoses.back().Pos().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Y(), tfPoses.back().Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Z(), tfPoses.back().Pos().Z(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().X(), tfPoses.back().Rot().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Y(), tfPoses.back().Rot().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Z(), tfPoses.back().Rot().Z(), 1e-2);
   }
 
   /// \param[in] _sdfFile SDF file to load.
@@ -572,7 +611,7 @@ TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
   TestMovement3d(
       gz::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
-      "/model/X3/odometry");
+      "/model/X3/odometry", "/model/X3/pose", "X3/odom", "X3/base_footprint");
 }
 
 /////////////////////////////////////////////////
