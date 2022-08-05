@@ -118,11 +118,13 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Load Actor trajectories
   /// \param[in] _actor Actor
+  /// \param[in] _mapAnimNameId  Animation name to id map.
+  /// \param[in] _id Entity id
   /// \return Trajectory vector
   public: std::vector<common::TrajectoryInfo>
       LoadTrajectories(const sdf::Actor &_actor,
       std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
-      Entity &_id);
+      Entity &_id, common::SkeletonPtr _skel);
 };
 
 
@@ -996,7 +998,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   this->dataPtr->actorSkeletons[_id] = meshSkel;
 
-  auto trajectories = this->LoadTrajectories(_actor, mapAnimNameId, _id);
+  auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId, _id,
+                      meshSkel);
 
   // sequencing all trajectories
   auto delayStartTime = std::chrono::milliseconds(
@@ -2165,15 +2168,9 @@ AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
 std::vector<common::TrajectoryInfo>
 SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
   std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
-  Entity &_id)
+  Entity &_id, common::SkeletonPtr _meshSkel)
 {
-  rendering::MeshDescriptor descriptor;
-  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
-  common::MeshManager *meshManager = common::MeshManager::Instance();
-  descriptor.mesh = meshManager->Load(descriptor.meshName);
-  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
   std::vector<common::TrajectoryInfo> trajectories;
-
   if (_actor.TrajectoryCount() != 0)
   {
     // Load all trajectories specified in sdf
@@ -2212,9 +2209,9 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
           static std::unordered_set<std::string> animInterpolateCheck;
           if (animInterpolateCheck.count(animation->Filename()) == 0)
           {
-            std::string rootNodeName = meshSkel->RootNode()->Name();
+            std::string rootNodeName = _meshSkel->RootNode()->Name();
             common::SkeletonAnimation *skelAnim =
-                meshSkel->Animation(trajInfo.AnimIndex());
+                _meshSkel->Animation(trajInfo.AnimIndex());
             common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
                 rootNodeName);
             math::Matrix4d lastPos = rootNode->KeyFrame(
@@ -2245,7 +2242,7 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
   // if there are no trajectories, but there are animations, add a trajectory
   else
   {
-    auto skel = this->dataPtr->actorSkeletons[_id];
+    common::SkeletonPtr skel = this->actorSkeletons[_id];
     common::TrajectoryInfo trajInfo;
     trajInfo.SetId(0);
     trajInfo.SetAnimIndex(0);
@@ -2379,3 +2376,4 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
   }
   return mapAnimNameId;
 }
+
