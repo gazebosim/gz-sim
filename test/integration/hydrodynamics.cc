@@ -17,28 +17,28 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 
-#include <gz/common/Console.hh>
-#include <gz/common/Util.hh>
-#include <gz/transport/Node.hh>
-#include <gz/utils/ExtraTestMacros.hh>
+#include <ignition/common/Console.hh>
+#include <ignition/common/Util.hh>
+#include <ignition/transport/Node.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/Link.hh"
-#include "gz/sim/Model.hh"
-#include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
-#include "gz/sim/TestFixture.hh"
-#include "gz/sim/Util.hh"
-#include "gz/sim/World.hh"
+#include "ignition/gazebo/Link.hh"
+#include "ignition/gazebo/Model.hh"
+#include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/SystemLoader.hh"
+#include "ignition/gazebo/TestFixture.hh"
+#include "ignition/gazebo/Util.hh"
+#include "ignition/gazebo/World.hh"
 
-#include "test_config.hh"
+#include "ignition/gazebo/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define PI 3.141592653
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace gazebo;
 
 class HydrodynamicsTest : public InternalFixture<::testing::Test>
 {
@@ -72,10 +72,10 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
   double dt{0.0};
   fixture.
   OnConfigure(
-    [&](const gz::sim::Entity &_worldEntity,
+    [&](const Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      gz::sim::EntityComponentManager &_ecm,
-      gz::sim::EventManager &/*eventMgr*/)
+      EntityComponentManager &_ecm,
+      EventManager &/*eventMgr*/)
     {
       World world(_worldEntity);
 
@@ -89,8 +89,8 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
       body = Link(bodyEntity);
       body.EnableVelocityChecks(_ecm);
     }).
-  OnPostUpdate([&](const sim::UpdateInfo &_info,
-                            const sim::EntityComponentManager &_ecm)
+  OnPostUpdate([&](const UpdateInfo &_info,
+                            const EntityComponentManager &_ecm)
     {
       dt = std::chrono::duration<double>(_info.dt).count();
 
@@ -120,24 +120,22 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
   // drag force, F = 0.5 * rho * u^2 * Cd * A
   // terminal velocity, u = 2 * sqrt((3 * pi * a * nu * v)/(rho * Cd * A))
   
-  for (unsigned int i = 0; i < bodyVels.size(); ++i)
+  for (unsigned int i = 25; i < bodyVels.size(); ++i)
   {
     auto bodyVel = bodyVels[i];
     // It takes a few iterations to reach the terminal velocity
-    if (i > 25)
-    {
-      auto terminalVel = 2 * sqrt((3 * PI * _area * _viscosity * bodyVels[i].Z())/(_density * _drag_coeff * _area));
-      EXPECT_NEAR(terminalVel, bodyVel.Z(), 1e-2);
-    }
+    auto terminalVel = 2 * sqrt((3 * IGN_PI * _area * _viscosity * bodyVel.Z())/
+      (_density * _drag_coeff * _area));
+    EXPECT_NEAR(terminalVel, bodyVel.Z(), 1e-2);
   }
 }
 
 /////////////////////////////////////////////////
-TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
+TEST_F(HydrodynamicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
-  double area = 4.0 * PI * 0.2 * 0.2;
+  double area = 4.0 * IGN_PI * 0.2 * 0.2;
   this->TestWorld(world, "ball", 1000.0, 0.01, area, 0.5);
 }
