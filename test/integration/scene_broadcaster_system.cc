@@ -969,7 +969,7 @@ TEST_P(SceneBroadcasterTest,
   // Start server
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      common::joinPaths("/", "test", "worlds", "particle_emitter2.sdf"));
+      common::joinPaths("/", "test", "worlds", "particle_emitter.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());

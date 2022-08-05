@@ -328,8 +328,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
       _world->Plugins());
   for (const sdf::Plugin &p : _world->Plugins())
   {
+    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
         p.ToElement());
+    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   }
 
   // Store the world's SDF DOM to be used when saving the world to file
@@ -352,8 +354,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
     for (const sdf::Plugin &p : plugins)
     {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
       this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
           p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
     }
   }
   this->dataPtr->newModels.clear();
@@ -364,8 +368,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
     for (const sdf::Plugin &p : plugins)
     {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
       this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
           p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
     }
   }
   this->dataPtr->newSensors.clear();
@@ -376,8 +382,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
     for (const sdf::Plugin &p : plugins)
     {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
       this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
           p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
     }
   }
   this->dataPtr->newVisuals.clear();
@@ -514,8 +522,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
         _actor->Plugins());
   for (const sdf::Plugin &p : _actor->Plugins())
   {
+    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
     this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
         p.ToElement());
+    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   }
 
   return actorEntity;

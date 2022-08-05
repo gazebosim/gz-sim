@@ -42,9 +42,7 @@ class gz::sim::ServerConfig::PluginInfoPrivate
               const std::unique_ptr<ServerConfig::PluginInfoPrivate> &_info)
           : entityName(_info->entityName),
             entityType(_info->entityType),
-            plugin(_info->plugin),
-            filename(_info->filename),
-            name(_info->name)
+            plugin(_info->plugin)
   {
     this->sdf = plugin.Element();
   }
@@ -66,8 +64,6 @@ class gz::sim::ServerConfig::PluginInfoPrivate
           : entityName(std::move(_entityName)),
             entityType(std::move(_entityType)),
             plugin(std::move(_plugin)),
-            filename(plugin.Filename()),
-            name(plugin.Name()),
             sdf(plugin.Element())
   {
   }
@@ -80,14 +76,6 @@ class gz::sim::ServerConfig::PluginInfoPrivate
 
   /// \brief SDF plugin information.
   public: sdf::Plugin plugin;
-
-  /// \brief _filename The plugin library.
-  // Remove this in Garden, and rely solely on the plugin variable.
-  // Requires: https://github.com/gazebosim/sdformat/pull/1055
-  public: std::string filename = "";
-
-  /// \brief Name of the plugin implementation.
-  public: std::string name = "";
 
   /// \brief XML elements associated with this plugin
   public: sdf::ElementPtr sdf = nullptr;
@@ -117,8 +105,6 @@ ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
   }
   this->dataPtr->plugin.SetName(_name);
   this->dataPtr->plugin.SetFilename(_filename);
-  this->dataPtr->filename = _filename;
-  this->dataPtr->name = _name;
   this->dataPtr->entityName = _entityName;
   this->dataPtr->entityType = _entityType;
 }
@@ -174,27 +160,25 @@ void ServerConfig::PluginInfo::SetEntityType(const std::string &_entityType)
 //////////////////////////////////////////////////
 const std::string &ServerConfig::PluginInfo::Filename() const
 {
-  return this->dataPtr->filename;
+  return this->dataPtr->plugin.Filename();
 }
 
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
 {
   this->dataPtr->plugin.SetFilename(_filename);
-  this->dataPtr->filename = _filename;
 }
 
 //////////////////////////////////////////////////
 const std::string &ServerConfig::PluginInfo::Name() const
 {
-  return this->dataPtr->name;
+  return this->dataPtr->plugin.Name();
 }
 
 //////////////////////////////////////////////////
 void ServerConfig::PluginInfo::SetName(const std::string &_name)
 {
   this->dataPtr->plugin.SetName(_name);
-  this->dataPtr->name = _name;
 }
 
 //////////////////////////////////////////////////
@@ -231,8 +215,6 @@ sdf::Plugin &ServerConfig::PluginInfo::Plugin()
 void ServerConfig::PluginInfo::SetPlugin(const sdf::Plugin &_plugin) const
 {
   this->dataPtr->plugin = _plugin;
-  this->dataPtr->filename = _plugin.Filename();
-  this->dataPtr->name = _plugin.Name();
 }
 
 /// \brief Private data for ServerConfig.

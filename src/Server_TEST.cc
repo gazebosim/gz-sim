@@ -120,9 +120,11 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
   EXPECT_EQ("an_entity", plugins.front().EntityName());
   EXPECT_EQ("model", plugins.front().EntityType());
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   EXPECT_EQ("filename", plugins.front().Filename());
   EXPECT_EQ("interface", plugins.front().Name());
   EXPECT_EQ(nullptr, plugins.front().Sdf());
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Test operator=
   {
@@ -131,9 +133,9 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
     EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(info.Filename(), plugins.front().Filename());
-    EXPECT_EQ(info.Name(), plugins.front().Name());
-    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Element(), plugins.front().Plugin().Element());
   }
 
   // Test copy constructor
@@ -142,9 +144,9 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
     EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(info.Filename(), plugins.front().Filename());
-    EXPECT_EQ(info.Name(), plugins.front().Name());
-    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Element(), plugins.front().Plugin().Element());
   }
 
   // Test server config copy constructor
@@ -155,9 +157,12 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
     EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(cfgPlugins.front().Filename(), plugins.front().Filename());
-    EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
-    EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Filename(),
+        plugins.front().Plugin().Filename());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Name(),
+        plugins.front().Plugin().Name());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Element(),
+        plugins.front().Plugin().Element());
   }
 }
 
@@ -622,7 +627,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
   sim::SystemLoader systemLoader;
   sdf::Plugin sdfPlugin;
   sdfPlugin.SetName("gz::sim::MockSystem");
-  sdfPlugin.SetFilename("libMockSystem.so");
+  sdfPlugin.SetFilename("MockSystem");
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
@@ -671,7 +676,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
   sim::SystemLoader systemLoader;
   sdf::Plugin sdfPlugin;
   sdfPlugin.SetName("gz::sim::MockSystem");
-  sdfPlugin.SetFilename("libMockSystem.so");
+  sdfPlugin.SetFilename("MockSystem");
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
@@ -836,7 +841,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   sim::SystemLoader systemLoader;
   sdf::Plugin sdfPlugin;
   sdfPlugin.SetName("gz::sim::MockSystem");
-  sdfPlugin.SetFilename("libMockSystem.so");
+  sdfPlugin.SetFilename("MockSystem");
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
@@ -875,7 +880,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
   sim::SystemLoader systemLoader;
   sdf::Plugin sdfPlugin;
   sdfPlugin.SetName("gz::sim::MockSystem");
-  sdfPlugin.SetFilename("libMockSystem.so");
+  sdfPlugin.SetFilename("MockSystem");
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 

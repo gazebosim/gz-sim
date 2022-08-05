@@ -142,7 +142,7 @@ namespace gz
         /// \brief Get the plugin library filename.
         /// \return Plugin library filename.
         /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string & GZ_DEPRECATED(7) Filename() const;
+        public: const std::string GZ_DEPRECATED(7) & Filename() const;
 
         /// \brief Set the type of the entity which should receive this
         /// plugin. The type is used in conjuction with EntityName to
@@ -155,7 +155,7 @@ namespace gz
         /// to load.
         /// \return Interface name.
         /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string & GZ_DEPRECATED(7) Name() const;
+        public: const std::string GZ_DEPRECATED(7) & Name() const;
 
         /// \brief Set the name of the interface within the plugin library
         /// to load.
@@ -166,7 +166,7 @@ namespace gz
         /// \brief Plugin XML elements associated with this plugin.
         /// \return SDF pointer.
         /// \deprecated Use `sdf::Plugin` interface.
-        public: const sdf::ElementPtr & GZ_DEPRECATED(7) Sdf() const;
+        public: const sdf::ElementPtr GZ_DEPRECATED(7) & Sdf() const;
 
         /// \brief Set the plugin XML elements associated with this plugin.
         /// \param[in] _sdf SDF pointer, it will be cloned.

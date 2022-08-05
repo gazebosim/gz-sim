@@ -55,7 +55,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
 
     sdf::Plugin sdfPlugin;
     sdfPlugin.SetName("gz::sim::MockSystem");
-    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetFilename("MockSystem");
     auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
