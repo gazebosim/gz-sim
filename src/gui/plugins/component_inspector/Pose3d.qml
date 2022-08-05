@@ -116,29 +116,31 @@ Rectangle {
         // By default it is closed
         expand: false
 
+        // plotting
+        gzPlotEnabled: true
         gzPlotMimeDataX: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "x" + "," + model.shortName
+          model.dataType + ",x," + model.shortName
         }
         gzPlotMimeDataY: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "y" + "," + model.shortName
+          model.dataType + ",y," + model.shortName
         }
         gzPlotMimeDataZ: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "z" + "," + model.shortName
+          model.dataType + ",z," + model.shortName
         }
         gzPlotMimeDataRoll: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "roll" + "," + model.shortName
+          model.dataType + ",roll," + model.shortName
         }
         gzPlotMimeDataPitch: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "pitch" + "," + model.shortName
+          model.dataType + ",pitch," + model.shortName
         }
         gzPlotMimeDataYaw: { "text/plain" : (model === null) ? "" :
           "Component," + model.entity + "," + model.typeId + "," +
-          model.dataType + "," + "yaw" + "," + model.shortName
+          model.dataType + ",yaw," + model.shortName
         }
 
       } // end gzPoseInstance
