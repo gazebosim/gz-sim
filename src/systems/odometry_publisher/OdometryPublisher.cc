@@ -233,7 +233,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
         odomTopicValid);
-    ignmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
+    gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
            << "]" << std::endl;
   }
 
@@ -248,25 +248,24 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
         msgs::OdometryWithCovariance>(odomCovTopicValid);
-    ignmsg << "OdometryPublisher publishing odometry with covariance on ["
+    gzmsg << "OdometryPublisher publishing odometry with covariance on ["
            << odomCovTopicValid << "]" << std::endl;
   }
 
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/pose"};
+  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/pose"};
   if (_sdf->HasElement("tf_topic"))
     tfTopic = _sdf->Get<std::string>("tf_topic");
   std::string tfTopicValid {transport::TopicUtils::AsValidTopic(tfTopic)};
   if (tfTopicValid.empty())
   {
-    ignerr << "Failed to generate valid TF topic from [" << tfTopic << "]"
+    gzerr << "Failed to generate valid TF topic from [" << tfTopic << "]"
            << std::endl;
   }
   else
   {
     this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
         tfTopicValid);
-    ignmsg << "OdometryPublisher publishing Pose_V (TF) on ["
+    gzmsg << "OdometryPublisher publishing Pose_V (TF) on ["
            << tfTopicValid << "]" << std::endl;
   }
 }
