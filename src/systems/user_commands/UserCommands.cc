@@ -17,7 +17,17 @@
 
 #include "UserCommands.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>

@@ -136,10 +136,11 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo primaryPluginInfo;
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
-  primaryPluginInfo.SetFilename(
-      "gz-sim-scene-broadcaster-system");
-  primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
-  primaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin plugin;
+  plugin.SetFilename("gz-sim-scene-broadcaster-system");
+  plugin.SetName("gz::sim::systems::SceneBroadcaster");
+  plugin.InsertContent(pluginElem);
+  primaryPluginInfo.SetPlugin(plugin);
 
   ServerConfig configPrimary;
   configPrimary.SetNetworkRole("primary");
@@ -158,9 +159,11 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("gz-sim-physics-system");
-  secondaryPluginInfo.SetName("gz::sim::systems::Physics");
-  secondaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin secondPlugin;
+  secondPlugin.SetFilename("gz-sim-physics-system");
+  secondPlugin.SetName("gz::sim::systems::Physics");
+  secondPlugin.InsertContent(pluginElem);
+  secondaryPluginInfo.SetPlugin(secondPlugin);
 
   ServerConfig configSecondary;
   configSecondary.SetNetworkRole("secondary");

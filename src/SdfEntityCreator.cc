@@ -72,6 +72,7 @@
 #include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/components/ThermalCamera.hh"
 #include "gz/sim/components/ThreadPitch.hh"
 #include "gz/sim/components/Transparency.hh"
@@ -91,15 +92,15 @@ class gz::sim::SdfEntityCreatorPrivate
 
   /// \brief Keep track of new sensors being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newSensors;
+  public: std::map<Entity, sdf::Plugins> newSensors;
 
   /// \brief Keep track of new models being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newModels;
+  public: std::map<Entity, sdf::Plugins> newModels;
 
   /// \brief Keep track of new visuals being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newVisuals;
+  public: std::map<Entity, sdf::Plugins> newVisuals;
 };
 
 using namespace gz;
@@ -323,8 +324,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
 
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
-      _world->Element());
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
+      _world->Plugins());
+  for (const sdf::Plugin &p : _world->Plugins())
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
+        p.ToElement());
+  }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -341,23 +347,38 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   auto ent = this->CreateEntities(_model, false);
 
   // Load all model plugins afterwards, so we get scoped name for nested models.
-  for (const auto &[entity, element] : this->dataPtr->newModels)
+  for (const auto &[entity, plugins] : this->dataPtr->newModels)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newModels.clear();
 
   // Load sensor plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  for (const auto &[entity, plugins] : this->dataPtr->newSensors)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newSensors.clear();
 
   // Load visual plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newVisuals)
+  for (const auto &[entity, plugins] : this->dataPtr->newVisuals)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+    }
   }
   this->dataPtr->newVisuals.clear();
 
@@ -384,8 +405,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       modelEntity, components::WindMode(_model->EnableWind()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::SelfCollide(_model->SelfCollide()));
-  this->dataPtr->ecm->CreateComponent(
-      modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
+  if (_model->Element())
+  {
+    this->dataPtr->ecm->CreateComponent(
+        modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
+  }
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -452,7 +476,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
              << canonicalLinkPair.second << "\n";
     }
   }
-  else if(!isStatic)
+  else if (!isStatic)
   {
     gzerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
@@ -464,7 +488,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
   // Keep track of models so we can load their plugins after loading the entire
   // model and having its full scoped name.
-  this->dataPtr->newModels[modelEntity] = _model->Element();
+  if (!_model->Plugins().empty())
+    this->dataPtr->newModels[modelEntity] = _model->Plugins();
 
   return modelEntity;
 }
@@ -485,8 +510,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
       components::Name(_actor->Name()));
 
   // Actor plugins
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
-      _actor->Element());
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
+        _actor->Plugins());
+  for (const sdf::Plugin &p : _actor->Plugins())
+  {
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
+        p.ToElement());
+  }
 
   return actorEntity;
 }
@@ -752,9 +782,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   }
 
   // store the plugin in a component
+  if (!_visual->Plugins().empty())
+  {
+    this->dataPtr->ecm->CreateComponent(visualEntity,
+        components::SystemPluginInfo(
+          convert<msgs::Plugin_V>(_visual->Plugins())));
+  }
+  // Deprecate this in Garden
   if (_visual->Element())
   {
-    sdf::ElementPtr pluginElem =  _visual->Element()->FindElement("plugin");
+    sdf::ElementPtr pluginElem = _visual->Element()->FindElement("plugin");
     if (pluginElem)
     {
       this->dataPtr->ecm->CreateComponent(visualEntity,
@@ -764,7 +801,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 
   // Keep track of visuals so we can load their plugins after loading the
   // entire model and having its full scoped name.
-  this->dataPtr->newVisuals[visualEntity] = _visual->Element();
+  if (!_visual->Plugins().empty())
+    this->dataPtr->newVisuals[visualEntity] = _visual->Plugins();
 
   return visualEntity;
 }
@@ -971,7 +1009,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 
   // Keep track of sensors so we can load their plugins after loading the entire
   // model and having its full scoped name.
-  this->dataPtr->newSensors[sensorEntity] = _sensor->Element();
+  if (!_sensor->Plugins().empty())
+    this->dataPtr->newSensors[sensorEntity] = _sensor->Plugins();
 
   return sensorEntity;
 }

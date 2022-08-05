@@ -51,7 +51,9 @@ TEST(SystemLoader, Constructor)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
-      auto system = sm.LoadPlugin(pluginElem);
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
       ASSERT_TRUE(system.has_value());
       pluginElem = pluginElem->GetNextElement("plugin");
     }
@@ -61,7 +63,7 @@ TEST(SystemLoader, Constructor)
 TEST(SystemLoader, EmptyNames)
 {
   sim::SystemLoader sm;
-  sdf::ElementPtr element;
-  auto system = sm.LoadPlugin("", "", element);
+  sdf::Plugin plugin;
+  auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());
 }
