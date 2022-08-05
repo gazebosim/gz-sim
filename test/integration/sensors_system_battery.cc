@@ -192,8 +192,8 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   // verify image count
   {
     std::lock_guard<std::mutex> lock(mutex);
-    EXPECT_EQ(expectedImgCount, imgCount);
-    EXPECT_EQ(expectedImgCount, depthImgCount);
+    EXPECT_NEAR(expectedImgCount, imgCount, 1);
+    EXPECT_NEAR(expectedImgCount, depthImgCount, 1);
     imgCount = 0u;
     depthImgCount = 0u;
   }

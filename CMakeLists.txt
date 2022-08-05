@@ -140,6 +140,7 @@ gz_find_package(gz-sensors7 REQUIRED
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
@@ -166,6 +167,9 @@ if (GZ_TOOLS_PROGRAM)
 else()
   message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
 endif()
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils

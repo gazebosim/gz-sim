@@ -94,14 +94,21 @@ void testImages(const std::string &_imageFile,
   EXPECT_EQ(image.Width(), testImage.Width());
   EXPECT_EQ(image.Height(), testImage.Height());
   EXPECT_EQ(image.PixelFormat(), testImage.PixelFormat());
-  unsigned int dataLength;
-  unsigned char *imageData = nullptr;
-  image.Data(&imageData, dataLength);
-  unsigned int testDataLenght;
-  unsigned char *testImageData = nullptr;
-  image.Data(&testImageData, testDataLenght);
-  ASSERT_EQ(dataLength, testDataLenght);
-  ASSERT_EQ(memcmp(imageData, testImageData, dataLength), 0);
+  // Images should be almost equal (They might have
+  // minimal color differences on a few pixels)
+  unsigned int equalPixels = 0;
+  unsigned int totalPixels = testImage.Width() * testImage.Height();
+  for (unsigned int x = 0; x < image.Width(); x++)
+  {
+    for (unsigned int y = 0; y < image.Height(); y++)
+    {
+      if (image.Pixel(x, y) == testImage.Pixel(x, y))
+      {
+        equalPixels++;
+      }
+    }
+  }
+  ASSERT_GT((float)equalPixels/(float)totalPixels, 0.99);
 
   // Deleting files so they do not affect future tests
   EXPECT_EQ(remove(imageFilePath.c_str()), 0);

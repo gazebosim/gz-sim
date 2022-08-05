@@ -27,6 +27,7 @@
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/CastShadows.hh"
@@ -868,6 +869,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::SegmentationCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::BoundingBoxCamera(*_sensor));
   }
   else if (_sensor->Type() == sdf::SensorType::WIDE_ANGLE_CAMERA)
   {
