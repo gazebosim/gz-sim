@@ -118,7 +118,7 @@ class ignition::gazebo::SceneManagerPrivate
 
   /// \brief Load Actor trajectories
   /// \param[in] _actor Actor
-  /// \param[in] _mapAnimNameId  Animation name to id map.
+  /// \param[in] _mapAnimNameId  Animation name to id map
   /// \param[in] _skel Mesh skeleton
   /// \return Trajectory vector
   public: std::vector<common::TrajectoryInfo>
