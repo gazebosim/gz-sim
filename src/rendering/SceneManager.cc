@@ -115,6 +115,14 @@ class ignition::gazebo::SceneManagerPrivate
   /// also sets the time point in which the animation should be played
   public: AnimationUpdateData ActorTrajectoryAt(
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
+
+  /// \brief Load Actor trajectories
+  /// \param[in] _actor Actor
+  /// \return Trajectory vector
+  public: std::vector<common::TrajectoryInfo>
+      LoadTrajectories(const sdf::Actor &_actor,
+      std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
+      Entity &_id);
 };
 
 

@@ -214,14 +214,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
         std::vector<common::TrajectoryInfo>& _trajectories,
         std::chrono::steady_clock::time_point _time);
 
-    /// \brief Load Actor trajectories
-    /// \param[in] _actor Actor
-    /// \return Trajectory vector
-    public: std::vector<common::TrajectoryInfo>
-        LoadTrajectories(const sdf::Actor &_actor,
-        std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
-        Entity &_id);
-
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
