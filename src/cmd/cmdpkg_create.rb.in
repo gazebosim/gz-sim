@@ -49,7 +49,7 @@ COMMANDS = { 'pkg_create' =>
   "                                                                         \n"\
   "Available Options:                                                       \n\n"\
   "  -n [--name] arg                          Name of new package [Required]             \n\n"\
-  "  -a [--init-with-example-system]          Package with various example resources     \n\n"+
+  "  -i [--init-with-example-system]          Package with various example resources     \n\n"+
   "  -b [--built_type] arg                    Build type between ament_cmake or cmake    \n\n"+
   "  -e [--export_type] arg                   Export type between colcon or plain-camke] \n\n"+
   "  -d [--ign_dependecies]                   Package depends on common ign packages   \n\n"+
@@ -81,7 +81,7 @@ class Cmd
       opts.on('-n [arg]', '--name [arg]', String, 'Name of new package') do |n|
         options['name'] = n
       end
-      opts.on('-a','--init-with-example-system', String, 'Package with various example resources') do
+      opts.on('-i','--init-with-example-system', String, 'Package with various example resources') do
         options['init-with-example-system'] = 1
       end
       opts.on('-b [arg]', '--built_type [arg]', String, 'Build type between ament_cmake or cmake') do |b|
