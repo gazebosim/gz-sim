@@ -48,12 +48,12 @@ COMMANDS = { 'pkg_create' =>
   "  ign pkg_create [options]                                              \n\n"\
   "                                                                         \n"\
   "Available Options:                                                       \n\n"\
-  "  -n [--name] arg             Name of new package [Required]             \n\n"\
-  "  -a [--advance_pkg]          Package with various example resources     \n\n"+
-  "  -b [--built_type] arg       Build type between ament_cmake or cmake    \n\n"+
-  "  -e [--export_type] arg      Export type between colcon or plain-camke] \n\n"+
-  "  -d [--standard_dependecies] Package depends on standard ign packages   \n\n"+
-  "  -g [--gazebo_version] arg   Gazebo version name for dependencies       \n\n"+
+  "  -n [--name] arg                          Name of new package [Required]             \n\n"\
+  "  -a [--init-with-example-system]          Package with various example resources     \n\n"+
+  "  -b [--built_type] arg                    Build type between ament_cmake or cmake    \n\n"+
+  "  -e [--export_type] arg                   Export type between colcon or plain-camke] \n\n"+
+  "  -d [--ign_dependecies]                   Package depends on common ign packages   \n\n"+
+  "  -g [--gazebo_version] arg                Gazebo version name for dependencies       \n\n"+
   
   COMMON_OPTIONS
 }
@@ -81,8 +81,8 @@ class Cmd
       opts.on('-n [arg]', '--name [arg]', String, 'Name of new package') do |n|
         options['name'] = n
       end
-      opts.on('-a','--advance_pkg', String, 'Package with various example resources') do
-        options['advance_pkg'] = 1
+      opts.on('-a','--init-with-example-system', String, 'Package with various example resources') do
+        options['init-with-example-system'] = 1
       end
       opts.on('-b [arg]', '--built_type [arg]', String, 'Build type between ament_cmake or cmake') do |b|
         options['built_type'] = b
@@ -90,8 +90,8 @@ class Cmd
       opts.on('-e [arg]', '--export_type [arg]', String, 'Export type between colcon or plain-camke') do |e|
         options['export_type'] = e
       end
-      opts.on('-d','--standard_dependecies', String, 'Package depends on standard ign packages') do
-        options['standard_dependecies'] = 1
+      opts.on('-d','--ign_dependecies', String, 'Package depends on common ign packages') do
+        options['ign_dependecies'] = 1
       end
       opts.on('-g [arg]', '--gazebo_version [arg]',String, 'Gazebo version name for dependencies') do |g|
         options['gazebo_version'] = g
@@ -126,8 +126,8 @@ class Cmd
     end
     #Giving default values
 
-    if !options.key?('advance_pkg')
-      options['advance_pkg'] = 0
+    if !options.key?('init-with-example-system')
+      options['init-with-example-system'] = 0
     end 
     if !options.key?('built_type')
       options['built_type'] = "cmake"
@@ -135,8 +135,8 @@ class Cmd
     if !options.key?('export_type')
       options['export_type'] = "colcon"
     end 
-    if !options.key?('standard_dependecies')
-      options['standard_dependecies'] = 0
+    if !options.key?('ign_dependecies')
+      options['ign_dependecies'] = 0
     end
     if !options.key?('gazebo_version')
       options['gazebo_version'] = "fortress"
@@ -178,8 +178,8 @@ class Cmd
     #Creates Package folder
     Dir.mkdir(options['name'])
 
-    #Fetching dependencies versions for standard dependencies
-    if options['standard_dependecies']==1
+    #Fetching dependencies versions for common dependencies
+    if options['ign_dependecies']==1
       dependencies = URI.open('https://raw.githubusercontent.com/ignition-tooling/gazebodistro/master/collection-%s.yaml'% options['gazebo_version']){|f| f.read}
       dependencies_yaml = YAML.load(dependencies)
       dependencies_dict={}
@@ -205,7 +205,7 @@ class Cmd
     end
 
     #Creates example resources for advance package
-    if options['advance_pkg']==1
+    if options['init-with-example-system']==1
       Dir.mkdir(options['name']+"/worlds")
       Dir.mkdir(options['name']+"/models")
       Dir.mkdir(options['name']+"/models/elevator")

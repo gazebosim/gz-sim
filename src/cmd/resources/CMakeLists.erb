@@ -1,7 +1,7 @@
 #These lines will set minimum required version of cmake and declare the name of the project.
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(<%= options['name'] %>)
-<% if options['standard_dependecies']==1 %>
+<% if options['ign_dependecies']==1 %>
 
 #This is a list of general packages on which your ignition package will depend,find_package function will find and source theses packages.
 #You can add or delete dependencies based on your requirement.
@@ -37,7 +37,7 @@ set(IGN_UTILS_VER ${ignition-utils<%= dependencies_dict["ign-utils"]%>_VERSION_M
 find_package(ignition-common<%= dependencies_dict["ign-common"]%> REQUIRED COMPONENTS profiler)
 set(IGN_COMMON_VER ${ignition-common<%= dependencies_dict["ign-common"]%>_VERSION_MAJOR})
 <% end %>
-<% if options['advance_pkg']==1 %>
+<% if options['init-with-example-system']==1 %>
 
 #These will install directories with various resources like worlds,plugins etc.
 ign_add_resources(worlds)
