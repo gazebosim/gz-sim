@@ -131,10 +131,10 @@ Rectangle {
   }
 
   Component {
-    id: colorMaterial 
-      GzColor { 
+    id: colorMaterial
+      GzColor {
         id: gzcolor
-        onColorSet: sendMaterialColor("", Qt.rgba(0, 0, 0, 0)) 
+        onColorSet: sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
       }
   }
 
@@ -265,9 +265,9 @@ Rectangle {
               property: "a"
               value: model.data[3] / 255.0
             }
-            Connections { 
+            Connections {
               target: ambientLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -320,9 +320,9 @@ Rectangle {
               property: "a"
               value: model.data[7] / 255.0
             }
-            Connections { 
+            Connections {
               target: diffuseLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -377,9 +377,9 @@ Rectangle {
               property: "a"
               value: model.data[11] / 255.0
             }
-            Connections { 
+            Connections {
               target: specularLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -432,9 +432,9 @@ Rectangle {
               property: "a"
               value: model.data[15] / 255.0
             }
-            Connections { 
+            Connections {
               target: emissiveLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }

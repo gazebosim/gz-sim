@@ -148,8 +148,8 @@ Rectangle {
   }
 
   Component {
-    id: colorMaterial 
-      GzColor { 
+    id: colorMaterial
+      GzColor {
         id: gzcolor
         onColorSet: sendLight()
       }
@@ -363,7 +363,7 @@ Rectangle {
             font.bold: true
           }
         }
-        
+
         RowLayout {
           // Specular
           Rectangle {
@@ -412,9 +412,9 @@ Rectangle {
               property: "a"
               value: model.data[3]
             }
-            Connections { 
+            Connections {
               target: specularLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendLight()
               }
             }
@@ -467,16 +467,15 @@ Rectangle {
               property: "a"
               value: model.data[7]
             }
-            Connections { 
+            Connections {
               target: diffuseLoader.item
-              onColorSet: { 
+              onColorSet: {
                 sendLight()
               }
             }
           }
         }
 
-        
         RowLayout {
           Text {
             Layout.columnSpan: 6
