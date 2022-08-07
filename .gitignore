@@ -12,3 +12,6 @@ build_*
 
 .ycm_extra_conf.py
 *.orig
+
+# clangd index
+.cache

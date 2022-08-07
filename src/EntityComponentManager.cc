@@ -493,7 +493,17 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
 
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    auto updateData =
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (updateData)
+    {
+      // When a cloned entity is removed, it erases all components/data so a new
+      // cloned entity should not have components to be updated
+      // LCOV_EXCL_START
+      ignerr << "Internal error: The component's data needs to be updated but "
+             << "this should not happen." << std::endl;
+      // LCOV_EXCL_STOP
+    }
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -1726,11 +1736,11 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
-      std::istringstream istr(compMsg.component());
-
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         auto newComp = components::Factory::Instance()->New(type);
         if (nullptr == newComp)
         {
@@ -1739,11 +1749,20 @@ void EntityComponentManager::SetState(
           continue;
         }
         newComp->Deserialize(istr);
-        this->CreateComponentImplementation(entity, type, newComp.get());
+
+        auto updateData =
+          this->CreateComponentImplementation(entity, type, newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, type);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
+        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
@@ -1809,29 +1828,34 @@ void EntityComponentManager::SetState(
       components::BaseComponent *comp =
         this->ComponentImplementation(entity, compIter.first);
 
-      std::istringstream istr(compMsg.component());
-
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         // Create component
         auto newComp = components::Factory::Instance()->New(compMsg.type());
-
         if (nullptr == newComp)
         {
           ignerr << "Failed to create component of type [" << compMsg.type()
             << "]" << std::endl;
           continue;
         }
-
         newComp->Deserialize(istr);
 
-        this->CreateComponentImplementation(entity,
-            newComp->TypeId(), newComp.get());
+        auto updateData = this->CreateComponentImplementation(
+          entity, newComp->TypeId(), newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, compIter.first);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
+        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?

@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # Initialize the project
 #============================================================================
 project(ignition-gazebo6 VERSION 6.10.0)
+set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
 # Find ignition-cmake
@@ -74,7 +75,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.5)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.6)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
@@ -96,7 +97,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS

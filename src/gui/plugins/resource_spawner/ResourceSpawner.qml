@@ -329,7 +329,7 @@ Rectangle {
             Layout.leftMargin: 15
             Image {
               id: searchIcon
-              source: "Search.svg"
+              source: "qrc:/Gazebo/images/search.svg"
               anchors.verticalCenter: parent.verticalCenter
             }
           }
