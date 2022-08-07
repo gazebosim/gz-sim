@@ -1047,7 +1047,13 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
         }
       }
       if (addAnim)
-        meshSkel->AddBvhAnimation(animFilename, animScale);
+      {
+        if(!meshSkel->AddBvhAnimation(animFilename, animScale))
+        {
+          gzerr << "Bvh animation in file " << animFilename << " failed to load"
+          << " during actor creation" << std::endl;
+        }
+      }
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
