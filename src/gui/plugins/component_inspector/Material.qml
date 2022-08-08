@@ -40,48 +40,52 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property double rAmbientItem: ambientLoader.item.r
-  property double gAmbientItem: ambientLoader.item.g
-  property double bAmbientItem: ambientLoader.item.b
-  property double aAmbientItem: ambientLoader.item.a
+  property double rAmbientItem: model.data[0]
+  property double gAmbientItem: model.data[1]
+  property double bAmbientItem: model.data[2]
+  property double aAmbientItem: model.data[3]
 
   // Loaded items for diffuse red, green, blue, alpha
-  property double rDiffuseItem: diffuseLoader.item.r
-  property double gDiffuseItem: diffuseLoader.item.g
-  property double bDiffuseItem: diffuseLoader.item.b
-  property double aDiffuseItem: diffuseLoader.item.a
+  property double rDiffuseItem: model.data[4]
+  property double gDiffuseItem: model.data[5]
+  property double bDiffuseItem: model.data[6]
+  property double aDiffuseItem: model.data[7]
 
   // Loaded items for specular red, green, blue, alpha
-  property double rSpecularItem: specularLoader.item.r
-  property double gSpecularItem: specularLoader.item.g
-  property double bSpecularItem: specularLoader.item.b
-  property double aSpecularItem: specularLoader.item.a
+  property double rSpecularItem: model.data[8]
+  property double gSpecularItem: model.data[9]
+  property double bSpecularItem: model.data[10]
+  property double aSpecularItem: model.data[11]
 
   // Loaded items for emissive red, green, blue, alpha
-  property double rEmissiveItem: emissiveLoader.item.r
-  property double gEmissiveItem: emissiveLoader.item.g
-  property double bEmissiveItem: emissiveLoader.item.b
-  property double aEmissiveItem: emissiveLoader.item.a
+  property double rEmissiveItem: model.data[12]
+  property double gEmissiveItem: model.data[13]
+  property double bEmissiveItem: model.data[14]
+  property double aEmissiveItem: model.data[15]
 
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
+    // console.log(rAmbientItem,
+    //             gAmbientItem,
+    //             bAmbientItem,
+    //             aAmbientItem,
+    //             rDiffuseItem,
+    //             gDiffuseItem,
+    //             bDiffuseItem,
+    //             aDiffuseItem,
+    //             rSpecularItem,
+    //             gSpecularItem,
+    //             bSpecularItem,
+    //             aSpecularItem,
+    //             rEmissiveItem,
+    //             gEmissiveItem,
+    //             bEmissiveItem,
+    //             aEmissiveItem)
     componentInspector.onMaterialColor(
-      rAmbientItem,
-      gAmbientItem,
-      bAmbientItem,
-      1.0 * aAmbientItem * 255.0,
-      rDiffuseItem,
-      gDiffuseItem,
-      bDiffuseItem,
-      1.0 * aDiffuseItem * 255.0,
-      rSpecularItem,
-      gSpecularItem,
-      bSpecularItem,
-      1.0 * aSpecularItem * 255.0,
-      rEmissiveItem,
-      gEmissiveItem,
-      bEmissiveItem,
-      1.0 * aEmissiveItem * 255.0,
+      rAmbientItem, gAmbientItem, bAmbientItem, aAmbientItem,
+      rDiffuseItem, gDiffuseItem, bDiffuseItem, aDiffuseItem,
+      rSpecularItem, gSpecularItem, bSpecularItem, aSpecularItem,
+      rEmissiveItem, gEmissiveItem, bEmissiveItem, aEmissiveItem,
       _type,
       _currColor
     );
@@ -114,28 +118,10 @@ Rectangle {
     font.family: "Roboto"
   }
 
-  // Used to create rgba spin boxes
   Component {
-    id: spinBoxMaterialColor
-    IgnSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: 0
-      maximumValue: 255
-      decimals: 0
-      onEditingFinished: {
-        // sending empty params to not open color dialog
-        sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
-      }
+    id: gzcolor
+    GzColor {
     }
-  }
-
-  Component {
-    id: colorMaterial
-      GzColor {
-        id: gzcolor
-        onColorSet: sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
-      }
   }
 
   Column {
@@ -243,7 +229,7 @@ Rectangle {
             Loader {
               id: ambientLoader
               anchors.fill: parent
-              sourceComponent: colorMaterial
+              sourceComponent: gzcolor
             }
             Binding {
               target: ambientLoader.item
@@ -263,11 +249,15 @@ Rectangle {
             Binding {
               target: ambientLoader.item
               property: "a"
-              value: model.data[3] / 255.0
+              value: model.data[3]
             }
             Connections {
               target: ambientLoader.item
-              onColorSet: {
+              onGzColorSet: {
+                rAmbientItem = ambientLoader.item.r
+                gAmbientItem = ambientLoader.item.g
+                bAmbientItem = ambientLoader.item.b
+                aAmbientItem = ambientLoader.item.a
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -298,7 +288,7 @@ Rectangle {
             Loader {
               id: diffuseLoader
               anchors.fill: parent
-              sourceComponent: colorMaterial
+              sourceComponent: gzcolor
             }
             Binding {
               target: diffuseLoader.item
@@ -318,11 +308,15 @@ Rectangle {
             Binding {
               target: diffuseLoader.item
               property: "a"
-              value: model.data[7] / 255.0
+              value: model.data[7]
             }
             Connections {
               target: diffuseLoader.item
-              onColorSet: {
+              onGzColorSet: {
+                rDiffuseItem = diffuseLoader.item.r
+                gDiffuseItem = diffuseLoader.item.g
+                bDiffuseItem = diffuseLoader.item.b
+                aDiffuseItem = diffuseLoader.item.a
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -355,7 +349,7 @@ Rectangle {
             Loader {
               id: specularLoader
               anchors.fill: parent
-              sourceComponent: colorMaterial
+              sourceComponent: gzcolor
             }
             Binding {
               target: specularLoader.item
@@ -375,11 +369,15 @@ Rectangle {
             Binding {
               target: specularLoader.item
               property: "a"
-              value: model.data[11] / 255.0
+              value: model.data[11]
             }
             Connections {
               target: specularLoader.item
-              onColorSet: {
+              onGzColorSet: {
+                rSpecularItem = specularLoader.item.r
+                gSpecularItem = specularLoader.item.g
+                bSpecularItem = specularLoader.item.b
+                aSpecularItem = specularLoader.item.a
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }
@@ -410,7 +408,7 @@ Rectangle {
             Loader {
               id: emissiveLoader
               anchors.fill: parent
-              sourceComponent: colorMaterial
+              sourceComponent: gzcolor
             }
             Binding {
               target: emissiveLoader.item
@@ -430,11 +428,15 @@ Rectangle {
             Binding {
               target: emissiveLoader.item
               property: "a"
-              value: model.data[15] / 255.0
+              value: model.data[15]
             }
             Connections {
               target: emissiveLoader.item
-              onColorSet: {
+              onGzColorSet: {
+                rEmissiveItem = emissiveLoader.item.r
+                gEmissiveItem = emissiveLoader.item.g
+                bEmissiveItem = emissiveLoader.item.b
+                aEmissiveItem = emissiveLoader.item.a
                 sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
               }
             }

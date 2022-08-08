@@ -318,22 +318,22 @@ void ignition::gazebo::setData(QStandardItem *_item,
   _item->setData(QString("Material"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
-    QVariant(_data.Ambient().R() * 255),
-    QVariant(_data.Ambient().G() * 255),
-    QVariant(_data.Ambient().B() * 255),
-    QVariant(_data.Ambient().A() * 255),
-    QVariant(_data.Diffuse().R() * 255),
-    QVariant(_data.Diffuse().G() * 255),
-    QVariant(_data.Diffuse().B() * 255),
-    QVariant(_data.Diffuse().A() * 255),
-    QVariant(_data.Specular().R() * 255),
-    QVariant(_data.Specular().G() * 255),
-    QVariant(_data.Specular().B() * 255),
-    QVariant(_data.Specular().A() * 255),
-    QVariant(_data.Emissive().R() * 255),
-    QVariant(_data.Emissive().G() * 255),
-    QVariant(_data.Emissive().B() * 255),
-    QVariant(_data.Emissive().A() * 255)
+    QVariant(_data.Ambient().R()),
+    QVariant(_data.Ambient().G()),
+    QVariant(_data.Ambient().B()),
+    QVariant(_data.Ambient().A()),
+    QVariant(_data.Diffuse().R()),
+    QVariant(_data.Diffuse().G()),
+    QVariant(_data.Diffuse().B()),
+    QVariant(_data.Diffuse().A()),
+    QVariant(_data.Specular().R()),
+    QVariant(_data.Specular().G()),
+    QVariant(_data.Specular().B()),
+    QVariant(_data.Specular().A()),
+    QVariant(_data.Emissive().R()),
+    QVariant(_data.Emissive().G()),
+    QVariant(_data.Emissive().B()),
+    QVariant(_data.Emissive().A())
   }), ComponentsModel::RoleNames().key("data"));
 
   // TODO(anyone) Only shows colors of material,
@@ -1189,17 +1189,13 @@ void ComponentInspector::OnMaterialColor(
   req.set_id(this->dataPtr->entity);
 
   msgs::Set(req.mutable_material()->mutable_ambient(),
-    math::Color(_rAmbient / 255.0, _gAmbient / 255.0,
-      _bAmbient / 255.0, _aAmbient / 255.0));
+    math::Color(_rAmbient, _gAmbient,_bAmbient, _aAmbient));
   msgs::Set(req.mutable_material()->mutable_diffuse(),
-    math::Color(_rDiffuse / 255.0, _gDiffuse / 255.0,
-      _bDiffuse / 255.0, _aDiffuse / 255.0));
+    math::Color(_rDiffuse, _gDiffuse,_bDiffuse, _aDiffuse));
   msgs::Set(req.mutable_material()->mutable_specular(),
-    math::Color(_rSpecular / 255.0, _gSpecular / 255.0,
-      _bSpecular / 255.0, _aSpecular / 255.0));
+    math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
   msgs::Set(req.mutable_material()->mutable_emissive(),
-    math::Color(_rEmissive / 255.0, _gEmissive / 255.0,
-      _bEmissive / 255.0, _aEmissive / 255.0));
+    math::Color(_rEmissive, _gEmissive,_bEmissive, _aEmissive));
 
   auto materialCmdService = "/world/" + this->dataPtr->worldName
       + "/visual_config";
