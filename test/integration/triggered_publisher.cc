@@ -641,6 +641,9 @@ TEST_F(TriggeredPublisherTest,
 /////////////////////////////////////////////////
 // Test for invalid service name. It'll timeout
 // when matching service name can't be found.
+// ---
+// Request Type: msgs::StringMsg
+// Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(InvalidServiceName))
@@ -683,6 +686,9 @@ TEST_F(TriggeredPublisherTest,
 // to input ign msg by publishing 10 times. Service
 // call will also occur 10 times. It'll compare
 // pubCount and recvCount.
+// ---
+// Request Type: msgs::StringMsg
+// Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerServices))
@@ -726,6 +732,9 @@ TEST_F(TriggeredPublisherTest,
 // call will also occur 10 times for each service.
 // It'll compare pubCount and recvCount for each
 // services.
+// ---
+// Request Type: msgs::Boolean
+// Reply Type: msgs::Boolean
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleServiceForOneInput))
@@ -782,8 +791,10 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 // Test for triggering a service call with incorrect
-// request type or reseponse type. The server callback
-// will not be triggered hence the recvCount will be 0
+// request type or reseponse type specified in sdf.
+// ---
+// Request Type: msgs::StringMsg
+// Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongRequestOrResponseType))
@@ -823,8 +834,10 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 // Test for triggering a service call that'll return
-// False result. The server callback will be triggered
-// but it'll +1 to the recvCout but return False.
+// False result.
+// ---
+// Request Type: msgs::StringMsg
+// Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(FailedReesultServiceCall))
@@ -863,80 +876,37 @@ TEST_F(TriggeredPublisherTest,
   EXPECT_EQ(pubCount, recvCount);
 }
 
-
-
-
-
-
-
-
 /////////////////////////////////////////////////
-// Test for triggering a service call with same
-// Request and Reply type
+// Test for triggering a service call with different
+// ignition msg type
 // ---
-// Request Type: msgs::StringMsg
+// Request Type: msgs::Empty
 // Reply Type: msgs::StringMsg
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingSameRequestReplyTypeServ))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EmptyReqStringMsgRep))
 {
   transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_20");
+  auto inputPub = node.Advertise<msgs::Empty>("/in_18");
   std::atomic<std::size_t> recvCount{0};
 
-  auto srvCb = std::function<bool(const msgs::StringMsg &,
-    msgs::StringMsg &)>([&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), "srv-0");
-        if (req.data() == "srv-0")
-          {
-            ++recvCount;
-            rep.set_data(req.data());
-            return true;
-          }
-        return false;
-      });
-  node.Advertise("srv-0", srvCb);
+  auto srvEchoCb = std::function<bool(const msgs::Empty &,
+      msgs::StringMsg &)>(
+      [&recvCount](const auto &req, auto &rep)
+        {
+          EXPECT_EQ(req.unused(), true);
+          if (req.unused() == true)
+            {
+              ++recvCount;
+              rep.set_data("srv-empty");
+              return true;
+            }
+          return false;
+        });
 
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-
-/////////////////////////////////////////////////
-// Test for triggering a service call with different
-// Request and Reply type
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::Boolean
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingDifferntRequestReplyTypeServ1))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_21");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvCb = std::function<bool(const msgs::StringMsg &,
-    msgs::Boolean &)>([&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), "srv-1");
-        if (req.data() == "srv-1")
-          {
-            ++recvCount;
-            rep.set_data(true);
-            return true;
-          }
-        return false;
-      });
-  node.Advertise("srv-1", srvCb);
+  // Advertise a dummy service
+  std::string service = "/srv-empty-req-test";
+  node.Advertise(service, srvEchoCb);
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
@@ -951,67 +921,35 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 // Test for triggering a service call with different
-// Request and Reply type
-// ---
-// Request Type: msgs::Boolean
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingDifferntRequestReplyTypeServ2))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_22");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvCb = std::function<bool(const msgs::Boolean &,
-    msgs::StringMsg &)>([&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), true);
-        if (req.data() == true)
-          {
-            ++recvCount;
-            rep.set_data("srv-2");
-            return true;
-          }
-        return false;
-      });
-  node.Advertise("srv-2", srvCb);
-
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-/////////////////////////////////////////////////
-// Test for triggering a service call with no
-// Reply type specified
+// ignition msg type
 // ---
 // Request Type: msgs::StringMsg
-// Reply Type: null
+// Reply Type: msgs::Empty
 /////////////////////////////////////////////////
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingNoReplyTypeService))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(StringMsgReqEmptyRep))
 {
   transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_23");
+  auto inputPub = node.Advertise<msgs::Empty>("/in_19");
   std::atomic<std::size_t> recvCount{0};
 
-  auto srvCb = std::function<void(const msgs::StringMsg &)>
-    ([&recvCount](const auto &req)
-      {
-        EXPECT_EQ(req.data(), "srv-3");
-        if (req.data() == "srv-3")
-          {
-            ++recvCount;
-          }
-      });
-  node.Advertise("srv-3", srvCb);
+  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
+      msgs::Empty &)>(
+      [&recvCount](const auto &req, auto &rep)
+        {
+          EXPECT_EQ(req.data(), "test");
+          if (req.data() == "test")
+            {
+              ++recvCount;
+              rep.set_unused(true);
+              return true;
+            }
+          return false;
+        });
+
+  // Advertise a dummy service
+  std::string service = "/srv-empty-rep-test";
+  node.Advertise(service, srvEchoCb);
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)
@@ -1021,126 +959,5 @@ TEST_F(TriggeredPublisherTest,
   }
 
   waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-
-
-/////////////////////////////////////////////////
-// Test for triggering a service call with no
-// Request type
-// ---
-// Request Type: null
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingNoRequestTypeServ))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_24");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvCb = std::function<bool(msgs::StringMsg &)>
-    ([&recvCount](auto &rep)
-      {
-        ++recvCount;
-        rep.set_data("srv-4");
-        return true;
-      });
-  node.Advertise("srv-4", srvCb);
-
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-/////////////////////////////////////////////////
-// Test for triggering a service call with different
-// Request and Reply type
-// ---
-// Request Type: Empty
-// Reply Type: Empty
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingEmptyRequestTypeServ))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_25");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvCb = std::function<bool(const msgs::Empty &, msgs::Empty &)>
-    ([&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.unused(), true);
-        if (req.unused() == true)
-          {
-            ++recvCount;
-            rep.set_unused(false);
-            return true;
-          }
-        return false;
-      });
-  node.Advertise("srv-5", srvCb);
-
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-/////////////////////////////////////////////////
-// Test for triggering a service call for Pose
-// Request and Boolean Reply type
-// ---
-// Request Type: msgs::Pose
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CallingPoseReqTypeServ))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_26");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvCb = std::function<bool(const msgs::Pose &,
-    msgs::Boolean &)>([&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.name(), "blue_vehicle");
-        EXPECT_FLOAT_EQ(req.id(), 8);
-        EXPECT_FLOAT_EQ(req.position().x(), 3);
-        EXPECT_FLOAT_EQ(req.position().z(), 0.325);
-        float tol = 0.001;
-        if (req.name() == "blue_vehicle" &&
-            fabs(req.id() - 8) < tol && 
-            fabs(req.position().x() - 3) < tol && 
-            fabs(req.position().z() - 0.325) <tol)
-          {
-            ++recvCount;
-            rep.set_data(true);
-            return true;
-          }
-        return false;
-      });
-  node.Advertise("srv-6", srvCb);
-
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
+  EXPECT_EQ(recvCount, recvCount);
 }

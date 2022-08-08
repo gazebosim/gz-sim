@@ -192,8 +192,11 @@ namespace systems
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
 
-    /// \brief Thread that handles calling services
-    public: void DoServiceWork();
+    /// \brief Method that calls a service
+    private: void CallService();
+
+    /// \brief Method that publishes a message
+    private: void PublishMsg(std::size_t pending);
 
     /// \brief Helper function that calls Match on every InputMatcher available
     /// \param[in] _inputMsg Input message
@@ -224,7 +227,7 @@ namespace systems
     };
 
     /// \brief Class that holds necessary bits for each specified service output
-    private: struct ServiceOutputInfo
+    private: struct ServOutputInfo
     {
       /// \brief Service name
       std::string servName;
@@ -250,7 +253,7 @@ namespace systems
     private: std::vector<OutputInfo> outputInfo;
 
     /// \brief List of service outputs
-    private: std::vector<ServiceOutputInfo> serviceOutputInfo;
+    private: std::vector<ServOutputInfo> servOutputInfo;
 
     /// \brief Ignition communication node.
     private: transport::Node node;
@@ -258,34 +261,24 @@ namespace systems
     /// \brief Counter that tells the publisher how many times to publish
     private: std::size_t publishCount{0};
 
-    /// \brief Counter that tells how many times to call the service
-    //private: std::size_t serviceCount{0};
-    private: bool callService{false};
+    /// \brief Flag to trigger calling a service in the DoWork thread
+    private: bool triggerServ{false};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
 
     /// \brief Mutex to synchronize access to serviceCount
-    private: std::mutex serviceCountMutex;
+    private: std::mutex triggerServMutex;
 
     /// \brief Condition variable to signal that new matches have occured
     private: std::condition_variable newMatchSignal;
 
-    /// \brief Condition variable to signal to call a service
-    private: std::condition_variable serviceMatchSignal;
-
     /// \brief Thread handle for worker thread
     private: std::thread workerThread;
-
-    /// \brief Thread handle for service worker thread
-    private: std::thread serviceWorkerThread;
 
     /// \brief Flag for when the system is done and the worker thread should
     /// stop
     private: std::atomic<bool> done{false};
-
-    /// \brief Flag used for the service worker thread
-    private: std::atomic<bool> srvDone{false};
 
     /// \brief Publish delay time. This is in simulation time.
     private: std::chrono::steady_clock::duration delay{0};

@@ -483,16 +483,10 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
 TriggeredPublisher::~TriggeredPublisher()
 {
   this->done = true;
-  this->srvDone = true;
   this->newMatchSignal.notify_one();
-  this->serviceMatchSignal.notify_one();
   if (this->workerThread.joinable())
   {
     this->workerThread.join();
-  }
-  if (this->serviceWorkerThread.joinable())
-  {
-    this->serviceWorkerThread.join();
   }
 }
 
@@ -609,17 +603,13 @@ void TriggeredPublisher::Configure(const Entity &,
       }
     }
   }
-  else
-  {
-    ignerr << "No ouptut specified" << std::endl;
-  }
 
   if (sdfClone->HasElement("service"))
   {
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
-      ServiceOutputInfo serviceInfo;
+      ServOutputInfo serviceInfo;
       serviceInfo.servName = serviceElem->Get<std::string>("name");
       if (serviceInfo.servName.empty())
       {
@@ -639,14 +629,24 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
-        ignwarn << "Service request string is empty\n";
+        ignerr << "Service request string cannot be empty\n";
+        return;
       }
-      this->serviceOutputInfo.push_back(std::move(serviceInfo));
+      std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
+      if (timeoutInfo.empty())
+      {
+        ignerr << "Timeout value cannot be empty\n";
+        return;
+      }
+
+      serviceInfo.timeout = std::stoi(timeoutInfo);
+      this->servOutputInfo.push_back(std::move(serviceInfo));
     }
   }
-  else
+  if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
   {
-    ignwarn << "No service specified" << std::endl;
+    ignerr << "No output and service specified." << std::endl;
+    return;
   }
 
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
@@ -667,14 +667,13 @@ void TriggeredPublisher::Configure(const Entity &,
             }
             this->newMatchSignal.notify_one();
           }
-          // only perform when service tag is specified in sdf
-          if (this->serviceOutputInfo.size() > 0)
+          if (this->servOutputInfo.size() > 0)
           {
             {
-              std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-              this->callService = true;
+              std::lock_guard<std::mutex> lock(this->triggerServMutex);
+              this->triggerServ = true;
             }
-            this->serviceMatchSignal.notify_one();
+            this->newMatchSignal.notify_one();
           }
         }
       });
@@ -699,58 +698,72 @@ void TriggeredPublisher::Configure(const Entity &,
 
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
-  this->serviceWorkerThread =
-      std::thread(std::bind(&TriggeredPublisher::DoServiceWork, this));
 }
-//////////////////////////////////////////////////
 
-#define HANDLE_REQUEST(requestT, typeString) \
-if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) && !isProcessing) \
-{ \
-  this->HandleRequest<requestT>(serviceInfo); \
-  isProcessing = true; \
-} \
-
-void TriggeredPublisher::DoServiceWork()
+void TriggeredPublisher::PublishMsg(std::size_t pending)
 {
-  while (!this->srvDone)
-  {
+    for (auto &info : this->outputInfo)
     {
-      using namespace std::chrono_literals;
-      std::unique_lock<std::mutex> lock(this->serviceCountMutex);
-      this->serviceMatchSignal.wait(lock,
-        [this]
-        {
-          return (this->callService) || this->srvDone;
-        });
-
-      if (this->srvDone)
+      for (std::size_t i = 0; i < pending; ++i)
       {
-        continue;
+        info.pub.Publish(*info.msgData);
       }
     }
-    for (auto &serviceInfo : this->serviceOutputInfo)
-    {
-     // bool isProcessing {false};
-     // HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
-     // HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
-     // HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
-     // HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
-      //NOTE: add more protobuf msgs for the Request
 
-      //CheckServRepType(msgs::Pose, "ignition.msgs.Pose");
-      //CheckServRepType(msgs::StringMsg, "ignition.msgs.StringMsg");
-      //CheckServRepType(msgs::Boolean, "ignition.msgs.Boolean");
-      //CheckServRepType(msgs::Empty, "ignition.msgs.Empty");
-      
-      Logic<msgs::Pose>(serviceInfo, "ignition.msgs.Pose");
-      Logic<msgs::StringMsg>(serviceInfo, "ignition.msgs.StringMsg");
-      Logic<msgs::Boolean>(serviceInfo, "ignition.msgs.Boolean");
-      Logic<msgs::Empty>(serviceInfo, "ignition.msgs.Empty");
-    }
-  }
 }
 
+void TriggeredPublisher::CallService()
+{
+    for (auto &serviceInfo : this->servOutputInfo)
+    {
+      bool result;
+      auto req = msgs::Factory::New(serviceInfo.reqType,
+                                    serviceInfo.reqMsg);
+      if (!req)
+      {
+        ignerr << "Unable to create request for type ["
+               << serviceInfo.reqType << "].\n";
+        return;
+      }
+
+      auto rep = msgs::Factory::New(serviceInfo.repType);
+      if (!rep)
+      {
+        ignerr << "Unable to create response for type ["
+               << serviceInfo.repType << "].\n";
+        return;
+      }
+
+      bool executed = this->node.Request(serviceInfo.servName,
+                                         *req,
+                                         serviceInfo.timeout,
+                                         *rep,
+                                         result);
+      if (executed)
+      {
+        if (!result)
+        {
+          ignerr << "Service call [" << serviceInfo.servName
+                 << "] failed\n";
+        }
+        else
+        {
+          ignmsg << "Service call [" << serviceInfo.servName
+                 << "] succeeded\n";
+        }
+      }
+      else
+      {
+        ignerr << "Service call [" << serviceInfo.servName
+               << "] timed out\n";
+      }
+      {
+        std::lock_guard<std::mutex> lock(this->triggerServMutex);
+        this->triggerServ = false;
+      }
+    }
+
+}
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
 {
@@ -763,7 +776,7 @@ void TriggeredPublisher::DoWork()
       this->newMatchSignal.wait_for(lock, 1s,
         [this]
         {
-          return (this->publishCount > 0) || this->done;
+          return (this->publishCount > 0) || this-> triggerServ || this->done;
         });
 
       if (this->publishCount == 0 || this->done)
@@ -771,14 +784,14 @@ void TriggeredPublisher::DoWork()
         continue;
       }
 
-      std::swap(pending, this->publishCount);
-    }
-
-    for (auto &info : this->outputInfo)
-    {
-      for (std::size_t i = 0; i < pending; ++i)
+      if (this->publishCount >0)
       {
-        info.pub.Publish(*info.msgData);
+        std::swap(pending, this->publishCount);
+        PublishMsg(pending);
+      }
+      if (this->triggerServ)
+      {
+        CallService();
       }
     }
   }
