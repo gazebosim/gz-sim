@@ -40,16 +40,16 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded item for specular RGBA
-  property double rSpecularItem: specularLoader.item.r
-  property double gSpecularItem: specularLoader.item.g
-  property double bSpecularItem: specularLoader.item.b
-  property double aSpecularItem: specularLoader.item.a
+  property double rSpecularValue: model.data[0]
+  property double gSpecularValue: model.data[1]
+  property double bSpecularValue: model.data[2]
+  property double aSpecularValue: model.data[3]
 
   // Loaded item for diffuse red
-  property double rDiffuseItem: diffuseLoader.item.r
-  property double gDiffuseItem: diffuseLoader.item.g
-  property double bDiffuseItem: diffuseLoader.item.b
-  property double aDiffuseItem: diffuseLoader.item.a
+  property double rDiffuseValue: model.data[4]
+  property double gDiffuseValue: model.data[5]
+  property double bDiffuseValue: model.data[6]
+  property double aDiffuseValue: model.data[7]
 
   // Loaded item for attenuation range
   property var attRangeItem: {}
@@ -97,14 +97,14 @@ Rectangle {
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onLight(
-      1.0 * rSpecularItem / 255.0,
-      1.0 * gSpecularItem / 255.0,
-      1.0 * bSpecularItem / 255.0,
-      aSpecularItem,
-      1.0 * rDiffuseItem / 255.0,
-      1.0 * gDiffuseItem / 255.0,
-      1.0 * bDiffuseItem / 255.0,
-      aDiffuseItem,
+      rSpecularValue,
+      gSpecularValue,
+      bSpecularValue,
+      aSpecularValue,
+      rDiffuseValue,
+      gDiffuseValue,
+      bDiffuseValue,
+      aDiffuseValue,
       attRangeItem.value,
       attLinearItem.value,
       attConstantItem.value,
@@ -145,14 +145,6 @@ Rectangle {
         }
       }
     }
-  }
-
-  Component {
-    id: colorMaterial
-      GzColor {
-        id: gzcolor
-        onColorSet: sendLight()
-      }
   }
 
   Component {
@@ -383,40 +375,18 @@ Rectangle {
           }
 
           // Specular
-          Item {
-            Layout.fillWidth: true
-            Layout.bottomMargin: 10
-            height: 40
-            Loader {
-              id: specularLoader
-              anchors.fill: parent
-              sourceComponent: colorMaterial
-            }
-            Binding {
-              target: specularLoader.item
-              property: "r"
-              value: model.data[0] * 255
-            }
-            Binding {
-              target: specularLoader.item
-              property: "g"
-              value: model.data[1] * 255
-            }
-            Binding {
-              target: specularLoader.item
-              property: "b"
-              value: model.data[2] * 255
-            }
-            Binding {
-              target: specularLoader.item
-              property: "a"
-              value: model.data[3]
-            }
-            Connections {
-              target: specularLoader.item
-              onColorSet: {
-                sendLight()
-              }
+          GzColor {
+            id: gzColorSpecular
+            r: model.data[0]
+            g: model.data[1]
+            b: model.data[2]
+            a: model.data[3]
+            onGzColorSet: {
+              rSpecularValue = r
+              gSpecularValue = g
+              bSpecularValue = b
+              aSpecularValue = a
+              sendLight()
             }
           }
 
@@ -438,40 +408,18 @@ Rectangle {
           }
 
           // Diffuse
-          Item {
-            Layout.fillWidth: true
-            Layout.bottomMargin: 10
-            height: 40
-            Loader {
-              id: diffuseLoader
-              anchors.fill: parent
-              sourceComponent: colorMaterial
-            }
-            Binding {
-              target: diffuseLoader.item
-              property: "r"
-              value: model.data[4] * 255
-            }
-            Binding {
-              target: diffuseLoader.item
-              property: "g"
-              value: model.data[5] * 255
-            }
-            Binding {
-              target: diffuseLoader.item
-              property: "b"
-              value: model.data[6] * 255
-            }
-            Binding {
-              target: diffuseLoader.item
-              property: "a"
-              value: model.data[7]
-            }
-            Connections {
-              target: diffuseLoader.item
-              onColorSet: {
-                sendLight()
-              }
+          GzColor {
+            id: gzColorDiffuse
+            r: model.data[4]
+            g: model.data[5]
+            b: model.data[6]
+            a: model.data[7]
+            onGzColorSet: {
+              rDiffuseValue = r
+              gDiffuseValue = g
+              bDiffuseValue = b
+              aDiffuseValue = a
+              sendLight()
             }
           }
         }
