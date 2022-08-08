@@ -38,8 +38,8 @@ namespace systems
   /// \brief The triggered publisher system publishes a user specified message
   /// on an output topic in response to an input message that matches user
   /// specified criteria. It can also call a user specified service as an
-  /// output in response to an input message. An optional simulation time delay
-  /// can be used delay message
+  /// output in response to an input message. It currently supports blocking
+  /// service call. An optional simulation time delay can be used delay message
   /// publication.
   ///
   /// ## System Parameters
@@ -85,7 +85,9 @@ namespace systems
   /// that matches.
   ///   * Attributes:
   ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
+  ///     * `timeout`: Service timeout
   ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
+  ///     * `repType`: Service response message type (eg. ignition.msgs.Empty)
   ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// Examples:
@@ -240,6 +242,9 @@ namespace systems
 
       /// \brief Service request message
       std::string reqMsg;
+
+      /// \brief Serivce timeout
+      int timeout;
     };
 
     /// \brief List of InputMatchers
@@ -284,138 +289,9 @@ namespace systems
 
     /// \brief Mutex to synchronize access to publishQueue
     private: std::mutex publishQueueMutex;
-
-    private: class ReplyHandler
-    {
-      public: virtual void operator() (const msgs::StringMsg &msg,
-                                       ServiceOutputInfo &srvInfo)
-      {
-        ignmsg << "Service call [" << srvInfo.servName
-               << "] succeeded. Response message [" << std::boolalpha
-               << msg.data() << "]\n";
-      }
-      public: virtual void operator() (const msgs::Boolean &msg,
-                                       ServiceOutputInfo &srvInfo)
-      {
-        ignmsg << "Service call [" << srvInfo.servName
-               << "] succeeded. Response message [" << std::boolalpha
-               << msg.data() << "]\n";
-      }
-      public: virtual void operator() (const msgs::Empty &msg,
-                                       ServiceOutputInfo &srvInfo)
-      {
-        ignmsg << "Service call [" << srvInfo.servName
-               << "] succeeded. Response message [" << msg.unused() 
-               << "]\n";
-      }
-      public: virtual void operator() (const msgs::Pose &msg,
-                                       ServiceOutputInfo &srvInfo)
-      {
-        ignmsg << "Service call [" << srvInfo.servName
-               << "] succeeded. Response message [" 
-               << "name: " << msg.name() << "pos: {x: "
-               << msg.position().x() << ", y: "
-               << msg.position().y() << ", z: "
-               << msg.position().z() << "}]\n";
-      }
-      //NOTE: add more replys for different types
-    };
-
-    private: template<typename ReplyT>
-    std::function<void(const ReplyT &rep, const bool res)> ReplyCallback(
-      ServiceOutputInfo& serviceInfo)
-    {
-      return std::function<void(const ReplyT &, const bool)>(
-        [&serviceInfo] (const ReplyT &msg, const bool res){
-          if (res)
-          {
-            ReplyHandler()(msg, serviceInfo);
-          }
-          else
-          {
-            ignerr << "Service call [" << serviceInfo.servName
-                   << "] failed\n";
-          }
-        });
-    }
-
-    private: template<typename ReplyT, typename RequestT>
-    bool HandleReply(ServiceOutputInfo& serviceInfo, RequestT& req)
-    {
-      // Non-blocking request with request type and callback
-      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
-      return this->node.Request(serviceInfo.servName, req, reqCb);
-    }
-
-    private: template<typename ReplyT>
-    bool HandleNoRequestMsg(ServiceOutputInfo& serviceInfo)
-    {
-      auto reqCb = ReplyCallback<ReplyT>(serviceInfo);
-      return this->node.Request(serviceInfo.servName, reqCb);
-    }
-
-    private: template<typename RequestT>
-    bool HandleNoReply(ServiceOutputInfo& serviceInfo, RequestT& req)
-    {
-      // Non-blocking request with no callback
-      return this->node.Request(serviceInfo.servName, req);
-    }
-
-    #define HANDLE_REPLY(repT, typeString) \
-    if (serviceInfo.repType == typeString && \
-        serviceInfo.reqType.empty() && !isProcessing) \
-      { \
-        executed = HandleNoRequestMsg<repT>(serviceInfo); \
-        isProcessing = true; \
-      } \
-    else if (serviceInfo.repType.empty() && !isProcessing) \
-      { \
-        executed = HandleNoReply<reqT>(serviceInfo, *req); \
-        isProcessing = true; \
-      } \
-    else if (serviceInfo.repType == typeString && !isProcessing) \
-      { \
-        executed = HandleReply<repT, reqT>(serviceInfo, *req); \
-        isProcessing = true; \
-      } \
-
-    private: template<typename reqT>
-    void HandleRequest(ServiceOutputInfo& serviceInfo)
-    {
-      bool executed {false};
-      bool isProcessing {false};
-
-      std::unique_ptr<reqT> req;
-      if (!serviceInfo.reqType.empty())
-      {
-        req = msgs::Factory::New<reqT>(serviceInfo.reqType,
-          serviceInfo.reqMsg);
-        if (!req)
-        {
-          ignerr << "Unable to create request for type ["
-                 << serviceInfo.reqType << "].\n";
-          return;
-        }
-      }
-      HANDLE_REPLY(msgs::StringMsg, "ignition.msgs.StringMsg");
-      HANDLE_REPLY(msgs::Boolean, "ignition.msgs.Boolean");
-      HANDLE_REPLY(msgs::Empty, "ignition.msgs.Empty");
-      //NOTE: add more protobuf msgs for the Reply
-
-      if (!executed)
-      {
-        ignerr << "Service call [" << serviceInfo.servName
-               << "] timed out\n";
-      }
-      {
-        std::lock_guard<std::mutex> lock(this->serviceCountMutex);
-        this->callService = false;
-      }
-    }
   };
 }
 }
 }
 }
-
 #endif

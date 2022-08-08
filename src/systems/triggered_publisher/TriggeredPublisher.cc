@@ -619,12 +619,14 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
       if (serviceInfo.reqType.empty())
       {
-        ignwarn << "Service request type is empty\n";
+        ignerr << "Service request type cannot be empty\n";
+        return;
       }
       serviceInfo.repType = serviceElem->Get<std::string>("repType");
       if (serviceInfo.repType.empty())
       {
-        ignwarn << "Service reply type is empty\n";
+        ignerr << "Service reply type cannot be empty\n";
+        return;
       }
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
@@ -645,7 +647,8 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
   {
-    ignerr << "No output and service specified." << std::endl;
+    ignerr << "No output and service specified. Make sure to specify at least"
+      "one of them." << std::endl;
     return;
   }
 
@@ -699,19 +702,8 @@ void TriggeredPublisher::Configure(const Entity &,
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
 }
-<<<<<<< HEAD
-=======
+
 //////////////////////////////////////////////////
-
-#define HANDLE_REQUEST(requestT, typeString) \
-if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) \
-  && !isProcessing) \
-{ \
-  this->HandleRequest<requestT>(serviceInfo); \
-  isProcessing = true; \
-} \
->>>>>>> aa5090b1ca58d9ab86b0c2e5e4d90d8ae7c0981b
-
 void TriggeredPublisher::PublishMsg(std::size_t pending)
 {
     for (auto &info : this->outputInfo)
@@ -721,70 +713,61 @@ void TriggeredPublisher::PublishMsg(std::size_t pending)
         info.pub.Publish(*info.msgData);
       }
     }
-
 }
 
+//////////////////////////////////////////////////
 void TriggeredPublisher::CallService()
 {
-    for (auto &serviceInfo : this->servOutputInfo)
+  for (auto &serviceInfo : this->servOutputInfo)
+  {
+    bool result;
+    auto req = msgs::Factory::New(serviceInfo.reqType,
+                                  serviceInfo.reqMsg);
+    if (!req)
     {
-<<<<<<< HEAD
-      bool result;
-      auto req = msgs::Factory::New(serviceInfo.reqType,
-                                    serviceInfo.reqMsg);
-      if (!req)
-      {
-        ignerr << "Unable to create request for type ["
-               << serviceInfo.reqType << "].\n";
-        return;
-      }
+      ignerr << "Unable to create request for type ["
+             << serviceInfo.reqType << "].\n";
+      return;
+    }
 
-      auto rep = msgs::Factory::New(serviceInfo.repType);
-      if (!rep)
-      {
-        ignerr << "Unable to create response for type ["
-               << serviceInfo.repType << "].\n";
-        return;
-      }
+    auto rep = msgs::Factory::New(serviceInfo.repType);
+    if (!rep)
+    {
+      ignerr << "Unable to create response for type ["
+             << serviceInfo.repType << "].\n";
+      return;
+    }
 
-      bool executed = this->node.Request(serviceInfo.servName,
-                                         *req,
-                                         serviceInfo.timeout,
-                                         *rep,
-                                         result);
-      if (executed)
+    bool executed = this->node.Request(serviceInfo.servName,
+                                       *req,
+                                       serviceInfo.timeout,
+                                       *rep,
+                                       result);
+    if (executed)
+    {
+      if (!result)
       {
-        if (!result)
-        {
-          ignerr << "Service call [" << serviceInfo.servName
-                 << "] failed\n";
-        }
-        else
-        {
-          ignmsg << "Service call [" << serviceInfo.servName
-                 << "] succeeded\n";
-        }
+        ignerr << "Service call [" << serviceInfo.servName
+               << "] failed\n";
       }
       else
       {
-        ignerr << "Service call [" << serviceInfo.servName
-               << "] timed out\n";
+        ignmsg << "Service call [" << serviceInfo.servName
+               << "] succeeded\n";
       }
-      {
-        std::lock_guard<std::mutex> lock(this->triggerServMutex);
-        this->triggerServ = false;
-      }
-=======
-      bool isProcessing {false};
-      HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
-      HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
-      HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
-      HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
-      //NOTE: add more protobuf msgs for the Request
->>>>>>> aa5090b1ca58d9ab86b0c2e5e4d90d8ae7c0981b
+    }
+    else
+    {
+      ignerr << "Service call [" << serviceInfo.servName
+             << "] timed out\n";
+    }
+    {
+      std::lock_guard<std::mutex> lock(this->triggerServMutex);
+      this->triggerServ = false;
     }
   }
 }
+
 //////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
 {

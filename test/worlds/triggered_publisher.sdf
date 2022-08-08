@@ -212,6 +212,7 @@
         name="/srv-test"
         reqType="ignition.msgs.StringMsg"
         repType="ignition.msgs.StringMsg"
+        timeout="100"
         reqMsg="data: 'test'">
       </service>
     </plugin>
@@ -224,12 +225,14 @@
         name="/srv-test-0"
         reqType="ignition.msgs.Boolean"
         repType="ignition.msgs.Boolean"
+        timeout="100"
         reqMsg="data: true">
       </service>
       <service
         name="/srv-test-1"
         reqType="ignition.msgs.Boolean"
         repType="ignition.msgs.Boolean"
+        timeout="100"
         reqMsg="data: false">
       </service>
     </plugin>
@@ -242,6 +245,7 @@
         name="/srv-test"
         reqType="ignition.msgs.InvalidReqType"
         repType="ignition.msgs.StringMsg"
+        timeout="100"
         reqMsg="data: 'test'">
       </service>
     </plugin>
@@ -254,6 +258,7 @@
         name="/srv-test"
         reqType="ignition.msgs.StringMsg"
         repType="ignition.msgs.InvalidRepType"
+        timeout="100"
         reqMsg="data: 'test'">
       </service>
     </plugin>
@@ -266,6 +271,7 @@
         name="/srv-test"
         reqType="ignition.msgs.StringMsg"
         repType="ignition.msgs.StringMsg"
+        timeout="100"
         reqMsg="data: 'test'">
       </service>
     </plugin>
