@@ -110,10 +110,11 @@ Rectangle {
 
         onGzPoseSet: {
           // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+          // from gz-gui GzPose.qml
           sendPose(_x, _y, _z, _roll, _pitch, _yaw)
         }
 
-        // By default it is closed
+        // By default pose widget is collapsed
         expand: false
 
         // plotting
