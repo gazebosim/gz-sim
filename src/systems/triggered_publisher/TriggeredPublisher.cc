@@ -699,6 +699,18 @@ void TriggeredPublisher::Configure(const Entity &,
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
 }
+<<<<<<< HEAD
+=======
+//////////////////////////////////////////////////
+
+#define HANDLE_REQUEST(requestT, typeString) \
+if (((serviceInfo.reqType == typeString) | serviceInfo.reqType.empty()) \
+  && !isProcessing) \
+{ \
+  this->HandleRequest<requestT>(serviceInfo); \
+  isProcessing = true; \
+} \
+>>>>>>> aa5090b1ca58d9ab86b0c2e5e4d90d8ae7c0981b
 
 void TriggeredPublisher::PublishMsg(std::size_t pending)
 {
@@ -716,6 +728,7 @@ void TriggeredPublisher::CallService()
 {
     for (auto &serviceInfo : this->servOutputInfo)
     {
+<<<<<<< HEAD
       bool result;
       auto req = msgs::Factory::New(serviceInfo.reqType,
                                     serviceInfo.reqMsg);
@@ -761,6 +774,14 @@ void TriggeredPublisher::CallService()
         std::lock_guard<std::mutex> lock(this->triggerServMutex);
         this->triggerServ = false;
       }
+=======
+      bool isProcessing {false};
+      HANDLE_REQUEST(msgs::Pose, "ignition.msgs.Pose");
+      HANDLE_REQUEST(msgs::StringMsg, "ignition.msgs.StringMsg");
+      HANDLE_REQUEST(msgs::Boolean, "ignition.msgs.Boolean");
+      HANDLE_REQUEST(msgs::Empty, "ignition.msgs.Empty");
+      //NOTE: add more protobuf msgs for the Request
+>>>>>>> aa5090b1ca58d9ab86b0c2e5e4d90d8ae7c0981b
     }
   }
 }
