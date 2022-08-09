@@ -313,6 +313,15 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get time period to record states
+      /// \return Time period to record states
+      public: std::chrono::steady_clock::duration LogRecordPeriod() const;
+
+      /// \brief Set time period to record states
+      /// \param[in] _period Time period to record states
+      public: void SetLogRecordPeriod(
+          const std::chrono::steady_clock::duration &_period);
+
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.
       public: void AddLogRecordTopic(const std::string &_topic);

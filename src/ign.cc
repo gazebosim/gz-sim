@@ -135,7 +135,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics, int _waitGui,
-    int _headless)
+    int _headless, float _recordPeriod)
 {
   std::string startingWorldPath{""};
   ignition::gazebo::ServerConfig serverConfig;
@@ -182,7 +182,7 @@ extern "C" int runServer(const char *_sdfString,
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0 ||
+    _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
     (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -193,6 +193,12 @@ extern "C" int runServer(const char *_sdfString,
 
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordResources(_recordResources);
+    if (_recordPeriod >= 0)
+    {
+      serverConfig.SetLogRecordPeriod(
+           std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+           std::chrono::duration<double>(_recordPeriod)));
+    }
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
