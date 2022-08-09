@@ -30,7 +30,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboTestFixture(pybind11::object module);
+defineSimTestFixture(pybind11::object module);
 }
 }
 }

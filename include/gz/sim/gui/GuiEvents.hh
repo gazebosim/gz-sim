@@ -29,6 +29,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/utils/ImplPtr.hh>
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include "gz/sim/gui/Export.hh"
 #include "gz/sim/Entity.hh"
@@ -215,12 +216,13 @@ namespace events
   };
 
   /// \brief Event that notifies a visual plugin is to be loaded
+  /// \deprecated Use `VisualPlugins` class.
   class GZ_SIM_GUI_VISIBLE VisualPlugin: public QEvent
   {
     /// \brief Constructor
     /// \param[in] _entity Visual entity id
     /// \param[in] _elem Visual plugin SDF element
-    public: explicit VisualPlugin(gz::sim::Entity _entity,
+    public: explicit GZ_DEPRECATED(7) VisualPlugin(gz::sim::Entity _entity,
                 const sdf::ElementPtr &_elem);
 
     /// \brief Get the entity to load the visual plugin for
@@ -230,6 +232,28 @@ namespace events
     public: sdf::ElementPtr Element() const;
 
     static const QEvent::Type kType = QEvent::Type(QEvent::User + 8);
+
+    /// \internal
+    /// \brief Private data pointer
+    GZ_UTILS_IMPL_PTR(dataPtr)
+  };
+
+  /// \brief Event that notifies a visual plugin is to be loaded
+  class GZ_SIM_GUI_VISIBLE VisualPlugins: public QEvent
+  {
+    /// \brief Constructor
+    /// \param[in] _entity Visual entity id
+    /// \param[in] _plugins SDF plugin object
+    public: explicit VisualPlugins(gz::sim::Entity _entity,
+                const sdf::Plugins &_plugins);
+
+    /// \brief Get the entity to load the visual plugin for
+    public: gz::sim::Entity Entity() const;
+
+    /// \brief Get the SDF Plugin of the visual plugin
+    public: const sdf::Plugins &Plugins() const;
+
+    static const QEvent::Type kType = QEvent::Type(QEvent::User + 9);
 
     /// \internal
     /// \brief Private data pointer

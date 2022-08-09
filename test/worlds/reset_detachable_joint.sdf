@@ -1,0 +1,127 @@
+?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.9">
+  <world name="default">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="table">
+      <pose>0 0 -0.1 0 0 0</pose>
+      <static>true</static>
+      <link name="surface">
+        <collision name="surface">
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="surface_visual">
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.2</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="object">
+      <pose>0 0.0 0.01 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.0005</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0005</iyy>
+            <iyz>0</iyz>
+            <izz>0.0005</izz>
+          </inertia>
+        </inertial>
+        <collision name="object_collision">
+          <geometry>
+            <box>
+              <size>0.02 0.02 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="object_visual">
+          <geometry>
+            <box>
+              <size>0.02 0.02 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.2 0.2 1</ambient>
+            <diffuse>1.0 0.2 0.2 1</diffuse>
+            <specular>1.0 0.2 0.2 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="simple_arm">
+      <pose>-0.06 -0.15 0.015 0 0 0</pose>
+      <joint name="base_joint" type="prismatic">
+        <parent>world</parent>
+        <child>arm_link</child>
+        <axis>
+            <xyz>0 1 0</xyz>
+        </axis>
+      </joint>
+      <link name="arm_link">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.0005</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.001</iyy>
+            <iyz>0</iyz>
+            <izz>0.001</izz>
+          </inertia>
+        </inertial>
+        <collision name="arm_link_collision">
+          <geometry>
+            <box>
+              <size>0.1 0.01 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="arm_link_visual">
+          <geometry>
+            <box>
+              <size>0.1 0.01 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 0.2 0.6 1</ambient>
+            <diffuse>0.0 0.2 0.6 1</diffuse>
+            <specular>0.0 0.2 0.6 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

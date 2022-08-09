@@ -32,7 +32,7 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboEntityComponentManager(pybind11::object module);
+defineSimEntityComponentManager(pybind11::object module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

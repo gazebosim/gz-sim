@@ -12,30 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include <iostream>
-
-#include <gz/sim/Util.hh>
-#include "Util.hh"
-
-namespace gz
-{
-namespace sim
-{
-namespace python
-{
-void defineSimUtil(pybind11::module &_module)
-{
-  _module.def("world_entity",
-      pybind11::overload_cast<const EntityComponentManager &>(
-      &gz::sim::worldEntity),
-      "Get the first world entity that's found.");
-}
-}  // namespace python
-}  // namespace sim
-}  // namespace gz
+#include <gz/sim/components/BoundingBoxCamera.hh>
+#include <ignition/gazebo/config.hh>

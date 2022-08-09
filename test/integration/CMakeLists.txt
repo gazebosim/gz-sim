@@ -16,6 +16,7 @@ set(tests
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
+  entity_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
@@ -53,6 +54,7 @@ set(tests
   rf_comms.cc
   recreate_entities.cc
   reset.cc
+  reset_detachable_joint.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc

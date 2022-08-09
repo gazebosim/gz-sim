@@ -29,7 +29,7 @@ namespace python
 {
 /// Define a pybind11 wrapper for a gz::sim::Util
 /// \param[in] _module a pybind11 module to add the definition to
-void defineGazeboUtil(pybind11::module &_module);
+void defineSimUtil(pybind11::module &_module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

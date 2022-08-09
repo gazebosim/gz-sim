@@ -75,11 +75,14 @@ class gz::sim::systems::OdometryPublisherPrivate
   /// \brief Last sim time odom was published.
   public: std::chrono::steady_clock::duration lastOdomPubTime{0};
 
-  /// \brief Diff drive odometry message publisher.
+  /// \brief Odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
-  /// \brief Diff drive odometry with covariance message publisher.
+  /// \brief Odometry with covariance message publisher.
   public: transport::Node::Publisher odomCovPub;
+
+  /// \brief Pose vector (TF) message publisher.
+  public: transport::Node::Publisher tfPub;
 
   /// \brief Rolling mean accumulators for the linear velocity
   public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
@@ -145,7 +148,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
   this->dataPtr->odomFrame = this->dataPtr->model.Name(_ecm) + "/" + "odom";
   if (!_sdf->HasElement("odom_frame"))
   {
-    gzwarn << "OdometryPublisher system plugin missing <odom_frame>, "
+    gzdbg << "OdometryPublisher system plugin missing <odom_frame>, "
       << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
   }
   else
@@ -175,7 +178,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     + "/" + "base_footprint";
   if (!_sdf->HasElement("robot_base_frame"))
   {
-    gzwarn << "OdometryPublisher system plugin missing <robot_base_frame>, "
+    gzdbg << "OdometryPublisher system plugin missing <robot_base_frame>, "
       << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
   }
   else
@@ -230,6 +233,8 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
         odomTopicValid);
+    gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
+           << "]" << std::endl;
   }
 
   std::string odomCovTopicValid {
@@ -243,6 +248,25 @@ void OdometryPublisher::Configure(const Entity &_entity,
   {
     this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
         msgs::OdometryWithCovariance>(odomCovTopicValid);
+    gzmsg << "OdometryPublisher publishing odometry with covariance on ["
+           << odomCovTopicValid << "]" << std::endl;
+  }
+
+  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/pose"};
+  if (_sdf->HasElement("tf_topic"))
+    tfTopic = _sdf->Get<std::string>("tf_topic");
+  std::string tfTopicValid {transport::TopicUtils::AsValidTopic(tfTopic)};
+  if (tfTopicValid.empty())
+  {
+    gzerr << "Failed to generate valid TF topic from [" << tfTopic << "]"
+           << std::endl;
+  }
+  else
+  {
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+        tfTopicValid);
+    gzmsg << "OdometryPublisher publishing Pose_V (TF) on ["
+           << tfTopicValid << "]" << std::endl;
   }
 }
 
@@ -400,16 +424,18 @@ void OdometryPublisherPrivate::UpdateOdometry(
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
-  msg.mutable_header()->mutable_stamp()->CopyFrom(
-      convert<msgs::Time>(_info.simTime));
+  msgs::Header header;
+  header.mutable_stamp()->CopyFrom(convert<msgs::Time>(_info.simTime));
 
   // Set the frame ids.
-  auto frame = msg.mutable_header()->add_data();
+  auto frame = header.add_data();
   frame->set_key("frame_id");
   frame->add_value(odomFrame);
-  auto childFrame = msg.mutable_header()->add_data();
+  auto childFrame = header.add_data();
   childFrame->set_key("child_frame_id");
   childFrame->add_value(robotBaseFrame);
+
+  msg.mutable_header()->CopyFrom(header);
 
   this->lastUpdatePose = pose;
   this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
@@ -431,16 +457,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
   msgs::OdometryWithCovariance msgCovariance;
 
   // Set the time stamp in the header.
-  msgCovariance.mutable_header()->mutable_stamp()->CopyFrom(
-      convert<msgs::Time>(_info.simTime));
-
-  // Set the frame ids.
-  frame = msgCovariance.mutable_header()->add_data();
-  frame->set_key("frame_id");
-  frame->add_value(odomFrame);
-  childFrame = msg.mutable_header()->add_data();
-  childFrame->set_key("child_frame_id");
-  childFrame->add_value(robotBaseFrame);
+  msgCovariance.mutable_header()->CopyFrom(header);
 
   // Copy position from odometry msg.
   msgCovariance.mutable_pose_with_covariance()->
@@ -488,6 +505,16 @@ void OdometryPublisherPrivate::UpdateOdometry(
   if (this->odomCovPub.Valid())
   {
     this->odomCovPub.Publish(msgCovariance);
+  }
+
+  if (this->tfPub.Valid())
+  {
+    msgs::Pose_V tfMsg;
+    auto tfMsgPose = tfMsg.add_pose();
+    tfMsgPose->CopyFrom(msg.pose());
+    tfMsgPose->mutable_header()->CopyFrom(header);
+
+    this->tfPub.Publish(tfMsg);
   }
 }
 

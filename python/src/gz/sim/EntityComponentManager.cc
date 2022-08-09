@@ -24,7 +24,7 @@ namespace sim
 namespace python
 {
 /////////////////////////////////////////////////
-void defineGazeboEntityComponentManager(pybind11::object module)
+void defineSimEntityComponentManager(pybind11::object module)
 {
   pybind11::class_<gz::sim::EntityComponentManager>(
       module, "EntityComponentManager")
