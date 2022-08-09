@@ -75,12 +75,12 @@ namespace systems
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-  /// '<min_velocity>': Minimum velocity [m/s], usually <= 0.
-  /// '<max_velocity>': Maximum velocity [m/s], usually >= 0.
-  /// '<min_acceleration>': Minimum acceleration [m/s^2], usually <= 0.
-  /// '<max_acceleration>': Maximum acceleration [m/s^2], usually >= 0.
-  /// '<min_jerk Minimum>': jerk [m/s^3], usually <= 0.
-  /// '<max_jerk Maximum>': jerk [m/s^3], usually >= 0.
+  /// `<min_velocity>`: Minimum velocity [m/s], usually <= 0.
+  /// `<max_velocity>`: Maximum velocity [m/s], usually >= 0.
+  /// `<min_acceleration>`: Minimum acceleration [m/s^2], usually <= 0.
+  /// `<max_acceleration>`: Maximum acceleration [m/s^2], usually >= 0.
+  /// `<min_jerk Minimum>`: jerk [m/s^3], usually <= 0.
+  /// `<max_jerk Maximum>`: jerk [m/s^3], usually >= 0.
   ///
   /// `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command velocity messages. This element if optional, and the
@@ -89,6 +89,22 @@ namespace systems
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
+  ///
+  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
+  /// and the default value is `/model/{name_of_model}/tf`.
+  ///
+  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
+  /// origin of the odometry transform in both the `<tf_topic>`
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional, and the
+  /// default value is `{name_of_model}/odom`.
+  ///
+  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
+  /// the target of the odometry transform in both the `<tf_topic>`
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional,
+  /// and the default value is `{name_of_model}/{name_of_link}`.
   ///
   /// A robot with rear drive and front steering would have one each
   /// of left_joint, right_joint, left_steering_joint and

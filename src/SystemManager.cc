@@ -37,7 +37,7 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
   std::string entitySystemService{"entity/system/add"};
   this->node->Advertise(entitySystemService,
       &SystemManager::EntitySystemAddService, this);
-  ignmsg << "Serving entity system service on ["
+  gzmsg << "Serving entity system service on ["
          << "/" << entitySystemService << "]" << std::endl;
 }
 
@@ -313,8 +313,8 @@ void SystemManager::ProcessPendingEntitySystems()
 
     if (req.plugins().empty())
     {
-      ignwarn << "Unable to add plugins to Entity: '" << entity
-              << "'. No plugins specified." << std::endl;
+      gzwarn << "Unable to add plugins to Entity: '" << entity
+             << "'. No plugins specified." << std::endl;
        continue;
     }
 

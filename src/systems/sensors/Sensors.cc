@@ -571,7 +571,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
-    igndbg << "Resetting Sensors\n";
+    gzdbg << "Resetting Sensors\n";
 
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
@@ -584,7 +584,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
       if (nullptr == s)
       {
-        ignwarn << "Sensor removed before reset: " << id << "\n";
+        gzwarn << "Sensor removed before reset: " << id << "\n";
         continue;
       }
 

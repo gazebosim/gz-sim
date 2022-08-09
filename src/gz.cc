@@ -21,18 +21,24 @@
 #include <string>
 #include <vector>
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include <gz/fuel_tools/FuelClient.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/Result.hh>
 #include <gz/fuel_tools/WorldIdentifier.hh>
+#include <gz/transport/Node.hh>
+#include <sdf/Console.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
 #include "gz/sim/gui/Gui.hh"
+
+using namespace gz;
 
 //////////////////////////////////////////////////
 extern "C" char *gzSimVersion()
@@ -50,7 +56,15 @@ extern "C" char *simVersionHeader()
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  gz::common::Console::SetVerbosity(std::atoi(_verbosity));
+  int verbosity = std::atoi(_verbosity);
+  gz::common::Console::SetVerbosity(verbosity);
+
+  // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
+  // console output with zero verbosity.
+  if (verbosity == 0)
+  {
+    sdf::Console::Instance()->SetQuiet(true);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -121,10 +135,39 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics,
+    const char *_file, const char *_recordTopics, int _waitGui,
     int _headless)
 {
+  std::string startingWorldPath{""};
   gz::sim::ServerConfig serverConfig;
+
+  // Lock until the starting world is received from Gui
+  if (_waitGui == 1)
+  {
+    transport::Node node;
+    std::condition_variable condition;
+    std::mutex mutex;
+
+    // Create a subscriber just so we can check when the message has propagated
+    std::function<void(const msgs::StringMsg &)> topicCb =
+        [&startingWorldPath, &mutex, &condition](const auto &_msg)
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          startingWorldPath = _msg.data();
+          condition.notify_all();
+        };
+
+    std::string topic{"/gazebo/starting_world"};
+    std::unique_lock<std::mutex> lock(mutex);
+    gzdbg << "Subscribing to [" << topic << "]." << std::endl;
+    node.Subscribe(topic, topicCb);
+    gzdbg << "Waiting for a world to be set from the GUI..." << std::endl;
+    condition.wait(lock);
+    gzmsg << "Received world [" << startingWorldPath << "] from the GUI."
+          << std::endl;
+    gzdbg << "Unsubscribing from [" << topic << "]." << std::endl;
+    node.Unsubscribe(topic);
+  }
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
@@ -293,7 +336,13 @@ extern "C" int runServer(const char *_sdfString,
       return -1;
     }
   }
-  serverConfig.SetSdfFile(_file);
+
+  // This ensures if the server was run stand alone with a world from
+  // command line, the correct world would be loaded.
+  if(_waitGui == 1)
+    serverConfig.SetSdfFile(startingWorldPath);
+  else
+    serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -358,7 +407,8 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
+extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+  const char *_renderEngine)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -387,5 +437,6 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   };
   int argc = sizeof(argv) / sizeof(argv[0]);
 
-  return gz::sim::gui::runGui(argc, argv, _guiConfig, _renderEngine);
+  return gz::sim::gui::runGui(
+    argc, argv, _guiConfig, _file, _waitGui, _renderEngine);
 }

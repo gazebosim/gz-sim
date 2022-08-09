@@ -283,8 +283,7 @@ TEST_F(UtilTest, EntitiesFromScopedName)
       Entity _relativeTo, const std::unordered_set<Entity> &_result,
       const std::string &_delim)
   {
-    auto res = sim::entitiesFromScopedName(_scopedName, ecm, _relativeTo,
-        _delim);
+    auto res = entitiesFromScopedName(_scopedName, ecm, _relativeTo, _delim);
     EXPECT_EQ(_result.size(), res.size()) << _scopedName;
 
     for (auto it : _result)
@@ -717,6 +716,244 @@ TEST_F(UtilTest, EnableComponent)
   // Disabling again makes no changes
   EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
   EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, EntityFromMsg)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - lightA (light)
+  //  - modelB
+  //    - linkB (link)
+  //      - lightB (light)
+  //      - sensorB (banana)
+  //  - modelC
+  //    - linkC (link)
+  //      - collisionC
+  //      - visualC (banana)
+  //    - jointC
+  //    - modelCC
+  //      - linkCC (link)
+  //  - actorD
+
+  // World
+  auto worldEntity = ecm.CreateEntity();
+  EXPECT_EQ(kNullEntity, sim::worldEntity(ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(worldEntity, ecm));
+  ecm.CreateComponent(worldEntity, components::World());
+  ecm.CreateComponent(worldEntity, components::Name("world"));
+
+  // Light A
+  auto lightAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(lightAEntity, components::Light(sdf::Light()));
+  ecm.CreateComponent(lightAEntity, components::Name("light"));
+  ecm.CreateComponent(lightAEntity, components::ParentEntity(worldEntity));
+
+  // Model B
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Model());
+  ecm.CreateComponent(modelBEntity, components::Name("modelB"));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(worldEntity));
+
+  // Link B
+  auto linkBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkBEntity, components::Link());
+  ecm.CreateComponent(linkBEntity, components::Name("link"));
+  ecm.CreateComponent(linkBEntity, components::ParentEntity(modelBEntity));
+
+  // Light B
+  auto lightBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(lightBEntity, components::Light(sdf::Light()));
+  ecm.CreateComponent(lightBEntity, components::Name("light"));
+  ecm.CreateComponent(lightBEntity, components::ParentEntity(linkBEntity));
+
+  // Sensor B
+  auto sensorBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(sensorBEntity, components::Sensor());
+  ecm.CreateComponent(sensorBEntity, components::Name("banana"));
+  ecm.CreateComponent(sensorBEntity, components::ParentEntity(linkBEntity));
+
+  // Model C
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Model());
+  ecm.CreateComponent(modelCEntity, components::Name("modelC"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
+
+  // Link C
+  auto linkCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkCEntity, components::Link());
+  ecm.CreateComponent(linkCEntity, components::Name("link"));
+  ecm.CreateComponent(linkCEntity, components::ParentEntity(modelCEntity));
+
+  // Collision C
+  auto collisionCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(collisionCEntity, components::Collision());
+  ecm.CreateComponent(collisionCEntity, components::Name("collisionC"));
+  ecm.CreateComponent(collisionCEntity, components::ParentEntity(linkCEntity));
+
+  // Visual C
+  auto visualCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(visualCEntity, components::Visual());
+  ecm.CreateComponent(visualCEntity, components::Name("banana"));
+  ecm.CreateComponent(visualCEntity, components::ParentEntity(linkCEntity));
+
+  // Link C
+  auto jointCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointCEntity, components::Joint());
+  ecm.CreateComponent(jointCEntity, components::Name("jointC"));
+  ecm.CreateComponent(jointCEntity, components::ParentEntity(modelCEntity));
+
+  // Model CC
+  auto modelCCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCCEntity, components::Model());
+  ecm.CreateComponent(modelCCEntity, components::Name("modelCC"));
+  ecm.CreateComponent(modelCCEntity, components::ParentEntity(modelCEntity));
+
+  // Link CC
+  auto linkCCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkCCEntity, components::Link());
+  ecm.CreateComponent(linkCCEntity, components::Name("link"));
+  ecm.CreateComponent(linkCCEntity, components::ParentEntity(modelCCEntity));
+
+  // Actor D
+  auto actorDEntity = ecm.CreateEntity();
+  ecm.CreateComponent(actorDEntity, components::Actor(sdf::Actor()));
+  ecm.CreateComponent(actorDEntity, components::Name("actorD"));
+  ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
+
+  // Check entities
+  auto createMsg = [&ecm](Entity _id, const std::string &_name = "",
+      msgs::Entity::Type _type = msgs::Entity::NONE) -> msgs::Entity
+  {
+    msgs::Entity msg;
+
+    if (_id != kNullEntity)
+      msg.set_id(_id);
+
+    if (!_name.empty())
+      msg.set_name(_name);
+
+    if (_type != msgs::Entity::NONE)
+      msg.set_type(_type);
+
+    return msg;
+  };
+
+  // Only ID
+  EXPECT_EQ(worldEntity, entityFromMsg(ecm, createMsg(worldEntity)));
+  EXPECT_EQ(lightAEntity, entityFromMsg(ecm, createMsg(lightAEntity)));
+  EXPECT_EQ(modelBEntity, entityFromMsg(ecm, createMsg(modelBEntity)));
+  EXPECT_EQ(linkBEntity, entityFromMsg(ecm, createMsg(linkBEntity)));
+  EXPECT_EQ(lightBEntity, entityFromMsg(ecm, createMsg(lightBEntity)));
+  EXPECT_EQ(sensorBEntity, entityFromMsg(ecm, createMsg(sensorBEntity)));
+  EXPECT_EQ(modelCEntity, entityFromMsg(ecm, createMsg(modelCEntity)));
+  EXPECT_EQ(linkCEntity, entityFromMsg(ecm, createMsg(linkCEntity)));
+  EXPECT_EQ(collisionCEntity, entityFromMsg(ecm, createMsg(collisionCEntity)));
+  EXPECT_EQ(visualCEntity, entityFromMsg(ecm, createMsg(visualCEntity)));
+  EXPECT_EQ(jointCEntity, entityFromMsg(ecm, createMsg(jointCEntity)));
+  EXPECT_EQ(modelCCEntity, entityFromMsg(ecm, createMsg(modelCCEntity)));
+  EXPECT_EQ(linkCCEntity, entityFromMsg(ecm, createMsg(linkCCEntity)));
+  EXPECT_EQ(actorDEntity, entityFromMsg(ecm, createMsg(actorDEntity)));
+
+  // Name and type, with different scopes
+  EXPECT_EQ(worldEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world", msgs::Entity::WORLD)));
+
+  // There's more than one "light", so we need to scope it
+  EXPECT_EQ(lightAEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::light", msgs::Entity::LIGHT)));
+
+  EXPECT_EQ(modelBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelB", msgs::Entity::MODEL)));
+  EXPECT_EQ(modelBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelB", msgs::Entity::MODEL)));
+
+  // There's more than one "link", so we need to scope it
+  EXPECT_EQ(linkBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelB::link", msgs::Entity::LINK)));
+  EXPECT_EQ(linkBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelB::link", msgs::Entity::LINK)));
+
+  // There's more than one "light", so we need to scope it
+  EXPECT_EQ(lightBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "link::light", msgs::Entity::LIGHT)));
+  EXPECT_EQ(lightBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelB::link::light", msgs::Entity::LIGHT)));
+  EXPECT_EQ(lightBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelB::link::light", msgs::Entity::LIGHT)));
+
+  // There's more than one "link::banana", so we need to scope it
+  EXPECT_EQ(sensorBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelB::link::banana", msgs::Entity::SENSOR)));
+  EXPECT_EQ(sensorBEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelB::link::banana", msgs::Entity::SENSOR)));
+
+  EXPECT_EQ(modelCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC", msgs::Entity::MODEL)));
+  EXPECT_EQ(modelCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC", msgs::Entity::MODEL)));
+
+  // There's more than one "link", so we need to scope it
+  EXPECT_EQ(linkCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::link", msgs::Entity::LINK)));
+  EXPECT_EQ(linkCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::link", msgs::Entity::LINK)));
+
+  EXPECT_EQ(collisionCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "collisionC", msgs::Entity::COLLISION)));
+  EXPECT_EQ(collisionCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "link::collisionC", msgs::Entity::COLLISION)));
+  EXPECT_EQ(collisionCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::link::collisionC", msgs::Entity::COLLISION)));
+  EXPECT_EQ(collisionCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::link::collisionC", msgs::Entity::COLLISION)));
+
+  // There's more than one "banana", so we need to scope it
+  EXPECT_EQ(visualCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "link::banana", msgs::Entity::VISUAL)));
+  EXPECT_EQ(visualCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::link::banana", msgs::Entity::VISUAL)));
+  EXPECT_EQ(visualCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::link::banana", msgs::Entity::VISUAL)));
+
+  EXPECT_EQ(jointCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "jointC", msgs::Entity::JOINT)));
+  EXPECT_EQ(jointCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::jointC", msgs::Entity::JOINT)));
+  EXPECT_EQ(jointCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::jointC", msgs::Entity::JOINT)));
+
+  EXPECT_EQ(modelCCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelCC", msgs::Entity::MODEL)));
+  EXPECT_EQ(modelCCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::modelCC", msgs::Entity::MODEL)));
+  EXPECT_EQ(modelCCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::modelCC", msgs::Entity::MODEL)));
+
+  // There's more than one "link", so we need to scope it
+  EXPECT_EQ(linkCCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "modelC::modelCC::link", msgs::Entity::LINK)));
+  EXPECT_EQ(linkCCEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::modelC::modelCC::link", msgs::Entity::LINK)));
+
+  EXPECT_EQ(actorDEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "actorD", msgs::Entity::ACTOR)));
+  EXPECT_EQ(actorDEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "world::actorD", msgs::Entity::ACTOR)));
+
+  // Inexistent entity
+  EXPECT_EQ(1000u, entityFromMsg(ecm, createMsg(1000)));
+
+  // Not found
+  EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity)));
+  EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity,
+      "blueberry")));
+  EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity, "banana",
+      msgs::Entity::COLLISION)));
+  EXPECT_EQ(kNullEntity, entityFromMsg(ecm, createMsg(kNullEntity, "peach",
+      msgs::Entity::WORLD)));
 }
 
 /////////////////////////////////////////////////
