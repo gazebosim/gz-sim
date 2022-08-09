@@ -66,7 +66,8 @@ extern "C" int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics, int _waitGui, int _headless, float _recordPeriod);
+    const char *_recordTopics, int _waitGui, int _headless,
+    float _recordPeriod);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Ignition GUI configuration file.

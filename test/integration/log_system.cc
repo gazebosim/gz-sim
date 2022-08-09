@@ -1681,7 +1681,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
     std::cout << output << std::endl;
   }
 
-  std::string consolePath = common::joinPaths(this->logDir, "server_console.log");
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
   EXPECT_TRUE(common::exists(consolePath)) << consolePath;
   EXPECT_TRUE(common::exists(statePath)) << statePath;
 

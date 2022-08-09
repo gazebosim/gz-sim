@@ -218,7 +218,8 @@ void LogRecord::Configure(const Entity &_entity,
 
   this->dataPtr->recordPeriod =
     std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-    std::chrono::duration<double>(_sdf->Get<double>("record_period", 0.0).first));
+    std::chrono::duration<double>(
+    _sdf->Get<double>("record_period", 0.0).first));
 
   this->dataPtr->compress = _sdf->Get<bool>("compress", false).first;
   this->dataPtr->cmpPath = _sdf->Get<std::string>("compress_path", "").first;
