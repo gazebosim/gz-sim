@@ -239,7 +239,45 @@ std::unique_ptr<gz::gui::Application> createGui(
         for (int p = 0; p < res.plugin_size(); ++p)
         {
           const auto &plugin = res.plugin(p);
-          const auto &fileName = plugin.filename();
+          auto fileName = plugin.filename();
+
+          // Redirect GzScene3D to MinimalScene for backwards compatibility,
+          // with warnings
+          if (fileName == "GzScene3D")
+          {
+            std::vector<std::string> extras{"GzSceneManager",
+                "InteractiveViewControl",
+                "CameraTracking",
+                "MarkerManager",
+                "SelectEntities",
+                "EntityContextMenuPlugin",
+                "Spawn",
+                "VisualizationCapabilities"};
+
+            std::string msg{"The [GzScene3D] GUI plugin has been removed since Garden. "
+                "Loading the following plugins instead:\n"};
+
+            for (auto extra : extras)
+            {
+              msg += "* " + extra  + "\n";
+
+              auto newPlugin = res.add_plugin();
+              newPlugin->set_filename(extra);
+              newPlugin->set_innerxml(std::string(
+                "<gz-gui>"
+                "  <property key='state' type='string'>floating</property>"
+                "  <property key='width' type='double'>5</property>"
+                "  <property key='height' type='double'>5</property>"
+                "  <property key='showTitleBar' type='bool'>false</property>"
+                "  <property key='resizable' type='bool'>false</property>"
+                "</gz-gui>"));
+            }
+
+            gzwarn << msg;
+
+            fileName = "MinimalScene";
+          }
+
           std::string pluginStr = "<plugin filename='" + fileName + "'>" +
             plugin.innerxml() + "</plugin>";
 
