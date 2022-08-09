@@ -46,9 +46,10 @@ class Relay
 {
   public: Relay()
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "gz::sim::MockSystem",
-                                nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    auto plugin = loader.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();

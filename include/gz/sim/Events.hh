@@ -18,6 +18,7 @@
 #define GZ_SIM_EVENTS_HH_
 
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include <gz/common/Event.hh>
 
@@ -53,10 +54,26 @@ namespace gz
       /// \endcode
       using Stop = gz::common::EventT<void(void), struct StopTag>;
 
+      /// \brief Please use the LoadSdfPlugins event. The LoadPlugins event
+      /// is deprecrated in Gazebo 7 (Garden). Also make sure to
+      /// connect to only LoadSdfPlugins or LoadPlugins, and not both events.
+      ///
+      /// Event used to load plugins for an entity into simulation.
+      /// Pass in the entity which will own the plugins, and an SDF element for
+      /// the entity, which may contain multiple `<plugin>` tags.
+      /// \deprecated Use the `sdf::Plugins` interface.
+#ifdef _WIN32
+      using LoadPlugins =
+#else
+      using LoadPlugins GZ_DEPRECATED(7) =
+#endif
+          common::EventT<void(Entity, sdf::ElementPtr), struct LoadPluginsTag>;
+
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
       /// the entity, which may contain multiple `<plugin>` tags.
-      using LoadPlugins = common::EventT<void(Entity, sdf::ElementPtr),
+      /// Makre sure that you don't also connect to the LoadPlugins event.
+      using LoadSdfPlugins = common::EventT<void(Entity, sdf::Plugins),
           struct LoadPluginsTag>;
       }
     }  // namespace events
