@@ -1650,7 +1650,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
   // Create temp directory to store log
   this->CreateLogsDir();
 
-  // World with moving entities
+  // test world
   const auto recordSdfPath = common::joinPaths(
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_resources.sdf");
@@ -1715,8 +1715,8 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
     player.Start(std::chrono::seconds(5), false);
   handle->WaitUntilFinished();
 
-  // There were 100 iterations of simulation, and we are recording at 2ms
-  // so there should be 50 clock messages.
+  // There were 100 iterations of simulation, and we were recording at 2ms
+  // so there should be 50 state messages.
   EXPECT_EQ(50, msgCount);
 
   // Remove artifacts. Recreate new directory
