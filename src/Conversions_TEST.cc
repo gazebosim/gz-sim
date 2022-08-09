@@ -1001,8 +1001,8 @@ TEST(Conversions, ParticleEmitter)
   emitter.SetMaxVelocity(0.2);
   emitter.SetSize(math::Vector3d(1, 2, 3));
   emitter.SetParticleSize(math::Vector3d(4, 5, 6));
-  emitter.SetColorStart(math::Color(0.1, 0.2, 0.3));
-  emitter.SetColorEnd(math::Color(0.4, 0.5, 0.6));
+  emitter.SetColorStart(math::Color(0.1f, 0.2f, 0.3f));
+  emitter.SetColorEnd(math::Color(0.4f, 0.5f, 0.6f));
   emitter.SetColorRangeImage("range_image");
   emitter.SetTopic("my_topic");
   emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));

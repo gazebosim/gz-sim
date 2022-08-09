@@ -20,8 +20,8 @@
 #include <QtCore>
 #include <string>
 
-#include "gz/sim/Export.hh"
 #include "gz/sim/config.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace gz
 {
@@ -32,7 +32,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling quick start dialog
-class QuickStartHandler : public QObject
+class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 {
   Q_OBJECT
 

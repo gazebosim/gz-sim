@@ -127,7 +127,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
     _argc, _argv, gz::gui::WindowType::kDialog);
   app->SetDefaultConfigPath(_defaultConfig);
 
-  auto quickStartHandler = new gui::QuickStartHandler();
+  auto quickStartHandler = new QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
   auto dialog = new gz::gui::Dialog();

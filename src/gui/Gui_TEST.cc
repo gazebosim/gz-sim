@@ -189,7 +189,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
         return true;
       };
   node.Advertise("/gazebo/worlds", worldsCb);
-  igndbg << "Worlds advertised" << std::endl;
+  gzdbg << "Worlds advertised" << std::endl;
 
   // Starting world callback
   bool startingWorldCalled{false};
@@ -202,7 +202,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
 
   std::string topic{"/gazebo/starting_world"};
   node.Subscribe(topic, topicCb);
-  igndbg << "Subscribed to [" << topic << "]" << std::endl;
+  gzdbg << "Subscribed to [" << topic << "]" << std::endl;
 
   // Custom config
   // TODO(chapulina) Make it not Linux-specific
@@ -215,7 +215,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   // Thread to check and close quick start dialog
   std::thread checkingThread([&]()
   {
-    igndbg << "Started checking thread" << std::endl;
+    gzdbg << "Started checking thread" << std::endl;
     for (int sleep = 0;
         (nullptr == gui::App( ) ||
          gui::App()->allWindows().empty() ||
@@ -226,7 +226,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     }
     ASSERT_NE(nullptr, gui::App());
     ASSERT_EQ(1, gui::App()->allWindows().count());
-    igndbg << "Found app" << std::endl;
+    gzdbg << "Found app" << std::endl;
 
     auto handler = gui::App()->Engine()->findChild<QuickStartHandler *>();
     ASSERT_NE(nullptr, handler);
@@ -261,7 +261,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
       nullptr /* _sdfFile */,
       true /* _waitGui */);
   EXPECT_NE(nullptr, app);
-  igndbg << "GUI created" << std::endl;
+  gzdbg << "GUI created" << std::endl;
 
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(startingWorldCalled);
