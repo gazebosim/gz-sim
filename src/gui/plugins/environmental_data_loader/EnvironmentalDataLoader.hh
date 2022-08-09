@@ -168,7 +168,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     signals: void IsConfiguredChanged();
 
     /// \brief Schedule an update
-    public: Q_INVOKABLE void ScheduleUpdate();
+    public: Q_INVOKABLE void ScheduleLoad();
 
     /// \internal
     /// \brief Pointer to private data

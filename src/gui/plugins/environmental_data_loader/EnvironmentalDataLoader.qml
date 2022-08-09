@@ -186,7 +186,7 @@ GridLayout {
     Layout.fillWidth: true
     enabled: EnvironmentalDataLoader.configured
     onClicked: function() {
-      EnvironmentalDataLoader.ScheduleUpdate()
+      EnvironmentalDataLoader.ScheduleLoad()
     }
   }
 }

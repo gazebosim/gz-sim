@@ -103,6 +103,7 @@ void EnvironmentalDataPreload::Configure(
   }
 }
 
+// Register this plugin
 GZ_ADD_PLUGIN(EnvironmentalDataPreload, System,
     EnvironmentalDataPreload::ISystemConfigure)
 GZ_ADD_PLUGIN_ALIAS(EnvironmentalDataPreload,

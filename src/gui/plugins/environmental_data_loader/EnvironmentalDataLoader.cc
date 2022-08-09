@@ -44,26 +44,36 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 /// \brief Private data class for EnvironmentalDataLoader
 class EnvironmentalDataLoaderPrivate
 {
+  /// \brief Path to environmental data file to load.
   public: QString dataPath;
 
+  /// \brief List of environmental data dimensions
+  /// (ie. columns if dealing with CSV data).
   public: QStringList dimensionList;
 
+  /// \brief Index of data dimension to be used as time.
   public: int timeIndex{-1};
 
+  /// \brief Index of data dimension to be used as x coordinate.
   public: int xIndex{-1};
 
+  /// \brief Index of data dimension to be used as y coordinate.
   public: int yIndex{-1};
 
+  /// \brief Index of data dimension to be used as z coordinate.
   public: int zIndex{-1};
 
+  /// \brief To synchronize member access.
   public: std::mutex mutex;
 
-  public: std::atomic<bool> needsUpdate{false};
+  /// \brief Whether to attempt an environmental data load.
+  public: std::atomic<bool> needsLoad{false};
 };
 }
 }
 }
 
+/////////////////////////////////////////////////
 EnvironmentalDataLoader::EnvironmentalDataLoader()
   : GuiSystem(), dataPtr(new EnvironmentalDataLoaderPrivate)
 {
@@ -71,10 +81,12 @@ EnvironmentalDataLoader::EnvironmentalDataLoader()
       "EnvironmentalDataLoader", this);
 }
 
+/////////////////////////////////////////////////
 EnvironmentalDataLoader::~EnvironmentalDataLoader()
 {
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
@@ -83,13 +95,14 @@ void EnvironmentalDataLoader::LoadConfig(const tinyxml2::XMLElement *)
   gui::App()->findChild<gui::MainWindow *>()->installEventFilter(this);
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::Update(const UpdateInfo &,
                                      EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->needsUpdate)
+  if (this->dataPtr->needsLoad)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-    this->dataPtr->needsUpdate = false;
+    this->dataPtr->needsLoad = false;
 
     std::ifstream dataFile(this->dataPtr->dataPath.toStdString());
     gzmsg << "Loading environmental data from "
@@ -114,22 +127,26 @@ void EnvironmentalDataLoader::Update(const UpdateInfo &,
   }
 }
 
-void EnvironmentalDataLoader::ScheduleUpdate()
+/////////////////////////////////////////////////
+void EnvironmentalDataLoader::ScheduleLoad()
 {
-  this->dataPtr->needsUpdate = this->IsConfigured();
+  this->dataPtr->needsLoad = this->IsConfigured();
 }
 
+/////////////////////////////////////////////////
 QString EnvironmentalDataLoader::DataPath() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->dataPath;
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetDataUrl(QUrl _dataUrl)
 {
   this->SetDataPath(_dataUrl.path());
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetDataPath(QString _dataPath)
 {
   {
@@ -169,18 +186,21 @@ void EnvironmentalDataLoader::SetDataPath(QString _dataPath)
   this->IsConfiguredChanged();
 }
 
+/////////////////////////////////////////////////
 QStringList EnvironmentalDataLoader::DimensionList() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->dimensionList;
 }
 
+/////////////////////////////////////////////////
 int EnvironmentalDataLoader::TimeIndex() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->timeIndex;
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetTimeIndex(int _timeIndex)
 {
   {
@@ -190,12 +210,14 @@ void EnvironmentalDataLoader::SetTimeIndex(int _timeIndex)
   this->IsConfiguredChanged();
 }
 
+/////////////////////////////////////////////////
 int EnvironmentalDataLoader::XIndex() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->xIndex;
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetXIndex(int _xIndex)
 {
   {
@@ -205,12 +227,14 @@ void EnvironmentalDataLoader::SetXIndex(int _xIndex)
   this->IsConfiguredChanged();
 }
 
+/////////////////////////////////////////////////
 int EnvironmentalDataLoader::YIndex() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->yIndex;
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetYIndex(int _yIndex)
 {
   {
@@ -220,12 +244,14 @@ void EnvironmentalDataLoader::SetYIndex(int _yIndex)
   this->IsConfiguredChanged();
 }
 
+/////////////////////////////////////////////////
 int EnvironmentalDataLoader::ZIndex() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   return this->dataPtr->zIndex;
 }
 
+/////////////////////////////////////////////////
 void EnvironmentalDataLoader::SetZIndex(int _zIndex)
 {
   {
@@ -235,6 +261,7 @@ void EnvironmentalDataLoader::SetZIndex(int _zIndex)
   this->IsConfiguredChanged();
 }
 
+/////////////////////////////////////////////////
 bool EnvironmentalDataLoader::IsConfigured() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
