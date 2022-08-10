@@ -9,12 +9,12 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/branch/main)
 Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-focal-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-focal-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
 Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
-Gazebo Sim is an open source robotics simulator. Through Gazebo, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
 Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
 
@@ -59,7 +59,7 @@ force-torque, IMU, GPS, and more, all powered by
 * **Plugins**: Develop custom plugins for robot, sensor, and
 environment control.
 
-* **Graphical interface**: Create, instrospect and interact with your simulations
+* **Graphical interface**: Create, introspect and interact with your simulations
 through plugin-based graphical interfaces powered by
 [Gazebo GUI](https://github.com/gazebosim/gz-gui).
 

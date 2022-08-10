@@ -504,7 +504,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     else
     {
       // Create the name for the marker
-      std::string name = "__IGN_MARKER_VISUAL_" + ns + "_" +
+      std::string name = "__GZ_MARKER_VISUAL_" + ns + "_" +
                          std::to_string(id);
 
       // Create the new marker

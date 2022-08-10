@@ -15,7 +15,10 @@
  *
 */
 
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <gz/msgs/pose.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -307,6 +310,126 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
   EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
   EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+}
+
+/////////////////////////////////////////////////
+TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "ackermann_steering_slow_odom.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system that records the vehicle poses
+  test::Relay testSystem;
+
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(),
+        components::Name("vehicle"));
+      EXPECT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check that vehicle didn't move
+  server.Run(true, 1000, false);
+
+  EXPECT_EQ(1000u, poses.size());
+
+  for (const auto &pose : poses)
+  {
+    EXPECT_EQ(poses[0], pose);
+  }
+
+  // Publish command and check that vehicle moved
+  double period{1.0};
+  double lastMsgTime{1.0};
+  std::vector<math::Pose3d> odomPoses;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      double msgTime =
+          static_cast<double>(_msg.header().stamp().sec()) +
+          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+      lastMsgTime = msgTime;
+
+      odomPoses.push_back(msgs::Convert(_msg.pose()));
+    };
+
+  // Capture Tf data to compare to odom
+  double periodTf{1.0};
+  double lastMsgTimeTf{1.0};
+  std::vector<math::Pose3d> tfPoses;
+  std::function<void(const msgs::Pose_V &)> tfCb =
+    [&](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose().Get(0).has_header());
+
+      double msgTime =
+          static_cast<double>(_msg.pose().Get(0).header().stamp().sec()) +
+          static_cast<double>(_msg.pose().Get(0).header().stamp().nsec()) *
+            1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, lastMsgTimeTf + periodTf);
+      lastMsgTimeTf = msgTime;
+
+      // Use position pose to match odom (index 0)
+      tfPoses.push_back(msgs::Convert(_msg.pose().Get(0)));
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  node.Subscribe("/model/vehicle/odometry", odomCb);
+  node.Subscribe("/model/vehicle/tf", tfCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 3000, false);
+
+  // Poses for 4s
+  EXPECT_EQ(4000u, poses.size());
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+
+  // There should have been the same amount of odom and tf
+  ASSERT_FALSE(odomPoses.empty());
+  ASSERT_FALSE(tfPoses.empty());
+  ASSERT_EQ(odomPoses.size(), tfPoses.size());
+
+  // Ensure all data is equal between the two topics
+  for (uint64_t i = 0; i < odomPoses.size(); i++)
+  {
+    ASSERT_EQ(odomPoses[i], tfPoses[i]);
+  }
 }
 
 /////////////////////////////////////////////////

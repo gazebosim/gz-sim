@@ -205,9 +205,9 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
 {
   if (_plugin.Filename() == "" || _plugin.Name() == "")
   {
-    ignerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _plugin.Filename() << "] " <<
-              "[(name): " << _plugin.Name() << "]." << std::endl;
+    gzerr << "Failed to instantiate system plugin: empty argument "
+             "[(filename): " << _plugin.Filename() << "] " <<
+             "[(name): " << _plugin.Name() << "]." << std::endl;
     return {};
   }
 

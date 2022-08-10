@@ -2337,7 +2337,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         animMesh = meshManager->Load(animFilename);
         if (animMesh->MeshSkeleton()->AnimationCount() > 1)
         {
-          ignwarn << "File [" << animFilename
+          gzwarn << "File [" << animFilename
                   << "] has more than one animation, "
                   << "but only the 1st one is used."
                   << std::endl;
@@ -2349,7 +2349,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
       if (nullptr == firstAnim)
       {
-        ignerr << "Failed to get animations from [" << animFilename
+        gzerr << "Failed to get animations from [" << animFilename
                << "]" << std::endl;
         mapAnimNameId.clear();
         break;
@@ -2375,8 +2375,8 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         // to meshSkel, changing the name that would also change the name of
         // other instances of the animation
         // todo(anyone) cloning is inefficient and error-prone. We should
-        // add a copy constructor to animation classes in ign-common.
-        // The proper fix is probably to update ign-rendering to allow it to
+        // add a copy constructor to animation classes in gz-common.
+        // The proper fix is probably to update gz-rendering to allow it to
         // load multiple animations of the same name
         common::SkeletonAnimation *skelAnim =
             new common::SkeletonAnimation(animName);
