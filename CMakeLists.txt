@@ -10,6 +10,7 @@ project(gz-sim7 VERSION 7.0.0)
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
 find_package(gz-cmake3 REQUIRED)
+set(GZ_CMAKE_VER ${gz-cmake3_VERSION_MAJOR})
 
 #============================================================================
 # Configure the project
@@ -220,7 +221,7 @@ set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
 #============================================================================
 gz_configure_build(QUIT_IF_BUILD_ERRORS)
 
-add_subdirectory(examples)
+add_subdirectory(examples/worlds)
 
 #============================================================================
 # Create package information
@@ -271,3 +272,29 @@ configure_file(
 install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
   DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)
+
+#============================================================================
+# Build examples
+#============================================================================
+if (BUILD_TESTING)
+  gz_build_examples(
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/examples
+    BINARY_DIR ${PROJECT_BINARY_DIR}/examples
+    COMPONENTS
+      gui
+    DEPENDENCIES
+      gz-cmake${GZ_CMAKE_VER}
+      gz-common${GZ_COMMON_VER}
+      gz-fuel_tools${GZ_FUEL_TOOLS_VER}
+      gz-gui${GZ_GUI_VER}
+      gz-transport${GZ_TRANSPORT_VER}
+      gz-math${GZ_MATH_VER}
+      gz-msgs${GZ_MSGS_VER}
+      gz-physics${GZ_PHYSICS_VER}
+      gz-plugin${GZ_PLUGIN_VER}
+      gz-rendering${GZ_RENDERING_VER}
+      gz-sensors${GZ_SENSORS_VER}
+      gz-utils${GZ_UTILS_VER}
+      sdformat${SDF_VER}
+  )
+endif()
