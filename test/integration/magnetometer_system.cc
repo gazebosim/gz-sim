@@ -81,13 +81,13 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Magnetometer,
                   components::Name,
                   components::WorldPose>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::Magnetometer *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose) -> bool
@@ -128,7 +128,7 @@ TEST_F(MagnetometerTest, RotatedMagnetometer)
   // Hardcoded SDF values
   math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
-  ignition::math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
+  math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
         worldMagneticField);
   mutex.lock();
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),

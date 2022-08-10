@@ -83,7 +83,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
             components::Name,
             components::Geometry,
             components::Transparency>(
-    [&](const ignition::gazebo::Entity &_entity,
+    [&](const Entity &_entity,
         const components::Visual *,
         const components::Name *_name,
         const components::Geometry *_geom,
@@ -105,12 +105,12 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       }
       mat->SetTransparency(_transparency->Data());
 
-      const ignition::common::Mesh *mesh;
-      std::weak_ptr<ignition::common::SubMesh> subm;
+      const common::Mesh *mesh;
+      std::weak_ptr<common::SubMesh> subm;
       math::Vector3d scale;
       math::Matrix4d matrix(worldPose);
-      ignition::common::MeshManager *meshManager =
-          ignition::common::MeshManager::Instance();
+      common::MeshManager *meshManager =
+          common::MeshManager::Instance();
 
       auto addSubmeshFunc = [&](int i) {
           subm = worldMesh.AddSubMesh(

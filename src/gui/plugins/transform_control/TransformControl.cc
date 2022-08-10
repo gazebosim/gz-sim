@@ -120,14 +120,14 @@ void TransformControl::OnSnapUpdate(
 /////////////////////////////////////////////////
 void TransformControl::OnMode(const QString &_mode)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting transform mode" << std::endl;
   };
 
-  ignition::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(_mode.toStdString());
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
@@ -186,7 +186,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -275,5 +275,5 @@ double TransformControl::scaleZSnap()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TransformControl,
+IGNITION_ADD_PLUGIN(TransformControl,
                     ignition::gui::Plugin)

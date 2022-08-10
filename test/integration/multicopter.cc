@@ -79,7 +79,7 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -95,8 +95,8 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
       });
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info,
+          const EntityComponentManager &_ecm)
       {
         // Command a motor speed
         // After nIters iterations, check angular velocity of each of the rotors
@@ -144,7 +144,7 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
 
   const std::size_t nIters{2000};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -182,8 +182,8 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
   };
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info,
+          const EntityComponentManager &_ecm)
       {
         if (!iterTestStart.has_value())
         {
@@ -251,7 +251,7 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
   auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
 
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -285,8 +285,8 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
       node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &,
+          const EntityComponentManager &_ecm)
       {
         // Publish a motor speed command
         {

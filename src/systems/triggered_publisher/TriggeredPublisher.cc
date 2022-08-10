@@ -664,7 +664,7 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 }
 
 IGNITION_ADD_PLUGIN(TriggeredPublisher,
-                    ignition::gazebo::System,
+                    System,
                     TriggeredPublisher::ISystemConfigure)
 
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,

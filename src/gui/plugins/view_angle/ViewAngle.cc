@@ -82,14 +82,14 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void ViewAngle::OnAngleMode(int _x, int _y, int _z)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting view angle mode" << std::endl;
   };
 
-  ignition::msgs::Vector3d req;
+  msgs::Vector3d req;
   req.set_x(_x);
   req.set_y(_y);
   req.set_z(_z);
@@ -116,14 +116,14 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
 {
   this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending move camera to pose request" << std::endl;
   };
 
-  ignition::msgs::GUICamera req;
+  msgs::GUICamera req;
   msgs::Set(req.mutable_pose(), this->dataPtr->camPose);
 
   this->dataPtr->node.Request(this->dataPtr->moveToPoseService, req, cb);
@@ -143,5 +143,5 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,
+IGNITION_ADD_PLUGIN(ViewAngle,
                     ignition::gui::Plugin)

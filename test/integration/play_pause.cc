@@ -36,13 +36,13 @@ uint64_t kIterations;
 // Send a world control message.
 void worldControl(bool _paused, uint64_t _steps)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [&](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [&](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     EXPECT_TRUE(_result);
   };
 
-  ignition::msgs::WorldControl req;
+  msgs::WorldControl req;
   req.set_pause(_paused);
   req.set_multi_step(_steps);
   transport::Node node;
@@ -58,8 +58,8 @@ void testPaused(bool _paused)
   transport::Node node;
   bool paused = !_paused;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb =
+      [&](const msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -81,8 +81,8 @@ uint64_t iterations()
   transport::Node node;
   uint64_t iterations = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb =
+      [&](const msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     iterations = _msg.iterations();

@@ -56,7 +56,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE void cmdVerbosity(
     const char *_verbosity)
 {
   int verbosity = std::atoi(_verbosity);
-  ignition::common::Console::SetVerbosity(verbosity);
+  common::Console::SetVerbosity(verbosity);
 
   // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
   // console output with zero verbosity.
@@ -78,17 +78,17 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
 {
   std::string path;
   std::string worldPath;
-  ignition::fuel_tools::FuelClient fuelClient;
+  fuel_tools::FuelClient fuelClient;
 
   // Attempt to find cached copy, and then attempt download
-  if (fuelClient.CachedWorld(ignition::common::URI(_pathToResource), path))
+  if (fuelClient.CachedWorld(common::URI(_pathToResource), path))
   {
     ignmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
   // cppcheck-suppress syntaxError
-  else if (ignition::fuel_tools::Result result =
-    fuelClient.DownloadWorld(ignition::common::URI(_pathToResource), path);
+  else if (fuel_tools::Result result =
+    fuelClient.DownloadWorld(common::URI(_pathToResource), path);
     result)
   {
     ignmsg << "Successfully downloaded world from fuel." << std::endl;
@@ -101,20 +101,20 @@ extern "C" IGNITION_GAZEBO_VISIBLE const char *findFuelResource(
     return "";
   }
 
-  if (!ignition::common::exists(worldPath))
+  if (!common::exists(worldPath))
     return "";
 
 
   // Find the first sdf file in the world path for now, the later intention is
   // to load an optional world config file first and if that does not exist,
   // continue to load the first sdf file found as done below
-  for (ignition::common::DirIter file(worldPath);
-       file != ignition::common::DirIter(); ++file)
+  for (common::DirIter file(worldPath);
+       file != common::DirIter(); ++file)
   {
     std::string current(*file);
-    if (ignition::common::isFile(current))
+    if (common::isFile(current))
     {
-      std::string fileName = ignition::common::basename(current);
+      std::string fileName = common::basename(current);
       std::string::size_type fileExtensionIndex = fileName.rfind(".");
       std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
 
@@ -137,7 +137,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_file, const char *_recordTopics, int _waitGui)
 {
   std::string startingWorldPath{""};
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
 
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
@@ -172,7 +172,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
-  if (!std::string(1, cmpPath.back()).compare(ignition::common::separator("")))
+  if (!std::string(1, cmpPath.back()).compare(common::separator("")))
   {
     // Remove the separator at end of path
     cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
@@ -200,7 +200,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
       // Update compressed file path to name of recording directory path
       cmpPath = std::string(recordPathMod);
-      if (!std::string(1, cmpPath.back()).compare(ignition::common::separator(
+      if (!std::string(1, cmpPath.back()).compare(common::separator(
         "")))
       {
         // Remove the separator at end of path
@@ -209,8 +209,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       cmpPath += ".zip";
 
       // Check if path or compressed file with same prefix exists
-      if (ignition::common::exists(recordPathMod) ||
-        ignition::common::exists(cmpPath))
+      if (common::exists(recordPathMod) ||
+        common::exists(cmpPath))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
@@ -218,15 +218,15 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
           bool recordMsg = false;
           bool cmpMsg = false;
           // Remove files before initializing console log files on top of them
-          if (ignition::common::exists(recordPathMod))
+          if (common::exists(recordPathMod))
           {
             recordMsg = true;
-            ignition::common::removeAll(recordPathMod);
+            common::removeAll(recordPathMod);
           }
-          if (ignition::common::exists(cmpPath))
+          if (common::exists(cmpPath))
           {
             cmpMsg = true;
-            ignition::common::removeFile(cmpPath);
+            common::removeFile(cmpPath);
           }
 
           // Create log file before printing any messages so they can be logged
@@ -253,7 +253,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
         {
           // Remove the separator at end of path
           if (!std::string(1, recordPathMod.back()).compare(
-            ignition::common::separator("")))
+            common::separator("")))
           {
             recordPathMod = recordPathMod.substr(0, recordPathMod.length()
               - 1);
@@ -264,8 +264,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
 
           // Keep renaming until path does not exist for both directory and
           // compressed file
-          while (ignition::common::exists(recordPathMod) ||
-            ignition::common::exists(cmpPath))
+          while (common::exists(recordPathMod) ||
+            common::exists(cmpPath))
           {
             recordPathMod = recordOrigPrefix +  "(" + std::to_string(count++) +
               ")";
@@ -273,7 +273,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
             cmpPath = std::string(recordPathMod);
             // Remove the separator at end of path
             if (!std::string(1, cmpPath.back()).compare(
-              ignition::common::separator("")))
+              common::separator("")))
             {
               cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
             }
@@ -314,7 +314,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
       serverConfig.SetLogRecordPath(recordPathMod);
     }
 
-    std::vector<std::string> topics = ignition::common::split(
+    std::vector<std::string> topics = common::split(
         _recordTopics, ":");
     for (const std::string &topic : topics)
     {
@@ -381,7 +381,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     else
     {
       ignmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(ignition::common::absPath(
+      serverConfig.SetLogPlaybackPath(common::absPath(
         std::string(_playback)));
     }
   }
@@ -402,7 +402,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  gazebo::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
@@ -426,6 +426,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return ignition::gazebo::gui::runGui(
+  return gazebo::gui::runGui(
     argc, &argv, _guiConfig, _file, _waitGui);
 }

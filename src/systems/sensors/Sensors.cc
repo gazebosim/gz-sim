@@ -108,10 +108,10 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: ignition::common::ConnectionPtr stopConn;
+  public: common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
-  public: ignition::common::Time updateTime;
+  public: common::Time updateTime;
 
   /// \brief Sensors to include in the next rendering iteration
   public: std::vector<sensors::RenderingSensor *> activeSensors;
@@ -120,7 +120,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorMaskMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId, ignition::common::Time> sensorMask;
+  public: std::map<sensors::SensorId, common::Time> sensorMask;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
@@ -242,7 +242,7 @@ void SensorsPrivate::RunOnce()
     for (const auto & sensor : this->activeSensors)
     {
       // 90% of update delta (1/UpdateRate());
-      ignition::common::Time delta(0.9 / sensor->UpdateRate());
+      common::Time delta(0.9 / sensor->UpdateRate());
       this->sensorMask[sensor->Id()] = this->updateTime + delta;
     }
     this->sensorMaskMutex.unlock();

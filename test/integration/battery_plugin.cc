@@ -57,15 +57,15 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<MockSystem *>(
+        systemPtr->QueryInterface<System>());
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: SystemPluginPtr systemPtr;
+  public: MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: SystemLoader sm;
 };
 
 
@@ -83,9 +83,9 @@ TEST_F(BatteryPluginTest, SingleBattery)
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 

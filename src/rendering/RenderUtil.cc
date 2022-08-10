@@ -121,7 +121,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine{nullptr};
+  public: rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -1190,7 +1190,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
-  ignition::common::SystemPaths pluginPath;
+  common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
 

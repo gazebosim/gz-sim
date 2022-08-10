@@ -39,7 +39,7 @@ class ignition::gazebo::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -64,7 +64,7 @@ class ignition::gazebo::systems::JointControllerPrivate
   public: bool useForceCommands{false};
 
   /// \brief Velocity PID controller.
-  public: ignition::math::PID velPid;
+  public: math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -152,8 +152,8 @@ void JointController::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void JointController::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointController::PreUpdate");
 
@@ -242,7 +242,7 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointController,
-                    ignition::gazebo::System,
+                    System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 

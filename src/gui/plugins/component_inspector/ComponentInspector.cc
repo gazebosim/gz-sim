@@ -110,7 +110,7 @@ using namespace gazebo;
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -127,7 +127,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
+void gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -140,7 +140,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item,
+void gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -154,7 +154,7 @@ void ignition::gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
+void gazebo::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -166,7 +166,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
+void gazebo::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -178,14 +178,14 @@ void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
+void gazebo::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
+void gazebo::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -197,7 +197,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+void gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -211,7 +211,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 }
 
 //////////////////////////////////////////////////
-void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
+void gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -240,7 +240,7 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 QStandardItem *ComponentsModel::AddComponentType(
-    ignition::gazebo::ComponentTypeId _typeId)
+    ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::AddComponentType");
@@ -271,7 +271,7 @@ QStandardItem *ComponentsModel::AddComponentType(
 
 /////////////////////////////////////////////////
 void ComponentsModel::RemoveComponentType(
-      ignition::gazebo::ComponentTypeId _typeId)
+      ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::RemoveComponentType");
@@ -307,7 +307,7 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
@@ -693,7 +693,7 @@ void ComponentInspector::Update(const UpdateInfo &,
       QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
           "RemoveComponentType",
           Qt::QueuedConnection,
-          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
+          Q_ARG(ComponentTypeId, typeId));
     }
   }
 }
@@ -710,7 +710,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -719,7 +719,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -797,14 +797,14 @@ void ComponentInspector::SetPaused(bool _paused)
 /////////////////////////////////////////////////
 void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
         ignerr << "Error setting physics parameters" << std::endl;
   };
 
-  ignition::msgs::Physics req;
+  msgs::Physics req;
   req.set_max_step_size(_stepSize);
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
@@ -837,5 +837,5 @@ transport::Node &ComponentInspector::TransportNode()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspector,
+IGNITION_ADD_PLUGIN(ComponentInspector,
                     ignition::gui::Plugin)

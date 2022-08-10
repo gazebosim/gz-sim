@@ -331,7 +331,7 @@ TEST_F(LogSystemTest, LogDefaults)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
@@ -415,7 +415,7 @@ TEST_F(LogSystemTest, LogDefaults)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -471,7 +471,7 @@ TEST_F(LogSystemTest, LogPaths)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -693,7 +693,7 @@ TEST_F(LogSystemTest, LogPaths)
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -1159,7 +1159,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -1222,7 +1222,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   common::removeAll(timestampPath);
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Test case 4:
   // Path exists, command line --log-overwrite, should overwrite by
@@ -1713,7 +1713,7 @@ TEST_F(LogSystemTest, LogResources)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1778,7 +1778,7 @@ TEST_F(LogSystemTest, LogResources)
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1800,7 +1800,7 @@ TEST_F(LogSystemTest, LogTopics)
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");

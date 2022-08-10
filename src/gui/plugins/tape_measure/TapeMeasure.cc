@@ -150,8 +150,8 @@ void TapeMeasure::Reset()
   this->DeleteMarker(this->dataPtr->kLineId);
 
   this->dataPtr->currentId = this->dataPtr->kStartPointId;
-  this->dataPtr->startPoint = ignition::math::Vector3d::Zero;
-  this->dataPtr->endPoint = ignition::math::Vector3d::Zero;
+  this->dataPtr->startPoint = math::Vector3d::Zero;
+  this->dataPtr->endPoint = math::Vector3d::Zero;
   this->dataPtr->distance = 0.0;
   this->dataPtr->measure = false;
   this->newDistance();
@@ -179,51 +179,51 @@ void TapeMeasure::DeleteMarker(int _id)
     return;
 
   // Delete the previously created marker
-  ignition::msgs::Marker markerMsg;
+  msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
   markerMsg.set_id(_id);
-  markerMsg.set_action(ignition::msgs::Marker::DELETE_MARKER);
+  markerMsg.set_action(msgs::Marker::DELETE_MARKER);
   this->dataPtr->node.Request("/marker", markerMsg);
   this->dataPtr->placedMarkers.erase(_id);
 }
 
 /////////////////////////////////////////////////
 void TapeMeasure::DrawPoint(int _id,
-    ignition::math::Vector3d &_point, ignition::math::Color &_color)
+    math::Vector3d &_point, math::Color &_color)
 {
   this->DeleteMarker(_id);
 
-  ignition::msgs::Marker markerMsg;
+  msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
   markerMsg.set_id(_id);
-  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_type(ignition::msgs::Marker::SPHERE);
-  ignition::msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
-  ignition::msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
-  ignition::msgs::Set(markerMsg.mutable_scale(),
-    ignition::math::Vector3d(0.1, 0.1, 0.1));
-  ignition::msgs::Set(markerMsg.mutable_pose(),
-    ignition::math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
+  markerMsg.set_action(msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(msgs::Marker::SPHERE);
+  msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
+  msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
+  msgs::Set(markerMsg.mutable_scale(),
+    math::Vector3d(0.1, 0.1, 0.1));
+  msgs::Set(markerMsg.mutable_pose(),
+    math::Pose3d(_point.X(), _point.Y(), _point.Z(), 0, 0, 0));
 
   this->dataPtr->node.Request("/marker", markerMsg);
   this->dataPtr->placedMarkers.insert(_id);
 }
 
 /////////////////////////////////////////////////
-void TapeMeasure::DrawLine(int _id, ignition::math::Vector3d &_startPoint,
-    ignition::math::Vector3d &_endPoint, ignition::math::Color &_color)
+void TapeMeasure::DrawLine(int _id, math::Vector3d &_startPoint,
+    math::Vector3d &_endPoint, math::Color &_color)
 {
   this->DeleteMarker(_id);
 
-  ignition::msgs::Marker markerMsg;
+  msgs::Marker markerMsg;
   markerMsg.set_ns(this->dataPtr->ns);
   markerMsg.set_id(_id);
-  markerMsg.set_action(ignition::msgs::Marker::ADD_MODIFY);
-  markerMsg.set_type(ignition::msgs::Marker::LINE_LIST);
-  ignition::msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
-  ignition::msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
-  ignition::msgs::Set(markerMsg.add_point(), _startPoint);
-  ignition::msgs::Set(markerMsg.add_point(), _endPoint);
+  markerMsg.set_action(msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(msgs::Marker::LINE_LIST);
+  msgs::Set(markerMsg.mutable_material()->mutable_ambient(), _color);
+  msgs::Set(markerMsg.mutable_material()->mutable_diffuse(), _color);
+  msgs::Set(markerMsg.add_point(), _startPoint);
+  msgs::Set(markerMsg.add_point(), _endPoint);
 
   this->dataPtr->node.Request("/marker", markerMsg);
   this->dataPtr->placedMarkers.insert(_id);
@@ -241,7 +241,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
     if (this->dataPtr->measure && hoverToSceneEvent)
     {
-      ignition::math::Vector3d point = hoverToSceneEvent->Point();
+      math::Vector3d point = hoverToSceneEvent->Point();
       this->DrawPoint(this->dataPtr->currentId, point,
         this->dataPtr->hoverColor);
 
@@ -265,7 +265,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
     if (this->dataPtr->measure && leftClickToSceneEvent)
     {
-      ignition::math::Vector3d point = leftClickToSceneEvent->Point();
+      math::Vector3d point = leftClickToSceneEvent->Point();
       this->DrawPoint(this->dataPtr->currentId, point,
         this->dataPtr->drawColor);
       // If the user is placing the start point, update its position
@@ -329,5 +329,5 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TapeMeasure,
+IGNITION_ADD_PLUGIN(TapeMeasure,
                     ignition::gui::Plugin)

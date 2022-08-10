@@ -38,31 +38,31 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using IntComponent = components::Component<int, class IntComponentTag>;
+using IntComponent = Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
-using UIntComponent = components::Component<int, class IntComponentTag>;
+using UIntComponent = Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
     UIntComponent)
 
-using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+using DoubleComponent = Component<double, class DoubleComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
-    components::Component<std::string, class StringComponentTag>;
+    Component<std::string, class StringComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
     StringComponent)
 
-using BoolComponent = components::Component<bool, class BoolComponentTag>;
+using BoolComponent = Component<bool, class BoolComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
     BoolComponent)
 
-using Even = components::Component<components::NoData, class EvenTag>;
+using Even = Component<NoData, class EvenTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
 
-using Odd = components::Component<components::NoData, class OddTag>;
+using Odd = Component<NoData, class OddTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
 
 struct Custom
@@ -70,7 +70,7 @@ struct Custom
   int dummy{123};
 };
 
-using CustomComponent = components::Component<Custom, class CustomTag>;
+using CustomComponent = Component<Custom, class CustomTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CustomComponent",
     CustomComponent)
 }
@@ -103,7 +103,7 @@ class EntityComponentManagerFixture
 /////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
 {
-  std::vector<components::Pose> poses;
+  std::vector<Pose> poses;
   std::vector<ComponentKey> keys;
 
   int count = 10;
@@ -114,7 +114,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   // Create the components.
   for (int i = 0; i < count; ++i)
   {
-    poses.push_back(components::Pose(math::Pose3d(
+    poses.push_back(Pose(math::Pose3d(
           math::Rand::IntNormal(10, 5),
           math::Rand::IntNormal(100, 50),
           math::Rand::IntNormal(-100, 30), 0, 0, 0)));
@@ -130,16 +130,16 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
   // Check the component values.
   for (int i = 0; i < count; ++i)
   {
-    EXPECT_EQ(poses[i], *(manager.Component<components::Pose>(keys[i])));
+    EXPECT_EQ(poses[i], *(manager.Component<Pose>(keys[i])));
   }
   {
-    uintptr_t poseSize = sizeof(components::Pose);
-    const components::Pose *pose = nullptr, *prevPose = nullptr;
+    uintptr_t poseSize = sizeof(Pose);
+    const Pose *pose = nullptr, *prevPose = nullptr;
 
     // Check that each component is adjacent in memory
     for (int i = 0; i < count; ++i)
     {
-      pose = manager.Component<components::Pose>(keys[i]);
+      pose = manager.Component<Pose>(keys[i]);
       if (prevPose != nullptr)
       {
         EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
@@ -153,9 +153,9 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
     const math::Pose3d *poseData = nullptr, *prevPoseData = nullptr;
     for (int i = 0; i < count; ++i)
     {
-      poseData = &(manager.Component<components::Pose>(keys[i])->Data());
+      poseData = &(manager.Component<Pose>(keys[i])->Data());
       uintptr_t poseDataSize = sizeof(math::Pose3d) +
-        sizeof(components::BaseComponent);
+        sizeof(BaseComponent);
       if (prevPoseData != nullptr)
       {
         EXPECT_EQ(poseDataSize, reinterpret_cast<uintptr_t>(poseData) -
@@ -169,7 +169,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemorySingleComponentType)
 /////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
 {
-  std::vector<components::Pose> poses;
+  std::vector<Pose> poses;
   std::vector<IntComponent> ints;
   std::vector<ComponentKey> poseKeys;
   std::vector<ComponentKey> intKeys;
@@ -182,7 +182,7 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   // Create the components.
   for (int i = 0; i < count; ++i)
   {
-    poses.push_back(components::Pose(math::Pose3d(1, 2, 3, 0, 0, 0)));
+    poses.push_back(Pose(math::Pose3d(1, 2, 3, 0, 0, 0)));
     ints.push_back(IntComponent(i));
 
     poseKeys.push_back(manager.CreateComponent(entity, poses.back()));
@@ -198,15 +198,15 @@ TEST_P(EntityComponentManagerFixture, AdjacentMemoryTwoComponentTypes)
   ASSERT_EQ(static_cast<size_t>(count), poseKeys.size());
   ASSERT_EQ(static_cast<size_t>(count), intKeys.size());
 
-  uintptr_t poseSize = sizeof(components::Pose);
+  uintptr_t poseSize = sizeof(Pose);
   uintptr_t intSize = sizeof(IntComponent);
-  const components::Pose *pose = nullptr, *prevPose = nullptr;
+  const Pose *pose = nullptr, *prevPose = nullptr;
   const IntComponent *it = nullptr, *prevIt = nullptr;
 
   // Check that each component is adjacent in memory
   for (int i = 0; i < count; ++i)
   {
-    pose = manager.Component<components::Pose>(poseKeys[i]);
+    pose = manager.Component<Pose>(poseKeys[i]);
     it = manager.Component<IntComponent>(intKeys[i]);
     if (prevPose != nullptr)
     {
@@ -307,7 +307,7 @@ TEST_P(EntityComponentManagerFixture, RemoveComponent)
 // adjacent to each other.
 TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
 {
-  std::vector<components::Pose> poses;
+  std::vector<Pose> poses;
   std::vector<ComponentKey> keys;
 
   Entity entity = manager.CreateEntity();
@@ -317,19 +317,19 @@ TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
   // Create the components.
   for (int i = 0; i < count; ++i)
   {
-    poses.push_back(components::Pose(math::Pose3d(1, 2, 3, 0, 0, 0)));
+    poses.push_back(Pose(math::Pose3d(1, 2, 3, 0, 0, 0)));
     keys.push_back(manager.CreateComponent(entity, poses.back()));
     EXPECT_EQ(keys.back().second, i);
   }
   ASSERT_EQ(poses.size(), keys.size());
 
-  uintptr_t poseSize = sizeof(components::Pose);
-  const components::Pose *pose = nullptr, *prevPose = nullptr;
+  uintptr_t poseSize = sizeof(Pose);
+  const Pose *pose = nullptr, *prevPose = nullptr;
 
   // Check that each component is adjacent in memory
   for (int i = 0; i < count; ++i)
   {
-    pose = manager.Component<components::Pose>(keys[i]);
+    pose = manager.Component<Pose>(keys[i]);
     if (prevPose != nullptr)
     {
       EXPECT_EQ(poseSize, reinterpret_cast<uintptr_t>(pose) -
@@ -347,10 +347,10 @@ TEST_P(EntityComponentManagerFixture, RemoveAdjacent)
   EXPECT_FALSE(manager.RemoveComponent(entity, keys[1]));
 
   // Check that the two remaining components are still adjacent in memory
-  const components::Pose *pose1 =
-    manager.Component<components::Pose>(keys[0]);
-  const components::Pose *pose3 =
-    manager.Component<components::Pose>(keys[2]);
+  const Pose *pose1 =
+    manager.Component<Pose>(keys[0]);
+  const Pose *pose3 =
+    manager.Component<Pose>(keys[2]);
   EXPECT_EQ(poseSize,
       reinterpret_cast<uintptr_t>(pose3) - reinterpret_cast<uintptr_t>(pose1));
 }
@@ -366,33 +366,33 @@ TEST_P(EntityComponentManagerFixture, RemoveAddAdjacent)
   std::vector<ComponentKey> keys;
 
   keys.push_back(manager.CreateComponent(entity,
-        components::Pose(math::Pose3d(1, 2, 3, 0, 0, 0))));
+        Pose(math::Pose3d(1, 2, 3, 0, 0, 0))));
   keys.push_back(manager.CreateComponent(entity,
-        components::Pose(math::Pose3d(3, 1, 2, 0, 0, 0))));
+        Pose(math::Pose3d(3, 1, 2, 0, 0, 0))));
   keys.push_back(manager.CreateComponent(entity,
-        components::Pose(math::Pose3d(0, 10, 20, 0, 0, 0))));
+        Pose(math::Pose3d(0, 10, 20, 0, 0, 0))));
 
-  uintptr_t poseSize = sizeof(components::Pose);
+  uintptr_t poseSize = sizeof(Pose);
 
   // Remove the middle component.
   EXPECT_TRUE(manager.RemoveComponent(entity, keys[1]));
 
   // Add two more new component
   keys.push_back(manager.CreateComponent(entity,
-        components::Pose(math::Pose3d(101, 51, 520, 0, 0, 0))));
+        Pose(math::Pose3d(101, 51, 520, 0, 0, 0))));
 
   keys.push_back(manager.CreateComponent(entity,
-        components::Pose(math::Pose3d(1010, 81, 821, 0, 0, 0))));
+        Pose(math::Pose3d(1010, 81, 821, 0, 0, 0))));
 
   // Check that the components are all adjacent in memory
-  const components::Pose *pose1 =
-    manager.Component<components::Pose>(keys[0]);
-  const components::Pose *pose2 =
-    manager.Component<components::Pose>(keys[2]);
-  const components::Pose *pose3 =
-    manager.Component<components::Pose>(keys[3]);
-  const components::Pose *pose4 =
-    manager.Component<components::Pose>(keys[4]);
+  const Pose *pose1 =
+    manager.Component<Pose>(keys[0]);
+  const Pose *pose2 =
+    manager.Component<Pose>(keys[2]);
+  const Pose *pose3 =
+    manager.Component<Pose>(keys[3]);
+  const Pose *pose4 =
+    manager.Component<Pose>(keys[4]);
 
   EXPECT_EQ(poseSize,
       reinterpret_cast<uintptr_t>(pose2) - reinterpret_cast<uintptr_t>(pose1));
@@ -404,10 +404,10 @@ TEST_P(EntityComponentManagerFixture, RemoveAddAdjacent)
       reinterpret_cast<uintptr_t>(pose4) - reinterpret_cast<uintptr_t>(pose3));
 
   // Check the values of the components.
-  EXPECT_EQ(components::Pose(math::Pose3d(1, 2, 3, 0, 0, 0)), *pose1);
-  EXPECT_EQ(components::Pose(math::Pose3d(0, 10, 20, 0, 0, 0)), *pose2);
-  EXPECT_EQ(components::Pose(math::Pose3d(101, 51, 520, 0, 0, 0)), *pose3);
-  EXPECT_EQ(components::Pose(math::Pose3d(1010, 81, 821, 0, 0, 0)), *pose4);
+  EXPECT_EQ(Pose(math::Pose3d(1, 2, 3, 0, 0, 0)), *pose1);
+  EXPECT_EQ(Pose(math::Pose3d(0, 10, 20, 0, 0, 0)), *pose2);
+  EXPECT_EQ(Pose(math::Pose3d(101, 51, 520, 0, 0, 0)), *pose3);
+  EXPECT_EQ(Pose(math::Pose3d(1010, 81, 821, 0, 0, 0)), *pose4);
 }
 
 /////////////////////////////////////////////////
@@ -498,8 +498,8 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
   manager.CreateComponent<DoubleComponent>(eDouble, DoubleComponent(0.123));
   manager.CreateComponent<IntComponent>(eIntDouble, IntComponent(456));
   manager.CreateComponent<DoubleComponent>(eIntDouble, DoubleComponent(0.456));
-  manager.CreateComponent<components::Pose>(ePose,
-      components::Pose({1, 2, 3, 0, 0, 0}));
+  manager.CreateComponent<Pose>(ePose,
+      Pose({1, 2, 3, 0, 0, 0}));
   manager.CreateComponent<CustomComponent>(eCustom,
       CustomComponent(Custom()));
 
@@ -565,19 +565,19 @@ TEST_P(EntityComponentManagerFixture, ComponentValues)
   }
 
   {
-    const auto *value = manager.Component<components::Pose>(ePose);
+    const auto *value = manager.Component<Pose>(ePose);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), value->Data());
 
-    auto data = manager.ComponentData<components::Pose>(ePose);
+    auto data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), data);
 
-    EXPECT_TRUE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_TRUE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
-    data = manager.ComponentData<components::Pose>(ePose);
+    data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), data);
 
-    EXPECT_FALSE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_FALSE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
   }
 
@@ -1515,11 +1515,11 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   EXPECT_TRUE(manager.SetParentEntity(e6, e2));
   EXPECT_TRUE(manager.SetParentEntity(e7, e2));
 
-  EXPECT_FALSE(manager.SetParentEntity(e1, gazebo::Entity(1000)));
-  EXPECT_FALSE(manager.SetParentEntity(gazebo::Entity(1000), e1));
+  EXPECT_FALSE(manager.SetParentEntity(e1, Entity(1000)));
+  EXPECT_FALSE(manager.SetParentEntity(Entity(1000), e1));
 
   // Check their parents
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e1));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e1));
   EXPECT_EQ(e1, manager.ParentEntity(e2));
   EXPECT_EQ(e1, manager.ParentEntity(e3));
   EXPECT_EQ(e2, manager.ParentEntity(e4));
@@ -1528,8 +1528,8 @@ TEST_P(EntityComponentManagerFixture, EntityGraph)
   EXPECT_EQ(e2, manager.ParentEntity(e7));
 
   // Detach from graph
-  EXPECT_TRUE(manager.SetParentEntity(e7, gazebo::kNullEntity));
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e7));
+  EXPECT_TRUE(manager.SetParentEntity(e7, kNullEntity));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e7));
 
   // Reparent
   EXPECT_TRUE(manager.SetParentEntity(e5, e3));
@@ -2210,11 +2210,11 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
 
   // create an entity and component
   auto entity = originalECMStateMap.CreateEntity();
-  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+  originalECMStateMap.CreateComponent(entity, IntComponent(1));
 
   int foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -2226,8 +2226,8 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -2237,12 +2237,12 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
 
   // modify a component and then share the update with the other ECM
   stateMapMsg.Clear();
-  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.SetComponentData<IntComponent>(entity, 2);
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());
@@ -2256,8 +2256,8 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   EntityComponentManager otherECMState;
 
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -2265,13 +2265,13 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   EXPECT_EQ(0, foundEntities);
 
   entity = originalECMState.CreateEntity();
-  originalECMState.CreateComponent(entity, components::IntComponent(1));
+  originalECMState.CreateComponent(entity, IntComponent(1));
 
   auto stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -2280,12 +2280,12 @@ TEST_P(EntityComponentManagerFixture, StateMsgUpdateComponent)
   EXPECT_EQ(1, foundEntities);
 
   stateMsg.Clear();
-  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMState.SetComponentData<IntComponent>(entity, 2);
   stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());

@@ -83,21 +83,21 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+  public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+  public: bool SceneGraphService(msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+  public: bool StateService(msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -523,7 +523,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Scene info topic
   std::string sceneTopic{"/world/" + _worldName + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<msgs::Scene>(sceneTopic);
 
   ignmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
@@ -532,7 +532,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{"/world/" + _worldName + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<msgs::UInt32_V>(deletionTopic);
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
@@ -541,7 +541,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{"/world/" + _worldName + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<msgs::SerializedStepMap>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -570,7 +570,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -589,7 +589,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const ignition::msgs::StringMsg &_req)
+    const msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -598,7 +598,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStepMap &_res)
+    msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -620,7 +620,7 @@ bool SceneBroadcasterPrivate::StateService(
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -890,22 +890,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }
@@ -1148,7 +1148,7 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 
 
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
-                    ignition::gazebo::System,
+                    System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
 

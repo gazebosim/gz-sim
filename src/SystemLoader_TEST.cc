@@ -34,7 +34,7 @@ TEST(SystemLoader, Constructor)
   gazebo::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
-  auto testBuildPath = ignition::common::joinPaths(
+  auto testBuildPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
 

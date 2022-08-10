@@ -142,8 +142,8 @@ TEST_F(PosePublisherTest, PublishCmd)
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -190,7 +190,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
            common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
     });
@@ -237,7 +237,7 @@ TEST_F(PosePublisherTest, PublishCmd)
 
   // sort the pose msgs according to timestamp
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
-      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+      const msgs::Pose &_l, const msgs::Pose &_r)
   {
     common::Time lt(_l.header().stamp().sec(), _l.header().stamp().nsec());
     common::Time rt(_r.header().stamp().sec(), _r.header().stamp().nsec());
@@ -427,8 +427,8 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps, &staticPoseTimestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -475,7 +475,7 @@ TEST_F(PosePublisherTest, StaticPosePublisher)
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
           common::Time(simTimeSecNsec.first, simTimeSecNsec.second));
       staticPoseTimestamps.push_back(
