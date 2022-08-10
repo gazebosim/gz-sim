@@ -60,6 +60,9 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
     const std::string &_namespace, double _density, double _viscosity,
     double _area, double _drag_coeff)
 {
+  // Maximum verbosity for debugging
+  ignition::common::Console::SetVerbosity(4);
+
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(_world);
@@ -69,7 +72,6 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
   Model model;
   Link body;
   std::vector<math::Vector3d> bodyVels;
-  double dt{0.0};
   fixture.
   OnConfigure(
     [&](const Entity &_worldEntity,
@@ -88,20 +90,26 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
 
       body = Link(bodyEntity);
       body.EnableVelocityChecks(_ecm);
+
     }).
-  OnPostUpdate([&](const UpdateInfo &_info,
+  OnPreUpdate([&](const UpdateInfo &/*_info*/,
+                            EntityComponentManager &_ecm)
+    {
+      // Add force
+      math::Vector3d force(0, 0, 10.0);
+      body.AddWorldForce(_ecm, force);
+    }).
+  OnPostUpdate([&](const UpdateInfo &/*_info*/,
                             const EntityComponentManager &_ecm)
     {
-      dt = std::chrono::duration<double>(_info.dt).count();
-
       auto bodyVel = body.WorldLinearVelocity(_ecm);
       ASSERT_TRUE(bodyVel);
       bodyVels.push_back(bodyVel.value());
     }).
   Finalize();
 
-  fixture.Server()->Run(true, 100, false);
-  EXPECT_EQ(100u, bodyVels.size());
+  fixture.Server()->Run(true, 2, false);
+  EXPECT_EQ(2u, bodyVels.size());
 
   EXPECT_NE(model.Entity(), kNullEntity);
   EXPECT_NE(body.Entity(), kNullEntity);
@@ -109,29 +117,26 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
 
   for (const auto &vel : bodyVels)
   {
-    EXPECT_EQ(math::Vector3d::Zero, vel);
+    EXPECT_NE(math::Vector3d::Zero, vel);
   }
-  bodyVels.clear();
 
-  // drag force
-  // double force{0.0};
-  
-  // drag force, F = 6 * pi * a * nu * v
-  // drag force, F = 0.5 * rho * u^2 * Cd * A
-  // terminal velocity, u = 2 * sqrt((3 * pi * a * nu * v)/(rho * Cd * A))
-  
-  for (unsigned int i = 25; i < bodyVels.size(); ++i)
+  for (unsigned int i = 0; i < bodyVels.size(); ++i)
   {
     auto bodyVel = bodyVels[i];
-    // It takes a few iterations to reach the terminal velocity
+
+    // drag force, F = 6 * pi * a * nu * v
+    // drag force, F = 0.5 * rho * u^2 * Cd * A
+    // terminal velocity, u = 2 * sqrt((3 * pi * a * nu * v)/(rho * Cd * A))
     auto terminalVel = 2 * sqrt((3 * IGN_PI * _area * _viscosity * bodyVel.Z())/
       (_density * _drag_coeff * _area));
+
     EXPECT_NEAR(terminalVel, bodyVel.Z(), 1e-2);
   }
+
 }
 
 /////////////////////////////////////////////////
-TEST_F(HydrodynamicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
+TEST_F(HydrodynamicsTest, VelocityTest)
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");
