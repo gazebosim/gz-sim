@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.0.0)
-set (GZ_DISTRIBUTION "Garden")
+project(gz-sim8 VERSION 8.0.0)
+# TODO(chapulina) Update name when it's chosen and the version bumped
+set (GZ_DISTRIBUTION "?")
 
 #============================================================================
 # Find gz-cmake
