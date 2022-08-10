@@ -254,7 +254,8 @@ std::unique_ptr<gz::gui::Application> createGui(
                 "Spawn",
                 "VisualizationCapabilities"};
 
-            std::string msg{"The [GzScene3D] GUI plugin has been removed since Garden. "
+            std::string msg{
+                "The [GzScene3D] GUI plugin has been removed since Garden. "
                 "Loading the following plugins instead:\n"};
 
             for (auto extra : extras)
