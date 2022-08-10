@@ -58,12 +58,12 @@ ToolBar {
   }
 
   function updateSnapValues() {
-    xEntry.value = TransformControl.xSnap();
-    yEntry.value = TransformControl.ySnap();
-    zEntry.value = TransformControl.zSnap();
-    rollEntry.value = TransformControl.rollSnap();
-    pitchEntry.value = TransformControl.pitchSnap();
-    yawEntry.value = TransformControl.yawSnap();
+    gzPoseInstance.xValue = TransformControl.xSnap();
+    gzPoseInstance.yValue = TransformControl.ySnap();
+    gzPoseInstance.zValue = TransformControl.zSnap();
+    gzPoseInstance.rollValue = TransformControl.rollSnap();
+    gzPoseInstance.pitchValue = TransformControl.pitchSnap();
+    gzPoseInstance.yawValue = TransformControl.yawSnap();
     // TODO(anyone) enable scale button when support is added in ign-physics
     // xScaleEntry.value = TransformControl.xScaleSnap()
     // yScaleEntry.value = TransformControl.yScaleSnap()
@@ -339,77 +339,9 @@ ToolBar {
           Layout.column: 0
           bottomPadding: 10
         }
+
         Text {
-          text: "X"
-          color: snapItem
-          Layout.row: 1
-          Layout.column: 0
-        }
-        IgnSpinBox {
-          id: xEntry
-          minimumValue: 0.01
-          maximumValue: 100.0
-          decimals: 2
-          stepSize: 0.01
-          value: 1
-          Layout.row: 1
-          Layout.column: 1
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
-          }
-        }
-        Text {
-          text: "Y"
-          color: snapItem
-          Layout.row: 2
-          Layout.column: 0
-        }
-        IgnSpinBox {
-          id: yEntry
-          minimumValue: 0.01
-          maximumValue: 100.0
-          decimals: 2
-          stepSize: 0.01
-          value: 1
-          Layout.row: 2
-          Layout.column: 1
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
-          }
-        }
-        Text {
-          text: "Z"
-          color: snapItem
-          Layout.row: 3
-          Layout.column: 0
-        }
-        IgnSpinBox {
-          id: zEntry
-          minimumValue: 0.01
-          maximumValue: 100.0
-          decimals: 2
-          stepSize: 0.01
-          value: 1
-          Layout.row: 3
-          Layout.column: 1
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
-          }
-        }
-        Text {
-          text: "Rotation (deg)"
+          text: "Rotation (rad)"
           font.weight: Font.Bold
           color: snapTitle
           Layout.columnSpan: 2
@@ -417,75 +349,30 @@ ToolBar {
           Layout.column: 2
           bottomPadding: 10
         }
-        Text {
-          text: "Roll"
-          color: snapItem
-          Layout.row: 1
-          Layout.column: 2
-        }
-        IgnSpinBox {
-          id: rollEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 1
-          Layout.column: 3
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
+
+        GzPose {
+          id: gzPoseInstance
+          width: parent.width
+          Layout.columnSpan: 6
+          Layout.fillWidth: true
+          readOnly: false
+          spinMax: 100.0
+
+          xValue: 1.0
+          yValue: 1.0
+          zValue: 1.0
+          // 0.785 is PI /4
+          rollValue: 0.785
+          pitchValue: 0.785
+          yawValue: 0.785
+
+          onGzPoseSet: {
+            // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+            // from gz-gui GzPose.qml
+            TransformControl.OnSnapUpdate(_x, _y, _z,_roll, _pitch, _yaw, 0, 0, 0)
           }
-        }
-        Text {
-          text: "Pitch"
-          color: snapItem
-          Layout.row: 2
-          Layout.column: 2
-        }
-        IgnSpinBox {
-          id: pitchEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 2
-          Layout.column: 3
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
-          }
-        }
-        Text {
-          text: "Yaw"
-          color: snapItem
-          Layout.row: 3
-          Layout.column: 2
-        }
-        IgnSpinBox {
-          id: yawEntry
-          minimumValue: 0.01
-          maximumValue: 180.0
-          decimals: 2
-          stepSize: 0.01
-          value: 45
-          Layout.row: 3
-          Layout.column: 3
-          onEditingFinished: {
-            TransformControl.OnSnapUpdate(
-              xEntry.value, yEntry.value, zEntry.value,
-              rollEntry.value, pitchEntry.value, yawEntry.value,
-              0, 0, 0
-            )
-          }
-        }
+          expand: true
+        } // gzPoseInstance ends
       }
     }
   }
