@@ -203,6 +203,8 @@ ToolBar {
     }
 
     GzPose {
+      y: 30
+      width: parent.width
       Layout.fillWidth: true
       readOnly: false
       xValue: ViewAngle.camPose[0]
