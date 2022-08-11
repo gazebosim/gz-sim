@@ -64,7 +64,7 @@ Rectangle {
   property double aEmissiveItem: model.data[15]
 
   // send new material color data to C++
-  function sendMaterialColor(_type, _currColor) {
+  function sendMaterialColor() {
     // console.log(rAmbientItem,
     //             gAmbientItem,
     //             bAmbientItem,
@@ -86,8 +86,7 @@ Rectangle {
       rDiffuseItem, gDiffuseItem, bDiffuseItem, aDiffuseItem,
       rSpecularItem, gSpecularItem, bSpecularItem, aSpecularItem,
       rEmissiveItem, gEmissiveItem, bEmissiveItem, aEmissiveItem,
-      _type,
-      _currColor
+      "", Qt.rgba(0, 0, 0, 0)  // dummy placeholders (no longer needed)
     );
   }
 
@@ -258,7 +257,7 @@ Rectangle {
                 gAmbientItem = ambientLoader.item.g
                 bAmbientItem = ambientLoader.item.b
                 aAmbientItem = ambientLoader.item.a
-                sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
+                sendMaterialColor()
               }
             }
           }
@@ -317,7 +316,7 @@ Rectangle {
                 gDiffuseItem = diffuseLoader.item.g
                 bDiffuseItem = diffuseLoader.item.b
                 aDiffuseItem = diffuseLoader.item.a
-                sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
+                sendMaterialColor()
               }
             }
           }
@@ -378,7 +377,7 @@ Rectangle {
                 gSpecularItem = specularLoader.item.g
                 bSpecularItem = specularLoader.item.b
                 aSpecularItem = specularLoader.item.a
-                sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
+                sendMaterialColor()
               }
             }
           }
@@ -437,7 +436,7 @@ Rectangle {
                 gEmissiveItem = emissiveLoader.item.g
                 bEmissiveItem = emissiveLoader.item.b
                 aEmissiveItem = emissiveLoader.item.a
-                sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
+                sendMaterialColor()
               }
             }
           }
