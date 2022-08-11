@@ -65,22 +65,6 @@ Rectangle {
 
   // send new material color data to C++
   function sendMaterialColor() {
-    // console.log(rAmbientItem,
-    //             gAmbientItem,
-    //             bAmbientItem,
-    //             aAmbientItem,
-    //             rDiffuseItem,
-    //             gDiffuseItem,
-    //             bDiffuseItem,
-    //             aDiffuseItem,
-    //             rSpecularItem,
-    //             gSpecularItem,
-    //             bSpecularItem,
-    //             aSpecularItem,
-    //             rEmissiveItem,
-    //             gEmissiveItem,
-    //             bEmissiveItem,
-    //             aEmissiveItem)
     componentInspector.onMaterialColor(
       rAmbientItem, gAmbientItem, bAmbientItem, aAmbientItem,
       rDiffuseItem, gDiffuseItem, bDiffuseItem, aDiffuseItem,

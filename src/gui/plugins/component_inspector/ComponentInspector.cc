@@ -1141,13 +1141,13 @@ void ComponentInspector::OnMaterialColor(
   req.set_id(this->dataPtr->entity);
 
   msgs::Set(req.mutable_material()->mutable_ambient(),
-    math::Color(_rAmbient, _gAmbient,_bAmbient, _aAmbient));
+    math::Color(_rAmbient, _gAmbient, _bAmbient, _aAmbient));
   msgs::Set(req.mutable_material()->mutable_diffuse(),
-    math::Color(_rDiffuse, _gDiffuse,_bDiffuse, _aDiffuse));
+    math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
   msgs::Set(req.mutable_material()->mutable_specular(),
     math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
   msgs::Set(req.mutable_material()->mutable_emissive(),
-    math::Color(_rEmissive, _gEmissive,_bEmissive, _aEmissive));
+    math::Color(_rEmissive, _gEmissive, _bEmissive, _aEmissive));
 
   auto materialCmdService = "/world/" + this->dataPtr->worldName
       + "/visual_config";
