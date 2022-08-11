@@ -131,7 +131,6 @@ Rectangle {
   /**
    * Used to create a spin box
    */
-  // TODO remove this
   Component {
     id: sliderZeroOne
     Slider {
@@ -350,7 +349,7 @@ Rectangle {
           // Color
           Text {
             Layout.columnSpan: 6
-            text: "Color"
+            text: "      Color"
             color: "dimgrey"
             font.bold: true
           }
@@ -426,10 +425,13 @@ Rectangle {
 
         RowLayout {
           Text {
+            Layout.topMargin: 10
+            Layout.bottomMargin: 10
             Layout.columnSpan: 6
             text: "      Attenuation"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {

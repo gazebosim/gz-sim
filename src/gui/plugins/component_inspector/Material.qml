@@ -179,8 +179,9 @@ Rectangle {
         RowLayout {
           // Color
           Text {
+            Layout.topMargin: 10
             Layout.columnSpan: 6
-            text: "Color"
+            text: "      Color"
             color: "dimgrey"
             font.bold: true
           }
