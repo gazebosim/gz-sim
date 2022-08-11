@@ -20,8 +20,8 @@
 #include <QtCore>
 #include <string>
 
-#include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/config.hh"
+#include "ignition/gazebo/gui/Export.hh"
 
 namespace ignition
 {
@@ -32,7 +32,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling quick start dialog
-class QuickStartHandler : public QObject
+class IGNITION_GAZEBO_GUI_VISIBLE QuickStartHandler : public QObject
 {
   Q_OBJECT
 
@@ -44,8 +44,8 @@ class QuickStartHandler : public QObject
   /// \return Distribution name, such as 'Citadel'
   public: Q_INVOKABLE QString Distribution() const;
 
-  /// \brief Get Gazebo version
-  /// \return gazebo version
+  /// \brief Get Gazebo Sim version
+  /// \return Version
   public: Q_INVOKABLE QString SimVersion() const;
 
   /// \brief Set starting world
