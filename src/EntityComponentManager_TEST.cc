@@ -2220,6 +2220,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, c2);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2232,6 +2233,7 @@ TEST_P(EntityComponentManagerFixture,
   // updated
   manager.RunSetAllComponentsUnchanged();
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2246,6 +2248,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(0, manager.ChangedState().entities_size());
 
@@ -2273,6 +2276,7 @@ TEST_P(EntityComponentManagerFixture,
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
   // Expect a single component type to be marked as PeriodicChange
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
   ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(IntComponent().TypeId(),
       *manager.ComponentTypesWithPeriodicChanges().begin());
@@ -2285,6 +2289,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.RemoveComponent(e1, c1->TypeId()));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));

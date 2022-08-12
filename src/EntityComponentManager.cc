@@ -946,6 +946,12 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasPeriodicComponentChanges() const
+{
+  return !this->dataPtr->periodicChangedComponents.empty();
+}
+
+/////////////////////////////////////////////////
 std::unordered_set<ComponentTypeId>
     EntityComponentManager::ComponentTypesWithPeriodicChanges() const
 {

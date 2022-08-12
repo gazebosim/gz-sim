@@ -709,7 +709,7 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
         (_info.simTime - this->dataPtr->lastRecordSimTime) >=
         this->dataPtr->recordPeriod)
     {
-       this->dataPtr->lastRecordSimTime = _info.simTime;
+      this->dataPtr->lastRecordSimTime = _info.simTime;
     }
     else
     {
