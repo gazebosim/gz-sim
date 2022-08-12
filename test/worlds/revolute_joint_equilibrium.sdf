@@ -14,47 +14,6 @@
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
-    <gui fullscreen="0">
-
-      <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
-        <gz-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="z">0</property>
-          <anchor line="right" target="window" target_line="right"/>
-          <anchor line="left" target="window" target_line="left"/>
-          <anchor line="top" target="window" target_line="top"/>
-          <anchor line="bottom" target="window" target_line="bottom"/>
-        </gz-gui>
-
-        <engine>ogre</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-1 0 1 0 0.5 0</camera_pose>
-      </plugin>
-
-      <!-- World control -->
-      <plugin filename="WorldControl" name="World control">
-        <gz-gui>
-          <title>World control</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">72</property>
-          <property type="double" key="width">121</property>
-          <property type="double" key="z">1</property>
-          <anchor line="left" target="window" target_line="left"/>
-          <anchor line="bottom" target="window" target_line="bottom"/>
-        </gz-gui>
-
-        <play_pause>true</play_pause>
-        <step>true</step>
-        <start_paused>true</start_paused>
-
-      </plugin>
-    </gui>
     <model name="ground_plane">
       <static>true</static>
       <link name="link">

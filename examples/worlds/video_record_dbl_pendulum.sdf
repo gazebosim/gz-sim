@@ -134,9 +134,6 @@
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#777777</property>
         </gz-gui>
-
-        <!-- disable legacy features used to connect this plugin to GzScene3D -->
-        <legacy>false</legacy>
       </plugin>
       <!-- Screenshot -->
       <plugin filename="Screenshot" name="Screenshot">
@@ -225,9 +222,6 @@
           <lockstep>true</lockstep>
           <bitrate>4000000</bitrate>
         </record_video>
-
-        <!-- disable legacy features used to connect this plugin to GzScene3D -->
-        <legacy>false</legacy>
       </plugin>
     </gui>
 

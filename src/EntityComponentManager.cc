@@ -889,20 +889,6 @@ bool EntityComponentManager::RemoveComponent(
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::RemoveComponent(
-    const Entity _entity, const ComponentKey &_key)
-{
-  return this->RemoveComponent(_entity, _key.first);
-}
-
-/////////////////////////////////////////////////
-bool EntityComponentManager::EntityHasComponent(const Entity _entity,
-    const ComponentKey &_key) const
-{
-  return this->EntityHasComponentType(_entity, _key.first);
-}
-
-/////////////////////////////////////////////////
 bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
     const ComponentTypeId &_typeId) const
 {

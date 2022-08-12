@@ -128,9 +128,6 @@
           <lockstep>true</lockstep>
           <bitrate>4000000</bitrate>
         </record_video>
-
-        <!-- disable legacy features used to connect this plugin to GzScene3D -->
-        <legacy>false</legacy>
       </plugin>
     </gui>
   </world>
