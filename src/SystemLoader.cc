@@ -98,7 +98,7 @@ class gz::sim::SystemLoaderPrivate
       }
     }
 
-    auto pluginNames = this->loader.LoadLib(pathToLib);
+    auto pluginNames = this->loader.LoadLib(pathToLib, true);
     if (pluginNames.empty())
     {
       gzerr << "Failed to load system plugin [" << filename <<
