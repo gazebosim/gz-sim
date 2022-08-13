@@ -113,6 +113,9 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
+  /// \brief Previous state derivative
+  public: Eigen::VectorXd prevStateDot;
+
   /// \brief Link entity
   public: Entity linkEntity;
 
@@ -269,6 +272,7 @@ void Hydrodynamics::Configure(
   }
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
+  this->dataPtr->prevStateDot = Eigen::VectorXd::Zero(6);
 
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
@@ -340,13 +344,16 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
-  auto dt = static_cast<double>(_info.dt.count())/1e9;
-  stateDot = (state - this->dataPtr->prevState)/dt;
+  auto dt = (double)_info.dt.count()/1e9;
+  auto alpha = 0.9;
+  stateDot = alpha * (state - this->dataPtr->prevState)/dt
+    + (1-alpha) * this->dataPtr->prevStateDot;
 
   this->dataPtr->prevState = state;
+  this->dataPtr->prevStateDot = stateDot;
 
   // The added mass
-  const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
+  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
