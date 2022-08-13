@@ -232,7 +232,7 @@ namespace systems
     private: struct ServOutputInfo
     {
       /// \brief Service name
-      std::string servName;
+      std::string srvName;
 
       /// \brief Service request type
       std::string reqType;

@@ -639,12 +639,14 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-// Test for invalid service name. It'll timeout
-// when matching service name can't be found.
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
+/// Test for invalid service name. A service, `/srv-dummy-test` is advertised
+/// and the callback is also provided in this test. Everytime an input msg is
+/// published to `/in_14` topic, triggered_publisher plugin will call the
+/// service `srv-test`, specified in the test/worlds/triggered_publisher.sdf.
+/// However, since the two service names do not match, the callback provided in
+/// this test will not be invoked. Therefore, the pubCount, which is set to 10,
+/// will not equal to recvCount. The recvCount will be 0, since the callback
+/// isn't invoked.
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(InvalidServiceName))
 {
@@ -655,16 +657,16 @@ TEST_F(TriggeredPublisherTest,
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &req, auto &rep)
+      {
+        EXPECT_EQ(req.data(), "test");
+        if (req.data() == "test")
         {
-          EXPECT_EQ(req.data(), "test");
-          if (req.data() == "test")
-            {
-              ++recvCount;
-              rep.set_data(req.data());
-              return true;
-            }
-          return false;
-        });
+          ++recvCount;
+          rep.set_data(req.data());
+          return true;
+        }
+        return false;
+      });
 
   // Advertise a dummy service
   std::string service = "/srv-dummy-test";
@@ -682,14 +684,15 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-// Test for triggering a service call in response
-// to input ign msg by publishing 10 times. Service
-// call will also occur 10 times. It'll compare
-// pubCount and recvCount.
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
+/// Test for triggering a service call in response to an input msg. A service,
+/// `srv-test` is advertised and the callback is also provided in this test.
+/// Everytime an input msg is published to `/in_14` topic, triggered_publisher
+/// plugin will call the service `/srv-test`, specified in the test/worlds/
+/// triggered_publisher.sdf. This time, the name of the services match. By
+/// publishing input msg 10 times, the service callback will also be invoked 10
+/// times. The `pubCount` is set to 10 and recvCount is increased everytime
+/// request data matches the string "test" inside the service callback. For a
+/// successful test, the pubCount will equal to recvCount.
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(InputMessagesTriggerServices))
 {
@@ -711,7 +714,6 @@ TEST_F(TriggeredPublisherTest,
           return false;
         });
 
-  // Advertise a dummy service
   std::string service = "/srv-test";
   node.Advertise(service, srvEchoCb);
 
@@ -727,15 +729,14 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-// Test for triggering multiple services in response
-// to a input ign msg by publishing 10 times. Service
-// call will also occur 10 times for each service.
-// It'll compare pubCount and recvCount for each
-// services.
-// ---
-// Request Type: msgs::Boolean
-// Reply Type: msgs::Boolean
-/////////////////////////////////////////////////
+/// Test for triggering multiple services (in sequence) in response to an input
+/// msg by publishing 10 times. Two services, `srv-test-0` and `srv-test-1` are
+/// specified in the test/worlds/triggered_publisher.sdf. Everytime an input msg
+/// is published, triggered_publisher will call the service and invoke the
+/// callback. std::vector is passed as a reference and will be populated with
+/// the request message, which will be a boolean value of `true`. If successful,
+/// `recvMsg0` and `recvMsg1` vectors should both have a size of 10 with all
+/// true boolean values.
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(MultipleServiceForOneInput))
 {
@@ -750,7 +751,7 @@ TEST_F(TriggeredPublisherTest,
         [&_msgVector, &recvMsgMutex](const auto &req, auto &rep)
         {
           std::lock_guard<std::mutex> lock(recvMsgMutex);
-          if (req.data() || !req.data())
+          if (req.data())
             {
               rep.set_data(true);
               _msgVector.push_back(req.data());
@@ -775,27 +776,25 @@ TEST_F(TriggeredPublisherTest,
   }
 
   waitUntil(5000, [&]
-            {
-              std::lock_guard<std::mutex> lock(recvMsgMutex);
-              return static_cast<std::size_t>(pubCount) == recvMsgs0.size() &&
-                     static_cast<std::size_t>(pubCount) == recvMsgs1.size();
-            });
+      {
+        std::lock_guard<std::mutex> lock(recvMsgMutex);
+        return static_cast<std::size_t>(pubCount) == recvMsgs0.size() &&
+               static_cast<std::size_t>(pubCount) == recvMsgs1.size();
+      });
 
   EXPECT_EQ(static_cast<std::size_t>(pubCount), recvMsgs0.size());
   EXPECT_EQ(static_cast<std::size_t>(pubCount), recvMsgs1.size());
 
   // The plugin has two outputs. We expect 10 messages in each output topic
   EXPECT_EQ(pubCount, std::count(recvMsgs0.begin(), recvMsgs0.end(), true));
-  EXPECT_EQ(pubCount, std::count(recvMsgs1.begin(), recvMsgs1.end(), false));
+  EXPECT_EQ(pubCount, std::count(recvMsgs1.begin(), recvMsgs1.end(), true));
 }
 
 /////////////////////////////////////////////////
-// Test for triggering a service call with incorrect
-// request type or reseponse type specified in sdf.
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
+/// Test for triggering a service call with incorrect request type or reply
+/// type specified in test/worlds/triggered_publisher.sdf. `InvalidReqType` and
+/// `InvalidRepType` do not exist. Hence, the callback will never be invoked and
+/// the recvCount will be 0.
 TEST_F(TriggeredPublisherTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(WrongRequestOrResponseType))
 {
@@ -833,69 +832,23 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-// Test for triggering a service call that'll return
-// False result.
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
+/// Test for triggering a service call with different request (Boolean) and
+/// reply type (StringMsg). Check `InputMessagesTriggerServices` test  for more
+/// details on how the test works. This test is very similar except that it has
+/// different request and reply type.
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(FailedReesultServiceCall))
-{
-  transport::Node node;
-  auto inputPub = node.Advertise<msgs::Empty>("/in_17");
-  std::atomic<std::size_t> recvCount{0};
-
-  auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
-      msgs::StringMsg &)>(
-      [&recvCount](const auto &req, auto &rep)
-        {
-          EXPECT_EQ(req.data(), "test");
-          if (req.data() == "test")
-            {
-              ++recvCount;
-              rep.set_data(req.data());
-              // return True was substitued with False
-              return false;
-            }
-          return false;
-        });
-
-  // Advertise a dummy service
-  std::string service = "/srv-test";
-  node.Advertise(service, srvEchoCb);
-
-  const std::size_t pubCount{10};
-  for (std::size_t i = 0; i < pubCount; ++i)
-  {
-    EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(100);
-  }
-
-  waitUntil(5000, [&]{return pubCount == recvCount;});
-  EXPECT_EQ(pubCount, recvCount);
-}
-
-/////////////////////////////////////////////////
-// Test for triggering a service call with different
-// ignition msg type
-// ---
-// Request Type: msgs::Empty
-// Reply Type: msgs::StringMsg
-/////////////////////////////////////////////////
-TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(EmptyReqStringMsgRep))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(BooleanReqStringMsgRep))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_18");
   std::atomic<std::size_t> recvCount{0};
 
-  auto srvEchoCb = std::function<bool(const msgs::Empty &,
+  auto srvEchoCb = std::function<bool(const msgs::Boolean &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &req, auto &rep)
         {
-          EXPECT_EQ(req.unused(), true);
-          if (req.unused() == true)
+          EXPECT_EQ(req.data(), true);
+          if (req.data() == true)
             {
               ++recvCount;
               rep.set_data("srv-empty");
@@ -905,7 +858,7 @@ TEST_F(TriggeredPublisherTest,
         });
 
   // Advertise a dummy service
-  std::string service = "/srv-empty-req-test";
+  std::string service = "/srv-diff-type-0";
   node.Advertise(service, srvEchoCb);
 
   const std::size_t pubCount{10};
@@ -920,35 +873,33 @@ TEST_F(TriggeredPublisherTest,
 }
 
 /////////////////////////////////////////////////
-// Test for triggering a service call with different
-// ignition msg type
-// ---
-// Request Type: msgs::StringMsg
-// Reply Type: msgs::Empty
-/////////////////////////////////////////////////
+/// Test for triggering a service call with different request (StringMsg) and
+/// reply type (Boolean). Check `InputMessagesTriggerServices` test  for more
+/// details on how the test works. This test is very similar except that it has
+/// different request and reply type.
 TEST_F(TriggeredPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(StringMsgReqEmptyRep))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(StringMsgReqBooleanRep))
 {
   transport::Node node;
   auto inputPub = node.Advertise<msgs::Empty>("/in_19");
   std::atomic<std::size_t> recvCount{0};
 
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
-      msgs::Empty &)>(
+      msgs::Boolean &)>(
       [&recvCount](const auto &req, auto &rep)
         {
           EXPECT_EQ(req.data(), "test");
           if (req.data() == "test")
             {
               ++recvCount;
-              rep.set_unused(true);
+              rep.set_data(true);
               return true;
             }
           return false;
         });
 
   // Advertise a dummy service
-  std::string service = "/srv-empty-rep-test";
+  std::string service = "/srv-diff-type-1";
   node.Advertise(service, srvEchoCb);
 
   const std::size_t pubCount{10};

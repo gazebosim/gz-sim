@@ -610,8 +610,8 @@ void TriggeredPublisher::Configure(const Entity &,
          serviceElem = serviceElem->GetNextElement("service"))
     {
       ServOutputInfo serviceInfo;
-      serviceInfo.servName = serviceElem->Get<std::string>("name");
-      if (serviceInfo.servName.empty())
+      serviceInfo.srvName = serviceElem->Get<std::string>("name");
+      if (serviceInfo.srvName.empty())
       {
         ignerr << "Service name cannot be empty\n";
         return;
@@ -631,7 +631,7 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
-        ignerr << "Service request string cannot be empty\n";
+        ignerr << "Service request message cannot be empty\n";
         return;
       }
       std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
@@ -706,13 +706,13 @@ void TriggeredPublisher::Configure(const Entity &,
 //////////////////////////////////////////////////
 void TriggeredPublisher::PublishMsg(std::size_t pending)
 {
-    for (auto &info : this->outputInfo)
+  for (auto &info : this->outputInfo)
+  {
+    for (std::size_t i = 0; i < pending; ++i)
     {
-      for (std::size_t i = 0; i < pending; ++i)
-      {
-        info.pub.Publish(*info.msgData);
-      }
+      info.pub.Publish(*info.msgData);
     }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -721,8 +721,7 @@ void TriggeredPublisher::CallService()
   for (auto &serviceInfo : this->servOutputInfo)
   {
     bool result;
-    auto req = msgs::Factory::New(serviceInfo.reqType,
-                                  serviceInfo.reqMsg);
+    auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
     if (!req)
     {
       ignerr << "Unable to create request for type ["
@@ -738,28 +737,22 @@ void TriggeredPublisher::CallService()
       return;
     }
 
-    bool executed = this->node.Request(serviceInfo.servName,
-                                       *req,
-                                       serviceInfo.timeout,
-                                       *rep,
-                                       result);
+    bool executed = this->node.Request(serviceInfo.srvName, *req,
+                                       serviceInfo.timeout, *rep, result);
     if (executed)
     {
       if (!result)
       {
-        ignerr << "Service call [" << serviceInfo.servName
-               << "] failed\n";
+        ignerr << "Service call [" << serviceInfo.srvName << "] failed\n";
       }
       else
       {
-        ignmsg << "Service call [" << serviceInfo.servName
-               << "] succeeded\n";
+        ignmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
       }
     }
     else
     {
-      ignerr << "Service call [" << serviceInfo.servName
-             << "] timed out\n";
+      ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
     }
     {
       std::lock_guard<std::mutex> lock(this->triggerServMutex);
@@ -788,15 +781,16 @@ void TriggeredPublisher::DoWork()
         continue;
       }
 
-      if (this->publishCount >0)
-      {
-        std::swap(pending, this->publishCount);
-        PublishMsg(pending);
-      }
-      if (this->triggerServ)
-      {
-        CallService();
-      }
+      std::swap(pending, this->publishCount);
+    }
+
+    if (pending > 0)
+    {
+      PublishMsg(pending);
+    }
+    if (this->triggerServ)
+    {
+      CallService();
     }
   }
 }

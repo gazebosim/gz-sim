@@ -233,7 +233,7 @@
         reqType="ignition.msgs.Boolean"
         repType="ignition.msgs.Boolean"
         timeout="100"
-        reqMsg="data: false">
+        reqMsg="data: true">
       </service>
     </plugin>
 
@@ -266,26 +266,13 @@
     <plugin
       filename="ignition-gazebo-triggered-publisher-system"
       name="ignition::gazebo::systems::TriggeredPublisher">
-      <input type="ignition.msgs.Empty" topic="/in_17"/>
-      <service
-        name="/srv-test"
-        reqType="ignition.msgs.StringMsg"
-        repType="ignition.msgs.StringMsg"
-        timeout="100"
-        reqMsg="data: 'test'">
-      </service>
-    </plugin>
-
-    <plugin
-      filename="ignition-gazebo-triggered-publisher-system"
-      name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Empty" topic="/in_18"/>
       <service
-        name="/srv-empty-req-test"
-        reqType="ignition.msgs.Empty"
+        name="/srv-diff-type-0"
+        reqType="ignition.msgs.Boolean"
         repType="ignition.msgs.StringMsg"
         timeout="100"
-        reqMsg="unused: true">
+        reqMsg="data: true">
       </service>
     </plugin>
 
@@ -294,9 +281,9 @@
       name="ignition::gazebo::systems::TriggeredPublisher">
       <input type="ignition.msgs.Empty" topic="/in_19"/>
       <service
-        name="/srv-empty-rep-test"
+        name="/srv-diff-type-1"
         reqType="ignition.msgs.StringMsg"
-        repType="ignition.msgs.Empty"
+        repType="ignition.msgs.Boolean"
         timeout="100"
         reqMsg="data: 'test'">
       </service>

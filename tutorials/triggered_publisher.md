@@ -2,7 +2,7 @@
 
 The `TriggeredPublisher` system publishes a user specified message on an output
 topic in response to an input message that matches user specified criteria. It
-can also call a user specified service as an output in response to an input
+can also call a user specified service in response to an input
 message. The system works by checking the input against a set of Matchers.
 Matchers contain string representations of protobuf messages which are compared
 for equality or containment with the input message. Matchers can match the
