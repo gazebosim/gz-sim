@@ -186,31 +186,12 @@ Rectangle {
   }
 
   Component {
-    id: plotIcon
-    Image {
-      property string componentInfo: ""
-      source: "plottable_icon.svg"
-      anchors.top: parent.top
-      anchors.left: parent.left
-
-      Drag.mimeData: { "text/plain" : (model === null) ? "" :
-      "Component," + model.entity + "," + model.typeId + "," +
-                     model.dataType + "," + componentInfo + "," + model.shortName
+    id: gzPlotIcon
+    GzPlotIcon {
+      gzMimeData: { "text/plain" : (model === null) ? "" :
+        "Component," + model.entity + "," + model.typeId + "," +
+        model.dataType + "," + gzComponentInfo + "," + model.shortName
       }
-      Drag.dragType: Drag.Automatic
-      Drag.supportedActions : Qt.CopyAction
-      Drag.active: dragMouse.drag.active
-      // a point to drag from
-      Drag.hotSpot.x: 0
-      Drag.hotSpot.y: y
-      MouseArea {
-        id: dragMouse
-        anchors.fill: parent
-        drag.target: (model === null) ? null : parent
-        onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
-        onReleased: parent.Drag.drop();
-        cursorShape: Qt.DragCopyCursor
-     }
     }
   }
 
@@ -313,12 +294,9 @@ Rectangle {
             Layout.preferredWidth: intensityText.width + indentation*3
             Loader {
               id: loaderIntensity
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "intensity"
             }
-            Component.onCompleted: loaderIntensity.item.componentInfo = "intensity"
 
             Text {
               id : intensityText
@@ -361,7 +339,6 @@ Rectangle {
             color: "transparent"
             height: 50
             Layout.preferredWidth: specularText.width + indentation*3
-
             Text {
               id : specularText
               Layout.columnSpan: 2
@@ -441,12 +418,9 @@ Rectangle {
             Layout.preferredWidth: attRangeText.width + indentation*3
             Loader {
               id: loaderAttRange
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "attRange"
             }
-            Component.onCompleted: loaderAttRange.item.componentInfo = "attRange"
 
             Text {
               id : attRangeText
@@ -478,12 +452,9 @@ Rectangle {
             Layout.preferredWidth: attLinearText.width + indentation*3
             Loader {
               id: loaderAttLinear
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "attLinear"
             }
-            Component.onCompleted: loaderAttLinear.item.componentInfo = "attLinear"
 
             Text {
               id : attLinearText
@@ -515,12 +486,9 @@ Rectangle {
             Layout.preferredWidth: attConstantText.width + indentation*3
             Loader {
               id: loaderAttConstant
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "attConstant"
             }
-            Component.onCompleted: loaderAttConstant.item.componentInfo = "attConstant"
 
             Text {
               id : attConstantText
@@ -552,12 +520,9 @@ Rectangle {
             Layout.preferredWidth: attQuadraticText.width + indentation*3
             Loader {
               id: loaderAttQuadratic
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "attQuadratic"
             }
-            Component.onCompleted: loaderAttQuadratic.item.componentInfo = "attQuadratic"
 
             Text {
               id : attQuadraticText
@@ -589,12 +554,9 @@ Rectangle {
             Layout.preferredWidth: castShadowsText.width + indentation*3
             Loader {
               id: loaderCastShadows
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "castshadows"
             }
-            Component.onCompleted: loaderCastShadows.item.componentInfo = "castshadows"
 
             Text {
               id : castShadowsText
@@ -637,12 +599,9 @@ Rectangle {
             Layout.preferredWidth: xDirectionText.width + indentation*3
             Loader {
               id: loaderDirectionX
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "directionX"
             }
-            Component.onCompleted: loaderDirectionX.item.componentInfo = "directionX"
 
             Text {
               visible: model.data[20] === 1 || model.data[20] === 2
@@ -678,12 +637,9 @@ Rectangle {
             Layout.preferredWidth: yDirectionText.width + indentation*3
             Loader {
               id: loaderDirectionY
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "directionY"
             }
-            Component.onCompleted: loaderDirectionY.item.componentInfo = "directionY"
 
             Text {
               visible: model.data[20] === 1 || model.data[20] === 2
@@ -719,12 +675,9 @@ Rectangle {
             Layout.preferredWidth: zDirectionText.width + indentation*3
             Loader {
               id: loaderDirectionZ
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "directionZ"
             }
-            Component.onCompleted: loaderDirectionZ.item.componentInfo = "directionZ"
 
             Text {
               visible: model.data[20] === 1 || model.data[20] === 2
@@ -769,12 +722,9 @@ Rectangle {
             Layout.preferredWidth: innerAngleText.width + indentation*3
             Loader {
               id: loaderInnerAngle
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "innerAngle"
             }
-            Component.onCompleted: loaderInnerAngle.item.componentInfo = "innerAngle"
 
             Text {
               visible: model.data[20] === 1
@@ -810,12 +760,9 @@ Rectangle {
             Layout.preferredWidth: outerAngleText.width + indentation*3
             Loader {
               id: loaderOuterAngle
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "outerAngle"
             }
-            Component.onCompleted: loaderOuterAngle.item.componentInfo = "outerAngle"
 
             Text {
               visible: model.data[20] === 1
@@ -851,12 +798,9 @@ Rectangle {
             Layout.preferredWidth: fallOffText.width + indentation*3
             Loader {
               id: loaderFallOff
-              width: iconWidth
-              height: iconHeight
-              y:10
-              sourceComponent: plotIcon
+              sourceComponent: gzPlotIcon
+              property string gzComponentInfo: "falloff"
             }
-            Component.onCompleted: loaderFallOff.item.componentInfo = "falloff"
 
             Text {
               visible: model.data[20] === 1
