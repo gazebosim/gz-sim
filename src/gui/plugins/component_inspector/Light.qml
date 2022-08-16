@@ -209,7 +209,8 @@ Rectangle {
     Rectangle {
       id: content
       property bool show: false
-      width: parent.width
+      x: 10
+      width: parent.width - 10
       height: show ? grid.height : 0
       clip: true
       color: "transparent"
@@ -589,6 +590,7 @@ Rectangle {
             text: "      Direction"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {
@@ -712,6 +714,7 @@ Rectangle {
             text: "      Spot features"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {
