@@ -1,4 +1,53 @@
-## Ignition Gazebo 3.x
+## Gazebo Sim 3.x
+
+### Gazebo Sim 3.14.0 (2022-08-XX)
+
+1. Change `CODEOWNERS` and maintainer to Michael
+    * [Pull request #1644](https://github.com/gazebosim/gz-sim/pull/1644)
+
+1. Replace pose in `ViewAngle` with `GzPose`
+    * [Pull request #1641](https://github.com/gazebosim/gz-sim/pull/1641)
+
+1. Fix loading worlds from CLI
+    * [Pull request #1627](https://github.com/gazebosim/gz-sim/pull/1627)
+
+1. Quick start dialog
+    * [Pull request #1536](https://github.com/gazebosim/gz-sim/pull/1536)
+
+1. Quiet `libSDFormat` console on --verbose 0
+    * [Pull request #1621](https://github.com/gazebosim/gz-sim/pull/1621)
+
+1. Add Ackermann Steering system (backport from Fortress)
+    * [Pull request #1613](https://github.com/gazebosim/gz-sim/pull/1613)
+
+1. New Apply Link Wrench system
+    * [Pull request #1593](https://github.com/gazebosim/gz-sim/pull/1593)
+
+1. Implement Component Inspector `Vector3` with common widget `Vector3`
+    * [Pull request #1569](https://github.com/gazebosim/gz-sim/pull/1569)
+
+1. Helper function to get an entity from an entity message
+    * [Pull request #1595](https://github.com/gazebosim/gz-sim/pull/1595)
+
+1. Ignition -> Gazebo
+    * [Pull request #1596](https://github.com/gazebosim/gz-sim/pull/1596)
+
+1. Add Model::CanonicalLink getter
+    * [Pull request #1594](https://github.com/gazebosim/gz-sim/pull/1594)
+
+1. Implement Pose3d with common widget pose
+    * [Pull request #1571](https://github.com/gazebosim/gz-sim/pull/1571)
+
+1. Test fixes and updates
+    * [Pull request #1545](https://github.com/gazebosim/gz-sim/pull/1545)
+    * [Pull request #1531](https://github.com/gazebosim/gz-sim/pull/1531)
+    * [Pull request #1599](https://github.com/gazebosim/gz-sim/pull/1599)
+
+1. Bash completion for flags
+    * [Pull request #1504](https://github.com/gazebosim/gz-sim/pull/1504)
+
+1. Add new `GZ_GUI_RESOURCE_PATH` to help message
+    * [Pull request #1470](https://github.com/gazebosim/gz-sim/pull/1470)
 
 ### Ignition Gazebo 3.13.0 (2022-06-01)
 
