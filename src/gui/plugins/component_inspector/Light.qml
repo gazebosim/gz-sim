@@ -39,29 +39,17 @@ Rectangle {
   property int iconWidth: 20
   property int iconHeight: 20
 
-  // Loaded item for specular red
-  property var rSpecularItem: {}
-
-  // Loaded item for specular green
-  property var gSpecularItem: {}
-
-  // Loaded item for specular blue
-  property var bSpecularItem: {}
-
-  // Loaded item for specular alpha
-  property var aSpecularItem: {}
+  // Loaded item for specular RGBA
+  property double rSpecularValue: model.data[0]
+  property double gSpecularValue: model.data[1]
+  property double bSpecularValue: model.data[2]
+  property double aSpecularValue: model.data[3]
 
   // Loaded item for diffuse red
-  property var rDiffuseItem: {}
-
-  // Loaded item for diffuse green
-  property var gDiffuseItem: {}
-
-  // Loaded item for diffuse blue
-  property var bDiffuseItem: {}
-
-  // Loaded item for diffuse alpha
-  property var aDiffuseItem: {}
+  property double rDiffuseValue: model.data[4]
+  property double gDiffuseValue: model.data[5]
+  property double bDiffuseValue: model.data[6]
+  property double aDiffuseValue: model.data[7]
 
   // Loaded item for attenuation range
   property var attRangeItem: {}
@@ -109,14 +97,14 @@ Rectangle {
   function sendLight() {
     // TODO(anyone) There's a loss of precision when these values get to C++
     componentInspector.onLight(
-      rSpecularItem.value,
-      gSpecularItem.value,
-      bSpecularItem.value,
-      aSpecularItem.value,
-      rDiffuseItem.value,
-      gDiffuseItem.value,
-      bDiffuseItem.value,
-      aDiffuseItem.value,
+      rSpecularValue,
+      gSpecularValue,
+      bSpecularValue,
+      aSpecularValue,
+      rDiffuseValue,
+      gDiffuseValue,
+      bDiffuseValue,
+      aDiffuseValue,
       attRangeItem.value,
       attLinearItem.value,
       attConstantItem.value,
@@ -221,7 +209,8 @@ Rectangle {
     Rectangle {
       id: content
       property bool show: false
-      width: parent.width
+      x: 10
+      width: parent.width - 10
       height: show ? grid.height : 0
       clip: true
       color: "transparent"
@@ -334,342 +323,93 @@ Rectangle {
             }
           }
         }
-        RowLayout {
-          Layout.alignment : Qt.AlignLeft
-          Text {
-            text: "      Specular"
-            color: "dimgrey"
-            width: margin + indentation
-          }
-        }
-        RowLayout {
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: rSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularR
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "specularR"
-            }
 
-            Text {
-              id : rSpecularText
-              text: ' R'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: rSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[0]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                rSpecularItem = rSpecularLoader.item
-              }
-            }
-          }
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: gSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularG
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "specularG"
-            }
-
-            Text {
-              id : gSpecularText
-              text: ' G'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[1]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                gSpecularItem = gSpecularLoader.item
-              }
-            }
-          }
-        }
         RowLayout {
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: bSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularB
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "specularB"
-            }
-
-            Text {
-              id : bSpecularText
-              text: ' B'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[2]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                bSpecularItem = bSpecularLoader.item
-              }
-            }
-          }
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: aSpecularText.width + indentation*3
-            Loader {
-              id: loaderSpecularA
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "specularA"
-            }
-
-            Text {
-              id : aSpecularText
-              text: ' A'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[3]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                aSpecularItem = aSpecularLoader.item
-              }
-            }
-          }
-        }
-        RowLayout {
-          Layout.alignment: Qt.AlignHCenter
-          Button {
-            Layout.alignment: Qt.AlignHCenter
-            id: specularColor
-            text: qsTr("Specular Color")
-            onClicked: colorDialog.open()
-            ColorDialog {
-              id: colorDialog
-              title: "Choose a specular color"
-              visible: false
-              onAccepted: {
-                rSpecularLoader.item.value = colorDialog.color.r
-                gSpecularLoader.item.value = colorDialog.color.g
-                bSpecularLoader.item.value = colorDialog.color.b
-                aSpecularLoader.item.value = colorDialog.color.a
-                sendLight()
-                colorDialog.close()
-              }
-              onRejected: {
-                colorDialog.close()
-              }
-            }
-          }
-        }
-        RowLayout {
+          // Color
           Text {
             Layout.columnSpan: 6
-            text: "      Diffuse"
+            text: "      Color"
             color: "dimgrey"
-            width: margin + indentation
+            font.bold: true
           }
         }
+
         RowLayout {
+          // Specular
           Rectangle {
             color: "transparent"
-            height: 40
-            Layout.preferredWidth: rDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseR
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "diffuseR"
-            }
-
+            height: 50
+            Layout.preferredWidth: specularText.width + indentation*3
             Text {
-              id : rDiffuseText
-              text: ' R'
+              id : specularText
+              Layout.columnSpan: 2
+              text: ' Specular'
               leftPadding: 5
               color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
               font.pointSize: 12
               anchors.centerIn: parent
             }
           }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: rDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[4]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                rDiffuseItem = rDiffuseLoader.item
-              }
+
+          // Specular
+          GzColor {
+            id: gzColorSpecular
+            r: model.data[0]
+            g: model.data[1]
+            b: model.data[2]
+            a: model.data[3]
+            onGzColorSet: {
+              rSpecularValue = r
+              gSpecularValue = g
+              bSpecularValue = b
+              aSpecularValue = a
+              sendLight()
             }
           }
+
+          // Diffuse
           Rectangle {
             color: "transparent"
-            height: 40
-            Layout.preferredWidth: gDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseG
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "diffuseG"
-            }
+            height: 50
+            Layout.preferredWidth: diffuseText.width + indentation*3
 
             Text {
-              id : gDiffuseText
-              text: ' G'
+              id : diffuseText
+              Layout.columnSpan: 2
+              text: ' Diffuse'
               leftPadding: 5
               color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
               font.pointSize: 12
               anchors.centerIn: parent
             }
           }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[5]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                gDiffuseItem = gDiffuseLoader.item
-              }
+
+          // Diffuse
+          GzColor {
+            id: gzColorDiffuse
+            r: model.data[4]
+            g: model.data[5]
+            b: model.data[6]
+            a: model.data[7]
+            onGzColorSet: {
+              rDiffuseValue = r
+              gDiffuseValue = g
+              bDiffuseValue = b
+              aDiffuseValue = a
+              sendLight()
             }
           }
         }
-        RowLayout {
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: bDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseB
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "diffuseB"
-            }
 
-            Text {
-              id : bDiffuseText
-              text: ' B'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[6]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                bDiffuseItem = bDiffuseLoader.item
-              }
-            }
-          }
-          Rectangle {
-            color: "transparent"
-            height: 40
-            Layout.preferredWidth: aDiffuseText.width + indentation*3
-            Loader {
-              id: loaderDiffuseA
-              sourceComponent: gzPlotIcon
-              property string gzComponentInfo: "diffuseA"
-            }
-
-            Text {
-              id : aDiffuseText
-              text: ' A'
-              leftPadding: 5
-              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-              font.pointSize: 12
-              anchors.centerIn: parent
-            }
-          }
-          Item {
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[7]
-              sourceComponent: sliderZeroOne
-              onLoaded: {
-                aDiffuseItem = aDiffuseLoader.item
-              }
-            }
-          }
-        }
-        RowLayout {
-          Layout.alignment: Qt.AlignHCenter
-          Button {
-            Layout.alignment: Qt.AlignHCenter
-            id: diffuseColor
-            text: qsTr("Diffuse Color")
-            onClicked: colorDialogDiffuse.open()
-            ColorDialog {
-              id: colorDialogDiffuse
-              title: "Choose a diffuse color"
-              visible: false
-              onAccepted: {
-                rDiffuseLoader.item.value = colorDialogDiffuse.color.r
-                gDiffuseLoader.item.value = colorDialogDiffuse.color.g
-                bDiffuseLoader.item.value = colorDialogDiffuse.color.b
-                aDiffuseLoader.item.value = colorDialogDiffuse.color.a
-                sendLight()
-                colorDialogDiffuse.close()
-              }
-              onRejected: {
-                colorDialogDiffuse.close()
-              }
-            }
-          }
-        }
         RowLayout {
           Text {
+            Layout.topMargin: 10
+            Layout.bottomMargin: 10
             Layout.columnSpan: 6
             text: "      Attenuation"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {
@@ -850,6 +590,7 @@ Rectangle {
             text: "      Direction"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {
@@ -973,6 +714,7 @@ Rectangle {
             text: "      Spot features"
             color: "dimgrey"
             width: margin + indentation
+            font.bold: true
           }
         }
         RowLayout {
