@@ -1,6 +1,6 @@
 # Gazebo Sim : A Robotic Simulator
 
-**Maintainer:** louise AT openrobotics DOT org
+**Maintainer:** michael AT openrobotics DOT org
 
 [![GitHub open issues](https://img.shields.io/github/issues-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/issues)
 [![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/pulls)
