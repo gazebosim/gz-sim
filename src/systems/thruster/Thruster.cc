@@ -105,7 +105,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// behind the vessel.
   public: double wakeFraction = 0.2;
 
-  /// Constant given by the open water propeller diagram. Used in the
+  /// \brief Constant given by the open water propeller diagram. Used in the
   /// calculation of the thrust coeficiennt.
   public: double alpha_1 = 1;
 
