@@ -1,7 +1,7 @@
 #===============================================================================
 # Generate the ruby script.
 # Note that the major version of the library is included in the name.
-# Ex: cmdgazebo0.rb
+# Ex: cmdsim0.rb
 set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured "${cmd_script_generated}.configured")
 
@@ -25,7 +25,7 @@ set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmd${GZ_DESIGNATION}${P
 
 # Generate a configuration file.
 # Note that the major version of the library is included in the name.
-# Ex: gazebo0.yaml
+# Ex: sim0.yaml
 configure_file(
   "${GZ_DESIGNATION}.yaml.in"
   "${CMAKE_CURRENT_BINARY_DIR}/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
@@ -67,7 +67,7 @@ install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_IN
 #===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
-# Ex: cmdgazebo0.rb
+# Ex: cmdsim0.rb
 set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
 
@@ -90,7 +90,7 @@ set(gz_library_path
 
 # Generate a configuration file for internal testing.
 # Note that the major version of the library is included in the name.
-# Ex: gazebo0.yaml
+# Ex: sim0.yaml
 configure_file(
   "${GZ_DESIGNATION}.yaml.in"
   "${CMAKE_BINARY_DIR}/test/conf/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
@@ -117,3 +117,25 @@ set(gz_model_ruby_path "${cmd_model_script_generated_test}")
 configure_file(
   "model.yaml.in"
   "${CMAKE_BINARY_DIR}/test/conf/model${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
+
+#===============================================================================
+# Bash completion
+
+# Tack version onto and install the bash completion script
+configure_file(
+  "sim.bash_completion.sh"
+    "${CMAKE_CURRENT_BINARY_DIR}/sim${PROJECT_VERSION_MAJOR}.bash_completion.sh" @ONLY)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/sim${PROJECT_VERSION_MAJOR}.bash_completion.sh
+  DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/gz${GZ_TOOLS_VER}.completion.d)
+
+configure_file(
+  "model.bash_completion.sh"
+    "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.bash_completion.sh" @ONLY)
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.bash_completion.sh
+  DESTINATION
+    ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/gz/gz${GZ_TOOLS_VER}.completion.d)

@@ -8,6 +8,7 @@
   <world name="dem_heightmap">
     <physics name="1ms" type="ignored">
       <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
         <collision_detector>bullet</collision_detector>
       </dart>
     </physics>

@@ -8,7 +8,7 @@ project(GuiSystemPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-sim7 REQUIRED COMPONENTS gui)
+find_package(gz-sim8 REQUIRED COMPONENTS gui)
 
 QT5_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
 
@@ -17,5 +17,5 @@ add_library(${PROJECT_NAME} SHARED
   ${resources_RCC}
 )
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE gz-sim7::gui
+  PRIVATE gz-sim8::gui
 )

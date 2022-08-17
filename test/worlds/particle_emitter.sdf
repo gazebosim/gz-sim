@@ -11,6 +11,10 @@
       filename="gz-sim-particle-emitter-system"
       name="gz::sim::systems::ParticleEmitter">
     </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

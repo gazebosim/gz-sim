@@ -17,7 +17,17 @@
 
 #include "UserCommands.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
@@ -82,62 +92,6 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-
-/// \brief Helper function to get an entity from an entity message.
-///
-/// \TODO(anyone) Move to Util.hh and generalize for all entities,
-/// not only top level
-///
-/// The message is used as follows:
-///
-///     if id not null
-///       use id
-///     else if name not null and type not null
-///       use name + type
-///     else
-///       error
-///     end
-/// \param[in] _ecm Entity component manager
-/// \param[in] _msg Entity message
-/// \return Entity ID, or kNullEntity if a matching entity couldn't be
-/// found.
-Entity topLevelEntityFromMessage(const EntityComponentManager &_ecm,
-    const msgs::Entity &_msg)
-{
-  if (_msg.id() != kNullEntity)
-  {
-    return _msg.id();
-  }
-
-  if (!_msg.name().empty() && _msg.type() != msgs::Entity::NONE)
-  {
-    Entity entity{kNullEntity};
-    if (_msg.type() == msgs::Entity::MODEL)
-    {
-      entity = _ecm.EntityByComponents(components::Model(),
-        components::Name(_msg.name()));
-    }
-    else if (_msg.type() == msgs::Entity::LIGHT)
-    {
-      entity = _ecm.EntityByComponents(
-        components::Name(_msg.name()));
-
-      auto lightComp = _ecm.Component<components::Light>(entity);
-      if (nullptr == lightComp)
-        entity = kNullEntity;
-    }
-    else
-    {
-      gzerr << "Failed to handle entity type [" << _msg.type() << "]"
-             << std::endl;
-    }
-    return entity;
-  }
-
-  gzerr << "Message missing either entity's ID or name + type" << std::endl;
-  return kNullEntity;
-}
-
 /// \brief This class is passed to every command and contains interfaces that
 /// can be shared among all commands. For example, all create and remove
 /// commands can use the `creator` object.
@@ -1328,7 +1282,7 @@ bool RemoveCommand::Execute()
     return false;
   }
 
-  auto entity = topLevelEntityFromMessage(*this->iface->ecm, *removeMsg);
+  auto entity = entityFromMsg(*this->iface->ecm, *removeMsg);
   if (entity == kNullEntity)
   {
     gzerr << "Entity named [" << removeMsg->name() << "] of type ["
@@ -1602,7 +1556,7 @@ bool SphericalCoordinatesCommand::Execute()
   }
 
   // Entity
-  auto entity = topLevelEntityFromMessage(*this->iface->ecm,
+  auto entity = entityFromMsg(*this->iface->ecm,
       sphericalCoordinatesMsg->entity());
 
   if (!this->iface->ecm->HasEntity(entity))
@@ -1772,13 +1726,34 @@ bool VisualCommand::Execute()
     return false;
   }
 
-  if (visualMsg->id() == kNullEntity)
+  Entity visualEntity = kNullEntity;
+  if (visualMsg->id() != kNullEntity)
+  {
+    visualEntity = visualMsg->id();
+  }
+  else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
+  {
+    Entity parentEntity =
+      this->iface->ecm->EntityByComponents(
+        components::Name(visualMsg->parent_name()));
+
+    auto entities =
+      this->iface->ecm->ChildrenByComponents(parentEntity,
+        components::Name(visualMsg->name()));
+
+    // When size > 1, we don't know which entity to modify
+    if (entities.size() == 1)
+    {
+      visualEntity = entities[0];
+    }
+  }
+
+  if (visualEntity == kNullEntity)
   {
     gzerr << "Failed to find visual entity" << std::endl;
     return false;
   }
 
-  Entity visualEntity = visualMsg->id();
   auto visualCmdComp =
       this->iface->ecm->Component<components::VisualCmd>(visualEntity);
   if (!visualCmdComp)
@@ -1803,69 +1778,6 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 {
 }
 
-// TODO(ivanpauno): Move this somewhere else
-Entity scopedEntityFromMsg(
-  const msgs::Entity & _msg, const EntityComponentManager & _ecm)
-{
-  if (_msg.id() != kNullEntity) {
-    return _msg.id();
-  }
-  std::unordered_set<Entity> entities = entitiesFromScopedName(
-    _msg.name(), _ecm);
-  if (entities.empty()) {
-    gzerr << "Failed to find entity with scoped name [" << _msg.name()
-          << "]." << std::endl;
-    return kNullEntity;
-  }
-  if (_msg.type() == msgs::Entity::NONE) {
-    return *entities.begin();
-  }
-  const components::BaseComponent * component;
-  std::string componentType;
-  for (const auto entity : entities) {
-    switch (_msg.type()) {
-      case msgs::Entity::LIGHT:
-        component = _ecm.Component<components::Light>(entity);
-        componentType = "LIGHT";
-        break;
-      case msgs::Entity::MODEL:
-        component = _ecm.Component<components::Model>(entity);
-        componentType = "MODEL";
-        break;
-      case msgs::Entity::LINK:
-        component = _ecm.Component<components::Link>(entity);
-        componentType = "LINK";
-        break;
-      case msgs::Entity::VISUAL:
-        component = _ecm.Component<components::Visual>(entity);
-        componentType = "VISUAL";
-        break;
-      case msgs::Entity::COLLISION:
-        component = _ecm.Component<components::Collision>(entity);
-        componentType = "COLLISION";
-        break;
-      case msgs::Entity::SENSOR:
-        component = _ecm.Component<components::Sensor>(entity);
-        componentType = "SENSOR";
-        break;
-      case msgs::Entity::JOINT:
-        component = _ecm.Component<components::Joint>(entity);
-        componentType = "JOINT";
-        break;
-      default:
-        componentType = "unknown";
-        break;
-    }
-    if (component != nullptr) {
-      return entity;
-    }
-  }
-  gzerr << "Found entity with scoped name [" << _msg.name()
-        << "], but it doesn't have a component of the required type ["
-        << componentType << "]." << std::endl;
-  return kNullEntity;
-}
-
 //////////////////////////////////////////////////
 bool WheelSlipCommand::Execute()
 {
@@ -1877,7 +1789,7 @@ bool WheelSlipCommand::Execute()
     return false;
   }
   const auto & ecm = *this->iface->ecm;
-  Entity entity = scopedEntityFromMsg(wheelSlipMsg->entity(), ecm);
+  Entity entity = entityFromMsg(ecm, wheelSlipMsg->entity());
   if (kNullEntity == entity)
   {
     return false;

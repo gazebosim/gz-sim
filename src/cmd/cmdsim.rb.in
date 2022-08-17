@@ -73,8 +73,6 @@ COMMANDS = { 'sim' =>
   "                               enable console logging to a console.log          \n"\
   "                               file in the specified path.                      \n"\
   "\n"\
-  "  --headless-rendering         Run rendering in headless mode                   \n"\
-  "\n"\
   "  --record-resources           Implicitly invokes --record, and records         \n"\
   "                               meshes and material files, in addition to        \n"\
   "                               states and console messages.                     \n"\
@@ -111,6 +109,8 @@ COMMANDS = { 'sim' =>
   "\n"\
   "  --playback [arg]             Use logging system to play back states.          \n"\
   "                               Argument is path to recorded states.             \n"\
+  "\n"\
+  "  --headless-rendering         Run rendering in headless mode                   \n"\
   "\n"\
   "  -r                           Run simulation on start.                         \n"\
   "\n"\
@@ -164,6 +164,8 @@ COMMANDS = { 'sim' =>
   "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file.             \n\n"\
   "  GZ_GUI_PLUGIN_PATH           Colon separated paths used to locate GUI         \n"\
   " plugins.                                                                       \n"\
+  "  GZ_GUI_RESOURCE_PATH    Colon separated paths used to locate GUI              \n"\
+  " resources such as configuration files.                                       \n\n"
 }
 
 #
@@ -262,9 +264,13 @@ class Cmd
       end
       opts.on('-g') do
         options['gui'] = 1
+        # Runing the Gui only, don't show world loading menu
+        options['wait_gui'] = 0
       end
       opts.on('-s') do
         options['server'] = 1
+        # Runing the server only, don't wait for starting world from Gui
+        options['wait_gui'] = 0
       end
       opts.on('--levels') do
         options['levels'] = 1
@@ -459,7 +465,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
                                const char *, int, int, int)'
 
       # Import the runGui function
-      Importer.extern 'int runGui(const char *, const char *)'
+      Importer.extern 'int runGui(const char *, const char *, int, const char *)'
 
       # If playback is specified, and the user has not specified a
       # custom gui config, set the gui config to load the playback
@@ -492,13 +498,15 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['file'], options['record-topics'].join(':'),
             options['wait_gui'],
             options['headless-rendering'], options['seed'])
+
         end
 
         guiPid = Process.fork do
           ENV['RMT_PORT'] = '1501'
           Process.setpgid(0, 0)
           Process.setproctitle('gz sim gui')
-          Importer.runGui(options['gui_config'], options['render_engine_gui'])
+          Importer.runGui(options['gui_config'], options['file'],
+              options['wait_gui'], options['render_engine_gui'])
         end
 
         Signal.trap("INT") {
@@ -530,6 +538,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['wait_gui'],
             options['headless-rendering'], options['seed'])
       # Otherwise run the gui
+
       else options['gui']
         if plugin.end_with? ".dylib"
           puts "`gz sim` currently only works with the -s argument on macOS.
@@ -538,7 +547,8 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
         end
 
         ENV['RMT_PORT'] = '1501'
-        Importer.runGui(options['gui_config'], options['render_engine_gui'])
+        Importer.runGui(options['gui_config'], options['file'],
+            options['wait_gui'], options['render_engine_gui'])
       end
     rescue
       puts "Library error: Problem running [#{options['command']}]() "\

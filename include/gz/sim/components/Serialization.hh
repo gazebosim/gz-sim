@@ -17,7 +17,17 @@
 #ifndef GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 #define GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message_lite.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/double_v.pb.h>
 
 #include <string>
