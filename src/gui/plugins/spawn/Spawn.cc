@@ -146,6 +146,9 @@ namespace gz::sim
 
     /// \brief Text for popup error message
     public: QString errorPopupText;
+
+    /// \brief Adds new line after each new nChar.
+    public: std::string AddNewLine(std::string &str, int nChar);
   };
 }
 
@@ -187,6 +190,22 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   gz::gui::App()->findChild
     <gz::gui::MainWindow *>()->installEventFilter(this);
 }
+
+/////////////////////////////////////////////////
+std::string SpawnPrivate::AddNewLine(std::string &str, int nChar)
+{
+  std::string out;
+  out.reserve(str.size() + str.size() / nChar);
+  for(std::string::size_type i = 0; i < str.size(); i++) {
+    if (!(i % nChar) && i) {
+      out.push_back('-');
+      out.push_back('\n');
+    }
+    out.push_back(str[i]);
+  }
+  return out;
+}
+
 
 /////////////////////////////////////////////////
 void SpawnPrivate::HandlePlacement()
@@ -581,9 +600,12 @@ void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
 
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
-        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
-      this->SetErrorPopupText(errTxt);
+      std::string fixedDropStr = this->dataPtr->AddNewLine(dropStr, 55);
+      std::string errTxt = "Invalid URI: " + fixedDropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, FBX, GLTF, OBJ, and STL\n"
+        "are supported.";
+      QString QErrTxt = QString::fromStdString(errTxt);
+      this->SetErrorPopupText(QErrTxt);
       return;
     }
 
