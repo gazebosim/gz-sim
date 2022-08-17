@@ -72,10 +72,10 @@ namespace systems
   ///                      at the propeller vs behind the vessel.
   ///                      [Optional, defults to 0.2]
   /// - <alpha_1> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coeficiennt.
+  ///               in the calculation of the thrust coefficient.
   ///               [Optional, defults to 1]
   /// - <alpha_2> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coeficiennt.
+  ///               in the calculation of the thrust coefficient.
   ///               [Optional, defults to 0]
   ///
   /// ## Example
