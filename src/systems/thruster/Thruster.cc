@@ -209,7 +209,7 @@ void Thruster::Configure(
               << "[thrust_coefficient] was also defined through the SDF file."
               << " If you want the system to use the alpha values to calculate"
               << " and update the thrust coefficient please remove the "
-              << "[thrust_coefficient] value  from the SDF file." << std::endl;
+              << "[thrust_coefficient] value from the SDF file." << std::endl;
     }
   }
 
