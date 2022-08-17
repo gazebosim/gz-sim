@@ -98,14 +98,35 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// thrust
   public: double thrustCoefficient = 1;
 
+  /// \brief True if the thrust coefficient was set by conifguration.
+  public: bool thrustCoefficientSet = false;
+
+  /// \brief  Relative speed reduction between the water at the propeller vs
+  /// behind the vessel.
+  public: double wakeFraction = 0.2;
+
+  /// Constant given by the open water propeller diagram. Used in the
+  /// calculation of the thrust coeficiennt.
+  public: double alpha_1 = 1;
+
+  /// Constant given by the open water propeller diagram. Used in the
+  /// calculation of the thrust coeficiennt.
+  public: double alpha_2 = 0;
+
   /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
   public: double fluidDensity = 1000;
 
   /// \brief Diameter of propeller in m, default: 0.02
   public: double propellerDiameter = 0.02;
 
+  /// \brief Linear velocity of the vehicle.
+  public: double linearVelocity = 0;
+
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
+
+  /// \brief Recalculates and updates the thrust coefficient.
+  public: void UpdateThrustCoefficient();
 
   /// \brief Function which computes angular velocity from thrust
   /// \param[in] _thrust Thrust in N
@@ -157,6 +178,7 @@ void Thruster::Configure(
   if (_sdf->HasElement("thrust_coefficient"))
   {
     this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
+    this->dataPtr->thrustCoefficientSet = true;
   }
 
   // Get propeller diameter
@@ -169,6 +191,40 @@ void Thruster::Configure(
   if (_sdf->HasElement("fluid_density"))
   {
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
+  }
+
+  // Get wake fraction number, default 0.2 otherwise
+  if (_sdf->HasElement("wake_fraction"))
+  {
+    this->dataPtr->wakeFraction = _sdf->Get<double>("wake_fraction");
+  }
+
+  // Get alpha_1, default to 1 othwewise
+  if (_sdf->HasElement("alpha_1"))
+  {
+    this->dataPtr->alpha_1 = _sdf->Get<double>("alpha_1");
+    if (this->dataPtr->thrustCoefficientSet)
+    {
+      ignwarn << " The [alpha_2] value will be ignored as a "
+              << "[thrust_coefficient] was also defined through the SDF file."
+              << " If you want the system to use the alpha values to calculate"
+              << " and update the thrust coefficient please remove the "
+              << "[thrust_coefficient] value  from the SDF file." << std::endl;
+    }
+  }
+
+  // Get alpha_2, default to 1 othwewise
+  if (_sdf->HasElement("alpha_2"))
+  {
+    this->dataPtr->alpha_2 = _sdf->Get<double>("alpha_2");
+    if (this->dataPtr->thrustCoefficientSet)
+    {
+      ignwarn << " The [alpha_2] value will be ignored as a "
+              << "[thrust_coefficient] was also defined through the SDF file."
+              << " If you want the system to use the alpha values to calculate"
+              << " and update the thrust coefficient please remove the "
+              << "[thrust_coefficient] value  from the SDF file." << std::endl;
+    }
   }
 
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
@@ -217,6 +273,8 @@ void Thruster::Configure(
   // Create necessary components if not present.
   enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
   enableComponent<components::WorldAngularVelocity>(_ecm,
+      this->dataPtr->linkEntity);
+  enableComponent<ignition::gazebo::components::WorldLinearVelocity>(_ecm,
       this->dataPtr->linkEntity);
 
   double minThrustCmd = this->dataPtr->cmdMin;
@@ -304,6 +362,11 @@ void ThrusterPrivateData::OnCmdThrust(const msgs::Double &_msg)
 /////////////////////////////////////////////////
 double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
+  // Only update if the thrust coefficient was not set by configuration.
+  if (!this->thrustCoefficientSet)
+  {
+    this->UpdateThrustCoefficient();
+  }
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto propAngularVelocity = sqrt(abs(
@@ -314,6 +377,17 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   propAngularVelocity *= (_thrust > 0) ? 1: -1;
 
   return propAngularVelocity;
+}
+
+/////////////////////////////////////////////////
+void ThrusterPrivateData::UpdateThrustCoefficient()
+{
+  double calculatedThrustCoefficient = this->alpha_1 + this->alpha_2 *
+      (((1 - this->wakeFraction) * this->linearVelocity)
+      / (this->propellerAngVel * this->propellerDiameter));
+  if (!std::isnan(calculatedThrustCoefficient)
+      && calculatedThrustCoefficient!=0)
+     this->thrustCoefficient = calculatedThrustCoefficient;
 }
 
 /////////////////////////////////////////////////
@@ -405,6 +479,11 @@ void Thruster::PreUpdate(
     _ecm,
     unitVector * desiredThrust,
     unitVector * torque);
+
+  // Update the LinearVelocity of the vehicle
+  this->dataPtr->linearVelocity =
+      _ecm.Component<ignition::gazebo::components::WorldLinearVelocity>(
+      this->dataPtr->linkEntity)->Data().Length();
 }
 
 /////////////////////////////////////////////////
