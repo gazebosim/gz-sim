@@ -109,8 +109,8 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// calculation of the thrust coeficiennt.
   public: double alpha_1 = 1;
 
-  /// Constant given by the open water propeller diagram. Used in the
-  /// calculation of the thrust coeficiennt.
+  /// \brief Constant given by the open water propeller diagram. Used in the
+  /// calculation of the thrust coefficient.
   public: double alpha_2 = 0;
 
   /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
