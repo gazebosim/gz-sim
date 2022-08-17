@@ -1078,13 +1078,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
             std::string rootNodeName = meshSkel->RootNode()->Name();
             common::SkeletonAnimation *skelAnim =
                 meshSkel->Animation(trajInfo.AnimIndex());
-            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
-                rootNodeName);
-            math::Matrix4d lastPos = rootNode->KeyFrame(
-                rootNode->FrameCount() - 1).second;
-            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
-            if (!math::equal(firstPos.Translation().X(),
-                lastPos.Translation().X()))
+            if (skelAnim->XDisplacement())
             {
               trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
             }
