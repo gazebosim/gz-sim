@@ -120,7 +120,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
   public: double propellerDiameter = 0.02;
 
   /// \brief Linear velocity of the vehicle.
-  public: double linearVelocity = 0;
+  public: double linearVelocity = 0.0;
 
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
