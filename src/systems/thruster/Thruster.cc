@@ -98,7 +98,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// thrust
   public: double thrustCoefficient = 1;
 
-  /// \brief True if the thrust coefficient was set by conifguration.
+  /// \brief True if the thrust coefficient was set by configuration.
   public: bool thrustCoefficientSet = false;
 
   /// \brief  Relative speed reduction between the water at the propeller vs
