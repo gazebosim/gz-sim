@@ -1,6 +1,6 @@
 ## Gazebo Sim 3.x
 
-### Gazebo Sim 3.14.0 (2022-08-XX)
+### Gazebo Sim 3.14.0 (2022-08-17)
 
 1. Change `CODEOWNERS` and maintainer to Michael
     * [Pull request #1644](https://github.com/gazebosim/gz-sim/pull/1644)
