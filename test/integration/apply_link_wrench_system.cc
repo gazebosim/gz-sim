@@ -23,6 +23,7 @@
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/transport/Node.hh>
+#include <ignition/utils/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -48,7 +49,7 @@ class ApplyLinkWrenchTestFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ApplyLinkWrenchTestFixture, FromSdf)
+TEST_F(ApplyLinkWrenchTestFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FromSdf))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
@@ -106,7 +107,8 @@ TEST_F(ApplyLinkWrenchTestFixture, FromSdf)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ApplyLinkWrenchTestFixture, PersistentFromTopic)
+TEST_F(ApplyLinkWrenchTestFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(PersistentFromTopic))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
@@ -240,7 +242,8 @@ TEST_F(ApplyLinkWrenchTestFixture, PersistentFromTopic)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ApplyLinkWrenchTestFixture, InstantaneousFromTopic)
+TEST_F(ApplyLinkWrenchTestFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(InstantaneousFromTopic))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
