@@ -66,8 +66,8 @@ TEST_F(UserCommandsTest, Create)
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -328,8 +328,8 @@ TEST_F(UserCommandsTest, Remove)
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -512,8 +512,8 @@ TEST_F(UserCommandsTest, Pose)
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -686,8 +686,8 @@ TEST_F(UserCommandsTest, PoseVector)
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -760,8 +760,8 @@ TEST_F(UserCommandsTest, Physics)
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });

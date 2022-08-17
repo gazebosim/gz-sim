@@ -123,7 +123,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
   }
 
   ignmsg << "Contact system publishing on " << this->topic << std::endl;
-  this->pub = this->node.Advertise<ignition::msgs::Contacts>(this->topic);
+  this->pub = this->node.Advertise<msgs::Contacts>(this->topic);
 }
 
 //////////////////////////////////////////////////

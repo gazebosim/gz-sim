@@ -62,7 +62,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
         systemPtr->QueryInterface<gazebo::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
+  public: gazebo::SystemPluginPtr systemPtr;
   public: gazebo::MockSystem *mockSystem;
 
   private: gazebo::SystemLoader sm;
@@ -113,7 +113,7 @@ void testDefaultTopics()
 /// are removed and then added back
 TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/sensor.sdf";

@@ -57,11 +57,11 @@ TEST_F(ThermalTest, TemperatureComponent)
   test::Relay testSystem;
 
   std::map<std::string, math::Temperature> entityTemp;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const ignition::gazebo::Entity &_id,
+          [&](const Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {

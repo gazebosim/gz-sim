@@ -499,7 +499,7 @@ unsigned int ServerConfig::Seed() const
 void ServerConfig::SetSeed(unsigned int _seed)
 {
   this->dataPtr->seed = _seed;
-  ignition::math::Rand::Seed(_seed);
+  math::Rand::Seed(_seed);
 }
 
 /////////////////////////////////////////////////
@@ -800,7 +800,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
+gazebo::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
@@ -809,7 +809,7 @@ ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::parsePluginsFromString(const std::string &_str)
+gazebo::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
@@ -819,28 +819,28 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-ignition::gazebo::loadPluginInfo(bool _isPlayback)
+gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
+  bool configSet = common::env(kServerConfigPathEnv,
                                          envConfig,
                                          true);
 
   if (configSet)
   {
-    if (ignition::common::exists(envConfig))
+    if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = ignition::gazebo::parsePluginsFromFile(envConfig);
+      ret = gazebo::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << gazebo::kServerConfigPathEnv
+        ignwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -853,7 +853,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << gazebo::kServerConfigPathEnv
+      ignwarn << kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;
@@ -871,27 +871,27 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
+  common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = common::joinPaths(defaultConfigDir, ".ignition",
     "gazebo");
 
-  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = common::joinPaths(defaultConfigDir,
       configFilename);
 
-  if (!ignition::common::exists(defaultConfig))
+  if (!common::exists(defaultConfig))
   {
-    auto installedConfig = ignition::common::joinPaths(
+    auto installedConfig = common::joinPaths(
         IGNITION_GAZEBO_SERVER_CONFIG_PATH,
         configFilename);
 
-    if (!ignition::common::createDirectories(defaultConfigDir))
+    if (!common::createDirectories(defaultConfigDir))
     {
       ignerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
       return ret;
     }
 
-    if (!ignition::common::exists(installedConfig))
+    if (!common::exists(installedConfig))
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -899,7 +899,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!ignition::common::copyFile(installedConfig, defaultConfig))
+    else if (!common::copyFile(installedConfig, defaultConfig))
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -914,7 +914,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
+  ret = gazebo::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {

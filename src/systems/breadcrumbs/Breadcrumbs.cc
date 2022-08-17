@@ -152,8 +152,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Breadcrumbs::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void Breadcrumbs::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Breadcrumbs::PreUpdate");
 
@@ -390,7 +390,7 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
 }
 
 IGNITION_ADD_PLUGIN(Breadcrumbs,
-                    ignition::gazebo::System,
+                    System,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 

@@ -54,7 +54,7 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, DefaultServerConfig)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
   EXPECT_FALSE(serverConfig.UpdateRate());
@@ -111,7 +111,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
   pluginInfo.SetName("interface");
   pluginInfo.SetSdf(nullptr);
 
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.AddPlugin(pluginInfo);
 
   const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
@@ -265,7 +265,7 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SdfServerConfig)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -366,7 +366,7 @@ TEST_P(ServerFixture, ServerConfigLogRecordCompress)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SdfStringServerConfig)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -580,7 +580,7 @@ TEST_P(ServerFixture, RunOncePaused)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   gazebo::Server server(serverConfig);
 
@@ -682,7 +682,7 @@ TEST_P(ServerFixture, ServerControlStop)
 // See: https://github.com/gazebosim/gz-sim/issues/1544
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersNonBlocking))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);
@@ -723,7 +723,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersNonBlocking))
 // See: https://github.com/gazebosim/gz-sim/issues/1544
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersMixedBlocking))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   gazebo::Server server1(serverConfig);
@@ -756,7 +756,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(TwoServersMixedBlocking))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddSystemWhileRunning)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -804,7 +804,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddSystemAfterLoad)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
@@ -867,18 +867,18 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, Seed)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   EXPECT_EQ(0u, serverConfig.Seed());
   unsigned int mySeed = 12345u;
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
-  EXPECT_EQ(mySeed, ignition::math::Rand::Seed());
+  EXPECT_EQ(mySeed, math::Rand::Seed());
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResourcePath)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
           std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
 
@@ -937,7 +937,7 @@ TEST_P(ServerFixture, ResourcePath)
       // Check physics system loaded meshes and got their BB correct
       eachCount = 0;
       _ecm.Each<components::AxisAlignedBox>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const Entity &,
             const components::AxisAlignedBox *_box)->bool
         {
           auto box = _box->Data();
@@ -966,7 +966,7 @@ TEST_P(ServerFixture, ResourcePath)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
 
   ServerConfig serverConfig;
@@ -998,7 +998,7 @@ TEST_P(ServerFixture, CachedFuelWorld)
 {
   auto cachedWorldPath =
     common::joinPaths(std::string(PROJECT_SOURCE_PATH), "test", "worlds");
-  ignition::common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
+  common::setenv("IGN_FUEL_CACHE_PATH", cachedWorldPath.c_str());
 
   ServerConfig serverConfig;
   auto fuelWorldURL =
@@ -1022,10 +1022,10 @@ TEST_P(ServerFixture, CachedFuelWorld)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
       "/tmp/some/path:/home/user/another_path");
-  ignition::common::setenv("SDF_PATH", "");
-  ignition::common::setenv("IGN_FILE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);

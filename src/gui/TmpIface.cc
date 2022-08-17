@@ -40,8 +40,8 @@ bool TmpIface::OnServerControl(const msgs::ServerControl &/*_req*/,
 /////////////////////////////////////////////////
 void TmpIface::OnNewWorld()
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_res, const bool _result)
   {
     igndbg << "NewWorld callback: result: " << _result << std::endl;
     igndbg << "NewWorld callback: response: " << _res.DebugString()
@@ -60,8 +60,8 @@ void TmpIface::OnLoadWorld(const QString &_path)
   if (localPath.isEmpty())
     localPath = _path;
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_res, const bool _result)
   {
     igndbg << "LoadWorld callback: result: " << _result << std::endl;
     igndbg << "LoadWorld callback: response: " << _res.DebugString()
@@ -80,8 +80,8 @@ void TmpIface::OnSaveWorldAs(const QString &_path)
   if (localPath.isEmpty())
     localPath = _path;
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_res, const bool _result)
   {
     igndbg << "SaveWorldAs callback: result: " << _result << std::endl;
     igndbg << "SaveWorldAs callback: response: " << _res.DebugString()

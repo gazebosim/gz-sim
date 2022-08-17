@@ -45,8 +45,8 @@ Thermal::~Thermal() = default;
 //////////////////////////////////////////////////
 void Thermal::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    gazebo::EntityComponentManager &_ecm,
-    gazebo::EventManager & /*_eventMgr*/)
+    EntityComponentManager &_ecm,
+    EventManager & /*_eventMgr*/)
 {
   if (!_sdf->HasElement("temperature"))
   {

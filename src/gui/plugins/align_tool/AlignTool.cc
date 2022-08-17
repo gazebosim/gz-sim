@@ -326,14 +326,14 @@ void AlignTool::Align()
     this->dataPtr->scene = rendering::sceneFromFirstRenderEngine();
 
   // Get current list of selected entities
-  std::vector<ignition::rendering::VisualPtr> selectedList;
-  ignition::rendering::VisualPtr relativeVisual;
+  std::vector<rendering::VisualPtr> selectedList;
+  rendering::VisualPtr relativeVisual;
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
     for (auto i = 0u; i < this->dataPtr->scene->VisualCount(); ++i)
     {
-      ignition::rendering::VisualPtr vis =
+      rendering::VisualPtr vis =
         this->dataPtr->scene->VisualByIndex(i);
       if (!vis)
         continue;
@@ -356,8 +356,8 @@ void AlignTool::Align()
     (relativeVisual = selectedList.back());
 
   // Callback function for ignition node request
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/* _rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/* _rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting pose" << std::endl;
@@ -371,7 +371,7 @@ void AlignTool::Align()
   }
 
   int axisIndex = static_cast<int>(this->dataPtr->axis);
-  ignition::msgs::Pose req;
+  msgs::Pose req;
 
   // Index math to avoid iterating through the selected node
   for (unsigned int i = this->dataPtr->first;
@@ -483,7 +483,7 @@ rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
 /////////////////////////////////////////////////
 bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gazebo::gui::events::Render::kType)
+  if (_event->type() == gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -498,7 +498,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::kType)
+           gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -520,7 +520,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
@@ -528,5 +528,5 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::AlignTool,
+IGNITION_ADD_PLUGIN(AlignTool,
                     ignition::gui::Plugin)

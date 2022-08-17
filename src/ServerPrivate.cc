@@ -315,7 +315,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
         {
           sdfCompressPath = std::string(sdfRecordPath);
           if (!std::string(1, sdfCompressPath.back()).compare(
-            ignition::common::separator("")))
+            common::separator("")))
           {
             // Remove the separator at end of path
             sdfCompressPath = sdfCompressPath.substr(0,
@@ -439,7 +439,7 @@ void ServerPrivate::SetupTransport()
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -455,7 +455,7 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ServerControlService(
-  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+  const msgs::ServerControl &_req, msgs::Boolean &_res)
 {
   _res.set_data(false);
 
@@ -498,7 +498,7 @@ bool ServerPrivate::ServerControlService(
 
 //////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const ignition::msgs::StringMsg_V &_req)
+    const msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -521,7 +521,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    ignition::msgs::StringMsg_V &_res)
+    msgs::StringMsg_V &_res)
 {
   _res.Clear();
 

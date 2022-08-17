@@ -40,26 +40,26 @@ class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for link velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnLinkCmdVel(const ignition::msgs::Twist &_msg,
-    const ignition::transport::MessageInfo &_info);
+  public: void OnLinkCmdVel(const msgs::Twist &_msg,
+    const transport::MessageInfo &_info);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update link velocity.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateLinkVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -177,8 +177,8 @@ void VelocityControl::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void VelocityControl::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("VelocityControl::PreUpdate");
 
@@ -321,8 +321,8 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VeocityControl::UpdateVelocity");
 
@@ -333,8 +333,8 @@ void VelocityControlPrivate::UpdateVelocity(
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateLinkVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VelocityControl::UpdateLinkVelocity");
 
@@ -372,7 +372,7 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
 }
 
 IGNITION_ADD_PLUGIN(VelocityControl,
-                    ignition::gazebo::System,
+                    System,
                     VelocityControl::ISystemConfigure,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)

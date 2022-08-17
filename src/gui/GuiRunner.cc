@@ -75,7 +75,7 @@ void GuiRunner::RequestState()
   std::string reqSrv =
       this->node.Options().NameSpace() + "/" + id + "/state_async";
   this->node.Advertise(reqSrv, &GuiRunner::OnStateAsyncService, this);
-  ignition::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // send async state request

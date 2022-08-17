@@ -62,7 +62,7 @@ using namespace gazebo;
 void IgnGazeboPlugin::registerTypes(const char *_uri)
 {
   // Register our 'EntityContextMenuItem' in qml engine
-  qmlRegisterType<ignition::gazebo::EntityContextMenu>(_uri, 1, 0,
+  qmlRegisterType<EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
 }
 
@@ -115,14 +115,14 @@ void EntityContextMenu::OnRemove(
       "/world/" + this->dataPtr->worldName + "/remove";
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_rep, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_rep, const bool _result)
   {
     if (!_result || !_rep.data())
       ignerr << "Error sending remove request" << std::endl;
   };
 
-  ignition::msgs::Entity req;
+  msgs::Entity req;
   req.set_name(_data.toStdString());
   req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
 
@@ -132,8 +132,8 @@ void EntityContextMenu::OnRemove(
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending move to request" << std::endl;
@@ -142,19 +142,19 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   std::string request = _request.toStdString();
   if (request == "move_to")
   {
-    ignition::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
   }
   else if (request == "follow")
   {
-    ignition::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
   else if (request == "view_collisions")
   {
-    ignition::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCollisionsService, req, cb);
   }

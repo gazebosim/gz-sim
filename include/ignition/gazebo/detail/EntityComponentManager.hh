@@ -19,6 +19,7 @@
 
 #include <cstring>
 #include <map>
+#include <optional>
 #include <set>
 #include <type_traits>
 #include <utility>

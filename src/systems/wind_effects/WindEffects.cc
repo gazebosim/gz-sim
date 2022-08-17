@@ -374,7 +374,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
-  ignition::math::Vector3d windVel;
+  math::Vector3d windVel;
   windVel.X(magnitude * std::cos(IGN_DTOR(direction)));
   windVel.Y(magnitude * std::sin(IGN_DTOR(direction)));
 

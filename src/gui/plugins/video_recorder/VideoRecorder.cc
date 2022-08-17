@@ -70,8 +70,8 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 void VideoRecorder::OnStart(const QString &_format)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending video record start request" << std::endl;
@@ -80,7 +80,7 @@ void VideoRecorder::OnStart(const QString &_format)
   std::string format = _format.toStdString();
   this->dataPtr->filename = "ign_recording." + format;
 
-  ignition::msgs::VideoRecord req;
+  msgs::VideoRecord req;
   req.set_start(true);
   req.set_format(format);
   req.set_save_filename(this->dataPtr->filename);
@@ -90,14 +90,14 @@ void VideoRecorder::OnStart(const QString &_format)
 /////////////////////////////////////////////////
 void VideoRecorder::OnStop()
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending video record stop request" << std::endl;
   };
 
-  ignition::msgs::VideoRecord req;
+  msgs::VideoRecord req;
   req.set_stop(true);
   this->dataPtr->node.Request(this->dataPtr->service, req, cb);
 }
@@ -143,5 +143,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VideoRecorder,
+IGNITION_ADD_PLUGIN(VideoRecorder,
                     ignition::gui::Plugin)
