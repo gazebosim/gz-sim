@@ -322,14 +322,14 @@ ToolBar {
       parent: transformControl.Window.window ? transformControl.Window.window.contentItem : transformControl
       x: (windowWidth() - width) / 2
       y: (windowHeight() - height) / 2
-      width: 360
+      width: 400
       height: 250
       modal: true
       focus: true
       title: "Snap values"
       GridLayout {
         columns: 6
-        columnSpacing: 30
+        columnSpacing: 60
         Text {
           text: "Translation (m)"
           color: snapTitle
@@ -354,17 +354,18 @@ ToolBar {
           id: gzPoseInstance
           width: parent.width
           Layout.columnSpan: 6
+          Layout.row: 1
           Layout.fillWidth: true
           readOnly: false
-          spinMax: 100.0
+          useRadian: false
+          spinMax: 180
 
           xValue: 1.0
           yValue: 1.0
           zValue: 1.0
-          // 0.785 is PI /4
-          rollValue: 0.785
-          pitchValue: 0.785
-          yawValue: 0.785
+          rollValue: 45
+          pitchValue: 45
+          yawValue: 45
 
           onGzPoseSet: {
             // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
