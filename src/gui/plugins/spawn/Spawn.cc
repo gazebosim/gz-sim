@@ -147,7 +147,7 @@ namespace gz::sim
     /// \brief Text for popup error message
     public: QString errorPopupText;
 
-    /// \brief Adds new line after each new nChar.
+    /// \brief Adds new line after each nChar.
     public: std::string AddNewLine(std::string &str, int nChar);
   };
 }
@@ -205,7 +205,6 @@ std::string SpawnPrivate::AddNewLine(std::string &str, int nChar)
   }
   return out;
 }
-
 
 /////////////////////////////////////////////////
 void SpawnPrivate::HandlePlacement()
