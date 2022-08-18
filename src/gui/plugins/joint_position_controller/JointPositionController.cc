@@ -375,7 +375,7 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
 {
   std::string jointName = _jointName.toStdString();
 
-  ignition::msgs::Double msg;
+  msgs::Double msg;
   msg.set_data(_pos);
   auto topic = transport::TopicUtils::AsValidTopic("/model/" +
       this->dataPtr->modelName.toStdString() + "/joint/" + jointName +
@@ -388,7 +388,7 @@ void JointPositionController::OnCommand(const QString &_jointName, double _pos)
     return;
   }
 
-  auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
+  auto pub = this->dataPtr->node.Advertise<msgs::Double>(topic);
   pub.Publish(msg);
 }
 
@@ -405,7 +405,7 @@ void JointPositionController::OnReset()
       continue;
     }
 
-    ignition::msgs::Double msg;
+    msgs::Double msg;
     msg.set_data(0);
     auto topic = transport::TopicUtils::AsValidTopic("/model/" +
         this->dataPtr->modelName.toStdString() + "/joint/" + jointName +
@@ -418,11 +418,11 @@ void JointPositionController::OnReset()
       return;
     }
 
-    auto pub = this->dataPtr->node.Advertise<ignition::msgs::Double>(topic);
+    auto pub = this->dataPtr->node.Advertise<msgs::Double>(topic);
     pub.Publish(msg);
   }
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::gui::JointPositionController,
+IGNITION_ADD_PLUGIN(JointPositionController,
                     ignition::gui::Plugin)

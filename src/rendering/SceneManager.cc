@@ -446,8 +446,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -462,7 +462,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
 
     std::string name("POLYLINE_" + common::Uuid().String());
 
-    auto meshManager = ignition::common::MeshManager::Instance();
+    auto meshManager = common::MeshManager::Instance();
     meshManager->CreateExtrudedPolyline(name, vertices,
         _geom.PolylineShape()[0].Height());
 

@@ -198,5 +198,5 @@ void Shapes::OnMode(const QString &_mode)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Shapes,
+IGNITION_ADD_PLUGIN(Shapes,
                     ignition::gui::Plugin)

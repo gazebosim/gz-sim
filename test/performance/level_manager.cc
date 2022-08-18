@@ -36,10 +36,10 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 
   common::Console::SetVerbosity(4);
 
-  ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+  common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/level_performance.sdf");
   math::Stopwatch watch;
@@ -51,7 +51,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
   // measuring time differences between levels and no levels.
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     server.Run(true, 1, false);
@@ -60,7 +60,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
   // Server with levels
   {
     serverConfig.SetUseLevels(true);
-    gazebo::Server server(serverConfig);
+    Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     watch.Start(true);
@@ -72,7 +72,7 @@ TEST(LevelManagerPerfrormance, LevelVsNoLevel)
   // Server without levels
   {
     serverConfig.SetUseLevels(false);
-    gazebo::Server serverNoLevels(serverConfig);
+    Server serverNoLevels(serverConfig);
     serverNoLevels.SetUpdatePeriod(1ns);
 
     watch.Start(true);

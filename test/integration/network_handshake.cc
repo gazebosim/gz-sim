@@ -44,8 +44,8 @@ uint64_t testPaused(bool _paused)
   bool paused = !_paused;
   uint64_t iterations = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb =
+      [&](const msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -173,8 +173,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   // Subscribe to pose updates, which should come from the primary
   transport::Node node;
   std::vector<double> zPos;
-  std::function<void(const ignition::msgs::Pose_V &)> cb =
-      [&](const ignition::msgs::Pose_V &_msg)
+  std::function<void(const msgs::Pose_V &)> cb =
+      [&](const msgs::Pose_V &_msg)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {

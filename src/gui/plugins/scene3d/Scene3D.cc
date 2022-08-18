@@ -533,7 +533,7 @@ void IgnRenderer::Render()
           std::chrono::steady_clock::duration dt;
           dt = t - this->dataPtr->recordStartTime;
           int64_t sec, nsec;
-          std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+          std::tie(sec, nsec) = math::durationToSecNsec(dt);
           msgs::Time msg;
           msg.set_sec(sec);
           msg.set_nsec(nsec);
@@ -778,13 +778,13 @@ void IgnRenderer::Render()
 
   if (ignition::gui::App())
   {
-    ignition::gui::events::Render event;
+    gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
 
     // This will be deprecated on v5 and removed on v6
-    ignition::gazebo::gui::events::Render oldEvent;
+    gui::events::Render oldEvent;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &oldEvent);
@@ -811,7 +811,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   // Only preview first model
   sdf::Model model = *(_sdf.ModelByIndex(0));
   this->dataPtr->spawnPreviewPose = model.RawPose();
-  model.SetName(ignition::common::Uuid().String());
+  model.SetName(common::Uuid().String());
   Entity modelId = this->UniqueId();
   if (!modelId)
   {
@@ -827,7 +827,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
   for (auto j = 0u; j < model.LinkCount(); j++)
   {
     sdf::Link link = *(model.LinkByIndex(j));
-    link.SetName(ignition::common::Uuid().String());
+    link.SetName(common::Uuid().String());
     Entity linkId = this->UniqueId();
     if (!linkId)
     {
@@ -840,7 +840,7 @@ bool IgnRenderer::GeneratePreview(const sdf::Root &_sdf)
     for (auto k = 0u; k < link.VisualCount(); k++)
     {
      sdf::Visual visual = *(link.VisualByIndex(k));
-     visual.SetName(ignition::common::Uuid().String());
+     visual.SetName(common::Uuid().String());
      Entity visualId = this->UniqueId();
      if (!visualId)
      {
@@ -1120,8 +1120,8 @@ void IgnRenderer::HandleModelPlacement()
     this->TerminateSpawnPreview();
 
     math::Pose3d modelPose = this->dataPtr->spawnPreviewPose;
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error creating model" << std::endl;
@@ -1226,7 +1226,7 @@ double IgnRenderer::SnapValue(
 
 /////////////////////////////////////////////////
 void IgnRenderer::SnapPoint(
-    ignition::math::Vector3d &_point, math::Vector3d &_snapVals,
+    math::Vector3d &_point, math::Vector3d &_snapVals,
     double _sensitivity) const
 {
   if (_snapVals.X() <= 0 || _snapVals.Y() <= 0 || _snapVals.Z() <= 0)
@@ -1333,7 +1333,7 @@ void IgnRenderer::HandleMouseTransformControl()
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
             this->dataPtr->transformControl.AxisById(visual->Id());
-        if (axis != ignition::math::Vector3d::Zero)
+        if (axis != math::Vector3d::Zero)
         {
           // start the transform process
           this->dataPtr->transformControl.SetActiveAxis(axis);
@@ -1351,14 +1351,14 @@ void IgnRenderer::HandleMouseTransformControl()
       {
         if (this->dataPtr->transformControl.Node())
         {
-          std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-              [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+          std::function<void(const msgs::Boolean &, const bool)> cb =
+              [](const msgs::Boolean &/*_rep*/, const bool _result)
           {
             if (!_result)
               ignerr << "Error setting pose" << std::endl;
           };
           rendering::NodePtr node = this->dataPtr->transformControl.Node();
-          ignition::msgs::Pose req;
+          msgs::Pose req;
           req.set_name(node->Name());
           msgs::Set(req.mutable_position(), node->WorldPosition());
           msgs::Set(req.mutable_orientation(), node->WorldRotation());
@@ -1393,7 +1393,7 @@ void IgnRenderer::HandleMouseTransformControl()
         // check if the visual is an axis in the gizmo visual
         math::Vector3d axis =
             this->dataPtr->transformControl.AxisById(visual->Id());
-        if (axis == ignition::math::Vector3d::Zero)
+        if (axis == math::Vector3d::Zero)
         {
           auto topVis =
               this->dataPtr->renderUtil.SceneManager().TopLevelVisual(visual);
@@ -1461,7 +1461,7 @@ void IgnRenderer::HandleMouseTransformControl()
         this->dataPtr->startWorldPos =
           target->WorldPosition();
       }
-      ignition::math::Vector3d worldPos =
+      math::Vector3d worldPos =
         target->WorldPosition();
       math::Vector3d distance =
         this->dataPtr->transformControl.TranslationFrom2d(axis, start, end);
@@ -1599,7 +1599,7 @@ void IgnRenderer::HandleMouseViewControl()
     // unset the target on release (by setting to inf)
     else if (this->dataPtr->mouseEvent.Type() == common::MouseEvent::RELEASE)
     {
-      this->dataPtr->target = ignition::math::INF_D;
+      this->dataPtr->target = math::INF_D;
     }
 
     // Pan with left button
@@ -2021,7 +2021,7 @@ math::Vector3d IgnRenderer::ScreenToPlane(
   this->dataPtr->rayQuery->SetFromCamera(
       this->dataPtr->camera, math::Vector2d(nx, ny));
 
-  ignition::math::Planed plane(ignition::math::Vector3d(0, 0, 1), 0);
+  math::Planed plane(math::Vector3d(0, 0, 1), 0);
 
   math::Vector3d origin = this->dataPtr->rayQuery->Origin();
   math::Vector3d direction = this->dataPtr->rayQuery->Direction();
@@ -2807,8 +2807,8 @@ void Scene3D::OnDropped(const QString &_drop, int _mouseX, int _mouseY)
     return;
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
       ignerr << "Error creating dropped entity." << std::endl;
@@ -2950,7 +2950,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::EntitiesSelected::kType)
+      gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -2983,7 +2983,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
@@ -2996,7 +2996,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SnapIntervals::kType)
+      gui::events::SnapIntervals::kType)
   {
     auto snapEvent = reinterpret_cast<gui::events::SnapIntervals *>(_event);
     if (snapEvent)
@@ -3008,7 +3008,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewModel::kType)
+      gui::events::SpawnPreviewModel::kType)
   {
     auto spawnPreviewEvent =
       reinterpret_cast<gui::events::SpawnPreviewModel *>(_event);
@@ -3019,7 +3019,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gazebo::gui::events::SpawnPreviewPath::kType)
+      gui::events::SpawnPreviewPath::kType)
   {
     auto spawnPreviewPathEvent =
       reinterpret_cast<gui::events::SpawnPreviewPath *>(_event);
@@ -3194,7 +3194,7 @@ void RenderWindowItem::SetRecordVideoBitrate(unsigned int _bitrate)
 }
 
 /////////////////////////////////////////////////
-void RenderWindowItem::OnHovered(const ignition::math::Vector2i &_hoverPos)
+void RenderWindowItem::OnHovered(const math::Vector2i &_hoverPos)
 {
   this->dataPtr->renderThread->ignRenderer.NewHoverEvent(_hoverPos);
 }
@@ -3313,5 +3313,5 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,
+IGNITION_ADD_PLUGIN(gazebo::Scene3D,
                     ignition::gui::Plugin)

@@ -57,25 +57,25 @@ class ignition::gazebo::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for enable/disable subscription
   /// \param[in] _msg Boolean message
-  public: void OnEnable(const ignition::msgs::Boolean &_msg);
+  public: void OnEnable(const msgs::Boolean &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -126,10 +126,10 @@ class ignition::gazebo::systems::DiffDrivePrivate
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -204,8 +204,8 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -297,8 +297,8 @@ void DiffDrive::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrive::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::PreUpdate");
 
@@ -409,8 +409,8 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DiffDrive::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -490,7 +490,7 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = tfMsg.add_pose();
+  msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -501,8 +501,8 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void DiffDrivePrivate::UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("DiffDrive::UpdateVelocity");
 
@@ -556,7 +556,7 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
 }
 
 IGNITION_ADD_PLUGIN(DiffDrive,
-                    ignition::gazebo::System,
+                    System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)

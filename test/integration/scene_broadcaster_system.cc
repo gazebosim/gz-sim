@@ -41,7 +41,7 @@ class SceneBroadcasterTest
 TEST_P(SceneBroadcasterTest, PoseInfo)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -91,7 +91,7 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 TEST_P(SceneBroadcasterTest, SceneInfo)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -108,7 +108,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene res;
+  msgs::Scene res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
   EXPECT_TRUE(result);
@@ -126,7 +126,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
   }
 
   // Repeat the request to make sure the same information is returned
-  ignition::msgs::Scene res2;
+  msgs::Scene res2;
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res2, result));
   EXPECT_TRUE(result);
 
@@ -137,7 +137,7 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
 TEST_P(SceneBroadcasterTest, SceneGraph)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -154,7 +154,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::StringMsg res;
+  msgs::StringMsg res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
   EXPECT_TRUE(result);
@@ -177,7 +177,7 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 TEST_P(SceneBroadcasterTest, SceneTopic)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -209,7 +209,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene msg;
+  msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, msg, result));
   EXPECT_TRUE(result);
@@ -221,7 +221,7 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
@@ -253,7 +253,7 @@ TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 
   bool result{false};
   unsigned int timeout{5000};
-  ignition::msgs::Scene msg;
+  msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/altimeter_sensor/scene/info",
         timeout, msg, result));
@@ -272,7 +272,7 @@ TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 TEST_P(SceneBroadcasterTest, DeletedTopic)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -333,7 +333,7 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 TEST_P(SceneBroadcasterTest, SpawnedModel)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -379,8 +379,8 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
 
   // Check that the model is in the scene/infor response
   {
-    ignition::msgs::Empty req;
-    ignition::msgs::Scene rep;
+    msgs::Empty req;
+    msgs::Scene rep;
     bool result;
     unsigned int timeout = 2000;
     EXPECT_TRUE(node.Request("/world/default/scene/info", req, timeout,
@@ -403,7 +403,7 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
 TEST_P(SceneBroadcasterTest, State)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -494,7 +494,7 @@ TEST_P(SceneBroadcasterTest, State)
   std::string reqSrv = "/state_async_callback_test";
   node.Advertise(reqSrv, cbAsync);
 
-  ignition::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
   node.Request("/world/default/state_async", req);
 
@@ -514,7 +514,7 @@ TEST_P(SceneBroadcasterTest, State)
 TEST_P(SceneBroadcasterTest, StateStatic)
 {
   // Start server
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 

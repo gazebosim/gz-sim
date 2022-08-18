@@ -82,13 +82,13 @@ TEST_F(AltimeterTest, IGN_UTILS_TEST_DISABLED_ON_MAC(ModelFalling))
   test::Relay testSystem;
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> velocities;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Altimeter, components::Name,
                   components::WorldPose,
                   components::WorldLinearVelocity>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::Altimeter *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,

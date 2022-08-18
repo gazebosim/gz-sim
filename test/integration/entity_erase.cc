@@ -32,12 +32,12 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
   EXPECT_TRUE(server.HasEntity("box"));
   EXPECT_TRUE(server.HasEntity("cylinder"));
   EXPECT_TRUE(server.HasEntity("sphere"));

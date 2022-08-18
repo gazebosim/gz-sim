@@ -44,10 +44,10 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
 
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
-  ignition::common::setenv("SDF_PATH", "");
-  ignition::common::setenv("IGN_FILE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("IGN_FILE_PATH", "");
   igndbg << "Environment set" << std::endl;
 
   transport::Node node;
@@ -87,7 +87,7 @@ TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  auto app = ignition::gazebo::gui::createGui(gg_argc, gg_argv, nullptr);
+  auto app = createGui(gg_argc, gg_argv, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 

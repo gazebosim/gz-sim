@@ -46,7 +46,7 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
 
   gazebo::Server server;
 

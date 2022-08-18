@@ -655,10 +655,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogPlayback,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(LogPlayback,
+                    System,
                     LogPlayback::ISystemConfigure,
                     LogPlayback::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogPlayback,
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
                           "ignition::gazebo::systems::LogPlayback")

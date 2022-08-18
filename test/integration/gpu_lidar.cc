@@ -100,9 +100,9 @@ TEST_F(GpuLidarTest, IGN_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
   double expectedRangeAtMidPointBox1 = 0.45;
 
   // Sensor 1 should see TestBox1
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(0), ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(lastMsg.ranges(0), math::INF_D);
   EXPECT_NEAR(lastMsg.ranges(mid), expectedRangeAtMidPointBox1,
               LASER_TOL);
-  EXPECT_DOUBLE_EQ(lastMsg.ranges(last), ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(lastMsg.ranges(last), math::INF_D);
   EXPECT_EQ("gpu_lidar::gpu_lidar_link::gpu_lidar", lastMsg.frame());
 }
