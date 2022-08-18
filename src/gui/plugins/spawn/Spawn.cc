@@ -148,7 +148,7 @@ namespace gz::sim
     public: QString errorPopupText;
 
     /// \brief Adds new line after each nChar.
-    public: std::string AddNewLine(std::string &str, int nChar);
+    public: std::string AddNewLine(std::string &_str, int _nChar);
   };
 }
 
