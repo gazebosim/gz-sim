@@ -38,29 +38,29 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <model name="ball">
-        <link name="body">
+    <model name="sphere">
+        <link name="sphere_link">
           <pose>0 0 0 0 0 0</pose>
           <inertial>
             <mass>25</mass>
             <inertia>
-              <ixx>86.28907821859966</ixx>
+              <ixx>0.4</ixx>
               <ixy>0</ixy>
               <ixz>0</ixz>
-              <iyy>86.28907821859966</iyy>
+              <iyy>0.4</iyy>
               <iyz>0</iyz>
-              <izz>5.026548245743671</izz>
+              <izz>0.4</izz>
             </inertia>
           </inertial>
 
-          <visual name='body_visual'>
+          <visual name='sphere_visual'>
             <geometry>
               <sphere>
                 <radius>0.2</radius>
               </sphere>
             </geometry>
           </visual>
-          <collision name='body_collision'>
+          <collision name='sphere_collision'>
             <geometry>
               <sphere>
                 <radius>0.2</radius>
@@ -70,18 +70,13 @@
         </link>
 
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
-      </plugin>
-
-      <!-- hydrodynamics plugin-->
-      <plugin
         filename="ignition-gazebo-hydrodynamics-system"
         name="ignition::gazebo::systems::Hydrodynamics">
-        <link_name>body</link_name>
+        <link_name>sphere_link</link_name>
+        <water_density>1000</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>300</zDotW>
+        <zDotW>16.7552</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -89,8 +84,8 @@
         <xU>0</xU>
         <yVV>0</yVV>
         <yV>0</yV>
-        <zWW>200</zWW>
-        <zW>0</zW>
+        <zWW>125.6637</zWW>
+        <zW>0.037699</zW>
         <kPP>0</kPP>
         <kP>0</kP>
         <mQQ>0</mQQ>
@@ -99,6 +94,5 @@
         <nR>0</nR>
       </plugin>
     </model>
-
   </world>
 </sdf>
