@@ -192,17 +192,17 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-std::string SpawnPrivate::AddNewLine(std::string &str, int nChar)
+std::string SpawnPrivate::AddNewLine(std::string &_str, int _nChar)
 {
   std::string out;
-  out.reserve(str.size() + str.size() / nChar);
-  for (std::string::size_type i = 0; i < str.size(); i++)
+  out.reserve(_str.size() + _str.size() / _nChar);
+  for (std::string::size_type i = 0; i < _str.size(); i++)
   {
-    if (!(i % nChar) && i)
+    if (!(i % _nChar) && i)
     {
       out.append("-\n");
     }
-    out.push_back(str[i]);
+    out.push_back(_str[i]);
   }
   return out;
 }
