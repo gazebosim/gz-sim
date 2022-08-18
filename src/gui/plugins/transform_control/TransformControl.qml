@@ -323,15 +323,15 @@ ToolBar {
       x: (windowWidth() - width) / 2
       y: (windowHeight() - height) / 2
       width: 400
-      height: 250
+      height: 290
       modal: true
       focus: true
       title: "Snap values"
       GridLayout {
         columns: 6
-        columnSpacing: 60
+        columnSpacing: 100
         Text {
-          text: "Translation (m)"
+          text: "Translation"
           color: snapTitle
           font.weight: Font.Bold
           Layout.columnSpan: 2
@@ -341,7 +341,7 @@ ToolBar {
         }
 
         Text {
-          text: "Rotation (rad)"
+          text: "Rotation"
           font.weight: Font.Bold
           color: snapTitle
           Layout.columnSpan: 2
@@ -357,22 +357,23 @@ ToolBar {
           Layout.row: 1
           Layout.fillWidth: true
           readOnly: false
-          useRadian: false
           spinMax: 180
 
           xValue: 1.0
           yValue: 1.0
           zValue: 1.0
+          useRadian: false
           rollValue: 45
           pitchValue: 45
           yawValue: 45
+
+          expand: true
 
           onGzPoseSet: {
             // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
             // from gz-gui GzPose.qml
             TransformControl.OnSnapUpdate(_x, _y, _z,_roll, _pitch, _yaw, 0, 0, 0)
           }
-          expand: true
         } // gzPoseInstance ends
       }
     }
