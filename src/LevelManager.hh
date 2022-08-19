@@ -18,8 +18,8 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <list>
 #include <memory>
@@ -31,12 +31,12 @@
 
 #include <sdf/Element.hh>
 #include <sdf/Geometry.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Types.hh"
 
 namespace gz
 {

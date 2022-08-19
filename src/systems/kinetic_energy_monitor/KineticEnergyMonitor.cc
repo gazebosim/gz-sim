@@ -16,25 +16,25 @@
  */
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 
-#include <ignition/gazebo/components/AngularVelocity.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/LinearVelocity.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Link.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include "KineticEnergyMonitor.hh"
 

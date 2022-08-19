@@ -17,12 +17,12 @@
 #ifndef GZ_GAZEBO_COMPONENTS_ANGULARVELOCITYCMD_HH_
 #define GZ_GAZEBO_COMPONENTS_ANGULARVELOCITYCMD_HH_
 
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/config.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
 
 namespace gz
 {

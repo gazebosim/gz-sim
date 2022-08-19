@@ -18,9 +18,9 @@
 #define GZ_GAZEBO_RENDERING_EVENTS_HH_
 
 
-#include <ignition/common/Event.hh>
+#include <gz/common/Event.hh>
 
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {

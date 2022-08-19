@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/EventManager.hh"
 
 using namespace gz;
 using namespace sim;

@@ -15,23 +15,23 @@
  *
 */
 
-#include <ignition/msgs/marker.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <iostream>
 #include <unordered_set>
 #include <string>
 #include <memory>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 #include "TapeMeasure.hh"
 
 namespace gz::sim

@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace gz
 {

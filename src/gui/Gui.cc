@@ -16,21 +16,21 @@
  */
 #include <QScreen>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/Filesystem.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/Filesystem.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/gui/Plugin.hh>
-#include <ignition/gui/Dialog.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/gui/Dialog.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/TmpIface.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/GuiRunner.hh"
+#include "gz/sim/gui/TmpIface.hh"
 
-#include "ignition/gazebo/gui/Gui.hh"
+#include "gz/sim/gui/Gui.hh"
 #include "AboutDialogHandler.hh"
 #include "QuickStartHandler.hh"
 #include "GuiFileHandler.hh"

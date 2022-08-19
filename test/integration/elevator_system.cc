@@ -22,13 +22,13 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/int32.pb.h>
+#include <gz/msgs/int32.pb.h>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 using namespace gz;
 using namespace sim;

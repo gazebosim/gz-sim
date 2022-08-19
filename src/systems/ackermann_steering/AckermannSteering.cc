@@ -17,26 +17,26 @@
 
 #include "AckermannSteering.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <mutex>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

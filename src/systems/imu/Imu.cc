@@ -22,26 +22,26 @@
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/ImuSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/ImuSensor.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

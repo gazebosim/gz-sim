@@ -17,9 +17,9 @@
 #ifndef GZ_GAZEBO_COMPONENTS_WIND_HH_
 #define GZ_GAZEBO_COMPONENTS_WIND_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace gz
 {

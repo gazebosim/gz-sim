@@ -17,7 +17,7 @@
 
 #include "TestSystem.hh"
 
-#include <ignition/plugin/RegisterMore.hh>
+#include <gz/plugin/RegisterMore.hh>
 
 using namespace gz;
 using namespace sim;

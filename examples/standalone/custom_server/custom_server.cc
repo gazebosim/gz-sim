@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Server.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Server.hh>
 
 /////////////////////////////////////////////////
 int main()

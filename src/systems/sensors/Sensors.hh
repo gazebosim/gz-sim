@@ -20,8 +20,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 #include <sdf/Sensor.hh>
 
 namespace gz

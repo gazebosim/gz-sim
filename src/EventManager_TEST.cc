@@ -19,8 +19,8 @@
 
 #include <atomic>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/EventManager.hh"
 
 using namespace gz::sim;
 

@@ -25,8 +25,8 @@
 
 #include <memory>
 
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/transport/Node.hh>
 
 #include "afsm/fsm.hpp"
 

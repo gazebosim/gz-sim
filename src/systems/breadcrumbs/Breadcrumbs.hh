@@ -27,12 +27,12 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Root.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/math/Pose3.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/System.hh"
 
 namespace gz
 {

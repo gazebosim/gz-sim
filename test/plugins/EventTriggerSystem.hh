@@ -17,9 +17,9 @@
 #ifndef GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
 #define GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
 
-#include <ignition/common/Console.hh>
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/System.hh"
+#include <gz/common/Console.hh>
+#include "gz/sim/Events.hh"
+#include "gz/sim/System.hh"
 
 namespace gz
 {

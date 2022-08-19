@@ -18,13 +18,13 @@
 #define GZ_GAZEBO_COMPONENTS_SERIALIZATION_HH_
 
 #include <google/protobuf/message_lite.h>
-#include <ignition/msgs/double_v.pb.h>
+#include <gz/msgs/double_v.pb.h>
 
 #include <string>
 #include <vector>
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/Conversions.hh>
+#include <gz/sim/Conversions.hh>
 
 // This header holds serialization operators which are shared among several
 // components

@@ -17,18 +17,18 @@
 #ifndef GZ_GAZEBO_UTIL_HH_
 #define GZ_GAZEBO_UTIL_HH_
 
-#include <ignition/msgs/entity.pb.h>
+#include <gz/msgs/entity.pb.h>
 
 #include <string>
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/math/Pose3.hh>
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include <gz/math/Pose3.hh>
+#include "gz/sim/config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 namespace gz
 {

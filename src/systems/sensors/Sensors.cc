@@ -22,33 +22,33 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Time.hh>
-#include <ignition/math/Helpers.hh>
+#include <gz/common/Time.hh>
+#include <gz/math/Helpers.hh>
 
-#include <ignition/rendering/Scene.hh>
-#include <ignition/sensors/CameraSensor.hh>
-#include <ignition/sensors/RenderingSensor.hh>
-#include <ignition/sensors/ThermalCameraSensor.hh>
-#include <ignition/sensors/Manager.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/sensors/CameraSensor.hh>
+#include <gz/sensors/RenderingSensor.hh>
+#include <gz/sensors/ThermalCameraSensor.hh>
+#include <gz/sensors/Manager.hh>
 
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 using namespace gz;
 using namespace sim;

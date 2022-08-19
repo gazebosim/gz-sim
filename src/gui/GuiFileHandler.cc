@@ -15,13 +15,13 @@
  *
  */
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <fstream>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
 #include "GuiFileHandler.hh"
 

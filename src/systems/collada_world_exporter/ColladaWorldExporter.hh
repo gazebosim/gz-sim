@@ -19,7 +19,7 @@
 #define GZ_GAZEBO_SYSTEMS_COLLADAWORLDEXPORTER_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

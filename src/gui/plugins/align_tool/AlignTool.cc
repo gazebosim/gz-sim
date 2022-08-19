@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -25,24 +25,24 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderTypes.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 #include "AlignTool.hh"
 

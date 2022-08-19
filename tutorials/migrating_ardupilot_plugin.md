@@ -69,7 +69,7 @@ library](http://sdformat.org/) is used by both classic and Ignition. But in plac
 
 ```cpp
 // NEW
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <sdf/sdf.hh>
 ```
 
@@ -194,7 +194,7 @@ The old code includes these Gazebo-related headers:
 ```cpp
 // OLD
 #include <sdf/sdf.hh>
-#include <ignition/math/Filter.hh>
+#include <gz/math/Filter.hh>
 #include <gazebo/common/Assert.hh>
 #include <gazebo/common/Plugin.hh>
 #include <gazebo/msgs/msgs.hh>
@@ -209,15 +209,15 @@ ECS pattern used by Ignition) that we're using:
 
 ```cpp
 // NEW
-#include <ignition/gazebo/components/AngularVelocity.hh>
-#include <ignition/gazebo/components/Imu.hh>
-#include <ignition/gazebo/components/JointForceCmd.hh>
-#include <ignition/gazebo/components/JointPosition.hh>
-#include <ignition/gazebo/components/JointVelocity.hh>
-#include <ignition/gazebo/components/JointVelocityCmd.hh>
-#include <ignition/gazebo/components/LinearVelocity.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/Imu.hh>
+#include <gz/sim/components/JointForceCmd.hh>
+#include <gz/sim/components/JointPosition.hh>
+#include <gz/sim/components/JointVelocity.hh>
+#include <gz/sim/components/JointVelocityCmd.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
 ```
 
 To better understand the ECS pattern as it is used in Ignition, it's helpful to
@@ -235,18 +235,18 @@ Next we include the parts of `ign-gazebo` itself that we're using:
 
 ```cpp
 // NEW
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 ```
 
 We need a few things from `ign-math`:
 
 ```cpp
 // NEW
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/PID.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/PID.hh>
+#include <gz/math/Vector3.hh>
 ```
 
 To use the `IGNITION_ADD_PLUGIN()` and `IGNITION_ADD_PLUGIN_ALIAS()` macros, we
@@ -254,14 +254,14 @@ need a header from `ign-plugin`:
 
 ```cpp
 // NEW
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 ```
 
 Because we'll be subscribing to data published by a sensor, we need a header from `ign-transport`:
 
 ```cpp
 // NEW
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 ```
 
 And we keep the SDFormat header:

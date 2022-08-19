@@ -25,17 +25,17 @@
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/gazebo/components/LogicalAudio.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/Sensor.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/gazebo/SdfEntityCreator.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/LogicalAudio.hh>
+#include <gz/sim/components/Model.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Sensor.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/sim/SdfEntityCreator.hh>
+#include <gz/sim/Util.hh>
 #include <sdf/Element.hh>
 #include "LogicalAudio.hh"
 

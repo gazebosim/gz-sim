@@ -17,7 +17,7 @@
 
 #include "QuickStartHandler.hh"
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 using namespace gz;
 using namespace sim;

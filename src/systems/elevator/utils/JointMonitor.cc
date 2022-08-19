@@ -24,8 +24,8 @@
 
 #include "JointMonitor.hh"
 
-#include <ignition/gazebo/components/JointPosition.hh>
-#include <ignition/gazebo/components/JointVelocity.hh>
+#include <gz/sim/components/JointPosition.hh>
+#include <gz/sim/components/JointVelocity.hh>
 
 namespace gz
 {

@@ -17,23 +17,23 @@
 
 #include "JointStatePublisher.hh"
 
-#include <ignition/msgs/model.pb.h>
+#include <gz/msgs/model.pb.h>
 
 #include <string>
 #include <vector>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointForce.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointForce.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
 
 using namespace gz;
 using namespace sim;

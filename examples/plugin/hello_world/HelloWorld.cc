@@ -18,11 +18,11 @@
 // We'll use a string and the ignmsg command below for a brief example.
 // Remove these includes if your plugin doesn't need them.
 #include <string>
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 // This header is required to register plugins. It's good practice to place it
 // in the cc file, like it's done here.
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 // Don't forget to include the plugin's header.
 #include "HelloWorld.hh"

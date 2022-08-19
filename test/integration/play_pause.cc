@@ -19,10 +19,10 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "ignition/msgs.hh"
-#include "ignition/transport.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/msgs.hh"
+#include "gz/transport.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 

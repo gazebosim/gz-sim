@@ -17,36 +17,36 @@
 
 #include "LogPlayback.hh"
 
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/log_playback_stats.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/log_playback_stats.pb.h>
 
 #include <set>
 #include <string>
 #include <unordered_map>
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/RegisterMore.hh>
-#include <ignition/transport/log/QueryOptions.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Message.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Time.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/RegisterMore.hh>
+#include <gz/transport/log/QueryOptions.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Message.hh>
 
 #include <sdf/Geometry.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/World.hh"
 
 using namespace gz;
 using namespace sim;

@@ -26,7 +26,7 @@
 #include <functional>
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

@@ -17,22 +17,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 

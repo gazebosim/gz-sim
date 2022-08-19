@@ -17,11 +17,11 @@
 #ifndef GZ_GAZEBO_COMPONENTS_ACTUATORS_HH_
 #define GZ_GAZEBO_COMPONENTS_ACTUATORS_HH_
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace gz
 {

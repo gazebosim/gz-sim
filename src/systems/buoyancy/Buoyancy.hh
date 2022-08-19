@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SYSTEMS_BUOYANCY_HH_
 #define GZ_GAZEBO_SYSTEMS_BUOYANCY_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
 namespace gz

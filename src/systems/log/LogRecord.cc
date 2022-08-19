@@ -18,7 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -26,17 +26,17 @@
 #include <set>
 #include <list>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/common/Util.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Recorder.hh>
 
 #include <sdf/Collision.hh>
 #include <sdf/Element.hh>
@@ -48,18 +48,18 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace gz::sim::systems;

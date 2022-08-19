@@ -17,14 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Rand.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Rand.hh>
 
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/config.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 
 using namespace gz;

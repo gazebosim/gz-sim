@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "../helpers/EnvTestFixture.hh"

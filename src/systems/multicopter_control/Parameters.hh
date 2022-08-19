@@ -21,7 +21,7 @@
 #include <Eigen/Geometry>
 #include <vector>
 
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {

@@ -19,9 +19,9 @@
 
 #include <string>
 
-#include <ignition/gazebo/components/LogicalAudio.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/sim/components/LogicalAudio.hh>
+#include <gz/sim/config.hh>
+#include <gz/math/Pose3.hh>
 
 namespace gz
 {

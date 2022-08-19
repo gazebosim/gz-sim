@@ -15,17 +15,17 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
 
 // Include all components so they have first-class support
-#include "ignition/gazebo/components/components.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
-#include "ignition/gazebo/gui/GuiSystem.hh"
+#include "gz/sim/components/components.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/gui/GuiRunner.hh"
+#include "gz/sim/gui/GuiSystem.hh"
 
 using namespace gz;
 using namespace sim;

@@ -24,8 +24,8 @@
 #include <string>
 #include <vector>
 #include <sdf/Element.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 namespace gz
 {

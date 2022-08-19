@@ -17,16 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgs/twist.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Link.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/World.hh>
-#include <ignition/gazebo/Server.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/TestFixture.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/World.hh>
+#include <gz/sim/Server.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/TestFixture.hh>
+#include <gz/transport/Node.hh>
 
 using namespace std::chrono_literals;
 

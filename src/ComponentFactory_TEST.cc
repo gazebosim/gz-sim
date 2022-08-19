@@ -16,10 +16,10 @@
 */
 
 #include <gtest/gtest.h>
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/test_config.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Pose.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 

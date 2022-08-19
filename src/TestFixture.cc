@@ -15,10 +15,10 @@
  *
 */
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
-#include "ignition/gazebo/TestFixture.hh"
+#include "gz/sim/TestFixture.hh"
 
 using namespace gz;
 using namespace sim;

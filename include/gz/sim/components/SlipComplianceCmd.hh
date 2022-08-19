@@ -20,11 +20,11 @@
 
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
 
 namespace gz
 {

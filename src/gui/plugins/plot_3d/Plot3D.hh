@@ -20,9 +20,9 @@
 
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
 namespace gz
 {

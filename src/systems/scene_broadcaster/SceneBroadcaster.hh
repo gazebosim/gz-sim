@@ -19,8 +19,8 @@
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

@@ -18,14 +18,14 @@
 #ifndef GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 #define GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 #include <memory>
 #include <string>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 
 namespace gz
 {

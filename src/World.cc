@@ -15,18 +15,18 @@
  *
 */
 
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/World.hh"
 
 class gz::sim::WorldPrivate
 {

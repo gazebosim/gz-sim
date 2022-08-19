@@ -17,7 +17,7 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 #============================================================================
 ign_configure_project(
   REPLACE_IGNITION_INCLUDE_PATH gz/sim
-  VERSION_SUFFIX pre1
+  VERSION_SUFFIX
 )
 
 #============================================================================

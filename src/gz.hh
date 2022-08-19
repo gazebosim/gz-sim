@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_IGN_HH_
 #define GZ_GAZEBO_IGN_HH_
 
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/Export.hh"
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2

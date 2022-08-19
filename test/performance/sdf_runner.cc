@@ -17,15 +17,15 @@
 
 #include <array>
 
-#include <ignition/msgs.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
+#include <gz/msgs.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
 using namespace sim;

@@ -17,33 +17,33 @@
 
 #include "Altimeter.hh"
 
-#include <ignition/msgs/altimeter.pb.h>
+#include <gz/msgs/altimeter.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/AltimeterSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/AltimeterSensor.hh>
 
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

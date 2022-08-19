@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/World.hh"
 
 /////////////////////////////////////////////////
 TEST(WorldTest, Constructor)

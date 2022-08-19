@@ -24,9 +24,9 @@
 #include <limits>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
+#include <gz/plugin/Register.hh>
 
 // bug https://github.com/protocolbuffers/protobuf/issues/5051
 #ifdef _WIN32

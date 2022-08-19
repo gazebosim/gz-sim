@@ -23,12 +23,12 @@
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/rendering/Export.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/rendering/Export.hh>
+#include <gz/sim/System.hh>
 
-#include "ignition/gazebo/rendering/SceneManager.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/SceneManager.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
 
 namespace gz

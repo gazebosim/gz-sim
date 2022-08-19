@@ -27,7 +27,7 @@
 #include <mutex>
 #include <vector>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 namespace gz
 {

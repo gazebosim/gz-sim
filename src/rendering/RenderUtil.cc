@@ -29,47 +29,47 @@
 #include <sdf/SDFImpl.hh>
 #include <sdf/Visual.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/math/Color.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Matrix4.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Matrix4.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/rendering.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/Temperature.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Temperature.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

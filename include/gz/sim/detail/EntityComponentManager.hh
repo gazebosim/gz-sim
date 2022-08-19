@@ -26,9 +26,9 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace gz
 {

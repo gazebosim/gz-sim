@@ -17,26 +17,26 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/gazebo/components/AngularVelocity.hh>
-#include <ignition/gazebo/components/CanonicalLink.hh>
-#include <ignition/gazebo/components/Collision.hh>
-#include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/LinearAcceleration.hh>
-#include <ignition/gazebo/components/LinearVelocity.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Model.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/Visual.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/CanonicalLink.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/LinearAcceleration.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Model.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Visual.hh>
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/SdfEntityCreator.hh>
-#include <ignition/gazebo/Link.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/SdfEntityCreator.hh>
+#include <gz/sim/Link.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 

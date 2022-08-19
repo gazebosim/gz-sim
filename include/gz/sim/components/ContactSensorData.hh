@@ -17,12 +17,12 @@
 #ifndef GZ_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
 #define GZ_GAZEBO_COMPONENTS_CONTACTDATASENSOR_HH_
 
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/msgs/contacts.pb.h>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/math/Vector3.hh>
 
 namespace gz
 {

@@ -15,7 +15,7 @@
  *
 */
 #include "gz/sim/detail/View.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 using namespace gz;
 using namespace sim;

@@ -17,17 +17,17 @@
 #ifndef GZ_GAZEBO_GUI_GUIRUNNER_HH_
 #define GZ_GAZEBO_GUI_GUIRUNNER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
+#include <gz/msgs/serialized.pb.h>
 
 #include <QtCore>
 #include <memory>
 #include <mutex>
 #include <string>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace gz
 {

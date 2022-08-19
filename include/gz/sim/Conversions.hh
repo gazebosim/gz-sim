@@ -17,27 +17,27 @@
 #ifndef GZ_GAZEBO_CONVERSIONS_HH_
 #define GZ_GAZEBO_CONVERSIONS_HH_
 
-#include <ignition/msgs/actor.pb.h>
-#include <ignition/msgs/atmosphere.pb.h>
-#include <ignition/msgs/axis.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/geometry.pb.h>
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/inertial.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/material.pb.h>
-#include <ignition/msgs/physics.pb.h>
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/msgs/sensor.pb.h>
-#include <ignition/msgs/sensor_noise.pb.h>
-#include <ignition/msgs/time.pb.h>
-#include <ignition/msgs/world_stats.pb.h>
+#include <gz/msgs/actor.pb.h>
+#include <gz/msgs/atmosphere.pb.h>
+#include <gz/msgs/axis.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/geometry.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/inertial.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/material.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/scene.pb.h>
+#include <gz/msgs/sensor.pb.h>
+#include <gz/msgs/sensor_noise.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/world_stats.pb.h>
 
 #include <chrono>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/Inertial.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Inertial.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Collision.hh>
@@ -51,9 +51,9 @@
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 namespace gz
 {

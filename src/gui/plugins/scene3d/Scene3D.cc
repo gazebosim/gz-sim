@@ -33,42 +33,42 @@
 #include <sdf/Root.hh>
 #include <sdf/Visual.hh>
 
-#include <ignition/common/Animation.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Uuid.hh>
-#include <ignition/common/VideoEncoder.hh>
+#include <gz/common/Animation.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/KeyFrame.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Uuid.hh>
+#include <gz/common/VideoEncoder.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/rendering/Image.hh>
-#include <ignition/rendering/OrbitViewController.hh>
-#include <ignition/rendering/MoveToHelper.hh>
-#include <ignition/rendering/RayQuery.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/TransformController.hh>
+#include <gz/rendering/Image.hh>
+#include <gz/rendering/OrbitViewController.hh>
+#include <gz/rendering/MoveToHelper.hh>
+#include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/TransformController.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 /// \brief condition variable for lockstepping video recording
 /// todo(anyone) avoid using a global condition variable when we support

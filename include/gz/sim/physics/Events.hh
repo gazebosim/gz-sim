@@ -19,12 +19,12 @@
 
 #include <optional>
 
-#include <ignition/common/Event.hh>
+#include <gz/common/Event.hh>
 
-#include <ignition/physics/ContactProperties.hh>
+#include <gz/physics/ContactProperties.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Entity.hh"
 
 #include <Eigen/Geometry>
 

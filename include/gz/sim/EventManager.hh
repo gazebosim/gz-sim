@@ -23,12 +23,12 @@
 #include <unordered_map>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Event.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Event.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 namespace gz
 {

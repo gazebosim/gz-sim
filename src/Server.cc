@@ -15,15 +15,15 @@
  *
 */
 
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
 
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"

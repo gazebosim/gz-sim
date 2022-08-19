@@ -24,13 +24,13 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/SingletonT.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/gazebo/components/Component.hh>
+#include <gz/common/SingletonT.hh>
+#include <gz/common/Util.hh>
+#include <gz/sim/components/Component.hh>
 #include <gz/sim/detail/ComponentStorageBase.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Types.hh>
 
 namespace gz
 {

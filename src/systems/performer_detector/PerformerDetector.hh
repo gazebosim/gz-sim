@@ -23,10 +23,10 @@
 #include <string>
 #include <unordered_set>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 
 namespace gz
 {

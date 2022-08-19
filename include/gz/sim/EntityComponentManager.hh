@@ -17,8 +17,8 @@
 #ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/serialized_map.pb.h>
+#include <gz/msgs/serialized.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <map>
 #include <memory>
@@ -32,13 +32,13 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/graph/Graph.hh>
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include <gz/common/Console.hh>
+#include <gz/math/graph/Graph.hh>
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
-#include "ignition/gazebo/components/Component.hh"
+#include "gz/sim/components/Component.hh"
 #include "gz/sim/detail/View.hh"
 
 namespace gz

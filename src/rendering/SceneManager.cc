@@ -28,22 +28,22 @@
 #include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
-#include <ignition/common/Animation.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/Skeleton.hh>
-#include <ignition/common/SkeletonAnimation.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Uuid.hh>
+#include <gz/common/Animation.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/KeyFrame.hh>
+#include <gz/common/Skeleton.hh>
+#include <gz/common/SkeletonAnimation.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Light.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Light.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
 using namespace gz;
 using namespace sim;

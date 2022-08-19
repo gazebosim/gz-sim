@@ -23,9 +23,9 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/SystemPluginPtr.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/SystemPluginPtr.hh>
 
 namespace gz
 {

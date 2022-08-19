@@ -33,22 +33,22 @@
 #include "utils/DoorTimer.hh"
 #include "utils/JointMonitor.hh"
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
 
 namespace gz
 {

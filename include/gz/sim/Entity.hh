@@ -18,8 +18,8 @@
 #define GZ_GAZEBO_ENTITY_HH_
 
 #include <cstdint>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 /// \brief This library is part of the [Ignition
 /// Robotics](https://ignitionrobotics.org) project.

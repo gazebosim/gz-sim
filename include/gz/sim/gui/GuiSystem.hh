@@ -19,10 +19,10 @@
 
 #include <QtCore>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Export.hh>
+#include <gz/gui/Plugin.hh>
 
 #include <sdf/Element.hh>
 

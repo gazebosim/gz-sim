@@ -18,8 +18,8 @@
 #include "WindEffects.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <string>
 #include <vector>
@@ -27,27 +27,27 @@
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/sensors/Noise.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sensors/Noise.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/components/WindMode.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/WindMode.hh"
 
-#include "ignition/gazebo/Link.hh"
+#include "gz/sim/Link.hh"
 
 using namespace gz;
 using namespace sim;

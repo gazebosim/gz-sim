@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/Model.hh"
 
 /////////////////////////////////////////////////
 TEST(ModelTest, Constructor)

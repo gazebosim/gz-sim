@@ -15,10 +15,10 @@
  *
 */
 
-#include <ignition/transport.hh>
-#include <ignition/math.hh>
-#include <ignition/msgs.hh>
-#include <ignition/common/Time.hh>
+#include <gz/transport.hh>
+#include <gz/math.hh>
+#include <gz/msgs.hh>
+#include <gz/common/Time.hh>
 
 #include <iostream>
 

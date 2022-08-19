@@ -17,16 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <mutex>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;

@@ -24,11 +24,11 @@
  */
 
 
-#include <ignition/msgs/twist.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/twist.pb.h>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
-#include <ignition/common/Time.hh>
-#include <ignition/common/Console.hh>
+#include <gz/common/Time.hh>
+#include <gz/common/Console.hh>
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>

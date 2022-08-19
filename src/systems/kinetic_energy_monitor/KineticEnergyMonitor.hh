@@ -19,9 +19,9 @@
 #define GZ_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

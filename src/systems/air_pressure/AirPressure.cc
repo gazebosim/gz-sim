@@ -17,31 +17,31 @@
 
 #include "AirPressure.hh"
 
-#include <ignition/msgs/air_pressure_sensor.pb.h>
+#include <gz/msgs/air_pressure_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/AirPressureSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/AirPressureSensor.hh>
 
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

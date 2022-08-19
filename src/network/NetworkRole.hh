@@ -17,8 +17,8 @@
 #ifndef GZ_GAZEBO_NETWORK_NETWORKROLE_HH_
 #define GZ_GAZEBO_NETWORK_NETWORKROLE_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 namespace gz
 {

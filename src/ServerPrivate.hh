@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SERVERPRIVATE_HH_
 #define GZ_GAZEBO_SERVERPRIVATE_HH_
 
-#include <ignition/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -31,20 +31,20 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/URI.hh>
-#include <ignition/common/WorkerPool.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/URI.hh>
+#include <gz/common/WorkerPool.hh>
 
-#include <ignition/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/FuelClient.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/msgs/server_control.pb.h>
+#include <gz/msgs/server_control.pb.h>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
 
 using namespace std::chrono_literals;
 

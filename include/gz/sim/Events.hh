@@ -19,10 +19,10 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Event.hh>
+#include <gz/common/Event.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Entity.hh"
 
 namespace gz
 {

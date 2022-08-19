@@ -21,8 +21,8 @@
 #include <QDesktopServices>
 #include <string>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
 
 namespace gz
 {

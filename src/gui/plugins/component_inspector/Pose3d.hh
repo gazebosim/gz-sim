@@ -17,11 +17,11 @@
 #ifndef GZ_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
 #define GZ_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
 
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Pose3.hh>
 
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include "ComponentInspector.hh"
 #include "Types.hh"

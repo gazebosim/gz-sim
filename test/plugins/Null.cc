@@ -15,7 +15,7 @@
  *
 */
 #include "Null.hh"
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 using namespace gz::sim::systems;
 

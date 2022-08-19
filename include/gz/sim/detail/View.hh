@@ -21,10 +21,10 @@
 #include <set>
 #include <string>
 #include <utility>
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 namespace gz
 {

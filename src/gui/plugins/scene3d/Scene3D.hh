@@ -18,11 +18,11 @@
 #ifndef GZ_GAZEBO_GUI_SCENE3D_HH_
 #define GZ_GAZEBO_GUI_SCENE3D_HH_
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
-#include <ignition/msgs/video_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>
@@ -30,19 +30,19 @@
 
 #include <sdf/Root.hh>
 
-#include <ignition/math/Color.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/common/MouseEvent.hh>
-#include <ignition/common/KeyEvent.hh>
+#include <gz/common/MouseEvent.hh>
+#include <gz/common/KeyEvent.hh>
 
-#include <ignition/rendering/Camera.hh>
+#include <gz/rendering/Camera.hh>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
 
 namespace gz

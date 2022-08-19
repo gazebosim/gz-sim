@@ -17,7 +17,7 @@
 #ifndef GZ_SIM_SYSTEMS_APPLYLINKWRENCH_HH_
 #define GZ_SIM_SYSTEMS_APPLYLINKWRENCH_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
 namespace gz

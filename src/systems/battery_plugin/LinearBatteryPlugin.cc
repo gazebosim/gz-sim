@@ -17,8 +17,8 @@
 
 #include "LinearBatteryPlugin.hh"
 
-#include <ignition/msgs/battery_state.pb.h>
-#include <ignition/msgs/boolean.pb.h>
+#include <gz/msgs/battery_state.pb.h>
+#include <gz/msgs/boolean.pb.h>
 
 #include <algorithm>
 #include <atomic>
@@ -27,26 +27,26 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Battery.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Battery.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Element.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Model.hh"
 
 using namespace gz;
 using namespace sim;

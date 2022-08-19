@@ -23,11 +23,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/GraphAlgorithms.hh>
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/GraphAlgorithms.hh>
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 using namespace gz;
 using namespace sim;

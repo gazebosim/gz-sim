@@ -20,10 +20,10 @@
 #include <memory>
 #include <string>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
 namespace gz
 {

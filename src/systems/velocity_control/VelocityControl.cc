@@ -21,14 +21,14 @@
 #include <vector>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/Model.hh"
 
 #include "VelocityControl.hh"
 

@@ -22,8 +22,8 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/sim/Types.hh>
 
 Q_DECLARE_METATYPE(gz::sim::Entity)
 

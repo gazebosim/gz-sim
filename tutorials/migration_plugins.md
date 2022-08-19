@@ -100,10 +100,10 @@ GZ_REGISTER_MODEL_PLUGIN(MyPlugin)
 On Ignition Gazebo, that would be implemented as follows:
 
 ```cpp
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/System.hh>
+#include <gz/plugin/Register.hh>
 
 using namespace gz;
 using namespace sim;
@@ -164,13 +164,13 @@ entities and components. Let's take a look at how to do the same just using
 the ECM's API:
 
 ```cpp
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/System.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/plugin/Register.hh>
 
 using namespace gz;
 using namespace sim;

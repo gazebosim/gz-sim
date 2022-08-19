@@ -19,7 +19,7 @@
  * Adapted from https://github.com/ros-teleop/teleop_twist_joy
  */
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
 
 gz::transport::Node::Publisher cmdVelPub;

@@ -20,7 +20,7 @@
 #include <memory>
 #include <optional>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

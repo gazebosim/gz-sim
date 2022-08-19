@@ -21,14 +21,14 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <ignition/math/Vector3.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/sim/Types.hh>
 
-#include "ignition/gazebo/components/Physics.hh"
+#include "gz/sim/components/Physics.hh"
 
 #include "Types.hh"
 

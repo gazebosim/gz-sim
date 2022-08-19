@@ -19,19 +19,19 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/ConstructEmpty.hh>
-#include <ignition/physics/Entity.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/Implements.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
+#include <gz/physics/BoxShape.hh>
+#include <gz/physics/CylinderShape.hh>
+#include <gz/physics/ConstructEmpty.hh>
+#include <gz/physics/Entity.hh>
+#include <gz/physics/ForwardStep.hh>
+#include <gz/physics/Implements.hh>
+#include <gz/physics/Link.hh>
+#include <gz/physics/RemoveEntities.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
 
 #include "../../../test/helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 using namespace gz;
 using namespace gz::sim::systems::physics_system;

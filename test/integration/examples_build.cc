@@ -18,12 +18,12 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/math/SemanticVersion.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/math/SemanticVersion.hh>
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
@@ -80,7 +80,7 @@ bool createAndSwitchToTempDir(std::string &_newTempPath)
 #include <windows.h>  // NOLINT(build/include_order)
 #include <winnt.h>  // NOLINT(build/include_order)
 #include <cstdint>
-#include <ignition/common/PrintWindowsSystemWarning.hh>
+#include <gz/common/PrintWindowsSystemWarning.hh>
 
 /////////////////////////////////////////////////
 bool createAndSwitchToTempDir(std::string &_newTempPath)

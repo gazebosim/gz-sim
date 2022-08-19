@@ -17,8 +17,8 @@
 
 #include "PlaybackScrubber.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <ctime>
@@ -27,18 +27,18 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 namespace gz::sim
 {

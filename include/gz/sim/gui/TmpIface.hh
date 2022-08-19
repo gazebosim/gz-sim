@@ -18,13 +18,13 @@
 #define GZ_GAZEBO_GUI_TMPIFACE_HH_
 
 #ifndef Q_MOC_RUN
-  #include <ignition/gui/qt.h>
+  #include <gz/gui/qt.h>
 #endif
 
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
 
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/Export.hh"
 
 namespace gz
 {

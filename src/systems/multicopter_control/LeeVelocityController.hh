@@ -20,7 +20,7 @@
 
 #include <Eigen/Geometry>
 #include <memory>
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/config.hh"
 
 #include "Common.hh"
 #include "LeeVelocityController.hh"

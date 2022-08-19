@@ -21,11 +21,11 @@
 
 #include <fstream>
 #include <string>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 

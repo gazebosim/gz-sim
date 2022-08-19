@@ -22,12 +22,12 @@
 #include <vector>
 
 #include <sdf/Atmosphere.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Types.hh"
 
 namespace gz
 {

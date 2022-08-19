@@ -17,13 +17,13 @@
 #ifndef GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
 #define GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
 
-#include <ignition/msgs/axis_aligned_box.pb.h>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Conversions.hh>
+#include <gz/msgs/axis_aligned_box.pb.h>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Conversions.hh>
 
 namespace gz
 {

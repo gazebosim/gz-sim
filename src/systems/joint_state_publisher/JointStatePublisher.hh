@@ -20,9 +20,9 @@
 
 #include <memory>
 #include <set>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/Model.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

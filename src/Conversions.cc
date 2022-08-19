@@ -15,29 +15,29 @@
  *
 */
 
-#include <ignition/msgs/atmosphere.pb.h>
-#include <ignition/msgs/axis_aligned_box.pb.h>
-#include <ignition/msgs/boxgeom.pb.h>
-#include <ignition/msgs/cylindergeom.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/geometry.pb.h>
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/imu_sensor.pb.h>
-#include <ignition/msgs/lidar_sensor.pb.h>
-#include <ignition/msgs/actor.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/material.pb.h>
-#include <ignition/msgs/planegeom.pb.h>
-#include <ignition/msgs/plugin.pb.h>
-#include <ignition/msgs/spheregeom.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/atmosphere.pb.h>
+#include <gz/msgs/axis_aligned_box.pb.h>
+#include <gz/msgs/boxgeom.pb.h>
+#include <gz/msgs/cylindergeom.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/geometry.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/imu_sensor.pb.h>
+#include <gz/msgs/lidar_sensor.pb.h>
+#include <gz/msgs/actor.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/material.pb.h>
+#include <gz/msgs/planegeom.pb.h>
+#include <gz/msgs/plugin.pb.h>
+#include <gz/msgs/spheregeom.pb.h>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/math/Angle.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Temperature.hh>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
@@ -61,9 +61,9 @@
 
 #include <string>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 

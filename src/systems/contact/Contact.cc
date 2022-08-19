@@ -17,30 +17,30 @@
 
 #include "Contact.hh"
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
 using namespace gz;
 using namespace sim;

@@ -16,11 +16,11 @@
 */
 
 #include <iostream>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/msgs/serialized.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/msgs/serialized.pb.h>
+#include <gz/transport/Node.hh>
 
 //////////////////////////////////////////////////
 int main(int argc, char **argv)

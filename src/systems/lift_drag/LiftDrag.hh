@@ -19,7 +19,7 @@
 #define GZ_GAZEBO_SYSTEMS_LIFT_DRAG_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

@@ -16,8 +16,8 @@
 */
 #include "PeerInfo.hh"
 
-#include "ignition/common/Uuid.hh"
-#include "ignition/transport/NetUtils.hh"
+#include "gz/common/Uuid.hh"
+#include "gz/transport/NetUtils.hh"
 
 using namespace gz;
 using namespace sim;

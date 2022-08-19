@@ -23,8 +23,8 @@
 #ifdef HAVE_DART
 #include <dart/config.hpp>
 #endif
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -34,35 +34,35 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-#include "ignition/gazebo/components/AxisAlignedBox.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
-#include "ignition/gazebo/components/JointVelocityReset.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/AxisAlignedBox.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointEffortLimitsCmd.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointPositionLimitsCmd.hh"
+#include "gz/sim/components/JointPositionReset.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointVelocityLimitsCmd.hh"
+#include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"

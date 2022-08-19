@@ -18,7 +18,7 @@
 #ifndef GZ_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
 #define GZ_GAZEBO_GUI_ENTITYCONTEXTMENU_HH_
 
-#include <ignition/gui/qt.h>
+#include <gz/gui/qt.h>
 #include <QtQml/QQmlExtensionPlugin>
 #include <memory>
 

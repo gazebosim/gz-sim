@@ -19,31 +19,31 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/gui/Plugin.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/test_config.hh"
 #include "../../../../test/helpers/EnvTestFixture.hh"
 
 // Use this when forward-porting to v6
 // #include "../../GuiRunner.hh"
-#include "ignition/gazebo/gui/GuiRunner.hh"
+#include "gz/sim/gui/GuiRunner.hh"
 
 #include "Plot3D.hh"
 

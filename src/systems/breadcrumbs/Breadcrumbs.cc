@@ -17,31 +17,31 @@
 
 #include "Breadcrumbs.hh"
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 #include <algorithm>
 #include <iterator>
 #include <string>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/math/Quaternion.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/parser.hh>
 #include <sdf/Geometry.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/DetachableJoint.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/DetachableJoint.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/World.hh"
 
 using namespace gz;
 using namespace sim;

@@ -21,11 +21,11 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/SystemPluginPtr.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/ServerConfig.hh>
+#include <gz/sim/SystemPluginPtr.hh>
 
 namespace gz
 {

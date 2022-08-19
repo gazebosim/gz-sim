@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/Link.hh"
+#include "gz/sim/Link.hh"
 
 /////////////////////////////////////////////////
 TEST(LinkTest, Constructor)

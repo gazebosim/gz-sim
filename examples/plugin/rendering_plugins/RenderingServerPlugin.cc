@@ -17,13 +17,13 @@
 #include "RenderingServerPlugin.hh"
 
 //! [includeRenderingEvents]
-#include <ignition/gazebo/rendering/Events.hh>
+#include <gz/sim/rendering/Events.hh>
 //! [includeRenderingEvents]
-#include <ignition/math/Rand.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/math/Rand.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
 using namespace std::literals::chrono_literals;
 

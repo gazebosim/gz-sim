@@ -19,9 +19,9 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Color.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Color.hh>
 
 namespace gz
 {

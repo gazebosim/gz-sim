@@ -17,9 +17,9 @@
 #ifndef GZ_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
 #define GZ_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

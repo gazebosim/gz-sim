@@ -18,7 +18,7 @@
 #define SYSTEM_PLUGIN_SAMPLESYSTEM_HH_
 
 //! [header]
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace sample_system
 {

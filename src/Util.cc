@@ -30,25 +30,25 @@
   #endif
 #endif
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/TopicUtils.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/TopicUtils.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
 namespace gz
 {

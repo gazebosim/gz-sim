@@ -22,16 +22,16 @@
 
 #include <sdf/sdf.hh>
 
-#include <ignition/common/URI.hh>
+#include <gz/common/URI.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/World.hh"
 
 
 namespace gz

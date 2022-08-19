@@ -18,8 +18,8 @@
 #define GZ_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace gz
 {

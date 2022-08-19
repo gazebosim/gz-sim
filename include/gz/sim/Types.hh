@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <functional>
 #include <utility>
-#include <ignition/common/Time.hh>
+#include <gz/common/Time.hh>
 
 namespace gz
 {

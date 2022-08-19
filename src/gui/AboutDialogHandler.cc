@@ -17,9 +17,9 @@
 
 #include "AboutDialogHandler.hh"
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
 using namespace gz;
 using namespace sim;

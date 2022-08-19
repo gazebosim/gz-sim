@@ -15,26 +15,26 @@
  *
  */
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/gazebo/Link.hh"
+#include "gz/sim/Link.hh"
 
 class gz::sim::LinkPrivate
 {

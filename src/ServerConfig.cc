@@ -14,18 +14,18 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/Result.hh>
-#include <ignition/math/Rand.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/Result.hh>
+#include <gz/math/Rand.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;

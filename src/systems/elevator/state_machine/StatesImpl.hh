@@ -25,7 +25,7 @@
 
 #include "../ElevatorStateMachine.hh"
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
 namespace gz
 {

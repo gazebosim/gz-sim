@@ -20,10 +20,10 @@
 
 #include <memory>
 #include <string>
-#include <ignition/gui/Application.hh>
+#include <gz/gui/Application.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace gz
 {

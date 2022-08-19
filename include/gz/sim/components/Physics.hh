@@ -17,17 +17,17 @@
 #ifndef GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
 #define GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
 
-#include <ignition/msgs/physics.pb.h>
+#include <gz/msgs/physics.pb.h>
 
 #include <sdf/Physics.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/Conversions.hh>
+#include <gz/sim/components/Factory.hh>
+#include "gz/sim/components/Component.hh"
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/Conversions.hh>
 
 namespace gz
 {

@@ -17,18 +17,18 @@
 
 #include "VideoRecorder.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/video_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/gui/Application.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 namespace gz::sim
 {

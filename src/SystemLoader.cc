@@ -19,19 +19,19 @@
 #include <string>
 #include <unordered_set>
 
-#include <ignition/gazebo/SystemLoader.hh>
+#include <gz/sim/SystemLoader.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/plugin/Loader.hh>
+#include <gz/plugin/Loader.hh>
 
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/config.hh>
 
 using namespace gz::sim;
 

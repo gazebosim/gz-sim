@@ -15,9 +15,9 @@
  *
 */
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/gazebo/gui/TmpIface.hh"
+#include "gz/sim/gui/TmpIface.hh"
 
 using namespace gz;
 using namespace sim;

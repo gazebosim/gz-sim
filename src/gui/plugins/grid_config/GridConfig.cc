@@ -15,15 +15,15 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
 namespace gz::sim

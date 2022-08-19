@@ -17,45 +17,45 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <ignition/msgs/scene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
 #include <chrono>
 #include <condition_variable>
 #include <string>
 #include <unordered_set>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/Graph.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/Graph.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Lidar.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Lidar.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <sdf/Camera.hh>
 #include <sdf/Imu.hh>

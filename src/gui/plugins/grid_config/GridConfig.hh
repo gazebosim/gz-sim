@@ -20,8 +20,8 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
-#include <ignition/rendering.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/rendering.hh>
 
 namespace gz
 {

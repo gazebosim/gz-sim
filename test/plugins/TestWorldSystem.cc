@@ -16,7 +16,7 @@
 */
 #include "TestWorldSystem.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 IGNITION_ADD_PLUGIN(gz::sim::TestWorldSystem,
     gz::sim::System,

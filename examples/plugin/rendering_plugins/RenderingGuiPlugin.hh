@@ -18,9 +18,9 @@
 #ifndef RENDERING_GUI_PLUGIN_HH_
 #define RENDERING_GUI_PLUGIN_HH_
 
-#include <ignition/gui/qt.h>
-#include <ignition/gui/Plugin.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/gui/qt.h>
+#include <gz/gui/Plugin.hh>
+#include <gz/rendering/Scene.hh>
 
 /// \brief Example of a GUI plugin that uses Ignition Rendering.
 /// This plugin works with either Ignition GUI's Scene3D or Ignition Gazebo's

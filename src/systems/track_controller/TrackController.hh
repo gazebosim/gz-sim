@@ -18,8 +18,8 @@
 #define GZ_GAZEBO_SYSTEMS_TRACKCONTROLLER_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
-#include "ignition/gazebo/physics/Events.hh"
+#include <gz/sim/System.hh>
+#include "gz/sim/physics/Events.hh"
 
 namespace gz
 {

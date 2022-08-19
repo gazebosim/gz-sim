@@ -17,8 +17,8 @@
 #ifndef RENDERING_SERVER_PLUGIN_HH_
 #define RENDERING_SERVER_PLUGIN_HH_
 
-#include <ignition/gazebo/System.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/sim/System.hh>
+#include <gz/rendering/Scene.hh>
 
 /// \brief Server-side system that uses Ignition Rendering APIs.
 /// It changes the ambient color every 2 simulation seconds.

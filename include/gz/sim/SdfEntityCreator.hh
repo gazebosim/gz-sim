@@ -31,10 +31,10 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/EventManager.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
+#include <gz/sim/Types.hh>
 
 namespace gz
 {

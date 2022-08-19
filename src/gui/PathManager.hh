@@ -19,10 +19,10 @@
 
 #include <QtCore>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {

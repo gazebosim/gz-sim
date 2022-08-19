@@ -14,7 +14,7 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/System.hh"
 
 using namespace gz::sim;
 

@@ -21,14 +21,14 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/Interface.hh>
 
-#include <ignition/gui/Application.hh>
+#include <gz/gui/Application.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;

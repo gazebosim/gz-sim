@@ -19,18 +19,18 @@
 
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
-#include <ignition/gazebo/components/ChildLinkName.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/JointAxis.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
+#include <gz/sim/components/ChildLinkName.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/JointAxis.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 
 namespace gz
 {
