@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
+#ifndef GZ_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
+#define GZ_GAZEBO_TEST_TESTWORLDSYSTEM_HH_
 
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
@@ -61,7 +61,7 @@ class TestWorldSystem :
               components::WorldPluginComponent(value));
         }
 
-  public: void Update(const gazebo::UpdateInfo &_info,
+  public: void Update(const sim::UpdateInfo &_info,
                       EntityComponentManager &) override
           {
             std::cout << "iteration " << _info.iterations << std::endl;

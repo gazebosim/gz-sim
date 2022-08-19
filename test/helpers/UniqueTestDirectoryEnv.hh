@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_CUSTOMCACHEENV_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_CUSTOMCACHEENV_HH_
+#ifndef GZ_GAZEBO_TEST_HELPERS_CUSTOMCACHEENV_HH_
+#define GZ_GAZEBO_TEST_HELPERS_CUSTOMCACHEENV_HH_
 
 #include <gtest/gtest.h>
 
@@ -23,9 +23,9 @@
 #include <ignition/common/Filesystem.hh>
 #include <ignition/gazebo/test_config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace test
 {
@@ -47,7 +47,7 @@ namespace test
 ///  {
 ///    ::testing::InitGoogleTest(&_argc, _argv);
 ///    ::testing::AddGlobalTestEnvironment(
-///      new ignition::gazebo::test::UniqueTestDirectoryEnv("custom_dir_name"));
+///      new gz::sim::test::UniqueTestDirectoryEnv("custom_dir_name"));
 ///     return RUN_ALL_TESTS();
 ///  }
 /// gtest is responsible for the instance, so there is no need to delete it.

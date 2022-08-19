@@ -4,7 +4,7 @@
 
   Try sending a command:
 
-    ign topic -t "/model/elevator/cmd" -m ignition.msgs.Int32 -p "data: 2"
+    ign topic -t "/model/elevator/cmd" -m gz.msgs.Int32 -p "data: 2"
 
   Listen to state:
 
@@ -20,16 +20,16 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">

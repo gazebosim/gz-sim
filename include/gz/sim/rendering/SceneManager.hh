@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SCENEMANAGER_HH_
-#define IGNITION_GAZEBO_SCENEMANAGER_HH_
+#ifndef GZ_GAZEBO_SCENEMANAGER_HH_
+#define GZ_GAZEBO_SCENEMANAGER_HH_
 
 #include <map>
 #include <memory>
@@ -38,9 +38,9 @@
 #include <ignition/gazebo/Entity.hh>
 #include <ignition/gazebo/rendering/Export.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -165,7 +165,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \param[in] _node Node to get the entity for.
     /// \return The entity for that node, or `kNullEntity` for no entity.
     /// \todo(anyone) Deprecate in favour of
-    /// `ignition::rendering::Node::UserData` once that's available.
+    /// `gz::rendering::Node::UserData` once that's available.
     public: Entity EntityFromNode(const rendering::NodePtr &_node) const;
 
     /// \brief Load a geometry

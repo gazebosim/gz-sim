@@ -40,11 +40,11 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::TrackControllerPrivate
+class gz::sim::systems::TrackControllerPrivate
 {
   public : ~TrackControllerPrivate() {}
   /// \brief Register a collision entity to work with this system (e.g. enable
@@ -619,4 +619,4 @@ IGNITION_ADD_PLUGIN(TrackController,
                     TrackController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
-                          "ignition::gazebo::systems::TrackController")
+                          "gz::sim::systems::TrackController")

@@ -65,7 +65,7 @@
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ComponentInspectorPrivate
   {
@@ -105,12 +105,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -127,7 +127,7 @@ void gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const std::string &_data)
+void sim::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -140,7 +140,7 @@ void gazebo::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -154,7 +154,7 @@ void gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const bool &_data)
+void sim::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -166,7 +166,7 @@ void gazebo::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const int &_data)
+void sim::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -178,14 +178,14 @@ void gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const Entity &_data)
+void sim::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const double &_data)
+void sim::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -197,7 +197,7 @@ void gazebo::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+void sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -211,7 +211,7 @@ void gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 }
 
 //////////////////////////////////////////////////
-void gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
+void sim::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -320,8 +320,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -838,4 +838,4 @@ transport::Node &ComponentInspector::TransportNode()
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ComponentInspector,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

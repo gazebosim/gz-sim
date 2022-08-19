@@ -36,9 +36,9 @@
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -118,14 +118,14 @@ std::string launchQuickStart(int &_argc, char **_argv,
   ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
 
   // Gui application in dialog mode
-  auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kDialog);
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kDialog);
   app->SetDefaultConfigPath(_defaultConfig);
 
   auto quickStartHandler = new gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
-  auto dialog = new ignition::gui::Dialog();
+  auto dialog = new gz::gui::Dialog();
   dialog->setObjectName("quick_start");
 
   igndbg << "Reading Quick start menu config." << std::endl;
@@ -153,7 +153,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
 
   std::string qmlFile("qrc:/Gazebo/QuickStart.qml");
 
-  QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
+  QQmlComponent dialogComponent(gz::gui::App()->Engine(),
       QString(QString::fromStdString(qmlFile)));
 
   auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
@@ -173,7 +173,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
 }
 
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
+std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf)
 {
@@ -182,12 +182,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
+std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_sdfFile, int _waitGui)
 {
-  ignition::common::SignalHandler sigHandler;
+  gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
@@ -257,22 +257,22 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Launch main window
-  auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kMainWindow);
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kMainWindow);
 
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
   // Temporary transport interface
-  auto tmp = new ignition::gazebo::TmpIface();
+  auto tmp = new gz::sim::TmpIface();
   tmp->setParent(app->Engine());
 
-  auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
+  auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
 
-  auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
+  auto guiFileHandler = new gz::sim::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
 
-  auto pathManager = new ignition::gazebo::gui::PathManager();
+  auto pathManager = new gz::sim::gui::PathManager();
   pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
@@ -281,7 +281,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   app->SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app->findChild<gz::gui::MainWindow *>();
   auto win = mainWin->QuickWindow();
   win->setProperty("title", "Gazebo");
 
@@ -349,9 +349,9 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+    auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));
     ++runnerCount;
-    runner->setParent(ignition::gui::App());
+    runner->setParent(gz::gui::App());
 
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
@@ -376,7 +376,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
       igndbg << "Requesting GUI from [" << service << "]..." << std::endl;
 
       // Request and block
-      ignition::msgs::GUI res;
+      gz::msgs::GUI res;
       executed = node.Request(service, timeout, res, result);
 
       if (!executed)
@@ -385,8 +385,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
         ignerr << "Service call failed for [" << service << "]" << std::endl;
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->setParent(ignition::gui::App());
+      auto runner = new gz::sim::GuiRunner(worldName);
+      runner->setParent(gz::gui::App());
       ++runnerCount;
 
       // Load plugins after creating GuiRunner, so they can access worldName
@@ -417,7 +417,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // If no plugins have been added, load default config file
-  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
     // Also set ~/.ignition/gazebo/gui.config as the default path
@@ -441,7 +441,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig)
 int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+  auto app = sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
       _sdfFile, _waitGui);
   if (nullptr != app)
   {
@@ -456,5 +456,5 @@ int runGui(int &_argc, char **_argv,
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz

@@ -9,7 +9,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::physics::Model](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Model.html)
+[sim::physics::Model](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Model.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
@@ -18,7 +18,7 @@ yet, feel free to
 
 ## Model API
 
-Gazebo-classic's `gazebo::physics::Model` provides lots of functionality, which
+Gazebo-classic's `sim::physics::Model` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties
@@ -61,23 +61,23 @@ CollisionBoundingBox | TODO
 DirtyPose | Not supported
 FillMsg | TODO
 GetAutoDisable | TODO
-GetId | `ignition::gazebo::Model::Entity`
-GetName | `ignition::gazebo::Model::Name`
+GetId | `gz::sim::Model::Entity`
+GetName | `gz::sim::Model::Name`
 GetPluginCount | TODO
 GetSDF | TODO
 GetSDFDom | TODO
 GetSaveable | Not supported
-GetScopedName | `ignition::gazebo::scopedName`
-GetSelfCollide | `ignition::gazebo::Model::SelfCollide`
-GetType | `ignition::gazebo::entityType`
+GetScopedName | `gz::sim::scopedName`
+GetSelfCollide | `gz::sim::Model::SelfCollide`
+GetType | `gz::sim::entityType`
 GetWorldEnergy | TODO
 GetWorldEnergyKinetic | TODO
 GetWorldEnergyPotential | TODO
-HasType | `gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
+HasType | `sim::components::Model::typeId == entityTypeId(entity, ecm)`
 InitialRelativePose | TODO
 IsCanonicalLink | See link API
 IsSelected | Selection is client-specific, not porting
-IsStatic | `ignition::gazebo::Model::Static`
+IsStatic | `gz::sim::Model::Static`
 PluginInfo | TODO
 Print | TODO
 ProcessMsg | TODO
@@ -112,19 +112,19 @@ SetSelfCollide | TODO
 SetState | TODO
 SetStatic | TODO
 SetWindMode | TODO
-SetWorldPose | `ignition::gazebo::Model::SetWorldPoseCmd`
+SetWorldPose | `gz::sim::Model::SetWorldPoseCmd`
 SetWorldTwist | TODO
 StopAnimation | TODO
-TypeStr | `ignition::gazebo::entityTypeStr`
+TypeStr | `gz::sim::entityTypeStr`
 URI | TODO
 UnscaledSDF | TODO
 UpdateParameters | TODO
-WindMode | `ignition::gazebo::Model::WindMode`
+WindMode | `gz::sim::Model::WindMode`
 WorldAngularAccel | TODO
 WorldAngularVel | TODO
 WorldLinearAccel | TODO
 WorldLinearVel | TODO
-WorldPose |  `ignition::gazebo::worldPose`
+WorldPose |  `gz::sim::worldPose`
 
 ---
 
@@ -141,25 +141,25 @@ they deal with entity IDs.
 
 Classic | Ignition
 -- | --
-GetByName | Use type-specific `ignition::gazebo::Model::*ByName`
-GetChild | Use type-specific `ignition::gazebo::Model::*ByName`
+GetByName | Use type-specific `gz::sim::Model::*ByName`
+GetChild | Use type-specific `gz::sim::Model::*ByName`
 GetChildCollision |  See link API
-GetChildCount | Use type-specific `ignition::gazebo::Model::*Count`
-GetChildLink | `ignition::gazebo::Model::LinkByName`
+GetChildCount | Use type-specific `gz::sim::Model::*Count`
+GetChildLink | `gz::sim::Model::LinkByName`
 GetGripper | TODO
 GetGripperCount | TODO
-GetJoint |  `ignition::gazebo::Model::JointByName`
-GetJointCount | `ignition::gazebo::Model::JointCount`
-GetJoints | `ignition::gazebo::Model::Joints`
-GetLink | `ignition::gazebo::Model::LinkByName`
-GetLinks | const `ignition::gazebo::Model::Links`
-GetParent | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetParentId | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetParentModel | `ignition::gazebo::EntiyComponentManager::ParentEntity`
+GetJoint |  `gz::sim::Model::JointByName`
+GetJointCount | `gz::sim::Model::JointCount`
+GetJoints | `gz::sim::Model::Joints`
+GetLink | `gz::sim::Model::LinkByName`
+GetLinks | const `gz::sim::Model::Links`
+GetParent | `gz::sim::EntiyComponentManager::ParentEntity`
+GetParentId | `gz::sim::EntiyComponentManager::ParentEntity`
+GetParentModel | `gz::sim::EntiyComponentManager::ParentEntity`
 GetSensorCount | See link API
-GetWorld | const `ignition::gazebo::Model::World`
-NestedModel | `ignition::gazebo::Model::NestedModelByName`
-NestedModels | const `ignition::gazebo::Model::NestedModels`
+GetWorld | const `gz::sim::Model::World`
+NestedModel | `gz::sim::Model::NestedModelByName`
+NestedModels | const `gz::sim::Model::NestedModels`
 
 ---
 
@@ -198,8 +198,8 @@ Classic | Ignition
 -- | --
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadJoints | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadJoints | `gz::sim::SdfEntityCreator::CreateEntities`
 LoadPlugins | TODO
 Reset | TODO
 ResetPhysicsStates | TODO
@@ -216,7 +216,7 @@ logic that should be performed from within a system.
 
 Classic | Ignition
 -- | --
-GetJointController | Use this system: `ignition::gazebo::systems::JointController`
+GetJointController | Use this system: `gz::sim::systems::JointController`
 GetNearestEntityBelow | Requires a system
 PlaceOnEntity | Involves Requires a system
 PlaceOnNearestEntityBelow | Requires a system

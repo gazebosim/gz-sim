@@ -51,8 +51,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test DiffDrive system
 class WheelSlipTest : public InternalFixture<::testing::Test>

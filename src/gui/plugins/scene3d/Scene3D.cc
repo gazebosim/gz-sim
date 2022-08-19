@@ -77,9 +77,9 @@ std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
@@ -167,7 +167,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string moveToTarget;
 
     /// \brief Helper object to move user camera
-    public: ignition::rendering::MoveToHelper moveToHelper;
+    public: gz::rendering::MoveToHelper moveToHelper;
 
     /// \brief Target to view collisions
     public: std::string viewCollisionsTarget;
@@ -217,8 +217,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string spawnSdfPath;
 
     /// \brief The pose of the spawn preview.
-    public: ignition::math::Pose3d spawnPreviewPose =
-            ignition::math::Pose3d::Zero;
+    public: gz::math::Pose3d spawnPreviewPose =
+            gz::math::Pose3d::Zero;
 
     /// \brief The currently hovered mouse position in screen coordinates
     public: math::Vector2i mouseHoverPos = math::Vector2i::Zero;
@@ -268,7 +268,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     public: std::string createCmdService;
 
     /// \brief The starting world pose of a clicked visual.
-    public: ignition::math::Vector3d startWorldPos = math::Vector3d::Zero;
+    public: gz::math::Vector3d startWorldPos = math::Vector3d::Zero;
 
     /// \brief Flag to keep track of world pose setting used
     /// for button translating.
@@ -382,8 +382,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 QList<QThread *> RenderWindowItemPrivate::threads;
 
@@ -776,17 +776,17 @@ void IgnRenderer::Render()
     }
   }
 
-  if (ignition::gui::App())
+  if (gz::gui::App())
   {
     gui::events::Render event;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
 
     // This will be deprecated on v5 and removed on v6
     gui::events::Render oldEvent;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &oldEvent);
   }
 
@@ -897,9 +897,9 @@ void IgnRenderer::BroadcastHoverPos()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseHoverPos);
 
-    ignition::gui::events::HoverToScene hoverToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::HoverToScene hoverToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &hoverToSceneEvent);
   }
 }
@@ -913,9 +913,9 @@ void IgnRenderer::BroadcastLeftClick()
   {
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    ignition::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::LeftClickToScene leftClickToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &leftClickToSceneEvent);
   }
 }
@@ -933,9 +933,9 @@ void IgnRenderer::BroadcastRightClick()
 
     math::Vector3d pos = this->ScreenToScene(this->dataPtr->mouseEvent.Pos());
 
-    ignition::gui::events::RightClickToScene rightClickToSceneEvent(pos);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::RightClickToScene rightClickToSceneEvent(pos);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &rightClickToSceneEvent);
   }
 }
@@ -1013,17 +1013,17 @@ void IgnRenderer::HandleKeyPress(QKeyEvent *_e)
   // fullscreen
   if (_e->key() == Qt::Key_F11)
   {
-    if (ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->visibility()
+    if (gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->visibility()
         == QWindow::FullScreen)
     {
-      ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->showNormal();
+      gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->showNormal();
     }
     else
     {
-      ignition::gui::App()->findChild
-        <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+      gz::gui::App()->findChild
+        <gz::gui::MainWindow *>()->QuickWindow()->showFullScreen();
     }
   }
 
@@ -1191,8 +1191,8 @@ void IgnRenderer::DeselectAllEntities(bool _sendEvent)
   if (_sendEvent)
   {
     gui::events::DeselectAllEntities deselectEvent;
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &deselectEvent);
   }
 }
@@ -1798,8 +1798,8 @@ void IgnRenderer::UpdateSelectedEntity(const rendering::NodePtr &_node,
   {
     gui::events::EntitiesSelected selectEvent(
         this->dataPtr->renderUtil.SelectedEntities());
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &selectEvent);
   }
 }
@@ -2561,8 +2561,8 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
       elem->QueryBoolText(&fullscreen);
       if (fullscreen)
       {
-        ignition::gui::App()->findChild
-          <ignition::gui::MainWindow *>()->QuickWindow()->showFullScreen();
+        gz::gui::App()->findChild
+          <gz::gui::MainWindow *>()->QuickWindow()->showFullScreen();
       }
     }
   }
@@ -2627,10 +2627,10 @@ void Scene3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "View collisions service on ["
          << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -3030,10 +3030,10 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::DropdownMenuEnabled::kType)
+      gz::gui::events::DropdownMenuEnabled::kType)
   {
     auto dropdownMenuEnabledEvent =
-      reinterpret_cast<ignition::gui::events::DropdownMenuEnabled *>(_event);
+      reinterpret_cast<gz::gui::events::DropdownMenuEnabled *>(_event);
     if (dropdownMenuEnabledEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
@@ -3210,7 +3210,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 {
   this->forceActiveFocus();
 
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
   event.SetPressPos(event.Pos());
   this->dataPtr->mouseEvent = event;
   this->dataPtr->mouseEvent.SetType(common::MouseEvent::PRESS);
@@ -3222,7 +3222,7 @@ void RenderWindowItem::mousePressEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 {
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
   event.SetPressPos(this->dataPtr->mouseEvent.PressPos());
 
   // A release at the end of a drag
@@ -3239,7 +3239,7 @@ void RenderWindowItem::mouseReleaseEvent(QMouseEvent *_e)
 ////////////////////////////////////////////////
 void RenderWindowItem::mouseMoveEvent(QMouseEvent *_e)
 {
-  auto event = ignition::gui::convert(*_e);
+  auto event = gz::gui::convert(*_e);
 
   if (!event.Dragging())
     return;
@@ -3313,5 +3313,5 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(gazebo::Scene3D,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(sim::Scene3D,
+                    gz::gui::Plugin)

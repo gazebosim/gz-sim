@@ -28,7 +28,7 @@
 #include <ignition/plugin/Register.hh>
 #include <ignition/transport/Node.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ViewAnglePrivate
   {
@@ -49,8 +49,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()
@@ -144,4 +144,4 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ViewAngle,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

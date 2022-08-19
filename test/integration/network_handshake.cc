@@ -28,8 +28,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;
@@ -137,7 +137,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
       "libignition-gazebo-scene-broadcaster-system.so");
-  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configPrimary;
@@ -158,7 +158,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
   secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
-  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetName("gz::sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configSecondary;

@@ -37,11 +37,11 @@
 
 #include "ApplyLinkWrench.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyLinkWrenchPrivate
+class gz::sim::systems::ApplyLinkWrenchPrivate
 {
   /// \brief Callback for wrench subscription
   /// \param[in] _msg Wrench message
@@ -357,4 +357,4 @@ IGNITION_ADD_PLUGIN(ApplyLinkWrench,
                     ApplyLinkWrench::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
-                          "ignition::gazebo::systems::ApplyLinkWrench")
+                          "gz::sim::systems::ApplyLinkWrench")

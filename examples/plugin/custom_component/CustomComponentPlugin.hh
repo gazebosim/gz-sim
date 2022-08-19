@@ -32,22 +32,22 @@ namespace examples
 // of `components::Component` where the first argument is the type being wrapped
 // (i.e. int) and the second is a unique name tag.
 using CustomComponent =
-    ignition::gazebo::components::Component<int, class CustomComponentTag>;
+    gz::sim::components::Component<int, class CustomComponentTag>;
 
 // Use this macro to register a component. Give it a unique name across the
 // entire simulation.
 IGN_GAZEBO_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
 
 class CustomComponentPlugin :
-  public ignition::gazebo::System,
-  public ignition::gazebo::ISystemConfigure
+  public gz::sim::System,
+  public gz::sim::ISystemConfigure
 {
   public: CustomComponentPlugin() = default;
 
-  public: void Configure(const ignition::gazebo::Entity &_entity,
+  public: void Configure(const gz::sim::Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &,
-                         ignition::gazebo::EntityComponentManager &_ecm,
-                         ignition::gazebo::EventManager &) override
+                         gz::sim::EntityComponentManager &_ecm,
+                         gz::sim::EventManager &) override
   {
     // You can create the custom component as you would create any other
     igndbg << "Creating component" << std::endl;
@@ -56,7 +56,7 @@ class CustomComponentPlugin :
     // You can use the ECM's API, such as Each, to query for the
     // component:
     _ecm.Each<CustomComponent>(
-        [&](const ignition::gazebo::Entity &_entityEach,
+        [&](const gz::sim::Entity &_entityEach,
             const CustomComponent *_comp) -> bool
     {
       igndbg << "Entity: " << _entityEach << std::endl;

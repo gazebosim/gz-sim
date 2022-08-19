@@ -71,11 +71,11 @@
 
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Private data class.
-class ignition::gazebo::RenderUtilPrivate
+class gz::sim::RenderUtilPrivate
 {
   /// True if the rendering component is initialized
   public: bool initialized = false;

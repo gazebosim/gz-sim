@@ -19,7 +19,7 @@
 
 #include "ignition/gazebo/System.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(System, Constructor)

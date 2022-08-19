@@ -77,8 +77,8 @@
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ComponentsTest : public InternalFixture<::testing::Test>
 {

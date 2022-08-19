@@ -32,11 +32,11 @@
 
 #include "VelocityControl.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::VelocityControlPrivate
+class gz::sim::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message
@@ -378,4 +378,4 @@ IGNITION_ADD_PLUGIN(VelocityControl,
                     VelocityControl::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
-                          "ignition::gazebo::systems::VelocityControl")
+                          "gz::sim::systems::VelocityControl")

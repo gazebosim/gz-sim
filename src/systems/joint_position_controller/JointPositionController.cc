@@ -31,11 +31,11 @@
 #include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointPositionControllerPrivate
+class gz::sim::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
@@ -274,4 +274,4 @@ IGNITION_ADD_PLUGIN(JointPositionController,
                     JointPositionController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
-                          "ignition::gazebo::systems::JointPositionController")
+                          "gz::sim::systems::JointPositionController")

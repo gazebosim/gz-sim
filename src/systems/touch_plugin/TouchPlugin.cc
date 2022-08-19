@@ -38,11 +38,11 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::TouchPluginPrivate
+class gz::sim::systems::TouchPluginPrivate
 {
   // Initialize the plugin
   public: void Load(const EntityComponentManager &_ecm,
@@ -407,4 +407,4 @@ IGNITION_ADD_PLUGIN(TouchPlugin,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")

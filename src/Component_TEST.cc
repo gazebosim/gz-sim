@@ -31,8 +31,8 @@
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
@@ -120,7 +120,7 @@ inline std::istream &operator>>(std::istream &_in, sdf::Element &_element)
 
 // ostream operator for math::Inertiald (not defined elsewhere)
 // Note: Must be defined in the correct namespace or clang refuses to find it.
-namespace ignition
+namespace gz
 {
 namespace math
 {

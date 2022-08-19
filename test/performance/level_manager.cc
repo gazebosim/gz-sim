@@ -27,8 +27,8 @@
 #include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 {

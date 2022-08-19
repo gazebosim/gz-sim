@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_EVENTS_HH_
-#define IGNITION_GAZEBO_EVENTS_HH_
+#ifndef GZ_GAZEBO_EVENTS_HH_
+#define GZ_GAZEBO_EVENTS_HH_
 
 #include <sdf/Element.hh>
 
@@ -24,9 +24,9 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Entity.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -40,18 +40,18 @@ namespace ignition
       ///
       /// For example, to pause simulation use:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::Pause>(true);
+      /// eventManager.Emit<gz::sim::events::Pause>(true);
       /// \endcode
-      using Pause = ignition::common::EventT<void(bool), struct PauseTag>;
+      using Pause = gz::common::EventT<void(bool), struct PauseTag>;
 
       /// \brief The stop event can be used to terminate simulation.
       /// Emit this signal to terminate an active simulation.
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::Stop>();
+      /// eventManager.Emit<gz::sim::events::Stop>();
       /// \endcode
-      using Stop = ignition::common::EventT<void(void), struct StopTag>;
+      using Stop = gz::common::EventT<void(void), struct StopTag>;
 
       /// \brief Event used to load plugins for an entity into simulation.
       /// Pass in the entity which will own the plugins, and an SDF element for
@@ -60,7 +60,7 @@ namespace ignition
           struct LoadPluginsTag>;
       }
     }  // namespace events
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_EVENTS_HH_
+#endif  // GZ_GAZEBO_EVENTS_HH_

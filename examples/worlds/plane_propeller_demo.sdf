@@ -6,7 +6,7 @@
 
   Try sending commands:
 
-    ign topic -t "/model/propeller_plane/joint/rod_1_joint/cmd_force" -m ignition.msgs.Double  -p "data: 70"
+    ign topic -t "/model/propeller_plane/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 70"
 
 -->
 <sdf version="1.6">
@@ -14,15 +14,15 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <gui fullscreen="0">
 
@@ -437,7 +437,7 @@
       </joint>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.2</a0>
         <cla>10.000</cla>
         <cda>0.0001</cda>
@@ -455,7 +455,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.2</a0>
         <cla>10.000</cla>
         <cda>0.0001</cda>
@@ -786,7 +786,7 @@
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>0.001</cda>
@@ -804,7 +804,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>0.001</cda>
@@ -822,7 +822,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.02</a0>
         <cla>4.000</cla>
         <cda>0.001</cda>
@@ -840,7 +840,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.02</a0>
         <cla>4.000</cla>
         <cda>0.001</cda>
@@ -858,7 +858,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <!-- force turn -->
         <a0>0.00</a0>
         <cla>2.000</cla>
@@ -877,7 +877,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-apply-joint-force-system"
-        name="ignition::gazebo::systems::ApplyJointForce">
+        name="gz::sim::systems::ApplyJointForce">
         <joint_name>rod_1_joint</joint_name>
       </plugin>
     </model>

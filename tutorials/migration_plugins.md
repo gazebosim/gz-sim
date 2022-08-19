@@ -105,8 +105,8 @@ On Ignition Gazebo, that would be implemented as follows:
 #include <ignition/gazebo/System.hh>
 #include <ignition/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
@@ -148,13 +148,13 @@ class MyPlugin
 
 // Register plugin
 IGNITION_ADD_PLUGIN(MyPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
 The example above uses headers like `Model.hh` and `Util.hh`, which offer
@@ -172,8 +172,8 @@ the ECM's API:
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/plugin/Register.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Inherit from System and 2 extra interfaces:
@@ -230,11 +230,11 @@ class MyPlugin
 };
 
 IGNITION_ADD_PLUGIN(MyPlugin,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     MyPlugin::ISystemConfigure,
                     MyPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "ignition::gazebo::systems::MyPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(MyPlugin, "gz::sim::systems::MyPlugin")
 ```
 
 In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
@@ -249,7 +249,7 @@ In summary, the key differences between Gazebo Classic and Ignition Gazebo are:
 * Plugins don't have direct access to physics objects such as `physics::Model`.
   Instead, they can either deal directly with entities and their components by
   calling functions in the ECM, or using convenient objects such as
-  `ignition::gazebo::Model` which wrap the ECM interface.
+  `gz::sim::Model` which wrap the ECM interface.
 
 All these changes are meant to give plugin developers more flexibility to
 only use the features they need, and several layers of abstraction which

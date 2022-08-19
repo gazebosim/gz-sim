@@ -19,8 +19,8 @@
 #include "ignition/common/Uuid.hh"
 #include "ignition/transport/NetUtils.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PeerInfo::PeerInfo(const NetworkRole &_role):
@@ -42,7 +42,7 @@ std::string PeerInfo::Namespace() const
 }
 
 /////////////////////////////////////////////////
-private_msgs::PeerInfo gazebo::toProto(
+private_msgs::PeerInfo sim::toProto(
     const PeerInfo &_info)
 {
   private_msgs::PeerInfo proto;
@@ -70,7 +70,7 @@ private_msgs::PeerInfo gazebo::toProto(
 }
 
 /////////////////////////////////////////////////
-PeerInfo gazebo::fromProto(
+PeerInfo sim::fromProto(
     const private_msgs::PeerInfo& _proto)
 {
   PeerInfo info;

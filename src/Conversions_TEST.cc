@@ -40,8 +40,8 @@
 
 #include "ignition/gazebo/Conversions.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////

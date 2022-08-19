@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
-#define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
+#ifndef GZ_GAZEBO_GUI_GUIRUNNER_HH_
+#define GZ_GAZEBO_GUI_GUIRUNNER_HH_
 
 #include <ignition/msgs/serialized.pb.h>
 
@@ -29,9 +29,9 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -74,7 +74,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   private: Q_INVOKABLE void UpdatePlugins();
 
   /// \brief Entity-component manager.
-  private: gazebo::EntityComponentManager ecm;
+  private: sim::EntityComponentManager ecm;
 
   /// \brief Transport node.
   private: transport::Node node;

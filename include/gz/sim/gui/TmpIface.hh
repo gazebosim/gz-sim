@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_TMPIFACE_HH_
-#define IGNITION_GAZEBO_GUI_TMPIFACE_HH_
+#ifndef GZ_GAZEBO_GUI_TMPIFACE_HH_
+#define GZ_GAZEBO_GUI_TMPIFACE_HH_
 
 #ifndef Q_MOC_RUN
   #include <ignition/gui/qt.h>
@@ -26,9 +26,9 @@
 
 #include "ignition/gazebo/Export.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     /// \brief Temporary place to prototype transport interfaces while it's not
     /// clear where they will live.

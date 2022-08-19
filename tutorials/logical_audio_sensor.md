@@ -14,7 +14,7 @@ This world attaches logical audio sources to the `red_box` and `blue_box` models
 Let's take a look at the SDF relevant to the source for `red_box` to understand how to define a logical audio source in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>.5 0 0 0 0 0</pose>
@@ -45,7 +45,7 @@ This means that this source will play for an infinite amount of simulation time,
 Let's now take a look at the SDF relevant to the microphone for `green_box` to understand how to define a logical microphone in SDF:
 
 ```xml
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <microphone>
           <id>1</id>
           <pose>0 .5 0 0 0 0</pose>
@@ -158,7 +158,7 @@ Let's start the source attached to `blue_box`.
 This can be done by running the following command, which calls the "play" service for the source attached to `blue_box`:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/play --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean --timeout 1000 --req 'unused: false'
+ign service -s /model/blue_box/sensor/source_1/play --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look back at the terminal that is displaying the output of `green_box`'s microphone detections, we can see that this microphone is detecting audio from `blue_box`'s source (we see `blue_box` as a part of the `key` field):
@@ -187,7 +187,7 @@ Move `blue_box` back towards its original position, until you see detection mess
 Now, go ahead and stop `blue_box`'s source by running the following command:
 
 ```
-ign service -s /model/blue_box/sensor/source_1/stop --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean --timeout 1000 --req 'unused: false'
+ign service -s /model/blue_box/sensor/source_1/stop --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean --timeout 1000 --req 'unused: false'
 ```
 
 Now, if you look at the output for either microphone topic, you'll notice that no new messages are being published, which makes sense since no audio sources are currently playing.

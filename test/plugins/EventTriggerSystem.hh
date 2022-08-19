@@ -14,21 +14,21 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
+#ifndef GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
+#define GZ_GAZEBO_TEST_EVENTTRIGGERSYSTEM_HH_
 
 #include <ignition/common/Console.hh>
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class IGNITION_GAZEBO_VISIBLE EventTriggerSystem :
-  public gazebo::System,
-  public gazebo::ISystemConfigure,
-  public gazebo::ISystemUpdate
+  public sim::System,
+  public sim::ISystemConfigure,
+  public sim::ISystemUpdate
 {
   // needed for linter
   public: EventTriggerSystem() = default;

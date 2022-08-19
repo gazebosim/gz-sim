@@ -28,8 +28,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test CameraVideoRecorder system
 class CameraVideoRecorderTest : public InternalFixture<::testing::Test>

@@ -97,8 +97,8 @@ class FirstOrderFilter {
   T previousState;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -115,7 +115,7 @@ enum class MotorType {
   kForce
 };
 
-class ignition::gazebo::systems::MulticopterMotorModelPrivate
+class gz::sim::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
   public: void OnActuatorMsg(const msgs::Actuators &_msg);
@@ -670,4 +670,4 @@ IGNITION_ADD_PLUGIN(MulticopterMotorModel,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "ignition::gazebo::systems::MulticopterMotorModel")
+                          "gz::sim::systems::MulticopterMotorModel")

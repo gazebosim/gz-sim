@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
-#define IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
+#ifndef GZ_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
+#define GZ_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

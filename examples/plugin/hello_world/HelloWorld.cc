@@ -31,15 +31,15 @@
 // what's in the header.
 IGNITION_ADD_PLUGIN(
     hello_world::HelloWorld,
-    ignition::gazebo::System,
+    gz::sim::System,
     hello_world::HelloWorld::ISystemPostUpdate)
 
 using namespace hello_world;
 
 // Here we implement the PostUpdate function, which is called at every
 // iteration.
-void HelloWorld::PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void HelloWorld::PostUpdate(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &/*_ecm*/)
 {
   // This is a simple example of how to get information from UpdateInfo.
   std::string msg = "Hello, world! Simulation is ";

@@ -39,7 +39,7 @@
 
 #include "Plot3D.hh"
 
-namespace ignition::gazebo::gui
+namespace gz::sim::gui
 {
   /// \brief Private data class for Plot3D
   class Plot3DPrivate
@@ -88,9 +88,9 @@ namespace ignition::gazebo::gui
   };
 }
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::gui;
 
 /////////////////////////////////////////////////
 Plot3D::Plot3D()
@@ -155,8 +155,8 @@ void Plot3D::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     }
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -265,7 +265,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -274,7 +274,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -402,4 +402,4 @@ void Plot3D::SetMaxPoints(int _maxPoints)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(Plot3D,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

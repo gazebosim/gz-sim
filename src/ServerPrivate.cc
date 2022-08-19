@@ -31,8 +31,8 @@
 #include "ignition/gazebo/Util.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -61,7 +61,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "ignition::gazebo::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -78,7 +78,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "ignition::gazebo::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };

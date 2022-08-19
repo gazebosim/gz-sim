@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TESTFIXTURE_HH_
-#define IGNITION_GAZEBO_TESTFIXTURE_HH_
+#ifndef GZ_GAZEBO_TESTFIXTURE_HH_
+#define GZ_GAZEBO_TESTFIXTURE_HH_
 
 #include <memory>
 #include <string>
@@ -25,9 +25,9 @@
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -39,11 +39,11 @@ class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// ## Usage
 ///
 /// // Load a world with a fixture
-/// ignition::gazebo::TestFixture fixture("path_to.sdf");
+/// gz::sim::TestFixture fixture("path_to.sdf");
 ///
 /// // Register callbacks, for example:
-/// fixture.OnPostUpdate([&](const gazebo::UpdateInfo &,
-///   const gazebo::EntityComponentManager &_ecm)
+/// fixture.OnPostUpdate([&](const sim::UpdateInfo &,
+///   const sim::EntityComponentManager &_ecm)
 ///   {
 ///     // Add expectations here
 ///   }).Finalize();
@@ -100,7 +100,7 @@ class IGNITION_GAZEBO_VISIBLE TestFixture
   public: TestFixture &Finalize();
 
   /// \brief Get pointer to underlying server.
-  public: std::shared_ptr<gazebo::Server> Server() const;
+  public: std::shared_ptr<sim::Server> Server() const;
 
   /// \internal
   /// \brief Pointer to private data.

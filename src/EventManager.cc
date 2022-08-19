@@ -16,8 +16,8 @@
 */
 #include "ignition/gazebo/EventManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 EventManager::EventManager() = default;

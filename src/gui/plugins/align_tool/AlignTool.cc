@@ -46,7 +46,7 @@
 
 #include "AlignTool.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class AlignToolPrivate
   {
@@ -90,8 +90,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()
@@ -99,8 +99,8 @@ AlignTool::AlignTool()
 {
   // Deselect all entities upon loading plugin
   gui::events::DeselectAllEntities deselectEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &deselectEvent);
 }
 
@@ -114,8 +114,8 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Align tool";
 
   // For align tool requests
-  ignition::gui::App()->findChild
-      <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+      <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -529,4 +529,4 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(AlignTool,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

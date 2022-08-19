@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_RELAY_HH_
+#ifndef GZ_GAZEBO_TEST_HELPERS_RELAY_HH_
+#define GZ_GAZEBO_TEST_HELPERS_RELAY_HH_
 
 #include <ignition/gazebo/test_config.hh>
 
 #include "../plugins/MockSystem.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace test
 {
@@ -37,8 +37,8 @@ namespace test
 ///  test::Relay testSystem;
 ///
 ///  // Register callbacks, for example:
-///  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-///    const gazebo::EntityComponentManager &_ecm)
+///  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+///    const sim::EntityComponentManager &_ecm)
 ///    {
 ///      // Add expectations here
 ///    }

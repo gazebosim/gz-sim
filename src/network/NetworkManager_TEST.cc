@@ -25,7 +25,7 @@
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 void step(const UpdateInfo &)
 {
@@ -34,7 +34,7 @@ void step(const UpdateInfo &)
 //////////////////////////////////////////////////
 TEST(NetworkManager, ConfigConstructor)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   EntityComponentManager ecm;
 
@@ -92,7 +92,7 @@ TEST(NetworkManager, ConfigConstructor)
 //////////////////////////////////////////////////
 TEST(NetworkManager, EstablishComms)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   EntityComponentManager ecm;
 
@@ -150,7 +150,7 @@ TEST(NetworkManager, EstablishComms)
 //////////////////////////////////////////////////
 TEST(NetworkManager, Step)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   EntityComponentManager ecm;
 

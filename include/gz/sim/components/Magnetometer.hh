@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
+#define GZ_GAZEBO_COMPONENTS_MAGNETOMETER_HH_
 
 #include <sdf/Sensor.hh>
 
@@ -26,9 +26,9 @@
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Serialization.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

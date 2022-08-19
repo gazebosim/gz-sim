@@ -32,8 +32,8 @@
 
 #define LASER_TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test GpuLidarTest system
 class GpuLidarTest : public InternalFixture<::testing::Test>

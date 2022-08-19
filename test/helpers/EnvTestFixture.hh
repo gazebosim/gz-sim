@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#ifndef GZ_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#define GZ_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
 
 #include <gtest/gtest.h>
 
@@ -24,7 +24,7 @@
 #include <ignition/common/Util.hh>
 #include "ignition/gazebo/test_config.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Common test setup for various tests
 template <typename TestType>

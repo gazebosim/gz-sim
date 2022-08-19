@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_FACTORY_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_FACTORY_HH_
+#define GZ_GAZEBO_COMPONENTS_FACTORY_HH_
 
 #include <cstdint>
 #include <cstring>
@@ -27,14 +27,14 @@
 #include <ignition/common/SingletonT.hh>
 #include <ignition/common/Util.hh>
 #include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/detail/ComponentStorageBase.hh>
+#include <gz/sim/detail/ComponentStorageBase.hh>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 #include <ignition/gazebo/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -93,7 +93,7 @@ namespace components
 
   /// \brief A factory that generates a component based on a string type.
   class IGNITION_GAZEBO_VISIBLE Factory
-      : public ignition::common::SingletonT<Factory>
+      : public gz::common::SingletonT<Factory>
   {
     /// \brief Register a component so that the factory can create instances
     /// of the component and its storage based on an ID.
@@ -114,7 +114,7 @@ namespace components
         return;
       }
 
-      auto typeHash = ignition::common::hash64(_type);
+      auto typeHash = gz::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
@@ -144,7 +144,7 @@ namespace components
       // This happens at static initialization time, so we can't use common
       // console
       std::string debugEnv;
-      ignition::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
+      gz::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
       if (debugEnv == "true")
       {
         std::cout << "Registering [" << ComponentTypeT::typeName << "]"
@@ -335,10 +335,10 @@ namespace components
     { \
       if (_classname::typeId != 0) \
         return; \
-      using namespace ignition;\
-      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
-      using StorageDesc = gazebo::components::StorageDescriptor<_classname>; \
-      gazebo::components::Factory::Instance()->Register<_classname>(\
+      using namespace gz;\
+      using Desc = sim::components::ComponentDescriptor<_classname>; \
+      using StorageDesc = sim::components::StorageDescriptor<_classname>; \
+      sim::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc(), new StorageDesc());\
     } \
   }; \

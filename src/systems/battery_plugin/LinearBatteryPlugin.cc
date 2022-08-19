@@ -48,11 +48,11 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LinearBatteryPluginPrivate
+class gz::sim::systems::LinearBatteryPluginPrivate
 {
   /// \brief Reset the plugin
   public: void Reset();
@@ -615,4 +615,4 @@ IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
-  "ignition::gazebo::systems::LinearBatteryPlugin")
+  "gz::sim::systems::LinearBatteryPlugin")

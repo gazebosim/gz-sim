@@ -29,7 +29,7 @@
 // File copied from
 // https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
-using namespace ignition;
+using namespace gz;
 
 #ifndef _WIN32
 #include <climits>  // NOLINT(build/include_order)

@@ -40,8 +40,8 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -56,7 +56,7 @@ struct Commands
   Commands() {}
 };
 
-class ignition::gazebo::systems::TrackedVehiclePrivate
+class gz::sim::systems::TrackedVehiclePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -775,4 +775,4 @@ IGNITION_ADD_PLUGIN(TrackedVehicle,
                     TrackedVehicle::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "ignition::gazebo::systems::TrackedVehicle")
+                          "gz::sim::systems::TrackedVehicle")

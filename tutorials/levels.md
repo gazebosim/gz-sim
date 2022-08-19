@@ -39,11 +39,11 @@ Gazebo ships with an example world that demos the levels feature. Try it as foll
 2. Open a new terminal and publish the following commands for the vehicles to
     drive forward:
 
-    `ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 4.0}"`
+    `ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"`
 
     and
 
-    `ign topic -t "/model/vehicle_red/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 2.0}"`
+    `ign topic -t "/model/vehicle_red/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 2.0}"`
 
 3. Press play on Gazebo. You'll see that the tunnels will be loaded as the
     vehicles move forward.
@@ -144,8 +144,8 @@ The concepts of levels and performers are specific to Ignition Gazebo, thus,
 putting them directly under the `<world>` tag would diminish the generality of
 SDF. A new tag, `<extension>`, has been proposed for such circumstances but has
 not been implemented yet. Therefore, for now, the `<level>` and `<performer>`
-tags will be added to a `<plugin name="ignition::gazebo" filename="dummy">` tag.
-The plugin name `ignition::gazebo` will be fixed so that a simulation runner
+tags will be added to a `<plugin name="gz::sim" filename="dummy">` tag.
+The plugin name `gz::sim` will be fixed so that a simulation runner
 would know to check for that name in each plugin tag.
 
 ### <level>
@@ -224,7 +224,7 @@ The name of the add performer service is
 `/world/<world_name>/level/set_performer`. Make sure to replace
 `<world_name>` with the name of simulated world. The service request is an
 ignition:msgs::StringMsg message, and the response is an
-ignition::msgs::Boolean message. The response is true when the peformer was
+gz::msgs::Boolean message. The response is true when the peformer was
 successfuly added.
 
 #### Example
@@ -240,7 +240,7 @@ Here you will see the two vehicles, which are regular models that do not trigger
 2. In another terminal call the add performer service for the blue vehicle.
 
 ```
-ign service -s /world/levels/level/set_performer --reqtype ignition.msgs.StringMsg --reptype ignition.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
+ign service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_blue"'
 ```
 
 ### Example
@@ -298,7 +298,7 @@ the figure
     <!-- other links and joints-->
   </model>
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
     <performer name="perf1">
       <ref>R1</ref>
       <geometry>

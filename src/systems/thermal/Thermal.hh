@@ -14,16 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_THERMAL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_THERMAL_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_THERMAL_HH_
+#define GZ_GAZEBO_SYSTEMS_THERMAL_HH_
 
 #include <memory>
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -47,7 +47,7 @@ namespace systems
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           gazebo::EventManager &_eventMgr) final;
+                           sim::EventManager &_eventMgr) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ThermalPrivate> dataPtr;

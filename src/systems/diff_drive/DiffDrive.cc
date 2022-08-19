@@ -37,8 +37,8 @@
 #include "ignition/gazebo/Link.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -53,7 +53,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::DiffDrivePrivate
+class gz::sim::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -561,4 +561,4 @@ IGNITION_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")

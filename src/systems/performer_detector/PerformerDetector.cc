@@ -37,8 +37,8 @@
 
 #include "PerformerDetector.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -260,4 +260,4 @@ IGNITION_ADD_PLUGIN(PerformerDetector,
                     PerformerDetector::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "ignition::gazebo::systems::PerformerDetector")
+                          "gz::sim::systems::PerformerDetector")

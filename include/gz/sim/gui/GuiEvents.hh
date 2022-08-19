@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
-#define IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
+#ifndef GZ_GAZEBO_GUI_GUIEVENTS_HH_
+#define GZ_GAZEBO_GUI_GUIEVENTS_HH_
 
 #include <QEvent>
 #include <string>
@@ -25,9 +25,9 @@
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/config.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui {
 // Inline bracket to help doxygen filtering.
@@ -213,7 +213,7 @@ namespace events
 }  // namespace events
 }
 }  // namespace gui
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_GUI_GUIEVENTS_HH_
+#endif  // GZ_GAZEBO_GUI_GUIEVENTS_HH_

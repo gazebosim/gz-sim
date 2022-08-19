@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_GUI_GUI_HH_
-#define IGNITION_GAZEBO_GUI_GUI_HH_
+#ifndef GZ_GAZEBO_GUI_GUI_HH_
+#define GZ_GAZEBO_GUI_GUI_HH_
 
 #include <memory>
 #include <string>
@@ -25,9 +25,9 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -78,7 +78,7 @@ namespace gui
   /// \param[in] _loadPluginsFromSdf If true, plugins specified in the world
   /// SDFormat file will get loaded.
   IGNITION_GAZEBO_GUI_VISIBLE
-  std::unique_ptr<ignition::gui::Application> createGui(
+  std::unique_ptr<gz::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig = nullptr, bool _loadPluginsFromSdf = true);
 
@@ -102,13 +102,13 @@ namespace gui
   /// \param[in] _waitGui True if the server is waiting for the GUI to decide on
   /// a starting world.
   IGNITION_GAZEBO_GUI_VISIBLE
-  std::unique_ptr<ignition::gui::Application> createGui(
+  std::unique_ptr<gz::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
       const char *_sdfFile, int _waitGui);
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #endif

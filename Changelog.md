@@ -126,7 +126,7 @@
 1. Fix generation of systems library symlinks in build directory
     * [Pull request #1160](https://github.com/ignitionrobotics/ign-gazebo/pull/1160)
 
-1. Backport gazebo::Util::validTopic() from ign-gazebo4.
+1. Backport sim::Util::validTopic() from ign-gazebo4.
     * [Pull request #1153](https://github.com/ignitionrobotics/ign-gazebo/pull/1153)
 
 1. Support setting the background color for sensors
@@ -643,7 +643,7 @@
     * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
     * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/ignitionrobotics/ign-gazebo/pull/327)
 
 1. Added support for specifying topics to record.
@@ -788,7 +788,7 @@
 1. Enhanced log playback performance.
     * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/ignitionrobotics/ign-gazebo/pull/327)
 
 1. Added support for specifying topics to record.
@@ -902,7 +902,7 @@
 
 ### Ignition Gazebo 2.18.0 (2020-05-20)
 
-1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `gz::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
     * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
 
 1. DetachableJoint system: Add option to suppress warning about missing child model
@@ -1319,7 +1319,7 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [BitBucket pull request 299](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/299)
 
-1. Added system for ignition::sensors::AirPressureSensor.
+1. Added system for gz::sensors::AirPressureSensor.
     * [BitBucket pull request 300](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/300)
 
 1. Support conversion and serialization of Imu components. IMU sensors are

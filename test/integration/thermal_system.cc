@@ -33,8 +33,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test Thermal system
 class ThermalTest : public InternalFixture<::testing::Test>

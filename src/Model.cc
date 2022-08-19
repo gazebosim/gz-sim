@@ -28,16 +28,16 @@
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/Model.hh"
 
-class ignition::gazebo::ModelPrivate
+class gz::sim::ModelPrivate
 {
   /// \brief Id of model entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
-Model::Model(gazebo::Entity _entity)
+Model::Model(sim::Entity _entity)
   : dataPtr(std::make_unique<ModelPrivate>())
 {
   this->dataPtr->id = _entity;

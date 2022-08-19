@@ -26,8 +26,8 @@
 #include "../test/helpers/EnvTestFixture.hh"
 #include "ignition/gazebo/TestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class TestFixtureTest : public InternalFixture<::testing::Test>

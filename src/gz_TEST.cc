@@ -94,7 +94,7 @@ TEST(CmdLine, Server)
 TEST(CmdLine, CachedFuelWorld)
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
-  ignition::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
+  gz::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
     " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -173,7 +173,7 @@ TEST(CmdLine, GazeboHelpVsCompletionFlags)
   std::string helpOutput = customExecStr(kIgnCommand + " gazebo --help");
 
   // Call the output function in the bash completion script
-  std::string scriptPath = ignition::common::joinPaths(
+  std::string scriptPath = gz::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH),
     "src", "cmd", "gazebo.bash_completion.sh");
 
@@ -204,7 +204,7 @@ TEST(CmdLine, ModelHelpVsCompletionFlags)
   std::string helpOutput = customExecStr(kIgnModelCommand + " --help");
 
   // Call the output function in the bash completion script
-  std::string scriptPath = ignition::common::joinPaths(
+  std::string scriptPath = gz::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH),
     "src", "cmd", "model.bash_completion.sh");
 

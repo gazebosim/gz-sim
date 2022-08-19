@@ -36,8 +36,8 @@
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -175,7 +175,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = gazebo::loadPluginInfo(isPlayback);
+    auto plugins = sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 

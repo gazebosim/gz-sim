@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKROLE_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKROLE_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKROLE_HH_
 
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -47,8 +47,8 @@ namespace ignition
       SimulationSecondary = 3,
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKROLE_HH_
+#endif  // GZ_GAZEBO_NETWORKROLE_HH_
 

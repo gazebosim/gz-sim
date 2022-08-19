@@ -65,12 +65,12 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SceneBroadcasterPrivate
+class gz::sim::systems::SceneBroadcasterPrivate
 {
   /// \brief Type alias for the graph used to represent the scene graph.
   public: using SceneGraphType = math::graph::DirectedGraph<
@@ -1155,4 +1155,4 @@ IGNITION_ADD_PLUGIN(SceneBroadcaster,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "ignition::gazebo::systems::SceneBroadcaster")
+                          "gz::sim::systems::SceneBroadcaster")

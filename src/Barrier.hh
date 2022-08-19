@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_BARRIER_HH_
-#define IGNITION_GAZEBO_BARRIER_HH_
+#ifndef GZ_GAZEBO_BARRIER_HH_
+#define GZ_GAZEBO_BARRIER_HH_
 
 #include <atomic>
 #include <condition_variable>
@@ -26,9 +26,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -89,7 +89,7 @@ namespace ignition
       private: std::unique_ptr<BarrierPrivate> dataPtr;
     };
     }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_BARRIER_HH_
+#endif  // GZ_GAZEBO_BARRIER_HH_

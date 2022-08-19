@@ -48,12 +48,12 @@
 
 #include "ColladaWorldExporter.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 
-class ignition::gazebo::systems::ColladaWorldExporterPrivate
+class gz::sim::systems::ColladaWorldExporterPrivate
 {
   // Default constructor
   public: ColladaWorldExporterPrivate() = default;
@@ -92,7 +92,7 @@ class ignition::gazebo::systems::ColladaWorldExporterPrivate
       std::string name = _name->Data().empty() ? std::to_string(_entity) :
           _name->Data();
 
-      math::Pose3d worldPose = gazebo::worldPose(_entity, _ecm);
+      math::Pose3d worldPose = sim::worldPose(_entity, _ecm);
 
       common::MaterialPtr mat = std::make_shared<common::Material>();
       auto material = _ecm.Component<components::Material>(_entity);
@@ -263,4 +263,4 @@ IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     ColladaWorldExporter::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "ignition::gazebo::systems::ColladaWorldExporter")
+                          "gz::sim::systems::ColladaWorldExporter")

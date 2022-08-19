@@ -49,12 +49,12 @@
 
 #include "ignition/gazebo/Link.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private WindEffects data class.
-class ignition::gazebo::systems::WindEffectsPrivate
+class gz::sim::systems::WindEffectsPrivate
 {
   /// \brief Initialize the system.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
@@ -569,4 +569,4 @@ IGNITION_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")
+IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")

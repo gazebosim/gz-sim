@@ -39,8 +39,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test MagnetometerTest system
 class MagnetometerTest : public InternalFixture<::testing::Test>

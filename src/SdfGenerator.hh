@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
-#define IGNITION_GAZEBO_SDFGENERATOR_HH_
+#ifndef GZ_GAZEBO_SDFGENERATOR_HH_
+#define GZ_GAZEBO_SDFGENERATOR_HH_
 
 #include <ignition/msgs/sdf_generator_config.pb.h>
 
@@ -25,9 +25,9 @@
 
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -89,7 +89,7 @@ namespace sdf_generator
 
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif /* end of include guard: IGNITION_GAZEBO_SDFGENERATOR_HH_ */
+#endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */

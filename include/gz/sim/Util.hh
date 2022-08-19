@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_UTIL_HH_
-#define IGNITION_GAZEBO_UTIL_HH_
+#ifndef GZ_GAZEBO_UTIL_HH_
+#define GZ_GAZEBO_UTIL_HH_
 
 #include <ignition/msgs/entity.pb.h>
 
@@ -30,9 +30,9 @@
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -85,16 +85,16 @@ namespace ignition
     /// \brief Generally, each entity will be of some specific high-level type,
     /// such as World, Sensor, Collision, etc, and one type only.
     /// The entity type is usually marked by having some component that
-    /// represents that type, such as `ignition::gazebo::components::Visual`.
+    /// represents that type, such as `gz::sim::components::Visual`.
     ///
     /// This function returns the type ID of the given entity's type, which
     /// can be checked against different types. For example, if the
     /// entity is a model, this will be true:
     ///
-    /// `gazebo::components::Model::typeId == entityTypeId(entity, ecm)`
+    /// `sim::components::Model::typeId == entityTypeId(entity, ecm)`
     ///
     /// In case the entity isn't of any known type, this will return
-    /// `ignition::gazebo::kComponentTypeIdInvalid`.
+    /// `gz::sim::kComponentTypeIdInvalid`.
     ///
     /// In case the entity has more than one type, only one of them will be
     /// returned. This is not standard usage.
@@ -173,7 +173,7 @@ namespace ignition
     /// \param[in] _ecm Constant reference to ECM.
     /// \return Entity of top level model. If _entity has no top level model,
     /// kNullEntity is returned.
-    ignition::gazebo::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
+    gz::sim::Entity IGNITION_GAZEBO_VISIBLE topLevelModel(
         const Entity &_entity, const EntityComponentManager &_ecm);
 
     /// \brief Helper function to generate a valid transport topic, given

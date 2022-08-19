@@ -25,7 +25,7 @@
 /// \brief Example of a GUI plugin that uses Ignition Rendering.
 /// This plugin works with either Ignition GUI's Scene3D or Ignition Gazebo's
 /// Scene3D.
-class RenderingGuiPlugin : public ignition::gui::Plugin
+class RenderingGuiPlugin : public gz::gui::Plugin
 {
   Q_OBJECT
 
@@ -51,7 +51,7 @@ class RenderingGuiPlugin : public ignition::gui::Plugin
   private: bool dirty{false};
 
   /// \brief Pointer to the rendering scene.
-  private: ignition::rendering::ScenePtr scene{nullptr};
+  private: gz::rendering::ScenePtr scene{nullptr};
 };
 
 #endif

@@ -26,7 +26,7 @@
 #include "ignition/gazebo/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   struct GridParam
   {
@@ -62,12 +62,12 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 GridConfig::GridConfig()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
+  : gz::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
 {
 }
 
@@ -80,8 +80,8 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Grid config";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -186,8 +186,8 @@ void GridConfig::LoadGrid()
 
     // If we get here, most likely the render engine and scene are fully loaded,
     // but they don't support grids. So stop trying.
-    ignition::gui::App()->findChild<
-        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    gz::gui::App()->findChild<
+        gz::gui::MainWindow *>()->removeEventFilter(this);
     return;
   }
 
@@ -256,4 +256,4 @@ void GridConfig::OnShow(bool _checked)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(GridConfig,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

@@ -40,7 +40,7 @@
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ResourceSpawnerPrivate
   {
@@ -59,7 +59,7 @@ namespace ignition::gazebo
     public: PathModel ownerModel;
 
     /// \brief Client used to download resources from Ignition Fuel.
-    public: std::unique_ptr<ignition::fuel_tools::FuelClient>
+    public: std::unique_ptr<gz::fuel_tools::FuelClient>
             fuelClient = nullptr;
 
     /// \brief The map to cache resources after a search is made on an owner,
@@ -73,8 +73,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()
@@ -206,14 +206,14 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
 
 /////////////////////////////////////////////////
 ResourceSpawner::ResourceSpawner()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "ResourceList", &this->dataPtr->resourceModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
     std::make_unique<fuel_tools::FuelClient>();
@@ -626,11 +626,11 @@ void ResourceSpawner::OnSortChosen(const QString &_sortType)
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
   gui::events::SpawnPreviewPath event(_sdfPath.toStdString());
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ResourceSpawner,
-    ignition::gui::Plugin)
+    gz::gui::Plugin)

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_ENTITY_HH_
-#define IGNITION_GAZEBO_ENTITY_HH_
+#ifndef GZ_GAZEBO_ENTITY_HH_
+#define GZ_GAZEBO_ENTITY_HH_
 
 #include <cstdint>
 #include <ignition/gazebo/config.hh>
@@ -23,11 +23,11 @@
 
 /// \brief This library is part of the [Ignition
 /// Robotics](https://ignitionrobotics.org) project.
-namespace ignition
+namespace gz
 {
   /// \brief Gazebo is a leading open source robotics simulator, that
   /// provides high fidelity physics, rendering, and sensor simulation.
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

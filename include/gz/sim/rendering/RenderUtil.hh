@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_RENDERUTIL_HH_
-#define IGNITION_GAZEBO_RENDERUTIL_HH_
+#ifndef GZ_GAZEBO_RENDERUTIL_HH_
+#define GZ_GAZEBO_RENDERUTIL_HH_
 
 #include <memory>
 #include <string>
@@ -31,9 +31,9 @@
 #include "ignition/gazebo/rendering/MarkerManager.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -138,7 +138,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Get the entity for a given node.
     /// \param[in] _node Node to get the entity for.
     /// \return The entity for that node, or `kNullEntity` for no entity.
-    /// \deprecated Use `ignition::rendering::Visual::UserData` instead.
+    /// \deprecated Use `gz::rendering::Visual::UserData` instead.
     public: Entity IGN_DEPRECATED(3)
         EntityFromNode(const rendering::NodePtr &_node);
 

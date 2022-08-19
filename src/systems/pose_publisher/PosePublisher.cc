@@ -51,12 +51,12 @@
 #include "ignition/gazebo/Conversions.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
-class ignition::gazebo::systems::PosePublisherPrivate
+class gz::sim::systems::PosePublisherPrivate
 {
   /// \brief Initializes internal caches for entities whose poses are to be
   /// published and their names
@@ -556,4 +556,4 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "ignition::gazebo::systems::PosePublisher")
+                          "gz::sim::systems::PosePublisher")

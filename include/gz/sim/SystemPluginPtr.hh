@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
-#define IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
+#ifndef GZ_GAZEBO_SYSTEMPLUGINPTR_HH_
+#define GZ_GAZEBO_SYSTEMPLUGINPTR_HH_
 
 #include <ignition/plugin/SpecializedPluginPtr.hh>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
-    using SystemPluginPtr = ignition::plugin::SpecializedPluginPtr<
+    using SystemPluginPtr = gz::plugin::SpecializedPluginPtr<
       System,
       ISystemConfigure,
       ISystemPreUpdate,

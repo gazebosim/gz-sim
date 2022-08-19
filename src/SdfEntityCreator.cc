@@ -70,7 +70,7 @@
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
 
-class ignition::gazebo::SdfEntityCreatorPrivate
+class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -91,8 +91,8 @@ class ignition::gazebo::SdfEntityCreatorPrivate
   public: std::map<Entity, sdf::ElementPtr> newVisuals;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_SERIALIZATION_HH_
-#define IGNITION_GAZEBO_COMPONENTS_SERIALIZATION_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_SERIALIZATION_HH_
+#define GZ_GAZEBO_COMPONENTS_SERIALIZATION_HH_
 
 #include <google/protobuf/message_lite.h>
 #include <ignition/msgs/double_v.pb.h>
@@ -29,9 +29,9 @@
 // This header holds serialization operators which are shared among several
 // components
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -57,12 +57,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace serializers
 {
   /// \brief Serialization for that converts components data types to
-  /// ignition::msgs. This assumes that ignition::gazebo::convert<DataType> is
+  /// gz::msgs. This assumes that gz::sim::convert<DataType> is
   /// defined
   /// \tparam DataType Underlying data type of the component
   ///
-  /// This can be used for components that can be converted to ignition::msg
-  /// types via ignition::gazebo::convert. For example sdf::Geometry can be
+  /// This can be used for components that can be converted to gz::msg
+  /// types via gz::sim::convert. For example sdf::Geometry can be
   /// converted to msgs::Geometry so the component can be defined as
   /// \code
   ///   using Geometry = Component<sdf::Geometry, class GeometryTag,
@@ -78,7 +78,7 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const DataType &_data)
     {
-      auto msg = ignition::gazebo::convert<MsgType>(_data);
+      auto msg = gz::sim::convert<MsgType>(_data);
       msg.SerializeToOstream(&_out);
       return _out;
     }
@@ -93,7 +93,7 @@ namespace serializers
       MsgType msg;
       msg.ParseFromIstream(&_in);
 
-      _data = ignition::gazebo::convert<DataType>(msg);
+      _data = gz::sim::convert<DataType>(msg);
       return _in;
     }
   };
@@ -111,7 +111,7 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                                            const std::vector<double> &_vec)
     {
-      ignition::msgs::Double_V msg;
+      gz::msgs::Double_V msg;
       *msg.mutable_data() = {_vec.begin(), _vec.end()};
       msg.SerializeToOstream(&_out);
       return _out;
@@ -124,7 +124,7 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
                                              std::vector<double> &_vec)
     {
-      ignition::msgs::Double_V msg;
+      gz::msgs::Double_V msg;
       msg.ParseFromIstream(&_in);
 
       _vec = {msg.data().begin(), msg.data().end()};

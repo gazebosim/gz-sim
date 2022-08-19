@@ -20,16 +20,16 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#define GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
 
 #include <memory>
 
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -128,7 +128,7 @@ class IGNITION_GAZEBO_VISIBLE Elevator : public System,
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_

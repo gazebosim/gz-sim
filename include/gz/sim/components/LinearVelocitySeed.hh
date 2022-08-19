@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
+#define GZ_GAZEBO_COMPONENTS_LINEARVELOCITYSEED_HH_
 
 #include <ignition/math/Vector3.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -32,7 +32,7 @@ namespace components
 {
   /// \brief A component type that contains linear velocity seed of an entity
   /// expressed in the local frame of the entity and represented by
-  /// ignition::math::Vector3d. This seed can used to generate linear velocities
+  /// gz::math::Vector3d. This seed can used to generate linear velocities
   /// by applying transformations and adding noise.
   using LinearVelocitySeed =
       Component<math::Vector3d, class LinearVelocitySeedTag>;
@@ -40,7 +40,7 @@ namespace components
                                 LinearVelocitySeed)
 
   /// \brief A component type that contains linear velocity seed of an entity in
-  /// the world frame represented by ignition::math::Vector3d. This seed can
+  /// the world frame represented by gz::math::Vector3d. This seed can
   /// used to generate linear velocities by applying transformations and adding
   /// noise.
   using WorldLinearVelocitySeed =

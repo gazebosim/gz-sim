@@ -18,7 +18,7 @@
 
 #include <ignition/plugin/Register.hh>
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::TestSensorSystem,
-    ignition::gazebo::System,
-    ignition::gazebo::TestSensorSystem::ISystemConfigure)
+IGNITION_ADD_PLUGIN(gz::sim::TestSensorSystem,
+    gz::sim::System,
+    gz::sim::TestSensorSystem::ISystemConfigure)
 

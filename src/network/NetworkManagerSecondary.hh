@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
 
 #include <atomic>
 #include <memory>
@@ -31,9 +31,9 @@
 
 #include "NetworkManager.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -74,17 +74,17 @@ namespace ignition
       private: std::atomic<bool> enableSim {false};
 
       /// \brief Transport node used for communication with simulation graph.
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Publish step acknowledgement messages.
-      private: ignition::transport::Node::Publisher stepAckPub;
+      private: gz::transport::Node::Publisher stepAckPub;
 
       /// \brief Collection of performers associated with this secondary.
       private: std::unordered_set<Entity> performers;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGERSECONDARY_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGERSECONDARY_HH_
 

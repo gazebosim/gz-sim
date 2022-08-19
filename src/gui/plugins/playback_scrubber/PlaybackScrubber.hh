@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
-#define IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#ifndef GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#define GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
 
 #include <chrono>
 #include <memory>
@@ -24,15 +24,15 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class PlaybackScrubberPrivate;
 
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
-  class PlaybackScrubber : public ignition::gazebo::GuiSystem
+  class PlaybackScrubber : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

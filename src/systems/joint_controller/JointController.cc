@@ -31,11 +31,11 @@
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointControllerPrivate
+class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -247,4 +247,4 @@ IGNITION_ADD_PLUGIN(JointController,
                     JointController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
-                          "ignition::gazebo::systems::JointController")
+                          "gz::sim::systems::JointController")

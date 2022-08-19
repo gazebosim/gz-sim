@@ -22,11 +22,11 @@
 /////////////////////////////////////////////////
 TEST(WorldTest, Constructor)
 {
-  ignition::gazebo::World worldNull;
-  EXPECT_EQ(ignition::gazebo::kNullEntity, worldNull.Entity());
+  gz::sim::World worldNull;
+  EXPECT_EQ(gz::sim::kNullEntity, worldNull.Entity());
 
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::World world(id);
+  gz::sim::Entity id(3);
+  gz::sim::World world(id);
 
   EXPECT_EQ(id, world.Entity());
 }
@@ -34,22 +34,22 @@ TEST(WorldTest, Constructor)
 /////////////////////////////////////////////////
 TEST(WorldTest, CopyConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::World world(id);
+  gz::sim::Entity id(3);
+  gz::sim::World world(id);
 
   // Marked nolint because we are specifically testing copy
   // constructor here (clang wants unnecessary copies removed)
-  ignition::gazebo::World worldCopy(world); // NOLINT
+  gz::sim::World worldCopy(world); // NOLINT
   EXPECT_EQ(world.Entity(), worldCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(WorldTest, CopyAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::World world(id);
+  gz::sim::Entity id(3);
+  gz::sim::World world(id);
 
-  ignition::gazebo::World worldCopy;
+  gz::sim::World worldCopy;
   worldCopy = world;
   EXPECT_EQ(world.Entity(), worldCopy.Entity());
 }
@@ -57,20 +57,20 @@ TEST(WorldTest, CopyAssignmentOperator)
 /////////////////////////////////////////////////
 TEST(WorldTest, MoveConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::World world(id);
+  gz::sim::Entity id(3);
+  gz::sim::World world(id);
 
-  ignition::gazebo::World worldMoved(std::move(world));
+  gz::sim::World worldMoved(std::move(world));
   EXPECT_EQ(id, worldMoved.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(WorldTest, MoveAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::World world(id);
+  gz::sim::Entity id(3);
+  gz::sim::World world(id);
 
-  ignition::gazebo::World worldMoved;
+  gz::sim::World worldMoved;
   worldMoved = std::move(world);
   EXPECT_EQ(id, worldMoved.Entity());
 }

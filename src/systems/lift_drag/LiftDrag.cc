@@ -40,11 +40,11 @@
 #include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LiftDragPrivate
+class gz::sim::systems::LiftDragPrivate
 {
   // Initialize the system
   public: void Load(const EntityComponentManager &_ecm,
@@ -527,4 +527,4 @@ IGNITION_ADD_PLUGIN(LiftDrag,
                     LiftDrag::ISystemConfigure,
                     LiftDrag::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")
+IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")

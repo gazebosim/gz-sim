@@ -16,7 +16,7 @@
 
   To drive the submarine model:
 
-  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m ignition.msgs.Double  -p "data: 1.2"
+  1. ign topic -t "/model/submarine/joint/propeller_joint/cmd_force" -m gz.msgs.Double  -p "data: 1.2"
 
 -->
 <sdf version="1.6">
@@ -28,19 +28,19 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="libignition-gazebo-buoyancy-system.so"
-      name="ignition::gazebo::systems::Buoyancy">
+      name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
@@ -272,13 +272,13 @@
 
       <plugin
         filename="libignition-gazebo-apply-joint-force-system.so"
-        name="ignition::gazebo::systems::ApplyJointForce">
+        name="gz::sim::systems::ApplyJointForce">
         <joint_name>propeller_joint</joint_name>
       </plugin>
 
       <plugin
         filename="libignition-gazebo-lift-drag-system.so"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
         <cla_stall>-1.4326647564469914</cla_stall>
@@ -295,7 +295,7 @@
 
       <plugin
         filename="libignition-gazebo-lift-drag-system.so"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
         <cla_stall>-1.4326647564469914</cla_stall>
@@ -312,7 +312,7 @@
 
       <plugin
         filename="libignition-gazebo-lift-drag-system.so"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -330,7 +330,7 @@
 
       <plugin
         filename="libignition-gazebo-lift-drag-system.so"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>

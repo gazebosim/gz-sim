@@ -87,12 +87,12 @@ TEST(ModelCommandAPI, NoServerRunning)
 // Tests `ign model` command.
 TEST(ModelCommandAPI, Commands)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/static_diff_drive_vehicle.sdf");
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.

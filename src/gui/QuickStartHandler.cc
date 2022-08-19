@@ -19,9 +19,9 @@
 
 #include <ignition/common/Console.hh>
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const

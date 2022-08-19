@@ -29,10 +29,10 @@
 #include "ignition/gazebo/components/Factory.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
-class ignition::gazebo::EntityComponentManagerPrivate
+class gz::sim::EntityComponentManagerPrivate
 {
   /// \brief Implementation of the CreateEntity function, which takes a specific
   /// entity as input.
@@ -1303,7 +1303,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
-    gazebo::ComponentState _c)
+    sim::ComponentState _c)
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 

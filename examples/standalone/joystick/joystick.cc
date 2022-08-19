@@ -82,7 +82,7 @@ int main(int argc, char **argv)
   auto stickyButtons = joy->Get<bool>("sticky_buttons", false).first;
 
   // Read the amount of dead zone for the analog joystick
-  float deadzone = ignition::math::clamp(
+  float deadzone = gz::math::clamp(
       joy->Get<float>("dead_zone", 0.05f).first,
       0.0f, 0.9f);
 
@@ -119,8 +119,8 @@ int main(int argc, char **argv)
   auto topic = joy->Get<std::string>("topic", "/joy").first;
 
   // Create the publisher of joy messages
-  ignition::transport::Node node;
-  auto pub = node.Advertise<ignition::msgs::Joy>(topic);
+  gz::transport::Node node;
+  auto pub = node.Advertise<gz::msgs::Joy>(topic);
 
   fd_set set;
   struct timeval tv;
@@ -128,9 +128,9 @@ int main(int argc, char **argv)
   bool accumulate = false;
   bool accumulating = false;
 
-  ignition::msgs::Joy joyMsg;
-  ignition::msgs::Joy lastJoyMsg;
-  ignition::msgs::Joy stickyButtonsJoyMsg;
+  gz::msgs::Joy joyMsg;
+  gz::msgs::Joy lastJoyMsg;
+  gz::msgs::Joy stickyButtonsJoyMsg;
 
   auto stop{false};
   while (!stop)
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
 
             // Update the button
             joyMsg.set_buttons(event.number,
-                !ignition::math::equal(value, 0.0f) ? 1 : 0);
+                !gz::math::equal(value, 0.0f) ? 1 : 0);
 
             // For initial events, wait a bit before sending to try to catch
             // all the initial events.

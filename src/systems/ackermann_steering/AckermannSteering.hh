@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#define GZ_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
 
 #include <memory>
 
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -96,14 +96,14 @@ namespace systems
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional, and the
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional, and the
   /// default value is `{name_of_model}/odom`.
   ///
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   /// the target of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional,
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional,
   /// and the default value is `{name_of_model}/{name_of_link}`.
   ///
   /// A robot with rear drive and front steering would have one each
@@ -136,8 +136,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

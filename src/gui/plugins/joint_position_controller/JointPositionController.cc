@@ -38,7 +38,7 @@
 
 #include "JointPositionController.hh"
 
-namespace ignition::gazebo::gui
+namespace gz::sim::gui
 {
   class JointPositionControllerPrivate
   {
@@ -62,9 +62,9 @@ namespace ignition::gazebo::gui
   };
 }
 
-using namespace ignition;
-using namespace ignition::gazebo;
-using namespace ignition::gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace gz::sim::gui;
 
 /////////////////////////////////////////////////
 JointsModel::JointsModel() : QStandardItemModel()
@@ -163,8 +163,8 @@ void JointPositionController::LoadConfig(
   // If model name isn't set, initialization is complete.
   this->dataPtr->xmlModelInitialized = this->dataPtr->modelName.isEmpty();
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -302,7 +302,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -311,7 +311,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -425,4 +425,4 @@ void JointPositionController::OnReset()
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(JointPositionController,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

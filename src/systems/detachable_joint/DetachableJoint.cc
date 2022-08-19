@@ -32,8 +32,8 @@
 
 #include "DetachableJoint.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -187,4 +187,4 @@ IGNITION_ADD_PLUGIN(DetachableJoint,
                     DetachableJoint::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
-  "ignition::gazebo::systems::DetachableJoint")
+  "gz::sim::systems::DetachableJoint")

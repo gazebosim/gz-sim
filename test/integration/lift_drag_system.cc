@@ -43,8 +43,8 @@
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test fixture for LiftDrag system
 class LiftDragTestFixture : public InternalFixture<::testing::Test>

@@ -50,12 +50,12 @@
 #include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/rendering/RenderUtil.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SensorsPrivate
+class gz::sim::systems::SensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.
@@ -554,4 +554,4 @@ IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
+IGNITION_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")

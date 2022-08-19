@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_JOINTPOSITIONCONTROLLER_HH_
-#define IGNITION_GAZEBO_GUI_JOINTPOSITIONCONTROLLER_HH_
+#ifndef GZ_GAZEBO_GUI_JOINTPOSITIONCONTROLLER_HH_
+#define GZ_GAZEBO_GUI_JOINTPOSITIONCONTROLLER_HH_
 
 #include <map>
 #include <memory>
@@ -25,11 +25,11 @@
 #include <ignition/gazebo/gui/GuiSystem.hh>
 #include <ignition/gazebo/Types.hh>
 
-Q_DECLARE_METATYPE(ignition::gazebo::Entity)
+Q_DECLARE_METATYPE(gz::sim::Entity)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
@@ -71,10 +71,10 @@ namespace gui
 
   /// \brief Control position of all joints in the selected model.
   /// The model must have loaded an
-  /// `ignition::gazebo::systems::JointPositionController`
+  /// `gz::sim::systems::JointPositionController`
   /// for each joint to be controlled.
   ///
-  /// This plugin publishes position command messages (`ignition::msgs::Double`)
+  /// This plugin publishes position command messages (`gz::msgs::Double`)
   /// on topics in the format `/model/<model_name>/joint/<joint_name/0/cmd_pos`.
   ///
   /// Only the 1st axis of each joint is considered. Joints without axes are
@@ -88,7 +88,7 @@ namespace gui
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
   /// necessary to select it. If a model is given at startup, the plugin starts
   /// in locked mode.
-  class JointPositionController : public gazebo::GuiSystem
+  class JointPositionController : public sim::GuiSystem
   {
     Q_OBJECT
 

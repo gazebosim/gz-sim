@@ -33,19 +33,19 @@
 
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ShapesPrivate
   {
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Shapes::Shapes()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ShapesPrivate>())
 {
 }
@@ -60,8 +60,8 @@ void Shapes::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Shapes";
 
   // For shapes requests
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -192,11 +192,11 @@ void Shapes::OnMode(const QString &_mode)
   }
 
   gui::events::SpawnPreviewModel event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(Shapes,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

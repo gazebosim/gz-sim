@@ -30,7 +30,7 @@
 #include <ignition/transport/Node.hh>
 #include <ignition/transport/Publisher.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class VideoRecorderPrivate
   {
@@ -45,8 +45,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VideoRecorder::VideoRecorder()
@@ -144,4 +144,4 @@ void VideoRecorder::OnCancel()
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(VideoRecorder,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

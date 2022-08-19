@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
-#define IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+#ifndef GZ_GAZEBO_PHYSICS_EVENTS_HH_
+#define GZ_GAZEBO_PHYSICS_EVENTS_HH_
 
 #include <optional>
 
@@ -28,9 +28,9 @@
 
 #include <Eigen/Geometry>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -44,7 +44,7 @@ namespace ignition
       /// is called during the Update phase after collision checking has been
       /// finished and before the physics update has happened. The event
       /// subscribers are expected to change the `params` argument.
-      using CollectContactSurfaceProperties = ignition::common::EventT<
+      using CollectContactSurfaceProperties = gz::common::EventT<
         void(
           const Entity& /* collision1 */,
           const Entity& /* collision2 */,
@@ -59,7 +59,7 @@ namespace ignition
         struct CollectContactSurfacePropertiesTag>;
       }
     }  // namespace events
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_PHYSICS_EVENTS_HH_
+#endif  // GZ_GAZEBO_PHYSICS_EVENTS_HH_

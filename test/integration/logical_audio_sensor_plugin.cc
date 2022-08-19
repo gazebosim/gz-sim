@@ -42,8 +42,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test LogicalAudio system plugin
 class LogicalAudioTest : public InternalFixture<::testing::Test>

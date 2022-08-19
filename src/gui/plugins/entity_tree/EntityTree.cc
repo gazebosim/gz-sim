@@ -42,7 +42,7 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class EntityTreePrivate
   {
@@ -57,8 +57,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 QString entityType(Entity _entity,
@@ -274,7 +274,7 @@ EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
 }
 
@@ -287,8 +287,8 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Entity tree";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -383,8 +383,8 @@ void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 {
   std::vector<Entity> entitySet {_entity};
   gui::events::EntitiesSelected event(entitySet, true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -392,8 +392,8 @@ void EntityTree::OnEntitySelectedFromQml(unsigned int _entity)
 void EntityTree::DeselectAllEntities()
 {
   gui::events::DeselectAllEntities event(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -435,4 +435,4 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(EntityTree,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

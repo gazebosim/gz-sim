@@ -48,11 +48,11 @@
 
 #include "Buoyancy.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::BuoyancyPrivate
+class gz::sim::systems::BuoyancyPrivate
 {
   /// \brief Get the fluid density based on a pose. This function can be
   /// used to adjust the fluid density based on the pose of an object in the
@@ -271,4 +271,4 @@ IGNITION_ADD_PLUGIN(Buoyancy,
                     Buoyancy::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "ignition::gazebo::systems::Buoyancy")
+                          "gz::sim::systems::Buoyancy")

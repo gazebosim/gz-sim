@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
+#define GZ_GAZEBO_COMPONENTS_JOINTVELOCITY_HH_
 
 #include <vector>
 
@@ -25,9 +25,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

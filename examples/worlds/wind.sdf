@@ -4,22 +4,22 @@
 After starting the simulation, the wind velocity can be adjusted by publishing a Wind message
 Example:
 
-  ign topic -t "/world/wind_demo/wind/" -m ignition.msgs.Wind  -p "linear_velocity: {x:-50, y:50}, enable_wind: true"
+  ign topic -t "/world/wind_demo/wind/" -m gz.msgs.Wind  -p "linear_velocity: {x:-50, y:50}, enable_wind: true"
 -->
 
 <sdf version="1.6">
   <world name="wind_demo">
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -434,7 +434,7 @@ Example:
     <!-- Load the plugin for the wind -->
     <plugin
       filename="ignition-gazebo-wind-effects-system"
-      name="ignition::gazebo::systems::WindEffects">
+      name="gz::sim::systems::WindEffects">
       <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
       <horizontal>
         <magnitude>

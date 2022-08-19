@@ -16,7 +16,7 @@
 */
 #include "ignition/gazebo/System.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 System::System() = default;

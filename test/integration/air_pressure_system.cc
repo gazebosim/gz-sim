@@ -32,8 +32,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test AirPressureTest system
 class AirPressureTest : public InternalFixture<::testing::Test>

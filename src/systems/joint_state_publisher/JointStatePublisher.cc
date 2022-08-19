@@ -35,8 +35,8 @@
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -292,4 +292,4 @@ IGNITION_ADD_PLUGIN(JointStatePublisher,
                     JointStatePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
-    "ignition::gazebo::systems::JointStatePublisher")
+    "gz::sim::systems::JointStatePublisher")

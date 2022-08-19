@@ -38,8 +38,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>

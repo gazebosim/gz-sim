@@ -26,8 +26,8 @@
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>

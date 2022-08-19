@@ -35,31 +35,31 @@ using namespace std::chrono_literals;
 TEST(ExampleTests, Command)
 {
   // Maximum verbosity helps with debugging
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   // Instantiate test fixture
-  ignition::gazebo::TestFixture fixture("../command.sdf");
+  gz::sim::TestFixture fixture("../command.sdf");
 
   // Get the link that we'll be inspecting
   bool configured{false};
-  ignition::gazebo::Link link;
+  gz::sim::Link link;
   fixture.OnConfigure(
-    [&link, &configured](const ignition::gazebo::Entity &_worldEntity,
+    [&link, &configured](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
-      ignition::gazebo::World world(_worldEntity);
+      gz::sim::World world(_worldEntity);
 
       auto modelEntity = world.ModelByName(_ecm, "commanded");
-      EXPECT_NE(ignition::gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
 
-      auto model = ignition::gazebo::Model(modelEntity);
+      auto model = gz::sim::Model(modelEntity);
 
       auto linkEntity = model.LinkByName(_ecm, "link");
-      EXPECT_NE(ignition::gazebo::kNullEntity, linkEntity);
+      EXPECT_NE(gz::sim::kNullEntity, linkEntity);
 
-      link = ignition::gazebo::Link(linkEntity);
+      link = gz::sim::Link(linkEntity);
       EXPECT_TRUE(link.Valid(_ecm));
 
       // Tell Gazebo that we want to observe the link's velocity and acceleration
@@ -75,12 +75,12 @@ TEST(ExampleTests, Command)
 
   // Check that link is falling due to gravity
   int iterations{0};
-  ignition::math::Vector3d linVel;
-  ignition::math::Vector3d linAccel;
+  gz::math::Vector3d linVel;
+  gz::math::Vector3d linAccel;
   fixture.OnPostUpdate(
     [&](
-      const ignition::gazebo::UpdateInfo &_info,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &_info,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       linVel = link.WorldLinearVelocity(_ecm).value();
       EXPECT_DOUBLE_EQ(0.0, linVel.Y());
@@ -100,13 +100,13 @@ TEST(ExampleTests, Command)
   EXPECT_GT(0.0, linAccel.Z());
 
   // Send velocity command
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
-  ignition::msgs::Twist msg;
+  gz::msgs::Twist msg;
   auto linVelMsg = msg.mutable_linear();
   linVelMsg->set_x(10);
 
-  auto pub = node.Advertise<ignition::msgs::Twist>("/model/commanded/cmd_vel");
+  auto pub = node.Advertise<gz::msgs::Twist>("/model/commanded/cmd_vel");
   pub.Publish(msg);
 
   // Commands sent through transport are processed asynchronously and may

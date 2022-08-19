@@ -22,11 +22,11 @@
 /////////////////////////////////////////////////
 TEST(ModelTest, Constructor)
 {
-  ignition::gazebo::Model modelNull;
-  EXPECT_EQ(ignition::gazebo::kNullEntity, modelNull.Entity());
+  gz::sim::Model modelNull;
+  EXPECT_EQ(gz::sim::kNullEntity, modelNull.Entity());
 
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
   EXPECT_EQ(id, model.Entity());
 }
@@ -34,22 +34,22 @@ TEST(ModelTest, Constructor)
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
   // Marked nolint because we are specifically testing copy
   // constructor here (clang wants unnecessary copies removed)
-  ignition::gazebo::Model modelCopy(model); // NOLINT
+  gz::sim::Model modelCopy(model); // NOLINT
   EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, CopyAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelCopy;
+  gz::sim::Model modelCopy;
   modelCopy = model;
   EXPECT_EQ(model.Entity(), modelCopy.Entity());
 }
@@ -57,20 +57,20 @@ TEST(ModelTest, CopyAssignmentOperator)
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelMoved(std::move(model));
+  gz::sim::Model modelMoved(std::move(model));
   EXPECT_EQ(id, modelMoved.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(ModelTest, MoveAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Model model(id);
+  gz::sim::Entity id(3);
+  gz::sim::Model model(id);
 
-  ignition::gazebo::Model modelMoved;
+  gz::sim::Model modelMoved;
   modelMoved = std::move(model);
   EXPECT_EQ(id, modelMoved.Entity());
 }

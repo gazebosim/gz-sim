@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LINEARVELOCITYCMD_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_LINEARVELOCITYCMD_HH_
+#define GZ_GAZEBO_COMPONENTS_LINEARVELOCITYCMD_HH_
 
 #include <ignition/math/Vector3.hh>
 
@@ -24,16 +24,16 @@
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
   // \brief A component type that contains the commanded linear velocity of an
-  /// entity represented by ignition::math::Vector3d, expressed in the entity's
+  /// entity represented by gz::math::Vector3d, expressed in the entity's
   /// frame.
   using LinearVelocityCmd = Component<
     math::Vector3d, class LinearVelocityCmdTag>;
@@ -41,7 +41,7 @@ namespace components
       "ign_gazebo_components.LinearVelocityCmd", LinearVelocityCmd)
 
   /// \brief A component type that contains the commanded linear velocity of an
-  /// entity represented by ignition::math::Vector3d, expressed in the world
+  /// entity represented by gz::math::Vector3d, expressed in the world
   /// frame.
   using WorldLinearVelocityCmd =
       Component<math::Vector3d, class WorldLinearVelocityCmdTag>;

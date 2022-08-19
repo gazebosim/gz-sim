@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
+#define GZ_GAZEBO_COMPONENTS_JOINTVELOCITYLIMITSCMD_HH_
 
 #include <vector>
 #include <ignition/math/Vector2.hh>
@@ -26,9 +26,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -43,9 +43,9 @@ namespace components
 /// sets the limit to the dynamics engine. After setting it, the data of this
 /// component will be cleared (i.e. the vector will have length zero).
 using JointVelocityLimitsCmd = Component<
-  std::vector<ignition::math::Vector2d>,
+  std::vector<gz::math::Vector2d>,
   class JointVelocityLimitsCmdTag,
-  serializers::VectorSerializer<ignition::math::Vector2d>
+  serializers::VectorSerializer<gz::math::Vector2d>
 >;
 
 IGN_GAZEBO_REGISTER_COMPONENT(

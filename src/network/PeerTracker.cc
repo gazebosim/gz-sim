@@ -19,8 +19,8 @@
 #include <algorithm>
 #include <utility>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(

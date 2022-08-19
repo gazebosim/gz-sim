@@ -14,21 +14,21 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_MOCKSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_MOCKSYSTEM_HH_
+#ifndef GZ_GAZEBO_TEST_MOCKSYSTEM_HH_
+#define GZ_GAZEBO_TEST_MOCKSYSTEM_HH_
 
 #include <memory>
 
 #include "ignition/gazebo/System.hh"
 
-namespace ignition {
-  namespace gazebo {
+namespace gz {
+  namespace sim {
     class IGNITION_GAZEBO_VISIBLE MockSystem :
-      public gazebo::System,
-      public gazebo::ISystemConfigure,
-      public gazebo::ISystemPreUpdate,
-      public gazebo::ISystemUpdate,
-      public gazebo::ISystemPostUpdate
+      public sim::System,
+      public sim::ISystemConfigure,
+      public sim::ISystemPreUpdate,
+      public sim::ISystemUpdate,
+      public sim::ISystemPostUpdate
     {
       public: size_t configureCallCount {0};
       public: size_t preUpdateCallCount {0};
@@ -36,11 +36,11 @@ namespace ignition {
       public: size_t postUpdateCallCount {0};
 
       public: using CallbackType = std::function<void(
-              const gazebo::UpdateInfo &, gazebo::EntityComponentManager &)>;
+              const sim::UpdateInfo &, sim::EntityComponentManager &)>;
 
       public: using CallbackTypeConst =
-              std::function<void(const gazebo::UpdateInfo &,
-                                 const gazebo::EntityComponentManager &)>;
+              std::function<void(const sim::UpdateInfo &,
+                                 const sim::EntityComponentManager &)>;
 
       public: std::function<void(const Entity &,
                     const std::shared_ptr<const sdf::Element> &,
@@ -61,24 +61,24 @@ namespace ignition {
                   this->configureCallback(_entity, _sdf, _ecm, _eventMgr);
               }
 
-      public: void PreUpdate(const gazebo::UpdateInfo &_info,
-                    gazebo::EntityComponentManager &_ecm) override final
+      public: void PreUpdate(const sim::UpdateInfo &_info,
+                    sim::EntityComponentManager &_ecm) override final
               {
                 ++this->preUpdateCallCount;
                 if (this->preUpdateCallback)
                   this->preUpdateCallback(_info, _ecm);
               }
 
-      public: void Update(const gazebo::UpdateInfo &_info,
-                    gazebo::EntityComponentManager &_ecm) override final
+      public: void Update(const sim::UpdateInfo &_info,
+                    sim::EntityComponentManager &_ecm) override final
               {
                 ++this->updateCallCount;
                 if (this->updateCallback)
                   this->updateCallback(_info, _ecm);
               }
 
-      public: void PostUpdate(const gazebo::UpdateInfo &_info,
-                  const gazebo::EntityComponentManager &_ecm) override final
+      public: void PostUpdate(const sim::UpdateInfo &_info,
+                  const sim::EntityComponentManager &_ecm) override final
               {
                 ++this->postUpdateCallCount;
                 if (this->postUpdateCallback)

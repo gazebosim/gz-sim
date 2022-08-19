@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
+#define GZ_GAZEBO_COMPONENTS_LOGICALAUDIO_HH_
 
 #include <chrono>
 #include <cstdint>
@@ -27,9 +27,9 @@
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -47,7 +47,7 @@ namespace logical_audio
 
   /// \brief Properties of a logical audio source.
   /// A source also has a pose, which can be stored as a component of a
-  /// source entity via ignition::gazebo::components::Pose
+  /// source entity via gz::sim::components::Pose
   struct Source
   {
     /// \brief The source's id
@@ -115,7 +115,7 @@ namespace logical_audio
 
   /// \brief Properties of a logical audio microphone.
   /// A microphone also has a pose, which can be stored as a component of a
-  /// microphone entity via ignition::gazebo::components::Pose
+  /// microphone entity via gz::sim::components::Pose
   struct Microphone
   {
     /// \brief The microphone's id

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_WORLD_HH_
-#define IGNITION_GAZEBO_WORLD_HH_
+#ifndef GZ_GAZEBO_WORLD_HH_
+#define GZ_GAZEBO_WORLD_HH_
 
 #include <memory>
 #include <string>
@@ -29,9 +29,9 @@
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -59,7 +59,7 @@ namespace ignition
     class IGNITION_GAZEBO_VISIBLE World {
       /// \brief Constructor
       /// \param[in] _entity World entity
-      public: explicit World(gazebo::Entity _entity = kNullEntity);
+      public: explicit World(sim::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _world World to copy.
@@ -84,7 +84,7 @@ namespace ignition
 
       /// \brief Get the entity which this World is related to.
       /// \return World entity.
-      public: gazebo::Entity Entity() const;
+      public: sim::Entity Entity() const;
 
       /// \brief Check whether this world correctly refers to an entity that
       /// has a components::World.
@@ -125,7 +125,7 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Light name.
       /// \return Light entity.
-      public: gazebo::Entity LightByName(const EntityComponentManager &_ecm,
+      public: sim::Entity LightByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get the ID of a actor entity which is an immediate child of
@@ -133,7 +133,7 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Actor name.
       /// \return Actor entity.
-      public: gazebo::Entity ActorByName(const EntityComponentManager &_ecm,
+      public: sim::Entity ActorByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get the ID of a model entity which is an immediate child of
@@ -141,25 +141,25 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Model name.
       /// \return Model entity.
-      public: gazebo::Entity ModelByName(const EntityComponentManager &_ecm,
+      public: sim::Entity ModelByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get all lights which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All lights in this world.
-      public: std::vector<gazebo::Entity> Lights(
+      public: std::vector<sim::Entity> Lights(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all actors which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All actors in this world.
-      public: std::vector<gazebo::Entity> Actors(
+      public: std::vector<sim::Entity> Actors(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all models which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All models in this world.
-      public: std::vector<gazebo::Entity> Models(
+      public: std::vector<sim::Entity> Models(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the number of lights which are immediate children of this

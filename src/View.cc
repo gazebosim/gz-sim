@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/detail/View.hh"
+#include "gz/sim/detail/View.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace detail;
 
 //////////////////////////////////////////////////

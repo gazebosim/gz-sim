@@ -30,7 +30,7 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/transport/Node.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
@@ -55,8 +55,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void IgnGazeboPlugin::registerTypes(const char *_uri)

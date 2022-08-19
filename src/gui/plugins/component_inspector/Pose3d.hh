@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
+#ifndef GZ_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
+#define GZ_GAZEBO_GUI_COMPONENTINSPECTOR_POSE3D_HH_
 
 #include <ignition/math/Pose3.hh>
 
@@ -29,9 +29,9 @@
 #include <QObject>
 #include <QStandardItem>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class ComponentInspector;
 namespace inspector

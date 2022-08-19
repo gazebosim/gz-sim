@@ -17,7 +17,7 @@
 #include "Null.hh"
 #include <ignition/plugin/Register.hh>
 
-using namespace ignition::gazebo::systems;
+using namespace gz::sim::systems;
 
 //////////////////////////////////////////////////
 Null::Null()
@@ -55,10 +55,10 @@ void Null::PostUpdate(const UpdateInfo &/*_info*/,
 }
 
 IGNITION_ADD_PLUGIN(Null,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     Null::ISystemConfigure,
                     Null::ISystemPreUpdate,
                     Null::ISystemUpdate,
                     Null::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Null, "ignition::gazebo::systems::Null")
+IGNITION_ADD_PLUGIN_ALIAS(Null, "gz::sim::systems::Null")

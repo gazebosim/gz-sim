@@ -44,8 +44,8 @@
 #include "MulticopterVelocityControl.hh"
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 using namespace multicopter_control;
 
@@ -434,4 +434,4 @@ IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
 
 IGNITION_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
-    "ignition::gazebo::systems::MulticopterVelocityControl")
+    "gz::sim::systems::MulticopterVelocityControl")

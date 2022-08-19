@@ -39,8 +39,8 @@
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test AltimeterTest system
 class AltimeterTest : public InternalFixture<::testing::Test>

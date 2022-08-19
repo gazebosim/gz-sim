@@ -29,40 +29,40 @@
 TEST(ExampleTests, Gravity)
 {
   // Maximum verbosity helps with debugging
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
 
   // Instantiate test fixture. It starts a server and provides hooks that we'll
   // use to inspect the running simulation.
-  ignition::gazebo::TestFixture fixture("../gravity.sdf");
+  gz::sim::TestFixture fixture("../gravity.sdf");
 
   int iterations{0};
-  ignition::gazebo::Entity modelEntity;
-  ignition::math::Vector3d gravity;
+  gz::sim::Entity modelEntity;
+  gz::math::Vector3d gravity;
 
   fixture.
   // Use configure callback to get values at startup
   OnConfigure(
-    [&modelEntity, &gravity](const ignition::gazebo::Entity &_worldEntity,
+    [&modelEntity, &gravity](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
       // Get gravity
-      ignition::gazebo::World world(_worldEntity);
+      gz::sim::World world(_worldEntity);
       gravity = world.Gravity(_ecm).value();
 
       // Get falling entity
       modelEntity = world.ModelByName(_ecm, "falling");
-      EXPECT_NE(ignition::gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
     }).
   // Use post-update callback to get values at the end of every iteration
   OnPostUpdate(
     [&iterations, &modelEntity, &gravity](
-      const ignition::gazebo::UpdateInfo &_info,
-      const ignition::gazebo::EntityComponentManager &_ecm)
+      const gz::sim::UpdateInfo &_info,
+      const gz::sim::EntityComponentManager &_ecm)
     {
       // Inspect all model poses
-      auto pose = ignition::gazebo::worldPose(modelEntity, _ecm);
+      auto pose = gz::sim::worldPose(modelEntity, _ecm);
 
       EXPECT_DOUBLE_EQ(0.0, pose.Pos().X());
       EXPECT_DOUBLE_EQ(0.0, pose.Pos().Y());

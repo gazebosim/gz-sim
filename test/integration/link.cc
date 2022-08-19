@@ -40,8 +40,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class LinkIntegrationTest : public InternalFixture<::testing::Test>
 {

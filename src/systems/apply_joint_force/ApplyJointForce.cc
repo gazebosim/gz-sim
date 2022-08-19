@@ -26,11 +26,11 @@
 #include "ignition/gazebo/components/JointForceCmd.hh"
 #include "ignition/gazebo/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyJointForcePrivate
+class gz::sim::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
@@ -161,4 +161,4 @@ IGNITION_ADD_PLUGIN(ApplyJointForce,
                     ApplyJointForce::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "ignition::gazebo::systems::ApplyJointForce")
+                          "gz::sim::systems::ApplyJointForce")

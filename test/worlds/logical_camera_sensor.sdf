@@ -8,11 +8,11 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-logical-camera-system"
-      name="ignition::gazebo::systems::LogicalCamera">
+      name="gz::sim::systems::LogicalCamera">
       <render_engine>ogre2</render_engine>
     </plugin>
 

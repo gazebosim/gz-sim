@@ -40,12 +40,12 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::LogVideoRecorderPrivate
+class gz::sim::systems::LogVideoRecorderPrivate
 {
   /// \brief Rewind the log
   public: void Rewind();
@@ -452,4 +452,4 @@ IGNITION_ADD_PLUGIN(LogVideoRecorder,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
-                          "ignition::gazebo::systems::LogVideoRecorder")
+                          "gz::sim::systems::LogVideoRecorder")

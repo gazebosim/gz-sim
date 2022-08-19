@@ -15,13 +15,13 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
-#define IGNITION_GAZEBO_GUISYSTEMPLUGIN_HH_
+#ifndef GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
+#define GZ_GAZEBO_GUISYSTEMPLUGIN_HH_
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
 /// \brief Example of a GUI plugin that has access to entities and components.
-class GuiSystemPlugin : public ignition::gazebo::GuiSystem
+class GuiSystemPlugin : public gz::sim::GuiSystem
 {
   Q_OBJECT
 
@@ -40,7 +40,7 @@ class GuiSystemPlugin : public ignition::gazebo::GuiSystem
   /// \brief Destructor
   public: ~GuiSystemPlugin() override;
 
-  /// \brief `ignition::gui::Plugin`s can overload this function to
+  /// \brief `gz::gui::Plugin`s can overload this function to
   /// receive custom configuration from an XML file. Here, it comes from the
   /// SDF.
   ///
@@ -59,8 +59,8 @@ class GuiSystemPlugin : public ignition::gazebo::GuiSystem
   /// \param[in] _info Simulation information such as time.
   /// \param[in] _ecm Entity component manager, which can be used to get the
   /// latest information about entities and components.
-  public: void Update(const ignition::gazebo::UpdateInfo &_info,
-      ignition::gazebo::EntityComponentManager &_ecm) override;
+  public: void Update(const gz::sim::UpdateInfo &_info,
+      gz::sim::EntityComponentManager &_ecm) override;
 
   /// \brief Get the custom property as a string.
   /// \return Custom property

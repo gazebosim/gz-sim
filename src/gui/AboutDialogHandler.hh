@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
-#define IGNITION_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
+#ifndef GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
+#define GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
 
 #include <QtCore>
 #include <QDesktopServices>
@@ -24,9 +24,9 @@
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
 #include <atomic>
 #include <future>
@@ -33,9 +33,9 @@
 
 #include "NetworkManager.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -111,10 +111,10 @@ namespace ignition
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Publisher for network step sync
-      private: ignition::transport::Node::Publisher simStepPub;
+      private: gz::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
       private: std::vector<msgs::SerializedStateMap> secondaryStates;
@@ -123,8 +123,8 @@ namespace ignition
       private: std::promise<void> secondaryStatesPromise;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGERPRIMARY_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGERPRIMARY_HH_
 

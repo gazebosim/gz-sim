@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
-#define IGNITION_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#ifndef GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
+#define GZ_GAZEBO_DETAIL_COMPONENTSTORAGEBASE_HH_
 
 #include <map>
 #include <utility>
@@ -24,9 +24,9 @@
 #include "ignition/gazebo/Export.hh"
 #include "ignition/gazebo/Types.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

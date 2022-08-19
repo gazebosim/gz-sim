@@ -26,39 +26,39 @@ namespace sample_system
   /// plugin interface.
   class SampleSystem:
     // This class is a system.
-    public ignition::gazebo::System,
+    public gz::sim::System,
     // This class also implements the ISystemPostUpdate interface.
-    public ignition::gazebo::ISystemPostUpdate
+    public gz::sim::ISystemPostUpdate
   {
     public: SampleSystem();
 
     public: ~SampleSystem() override;
 
-    public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PostUpdate(const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) override;
   };
 
   class SampleSystem2:
     // This class is a system.
-    public ignition::gazebo::System,
+    public gz::sim::System,
     // This class also implements the ISystemPreUpdate, ISystemUpdate,
     // and ISystemPostUpdate interfaces.
-    public ignition::gazebo::ISystemPreUpdate,
-    public ignition::gazebo::ISystemUpdate,
-    public ignition::gazebo::ISystemPostUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     public: SampleSystem2();
 
     public: ~SampleSystem2() override;
 
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
-    public: void Update(const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void Update(const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
-    public: void PostUpdate(const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PostUpdate(const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) override;
   };
 }
 //! [header]

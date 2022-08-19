@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_LINK_HH_
-#define IGNITION_GAZEBO_LINK_HH_
+#ifndef GZ_GAZEBO_LINK_HH_
+#define GZ_GAZEBO_LINK_HH_
 
 #include <memory>
 #include <optional>
@@ -32,9 +32,9 @@
 #include <ignition/gazebo/Model.hh>
 #include <ignition/gazebo/Types.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -64,7 +64,7 @@ namespace ignition
     {
       /// \brief Constructor
       /// \param[in] _entity Link entity
-      public: explicit Link(gazebo::Entity _entity = kNullEntity);
+      public: explicit Link(sim::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _link Link to copy.
@@ -89,11 +89,11 @@ namespace ignition
 
       /// \brief Get the entity which this Link is related to.
       /// \return Link entity.
-      public: gazebo::Entity Entity() const;
+      public: sim::Entity Entity() const;
 
       /// \brief Reset Entity to a new one
       /// \param[in] _newEntity New link entity.
-      public: void ResetEntity(gazebo::Entity _newEntity);
+      public: void ResetEntity(sim::Entity _newEntity);
 
       /// \brief Check whether this link correctly refers to an entity that
       /// has a components::Link.
@@ -130,7 +130,7 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Collision name.
       /// \return Collision entity.
-      public: gazebo::Entity CollisionByName(const EntityComponentManager &_ecm,
+      public: sim::Entity CollisionByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get the ID of a visual entity which is an immediate child of
@@ -138,19 +138,19 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Visual name.
       /// \return Visual entity.
-      public: gazebo::Entity VisualByName(const EntityComponentManager &_ecm,
+      public: sim::Entity VisualByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get all collisions which are immediate children of this link.
       /// \param[in] _ecm Entity-component manager.
       /// \return All collisions in this link.
-      public: std::vector<gazebo::Entity> Collisions(
+      public: std::vector<sim::Entity> Collisions(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all visuals which are immediate children of this link.
       /// \param[in] _ecm Entity-component manager.
       /// \return All visuals in this link.
-      public: std::vector<gazebo::Entity> Visuals(
+      public: std::vector<sim::Entity> Visuals(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the number of collisions which are immediate children of

@@ -27,8 +27,8 @@
 #include "ignition/gazebo/gui/GuiRunner.hh"
 #include "ignition/gazebo/gui/GuiSystem.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod
@@ -41,7 +41,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
-  auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
+  auto win = gui::App()->findChild<gz::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);

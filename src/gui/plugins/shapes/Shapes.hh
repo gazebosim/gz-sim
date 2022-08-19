@@ -15,22 +15,22 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_SHAPES_HH_
-#define IGNITION_GAZEBO_GUI_SHAPES_HH_
+#ifndef GZ_GAZEBO_GUI_SHAPES_HH_
+#define GZ_GAZEBO_GUI_SHAPES_HH_
 
 #include <memory>
 
 #include <ignition/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ShapesPrivate;
 
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
-  class Shapes : public ignition::gui::Plugin
+  class Shapes : public gz::gui::Plugin
   {
     Q_OBJECT
 

@@ -28,8 +28,8 @@
 #include "NetworkManagerPrimary.hh"
 #include "NetworkManagerSecondary.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 
 bool validateConfig(const NetworkConfig &_config)

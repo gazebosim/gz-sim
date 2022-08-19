@@ -31,9 +31,9 @@
 
 #include "../ElevatorCommonPrivate.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -126,8 +126,8 @@ ElevatorStateMachineDef::~ElevatorStateMachineDef() = default;
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 
 #include "EventsImpl.hh"
 

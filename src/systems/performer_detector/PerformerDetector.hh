@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_PERFORMERDETECTOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PERFORMERDETECTOR_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_PERFORMERDETECTOR_HH_
+#define GZ_GAZEBO_SYSTEMS_PERFORMERDETECTOR_HH_
 
 #include <map>
 #include <memory>
@@ -28,9 +28,9 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -40,10 +40,10 @@ namespace systems
   /// or leaves a specified region.
   ///
   /// A performer is detected when a performer's volume, which is
-  /// represented by an ignition::math::AxisAlignedBox, intersects with the
+  /// represented by an gz::math::AxisAlignedBox, intersects with the
   /// PerformerDetector's region, which is also represented by an
-  /// ignition::math::AxisAlignedBox. When a performer is detected, the system
-  /// publishes an ignition.msgs.Pose message with the pose of the detected
+  /// gz::math::AxisAlignedBox. When a performer is detected, the system
+  /// publishes an gz.msgs.Pose message with the pose of the detected
   /// performer with respect to the model containing the PerformerDetector. The
   /// name and id fields of the Pose message will be set to the name and the
   /// entity of the detected performer respectively. The header of the Pose
@@ -64,7 +64,7 @@ namespace systems
   /// `<topic>`: Custom topic to be used for publishing when a performer is
   /// detected. If not set, the default topic with the following pattern would
   /// be used "/model/<model_name>/performer_detector/status". The topic type
-  /// is ignition.msgs.Pose
+  /// is gz.msgs.Pose
   /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.
@@ -93,8 +93,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PostUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Check if the entity has already been detected
     /// \param [in] _entity The entity to test

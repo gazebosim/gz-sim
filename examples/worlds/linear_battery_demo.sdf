@@ -10,23 +10,23 @@
 
   Move both vehicles:
 
-      ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
-      ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      ign topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
+      ign topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 6.0} angular: {z: 0.4}"
 
   Listen to battery state of charge:
       ign topic -e -t /model/vehicle_blue/battery/linear_battery/state
 
   Recharge the battery using a service (default):
-      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/start --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
 
   Recharge the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m ignition.msgs.Boolean -p 'data:true'
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/start -m gz.msgs.Boolean -p 'data:true'
 
   Stop recharging the battery using a service (default):
-      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype ignition.msgs.Boolean --reptype ignition.msgs.Empty --req 'data:true' --timeout 1000
+      ign service -s /model/vehicle_blue/battery/linear_battery/recharge/stop --reqtype gz.msgs.Boolean --reptype gz.msgs.Empty --req 'data:true' --timeout 1000
 
   Stop recharging the battery using a topic (optional if <recharge_by_topic> is true):
-      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m ignition.msgs.Boolean -p 'data:true'
+      ign topic -t /model/vehicle_blue/battery/linear_battery/recharge/stop -m gz.msgs.Boolean -p 'data:true'
 
   The blue vehicle should stop when it runs out of battery.
   The green vehicle will not stop with recharge function.
@@ -36,11 +36,11 @@
   <world name="default">
     <plugin
      filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -261,7 +261,7 @@
 
       <plugin
         filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_green</left_joint>
         <right_joint>right_wheel_joint_green</right_joint>
         <wheel_separation>1.25</wheel_separation>
@@ -269,7 +269,7 @@
       </plugin>
 
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        name="gz::sim::systems::LinearBatteryPlugin">
         <!--Li-ion battery spec from LIR18650 datasheet-->
         <battery_name>linear_battery</battery_name>
         <voltage>4.2</voltage>
@@ -460,7 +460,7 @@
 
       <plugin
         filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        name="gz::sim::systems::DiffDrive">
         <left_joint>left_wheel_joint_blue</left_joint>
         <right_joint>right_wheel_joint_blue</right_joint>
         <wheel_separation>1.25</wheel_separation>
@@ -468,7 +468,7 @@
       </plugin>
 
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-          name="ignition::gazebo::systems::LinearBatteryPlugin">
+          name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.592</open_circuit_voltage_constant_coef>

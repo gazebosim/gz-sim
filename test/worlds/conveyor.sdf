@@ -10,15 +10,15 @@
         </physics>
         <plugin
                 filename="ignition-gazebo-physics-system"
-                name="ignition::gazebo::systems::Physics">
+                name="gz::sim::systems::Physics">
         </plugin>
         <plugin
                 filename="ignition-gazebo-user-commands-system"
-                name="ignition::gazebo::systems::UserCommands">
+                name="gz::sim::systems::UserCommands">
         </plugin>
         <plugin
                 filename="ignition-gazebo-scene-broadcaster-system"
-                name="ignition::gazebo::systems::SceneBroadcaster">
+                name="gz::sim::systems::SceneBroadcaster">
         </plugin>
 
         <scene>
@@ -140,7 +140,7 @@
             </link>
 
             <plugin filename="libignition-gazebo-track-controller-system.so"
-                    name="ignition::gazebo::systems::TrackController">
+                    name="gz::sim::systems::TrackController">
                 <link>base_link</link>
                 <max_command_age>2.0</max_command_age>
                 <max_velocity>0.5</max_velocity>

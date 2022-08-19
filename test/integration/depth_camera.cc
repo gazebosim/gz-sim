@@ -33,8 +33,8 @@
 
 #define DEPTH_TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test DepthCameraTest system

@@ -36,8 +36,8 @@
 
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for Util.hh
 class UtilTest : public InternalFixture<::testing::Test>
@@ -66,8 +66,8 @@ TEST_F(UtilTest, ScopedName)
 
   // World
   auto worldEntity = ecm.CreateEntity();
-  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
-  EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world_name"));
 
@@ -210,22 +210,22 @@ TEST_F(UtilTest, ScopedName)
     "world_name::actorD_name");
 
   // World entity
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(worldEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(lightAEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelBEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkBEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(lightBEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(sensorBEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(collisionCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(visualCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(jointCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(modelCCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(linkCCEntity, ecm));
-  EXPECT_EQ(worldEntity, gazebo::worldEntity(actorDEntity, ecm));
-  EXPECT_EQ(kNullEntity, gazebo::worldEntity(kNullEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(worldEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(lightAEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(modelBEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(linkBEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(lightBEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(sensorBEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(modelCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(linkCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(collisionCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(visualCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(jointCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(modelCCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(linkCCEntity, ecm));
+  EXPECT_EQ(worldEntity, sim::worldEntity(actorDEntity, ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(kNullEntity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -638,8 +638,8 @@ TEST_F(UtilTest, EntityFromMsg)
 
   // World
   auto worldEntity = ecm.CreateEntity();
-  EXPECT_EQ(kNullEntity, gazebo::worldEntity(ecm));
-  EXPECT_EQ(kNullEntity, gazebo::worldEntity(worldEntity, ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(ecm));
+  EXPECT_EQ(kNullEntity, sim::worldEntity(worldEntity, ecm));
   ecm.CreateComponent(worldEntity, components::World());
   ecm.CreateComponent(worldEntity, components::Name("world"));
 

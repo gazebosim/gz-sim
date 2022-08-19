@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_RENDERING_EVENTS_HH_
-#define IGNITION_GAZEBO_RENDERING_EVENTS_HH_
+#ifndef GZ_GAZEBO_RENDERING_EVENTS_HH_
+#define GZ_GAZEBO_RENDERING_EVENTS_HH_
 
 
 #include <ignition/common/Event.hh>
 
 #include "ignition/gazebo/config.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -38,9 +38,9 @@ namespace ignition
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::PreRender>();
+      /// eventManager.Emit<gz::sim::events::PreRender>();
       /// \endcode
-      using PreRender = ignition::common::EventT<void(void),
+      using PreRender = gz::common::EventT<void(void),
           struct PreRenderTag>;
 
       /// \brief The render event is emitted after rendering updates.
@@ -49,13 +49,13 @@ namespace ignition
       ///
       /// For example:
       /// \code
-      /// eventManager.Emit<ignition::gazebo::events::PostRender>();
+      /// eventManager.Emit<gz::sim::events::PostRender>();
       /// \endcode
-      using PostRender = ignition::common::EventT<void(void),
+      using PostRender = gz::common::EventT<void(void),
           struct PostRenderTag>;
       }
     }  // namespace events
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_RENDEREVENTS_HH_
+#endif  // GZ_GAZEBO_RENDEREVENTS_HH_

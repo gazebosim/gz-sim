@@ -61,11 +61,11 @@
 
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo::systems;
+using namespace gz;
+using namespace gz::sim::systems;
 
 // Private data class.
-class ignition::gazebo::systems::LogRecordPrivate
+class gz::sim::systems::LogRecordPrivate
 {
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.
@@ -695,10 +695,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(LogRecord,
-                    gazebo::System,
+                    sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
-                          "ignition::gazebo::systems::LogRecord")
+                          "gz::sim::systems::LogRecord")

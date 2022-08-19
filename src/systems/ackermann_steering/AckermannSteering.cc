@@ -38,8 +38,8 @@
 #include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -54,7 +54,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::AckermannSteeringPrivate
+class gz::sim::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -794,4 +794,4 @@ IGNITION_ADD_PLUGIN(AckermannSteering,
                     AckermannSteering::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::systems::AckermannSteering")
+                          "gz::sim::systems::AckermannSteering")

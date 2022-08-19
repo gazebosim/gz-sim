@@ -46,12 +46,12 @@
 
 #include "CameraVideoRecorder.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::CameraVideoRecorderPrivate
+class gz::sim::systems::CameraVideoRecorderPrivate
 {
   /// \brief Callback for the video recorder service
   public: bool OnRecordVideo(const msgs::VideoRecord &_msg,
@@ -468,4 +468,4 @@ IGNITION_ADD_PLUGIN(CameraVideoRecorder,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
-                          "ignition::gazebo::systems::CameraVideoRecorder")
+                          "gz::sim::systems::CameraVideoRecorder")

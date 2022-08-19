@@ -22,11 +22,11 @@
 /////////////////////////////////////////////////
 TEST(LinkTest, Constructor)
 {
-  ignition::gazebo::Link linkNull;
-  EXPECT_EQ(ignition::gazebo::kNullEntity, linkNull.Entity());
+  gz::sim::Link linkNull;
+  EXPECT_EQ(gz::sim::kNullEntity, linkNull.Entity());
 
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Link link(id);
+  gz::sim::Entity id(3);
+  gz::sim::Link link(id);
 
   EXPECT_EQ(id, link.Entity());
 }
@@ -34,22 +34,22 @@ TEST(LinkTest, Constructor)
 /////////////////////////////////////////////////
 TEST(LinkTest, CopyConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Link link(id);
+  gz::sim::Entity id(3);
+  gz::sim::Link link(id);
 
   // Marked nolint because we are specifically testing copy
   // constructor here (clang wants unnecessary copies removed)
-  ignition::gazebo::Link linkCopy(link); // NOLINT
+  gz::sim::Link linkCopy(link); // NOLINT
   EXPECT_EQ(link.Entity(), linkCopy.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(LinkTest, CopyAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Link link(id);
+  gz::sim::Entity id(3);
+  gz::sim::Link link(id);
 
-  ignition::gazebo::Link linkCopy;
+  gz::sim::Link linkCopy;
   linkCopy = link;
   EXPECT_EQ(link.Entity(), linkCopy.Entity());
 }
@@ -57,20 +57,20 @@ TEST(LinkTest, CopyAssignmentOperator)
 /////////////////////////////////////////////////
 TEST(LinkTest, MoveConstructor)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Link link(id);
+  gz::sim::Entity id(3);
+  gz::sim::Link link(id);
 
-  ignition::gazebo::Link linkMoved(std::move(link));
+  gz::sim::Link linkMoved(std::move(link));
   EXPECT_EQ(id, linkMoved.Entity());
 }
 
 /////////////////////////////////////////////////
 TEST(LinkTest, MoveAssignmentOperator)
 {
-  ignition::gazebo::Entity id(3);
-  ignition::gazebo::Link link(id);
+  gz::sim::Entity id(3);
+  gz::sim::Link link(id);
 
-  ignition::gazebo::Link linkMoved;
+  gz::sim::Link linkMoved;
   linkMoved = std::move(link);
   EXPECT_EQ(id, linkMoved.Entity());
 }

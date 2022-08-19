@@ -53,7 +53,7 @@ char* g_argv[] =
   reinterpret_cast<char*>(const_cast<char*>("dummy")),
 };
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Tests for the joint position controller GUI plugin
 class Plot3D : public InternalFixture<::testing::Test>
@@ -68,8 +68,8 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle gazebo::gui plugins
-  auto runner = new gazebo::GuiRunner("test");
+  // Create GUI runner to handle sim::gui plugins
+  auto runner = new sim::GuiRunner("test");
   runner->setParent(gui::App());
 
   // Add plugin
@@ -95,12 +95,12 @@ TEST_F(Plot3D, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, win);
 
   // Get plugin
-  auto plugins = win->findChildren<gazebo::gui::Plot3D *>();
+  auto plugins = win->findChildren<sim::gui::Plot3D *>();
   ASSERT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
   EXPECT_EQ("Plot3D!", plugin->Title());
-  EXPECT_EQ(gazebo::kNullEntity, plugin->TargetEntity());
+  EXPECT_EQ(sim::kNullEntity, plugin->TargetEntity());
   EXPECT_EQ(QString("banana"), plugin->TargetName())
       << plugin->TargetName().toStdString();
   EXPECT_EQ(QVector3D(0.1, 0.2, 0.3), plugin->Color());

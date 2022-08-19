@@ -45,12 +45,12 @@
 #include "ignition/gazebo/Util.hh"
 #include "ignition/gazebo/rendering/SceneManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Private data class.
-class ignition::gazebo::SceneManagerPrivate
+class gz::sim::SceneManagerPrivate
 {
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.

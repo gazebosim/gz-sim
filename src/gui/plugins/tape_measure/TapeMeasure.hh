@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_TAPEMEASURE_HH_
-#define IGNITION_GAZEBO_GUI_TAPEMEASURE_HH_
+#ifndef GZ_GAZEBO_GUI_TAPEMEASURE_HH_
+#define GZ_GAZEBO_GUI_TAPEMEASURE_HH_
 
 #include <memory>
 
@@ -23,14 +23,14 @@
 #include <ignition/math/Vector3.hh>
 #include <ignition/math/Color.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class TapeMeasurePrivate;
 
   /// \brief Provides buttons for the tape measure tool.
-  class TapeMeasure : public ignition::gui::Plugin
+  class TapeMeasure : public gz::gui::Plugin
   {
     Q_OBJECT
 
@@ -63,8 +63,8 @@ namespace gazebo
     /// \param[in] _point The x, y, z coordinates of where to place the marker
     /// \param[in] _color The rgba color to set the marker
     public: void DrawPoint(int _id,
-                ignition::math::Vector3d &_point,
-                ignition::math::Color &_color);
+                gz::math::Vector3d &_point,
+                gz::math::Color &_color);
 
     /// \brief Draws a line marker.  Called to display the line between the
     /// start and end point of the tape measure.
@@ -73,9 +73,9 @@ namespace gazebo
     /// \param[in] _endPoint The x, y, z coordinates of the line end point
     /// \param[in] _color The rgba color to set the marker
     public: void DrawLine(int _id,
-                ignition::math::Vector3d &_startPoint,
-                ignition::math::Vector3d &_endPoint,
-                ignition::math::Color &_color);
+                gz::math::Vector3d &_startPoint,
+                gz::math::Vector3d &_endPoint,
+                gz::math::Color &_color);
 
     /// \brief Callback in Qt thread when the new measurement button is
     /// clicked.

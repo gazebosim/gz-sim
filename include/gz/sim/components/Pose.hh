@@ -14,30 +14,30 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_POSE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_POSE_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_POSE_HH_
+#define GZ_GAZEBO_COMPONENTS_POSE_HH_
 
 #include <ignition/math/Pose3.hh>
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
 #include <ignition/gazebo/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
+  /// \brief A component type that contains pose, gz::math::Pose3d,
   /// information.
-  using Pose = Component<ignition::math::Pose3d, class PoseTag>;
+  using Pose = Component<gz::math::Pose3d, class PoseTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Pose", Pose)
 
-  /// \brief A component type that contains pose, ignition::math::Pose3d,
+  /// \brief A component type that contains pose, gz::math::Pose3d,
   /// information in world frame.
-  using WorldPose = Component<ignition::math::Pose3d, class WorldPoseTag>;
+  using WorldPose = Component<gz::math::Pose3d, class WorldPoseTag>;
   IGN_GAZEBO_REGISTER_COMPONENT(
       "ign_gazebo_components.WorldPose", WorldPose)
 }

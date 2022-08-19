@@ -28,17 +28,17 @@
 #include "ignition/gazebo/components/World.hh"
 #include "ignition/gazebo/World.hh"
 
-class ignition::gazebo::WorldPrivate
+class gz::sim::WorldPrivate
 {
   /// \brief Id of world entity.
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
-World::World(gazebo::Entity _entity)
+World::World(sim::Entity _entity)
   : dataPtr(std::make_unique<WorldPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -159,7 +159,7 @@ std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Light>(entity))
@@ -176,7 +176,7 @@ std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Actor>(entity))

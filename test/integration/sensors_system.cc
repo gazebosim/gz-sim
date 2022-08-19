@@ -42,9 +42,9 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
+namespace components = gz::sim::components;
 
 //////////////////////////////////////////////////
 class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
@@ -54,18 +54,18 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
+                                "gz::sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
   }
 
-  public: gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: sim::SystemPluginPtr systemPtr;
+  public: sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: sim::SystemLoader sm;
 };
 
 //////////////////////////////////////////////////
@@ -113,7 +113,7 @@ void testDefaultTopics()
 /// are removed and then added back
 TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/sensor.sdf";
@@ -125,12 +125,12 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
   const sdf::World *sdfWorld = root.WorldByIndex(0);
   const sdf::Model *sdfModel = sdfWorld->ModelByIndex(0);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
     };
@@ -143,8 +143,8 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
-  gazebo::EventManager dummyEventMgr;
-  gazebo::SdfEntityCreator creator(*ecm, dummyEventMgr);
+  sim::EventManager dummyEventMgr;
+  sim::SdfEntityCreator creator(*ecm, dummyEventMgr);
 
   unsigned int runs = 100;
   unsigned int runIterations = 2;
@@ -153,7 +153,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(
           components::Model(), components::Name(sdfModel->Name()));
-      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(sim::kNullEntity, modelEntity);
 
       // Remove the first model in the world
       creator.RequestRemoveEntity(modelEntity, true);
@@ -166,7 +166,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
           components::Name(sdfModel->Name()));
 
       // Since the model is removed, we should get a null entity
-      EXPECT_EQ(gazebo::kNullEntity, modelEntity);
+      EXPECT_EQ(sim::kNullEntity, modelEntity);
     }
 
     // Create the model again
@@ -181,7 +181,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(components::Model(),
           components::Name(sdfModel->Name()));
-      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(sim::kNullEntity, modelEntity);
     }
   }
 }

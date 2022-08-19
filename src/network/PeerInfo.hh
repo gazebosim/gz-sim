@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
-#define IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#ifndef GZ_GAZEBO_NETWORK_PEERINFO_HH_
+#define GZ_GAZEBO_NETWORK_PEERINFO_HH_
 
 #include <string>
 
@@ -25,9 +25,9 @@
 #include "NetworkRole.hh"
 #include "msgs/peer_info.pb.h"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -61,8 +61,8 @@ namespace ignition
     /// \result Equivalent message
     private_msgs::PeerInfo toProto(
         const PeerInfo &_info);
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#endif  // GZ_GAZEBO_NETWORK_PEERINFO_HH_
 

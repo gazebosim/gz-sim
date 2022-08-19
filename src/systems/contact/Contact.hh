@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_CONTACT_HH_
+#define GZ_GAZEBO_SYSTEMS_CONTACT_HH_
 
 #include <memory>
 #include <ignition/gazebo/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -60,6 +60,6 @@ namespace systems
   };
 }
 }
-}  // namespace gazebo
-}  // namespace ignition
+}  // namespace sim
+}  // namespace gz
 #endif

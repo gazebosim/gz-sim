@@ -1,1 +1,1 @@
-add_subdirectory(gazebo)
+add_subdirectory(sim)

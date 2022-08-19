@@ -33,11 +33,11 @@
 
 #include "ignition/gazebo/rendering/MarkerManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// Private data for the MarkerManager class
-class ignition::gazebo::MarkerManagerPrivate
+class gz::sim::MarkerManagerPrivate
 {
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.

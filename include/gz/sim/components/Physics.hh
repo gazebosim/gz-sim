@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PHYSICS_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
+#define GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
 
 #include <ignition/msgs/physics.pb.h>
 
@@ -29,9 +29,9 @@
 #include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

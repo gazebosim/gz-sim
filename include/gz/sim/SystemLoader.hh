@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMLOADER_HH_
-#define IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#ifndef GZ_GAZEBO_SYSTEMLOADER_HH_
+#define GZ_GAZEBO_SYSTEMLOADER_HH_
 
 #include <memory>
 #include <optional>
@@ -27,9 +27,9 @@
 #include <ignition/gazebo/System.hh>
 #include <ignition/gazebo/SystemPluginPtr.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -77,5 +77,5 @@ namespace ignition
     using SystemLoaderPtr = std::shared_ptr<SystemLoader>;
   }
 }
-#endif  // IGNITION_GAZEBO_SYSTEMLOADER_HH_
+#endif  // GZ_GAZEBO_SYSTEMLOADER_HH_
 

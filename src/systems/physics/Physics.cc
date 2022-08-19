@@ -130,14 +130,14 @@
 
 #include "EntityFeatureMap.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo::systems;
-using namespace ignition::gazebo::systems::physics_system;
-namespace components = ignition::gazebo::components;
+using namespace gz;
+using namespace gz::sim::systems;
+using namespace gz::sim::systems::physics_system;
+namespace components = gz::sim::components;
 
 
 // Private data class.
-class ignition::gazebo::systems::PhysicsPrivate
+class gz::sim::systems::PhysicsPrivate
 {
   /// \brief This is the minimum set of features that any physics engine must
   /// implement to be supported by this system.
@@ -2734,7 +2734,7 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   using ContactPoint = GCFeatureWorld::ContactPoint;
   using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
-  const auto callbackID = "ignition::gazebo::systems::Physics";
+  const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
     callbackID,
     [this, _world](const GCFeatureWorld::Contact &_contact,
@@ -2808,8 +2808,8 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 }
 
 IGNITION_ADD_PLUGIN(Physics,
-                    gazebo::System,
+                    sim::System,
                     Physics::ISystemConfigure,
                     Physics::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")

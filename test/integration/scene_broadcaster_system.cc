@@ -29,7 +29,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Test SceneBroadcaster system
 class SceneBroadcasterTest
@@ -41,11 +41,11 @@ class SceneBroadcasterTest
 TEST_P(SceneBroadcasterTest, PoseInfo)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(16u, *server.EntityCount());
@@ -91,11 +91,11 @@ TEST_P(SceneBroadcasterTest, PoseInfo)
 TEST_P(SceneBroadcasterTest, SceneInfo)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(16u, *server.EntityCount());
@@ -137,11 +137,11 @@ TEST_P(SceneBroadcasterTest, SceneInfo)
 TEST_P(SceneBroadcasterTest, SceneGraph)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(16u, *server.EntityCount());
@@ -177,11 +177,11 @@ TEST_P(SceneBroadcasterTest, SceneGraph)
 TEST_P(SceneBroadcasterTest, SceneTopic)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(16u, *server.EntityCount());
@@ -221,11 +221,11 @@ TEST_P(SceneBroadcasterTest, SceneTopic)
 TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(12u, *server.EntityCount());
@@ -272,11 +272,11 @@ TEST_P(SceneBroadcasterTest, SceneTopicSensors)
 TEST_P(SceneBroadcasterTest, DeletedTopic)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -333,11 +333,11 @@ TEST_P(SceneBroadcasterTest, DeletedTopic)
 TEST_P(SceneBroadcasterTest, SpawnedModel)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -403,11 +403,11 @@ TEST_P(SceneBroadcasterTest, SpawnedModel)
 TEST_P(SceneBroadcasterTest, State)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(16u, *server.EntityCount());
@@ -514,11 +514,11 @@ TEST_P(SceneBroadcasterTest, State)
 TEST_P(SceneBroadcasterTest, StateStatic)
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(8u, *server.EntityCount());

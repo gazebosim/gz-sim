@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TYPES_HH_
-#define IGNITION_GAZEBO_TYPES_HH_
+#ifndef GZ_GAZEBO_TYPES_HH_
+#define GZ_GAZEBO_TYPES_HH_
 
 #include <chrono>
 #include <cstdint>
@@ -23,9 +23,9 @@
 #include <utility>
 #include <ignition/common/Time.hh>
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -83,7 +83,7 @@ namespace ignition
 
     /// \brief A unique identifier for a component type. A component type
     /// must be derived from `components::BaseComponent` and can contain plain
-    /// data or something more complex like `ignition::math::Pose3d`.
+    /// data or something more complex like `gz::math::Pose3d`.
     using ComponentTypeId = uint64_t;
 
     /// \brief A key that uniquely identifies, at the global scope, a component

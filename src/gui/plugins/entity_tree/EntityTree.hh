@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
-#define IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
+#ifndef GZ_GAZEBO_GUI_ENTITYTREE_HH_
+#define GZ_GAZEBO_GUI_ENTITYTREE_HH_
 
 #include <map>
 #include <memory>
@@ -24,9 +24,9 @@
 
 #include <ignition/gazebo/gui/GuiSystem.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class EntityTreePrivate;
 
@@ -104,7 +104,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// None
-  class EntityTree : public ignition::gazebo::GuiSystem
+  class EntityTree : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

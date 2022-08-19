@@ -15,16 +15,16 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
+#ifndef GZ_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
+#define GZ_GAZEBO_GUI_COMPONENTINSPECTOR_TYPES_HH_
 
 #include <QStandardItem>
 
 #include <ignition/gazebo/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace inspector
 {

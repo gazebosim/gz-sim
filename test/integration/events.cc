@@ -26,8 +26,8 @@
 #include "plugins/EventTriggerSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class EventTrigger : public InternalFixture<::testing::Test>
 {

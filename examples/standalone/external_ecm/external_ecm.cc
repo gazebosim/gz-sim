@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   std::string world = argv[1];
 
   // Create a transport node.
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   bool executed{false};
   bool result{false};
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
             << "] on service [" << service << "]..." << std::endl << std::endl;
 
   // Request and block
-  ignition::msgs::SerializedStepMap res;
+  gz::msgs::SerializedStepMap res;
   executed = node.Request(service, timeout, res, result);
 
   if (!executed)
@@ -64,22 +64,22 @@ int main(int argc, char **argv)
   }
 
   // Instantiate an ECM and populate with data from message
-  ignition::gazebo::EntityComponentManager ecm;
+  gz::sim::EntityComponentManager ecm;
   ecm.SetState(res.state());
 
   // Print some information
-  ecm.Each<ignition::gazebo::components::Name>(
-      [&](const ignition::gazebo::Entity &_entity,
-          const ignition::gazebo::components::Name *_name) -> bool
+  ecm.Each<gz::sim::components::Name>(
+      [&](const gz::sim::Entity &_entity,
+          const gz::sim::components::Name *_name) -> bool
   {
     auto parentComp =
-        ecm.Component<ignition::gazebo::components::ParentEntity>(_entity);
+        ecm.Component<gz::sim::components::ParentEntity>(_entity);
 
     std::string parentInfo;
     if (parentComp)
     {
       auto parentNameComp =
-          ecm.Component<ignition::gazebo::components::Name>(
+          ecm.Component<gz::sim::components::Name>(
           parentComp->Data());
 
       if (parentNameComp)

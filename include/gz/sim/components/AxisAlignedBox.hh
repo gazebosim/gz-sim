@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
-#define IGNITION_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
+#define GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
 
 #include <ignition/msgs/axis_aligned_box.pb.h>
 #include <ignition/math/AxisAlignedBox.hh>
@@ -25,9 +25,9 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Conversions.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -41,9 +41,9 @@ namespace serializers
 namespace components
 {
   /// \brief A component type that contains axis aligned box,
-  /// ignition::math::AxisAlignedBox, information.
+  /// gz::math::AxisAlignedBox, information.
   /// The axis aligned box is created from collisions in the entity
-  using AxisAlignedBox = Component<ignition::math::AxisAlignedBox,
+  using AxisAlignedBox = Component<gz::math::AxisAlignedBox,
       class AxisAlignedBoxTag, serializers::AxisAlignedBoxSerializer>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.AxisAlignedBox",
       AxisAlignedBox)

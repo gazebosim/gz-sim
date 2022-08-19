@@ -39,11 +39,11 @@
 #include <sdf/Element.hh>
 #include "LogicalAudio.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
+class gz::sim::systems::LogicalAudioSensorPluginPrivate
 {
   /// \brief Creates an audio source with attributes specified in an SDF file.
   /// \param[in] _elem A pointer to the source element in the SDF file.
@@ -525,4 +525,4 @@ IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-  "ignition::gazebo::systems::LogicalAudioSensorPlugin")
+  "gz::sim::systems::LogicalAudioSensorPlugin")

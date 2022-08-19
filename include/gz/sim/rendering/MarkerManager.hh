@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_MARKERMANAGER_HH_
-#define IGNITION_GAZEBO_MARKERMANAGER_HH_
+#ifndef GZ_GAZEBO_MARKERMANAGER_HH_
+#define GZ_GAZEBO_MARKERMANAGER_HH_
 
 #include <memory>
 #include <string>
@@ -24,9 +24,9 @@
 
 #include "ignition/rendering/RenderTypes.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 // Forward declare private data class.
@@ -60,7 +60,7 @@ class IGNITION_GAZEBO_RENDERING_VISIBLE MarkerManager
   /// \brief Initialize the marker manager.
   /// \param[in] _scene Reference to the scene.
   /// \return True on success
-  public: bool Init(const ignition::rendering::ScenePtr &_scene);
+  public: bool Init(const gz::rendering::ScenePtr &_scene);
 
   /// \brief Set the marker service topic name.
   /// \param[in] _name Name of service

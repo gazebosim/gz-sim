@@ -42,8 +42,8 @@
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \

@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
+#define GZ_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 
 #include <ignition/msgs/wrench.pb.h>
 #include <ignition/gazebo/components/Component.hh>
@@ -23,9 +23,9 @@
 #include <ignition/gazebo/components/Serialization.hh>
 #include <ignition/gazebo/config.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -33,7 +33,7 @@ namespace components
 {
   /// \brief A component type that contains the external wrench to be applied on
   /// an entity expressed in the world frame and represented by
-  /// ignition::msgs::Wrench.
+  /// gz::msgs::Wrench.
   /// Currently this is used for applying wrenches on links. Although the
   /// msg::Wrench type has a force_offset member, the value is currently
   /// ignored. Instead, the force is applied at the link origin.

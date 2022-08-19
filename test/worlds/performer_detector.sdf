@@ -7,11 +7,11 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
 
     <model name="ground_plane">
@@ -310,7 +310,7 @@
 
       <plugin
         filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
         <right_joint>front_right_wheel_joint</right_joint>
@@ -325,7 +325,7 @@
       <pose>4.0 0 2.5 0 0 0</pose>
       <link name='body'/>
       <plugin filename="ignition-gazebo-performer-detector-system"
-        name="ignition::gazebo::systems::PerformerDetector">
+        name="gz::sim::systems::PerformerDetector">
         <topic>/performer_detector</topic>
       <header_data>
         <key>no_value</key>
@@ -358,7 +358,7 @@
       <pose>5 3 2.5 0 0 0</pose>
       <link name='body'/>
       <plugin filename="ignition-gazebo-performer-detector-system"
-        name="ignition::gazebo::systems::PerformerDetector">
+        name="gz::sim::systems::PerformerDetector">
         <topic>/performer_detector</topic>
         <geometry>
           <box>
@@ -369,7 +369,7 @@
     </model>
 
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
     <performer name="perf_vehicle_blue">
       <ref>vehicle_blue</ref>
       <geometry>
