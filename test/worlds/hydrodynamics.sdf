@@ -38,45 +38,77 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <model name="sphere">
-        <link name="sphere_link">
-          <pose>0 0 0 0 0 0</pose>
-          <inertial>
-            <mass>25</mass>
-            <inertia>
-              <ixx>0.4</ixx>
-              <ixy>0</ixy>
-              <ixz>0</ixz>
-              <iyy>0.4</iyy>
-              <iyz>0</iyz>
-              <izz>0.4</izz>
-            </inertia>
-          </inertial>
+    <model name="sphere1">
+      <link name="sphere1_link">
+        <pose>1 0.25 0 0 0 0</pose>
+        <inertial>
+          <mass>25</mass>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
 
-          <visual name='sphere_visual'>
-            <geometry>
-              <sphere>
-                <radius>0.2</radius>
-              </sphere>
-            </geometry>
-          </visual>
-          <collision name='sphere_collision'>
-            <geometry>
-              <sphere>
-                <radius>0.2</radius>
-              </sphere>
-            </geometry>
-          </collision>
-        </link>
+        <visual name='sphere1_visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <collision name='sphere1_collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="sphere2">
+      <link name="sphere2_link">
+        <pose>1 -0.25 0 0 0 0</pose>
+        <inertial>
+          <mass>25</mass>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='sphere2_visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <collision name='sphere2_collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
 
       <plugin
         filename="ignition-gazebo-hydrodynamics-system"
         name="ignition::gazebo::systems::Hydrodynamics">
-        <link_name>sphere_link</link_name>
-        <water_density>1000</water_density>
+        <link_name>sphere2_link</link_name>
+        <water_density>918</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>16.7552</zDotW>
+        <zDotW>15.381</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -84,8 +116,185 @@
         <xU>0</xU>
         <yVV>0</yVV>
         <yV>0</yV>
-        <zWW>125.6637</zWW>
-        <zW>0.037699</zW>
+        <zWW>11.5359</zWW>
+        <zW>0.211869</zW>
+        <kPP>0</kPP>
+        <kP>0</kP>
+        <mQQ>0</mQQ>
+        <mQ>0</mQ>
+        <nRR>0</nRR>
+        <nR>0</nR>
+      </plugin>
+    </model>
+
+    <model name="cylinder1">
+        <link name="cylinder1_link">
+          <pose>0 0 0 0 0 0</pose>
+          <inertial>
+            <mass>40</mass>
+            <inertia>
+              <ixx>0.8</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.8</iyy>
+              <iyz>0</iyz>
+              <izz>0.8</izz>
+            </inertia>
+          </inertial>
+
+          <visual name='cylinder1_visual'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>1</length>
+              </cylinder>
+            </geometry>
+          </visual>
+          <collision name='cylinder1_collision'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>0.1</length>
+              </cylinder>
+            </geometry>
+          </collision>
+        </link>
+
+      <plugin
+        filename="ignition-gazebo-hydrodynamics-system"
+        name="ignition::gazebo::systems::Hydrodynamics">
+        <link_name>cylinder1_link</link_name>
+        <water_density>1000</water_density>
+        <xDotU>0</xDotU>
+        <yDotV>0</yDotV>
+        <zDotW>12.5664</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <xUU>0</xUU>
+        <xU>0</xU>
+        <yVV>0</yVV>
+        <yV>0</yV>
+        <zWW>94.2475</zWW>
+        <zW>0.0037699</zW>
+        <kPP>0</kPP>
+        <kP>0</kP>
+        <mQQ>0</mQQ>
+        <mQ>0</mQ>
+        <nRR>0</nRR>
+        <nR>0</nR>
+      </plugin>
+    </model>
+
+    <model name="cylinder2">
+        <link name="cylinder2_link">
+          <pose>-1 0.5 0 45 0 45</pose>
+          <inertial>
+            <mass>40</mass>
+            <inertia>
+              <ixx>0.8</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.8</iyy>
+              <iyz>0</iyz>
+              <izz>0.8</izz>
+            </inertia>
+          </inertial>
+
+          <visual name='cylinder2_visual'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>1</length>
+              </cylinder>
+            </geometry>
+          </visual>
+          <collision name='cylinder2_collision'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>0.1</length>
+              </cylinder>
+            </geometry>
+          </collision>
+        </link>
+
+      <plugin
+        filename="ignition-gazebo-hydrodynamics-system"
+        name="ignition::gazebo::systems::Hydrodynamics">
+        <link_name>cylinder2_link</link_name>
+        <water_density>1000</water_density>
+        <xDotU>0</xDotU>
+        <yDotV>0</yDotV>
+        <zDotW>12.5664</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <xUU>0</xUU>
+        <xU>0</xU>
+        <yVV>0</yVV>
+        <yV>0</yV>
+        <zWW>94.2475</zWW>
+        <zW>0.0037699</zW>
+        <kPP>0</kPP>
+        <kP>0</kP>
+        <mQQ>0</mQQ>
+        <mQ>0</mQ>
+        <nRR>0</nRR>
+        <nR>0</nR>
+      </plugin>
+    </model>
+
+    <model name="cylinder3">
+        <link name="cylinder3_link">
+          <pose>-1 -0.5 0 0 90 0</pose>
+          <inertial>
+            <mass>40</mass>
+            <inertia>
+              <ixx>0.8</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.8</iyy>
+              <iyz>0</iyz>
+              <izz>0.8</izz>
+            </inertia>
+          </inertial>
+
+          <visual name='cylinder3_visual'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>1</length>
+              </cylinder>
+            </geometry>
+          </visual>
+          <collision name='cylinder3_collision'>
+            <geometry>
+              <cylinder>
+                <radius>0.2</radius>
+                <length>0.1</length>
+              </cylinder>
+            </geometry>
+          </collision>
+        </link>
+
+      <plugin
+        filename="ignition-gazebo-hydrodynamics-system"
+        name="ignition::gazebo::systems::Hydrodynamics">
+        <link_name>cylinder3_link</link_name>
+        <water_density>1000</water_density>
+        <xDotU>0</xDotU>
+        <yDotV>0</yDotV>
+        <zDotW>12.5664</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <xUU>0</xUU>
+        <xU>0</xU>
+        <yVV>0</yVV>
+        <yV>0</yV>
+        <zWW>94.2475</zWW>
+        <zW>0.0037699</zW>
         <kPP>0</kPP>
         <kP>0</kP>
         <mQQ>0</mQQ>

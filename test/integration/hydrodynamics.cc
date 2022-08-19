@@ -35,8 +35,6 @@
 #include "ignition/gazebo/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-#define PI 3.141592653
-
 using namespace ignition;
 using namespace gazebo;
 
@@ -50,15 +48,13 @@ class HydrodynamicsTest : public InternalFixture<::testing::Test>
   /// \param[in] _radius Body's radius
   /// \param[in] _area Body surface area
   /// \param[in] _drag_coeff Body drag coefficient
-  public: void TestWorld(const std::string &_world,
-    const std::string &_namespace, double _density,
-     double _viscosity, double _area, double _drag_coeff);
+  public: std::vector<math::Vector3d> TestWorld(const std::string &_world,
+   const std::string &_namespace);
 };
 
 //////////////////////////////////////////////////
-void HydrodynamicsTest::TestWorld(const std::string &_world,
-    const std::string &_namespace, double _density, double _viscosity,
-    double _area, double _drag_coeff)
+std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(const std::string &_world,
+    const std::string &_namespace)
 {
   // Maximum verbosity for debugging
   ignition::common::Console::SetVerbosity(4);
@@ -81,20 +77,16 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
     {
       World world(_worldEntity);
 
-      auto modelEntity =  world.ModelByName(_ecm, "ball");
+      auto modelEntity =  world.ModelByName(_ecm, _namespace);
       EXPECT_NE(modelEntity, kNullEntity);
       model = Model(modelEntity);
 
-      auto bodyEntity = model.LinkByName(_ecm, "body");
+      auto bodyEntity = model.LinkByName(_ecm, _namespace + "_link");
       EXPECT_NE(bodyEntity, kNullEntity);
 
       body = Link(bodyEntity);
       body.EnableVelocityChecks(_ecm);
 
-    }).
-  OnPreUpdate([&](const UpdateInfo &/*_info*/,
-                            EntityComponentManager &_ecm)
-    {
       // Add force
       math::Vector3d force(0, 0, 10.0);
       body.AddWorldForce(_ecm, force);
@@ -108,39 +100,70 @@ void HydrodynamicsTest::TestWorld(const std::string &_world,
     }).
   Finalize();
 
-  fixture.Server()->Run(true, 2, false);
-  EXPECT_EQ(2u, bodyVels.size());
+  fixture.Server()->Run(true, 1000, false);
+  EXPECT_EQ(1000u, bodyVels.size());
 
   EXPECT_NE(model.Entity(), kNullEntity);
   EXPECT_NE(body.Entity(), kNullEntity);
-  EXPECT_EQ(_namespace, "ball");
 
-  for (const auto &vel : bodyVels)
-  {
-    EXPECT_NE(math::Vector3d::Zero, vel);
-  }
-
-  for (unsigned int i = 0; i < bodyVels.size(); ++i)
-  {
-    auto bodyVel = bodyVels[i];
-
-    // drag force, F = 6 * pi * a * nu * v
-    // drag force, F = 0.5 * rho * u^2 * Cd * A
-    // terminal velocity, u = 2 * sqrt((3 * pi * a * nu * v)/(rho * Cd * A))
-    auto terminalVel = 2 * sqrt((3 * IGN_PI * _area * _viscosity * bodyVel.Z())/
-      (_density * _drag_coeff * _area));
-
-    EXPECT_NEAR(terminalVel, bodyVel.Z(), 1e-2);
-  }
-
+  return bodyVels;
 }
 
 /////////////////////////////////////////////////
-TEST_F(HydrodynamicsTest, VelocityTest)
+/// This test evaluates whether the hydrodynamic plugin affects the motion
+/// of the body when a force is applied.
+TEST_F(HydrodynamicsTest, VelocityTestinOil)
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
-  double area = 4.0 * IGN_PI * 0.2 * 0.2;
-  this->TestWorld(world, "ball", 1000.0, 0.01, area, 0.5);
+  auto sphere1Vels = this->TestWorld(world, "sphere1");
+  auto sphere2Vels = this->TestWorld(world, "sphere2");
+
+  for (unsigned int i = 0; i < 1000; ++i)
+  {
+    // Sanity check
+    EXPECT_FLOAT_EQ(0.0, sphere1Vels[i].X());
+    EXPECT_FLOAT_EQ(0.0, sphere1Vels[i].Y());
+    EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].X());
+    EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].Y());
+
+    // Wait a couple of iterations for the body to move
+    if(i > 4)
+    {
+      EXPECT_LT(sphere1Vels[i].Z(), sphere2Vels[i].Z());
+
+      if (i > 900)
+      {
+        // Expect for the velocity to stabilize
+        EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
+        EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+/// This test makes sure that the transforms of the hydrodynamics plugin 
+/// are correct by comparing 3 cylinders in different positions and orientations. 
+TEST_F(HydrodynamicsTest, TransformsTestinWater)
+{
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  auto cylinder1Vels = this->TestWorld(world, "cylinder1");
+  auto cylinder2Vels = this->TestWorld(world, "cylinder2");
+  auto cylinder3Vels = this->TestWorld(world, "cylinder3");
+
+  for (unsigned int i = 900; i < 1000; ++i)
+  {
+    // Expect for the velocity to stabilize
+    EXPECT_NEAR(cylinder1Vels[i-1].Z(), cylinder1Vels[i].Z(), 1e-6);
+    EXPECT_NEAR(cylinder2Vels[i-1].Z(), cylinder2Vels[i].Z(), 1e-6);
+    EXPECT_NEAR(cylinder3Vels[i-1].Z(), cylinder3Vels[i].Z(), 1e-6);
+
+    // Expect for final velocities to be similar
+    EXPECT_NEAR(cylinder1Vels[i].Z(), cylinder2Vels[i].Z(), 1e-4);
+    EXPECT_NEAR(cylinder2Vels[i].Z(), cylinder3Vels[i].Z(), 1e-4);
+  }
 }
