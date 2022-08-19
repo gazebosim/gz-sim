@@ -53,8 +53,8 @@ class HydrodynamicsTest : public InternalFixture<::testing::Test>
 };
 
 //////////////////////////////////////////////////
-std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(const std::string &_world,
-    const std::string &_namespace)
+std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(
+  const std::string &_world, const std::string &_namespace)
 {
   // Maximum verbosity for debugging
   ignition::common::Console::SetVerbosity(4);
@@ -144,8 +144,9 @@ TEST_F(HydrodynamicsTest, VelocityTestinOil)
 }
 
 /////////////////////////////////////////////////
-/// This test makes sure that the transforms of the hydrodynamics plugin 
-/// are correct by comparing 3 cylinders in different positions and orientations. 
+/// This test makes sure that the transforms of the hydrodynamics
+/// plugin are correct by comparing 3 cylinders in different
+/// positions and orientations.
 TEST_F(HydrodynamicsTest, TransformsTestinWater)
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
