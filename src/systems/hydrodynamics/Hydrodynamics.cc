@@ -344,7 +344,8 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
-  auto dt = (double)_info.dt.count()/1e9;
+  // TODO(anyone) Make this configurable
+  auto dt = static_cast<double>(_info.dt.count())/1e9;
   auto alpha = 0.9;
   stateDot = alpha * (state - this->dataPtr->prevState)/dt
     + (1-alpha) * this->dataPtr->prevStateDot;
@@ -353,6 +354,7 @@ void Hydrodynamics::PreUpdate(
   this->dataPtr->prevStateDot = stateDot;
 
   // The added mass
+  // Negative sign signifies the behaviour change
   const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
