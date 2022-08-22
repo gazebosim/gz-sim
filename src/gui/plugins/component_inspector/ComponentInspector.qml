@@ -245,6 +245,14 @@ Rectangle {
 
     delegate: Loader {
       id: loader
+
+      /**
+       * Most items can access model.data directly, but items like ListView,
+       * which have their own `model` property, can't. They can use
+       * `componentData` instead.
+       */
+      property var componentData: model.data
+
       source: delegateQml(model)
     }
   }

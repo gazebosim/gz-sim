@@ -5,6 +5,7 @@ set(tests
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
+  apply_link_wrench_system.cc
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
@@ -16,6 +17,7 @@ set(tests
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
+  entity_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
@@ -80,6 +82,7 @@ endif()
 # Tests that require a valid display
 set(tests_needing_display
   camera_sensor_background.cc
+  camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc

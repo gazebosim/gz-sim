@@ -15,6 +15,8 @@
  *
  */
 
+#include <ignition/msgs/dataframe.pb.h>
+
 #include <limits>
 #include <list>
 #include <random>
@@ -447,7 +449,18 @@ void RFComms::Step(
 #endif
 
         if (sendPacket)
-          _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+        {
+          // We create a copy of the outbound message because each destination
+          // might have a different rssi value.
+          auto inboundMsg = std::make_shared<ignition::msgs::Dataframe>(*msg);
+
+          // Add rssi.
+          auto *rssiPtr = inboundMsg->mutable_header()->add_data();
+          rssiPtr->set_key("rssi");
+          rssiPtr->add_value(std::to_string(rssi));
+
+          _newRegistry[msg->dst_address()].inboundMsgs.push_back(inboundMsg);
+        }
       }
     }
 

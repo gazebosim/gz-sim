@@ -160,13 +160,79 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigSdfPluginInfo)
+{
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("an_entity");
+  pluginInfo.SetEntityType("model");
+  sdf::Plugin plugin;
+  plugin.SetFilename("filename");
+  plugin.SetName("interface");
+  pluginInfo.SetPlugin(plugin);
+
+  ignition::gazebo::ServerConfig serverConfig;
+  serverConfig.AddPlugin(pluginInfo);
+
+  const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
+  ASSERT_FALSE(plugins.empty());
+
+  EXPECT_EQ("an_entity", plugins.front().EntityName());
+  EXPECT_EQ("model", plugins.front().EntityType());
+  EXPECT_EQ("filename", plugins.front().Plugin().Filename());
+  EXPECT_EQ("interface", plugins.front().Plugin().Name());
+  EXPECT_EQ(nullptr, plugins.front().Plugin().Element());
+  EXPECT_TRUE(plugins.front().Plugin().Contents().empty());
+
+  // Test operator=
+  {
+    ServerConfig::PluginInfo info;
+    info = plugins.front();
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test copy constructor
+  {
+    ServerConfig::PluginInfo info(plugins.front());
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test server config copy constructor
+  {
+    const ServerConfig &cfg(serverConfig);
+    const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
+    ASSERT_FALSE(cfgPlugins.empty());
+
+    EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Filename(),
+        plugins.front().Plugin().Filename());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Name(),
+        plugins.front().Plugin().Name());
+    EXPECT_EQ(cfgPlugins.front().Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
 {
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetUpdateRate(10000);
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -272,8 +338,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
   // Setting the SDF file should override the string.
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -341,8 +407,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -381,8 +446,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 TEST_P(ServerFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -414,8 +478,8 @@ TEST_P(ServerFixture, SdfStringServerConfig)
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -423,6 +487,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
+  EXPECT_FALSE(serverConfig.SdfRoot());
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -729,8 +794,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -777,8 +842,8 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   ignition::gazebo::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   gazebo::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -850,8 +915,9 @@ TEST_P(ServerFixture, Seed)
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-         (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+      (common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds:") +
+       common::joinPaths(PROJECT_SOURCE_PATH,
+           "test", "worlds", "models")).c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -938,7 +1004,9 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 TEST_P(ServerFixture, GetResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -968,7 +1036,9 @@ TEST_P(ServerFixture, GetResourcePaths)
 TEST_P(ServerFixture, AddResourcePaths)
 {
   ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
   ignition::common::setenv("SDF_PATH", "");
   ignition::common::setenv("IGN_FILE_PATH", "");
 
@@ -997,7 +1067,9 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Add path
   msgs::StringMsg_V req;
   req.add_data("/tmp/new_path");
-  req.add_data("/tmp/more:/tmp/even_more");
+  req.add_data(std::string("/tmp/more") +
+               common::SystemPaths::Delimiter() +
+               std::string("/tmp/even_more"));
   req.add_data("/tmp/some/path");
   bool executed = node.Request("/gazebo/resource_paths/add", req);
   EXPECT_TRUE(executed);
@@ -1016,7 +1088,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   {
     char *pathCStr = std::getenv(env);
 
-    auto paths = common::Split(pathCStr, ':');
+    auto paths = common::Split(pathCStr, common::SystemPaths::Delimiter());
     paths.erase(std::remove_if(paths.begin(), paths.end(),
         [](std::string const &_path)
         {
@@ -1031,6 +1103,104 @@ TEST_P(ServerFixture, AddResourcePaths)
     EXPECT_EQ("/tmp/more", paths[3]);
     EXPECT_EQ("/tmp/even_more", paths[4]);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ResolveResourcePaths)
+{
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  ignition::common::setenv("SDF_PATH", "");
+  ignition::common::setenv("IGN_FILE_PATH", "");
+
+  ServerConfig serverConfig;
+  gazebo::Server server(serverConfig);
+
+  EXPECT_FALSE(*server.Running(0));
+
+  auto test = std::function<void(const std::string _uri,
+      const std::string &_expected, bool _found)>(
+        [&](const std::string &_uri, const std::string &_expected, bool _found)
+        {
+          transport::Node node;
+          msgs::StringMsg req, res;
+          bool result{false};
+          bool executed{false};
+          int sleep{0};
+          int maxSleep{30};
+
+          req.set_data(_uri);
+          while (!executed && sleep < maxSleep)
+          {
+            igndbg << "Requesting /gazebo/resource_paths/resolve" << std::endl;
+            executed = node.Request("/gazebo/resource_paths/resolve", req, 100,
+                res, result);
+            sleep++;
+          }
+          EXPECT_TRUE(executed);
+          EXPECT_EQ(_found, result);
+          EXPECT_EQ(_expected, res.data()) << "Expected[" << _expected
+            << "] Received[" << res.data() << "]";
+        });
+
+  // Make sure the resource path is clear
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+
+  // An absolute path should return the same absolute path
+  test(PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+
+  // An absolute path, with the file:// prefix, should return the absolute path
+  test(std::string("file://") +
+      PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+
+  // A non-absolute path with no RESOURCE_PATH should not find the resource
+  test(common::joinPaths("test", "worlds", "plugins.sdf"), "", false);
+
+  // Try again, this time with a RESOURCE_PATH
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH", PROJECT_SOURCE_PATH);
+  test(common::joinPaths("test", "worlds", "plugins.sdf"),
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "plugins.sdf"),
+      true);
+  // With the file:// prefix should also work
+  test(std::string("file://") +
+      common::joinPaths("test", "worlds", "plugins.sdf"),
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "plugins.sdf"),
+      true);
+
+  // The model:// URI should not resolve
+  test("model://include_nested/model.sdf", "", false);
+  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
+  // The model:// URI should now resolve because the RESOURCE_PATH has been
+  // updated.
+  test("model://include_nested/model.sdf",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models",
+        "include_nested", "model.sdf"), true);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Stop)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(common::joinPaths((PROJECT_SOURCE_PATH),
+      "test", "worlds", "shapes.sdf"));
+
+  gazebo::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
+
+  // Run the server.
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_TRUE(*server.Running(0));
+  EXPECT_TRUE(server.Running());
+
+  // Stop the server
+  server.Stop();
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

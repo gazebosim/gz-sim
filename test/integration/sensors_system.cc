@@ -101,9 +101,10 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
   {
     InternalFixture::SetUp();
 
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetName("ignition::gazebo::MockSystem");
+    auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
     this->mockSystem = static_cast<gazebo::MockSystem *>(

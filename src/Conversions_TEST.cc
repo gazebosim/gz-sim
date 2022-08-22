@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Element.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
@@ -1059,4 +1060,99 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, PluginElement)
+{
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "  <plugin filename='plum' name='peach'>"
+      "    <avocado>0.5</avocado>"
+      "  </plugin>"
+      "</world></sdf>");
+
+  auto world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  auto worldElem = world->Element();
+  ASSERT_NE(nullptr, worldElem);
+
+  auto pluginElem = worldElem->GetElement("plugin");
+  ASSERT_NE(nullptr, pluginElem);
+
+  auto pluginMsg = convert<msgs::Plugin>(*(pluginElem.get()));
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Plugin)
+{
+  sdf::Plugin pluginSdf;
+  pluginSdf.SetName("peach");
+  pluginSdf.SetFilename("plum");
+
+  auto content = std::make_shared<sdf::Element>();
+  content->SetName("avocado");
+  content->AddValue("double", "0.5", false, "");
+  pluginSdf.InsertContent(content);
+
+  auto pluginMsg = convert<msgs::Plugin>(pluginSdf);
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos) << pluginMsg.innerxml();
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, MsgsPluginToSdf)
+{
+  std::string innerXml ="<test>another_test</test>\n";
+  std::string innerXml2 ="<peanut>butter</peanut>\n";
+
+  msgs::Plugin msgPlugin;
+  msgPlugin.set_name("foo");
+  msgPlugin.set_filename("bar");
+  msgPlugin.set_innerxml(innerXml);
+
+  // Test conversion of a single msgs::Plugin to sdf::Plugin
+  sdf::Plugin sdfPlugin = convert<sdf::Plugin>(msgPlugin);
+  EXPECT_EQ("foo", sdfPlugin.Name());
+  EXPECT_EQ("bar", sdfPlugin.Filename());
+  ASSERT_EQ(1u, sdfPlugin.Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugin.Contents()[0]->ToString(""));
+
+  // Test conversion of a msgs::Plugin_V with 1 plugin to sdf::Plugins
+  msgs::Plugin_V msgsPlugin;
+  msgsPlugin.add_plugins()->CopyFrom(msgPlugin);
+  sdf::Plugins sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(1u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+
+  // Add another plugin the msgs::Plugin_V
+  msgs::Plugin anotherPlugin;
+  anotherPlugin.set_name("sandwich");
+  anotherPlugin.set_filename("time");
+  anotherPlugin.set_innerxml(innerXml + innerXml2);
+  msgsPlugin.add_plugins()->CopyFrom(anotherPlugin);
+  sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(2u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+  EXPECT_EQ("sandwich", sdfPlugins[1].Name());
+  EXPECT_EQ("time", sdfPlugins[1].Filename());
+  ASSERT_EQ(2u, sdfPlugins[1].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[1].Contents()[0]->ToString(""));
+  EXPECT_EQ(innerXml2, sdfPlugins[1].Contents()[1]->ToString(""));
 }

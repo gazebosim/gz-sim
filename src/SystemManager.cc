@@ -15,6 +15,8 @@
  *
 */
 
+#include "ignition/gazebo/components/SystemPluginInfo.hh"
+#include "ignition/gazebo/Conversions.hh"
 #include "SystemManager.hh"
 
 using namespace ignition;
@@ -23,30 +25,37 @@ using namespace gazebo;
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
                              EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr)
+                             EventManager *_eventMgr,
+                             const std::string &_namespace)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr)
 {
+  transport::NodeOptions opts;
+  opts.SetNameSpace(_namespace);
+  this->node = std::make_unique<transport::Node>(opts);
+  std::string entitySystemService{"entity/system/add"};
+  this->node->Advertise(entitySystemService,
+      &SystemManager::EntitySystemAddService, this);
+  ignmsg << "Serving entity system service on ["
+         << "/" << entitySystemService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
 void SystemManager::LoadPlugin(const Entity _entity,
-                               const std::string &_fname,
-                               const std::string &_name,
-                               const sdf::ElementPtr &_sdf)
+                               const sdf::Plugin &_plugin)
 {
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
+    system = this->systemLoader->LoadPlugin(_plugin);
   }
 
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
+    this->AddSystem(system.value(), _entity, _plugin.ToElement());
+    igndbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -120,6 +129,29 @@ void SystemManager::AddSystemImpl(
       SystemInternal _system,
       std::shared_ptr<const sdf::Element> _sdf)
 {
+  // Add component
+  if (this->entityCompMgr && kNullEntity != _system.parentEntity)
+  {
+    msgs::Plugin_V systemInfoMsg;
+    auto systemInfoComp =
+        this->entityCompMgr->Component<components::SystemPluginInfo>(
+        _system.parentEntity);
+    if (systemInfoComp)
+    {
+      systemInfoMsg = systemInfoComp->Data();
+    }
+    if (_sdf)
+    {
+      auto pluginMsg = systemInfoMsg.add_plugins();
+      pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
+    }
+
+    this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
+        _system.parentEntity, systemInfoMsg);
+    this->entityCompMgr->SetChanged(_system.parentEntity,
+        components::SystemPluginInfo::typeId);
+  }
+
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
@@ -160,16 +192,52 @@ const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 //////////////////////////////////////////////////
 std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
 {
+  auto checkEntity = [&](const SystemInternal &_system)
+      {
+        return _system.parentEntity == _entity;
+      };
+
   std::vector<SystemInternal> result;
-  for (auto system : this->systems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
-  for (auto system : this->pendingSystems)
-  {
-    if (system.parentEntity == _entity)
-      result.push_back(system);
-  }
+  std::copy_if(this->systems.begin(), this->systems.end(),
+      std::back_inserter(result), checkEntity);
+  std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
+      std::back_inserter(result), checkEntity);
   return result;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  this->systemsToAdd.push_back(_req);
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+void SystemManager::ProcessPendingEntitySystems()
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  for (auto &req : this->systemsToAdd)
+  {
+    Entity entity = req.entity().id();
+
+    if (req.plugins().empty())
+    {
+      ignwarn << "Unable to add plugins to Entity: '" << entity
+              << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    for (auto &pluginMsg : req.plugins())
+    {
+      std::string fname = pluginMsg.filename();
+      std::string name = pluginMsg.name();
+      std::string innerxml = pluginMsg.innerxml();
+      sdf::Plugin pluginSDF(fname, name, innerxml);
+      this->LoadPlugin(entity, pluginSDF);
+    }
+  }
+  this->systemsToAdd.clear();
 }

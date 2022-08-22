@@ -54,7 +54,8 @@ void startGui()
 {
   int argc = 1;
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  EXPECT_EQ(0, gazebo::gui::runGui(argc, &argv, "", ""));
+  EXPECT_EQ(0, gazebo::gui::runGui(argc, &argv, nullptr, nullptr, 0,
+      nullptr));
 }
 
 /////////////////////////////////////////////////

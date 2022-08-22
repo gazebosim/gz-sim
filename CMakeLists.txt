@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.9.0)
+project(ignition-gazebo6 VERSION 6.11.0)
+set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
 # Find ignition-cmake
@@ -74,13 +75,13 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.3)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.6)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.4
+ign_find_package(ignition-common4 VERSION 4.5.1
   COMPONENTS
     profiler
     events
@@ -96,7 +97,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -119,7 +120,7 @@ set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
+ign_find_package(ignition-sensors6 REQUIRED VERSION 6.6
   # component order is important
   COMPONENTS
     # non-rendering
@@ -138,6 +139,7 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.1
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
@@ -147,7 +149,7 @@ set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-rendering6 REQUIRED VERSION 6.5)
 set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
 
 #--------------------------------------
@@ -160,6 +162,9 @@ set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
 ign_find_package(ignition-tools
                  REQUIRED
                  PKGCONFIG "ignition-tools")
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find ignition-utils

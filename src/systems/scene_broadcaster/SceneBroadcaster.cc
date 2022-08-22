@@ -45,12 +45,15 @@
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/LogicalCamera.hh"
+#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
 #include "ignition/gazebo/components/Material.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
+#include "ignition/gazebo/components/ParticleEmitter.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/RgbdCamera.hh"
+#include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Static.hh"
 #include "ignition/gazebo/components/ThermalCamera.hh"
@@ -63,6 +66,7 @@
 #include <sdf/Imu.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
@@ -154,6 +158,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
 
+  /// \brief Adds particle emitters to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the particle
+  /// emitters will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
+
   /// \brief Recursively remove entities from the graph
   /// \param[in] _entity Entity
   /// \param[in/out] _graph Scene graph
@@ -236,6 +249,14 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
+
+  /// \brief Flag used to indicate if periodic changes need to be published
+  /// This is currently only used in playback mode.
+  public: bool pubPeriodicChanges{false};
 };
 
 //////////////////////////////////////////////////
@@ -302,8 +323,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -331,8 +356,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   auto now = std::chrono::system_clock::now();
   bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod[_info.paused]);
+  // check if we need to publish periodic changes in playback mode.
+  bool pubChanges = this->dataPtr->pubPeriodicChanges &&
+      _manager.HasPeriodicComponentChanges();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
+       (changeEvent || itsPubTime || pubChanges);
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
@@ -355,9 +383,39 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else if (!_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, periodicComponents);
+
+      if (_manager.HasPeriodicComponentChanges())
+      {
+        auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
+        _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+             {}, periodicComponents);
+        this->dataPtr->pubPeriodicChanges = false;
+      }
+      else
+      {
+        // log files may be recorded at lower rate than sim time step. So in
+        // playback mode, the scene broadcaster may not see any periodic
+        // changed states here since it no longer happens every iteration.
+        // As the result, no state changes are published to be GUI, causing
+        // visuals in the GUI scene to miss updates. The visuals are only
+        // updated if by some timing coincidence that log playback updates
+        // the ECM at the same iteration as when the scene broadcaster is going
+        // to publish perioidc changes here.
+        // To work around the issue, we force the scene broadcaster
+        // to publish states at an offcycle iteration the next time it sees
+        // periodic changes.
+        auto playbackComp =
+            _manager.Component<components::LogPlaybackStatistics>(
+            this->dataPtr->worldEntity);
+        if (playbackComp)
+        {
+          this->dataPtr->pubPeriodicChanges = true;
+        }
+        // this creates an empty state in the msg even there are no periodic
+        // changed components - done to preseve existing behavior.
+        // we may be able to remove this in the future and update tests
+        this->dataPtr->stepMsg.mutable_state();
+      }
     }
 
     // Full state on demand
@@ -615,6 +673,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -984,6 +1043,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Particle emitters
+  _manager.EachNew<components::ParticleEmitter, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitterComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto emitterMsg = std::make_shared<msgs::ParticleEmitter>();
+        emitterMsg->CopyFrom(_emitterComp->Data());
+        emitterMsg->set_id(_entity);
+        emitterMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
   // Update the whole scene graph from the new graph
   {
     std::lock_guard<std::mutex> lock(this->graphMutex);
@@ -1012,6 +1091,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
@@ -1146,6 +1227,24 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto emitterMsg = std::dynamic_pointer_cast<msgs::ParticleEmitter>(
+        vertex.second.get().Data());
+    if (!emitterMsg)
+      continue;
+
+    _msg->add_particle_emitter()->CopyFrom(*emitterMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1170,6 +1269,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Sensors
     AddSensors(msgOut, vertex.second.get().Id(), _graph);
+
+    // Particle emitters
+    AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

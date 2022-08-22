@@ -65,7 +65,10 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
 
     ignition::msgs::StringMsg receivedMsg;
     receivedMsg.ParseFromString(_msg.data());
+
     EXPECT_EQ(expected, receivedMsg.data());
+    ASSERT_GT(_msg.header().data_size(), 0);
+    EXPECT_EQ("rssi", _msg.header().data(0).key());
     msgCounter++;
   };
 

@@ -36,14 +36,14 @@
 #include "ignition/gazebo/components/Geometry.hh"
 #include "ignition/gazebo/components/Gravity.hh"
 #include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/LevelBuffer.hh"
 #include "ignition/gazebo/components/LevelEntityNames.hh"
+#include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LinearVelocity.hh"
 #include "ignition/gazebo/components/LinearVelocitySeed.hh"
 #include "ignition/gazebo/components/MagneticField.hh"
+#include "ignition/gazebo/components/Model.hh"
+#include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Performer.hh"
 #include "ignition/gazebo/components/PerformerLevels.hh"
@@ -229,6 +229,9 @@ void LevelManager::ReadLevelPerformerInfo()
   this->ConfigureDefaultLevel();
 
   // Load world plugins.
+  this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
+      this->runner->sdfWorld->Plugins());
+  // Deprecate this in Garden
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
 
