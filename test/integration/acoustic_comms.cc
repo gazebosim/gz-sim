@@ -34,314 +34,122 @@ using namespace sim;
 /////////////////////////////////////////////////
 class AcousticCommsTest : public InternalFixture<::testing::Test>
 {
+  public:
+    void CommsTestFixture(
+        std::string worldFile,
+        std::string srcAddr, std::string dstAddr,
+        int numMsgs = 3)
+    {
+      // Start server
+      ServerConfig serverConfig;
+      const auto sdfFile =
+        gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+          "examples", "worlds", worldFile);
+      serverConfig.SetSdfFile(sdfFile);
+
+      Server server(serverConfig);
+      EXPECT_FALSE(server.Running());
+      EXPECT_FALSE(*server.Running(0));
+
+      // Run server
+      size_t iters = 1000;
+      server.Run(true, iters, false);
+
+      int msgCounter = 0;
+      std::mutex mutex;
+      auto cb = [&](const msgs::Dataframe &_msg) -> void
+      {
+        // Verify msg content
+        std::lock_guard<std::mutex> lock(mutex);
+        std::string expected = "hello world " + std::to_string(msgCounter);
+
+        gz::msgs::StringMsg receivedMsg;
+        receivedMsg.ParseFromString(_msg.data());
+        EXPECT_EQ(expected, receivedMsg.data());
+        msgCounter++;
+      };
+
+      // Create subscriber.
+      gz::transport::Node node;
+      std::string addr  = dstAddr;
+      std::string subscriptionTopic = dstAddr + "/rx";
+
+      // Subscribe to a topic by registering a callback.
+      auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
+      EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
+          << "Error subscribing to topic [" << subscriptionTopic << "]";
+
+      // Create publisher.
+      std::string publicationTopic = "/broker/msgs";
+      auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      // Prepare the message.
+      gz::msgs::Dataframe msg;
+      msg.set_src_address(srcAddr);
+      msg.set_dst_address(addr);
+
+      // Publish some messages.
+      gz::msgs::StringMsg payload;
+      int pubCount = numMsgs;
+      for (int i = 0; i < pubCount; ++i)
+      {
+        // Prepare the payload.
+        payload.set_data("hello world " + std::to_string(i));
+        std::string serializedData;
+        EXPECT_TRUE(payload.SerializeToString(&serializedData))
+            << payload.DebugString();
+        msg.set_data(serializedData);
+        EXPECT_TRUE(pub.Publish(msg));
+        server.Run(true, 100, false);
+      }
+
+      // Verify subscriber received all msgs.
+      int sleep = 0;
+      bool done = false;
+      while (!done && sleep++ < 3)
+      {
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          done = (msgCounter == pubCount) && (pubCount != 0);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+      EXPECT_EQ(pubCount, msgCounter);
+    }
 };
 
 /////////////////////////////////////////////////
 TEST_F(AcousticCommsTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsInRange))
 {
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile =
-    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "examples", "worlds", "acoustic_comms.sdf");
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  // Run server
-  size_t iters = 1000;
-  server.Run(true, iters, false);
-
-  unsigned int msgCounter = 0u;
-  std::mutex mutex;
-  auto cb = [&](const msgs::Dataframe &_msg) -> void
-  {
-    // Verify msg content
-    std::lock_guard<std::mutex> lock(mutex);
-    std::string expected = "hello world " + std::to_string(msgCounter);
-
-    gz::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
-    EXPECT_EQ(expected, receivedMsg.data());
-    msgCounter++;
-  };
-
-  // Create subscriber.
-  gz::transport::Node node;
-  std::string addr  = "addr1";
-  std::string subscriptionTopic = "addr1/rx";
-
-  // Subscribe to a topic by registering a callback.
-  auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
-  EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
-      << "Error subscribing to topic [" << subscriptionTopic << "]";
-
-  // Create publisher.
-  std::string publicationTopic = "/broker/msgs";
-  auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  // Prepare the message.
-  gz::msgs::Dataframe msg;
-  msg.set_src_address("addr2");
-  msg.set_dst_address(addr);
-
-  // Publish some messages.
-  gz::msgs::StringMsg payload;
-  unsigned int pubCount = 3u;
-  for (unsigned int i = 0u; i < pubCount; ++i)
-  {
-    // Prepare the payload.
-    payload.set_data("hello world " + std::to_string(i));
-    std::string serializedData;
-    EXPECT_TRUE(payload.SerializeToString(&serializedData))
-        << payload.DebugString();
-    msg.set_data(serializedData);
-    EXPECT_TRUE(pub.Publish(msg));
-    server.Run(true, 100, false);
-  }
-
-  // Verify subscriber received all msgs.
-  int sleep = 0;
-  bool done = false;
-  while (!done && sleep++ < 3)
-  {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      done = msgCounter == pubCount;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_EQ(pubCount, msgCounter);
-}
-
-/////////////////////////////////////////////////
-TEST_F(AcousticCommsTest,
-    GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsOutOfRange))
-{
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile =
-    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "examples", "worlds", "acoustic_comms.sdf");
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  // Run server
-  size_t iters = 1000;
-  server.Run(true, iters, false);
-
-  unsigned int msgCounter = 0u;
-  std::mutex mutex;
-  auto cb = [&](const msgs::Dataframe &_msg) -> void
-  {
-    // Verify msg content
-    std::lock_guard<std::mutex> lock(mutex);
-    msgCounter++;
-  };
-
-  // Create subscriber.
-  gz::transport::Node node;
-  std::string addr  = "addr3";
-  std::string subscriptionTopic = "addr3/rx";
-
-  // Subscribe to a topic by registering a callback.
-  auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
-  EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
-      << "Error subscribing to topic [" << subscriptionTopic << "]";
-
-  // Create publisher.
-  std::string publicationTopic = "/broker/msgs";
-  auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  // Prepare the message.
-  gz::msgs::Dataframe msg;
-  msg.set_src_address("addr4");
-  msg.set_dst_address(addr);
-
-  // Publish some messages.
-  gz::msgs::StringMsg payload;
-  unsigned int pubCount = 3u;
-  for (unsigned int i = 0u; i < pubCount; ++i)
-  {
-    // Prepare the payload.
-    payload.set_data("hello world " + std::to_string(i));
-    std::string serializedData;
-    EXPECT_TRUE(payload.SerializeToString(&serializedData))
-        << payload.DebugString();
-    msg.set_data(serializedData);
-    EXPECT_TRUE(pub.Publish(msg));
-    server.Run(true, 100, false);
-  }
-
-  // Verify subscriber received no msgs.
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  EXPECT_EQ(0, msgCounter);
+  this->CommsTestFixture("acoustic_comms.sdf", "addr2", "addr1");
 }
 
 /////////////////////////////////////////////////
 TEST_F(AcousticCommsTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsMovingSource))
 {
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile =
-    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "examples", "worlds", "acoustic_comms_moving_targets.sdf");
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  // Run server
-  size_t iters = 1000;
-  server.Run(true, iters, false);
-
-  unsigned int msgCounter = 0u;
-  std::mutex mutex;
-  auto cb = [&](const msgs::Dataframe &_msg) -> void
-  {
-    // Verify msg content
-    std::lock_guard<std::mutex> lock(mutex);
-    std::string expected = "hello world " + std::to_string(msgCounter);
-
-    gz::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
-    EXPECT_EQ(expected, receivedMsg.data());
-    msgCounter++;
-  };
-
-  // Create subscriber.
-  gz::transport::Node node;
-  std::string addr  = "addr1";
-  std::string subscriptionTopic = "addr1/rx";
-
-  // Subscribe to a topic by registering a callback.
-  auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
-  EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
-      << "Error subscribing to topic [" << subscriptionTopic << "]";
-
-  // Create publisher.
-  std::string publicationTopic = "/broker/msgs";
-  auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  // Prepare the message.
-  gz::msgs::Dataframe msg;
-  msg.set_src_address("addr2");
-  msg.set_dst_address(addr);
-
-  // Publish some messages.
-  gz::msgs::StringMsg payload;
-  unsigned int pubCount = 3u;
-  for (unsigned int i = 0u; i < pubCount; ++i)
-  {
-    // Prepare the payload.
-    payload.set_data("hello world " + std::to_string(i));
-    std::string serializedData;
-    EXPECT_TRUE(payload.SerializeToString(&serializedData))
-        << payload.DebugString();
-    msg.set_data(serializedData);
-    EXPECT_TRUE(pub.Publish(msg));
-    server.Run(true, 100, false);
-  }
-
-  // Verify subscriber received all msgs.
-  int sleep = 0;
-  bool done = false;
-  while (!done && sleep++ < 3)
-  {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      done = msgCounter == pubCount;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_EQ(pubCount, msgCounter);
+  // The source is moving and the destination is stationary.
+  this->CommsTestFixture(
+      "acoustic_comms_moving_targets.sdf",
+      "addr2", "addr1");
 }
 
 /////////////////////////////////////////////////
 TEST_F(AcousticCommsTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsMovingDst))
 {
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile =
-    gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "examples", "worlds", "acoustic_comms_moving_targets.sdf");
-  serverConfig.SetSdfFile(sdfFile);
+  // The source is stationary and the destnation is moving.
+  this->CommsTestFixture(
+      "acoustic_comms_moving_targets.sdf",
+      "addr4", "addr3");
+}
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  // Run server
-  size_t iters = 1000;
-  server.Run(true, iters, false);
-
-  unsigned int msgCounter = 0u;
-  std::mutex mutex;
-  auto cb = [&](const msgs::Dataframe &_msg) -> void
-  {
-    // Verify msg content
-    std::lock_guard<std::mutex> lock(mutex);
-    std::string expected = "hello world " + std::to_string(msgCounter);
-
-    gz::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
-    EXPECT_EQ(expected, receivedMsg.data());
-    msgCounter++;
-  };
-
-  // Create subscriber.
-  gz::transport::Node node;
-  std::string addr  = "addr3";
-  std::string subscriptionTopic = "addr3/rx";
-
-  // Subscribe to a topic by registering a callback.
-  auto cbFunc = std::function<void(const msgs::Dataframe &)>(cb);
-  EXPECT_TRUE(node.Subscribe(subscriptionTopic, cbFunc))
-      << "Error subscribing to topic [" << subscriptionTopic << "]";
-
-  // Create publisher.
-  std::string publicationTopic = "/broker/msgs";
-  auto pub = node.Advertise<gz::msgs::Dataframe>(publicationTopic);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  // Prepare the message.
-  gz::msgs::Dataframe msg;
-  msg.set_src_address("addr4");
-  msg.set_dst_address(addr);
-
-  // Publish some messages.
-  gz::msgs::StringMsg payload;
-  unsigned int pubCount = 3u;
-  for (unsigned int i = 0u; i < pubCount; ++i)
-  {
-    // Prepare the payload.
-    payload.set_data("hello world " + std::to_string(i));
-    std::string serializedData;
-    EXPECT_TRUE(payload.SerializeToString(&serializedData))
-        << payload.DebugString();
-    msg.set_data(serializedData);
-    EXPECT_TRUE(pub.Publish(msg));
-    server.Run(true, 100, false);
-  }
-
-  // Verify subscriber received all msgs.
-  int sleep = 0;
-  bool done = false;
-  while (!done && sleep++ < 3)
-  {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      done = msgCounter == pubCount;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_EQ(pubCount, msgCounter);
+/////////////////////////////////////////////////
+TEST_F(AcousticCommsTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsOutOfRange))
+{
+  // Source and destination are outise the maximum allowed range
+  // and hence should not receive any msgs.
+  this->CommsTestFixture("acoustic_comms.sdf", "addr4", "addr3", 0);
 }
