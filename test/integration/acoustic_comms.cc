@@ -149,7 +149,7 @@ TEST_F(AcousticCommsTest,
 TEST_F(AcousticCommsTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(AcousticCommsOutOfRange))
 {
-  // Source and destination are outise the maximum allowed range
+  // Source and destination are outside the maximum allowed range
   // and hence should not receive any msgs.
   this->CommsTestFixture("acoustic_comms.sdf", "addr4", "addr3", 0);
 }
