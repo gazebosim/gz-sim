@@ -108,8 +108,10 @@ TEST_F(AcousticCommsTest,
   bool done = false;
   while (!done && sleep++ < 3)
   {
-    std::lock_guard<std::mutex> lock(mutex);
-    done = msgCounter == pubCount;
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      done = msgCounter == pubCount;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_EQ(pubCount, msgCounter);
@@ -178,12 +180,7 @@ TEST_F(AcousticCommsTest,
   }
 
   // Verify subscriber received no msgs.
-  int sleep = 0;
-  while (sleep++ < 3)
-  {
-    std::lock_guard<std::mutex> lock(mutex);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(300));
   EXPECT_EQ(0, msgCounter);
 }
 
@@ -259,8 +256,10 @@ TEST_F(AcousticCommsTest,
   bool done = false;
   while (!done && sleep++ < 3)
   {
-    std::lock_guard<std::mutex> lock(mutex);
-    done = msgCounter == pubCount;
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      done = msgCounter == pubCount;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_EQ(pubCount, msgCounter);
@@ -338,8 +337,10 @@ TEST_F(AcousticCommsTest,
   bool done = false;
   while (!done && sleep++ < 3)
   {
-    std::lock_guard<std::mutex> lock(mutex);
-    done = msgCounter == pubCount;
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      done = msgCounter == pubCount;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_EQ(pubCount, msgCounter);
