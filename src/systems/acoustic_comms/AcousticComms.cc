@@ -70,6 +70,10 @@ void AcousticComms::Load(
   {
     this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
   }
+
+  gzmsg << "AcousticComms configured with max range : " <<
+    this->dataPtr->maxRange << " m and speed of sound : " <<
+    this->dataPtr->speedOfSound << " m/s." << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -144,27 +148,26 @@ void AcousticComms::Step(
             worldPose(itSrc->second.entity, _ecm).Pos();
         }
 
-        math::Vector3d poseSrc =
+        const auto& poseSrc =
           this->dataPtr->poseSrcAtMsgTimestamp[msg];
 
         // Calculate distance between the bodies.
-        auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
-        auto distanceToTransmitter =
-          (poseSrc - poseDst).Length();
+        const auto poseDst = worldPose(itDst->second.entity, _ecm).Pos();
+        const auto distanceToTransmitter = (poseSrc - poseDst).Length();
 
         // Calculate distance covered by the message.
-        std::chrono::steady_clock::time_point currTime(_info.simTime);
-        auto timeOfTransmission = msg->mutable_header()->stamp();
+        const std::chrono::steady_clock::time_point currTime(_info.simTime);
+        const auto timeOfTransmission = msg->mutable_header()->stamp();
 
-        auto currTimestamp =
-          std::chrono::nanoseconds(currTime.time_since_epoch().count());
-        auto packetTimestamp =
+        const auto currTimestamp =
+          std::chrono::nanoseconds(currTime.time_since_epoch());
+        const auto packetTimestamp =
           std::chrono::seconds(timeOfTransmission.sec()) +
           std::chrono::nanoseconds(timeOfTransmission.nsec());
 
-        std::chrono::duration<double> deltaT =
+        const std::chrono::duration<double> deltaT =
           currTimestamp - packetTimestamp;
-        double distanceCoveredByMessage = deltaT.count() *
+        const double distanceCoveredByMessage = deltaT.count() *
           this->dataPtr->speedOfSound;
 
         // Check the msgs that haven't exceeded the maxRange.
