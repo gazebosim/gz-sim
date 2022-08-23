@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include <mutex>
 #include <ignition/transport/Node.hh>
 #include "ignition/gazebo/System.hh"
 
@@ -229,7 +229,7 @@ namespace systems
     };
 
     /// \brief Class that holds necessary bits for each specified service output
-    private: struct ServOutputInfo
+    private: struct SrvOutputInfo
     {
       /// \brief Service name
       std::string srvName;
@@ -254,7 +254,7 @@ namespace systems
     private: std::vector<OutputInfo> outputInfo;
 
     /// \brief List of service outputs
-    private: std::vector<ServOutputInfo> servOutputInfo;
+    private: std::vector<SrvOutputInfo> srvOutputInfo;
 
     /// \brief Ignition communication node.
     private: transport::Node node;
@@ -263,13 +263,13 @@ namespace systems
     private: std::size_t publishCount{0};
 
     /// \brief Flag to trigger calling a service in the DoWork thread
-    private: bool triggerServ{false};
+    private: bool triggerSrv{false};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
 
     /// \brief Mutex to synchronize access to serviceCount
-    private: std::mutex triggerServMutex;
+    private: std::mutex triggerSrvMutex;
 
     /// \brief Condition variable to signal that new matches have occured
     private: std::condition_variable newMatchSignal;

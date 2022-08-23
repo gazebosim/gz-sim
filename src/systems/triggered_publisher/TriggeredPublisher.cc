@@ -609,7 +609,7 @@ void TriggeredPublisher::Configure(const Entity &,
     for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
          serviceElem = serviceElem->GetNextElement("service"))
     {
-      ServOutputInfo serviceInfo;
+      SrvOutputInfo serviceInfo;
       serviceInfo.srvName = serviceElem->Get<std::string>("name");
       if (serviceInfo.srvName.empty())
       {
@@ -642,7 +642,7 @@ void TriggeredPublisher::Configure(const Entity &,
       }
 
       serviceInfo.timeout = std::stoi(timeoutInfo);
-      this->servOutputInfo.push_back(std::move(serviceInfo));
+      this->srvOutputInfo.push_back(std::move(serviceInfo));
     }
   }
   if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
@@ -670,11 +670,11 @@ void TriggeredPublisher::Configure(const Entity &,
             }
             this->newMatchSignal.notify_one();
           }
-          if (this->servOutputInfo.size() > 0)
+          if (this->srvOutputInfo.size() > 0)
           {
             {
-              std::lock_guard<std::mutex> lock(this->triggerServMutex);
-              this->triggerServ = true;
+              std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+              this->triggerSrv = true;
             }
             this->newMatchSignal.notify_one();
           }
@@ -718,7 +718,7 @@ void TriggeredPublisher::PublishMsg(std::size_t pending)
 //////////////////////////////////////////////////
 void TriggeredPublisher::CallService()
 {
-  for (auto &serviceInfo : this->servOutputInfo)
+  for (auto &serviceInfo : this->srvOutputInfo)
   {
     bool result;
     auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
@@ -755,8 +755,8 @@ void TriggeredPublisher::CallService()
       ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
     }
     {
-      std::lock_guard<std::mutex> lock(this->triggerServMutex);
-      this->triggerServ = false;
+      std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+      this->triggerSrv = false;
     }
   }
 }
@@ -773,7 +773,7 @@ void TriggeredPublisher::DoWork()
       this->newMatchSignal.wait_for(lock, 1s,
         [this]
         {
-          return (this->publishCount > 0) || this-> triggerServ || this->done;
+          return (this->publishCount > 0) || this-> triggerSrv || this->done;
         });
 
       if (this->publishCount == 0 || this->done)
@@ -788,7 +788,7 @@ void TriggeredPublisher::DoWork()
     {
       PublishMsg(pending);
     }
-    if (this->triggerServ)
+    if (this->triggerSrv)
     {
       CallService();
     }
