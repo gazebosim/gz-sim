@@ -104,15 +104,18 @@ class AcousticCommsTest : public InternalFixture<::testing::Test>
       }
 
       // Verify subscriber received all msgs.
-      int sleep = 0;
       bool done = false;
-      while (!done && sleep++ < 3)
+      for (int sleep = 0; !done && sleep < 3; ++sleep)
       {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         {
           std::lock_guard<std::mutex> lock(mutex);
           done = (msgCounter == pubCount) && (pubCount != 0);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+      if (numMsgs != 0) 
+      {
+        EXPECT_TRUE(done);
       }
       EXPECT_EQ(pubCount, msgCounter);
     }
