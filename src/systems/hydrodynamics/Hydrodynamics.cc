@@ -113,9 +113,6 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
-  /// \brief Previous state derivative
-  public: Eigen::VectorXd prevStateDot;
-
   /// \brief Link entity
   public: Entity linkEntity;
 
@@ -272,7 +269,6 @@ void Hydrodynamics::Configure(
   }
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
-  this->dataPtr->prevStateDot = Eigen::VectorXd::Zero(6);
 
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
@@ -346,12 +342,9 @@ void Hydrodynamics::PreUpdate(
 
   // TODO(anyone) Make this configurable
   auto dt = static_cast<double>(_info.dt.count())/1e9;
-  auto alpha = 0.9;
-  stateDot = alpha * (state - this->dataPtr->prevState)/dt
-    + (1-alpha) * this->dataPtr->prevStateDot;
+  stateDot = (state - this->dataPtr->prevState)/dt;
 
   this->dataPtr->prevState = state;
-  this->dataPtr->prevStateDot = stateDot;
 
   // The added mass
   // Negative sign signifies the behaviour change
