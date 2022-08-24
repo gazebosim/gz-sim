@@ -104,6 +104,9 @@ COMMANDS = { 'sim' =>
   "  --log-compress               When recording, compress final log files.        \n"\
   "                               Only valid if recording is enabled.              \n"\
   "\n"\
+  "  --seed [arg]                 Pass a custom seed value to the random           \n"\
+  "                               number generator.                                \n"\
+  "\n"\
   "  --playback [arg]             Use logging system to play back states.          \n"\
   "                               Argument is path to recorded states.             \n"\
   "\n"\
@@ -224,7 +227,8 @@ class Cmd
       'render_engine_gui' => '',
       'render_engine_server' => '',
       'wait_gui' => 1,
-      'headless-rendering' => 0
+      'headless-rendering' => 0,
+      'seed' => 0
     }
 
     usage = COMMANDS[args[0]]
@@ -316,6 +320,9 @@ class Cmd
       end
       opts.on('--version') do
         options['version'] = '1'
+      end
+      opts.on('--seed [arg]', Integer) do |i|
+        options['seed'] = i
       end
 
     end # opt_parser do
@@ -455,7 +462,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
                                const char *, const char *, const char *,
-                               const char *, int, int)'
+                               const char *, int, int, int)'
 
       # Import the runGui function
       Importer.extern 'int runGui(const char *, const char *, int, const char *)'
@@ -490,7 +497,8 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
             options['wait_gui'],
-            options['headless-rendering'])
+            options['headless-rendering'], options['seed'])
+
         end
 
         guiPid = Process.fork do
@@ -527,8 +535,10 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['playback'], options['physics_engine'],
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
-            options['wait_gui'], options['headless-rendering'])
-            # Otherwise run the gui
+            options['wait_gui'],
+            options['headless-rendering'], options['seed'])
+      # Otherwise run the gui
+
       else options['gui']
         if plugin.end_with? ".dylib"
           puts "`gz sim` currently only works with the -s argument on macOS.
