@@ -27,7 +27,7 @@ namespace sim
 namespace python
 {
 /////////////////////////////////////////////////
-void defineGazeboEventManager(pybind11::object module)
+void defineSimEventManager(pybind11::object module)
 {
   pybind11::class_<gz::sim::EventManager>(module, "EventManager")
   .def(pybind11::init<>());

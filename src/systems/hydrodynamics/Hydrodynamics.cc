@@ -203,16 +203,7 @@ void Hydrodynamics::Configure(
   gz::sim::EventManager &/*_eventMgr*/
 )
 {
-  if (_sdf->HasElement("waterDensity"))
-  {
-    gzwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
-      << "\tPlease update your SDF to use <water_density> instead.";
-  }
-
-  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity",
-                                      SdfParamDouble(_sdf, "water_density", 998)
-                                    );
+  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "water_density", 998);
   this->dataPtr->paramXdotU       = SdfParamDouble(_sdf, "xDotU"       , 5);
   this->dataPtr->paramYdotV       = SdfParamDouble(_sdf, "yDotV"       , 5);
   this->dataPtr->paramZdotW       = SdfParamDouble(_sdf, "zDotW"       , 0.1);

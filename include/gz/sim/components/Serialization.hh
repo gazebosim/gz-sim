@@ -17,7 +17,17 @@
 #ifndef GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 #define GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message_lite.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/double_v.pb.h>
 
 #include <string>
@@ -38,7 +48,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace traits
 {
-  /// \brief Type trait that determines if an gz::sim::convert from In
+  /// \brief Type trait that determines if a gz::sim::convert from In
   /// to Out is defined.
   /// Usage:
   /// \code

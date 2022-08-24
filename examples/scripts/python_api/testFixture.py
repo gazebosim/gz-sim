@@ -24,9 +24,9 @@
 
 import os
 
-from ignition.common import set_verbosity
-from ignition.gazebo import TestFixture, World, world_entity
-from ignition.math import Vector3d
+from gz.common import set_verbosity
+from gz.sim import TestFixture, World, world_entity
+from gz.math import Vector3d
 
 set_verbosity(4)
 

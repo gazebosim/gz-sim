@@ -318,7 +318,7 @@ namespace gz::sim
       msgs::Boolean &_res);
 
     /// \brief Create a frame visual
-    /// \param[in] _id Unique visual id to be used internally by ign-rendering.
+    /// \param[in] _id Unique visual id to be used internally by gz-rendering.
     /// This is NOT a Gazebo Entity ID.
     /// \param[in] _parent Visual parent
     /// \return Visual (frame) object created
@@ -529,7 +529,7 @@ namespace gz::sim
     /// are currently visible
     public: std::map<Entity, bool> viewingFrames;
 
-    /// \brief A map of entities and the ign-rendering ID of their frame visuals
+    /// \brief A map of entities and the gz-rendering ID of their frame visuals
     public: std::map<Entity, unsigned int> entityToFrameVisuals;
 
     /// \brief Target to view frame
@@ -1554,10 +1554,10 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
     else if (_visual.Geom()->Type() != sdf::GeometryType::MESH)
     {
       // create default material
-      material = this->scene->Material("ign-grey");
+      material = this->scene->Material("gz-grey");
       if (!material)
       {
-        material = this->scene->CreateMaterial("ign-grey");
+        material = this->scene->CreateMaterial("gz-grey");
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
@@ -1595,7 +1595,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.
-      // This is not ideal. We should let ign-rendering handle the lifetime
+      // This is not ideal. We should let gz-rendering handle the lifetime
       // of this material
       this->scene->DestroyMaterial(material);
     }

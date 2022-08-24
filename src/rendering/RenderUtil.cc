@@ -52,6 +52,7 @@
 #include <gz/rendering/Scene.hh>
 
 #include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/CastShadows.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -79,6 +80,7 @@
 #include "gz/sim/components/SegmentationCamera.hh"
 #include "gz/sim/components/SemanticLabel.hh"
 #include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Temperature.hh"
 #include "gz/sim/components/TemperatureRange.hh"
 #include "gz/sim/components/ThermalCamera.hh"
@@ -777,6 +779,18 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
   this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindJointModels(_ecm);
   this->dataPtr->FindCollisionLinks(_ecm);
+
+  // Get the SphericalCoordinate object from the world
+  // and supply it to the SceneManager
+  auto worldEntity = _ecm.EntityByComponents(components::World());
+  auto sphericalCoordinatesComponent =
+    _ecm.Component<components::SphericalCoordinates>(
+        worldEntity);
+  if (sphericalCoordinatesComponent)
+  {
+    this->dataPtr->sceneManager.SetSphericalCoordinates(
+        sphericalCoordinatesComponent->Data());
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1233,7 +1247,7 @@ void RenderUtil::Update()
 
         // two sensors with the same name cause conflicts. We'll need to use
         // scoped names
-        // TODO(anyone) do this in ign-sensors?
+        // TODO(anyone) do this in gz-sensors?
         auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
         if (!parentNode)
         {
@@ -1645,6 +1659,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
@@ -1887,6 +1902,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           return true;
         });
 
+    // Create bounding box cameras
+    _ecm.Each<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
+          return true;
+        });
+
     // Create wide angle cameras
     _ecm.Each<components::WideAngleCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1910,6 +1936,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
   const std::string segmentationCameraSuffix{"/segmentation"};
+  const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
   // Get all the new worlds
@@ -2153,6 +2180,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           return true;
         });
 
+    // Create bounding box cameras
+    _ecm.EachNew<components::BoundingBoxCamera, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::BoundingBoxCamera *_boundingBoxCamera,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _boundingBoxCamera->Data(),
+            _parent->Data(), boundingBoxCameraSuffix);
+          return true;
+        });
+
     // Create wide angle cameras
     _ecm.EachNew<components::WideAngleCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2211,7 +2249,7 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
         auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
 
-        // Animation time set through ECM so ign-rendering can calculate bone
+        // Animation time set through ECM so gz-rendering can calculate bone
         // transforms
         if (animTimeComp && animNameComp)
         {
@@ -2228,14 +2266,14 @@ void RenderUtilPrivate::UpdateRenderingEntities(
             this->actorAnimationData[_entity] = animData;
           }
         }
-        // Bone poses calculated by ign-common
+        // Bone poses calculated by gz-common
         else if (this->actorManualSkeletonUpdate)
         {
           this->actorTransforms[_entity] =
               this->sceneManager.ActorSkeletonTransformsAt(
               _entity, this->simTime);
         }
-        // Trajectory info from SDF so ign-rendering can calculate bone poses
+        // Trajectory info from SDF so gz-rendering can calculate bone poses
         else
         {
           auto animData =
@@ -2318,6 +2356,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
   _ecm.Each<components::SegmentationCamera, components::Pose>(
       [&](const Entity &_entity,
         const components::SegmentationCamera *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });
+
+  // Update bounding box cameras
+  _ecm.Each<components::BoundingBoxCamera, components::Pose>(
+      [&](const Entity &_entity,
+        const components::BoundingBoxCamera *,
         const components::Pose *_pose)->bool
       {
         this->entityPoses[_entity] = _pose->Data();
@@ -2459,6 +2507,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // segmentation cameras
   _ecm.EachRemoved<components::SegmentationCamera>(
     [&](const Entity &_entity, const components::SegmentationCamera *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // bounding box cameras
+  _ecm.EachRemoved<components::BoundingBoxCamera>(
+    [&](const Entity &_entity, const components::BoundingBoxCamera *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

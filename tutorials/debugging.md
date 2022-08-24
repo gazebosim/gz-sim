@@ -14,9 +14,9 @@ following two sections for instructions concerning each case.
 
 1. Find the `gz` executable:
 
-    `which ign`
+    `which gz`
 
-    The following instructions will assume the output was `/usr/bin/ign`, be
+    The following instructions will assume the output was `/usr/bin/gz`, be
     sure to change it accordingly.
 
 2. Launch `gdb`

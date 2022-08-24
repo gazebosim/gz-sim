@@ -100,9 +100,10 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
   {
     InternalFixture::SetUp();
 
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "gz::sim::MockSystem",
-                                nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
     this->mockSystem = static_cast<sim::MockSystem *>(

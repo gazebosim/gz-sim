@@ -23,8 +23,8 @@
 #include <gz/rendering/Scene.hh>
 
 /// \brief Example of a GUI plugin that uses Gazebo Rendering.
-/// This plugin works with either Gazebo GUI's Scene3D or Gazebo Sim's
-/// Scene3D.
+/// This plugin works with Gazebo GUI's MinimalScene or any plugin providing
+/// similar functionality.
 class RenderingGuiPlugin : public gz::gui::Plugin
 {
   Q_OBJECT

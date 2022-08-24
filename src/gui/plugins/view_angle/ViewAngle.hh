@@ -34,7 +34,6 @@ namespace sim
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive view angle requests.
-  /// \<legacy\> : Set to true to use with GzScene3D, false to use with
   /// MinimalScene. Defaults to true.
   class ViewAngle : public gz::gui::Plugin
   {

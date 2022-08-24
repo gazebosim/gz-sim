@@ -29,7 +29,6 @@
 #include <gz/gui/Plugin.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
-#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointAxis.hh"
@@ -68,9 +67,7 @@ TEST_F(Plot3D, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
   // Create GUI runner to handle sim::gui plugins
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   auto runner = new sim::GuiRunner("test");
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
   runner->setParent(gui::App());
 
   // Add plugin

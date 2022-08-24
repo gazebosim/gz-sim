@@ -1761,3 +1761,35 @@ msgs::Plugin gz::sim::convert(const sdf::Plugin &_in)
 
   return result;
 }
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+msgs::Plugin_V gz::sim::convert(const sdf::Plugins &_in)
+{
+  msgs::Plugin_V result;
+  for (const sdf::Plugin &plugin : _in)
+  {
+    result.add_plugins()->CopyFrom(convert<msgs::Plugin>(plugin));
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+sdf::Plugin gz::sim::convert(const msgs::Plugin &_in)
+{
+  return sdf::Plugin(_in.filename(), _in.name(), _in.innerxml());
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+sdf::Plugins gz::sim::convert(const msgs::Plugin_V &_in)
+{
+  sdf::Plugins result;
+  for (int i = 0; i < _in.plugins_size(); ++i)
+    result.push_back(convert<sdf::Plugin>(_in.plugins(i)));
+  return result;
+}

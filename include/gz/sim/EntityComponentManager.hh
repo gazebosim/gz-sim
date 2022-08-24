@@ -201,13 +201,6 @@ namespace gz
       /// \return True if the provided _typeId has been created.
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
-      /// \brief Check whether an entity has a specific component.
-      /// \param[in] _entity The entity to check.
-      /// \param[in] _key The component to check.
-      /// \return True if the component key belongs to the entity.
-      public: bool GZ_DEPRECATED(6) EntityHasComponent(const Entity _entity,
-                  const ComponentKey &_key) const;
-
       /// \brief Check whether an entity has a specific component type.
       /// \param[in] _entity The entity to check.
       /// \param[in] _typeId Component type id to check.
@@ -222,14 +215,6 @@ namespace gz
       /// \return True if the given entity has all the given types.
       public: bool EntityMatches(Entity _entity,
         const std::set<ComponentTypeId> &_types) const;
-
-      /// \brief Remove a component from an entity based on a key.
-      /// \param[in] _entity The entity.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return True if the entity and component existed and the component was
-      ///  removed.
-      public: bool GZ_DEPRECATED(6) RemoveComponent(
-                  const Entity _entity, const ComponentKey &_key);
 
       /// \brief Remove a component from an entity based on a type id.
       /// \param[in] _entity The entity.
@@ -280,22 +265,6 @@ namespace gz
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const Entity _entity);
 
-      /// \brief Get a component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
-      public: template<typename ComponentTypeT>
-              const ComponentTypeT GZ_DEPRECATED(6) * Component(
-              const ComponentKey &_key) const;
-
-      /// \brief Get a mutable component based on a key.
-      /// \param[in] _key A key that uniquely identifies a component.
-      /// \return The component associated with the key, or nullptr if the
-      /// component could not be found.
-      public: template<typename ComponentTypeT>
-              ComponentTypeT GZ_DEPRECATED(6) * Component(
-              const ComponentKey &_key);
-
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type. If the component doesn't exist, create it and
       /// initialize with the given default value.
@@ -340,18 +309,6 @@ namespace gz
       /// \return All the component type IDs.
       public: std::unordered_set<ComponentTypeId> ComponentTypes(
           Entity _entity) const;
-
-      /// \brief The first component instance of the specified type.
-      /// This function is now deprecated, and will always return nullptr.
-      /// \return nullptr.
-      public: template<typename ComponentTypeT>
-              const ComponentTypeT GZ_DEPRECATED(6) * First() const;
-
-      /// \brief The first component instance of the specified type.
-      /// This function is now deprecated, and will always return nullptr.
-      /// \return nullptr.
-      public: template<typename ComponentTypeT>
-              ComponentTypeT GZ_DEPRECATED(6) * First();
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which

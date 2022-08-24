@@ -139,7 +139,7 @@ GridLayout {
     text: "Point Size"
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     id: pointSize
     maximumValue: 1000

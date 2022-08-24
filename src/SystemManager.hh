@@ -17,10 +17,15 @@
 #ifndef GZ_SIM_SYSTEMMANAGER_HH_
 #define GZ_SIM_SYSTEMMANAGER_HH_
 
+#include <gz/msgs/entity_plugin_v.pb.h>
+
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <sdf/Plugin.hh>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -47,19 +52,17 @@ namespace gz
       ///  be used when configuring new systems
       /// \param[in] _eventMgr Pointer to the event manager to be used when
       ///  configuring new systems
+      /// \param[in] _namespace Namespace to use for the transport node
       public: explicit SystemManager(const SystemLoaderPtr &_systemLoader,
                             EntityComponentManager *_entityCompMgr = nullptr,
-                            EventManager *_eventMgr = nullptr);
+                            EventManager *_eventMgr = nullptr,
+                            const std::string &_namespace = std::string());
 
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
-      /// \param[in] _fname Filename of the plugin library
-      /// \param[in] _name Name of the plugin
-      /// \param[in] _sdf SDF element (content of plugin tag)
+      /// \param[in] _plugin Plugin to load
       public: void LoadPlugin(const Entity _entity,
-                              const std::string &_fname,
-                              const std::string &_name,
-                              const sdf::ElementPtr &_sdf);
+                              const sdf::Plugin &_plugin);
 
       /// \brief Add a system to the manager
       /// \param[in] _system SystemPluginPtr to be added
@@ -139,6 +142,9 @@ namespace gz
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
+      /// \brief Process system messages and add systems to entities
+      public: void ProcessPendingEntitySystems();
+
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
       /// \param[in] _system Generic representation of a system.
@@ -153,6 +159,15 @@ namespace gz
       /// \param[in] _sdf SDF received from AddSystem.
       private: void AddSystemImpl(SystemInternal _system,
                                   const sdf::Plugin &_sdf);
+
+      /// \brief Callback for entity add system service.
+      /// \param[in] _req Request message containing the entity id and plugins
+      /// to add to that entity
+      /// \param[out] _res Response containing a boolean value indicating if
+      /// service request is received or not
+      /// \return True if request received.
+      private: bool EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res);
 
       /// \brief All the systems.
       private: std::vector<SystemInternal> systems;
@@ -189,6 +204,15 @@ namespace gz
 
       /// \brief Pointer to associated event manager
       private: EventManager *eventMgr;
+
+      /// \brief A list of entity systems to add
+      private: std::vector<msgs::EntityPlugin_V> systemsToAdd;
+
+      /// \brief Mutex to protect systemsToAdd list
+      private: std::mutex systemsMsgMutex;
+
+      /// \brief Node for communication.
+      private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief Systems to remove when reset is called
       private: std::set<unsigned int> removeSystems;

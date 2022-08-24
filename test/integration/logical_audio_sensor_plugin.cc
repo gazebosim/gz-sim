@@ -192,7 +192,7 @@ TEST_F(LogicalAudioTest,
   // make sure close microphone detection occurred, and that the far microphone
   // didn't detect anything
   server.Run(true, 100, false);
-  // (wait on ignition-transport for close detection message to be received.
+  // (wait on gz-transport for close detection message to be received.
   // Don't exit when a close microphone detection is received because we want to
   // make sure a far microphone detection is never received)
   for (auto sleep = 0; sleep < 30; ++sleep)
@@ -207,7 +207,9 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LogicalAudioTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

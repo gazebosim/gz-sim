@@ -8,6 +8,6 @@ jobs:
     steps:
     - name: Add collection labels
       if: github.event.action == 'opened'
-      uses: ignition-tooling/pr-collection-labeler@v1
+      uses: gazebo-tooling/pr-collection-labeler@v1
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}

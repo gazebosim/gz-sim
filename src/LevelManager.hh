@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
-#define IGNITION_GAZEBO_LEVELMANAGER_HH
+#ifndef GZ_SIM_LEVELMANAGER_HH
+#define GZ_SIM_LEVELMANAGER_HH
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
@@ -186,5 +186,5 @@ namespace gz
     }
   }
 }
-// IGNITION_GAZEBO_LEVELMANAGER_HH
+// GZ_SIM_LEVELMANAGER_HH
 #endif

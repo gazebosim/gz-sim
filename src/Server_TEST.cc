@@ -106,9 +106,11 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
   ServerConfig::PluginInfo pluginInfo;
   pluginInfo.SetEntityName("an_entity");
   pluginInfo.SetEntityType("model");
-  pluginInfo.SetFilename("filename");
-  pluginInfo.SetName("interface");
-  pluginInfo.SetSdf(nullptr);
+
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetFilename("filename");
+  sdfPlugin.SetName("interface");
+  pluginInfo.SetPlugin(sdfPlugin);
 
   gz::sim::ServerConfig serverConfig;
   serverConfig.AddPlugin(pluginInfo);
@@ -118,9 +120,11 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
   EXPECT_EQ("an_entity", plugins.front().EntityName());
   EXPECT_EQ("model", plugins.front().EntityType());
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   EXPECT_EQ("filename", plugins.front().Filename());
   EXPECT_EQ("interface", plugins.front().Name());
   EXPECT_EQ(nullptr, plugins.front().Sdf());
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Test operator=
   {
@@ -129,9 +133,9 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
     EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(info.Filename(), plugins.front().Filename());
-    EXPECT_EQ(info.Name(), plugins.front().Name());
-    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Element(), plugins.front().Plugin().Element());
   }
 
   // Test copy constructor
@@ -140,9 +144,9 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
     EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(info.Filename(), plugins.front().Filename());
-    EXPECT_EQ(info.Name(), plugins.front().Name());
-    EXPECT_EQ(info.Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Element(), plugins.front().Plugin().Element());
   }
 
   // Test server config copy constructor
@@ -153,9 +157,78 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
     EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
     EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
-    EXPECT_EQ(cfgPlugins.front().Filename(), plugins.front().Filename());
-    EXPECT_EQ(cfgPlugins.front().Name(), plugins.front().Name());
-    EXPECT_EQ(cfgPlugins.front().Sdf(), plugins.front().Sdf());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Filename(),
+        plugins.front().Plugin().Filename());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Name(),
+        plugins.front().Plugin().Name());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Element(),
+        plugins.front().Plugin().Element());
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ServerConfigSdfPluginInfo)
+{
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("an_entity");
+  pluginInfo.SetEntityType("model");
+  sdf::Plugin plugin;
+  plugin.SetFilename("filename");
+  plugin.SetName("interface");
+  pluginInfo.SetPlugin(plugin);
+
+  gz::sim::ServerConfig serverConfig;
+  serverConfig.AddPlugin(pluginInfo);
+
+  const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
+  ASSERT_FALSE(plugins.empty());
+
+  EXPECT_EQ("an_entity", plugins.front().EntityName());
+  EXPECT_EQ("model", plugins.front().EntityType());
+  EXPECT_EQ("filename", plugins.front().Plugin().Filename());
+  EXPECT_EQ("interface", plugins.front().Plugin().Name());
+  EXPECT_EQ(nullptr, plugins.front().Plugin().Element());
+  EXPECT_TRUE(plugins.front().Plugin().Contents().empty());
+
+  // Test operator=
+  {
+    ServerConfig::PluginInfo info;
+    info = plugins.front();
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test copy constructor
+  {
+    ServerConfig::PluginInfo info(plugins.front());
+
+    EXPECT_EQ(info.EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(info.EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(info.Plugin().Filename(), plugins.front().Plugin().Filename());
+    EXPECT_EQ(info.Plugin().Name(), plugins.front().Plugin().Name());
+    EXPECT_EQ(info.Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
+  }
+
+  // Test server config copy constructor
+  {
+    const ServerConfig &cfg(serverConfig);
+    const std::list<ServerConfig::PluginInfo> &cfgPlugins = cfg.Plugins();
+    ASSERT_FALSE(cfgPlugins.empty());
+
+    EXPECT_EQ(cfgPlugins.front().EntityName(), plugins.front().EntityName());
+    EXPECT_EQ(cfgPlugins.front().EntityType(), plugins.front().EntityType());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Filename(),
+        plugins.front().Plugin().Filename());
+    EXPECT_EQ(cfgPlugins.front().Plugin().Name(),
+        plugins.front().Plugin().Name());
+    EXPECT_EQ(cfgPlugins.front().Plugin().ToElement()->ToString(""),
+        plugins.front().Plugin().ToElement()->ToString(""));
   }
 }
 
@@ -165,8 +238,8 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetUpdateRate(10000);
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
@@ -179,8 +252,15 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   child->SetName("model_key");
   child->AddValue("string", "987", "1");
 
-  serverConfig.AddPlugin({"box", "model",
-      "libTestModelSystem.so", "gz::sim::TestModelSystem", sdf});
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName("box");
+  pluginInfo.SetEntityType("model");
+  sdf::Plugin plugin;
+  plugin.SetFilename("TestModelSystem");
+  plugin.SetName("gz::sim::TestModelSystem");
+  pluginInfo.SetPlugin(plugin);
+
+  serverConfig.AddPlugin(pluginInfo);
 
   sim::Server server(serverConfig);
 
@@ -225,10 +305,17 @@ TEST_P(ServerFixture,
       "gz::sim::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
-  serverConfig.AddPlugin({
-      "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
-      "sensor", "libTestSensorSystem.so", "gz::sim::TestSensorSystem",
-      sdf});
+  ServerConfig::PluginInfo pluginInfo;
+  pluginInfo.SetEntityName(
+      "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor");
+  pluginInfo.SetEntityType("sensor");
+  sdf::Plugin plugin;
+  plugin.Load(sdf);
+  plugin.SetFilename("TestSensorSystem");
+  plugin.SetName("gz::sim::TestSensorSystem");
+  pluginInfo.SetPlugin(plugin);
+
+  serverConfig.AddPlugin(pluginInfo);
 
   gzdbg << "Create server" << std::endl;
   sim::Server server(serverConfig);
@@ -272,8 +359,8 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(serverConfig.SdfString().empty());
 
   // Setting the SDF file should override the string.
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -341,8 +428,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -381,8 +467,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 TEST_P(ServerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecordCompress))
 {
-  auto logPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "test_log_path");
+  auto logPath = common::joinPaths(PROJECT_BINARY_PATH, "test_log_path");
   auto logFile = common::joinPaths(logPath, "state.tlog");
   auto compressedFile = logPath + ".zip";
 
@@ -414,8 +499,8 @@ TEST_P(ServerFixture, SdfStringServerConfig)
 {
   gz::sim::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
@@ -423,6 +508,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
+  EXPECT_FALSE(serverConfig.SdfRoot());
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -539,8 +625,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 
   // Load a system
   sim::SystemLoader systemLoader;
-  auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetName("gz::sim::MockSystem");
+  sdfPlugin.SetFilename("MockSystem");
+  auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -586,8 +674,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 
   // Load a system
   sim::SystemLoader systemLoader;
-  auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetName("gz::sim::MockSystem");
+  sdfPlugin.SetFilename("MockSystem");
+  auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -729,8 +819,8 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
   gz::sim::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -749,8 +839,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 
   // Add system from plugin
   sim::SystemLoader systemLoader;
-  auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "gz::sim::MockSystem", nullptr);
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetName("gz::sim::MockSystem");
+  sdfPlugin.SetFilename("MockSystem");
+  auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto result = server.AddSystem(mockSystemPlugin.value());
@@ -777,8 +869,8 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   gz::sim::ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/shapes.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -786,8 +878,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 
   // Add system from plugin
   sim::SystemLoader systemLoader;
-  auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "gz::sim::MockSystem", nullptr);
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetName("gz::sim::MockSystem");
+  sdfPlugin.SetFilename("MockSystem");
+  auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
@@ -850,8 +944,9 @@ TEST_P(ServerFixture, Seed)
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
   gz::common::setenv("GZ_SIM_RESOURCE_PATH",
-         (std::string(PROJECT_SOURCE_PATH) + "/test/worlds:" +
-          std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models").c_str());
+      (common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds:") +
+       common::joinPaths(PROJECT_SOURCE_PATH,
+           "test", "worlds", "models")).c_str());
 
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
@@ -938,7 +1033,9 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 TEST_P(ServerFixture, GetResourcePaths)
 {
   gz::common::setenv("GZ_SIM_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
 
   ServerConfig serverConfig;
   sim::Server server(serverConfig);
@@ -968,7 +1065,9 @@ TEST_P(ServerFixture, GetResourcePaths)
 TEST_P(ServerFixture, AddResourcePaths)
 {
   gz::common::setenv("GZ_SIM_RESOURCE_PATH",
-      "/tmp/some/path:/home/user/another_path");
+      std::string("/tmp/some/path") +
+      common::SystemPaths::Delimiter() +
+      std::string("/home/user/another_path"));
   gz::common::setenv("SDF_PATH", "");
   gz::common::setenv("GZ_FILE_PATH", "");
 
@@ -997,7 +1096,9 @@ TEST_P(ServerFixture, AddResourcePaths)
   // Add path
   msgs::StringMsg_V req;
   req.add_data("/tmp/new_path");
-  req.add_data("/tmp/more:/tmp/even_more");
+  req.add_data(std::string("/tmp/more") +
+               common::SystemPaths::Delimiter() +
+               std::string("/tmp/even_more"));
   req.add_data("/tmp/some/path");
   bool executed = node.Request("/gazebo/resource_paths/add", req);
   EXPECT_TRUE(executed);
@@ -1016,7 +1117,7 @@ TEST_P(ServerFixture, AddResourcePaths)
   {
     char *pathCStr = std::getenv(env);
 
-    auto paths = common::Split(pathCStr, ':');
+    auto paths = common::Split(pathCStr, common::SystemPaths::Delimiter());
     paths.erase(std::remove_if(paths.begin(), paths.end(),
         [](std::string const &_path)
         {
@@ -1103,6 +1204,32 @@ TEST_P(ServerFixture, ResolveResourcePaths)
   test("model://include_nested/model.sdf",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models",
         "include_nested", "model.sdf"), true);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, Stop)
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetUpdateRate(10000);
+  serverConfig.SetSdfFile(common::joinPaths((PROJECT_SOURCE_PATH),
+      "test", "worlds", "shapes.sdf"));
+
+  sim::Server server(serverConfig);
+
+  // The simulation runner should not be running.
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
+
+  // Run the server.
+  EXPECT_TRUE(server.Run(false, 0, false));
+  EXPECT_TRUE(*server.Running(0));
+  EXPECT_TRUE(server.Running());
+
+  // Stop the server
+  server.Stop();
+  EXPECT_FALSE(*server.Running(0));
+  EXPECT_FALSE(server.Running());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

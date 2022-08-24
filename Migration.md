@@ -37,6 +37,10 @@ release will remove the deprecated code.
 * The shared libraries have `gz` where there used to be `ignition`.
   * Using the un-migrated version is still possible due to tick-tocks, but will be removed in future versions.
 
+* The WorldStatistics message published on the 'stats' topic now has
+a `stepping` field that should be used in place the 'step' field in the
+message's header.
+
 * **Breaking Changes**
   * The project name has been changed to use the `gz-` prefix, you **must** use the `gz` prefix!
     * This also means that any generated code that use the project name (e.g. CMake variables, in-source macros) would have to be migrated.
@@ -44,6 +48,7 @@ release will remove the deprecated code.
       * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
       * CMake `-config` files
       * Paths that depend on the project name
+* Python library `ignition` namespaces should be replaced with `gz`.
 
 ## Gazebo Sim 6.1 to 6.2
 
@@ -111,7 +116,7 @@ since pose information is being logged in the `changed_state` topic.
       + `ViewAndle`: Move camera to preset angles
 
 * The `gui.config` and `server.config` files are now located in a versioned
-  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+  folder inside `$HOME/.gz/sim`, i.e. `$HOME/.gz/sim/6/gui.config`.
 
 * The `Component::Clone` method has been marked `const` to reflect that it
   should not mutate internal component state. Component implementations that
@@ -225,4 +230,4 @@ added an SDF message to the start of log files.
 ignition-gazebo. To use the gui component downstream, update the find package
 call in cmake to request for the component, e.g.
 `gz_find_package(ignition-gazebo1 REQUIRED COMPONENTS gui)`, and link to the
-`libignition-gazebo1::gui` target instead of `libignition-gazebo1-gui`
+`libgz-sim1::gui` target instead of `libgz-sim1-gui`
