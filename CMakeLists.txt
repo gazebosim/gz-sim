@@ -107,7 +107,7 @@ set(IGN_PHYSICS_VER ${ignition-physics2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-sensors
-ign_find_package(ignition-sensors3 REQUIRED VERSION 3.3
+ign_find_package(ignition-sensors3 REQUIRED VERSION 3.4
   COMPONENTS
     rendering
     air_pressure
