@@ -1,6 +1,6 @@
-gz_add_gui_plugin(EnvironmentalDataLoader
-  SOURCES EnvironmentalDataLoader.cc
-  QT_HEADERS EnvironmentalDataLoader.hh
+gz_add_gui_plugin(EnvironmentLoader
+  SOURCES EnvironmentLoader.cc
+  QT_HEADERS EnvironmentLoader.hh
   PRIVATE_LINK_LIBS
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-common${GZ_COMMON_VER}::io

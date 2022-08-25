@@ -46,10 +46,10 @@ GridLayout {
     TextField {
       id: dataFilePathInput
       Layout.fillWidth: true
-      text: EnvironmentalDataLoader.dataPath
+      text: EnvironmentLoader.dataPath
       placeholderText: qsTr("Path to data file")
       onEditingFinished: {
-        EnvironmentalDataLoader.dataPath = text
+        EnvironmentLoader.dataPath = text
       }
     }
 
@@ -57,7 +57,7 @@ GridLayout {
       id: browseDataFile
       Layout.preferredWidth: 20
       display: AbstractButton.IconOnly
-      text: EnvironmentalDataLoader.dataFileName
+      text: EnvironmentLoader.dataFileName
       onClicked: dataFileDialog.open()
       icon.source: "qrc:/Gazebo/images/chevron-right.svg"
       ToolTip.visible: hovered
@@ -72,7 +72,7 @@ GridLayout {
     folder: shortcuts.home
     visible: false
     onAccepted: {
-      EnvironmentalDataLoader.SetDataUrl(dataFileDialog.fileUrl)
+      EnvironmentLoader.SetDataUrl(dataFileDialog.fileUrl)
     }
     onRejected: {
     }
@@ -94,11 +94,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: timeDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentalDataLoader.configured
-    model: EnvironmentalDataLoader.dimensionList
-    currentIndex: EnvironmentalDataLoader.timeIndex
+    enabled: EnvironmentLoader.configured
+    model: EnvironmentLoader.dimensionList
+    currentIndex: EnvironmentLoader.timeIndex
     onCurrentIndexChanged: {
-      EnvironmentalDataLoader.timeIndex = currentIndex
+      EnvironmentLoader.timeIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as time dimension")
@@ -119,11 +119,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: xDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentalDataLoader.configured
-    model: EnvironmentalDataLoader.dimensionList
-    currentIndex: EnvironmentalDataLoader.xIndex
+    enabled: EnvironmentLoader.configured
+    model: EnvironmentLoader.dimensionList
+    currentIndex: EnvironmentLoader.xIndex
     onCurrentIndexChanged: {
-      EnvironmentalDataLoader.xIndex = currentIndex
+      EnvironmentLoader.xIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as x dimension")
@@ -144,11 +144,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: yDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentalDataLoader.configured
-    model: EnvironmentalDataLoader.dimensionList
-    currentIndex: EnvironmentalDataLoader.yIndex
+    enabled: EnvironmentLoader.configured
+    model: EnvironmentLoader.dimensionList
+    currentIndex: EnvironmentLoader.yIndex
     onCurrentIndexChanged: {
-      EnvironmentalDataLoader.yIndex = currentIndex
+      EnvironmentLoader.yIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as y dimension")
@@ -169,24 +169,49 @@ GridLayout {
     Layout.columnSpan: 6
     id: zDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentalDataLoader.configured
-    model: EnvironmentalDataLoader.dimensionList
-    currentIndex: EnvironmentalDataLoader.zIndex
+    enabled: EnvironmentLoader.configured
+    model: EnvironmentLoader.dimensionList
+    currentIndex: EnvironmentLoader.zIndex
     onCurrentIndexChanged: {
-      EnvironmentalDataLoader.zIndex = currentIndex
+      EnvironmentLoader.zIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as z dimension")
   }
 
+  Label {
+    Layout.row: 5
+    Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
+    id: refText
+    color: "dimgrey"
+    text: qsTr("Reference")
+  }
+
+  ComboBox {
+    Layout.row: 5
+    Layout.column: 2
+    Layout.columnSpan: 6
+    id: referenceCombo
+    Layout.fillWidth: true
+    enabled: EnvironmentLoader.configured
+    model: EnvironmentLoader.referenceList
+    currentText: EnvironmentLoader.reference
+    onCurrentTextChanged: {
+      EnvironmentLoader.reference = currentText
+    }
+    ToolTip.visible: hovered
+    ToolTip.text: qsTr("Reference for spatial dimensions")
+  }
+
   Button {
     text: qsTr("Load")
-    Layout.row: 5
+    Layout.row: 6
     Layout.columnSpan: 8
     Layout.fillWidth: true
-    enabled: EnvironmentalDataLoader.configured
+    enabled: EnvironmentLoader.configured
     onClicked: function() {
-      EnvironmentalDataLoader.ScheduleLoad()
+      EnvironmentLoader.ScheduleLoad()
     }
   }
 }
