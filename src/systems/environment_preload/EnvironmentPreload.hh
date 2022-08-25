@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_SIM_SYSTEMS_ENVIRONMENTALDATAPRELOAD_HH_
-#define GZ_SIM_SYSTEMS_ENVIRONMENTALDATAPRELOAD_HH_
+#ifndef GZ_SIM_SYSTEMS_ENVIRONMENTPRELOAD_HH_
+#define GZ_SIM_SYSTEMS_ENVIRONMENTPRELOAD_HH_
 
 #include <memory>
 
@@ -30,19 +30,19 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \class EnvironmentalDataPreload EnvironmentalDataPreload.hh
-  ///     gz/sim/systems/EnvironmentalDataPreload.hh
-  /// \brief A plugin to preload an EnvironmentalData component
+  /// \class EnvironmentPreload EnvironmentPreload.hh
+  ///     gz/sim/systems/EnvironmentPreload.hh
+  /// \brief A plugin to preload an Environment component
   /// into the ECM upon simulation start-up.
-  class EnvironmentalDataPreload :
+  class EnvironmentPreload :
     public System,
     public ISystemConfigure
   {
     /// \brief Constructor
-    public: explicit EnvironmentalDataPreload();
+    public: explicit EnvironmentPreload();
 
     /// \brief Destructor
-    public: ~EnvironmentalDataPreload() override;
+    public: ~EnvironmentPreload() override;
 
     // Documentation inherited
     public: void Configure(

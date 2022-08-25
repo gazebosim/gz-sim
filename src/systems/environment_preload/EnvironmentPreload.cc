@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include "EnvironmentalDataPreload.hh"
+#include "EnvironmentPreload.hh"
 
 #include <array>
 #include <string>
@@ -25,7 +25,7 @@
 
 #include <gz/plugin/Register.hh>
 
-#include "gz/sim/components/EnvironmentalData.hh"
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -33,15 +33,15 @@ using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
-EnvironmentalDataPreload::EnvironmentalDataPreload() : System()
+EnvironmentPreload::EnvironmentPreload() : System()
 {
 }
 
 //////////////////////////////////////////////////
-EnvironmentalDataPreload::~EnvironmentalDataPreload() = default;
+EnvironmentPreload::~EnvironmentPreload() = default;
 
 //////////////////////////////////////////////////
-void EnvironmentalDataPreload::Configure(
+void EnvironmentPreload::Configure(
     const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -62,8 +62,10 @@ void EnvironmentalDataPreload::Configure(
     return;
   }
 
+
   std::string timeColumnName{"t"};
   std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
+  auto spatialReference = math::SphericalCoordinates::GLOBAL;
 
   sdf::ElementConstPtr elem = _sdf->FindElement("dimensions");
   if (elem)
@@ -75,6 +77,27 @@ void EnvironmentalDataPreload::Configure(
     elem = elem->FindElement("space");
     if (elem)
     {
+      if (elem->HasAttribute("reference"))
+      {
+        const std::string referenceName = elem->Get<std::string>("reference");
+        if (referenceName == "global")
+        {
+          spatialReference = math::SphericalCoordinates::GLOBAL;
+        }
+        else if (referenceName == "spherical")
+        {
+          spatialReference = math::SphericalCoordinates::SPHERICAL;
+        }
+        else if (referenceName == "ecef")
+        {
+          spatialReference = math::SphericalCoordinates::ECEF;
+        }
+        else
+        {
+          gzerr << "Unknown reference '" << referenceName << "'" << std::endl;
+          return;
+        }
+      }
       for (size_t i = 0; i < spatialColumnNames.size(); ++i)
       {
         if (elem->HasElement(spatialColumnNames[i]))
@@ -88,23 +111,27 @@ void EnvironmentalDataPreload::Configure(
 
   try
   {
-    using ComponentT = components::EnvironmentalData;
-    auto component = ComponentT{
-      common::IO<ComponentT::Type>::ReadFrom(
+    using ComponentDataT = components::EnvironmentalData;
+    auto data = std::make_shared<ComponentDataT>(
+      common::IO<ComponentDataT::FrameT>::ReadFrom(
           common::CSVIStreamIterator(dataFile),
           common::CSVIStreamIterator(),
-          timeColumnName, spatialColumnNames)};
-    _ecm.CreateComponent<ComponentT>(worldEntity(_ecm), component);
+          timeColumnName, spatialColumnNames),
+      spatialReference);
+
+    using ComponentT = components::Environment;
+    auto component = ComponentT{std::move(data)};
+    _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
   }
   catch (const std::invalid_argument &exc)
   {
-    gzerr << "Failed to load environmental data" << std::endl
+    gzerr << "Failed to load environment data" << std::endl
           << exc.what() << std::endl;
   }
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(EnvironmentalDataPreload, System,
-    EnvironmentalDataPreload::ISystemConfigure)
-GZ_ADD_PLUGIN_ALIAS(EnvironmentalDataPreload,
-    "gz::sim::systems::EnvironmentalDataPreload")
+GZ_ADD_PLUGIN(EnvironmentPreload, System,
+    EnvironmentPreload::ISystemConfigure)
+GZ_ADD_PLUGIN_ALIAS(EnvironmentPreload,
+    "gz::sim::systems::EnvironmentPreload")

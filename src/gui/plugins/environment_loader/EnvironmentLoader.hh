@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_SIM_GUI_ENVIRONMENTALDATALOADER_HH_
-#define GZ_SIM_GUI_ENVIRONMENTALDATALOADER_HH_
+#ifndef GZ_SIM_GUI_ENVIRONMENTLOADER_HH_
+#define GZ_SIM_GUI_ENVIRONMENTLOADER_HH_
 
 #include <memory>
 
@@ -30,13 +30,13 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-  class EnvironmentalDataLoaderPrivate;
+  class EnvironmentLoaderPrivate;
 
-  /// \class EnvironmentalDataLoader EnvironmentalDataLoader.hh
-  ///     gz/sim/systems/EnvironmentalDataLoader.hh
-  /// \brief A GUI plugin for a user to load an EnvironmentalData
+  /// \class EnvironmentLoader EnvironmentLoader.hh
+  ///     gz/sim/systems/EnvironmentLoader.hh
+  /// \brief A GUI plugin for a user to load an Environment
   /// component into the ECM on a live simulation.
-  class EnvironmentalDataLoader : public gz::sim::GuiSystem
+  class EnvironmentLoader : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -87,6 +87,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       NOTIFY ZIndexChanged
     )
 
+    /// \brief Spatial reference type list
+    Q_PROPERTY(
+      QStringList referenceList
+      READ ReferenceList
+    )
+
+    /// \brief Spatial reference
+    Q_PROPERTY(
+      QString reference
+      READ Reference
+      WRITE SetReference
+      NOTIFY ReferenceChanged
+    )
+
     /// \brief Configuration ready
     Q_PROPERTY(
       bool configured
@@ -95,10 +109,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     )
 
     /// \brief Constructor
-    public: EnvironmentalDataLoader();
+    public: EnvironmentLoader();
 
     /// \brief Destructor
-    public: ~EnvironmentalDataLoader() override;
+    public: ~EnvironmentLoader() override;
 
     // Documentation inherited
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
@@ -161,6 +175,18 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Notify the z dimension index has changed
     signals: void ZIndexChanged() const;
 
+    /// \brief Get supported spatial references
+    public: Q_INVOKABLE QStringList ReferenceList() const;
+
+    /// \brief Get spatial reference
+    public: Q_INVOKABLE QString Reference() const;
+
+    /// \brief Set spatial reference
+    public: Q_INVOKABLE void SetReference(QString _reference);
+
+    /// \brief Notify the spatial reference has changed
+    signals: void ReferenceChanged() const;
+
     /// \brief Get configuration status
     public: Q_INVOKABLE bool IsConfigured() const;
 
@@ -172,7 +198,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \internal
     /// \brief Pointer to private data
-    private: std::unique_ptr<EnvironmentalDataLoaderPrivate> dataPtr;
+    private: std::unique_ptr<EnvironmentLoaderPrivate> dataPtr;
   };
 }
 }
