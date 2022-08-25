@@ -1,6 +1,6 @@
-gz_add_system(environmental-data-preload
+gz_add_system(environment-preload
   SOURCES
-    EnvironmentalDataPreload.cc
+    EnvironmentPreload.cc
   PUBLIC_LINK_LIBS
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-common${GZ_COMMON_VER}::io

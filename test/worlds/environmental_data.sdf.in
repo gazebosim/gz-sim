@@ -29,12 +29,12 @@
     </light>
 
     <plugin
-      filename="gz-sim-environmental-data-preload-system"
-      name="gz::sim::systems::EnvironmentalDataPreload">
+      filename="gz-sim-environment-preload-system"
+      name="gz::sim::systems::EnvironmentPreload">
       <data>@CMAKE_SOURCE_DIR@/test/worlds/environmental_data.csv</data>
       <dimensions>
         <time>timestamp</time>
-        <space>
+        <space reference="spherical">
           <x>latitude</x>
           <y>longitude</y>
           <z>altitude</z>

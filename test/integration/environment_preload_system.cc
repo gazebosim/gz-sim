@@ -19,7 +19,7 @@
 
 #include <gz/common/Filesystem.hh>
 
-#include "gz/sim/components/EnvironmentalData.hh"
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/TestFixture.hh"
 
@@ -30,13 +30,13 @@
 using namespace gz;
 using namespace sim;
 
-/// \brief Test EnvironmentalDataPreload system
-class EnvironmentalDataPreloadTest : public InternalFixture<::testing::Test>
+/// \brief Test EnvironmentPreload system
+class EnvironmentPreloadTest : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-TEST_F(EnvironmentalDataPreloadTest, CanPreload)
+TEST_F(EnvironmentPreloadTest, CanPreload)
 {
   // Start server
   ServerConfig serverConfig;
@@ -57,13 +57,13 @@ TEST_F(EnvironmentalDataPreloadTest, CanPreload)
       [&](const sim::UpdateInfo &,
           const sim::EntityComponentManager &_ecm)
       {
-        _ecm.EachNew<components::EnvironmentalData>(
+        _ecm.EachNew<components::Environment>(
             [&](const gz::sim::Entity &,
-                const components::EnvironmentalData *_component) -> bool
+                const components::Environment *_component) -> bool
             {
-              auto dataframe = _component->Data();
-              EXPECT_TRUE(dataframe.Has("humidity"));
-              const auto &humidityData = dataframe["humidity"];
+              auto data = _component->Data();
+              EXPECT_TRUE(data->frame.Has("humidity"));
+              const auto &humidityData = data->frame["humidity"];
               auto humiditySession = humidityData.StepTo(
                   humidityData.CreateSession(), 1658923062.5);
               EXPECT_TRUE(humiditySession.has_value());
@@ -75,6 +75,7 @@ TEST_F(EnvironmentalDataPreloadTest, CanPreload)
                 EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
                 dataLoaded = true;
               }
+              EXPECT_EQ(data->reference, math::SphericalCoordinates::GLOBAL);
               return true;
             });
       });
