@@ -179,8 +179,9 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
@@ -432,8 +433,9 @@ TEST_F(LevelManagerFixture,
 
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
+// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(LevelManagerFixture,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
+     GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));

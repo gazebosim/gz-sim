@@ -28,7 +28,7 @@ ToolBar {
   Layout.minimumWidth: 200
   Layout.minimumHeight: 100
 
-  // TODO(anyone) enable scale button when support is added in ign-physics
+  // TODO(anyone) enable scale button when support is added in gz-physics
   // function activateScale() {
   //   scale.checked = true;
   //   TransformControl.OnMode("scale");
@@ -64,7 +64,7 @@ ToolBar {
     rollEntry.value = TransformControl.rollSnap();
     pitchEntry.value = TransformControl.pitchSnap();
     yawEntry.value = TransformControl.yawSnap();
-    // TODO(anyone) enable scale button when support is added in ign-physics
+    // TODO(anyone) enable scale button when support is added in gz-physics
     // xScaleEntry.value = TransformControl.xScaleSnap()
     // yScaleEntry.value = TransformControl.yScaleSnap()
     // zScaleEntry.value = TransformControl.zScaleSnap()
@@ -219,7 +219,7 @@ ToolBar {
         TransformControl.OnMode("rotate")
       }
     }
-    // TODO(anyone) enable scale snap values below when support is added in ign-physics
+    // TODO(anyone) enable scale snap values below when support is added in gz-physics
     // Also be sure to replace the placeholder 0's in all of the `OnSnapUpdate` calls in
     // this file to xScaleEntry.value, yScaleEntry.value, and zScaleEntry.value, respectively
     /*
@@ -345,7 +345,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: xEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -368,7 +368,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: yEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -391,7 +391,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 0
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: zEntry
           minimumValue: 0.01
           maximumValue: 100.0
@@ -423,7 +423,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: rollEntry
           minimumValue: 0.01
           maximumValue: 180.0
@@ -446,7 +446,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: pitchEntry
           minimumValue: 0.01
           maximumValue: 180.0
@@ -469,7 +469,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 2
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: yawEntry
           minimumValue: 0.01
           maximumValue: 180.0

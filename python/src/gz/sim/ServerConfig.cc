@@ -27,7 +27,7 @@ namespace sim
 {
 namespace python
 {
-void defineGazeboServerConfig(pybind11::object module)
+void defineSimServerConfig(pybind11::object module)
 {
   pybind11::class_<gz::sim::ServerConfig>(module, "ServerConfig")
   .def(pybind11::init<>())

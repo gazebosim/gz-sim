@@ -63,8 +63,6 @@ namespace systems
   ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
   /// Additionally the system also supports the following parameters:
-  ///   * <waterDensity> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
   ///   * <water_density> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3]
   ///   * <link_name> - The link of the model that is being subject to

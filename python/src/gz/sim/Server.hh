@@ -26,12 +26,12 @@ namespace sim
 {
 namespace python
 {
-/// Define a pybind11 wrapper for an gz::sim::Server
+/// Define a pybind11 wrapper for a gz::sim::Server
 /**
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGazeboServer(pybind11::object module);
+defineSimServer(pybind11::object module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

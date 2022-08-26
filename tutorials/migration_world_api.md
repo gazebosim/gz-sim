@@ -34,9 +34,9 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/World.hh](https://gazebosim.org/api/gazebo/3.3/World_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
+* [gz/sim/World.hh](https://gazebosim.org/api/gazebo/3.3/World_8hh.html)
+* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
+* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
 
 It's worth remembering that most of this functionality can be performed using
 the

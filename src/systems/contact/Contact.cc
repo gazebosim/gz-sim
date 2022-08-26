@@ -71,10 +71,10 @@ class ContactSensor
   /// \brief Message to publish
   public: msgs::Contacts contactsMsg;
 
-  /// \brief Ign transport node
+  /// \brief Gazebo transport node
   public: transport::Node node;
 
-  /// \brief Ign transport publisher
+  /// \brief Gazebo transport publisher
   public: transport::Node::Publisher pub;
 
   /// \brief Entities for which this sensor publishes data
@@ -303,4 +303,3 @@ GZ_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 
 // TODO(CH3): Deprecated, remove on version 8
 GZ_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
-

@@ -144,7 +144,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
     // check to see if update is necessary
     // we only update if there is at least one sensor that needs data
     // and that sensor has subscribers.
-    // note: ign-sensors does its own throttling. Here the check is mainly
+    // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the AltimeterPrivate::UpdateAltimeters function
     bool needsUpdate = false;
     for (auto &it : this->dataPtr->entitySensorMap)

@@ -28,7 +28,7 @@ namespace sim
 {
 namespace python
 {
-void defineGazeboWorld(pybind11::object module)
+void defineSimWorld(pybind11::object module)
 {
   pybind11::class_<gz::sim::World>(module, "World")
   .def(pybind11::init<gz::sim::Entity>())

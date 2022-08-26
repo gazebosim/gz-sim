@@ -117,7 +117,7 @@ Rectangle {
   // Used to create rgba spin boxes
   Component {
     id: spinBoxMaterialColor
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0

@@ -32,6 +32,7 @@
 #include <gz/math/Helpers.hh>
 
 #include <gz/rendering/Scene.hh>
+#include <gz/sensors/BoundingBoxCameraSensor.hh>
 #include <gz/sensors/CameraSensor.hh>
 #include <gz/sensors/DepthCameraSensor.hh>
 #include <gz/sensors/GpuLidarSensor.hh>
@@ -44,6 +45,7 @@
 
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
@@ -198,11 +200,6 @@ class gz::sim::systems::SensorsPrivate
   /// \param[in] _ecm Entity component manager
   public: void UpdateBatteryState(const EntityComponentManager &_ecm);
 
-  /// \brief Check if sensor has subscribers
-  /// \param[in] _sensor Sensor to check
-  /// \return True if the sensor has subscribers, false otherwise
-  public: bool HasConnections(sensors::RenderingSensor *_sensor) const;
-
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
 
@@ -342,7 +339,7 @@ void SensorsPrivate::RunOnce()
     {
       sensors::Sensor *s = this->sensorManager.Sensor(id);
       auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-      if (rs->IsActive() && !this->HasConnections(rs))
+      if (rs->IsActive() && !rs->HasConnections())
       {
         rs->SetActive(false);
         tmpDisabledSensors.insert(rs);
@@ -574,7 +571,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
-    igndbg << "Resetting Sensors\n";
+    gzdbg << "Resetting Sensors\n";
 
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
@@ -587,7 +584,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
       if (nullptr == s)
       {
-        ignwarn << "Sensor removed before reset: " << id << "\n";
+        gzwarn << "Sensor removed before reset: " << id << "\n";
         continue;
       }
 
@@ -618,6 +615,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
         (this->dataPtr->forceUpdate ||
+         _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
          _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
@@ -770,7 +768,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     return std::string();
   }
 
-  // Create within ign-sensors
+  // Create within gz-sensors
   sensors::Sensor *sensor{nullptr};
   if (_sdf.Type() == sdf::SensorType::CAMERA)
   {
@@ -796,6 +794,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::ThermalCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::BoundingBoxCameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::SEGMENTATION_CAMERA)
   {
@@ -872,7 +875,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
 
     // temperature gradient is in kelvin per meter - typically change in
     // temperature over change in altitude. However the implementation of
-    // thermal sensor in ign-sensors varies temperature for all objects in its
+    // thermal sensor in gz-sensors varies temperature for all objects in its
     // view. So we will do an approximation based on camera view's vertical
     // distance.
     auto camSdf = _sdf.CameraSensor();
@@ -893,49 +896,6 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   return sensor->Name();
-}
-
-//////////////////////////////////////////////////
-bool SensorsPrivate::HasConnections(sensors::RenderingSensor *_sensor) const
-{
-  if (!_sensor)
-    return true;
-
-  // \todo(iche033) Remove this function once a virtual
-  // sensors::RenderingSensor::HasConnections function is available
-  {
-    auto s = dynamic_cast<sensors::RgbdCameraSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  {
-    auto s = dynamic_cast<sensors::DepthCameraSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  {
-    auto s = dynamic_cast<sensors::GpuLidarSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  {
-    auto s = dynamic_cast<sensors::SegmentationCameraSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  {
-    auto s = dynamic_cast<sensors::ThermalCameraSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  {
-    auto s = dynamic_cast<sensors::CameraSensor *>(_sensor);
-    if (s)
-      return s->HasConnections();
-  }
-  gzwarn << "Unable to check connection count for sensor: " << _sensor->Name()
-          << ". Unknown sensor type." << std::endl;
-  return true;
 }
 
 GZ_ADD_PLUGIN(Sensors, System,

@@ -35,7 +35,7 @@ namespace systems
   /** \class SceneBroadcaster SceneBroadcaster.hh \
    * gz/sim/systems/SceneBroadcaster.hh
   **/
-  /// \brief System which periodically publishes an gz::msgs::Scene
+  /// \brief System which periodically publishes a gz::msgs::Scene
   /// message with updated information.
   class SceneBroadcaster final:
     public System,

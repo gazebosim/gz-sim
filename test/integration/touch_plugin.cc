@@ -187,7 +187,9 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(TouchPluginTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 
@@ -248,7 +250,7 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
           </sensor>
         </link>
         <plugin
-          filename="libignition-gazebo-touchplugin-system.so"
+          filename="gz-sim-touchplugin-system"
           name="gz::sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>

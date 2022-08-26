@@ -223,7 +223,7 @@ models (performers) into simulation at a later time.
 The name of the add performer service is
 `/world/<world_name>/level/set_performer`. Make sure to replace
 `<world_name>` with the name of simulated world. The service request is an
-ignition:msgs::StringMsg message, and the response is an
+gz:msgs::StringMsg message, and the response is an
 gz::msgs::Boolean message. The response is true when the peformer was
 successfuly added.
 

@@ -24,9 +24,6 @@
     <plugin
       filename="gz-sim-log-system"
       name="gz::sim::systems::LogRecord">
-      <!-- Deprecated: directories to write recorded files.
-           Use --record-path instead. -->
-      <!-- path>/tmp/log</path -->
       <record_resources>1</record_resources>
       <compress>0</compress>
     </plugin>

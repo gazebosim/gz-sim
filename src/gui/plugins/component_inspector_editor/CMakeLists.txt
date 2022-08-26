@@ -20,4 +20,6 @@ gz_add_gui_plugin(ComponentInspectorEditor
     Magnetometer.hh
     ModelEditor.hh
     Pose3d.hh
+  PRIVATE_LINK_LIBS
+    gz-common${GZ_COMMON_VER}::graphics
 )

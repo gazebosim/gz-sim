@@ -37,17 +37,9 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-gz_add_component(gz
-  SOURCES
-    gz.cc
-    cmd/ModelCommandAPI.cc
-  GET_TARGET_NAME gz_lib_target)
-target_link_libraries(${gz_lib_target}
-  PRIVATE
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-gui
+set(cli_sources
+  gz.cc
+  cmd/ModelCommandAPI.cc
 )
 
 set (sources
@@ -138,11 +130,24 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
+# CLI
+gz_add_component(gz
+  SOURCES
+    ${cli_sources}
+  GET_TARGET_NAME gz_lib_target)
+target_link_libraries(${gz_lib_target}
+  PRIVATE
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-gui
+)
+
 # Create the library target
-gz_create_core_library(SOURCES ${sources})
+gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   gz-math${GZ_MATH_VER}
@@ -172,7 +177,7 @@ add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/gz-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/test)

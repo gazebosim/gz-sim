@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/utils/ExtraTestMacros.hh>
+
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
@@ -32,7 +34,8 @@ class MultipleServers : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
-TEST_P(MultipleServers, TwoServersNonBlocking)
+// See: https://github.com/gazebosim/gz-sim/issues/1544
+TEST_P(MultipleServers, GZ_UTILS_TEST_DISABLED_ON_MAC(TwoServersNonBlocking))
 {
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -72,7 +75,8 @@ TEST_P(MultipleServers, TwoServersNonBlocking)
 }
 
 /////////////////////////////////////////////////
-TEST_P(MultipleServers, TwoServersMixedBlocking)
+// See: https://github.com/gazebosim/gz-sim/issues/1544
+TEST_P(MultipleServers, GZ_UTILS_TEST_DISABLED_ON_MAC(TwoServersMixedBlocking))
 {
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());

@@ -44,7 +44,7 @@ namespace systems::physics_system
   // and the memory associated with the physics entities can be freed.
   //
   // DEV WARNING: There is an implicit conversion between physics EntityPtr and
-  // std::size_t in ign-physics. This seems also implicitly convert between
+  // std::size_t in gz-physics. This seems also implicitly convert between
   // EntityPtr and gazebo Entity. Therefore, any member function that takes a
   // gazebo Entity can accidentally take an EntityPtr. To prevent this, for
   // every function that takes a gazebo Entity, we should always have an

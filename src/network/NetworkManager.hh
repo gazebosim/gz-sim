@@ -57,7 +57,7 @@ namespace gz
       /// NetworkManager
       /// \param[in] _config configuration object to use. If not given,
       ///   configuration will be populated from environment variables.
-      /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _options Advanced options for underlying gz-transport
       /// \return A pointer to a network manager, or null if the network
       /// manager could not be created.
       public: static std::unique_ptr<NetworkManager> Create(
@@ -73,7 +73,7 @@ namespace gz
       /// \param[in] _eventMgr EventManager to associate with this
       /// NetworkManager
       /// \param[in] _config configuration object to use.
-      /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _options Advanced options for underlying gz-transport
       protected: explicit NetworkManager(
           const std::function<void(const UpdateInfo &_info)> &_stepFunction,
           EntityComponentManager &_ecm, EventManager *_eventMgr,

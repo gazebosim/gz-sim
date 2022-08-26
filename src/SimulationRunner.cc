@@ -112,9 +112,28 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // World control
+  transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
+  if (this->networkMgr)
+  {
+    ns = this->networkMgr->Namespace() + ns;
+  }
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
+  {
+    gzerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
+  }
+  opts.SetNameSpace(validNs);
+
+  this->node = std::make_unique<transport::Node>(opts);
+
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr);
+      &this->entityCompMgr, &this->eventMgr, validNs);
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -122,7 +141,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
-  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
@@ -187,25 +206,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
-
-  // World control
-  transport::NodeOptions opts;
-  std::string ns{"/world/" + this->worldName};
-  if (this->networkMgr)
-  {
-    ns = this->networkMgr->Namespace() + ns;
-  }
-
-  auto validNs = transport::TopicUtils::AsValidTopic(ns);
-  if (validNs.empty())
-  {
-    gzerr << "Invalid namespace [" << ns
-           << "], not initializing runner transport." << std::endl;
-    return;
-  }
-  opts.SetNameSpace(validNs);
-
-  this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -428,8 +428,11 @@ void SimulationRunner::PublishStats()
 
   if (this->Stepping())
   {
+    // (deprecated) Remove this header in Gazebo H
     auto headerData = msg.mutable_header()->add_data();
     headerData->set_key("step");
+
+    msg.set_stepping(true);
   }
 
   // Publish the stats message. The stats message is throttled.
@@ -530,7 +533,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an gz::common::WorkerPool. There is overhead associated with
+  // a gz::common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
@@ -824,6 +827,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // so that we can recreate entities with the same name.
   this->ProcessRecreateEntitiesRemove();
 
+  // handle systems that need to be added
+  this->systemMgr->ProcessPendingEntitySystems();
+
   // Update all the systems.
   this->UpdateSystems();
 
@@ -873,11 +879,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
+                                  const sdf::Plugin &_plugin)
 {
-  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
+  this->systemMgr->LoadPlugin(_entity, _plugin);
 }
 
 //////////////////////////////////////////////////
@@ -957,7 +961,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+      this->LoadPlugin(entity, plugin.Plugin());
     }
   }
 }
@@ -989,23 +993,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+    const sdf::Plugins &_plugins)
 {
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
+  for (const sdf::Plugin &plugin : _plugins)
   {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
+      this->LoadPlugin(_entity, plugin);
     }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 

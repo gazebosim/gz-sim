@@ -28,7 +28,7 @@ namespace sim
 {
 namespace python
 {
-void defineGazeboUpdateInfo(pybind11::object module)
+void defineSimUpdateInfo(pybind11::object module)
 {
   pybind11::class_<gz::sim::UpdateInfo>(module, "UpdateInfo")
   .def(pybind11::init<>())

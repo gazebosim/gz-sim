@@ -185,7 +185,7 @@ LogRecord::~LogRecord()
 {
   if (this->dataPtr->instStarted)
   {
-    // Use ign-transport directly
+    // Use gz-transport directly
     this->dataPtr->recorder.Stop();
 
     if (this->dataPtr->compress)
