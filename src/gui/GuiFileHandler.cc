@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/msgs/sdf_generator_config.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <fstream>
 
@@ -26,8 +26,8 @@
 #include "GuiFileHandler.hh"
 
 using namespace gz;
-using namespace sim;
-using namespace sim::gui;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,

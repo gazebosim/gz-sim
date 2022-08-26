@@ -23,9 +23,9 @@
 #include <gz/sim/config.hh>
 #include <gz/transport/Node.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components

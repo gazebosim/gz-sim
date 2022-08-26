@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SDFGENERATOR_HH_
 #define GZ_GAZEBO_SDFGENERATOR_HH_
 
-#include <gz/msgs/sdf_generator_config.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
 #include <string>
@@ -25,9 +25,9 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -89,7 +89,7 @@ namespace sdf_generator
 
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */

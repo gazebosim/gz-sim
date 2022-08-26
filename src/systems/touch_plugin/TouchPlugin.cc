@@ -39,7 +39,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::TouchPluginPrivate
@@ -407,4 +407,4 @@ IGNITION_ADD_PLUGIN(TouchPlugin,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "sim::systems::TouchPlugin")

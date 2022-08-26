@@ -17,7 +17,7 @@
 
 #include "JointPositionController.hh"
 
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 
 #include <string>
 #include <unordered_set>
@@ -32,7 +32,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::JointPositionControllerPrivate
@@ -274,4 +274,4 @@ IGNITION_ADD_PLUGIN(JointPositionController,
                     JointPositionController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
-                          "gz::sim::systems::JointPositionController")
+                          "sim::systems::JointPositionController")

@@ -50,9 +50,9 @@
 
 #include "gz/sim/Util.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -483,7 +483,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-sim::Entity topLevelModel(const Entity &_entity,
+gz::sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;
@@ -610,4 +610,3 @@ Entity entityFromMsg(const EntityComponentManager &_ecm,
 }
 }
 }
-

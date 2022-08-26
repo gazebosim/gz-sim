@@ -44,7 +44,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Imu data class.
@@ -317,4 +317,4 @@ IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "sim::systems::Imu")

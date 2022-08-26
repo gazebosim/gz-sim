@@ -49,7 +49,7 @@
 #include "ColladaWorldExporter.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 
@@ -92,7 +92,7 @@ class gz::sim::systems::ColladaWorldExporterPrivate
       std::string name = _name->Data().empty() ? std::to_string(_entity) :
           _name->Data();
 
-      math::Pose3d worldPose = sim::worldPose(_entity, _ecm);
+      math::Pose3d worldPose = gz::sim::worldPose(_entity, _ecm);
 
       common::MaterialPtr mat = std::make_shared<common::Material>();
       auto material = _ecm.Component<components::Material>(_entity);
@@ -263,4 +263,4 @@ IGNITION_ADD_PLUGIN(ColladaWorldExporter,
                     ColladaWorldExporter::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "gz::sim::systems::ColladaWorldExporter")
+                          "sim::systems::ColladaWorldExporter")

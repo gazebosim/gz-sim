@@ -17,8 +17,8 @@
 
 #include "LogVideoRecorder.hh"
 
-#include <gz/msgs/scene.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/scene.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <set>
@@ -41,7 +41,7 @@
 using namespace std::chrono_literals;
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -452,4 +452,4 @@ IGNITION_ADD_PLUGIN(LogVideoRecorder,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
-                          "gz::sim::systems::LogVideoRecorder")
+                          "sim::systems::LogVideoRecorder")

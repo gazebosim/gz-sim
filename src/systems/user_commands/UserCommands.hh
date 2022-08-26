@@ -21,9 +21,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -41,8 +41,8 @@ namespace systems
   /// # Spawn entity
   ///
   /// * **Service**: `/world/<world name>/create`
-  /// * **Request type*: gz.msgs.EntityFactory
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type*: ignition.msgs.EntityFactory
+  /// * **Response type*: ignition.msgs.Boolean
   ///
   /// # Spawn multiple entities
   ///
@@ -50,24 +50,24 @@ namespace systems
   /// thereby eliminating simulation steps between entity spawn times.
   ///
   /// * **Service**: `/world/<world name>/create_multiple`
-  /// * **Request type*: gz.msgs.EntityFactory_V
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type*: ignition.msgs.EntityFactory_V
+  /// * **Response type*: ignition.msgs.Boolean
   ///
   /// # Set entity pose
   ///
   /// This service set the pose of entities
   ///
   /// * **Service**: `/world/<world name>/set_pose`
-  /// * **Request type*: gz.msgs.Pose
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type*: ignition.msgs.Pose
+  /// * **Response type*: ignition.msgs.Boolean
   ///
   /// # Set multiple entity poses
   ///
   /// This service set the pose of multiple entities
   ///
   /// * **Service**: `/world/<world name>/set_pose_vector`
-  /// * **Request type*: gz.msgs.Pose_V
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type*: ignition.msgs.Pose_V
+  /// * **Response type*: ignition.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf
   class UserCommands:

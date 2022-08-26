@@ -21,9 +21,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -47,7 +47,7 @@ namespace systems
     public: void Configure(const Entity &_entity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
-                           sim::EventManager &_eventMgr) final;
+                           gz::sim::EventManager &_eventMgr) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ThermalPrivate> dataPtr;

@@ -18,7 +18,7 @@
 #define GZ_GAZEBO_COMPONENTS_SERIALIZATION_HH_
 
 #include <google/protobuf/message_lite.h>
-#include <gz/msgs/double_v.pb.h>
+#include <ignition/msgs/double_v.pb.h>
 
 #include <string>
 #include <vector>
@@ -29,9 +29,9 @@
 // This header holds serialization operators which are shared among several
 // components
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

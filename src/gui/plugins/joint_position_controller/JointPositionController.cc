@@ -38,7 +38,7 @@
 
 #include "JointPositionController.hh"
 
-namespace gz::sim::gui
+namespace ignition::gazebo::gui
 {
   class JointPositionControllerPrivate
   {
@@ -62,9 +62,9 @@ namespace gz::sim::gui
   };
 }
 
-using namespace gz;
-using namespace gz::sim;
-using namespace gz::sim::gui;
+using namespace ignition;
+using namespace ignition::gazebo;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 JointsModel::JointsModel() : QStandardItemModel()
@@ -302,7 +302,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
+    if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -311,7 +311,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);

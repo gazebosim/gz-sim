@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/CanonicalLink.hh"
@@ -43,10 +43,10 @@ class gz::sim::LinkPrivate
 };
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
-Link::Link(sim::Entity _entity)
+Link::Link(gz::sim::Entity _entity)
   : dataPtr(std::make_unique<LinkPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -81,7 +81,7 @@ Entity Link::Entity() const
 }
 
 //////////////////////////////////////////////////
-void Link::ResetEntity(sim::Entity _newEntity)
+void Link::ResetEntity(gz::sim::Entity _newEntity)
 {
   this->dataPtr->id = _newEntity;
 }

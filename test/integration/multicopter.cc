@@ -20,7 +20,7 @@
 
 #include <optional>
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -43,7 +43,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 class MulticopterTest : public InternalFixture<::testing::Test>

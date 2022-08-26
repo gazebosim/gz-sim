@@ -18,15 +18,15 @@
 #ifndef GZ_GAZEBO_GUI_VIEWANGLE_HH_
 #define GZ_GAZEBO_GUI_VIEWANGLE_HH_
 
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <memory>
 
 #include <gz/gui/Plugin.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class ViewAnglePrivate;
 

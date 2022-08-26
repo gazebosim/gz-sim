@@ -31,7 +31,7 @@
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/World.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SdfEntityCreator.hh>
@@ -40,7 +40,7 @@
 #include "LogicalAudio.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::LogicalAudioSensorPluginPrivate
@@ -525,4 +525,4 @@ IGNITION_ADD_PLUGIN(LogicalAudioSensorPlugin,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-  "gz::sim::systems::LogicalAudioSensorPlugin")
+  "sim::systems::LogicalAudioSensorPlugin")

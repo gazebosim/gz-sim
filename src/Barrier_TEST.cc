@@ -24,9 +24,9 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-inline bool wasCancelled(const sim::Barrier::ExitStatus &_ret)
+inline bool wasCancelled(const gz::sim::Barrier::ExitStatus &_ret)
 {
-  return _ret == sim::Barrier::ExitStatus::CANCELLED;
+  return _ret == gz::sim::Barrier::ExitStatus::CANCELLED;
 }
 
 //////////////////////////////////////////////////
@@ -51,7 +51,7 @@ void syncThreadsTest(unsigned int _threadCount)
         }
 
         EXPECT_EQ(barrier->Wait(),
-            sim::Barrier::ExitStatus::DONE);
+            gz::sim::Barrier::ExitStatus::DONE);
 
         {
           std::lock_guard<std::mutex> lock(mutex);
@@ -74,7 +74,7 @@ void syncThreadsTest(unsigned int _threadCount)
   // Give time for the last thread to call Wait
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-  EXPECT_EQ(barrier->Wait(), sim::Barrier::ExitStatus::DONE_LAST);
+  EXPECT_EQ(barrier->Wait(), gz::sim::Barrier::ExitStatus::DONE_LAST);
 
   {
     std::unique_lock<std::mutex> lock(mutex);

@@ -34,9 +34,9 @@
 #include "gz/sim/components/World.hh"
 
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -447,5 +447,5 @@ namespace sdf_generator
   }
 }
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition

@@ -25,9 +25,9 @@
 #include "NetworkRole.hh"
 #include "msgs/peer_info.pb.h"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -61,8 +61,8 @@ namespace gz
     /// \result Equivalent message
     private_msgs::PeerInfo toProto(
         const PeerInfo &_info);
-  }  // namespace sim
-}  // namespace gz
+  }  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_NETWORK_PEERINFO_HH_
 

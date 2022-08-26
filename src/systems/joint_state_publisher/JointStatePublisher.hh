@@ -24,9 +24,9 @@
 #include <gz/transport/Node.hh>
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -69,7 +69,7 @@ namespace systems
     /// \param[in] _ecm The EntityComponentManager.
     /// \param[in] _joint The joint entity to create component for.
     private: void CreateComponents(EntityComponentManager &_ecm,
-                                   sim::Entity _joint);
+                                   gz::sim::Entity _joint);
 
     /// \brief The model
     private: Model model;

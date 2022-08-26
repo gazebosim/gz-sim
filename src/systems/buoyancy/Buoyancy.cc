@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <gz/msgs/wrench.pb.h>
+#include <ignition/msgs/wrench.pb.h>
 
 #include <mutex>
 #include <string>
@@ -30,7 +30,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
@@ -49,7 +49,7 @@
 #include "Buoyancy.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::BuoyancyPrivate
@@ -271,4 +271,4 @@ IGNITION_ADD_PLUGIN(Buoyancy,
                     Buoyancy::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "gz::sim::systems::Buoyancy")
+                          "sim::systems::Buoyancy")

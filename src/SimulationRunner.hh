@@ -17,9 +17,9 @@
 #ifndef GZ_GAZEBO_SIMULATIONRUNNER_HH_
 #define GZ_GAZEBO_SIMULATIONRUNNER_HH_
 
-#include <gz/msgs/gui.pb.h>
-#include <gz/msgs/log_playback_control.pb.h>
-#include <gz/msgs/sdf_generator_config.pb.h>
+#include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/log_playback_control.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -57,9 +57,9 @@
 
 using namespace std::chrono_literals;
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

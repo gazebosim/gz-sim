@@ -17,8 +17,8 @@
 
 #include "VideoRecorder.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/video_record.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/video_record.pb.h>
 
 #include <iostream>
 #include <string>
@@ -30,7 +30,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class VideoRecorderPrivate
   {
@@ -45,8 +45,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 VideoRecorder::VideoRecorder()

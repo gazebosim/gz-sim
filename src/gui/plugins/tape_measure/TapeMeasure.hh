@@ -23,9 +23,9 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/Color.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class TapeMeasurePrivate;
 

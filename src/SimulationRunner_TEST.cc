@@ -58,12 +58,12 @@
 #include "SimulationRunner.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace components;
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components

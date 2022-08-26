@@ -51,7 +51,7 @@
 #include "gz/sim/rendering/RenderUtil.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -554,4 +554,4 @@ IGNITION_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
+IGNITION_ADD_PLUGIN_ALIAS(Sensors, "sim::systems::Sensors")

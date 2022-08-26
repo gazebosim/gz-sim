@@ -17,8 +17,8 @@
 
 #include "Contact.hh"
 
-#include <gz/msgs/contact.pb.h>
-#include <gz/msgs/contacts.pb.h>
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -43,7 +43,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class ContactSensor
@@ -299,5 +299,5 @@ IGNITION_ADD_PLUGIN(Contact, System,
   Contact::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "sim::systems::Contact")
 

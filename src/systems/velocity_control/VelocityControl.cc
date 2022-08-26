@@ -33,7 +33,7 @@
 #include "VelocityControl.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::VelocityControlPrivate
@@ -378,4 +378,4 @@ IGNITION_ADD_PLUGIN(VelocityControl,
                     VelocityControl::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
-                          "gz::sim::systems::VelocityControl")
+                          "sim::systems::VelocityControl")

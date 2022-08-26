@@ -22,9 +22,9 @@
 
 #include <mutex>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -78,5 +78,5 @@ struct NoQueuedTarget
 }  // namespace guards
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition

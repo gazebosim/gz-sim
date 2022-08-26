@@ -27,7 +27,7 @@
 #include "gz/sim/TestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 class TestFixtureTest : public InternalFixture<::testing::Test>

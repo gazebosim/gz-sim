@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/altimeter.pb.h>
+#include <ignition/msgs/altimeter.pb.h>
 #include <mutex>
 
 #include <gz/common/Console.hh>
@@ -40,7 +40,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test AltimeterTest system
 class AltimeterTest : public InternalFixture<::testing::Test>

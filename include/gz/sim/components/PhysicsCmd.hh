@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 #define GZ_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 
-#include <gz/msgs/physics.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
@@ -25,9 +25,9 @@
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

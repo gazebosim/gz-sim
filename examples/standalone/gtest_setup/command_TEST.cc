@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/twist.pb.h>
+#include <ignition/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/sim/Link.hh>

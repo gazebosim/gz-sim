@@ -25,7 +25,7 @@
 #include "gz/sim/components/Name.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 void warmstart()
 {

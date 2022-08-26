@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/contacts.pb.h>
+#include <ignition/msgs/contacts.pb.h>
 
 #include <thread>
 
@@ -33,7 +33,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class ContactSystemTest : public InternalFixture<::testing::Test>
 {

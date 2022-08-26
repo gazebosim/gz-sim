@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_MATERIAL_HH_
 #define GZ_GAZEBO_COMPONENTS_MATERIAL_HH_
 
-#include <gz/msgs/material.pb.h>
+#include <ignition/msgs/material.pb.h>
 
 #include <sdf/Material.hh>
 
@@ -26,9 +26,9 @@
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

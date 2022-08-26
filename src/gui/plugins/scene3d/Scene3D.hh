@@ -18,11 +18,11 @@
 #ifndef GZ_GAZEBO_GUI_SCENE3D_HH_
 #define GZ_GAZEBO_GUI_SCENE3D_HH_
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/gui_camera.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/vector3d.pb.h>
-#include <gz/msgs/video_record.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
+#include <ignition/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>
@@ -45,9 +45,9 @@
 #include "gz/gui/qt.h"
 
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -79,7 +79,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   ///     * \<p_gain\>    : Camera follow movement p gain.
   ///     * \<target\>    : Target to follow.
   /// * \<fullscreen\> : Optional starting the window in fullscreen.
-  class Scene3D : public gz::sim::GuiSystem
+  class Scene3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 

@@ -29,7 +29,7 @@
 #include "SimulationRunner.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 // Getting the first .sdf file in the path

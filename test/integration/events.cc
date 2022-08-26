@@ -27,7 +27,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class EventTrigger : public InternalFixture<::testing::Test>
 {

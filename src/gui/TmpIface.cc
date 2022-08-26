@@ -19,8 +19,8 @@
 
 #include "gz/sim/gui/TmpIface.hh"
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace gazebo;
 
 /////////////////////////////////////////////////
 TmpIface::TmpIface()

@@ -72,7 +72,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 // Private data class.
 class gz::sim::RenderUtilPrivate

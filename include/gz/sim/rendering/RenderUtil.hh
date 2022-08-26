@@ -31,9 +31,9 @@
 #include "gz/sim/rendering/MarkerManager.hh"
 
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

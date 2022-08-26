@@ -28,7 +28,7 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 {

@@ -18,8 +18,8 @@
 #include "WindEffects.hh"
 
 #include <google/protobuf/message.h>
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/entity_factory.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/entity_factory.pb.h>
 
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@
 #include <sdf/Error.hh>
 
 #include <gz/common/Profiler.hh>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/sensors/Noise.hh>
@@ -50,7 +50,7 @@
 #include "gz/sim/Link.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private WindEffects data class.
@@ -569,4 +569,4 @@ IGNITION_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
+IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "sim::systems::WindEffects")

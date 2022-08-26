@@ -24,9 +24,9 @@
 
 #include "DoorTimer.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -101,5 +101,5 @@ void DoorTimer::Update(const UpdateInfo &_info, bool _isDoorwayBlocked)
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition

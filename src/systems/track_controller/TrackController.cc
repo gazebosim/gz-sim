@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <gz/msgs/double.pb.h>
-#include <gz/msgs/marker.pb.h>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/double.pb.h>
+#include <ignition/msgs/marker.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <gz/math/eigen3.hh>
 #include <gz/math/SpeedLimiter.hh>
@@ -41,7 +41,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::TrackControllerPrivate
@@ -619,4 +619,4 @@ IGNITION_ADD_PLUGIN(TrackController,
                     TrackController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
-                          "gz::sim::systems::TrackController")
+                          "sim::systems::TrackController")

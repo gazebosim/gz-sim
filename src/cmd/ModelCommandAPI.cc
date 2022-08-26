@@ -21,8 +21,8 @@
 #include <vector>
 #include <map>
 
-#include <gz/msgs/serialized.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
@@ -42,7 +42,7 @@
 #include <gz/transport/Node.hh>
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 /// \brief Get the name of the world being used by calling

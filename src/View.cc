@@ -18,7 +18,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace detail;
 
 //////////////////////////////////////////////////

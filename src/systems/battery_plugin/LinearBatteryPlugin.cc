@@ -17,8 +17,8 @@
 
 #include "LinearBatteryPlugin.hh"
 
-#include <gz/msgs/battery_state.pb.h>
-#include <gz/msgs/boolean.pb.h>
+#include <ignition/msgs/battery_state.pb.h>
+#include <ignition/msgs/boolean.pb.h>
 
 #include <algorithm>
 #include <atomic>
@@ -49,7 +49,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::LinearBatteryPluginPrivate
@@ -615,4 +615,4 @@ IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
-  "gz::sim::systems::LinearBatteryPlugin")
+  "sim::systems::LinearBatteryPlugin")

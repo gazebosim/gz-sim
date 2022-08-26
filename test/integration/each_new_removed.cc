@@ -35,7 +35,7 @@
 using namespace gz;
 using namespace std::chrono_literals;
 
-using IntComponent = sim::components::Component<int, class IntComponentTag>;
+using IntComponent = gz::sim::components::Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
@@ -46,9 +46,9 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
 {
-  sim::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
-  sim::Server server;
+  gz::sim::Server server;
 
   server.SetUpdatePeriod(1ns);
 
@@ -60,12 +60,12 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
   // Entities to be created in a system. These have to be out here so the
   // entityCreator can set the ids when it creates the entities and the
   // entityRemover system can access them easily
-  sim::Entity e1 = sim::kNullEntity;
-  sim::Entity e2 = sim::kNullEntity;
+  gz::sim::Entity e1 = gz::sim::kNullEntity;
+  gz::sim::Entity e2 = gz::sim::kNullEntity;
 
-  sim::test::Relay entityCreator;
+  gz::sim::test::Relay entityCreator;
   entityCreator.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const gz::sim::UpdateInfo &, gz::sim::EntityComponentManager &_ecm)
     {
       if (shouldCreateEntities)
       {
@@ -78,9 +78,9 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
       }
   });
 
-  sim::test::Relay entityRemover;
+  gz::sim::test::Relay entityRemover;
   entityRemover.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const gz::sim::UpdateInfo &, gz::sim::EntityComponentManager &_ecm)
     {
       if (shouldRemoveEntities)
       {
@@ -104,16 +104,16 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
   {
     // Lambda to return. This a simple counter that uses the appropriate count
     // variable where count = (pre, update, post)count
-    auto counterImpl = [&](const sim::UpdateInfo &,
-                           const sim::EntityComponentManager &_ecm)
+    auto counterImpl = [&](const gz::sim::UpdateInfo &,
+                           const gz::sim::EntityComponentManager &_ecm)
     {
-      _ecm.EachNew<IntComponent>([&](const sim::Entity &,
+      _ecm.EachNew<IntComponent>([&](const gz::sim::Entity &,
                                      const IntComponent *) -> bool
       {
         ++_count.newEntities;
         return true;
       });
-      _ecm.EachRemoved<IntComponent>([&](const sim::Entity &,
+      _ecm.EachRemoved<IntComponent>([&](const gz::sim::Entity &,
                                          const IntComponent *) -> bool
       {
         ++_count.removedEntities;
@@ -123,7 +123,7 @@ TEST_F(EachNewRemovedFixture, EachNewEachRemovedInSystem)
     return counterImpl;
   };
 
-  sim::test::Relay entityCounter;
+  gz::sim::test::Relay entityCounter;
   entityCounter.OnPreUpdate(counterFunc(preCount));
   entityCounter.OnUpdate(counterFunc(updateCount));
   entityCounter.OnPostUpdate(counterFunc(postCount));

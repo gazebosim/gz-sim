@@ -44,7 +44,7 @@ void GuiSystemPlugin::Update(const gz::sim::UpdateInfo & /*_info*/,
 {
   // In the update loop, you can for example get the name of the world and set
   // it as a property that can be read from the QML.
-  _ecm.Each<gz::sim::components::Name,
+  _ecm.Each<sim::components::Name,
             gz::sim::components::World>(
     [&](const gz::sim::Entity &_entity,
         const gz::sim::components::Name *_name,

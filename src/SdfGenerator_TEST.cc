@@ -45,7 +45,7 @@
 #include "SdfGenerator.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB

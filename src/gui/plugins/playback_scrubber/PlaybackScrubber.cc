@@ -17,8 +17,8 @@
 
 #include "PlaybackScrubber.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <ctime>
@@ -40,7 +40,7 @@
 #include "gz/sim/components/LogPlaybackStatistics.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class PlaybackScrubberPrivate
   {
@@ -68,8 +68,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 PlaybackScrubber::PlaybackScrubber() : GuiSystem(),

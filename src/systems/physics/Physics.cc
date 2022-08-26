@@ -17,10 +17,10 @@
 
 #include "Physics.hh"
 
-#include <gz/msgs/contact.pb.h>
-#include <gz/msgs/contacts.pb.h>
-#include <gz/msgs/entity.pb.h>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/contact.pb.h>
+#include <ignition/msgs/contacts.pb.h>
+#include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -131,8 +131,8 @@
 #include "EntityFeatureMap.hh"
 
 using namespace gz;
-using namespace gz::sim::systems;
-using namespace gz::sim::systems::physics_system;
+using namespace ignition::gazebo::systems;
+using namespace ignition::gazebo::systems::physics_system;
 namespace components = gz::sim::components;
 
 
@@ -2734,7 +2734,7 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   using ContactPoint = GCFeatureWorld::ContactPoint;
   using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
-  const auto callbackID = "gz::sim::systems::Physics";
+  const auto callbackID = "sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
     callbackID,
     [this, _world](const GCFeatureWorld::Contact &_contact,
@@ -2808,8 +2808,8 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 }
 
 IGNITION_ADD_PLUGIN(Physics,
-                    sim::System,
+                    gz::sim::System,
                     Physics::ISystemConfigure,
                     Physics::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "sim::systems::Physics")

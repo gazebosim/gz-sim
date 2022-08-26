@@ -53,7 +53,7 @@
 #include "../test/helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 class EntityCompMgrTest : public EntityComponentManager

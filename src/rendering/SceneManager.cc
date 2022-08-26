@@ -46,7 +46,7 @@
 #include "gz/sim/rendering/SceneManager.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Private data class.

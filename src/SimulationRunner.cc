@@ -37,7 +37,7 @@
 #include "SdfGenerator.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -175,7 +175,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = sim::loadPluginInfo(isPlayback);
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 

@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Link.hh"
@@ -37,7 +37,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test WindEffects system
 class WindEffectsTest : public InternalFixture<::testing::Test>
@@ -70,7 +70,7 @@ class LinkComponentRecorder
       : linkName(std::move(_linkName))
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "gz::sim::MockSystem", nullptr);
+                                    "sim::MockSystem", nullptr);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();

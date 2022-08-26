@@ -16,7 +16,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <gz/msgs/int32.pb.h>
+#include <ignition/msgs/int32.pb.h>
 
 #include <memory>
 
@@ -32,7 +32,7 @@
 #include "../test/helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
@@ -120,7 +120,7 @@ inline std::istream &operator>>(std::istream &_in, sdf::Element &_element)
 
 // ostream operator for math::Inertiald (not defined elsewhere)
 // Note: Must be defined in the correct namespace or clang refuses to find it.
-namespace gz
+namespace ignition
 {
 namespace math
 {

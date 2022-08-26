@@ -29,9 +29,9 @@
 
 #include "NetworkConfig.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -122,7 +122,7 @@ namespace gz
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };
     }
-  }  // namespace sim
-}  // namespace gz
+  }  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_NETWORKMANAGER_HH_

@@ -25,7 +25,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class SdfInclude : public InternalFixture<::testing::Test>
 {

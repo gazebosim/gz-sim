@@ -17,7 +17,7 @@
 
 #include "JointController.hh"
 
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 
 #include <string>
 
@@ -32,7 +32,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::JointControllerPrivate
@@ -247,4 +247,4 @@ IGNITION_ADD_PLUGIN(JointController,
                     JointController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
-                          "gz::sim::systems::JointController")
+                          "sim::systems::JointController")

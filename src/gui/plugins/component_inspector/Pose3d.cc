@@ -17,13 +17,13 @@
 
 #include <string>
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include "Pose3d.hh"
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 using namespace inspector;
 
 /////////////////////////////////////////////////

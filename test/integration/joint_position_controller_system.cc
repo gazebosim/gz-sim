@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -37,7 +37,7 @@
 #define TOL 1e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test fixture for JointPositionController system
 class JointPositionControllerTestFixture

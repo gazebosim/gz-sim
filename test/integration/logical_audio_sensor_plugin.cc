@@ -26,7 +26,7 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 #include <gz/utilities/ExtraTestMacros.hh>
 
@@ -43,7 +43,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test LogicalAudio system plugin
 class LogicalAudioTest : public InternalFixture<::testing::Test>

@@ -28,9 +28,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -60,7 +60,7 @@ namespace gz
     class IGNITION_GAZEBO_VISIBLE Model {
       /// \brief Constructor
       /// \param[in] _entity Model entity
-      public: explicit Model(sim::Entity _entity = kNullEntity);
+      public: explicit Model(gz::sim::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _model Model to copy.
@@ -85,7 +85,7 @@ namespace gz
 
       /// \brief Get the entity which this Model is related to.
       /// \return Model entity.
-      public: sim::Entity Entity() const;
+      public: gz::sim::Entity Entity() const;
 
       /// \brief Check whether this model correctly refers to an entity that
       /// has a components::Model.
@@ -127,7 +127,7 @@ namespace gz
       /// \param[in] _name Joint name.
       /// \return Joint entity.
       /// \todo(anyone) Make const
-      public: sim::Entity JointByName(const EntityComponentManager &_ecm,
+      public: gz::sim::Entity JointByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get the ID of a link entity which is an immediate child of
@@ -136,19 +136,19 @@ namespace gz
       /// \param[in] _name Link name.
       /// \return Link entity.
       /// \todo(anyone) Make const
-      public: sim::Entity LinkByName(const EntityComponentManager &_ecm,
+      public: gz::sim::Entity LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name);
 
       /// \brief Get all joints which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All joints in this model.
-      public: std::vector<sim::Entity> Joints(
+      public: std::vector<gz::sim::Entity> Joints(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all links which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All links in this model.
-      public: std::vector<sim::Entity> Links(
+      public: std::vector<gz::sim::Entity> Links(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the number of joints which are immediate children of this
@@ -172,7 +172,7 @@ namespace gz
       /// \brief Get the model's canonical link entity.
       /// \param[in] _ecm Entity-component manager.
       /// \return Link entity.
-      public: sim::Entity CanonicalLink(
+      public: gz::sim::Entity CanonicalLink(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Pointer to private data.

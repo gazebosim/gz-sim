@@ -17,7 +17,7 @@
 #include "gz/sim/EventManager.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 EventManager::EventManager() = default;

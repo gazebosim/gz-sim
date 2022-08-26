@@ -23,11 +23,11 @@
 
 /// \brief This library is part of the [Ignition
 /// Robotics](https://ignitionrobotics.org) project.
-namespace gz
+namespace ignition
 {
   /// \brief Gazebo is a leading open source robotics simulator, that
   /// provides high fidelity physics, rendering, and sensor simulation.
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

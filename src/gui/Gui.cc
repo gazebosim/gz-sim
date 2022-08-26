@@ -36,9 +36,9 @@
 #include "GuiFileHandler.hh"
 #include "PathManager.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -441,7 +441,7 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig)
 int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui)
 {
-  auto app = sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+  auto app = gz::sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
       _sdfFile, _waitGui);
   if (nullptr != app)
   {
@@ -456,5 +456,5 @@ int runGui(int &_argc, char **_argv,
 }
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition

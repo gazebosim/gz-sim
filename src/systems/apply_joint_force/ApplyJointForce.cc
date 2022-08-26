@@ -27,7 +27,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::ApplyJointForcePrivate
@@ -161,4 +161,4 @@ IGNITION_ADD_PLUGIN(ApplyJointForce,
                     ApplyJointForce::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "gz::sim::systems::ApplyJointForce")
+                          "sim::systems::ApplyJointForce")

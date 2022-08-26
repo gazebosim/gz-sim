@@ -54,7 +54,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "gz::sim::MockSystem",
+                                "sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
@@ -62,10 +62,10 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
         systemPtr->QueryInterface<sim::System>());
   }
 
-  public: sim::SystemPluginPtr systemPtr;
-  public: sim::MockSystem *mockSystem;
+  public: gz::sim::SystemPluginPtr systemPtr;
+  public: gz::sim::MockSystem *mockSystem;
 
-  private: sim::SystemLoader sm;
+  private: gz::sim::SystemLoader sm;
 };
 
 //////////////////////////////////////////////////
@@ -113,7 +113,7 @@ void testDefaultTopics()
 /// are removed and then added back
 TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
-  sim::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/sensor.sdf";
@@ -125,12 +125,12 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
   const sdf::World *sdfWorld = root.WorldByIndex(0);
   const sdf::Model *sdfModel = sdfWorld->ModelByIndex(0);
 
-  sim::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  sim::EntityComponentManager *ecm = nullptr;
+  gz::sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&ecm](const gz::sim::UpdateInfo &, gz::sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
     };
@@ -143,8 +143,8 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
-  sim::EventManager dummyEventMgr;
-  sim::SdfEntityCreator creator(*ecm, dummyEventMgr);
+  gz::sim::EventManager dummyEventMgr;
+  gz::sim::SdfEntityCreator creator(*ecm, dummyEventMgr);
 
   unsigned int runs = 100;
   unsigned int runIterations = 2;
@@ -153,7 +153,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(
           components::Model(), components::Name(sdfModel->Name()));
-      EXPECT_NE(sim::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
 
       // Remove the first model in the world
       creator.RequestRemoveEntity(modelEntity, true);
@@ -166,7 +166,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
           components::Name(sdfModel->Name()));
 
       // Since the model is removed, we should get a null entity
-      EXPECT_EQ(sim::kNullEntity, modelEntity);
+      EXPECT_EQ(gz::sim::kNullEntity, modelEntity);
     }
 
     // Create the model again
@@ -181,7 +181,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(components::Model(),
           components::Name(sdfModel->Name()));
-      EXPECT_NE(sim::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
     }
   }
 }

@@ -77,9 +77,9 @@ std::condition_variable g_renderCv;
 
 Q_DECLARE_METATYPE(std::string)
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
   /// \brief Helper to store selection requests to be handled in the render
@@ -382,8 +382,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 }
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 QList<QThread *> RenderWindowItemPrivate::threads;
 
@@ -3313,5 +3313,5 @@ void RenderWindowItem::HandleKeyRelease(QKeyEvent *_e)
 //
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(sim::Scene3D,
+IGNITION_ADD_PLUGIN(ignition::gazebo::Scene3D,
                     gz::gui::Plugin)

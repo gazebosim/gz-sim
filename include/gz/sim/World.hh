@@ -29,9 +29,9 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -59,7 +59,7 @@ namespace gz
     class IGNITION_GAZEBO_VISIBLE World {
       /// \brief Constructor
       /// \param[in] _entity World entity
-      public: explicit World(sim::Entity _entity = kNullEntity);
+      public: explicit World(gz::sim::Entity _entity = kNullEntity);
 
       /// \brief Copy constructor
       /// \param[in] _world World to copy.
@@ -84,7 +84,7 @@ namespace gz
 
       /// \brief Get the entity which this World is related to.
       /// \return World entity.
-      public: sim::Entity Entity() const;
+      public: gz::sim::Entity Entity() const;
 
       /// \brief Check whether this world correctly refers to an entity that
       /// has a components::World.
@@ -125,7 +125,7 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Light name.
       /// \return Light entity.
-      public: sim::Entity LightByName(const EntityComponentManager &_ecm,
+      public: gz::sim::Entity LightByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get the ID of a actor entity which is an immediate child of
@@ -133,7 +133,7 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Actor name.
       /// \return Actor entity.
-      public: sim::Entity ActorByName(const EntityComponentManager &_ecm,
+      public: gz::sim::Entity ActorByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get the ID of a model entity which is an immediate child of
@@ -141,25 +141,25 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Model name.
       /// \return Model entity.
-      public: sim::Entity ModelByName(const EntityComponentManager &_ecm,
+      public: gz::sim::Entity ModelByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
       /// \brief Get all lights which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All lights in this world.
-      public: std::vector<sim::Entity> Lights(
+      public: std::vector<gz::sim::Entity> Lights(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all actors which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All actors in this world.
-      public: std::vector<sim::Entity> Actors(
+      public: std::vector<gz::sim::Entity> Actors(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get all models which are immediate children of this world.
       /// \param[in] _ecm Entity-component manager.
       /// \return All models in this world.
-      public: std::vector<sim::Entity> Models(
+      public: std::vector<gz::sim::Entity> Models(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the number of lights which are immediate children of this

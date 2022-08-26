@@ -17,7 +17,7 @@
 
 #include "PathManager.hh"
 
-#include <gz/msgs/sdf_generator_config.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 
 #include <string>
 #include <vector>
@@ -29,8 +29,8 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
-using namespace sim::gui;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)

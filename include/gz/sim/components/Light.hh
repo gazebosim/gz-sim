@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_LIGHT_HH_
 #define GZ_GAZEBO_COMPONENTS_LIGHT_HH_
 
-#include <gz/msgs/light.pb.h>
+#include <ignition/msgs/light.pb.h>
 
 #include <sdf/Light.hh>
 
@@ -27,9 +27,9 @@
 #include <gz/sim/Conversions.hh>
 #include <gz/sim/config.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

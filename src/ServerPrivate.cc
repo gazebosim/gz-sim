@@ -32,7 +32,7 @@
 #include "SimulationRunner.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -61,7 +61,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "gz::sim::systems::LogRecord";
+      "sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -78,7 +78,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "gz::sim::systems::LogPlayback";
+      "sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };

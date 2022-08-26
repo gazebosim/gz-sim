@@ -24,15 +24,15 @@
 #include <gz/sim/gui/GuiSystem.hh>
 #include <gz/gui/Plugin.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class PlaybackScrubberPrivate;
 
   /// \brief Provides buttons for adding a box, sphere, or cylinder
   /// to the scene
-  class PlaybackScrubber : public gz::sim::GuiSystem
+  class PlaybackScrubber : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 

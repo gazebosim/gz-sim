@@ -29,7 +29,7 @@
 #include "NetworkManagerSecondary.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 
 bool validateConfig(const NetworkConfig &_config)

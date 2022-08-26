@@ -20,7 +20,7 @@
 #include <gz/plugin/RegisterMore.hh>
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 TestSystem::TestSystem()
@@ -34,4 +34,4 @@ TestSystem::~TestSystem() = default;
 // Register this plugin
 IGNITION_ADD_PLUGIN(TestSystem, System)
 
-IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")
+IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "sim::TestSystem")

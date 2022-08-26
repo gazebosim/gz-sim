@@ -21,14 +21,14 @@
   #include <gz/gui/qt.h>
 #endif
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport.hh>
 
 #include "gz/sim/Export.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     /// \brief Temporary place to prototype transport interfaces while it's not
     /// clear where they will live.

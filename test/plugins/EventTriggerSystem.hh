@@ -21,14 +21,14 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/System.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 class IGNITION_GAZEBO_VISIBLE EventTriggerSystem :
-  public sim::System,
-  public sim::ISystemConfigure,
-  public sim::ISystemUpdate
+  public gz::sim::System,
+  public gz::sim::ISystemConfigure,
+  public gz::sim::ISystemUpdate
 {
   // needed for linter
   public: EventTriggerSystem() = default;

@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/AxisAlignedBox.hh>
@@ -38,7 +38,7 @@
 #include "PerformerDetector.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -260,4 +260,4 @@ IGNITION_ADD_PLUGIN(PerformerDetector,
                     PerformerDetector::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "gz::sim::systems::PerformerDetector")
+                          "sim::systems::PerformerDetector")

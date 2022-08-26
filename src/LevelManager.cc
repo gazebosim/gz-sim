@@ -58,7 +58,7 @@
 #include "SimulationRunner.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)

@@ -21,9 +21,9 @@
 
 #include "../plugins/MockSystem.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 namespace test
 {
@@ -37,8 +37,8 @@ namespace test
 ///  test::Relay testSystem;
 ///
 ///  // Register callbacks, for example:
-///  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-///    const sim::EntityComponentManager &_ecm)
+///  testSystem.OnPostUpdate([&](const gz::sim::UpdateInfo &,
+///    const gz::sim::EntityComponentManager &_ecm)
 ///    {
 ///      // Add expectations here
 ///    }

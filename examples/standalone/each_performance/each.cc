@@ -24,7 +24,7 @@
 #include <gz/sim/components/Name.hh>
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 // This program will output performance comparison data between

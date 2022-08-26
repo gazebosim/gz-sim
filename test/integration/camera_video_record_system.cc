@@ -29,7 +29,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test CameraVideoRecorder system
 class CameraVideoRecorderTest : public InternalFixture<::testing::Test>

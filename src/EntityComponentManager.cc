@@ -30,7 +30,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class gz::sim::EntityComponentManagerPrivate
 {
@@ -1303,7 +1303,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
-    sim::ComponentState _c)
+    gz::sim::ComponentState _c)
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 

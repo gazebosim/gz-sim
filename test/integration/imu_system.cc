@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/imu.pb.h>
+#include <ignition/msgs/imu.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -42,7 +42,7 @@
 #define TOL 1e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test ImuTest system
 class ImuTest : public InternalFixture<::testing::Test>

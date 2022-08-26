@@ -25,9 +25,9 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Export.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -108,7 +108,7 @@ namespace gui
       const char *_sdfFile, int _waitGui);
 }  // namespace gui
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif

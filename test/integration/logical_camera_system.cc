@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/logical_camera_image.pb.h>
+#include <ignition/msgs/logical_camera_image.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -36,7 +36,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test LogicalCameraTest system
 class LogicalCameraTest : public InternalFixture<::testing::Test>

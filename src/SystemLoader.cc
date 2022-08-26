@@ -182,4 +182,3 @@ std::string SystemLoader::PrettyStr() const
 {
   return this->dataPtr->loader.PrettyStr();
 }
-

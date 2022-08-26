@@ -6,7 +6,7 @@ include_directories (
 )
 
 configure_file (test_config.hh.in ${PROJECT_BINARY_DIR}/include/ignition/gazebo/test_config.hh)
-configure_file (test_config.hh.in ${PROJECT_BINARY_DIR}/include/ignition/gazebo/test_config.hh)
+configure_file (test_config.hh.in ${PROJECT_BINARY_DIR}/include/gz/sim/test_config.hh)
 
 # Build gtest
 add_library(gtest STATIC gtest/src/gtest-all.cc)

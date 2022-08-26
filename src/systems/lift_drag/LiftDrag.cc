@@ -41,7 +41,7 @@
 #include "gz/sim/components/Pose.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 class gz::sim::systems::LiftDragPrivate
@@ -527,4 +527,4 @@ IGNITION_ADD_PLUGIN(LiftDrag,
                     LiftDrag::ISystemConfigure,
                     LiftDrag::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
+IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "sim::systems::LiftDrag")

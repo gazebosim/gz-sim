@@ -19,7 +19,7 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "gz/msgs.hh"
+#include "ignition/msgs.hh"
 #include "gz/transport.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
@@ -27,7 +27,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;

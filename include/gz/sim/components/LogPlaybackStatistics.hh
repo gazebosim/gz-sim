@@ -17,16 +17,16 @@
 #ifndef GZ_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
 #define GZ_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
 
-#include <gz/msgs/log_playback_stats.pb.h>
+#include <ignition/msgs/log_playback_stats.pb.h>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

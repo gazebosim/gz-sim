@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/image.pb.h>
+#include <ignition/msgs/image.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -34,7 +34,7 @@
 #define DEPTH_TOL 1e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Test DepthCameraTest system

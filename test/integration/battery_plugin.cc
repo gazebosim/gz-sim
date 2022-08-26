@@ -42,7 +42,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
@@ -52,7 +52,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "gz::sim::MockSystem",
+                                "sim::MockSystem",
                                 nullptr);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();

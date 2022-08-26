@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/entity_factory.pb.h>
+#include <ignition/msgs/entity_factory.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -52,7 +52,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test DiffDrive system
 class WheelSlipTest : public InternalFixture<::testing::Test>

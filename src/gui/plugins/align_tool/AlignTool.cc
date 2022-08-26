@@ -15,8 +15,8 @@
  *
 */
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -46,7 +46,7 @@
 
 #include "AlignTool.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class AlignToolPrivate
   {
@@ -90,8 +90,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()

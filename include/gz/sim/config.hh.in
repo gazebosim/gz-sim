@@ -11,7 +11,7 @@
 
 #define IGNITION_GAZEBO_VERSION_NAMESPACE v${PROJECT_VERSION_MAJOR}
 
-#define IGNITION_GAZEBO_VERSION_HEADER "Ignition Gazebo, version ${PROJECT_VERSION_FULL}\nCopyright (C) 2018 Open Source Robotics Foundation.\nReleased under the Apache 2.0 License.\n\n"
+#define IGNITION_GAZEBO_VERSION_HEADER "Gazebo Sim, version ${PROJECT_VERSION_FULL}\nCopyright (C) 2018 Open Source Robotics Foundation.\nReleased under the Apache 2.0 License.\n\n"
 
 #define IGNITION_GAZEBO_GUI_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/${IGN_DATA_INSTALL_DIR}/gui"
 #define IGNITION_GAZEBO_SYSTEM_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/${IGN_DATA_INSTALL_DIR}/systems"
@@ -24,3 +24,21 @@
 #cmakedefine IGNITION_GAZEBO_BUILD_TYPE_PROFILE 1
 #cmakedefine IGNITION_GAZEBO_BUILD_TYPE_DEBUG 1
 #cmakedefine IGNITION_GAZEBO_BUILD_TYPE_RELEASE 1
+
+namespace ignition
+{
+  namespace gazebo
+  {
+  }
+}
+
+namespace gz
+{
+  using namespace ignition;
+
+  namespace sim
+  {
+  using namespace gazebo;
+  using namespace ignition::gazebo;
+  }
+}

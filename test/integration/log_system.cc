@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <gz/msgs/pose_v.pb.h>
+#include <ignition/msgs/pose_v.pb.h>
 
 #include <algorithm>
 #include <climits>
@@ -54,7 +54,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
@@ -778,7 +778,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   auto recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("gz.msgs.StringMsg", recordedIter->Type());
+  EXPECT_EQ("ignition.msgs.StringMsg", recordedIter->Type());
   EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
 
   msgs::StringMsg sdfMsg;
@@ -792,7 +792,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
   recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
 
-  EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
+  EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
   EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
   msgs::SerializedStateMap stateMsg;
@@ -813,7 +813,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
       std::regex(".*/dynamic_pose/info")));
   recordedIter = batch.begin();
   EXPECT_NE(batch.end(), recordedIter);
-  EXPECT_EQ("gz.msgs.Pose_V", recordedIter->Type());
+  EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
 
   // First pose at 1ms time, both from log clock and header
   EXPECT_EQ(1000000, recordedIter->TimeReceived().count());
@@ -840,7 +840,7 @@ TEST_F(LogSystemTest, RecordAndPlayback)
           return;
 
         // Get next recorded message
-        EXPECT_EQ("gz.msgs.Pose_V", recordedIter->Type());
+        EXPECT_EQ("ignition.msgs.Pose_V", recordedIter->Type());
         recordedMsg.ParseFromString(recordedIter->Data());
 
         ASSERT_TRUE(recordedMsg.has_header());

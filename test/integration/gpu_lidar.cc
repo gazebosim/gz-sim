@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/laserscan.pb.h>
+#include <ignition/msgs/laserscan.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -33,7 +33,7 @@
 #define LASER_TOL 1e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test GpuLidarTest system
 class GpuLidarTest : public InternalFixture<::testing::Test>

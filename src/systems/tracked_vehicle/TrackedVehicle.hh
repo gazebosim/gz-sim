@@ -21,9 +21,9 @@
 
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -120,14 +120,14 @@ namespace systems
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
-  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
-  /// `gz.msgs.Odometry` message. This element if optional, and the
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional, and the
   /// default value is `{model_name}/odom`.
   ///
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   /// the target of the odometry trasnform in both the `<tf_topic>`
-  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
-  /// `gz.msgs.Odometry` message. This element if optional,
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional,
   ///  and the default value is `{model_name}/{link_name}`.
   class TrackedVehicle
       : public System,

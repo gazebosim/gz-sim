@@ -17,7 +17,7 @@
 
 #include <array>
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/math/Stopwatch.hh>
 #include <gz/common/Console.hh>
 
@@ -28,7 +28,7 @@
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)

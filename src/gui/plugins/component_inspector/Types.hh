@@ -22,9 +22,9 @@
 
 #include <gz/sim/Types.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 namespace inspector
 {

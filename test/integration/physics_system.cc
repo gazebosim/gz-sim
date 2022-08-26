@@ -68,7 +68,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public InternalFixture<::testing::Test>

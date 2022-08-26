@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/StringUtils.hh>
@@ -35,7 +35,7 @@ int gg_argc = 1;
 char **gg_argv = new char *[gg_argc];
 
 using namespace gz;
-using namespace gz::sim::gui;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 // https://github.com/ignitionrobotics/ign-gazebo/issues/8

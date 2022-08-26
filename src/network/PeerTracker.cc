@@ -20,7 +20,7 @@
 #include <utility>
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 PeerTracker::PeerTracker(

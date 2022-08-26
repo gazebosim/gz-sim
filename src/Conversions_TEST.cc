@@ -36,12 +36,12 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 
 #include "gz/sim/Conversions.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////

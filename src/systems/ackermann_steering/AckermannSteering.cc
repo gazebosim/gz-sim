@@ -17,7 +17,7 @@
 
 #include "AckermannSteering.hh"
 
-#include <gz/msgs/odometry.pb.h>
+#include <ignition/msgs/odometry.pb.h>
 
 #include <mutex>
 #include <set>
@@ -39,7 +39,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -794,4 +794,4 @@ IGNITION_ADD_PLUGIN(AckermannSteering,
                     AckermannSteering::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "gz::sim::systems::AckermannSteering")
+                          "sim::systems::AckermannSteering")

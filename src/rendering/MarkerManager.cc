@@ -21,7 +21,7 @@
 #include <mutex>
 #include <string>
 
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Events.hh"
@@ -34,7 +34,7 @@
 #include "gz/sim/rendering/MarkerManager.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// Private data for the MarkerManager class
 class gz::sim::MarkerManagerPrivate

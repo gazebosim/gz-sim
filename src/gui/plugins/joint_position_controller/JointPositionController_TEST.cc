@@ -19,7 +19,7 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -47,7 +47,7 @@
 int g_argc = 1;
 char **g_argv;
 
-using namespace gz;
+using namespace ignition;
 
 /// \brief Tests for the joint position controller GUI plugin
 class JointPositionControllerGui : public InternalFixture<::testing::Test>
@@ -62,8 +62,8 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle sim::gui plugins
-  auto runner = new sim::GuiRunner("test");
+  // Create GUI runner to handle ignition::gazebo::gui plugins
+  auto runner = new ignition::gazebo::GuiRunner("test");
   runner->setParent(gui::App());
 
   // Add plugin
@@ -75,7 +75,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
   // Get plugin
   auto plugins = win->findChildren<
-      sim::gui::JointPositionController *>();
+      ignition::gazebo::gui::JointPositionController *>();
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
@@ -91,7 +91,7 @@ TEST_F(JointPositionControllerGui, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
 
   EXPECT_LT(sleep, maxSleep);
   EXPECT_EQ(plugin->Title(), "Joint position controller");
-  EXPECT_EQ(plugin->ModelEntity(), sim::kNullEntity);
+  EXPECT_EQ(plugin->ModelEntity(), ignition::gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
       << plugin->ModelName().toStdString();
   EXPECT_FALSE(plugin->Locked());
@@ -105,24 +105,24 @@ TEST_F(JointPositionControllerGui,
     IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCommand))
 {
   // Create a model with a joint
-  sim::EntityComponentManager ecm;
+  ignition::gazebo::EntityComponentManager ecm;
 
   auto modelEntity = ecm.CreateEntity();
-  ecm.CreateComponent(modelEntity, sim::components::Model());
-  ecm.CreateComponent(modelEntity, sim::components::Name("model_name"));
+  ecm.CreateComponent(modelEntity, ignition::gazebo::components::Model());
+  ecm.CreateComponent(modelEntity, ignition::gazebo::components::Name("model_name"));
 
   auto jointEntity = ecm.CreateEntity();
-  ecm.CreateComponent(jointEntity, sim::components::Joint());
-  ecm.CreateComponent(jointEntity, sim::components::Name("joint_name"));
-  ecm.CreateComponent(jointEntity, sim::components::ParentEntity(
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::Joint());
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::Name("joint_name"));
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::ParentEntity(
       modelEntity));
-  ecm.CreateComponent(jointEntity, sim::components::JointPosition({0.1}));
-  ecm.CreateComponent(jointEntity, sim::components::JointType(
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointPosition({0.1}));
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointType(
       sdf::JointType::REVOLUTE));
   sdf::JointAxis jointAxis;
   jointAxis.SetLower(-1.0);
   jointAxis.SetUpper(1.0);
-  ecm.CreateComponent(jointEntity, sim::components::JointAxis(jointAxis));
+  ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointAxis(jointAxis));
 
   // Populate state message
   msgs::SerializedStepMap stepMsg;
@@ -146,8 +146,8 @@ TEST_F(JointPositionControllerGui,
   ASSERT_NE(nullptr, app);
   app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
 
-  // Create GUI runner to handle sim::gui plugins
-  auto runner = new sim::GuiRunner("test");
+  // Create GUI runner to handle ignition::gazebo::gui plugins
+  auto runner = new ignition::gazebo::GuiRunner("test");
   runner->setParent(gui::App());
 
   // Load plugin
@@ -172,7 +172,7 @@ TEST_F(JointPositionControllerGui,
 
   // Get plugin
   auto plugins = win->findChildren<
-      sim::gui::JointPositionController *>();
+      ignition::gazebo::gui::JointPositionController *>();
   EXPECT_EQ(plugins.size(), 1);
 
   auto plugin = plugins[0];
@@ -188,13 +188,13 @@ TEST_F(JointPositionControllerGui,
   }
   EXPECT_LT(sleep, maxSleep);
 
-  EXPECT_EQ(plugin->ModelEntity(), sim::kNullEntity);
+  EXPECT_EQ(plugin->ModelEntity(), ignition::gazebo::kNullEntity);
   EXPECT_EQ(plugin->ModelName(), QString("No model selected"))
       << plugin->ModelName().toStdString();
   EXPECT_FALSE(plugin->Locked());
 
   // Get model
-  auto models = win->findChildren<sim::gui::JointsModel *>();
+  auto models = win->findChildren<gazebo::gui::JointsModel *>();
   EXPECT_EQ(models.size(), 1);
 
   auto jointsModel = models[0];

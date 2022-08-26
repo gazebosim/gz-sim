@@ -17,9 +17,9 @@
 
 #include "EntityContextMenu.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/entity.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/msgs/entity.pb.h>
 
 #include <iostream>
 #include <string>
@@ -30,7 +30,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/transport/Node.hh>
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
@@ -55,8 +55,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 void IgnGazeboPlugin::registerTypes(const char *_uri)

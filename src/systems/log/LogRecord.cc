@@ -18,7 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -32,7 +32,7 @@
 #include <gz/common/SystemPaths.hh>
 #include <gz/common/Util.hh>
 #include <gz/fuel_tools/Zip.hh>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/log/Log.hh>
@@ -62,7 +62,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace gz::sim::systems;
+using namespace ignition::gazebo::systems;
 
 // Private data class.
 class gz::sim::systems::LogRecordPrivate
@@ -695,10 +695,10 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(LogRecord,
-                    sim::System,
+                    gz::sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
-                          "gz::sim::systems::LogRecord")
+                          "sim::systems::LogRecord")

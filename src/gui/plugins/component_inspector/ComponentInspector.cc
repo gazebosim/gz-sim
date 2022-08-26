@@ -65,7 +65,7 @@
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class ComponentInspectorPrivate
   {
@@ -105,12 +105,12 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -127,7 +127,7 @@ void sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const std::string &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -140,7 +140,7 @@ void sim::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -154,7 +154,7 @@ void sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const bool &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -166,7 +166,7 @@ void sim::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const int &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -178,14 +178,14 @@ void sim::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const Entity &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const double &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -197,7 +197,7 @@ void sim::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void sim::setData(QStandardItem *_item, const sdf::Physics &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -211,7 +211,7 @@ void sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 }
 
 //////////////////////////////////////////////////
-void sim::setUnit(QStandardItem *_item, const std::string &_unit)
+void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;

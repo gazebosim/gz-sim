@@ -23,9 +23,9 @@
 #include <gz/common/Filesystem.hh>
 #include <gz/sim/test_config.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 namespace test
 {

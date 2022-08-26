@@ -21,9 +21,9 @@
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
@@ -61,7 +61,7 @@ class TestWorldSystem :
               components::WorldPluginComponent(value));
         }
 
-  public: void Update(const sim::UpdateInfo &_info,
+  public: void Update(const gz::sim::UpdateInfo &_info,
                       EntityComponentManager &) override
           {
             std::cout << "iteration " << _info.iterations << std::endl;

@@ -17,8 +17,8 @@
 
 #include "ResourceSpawner.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <set>
@@ -40,7 +40,7 @@
 
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class ResourceSpawnerPrivate
   {
@@ -73,8 +73,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()

@@ -25,9 +25,9 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -42,8 +42,8 @@ class IGNITION_GAZEBO_HIDDEN TestFixturePrivate;
 /// gz::sim::TestFixture fixture("path_to.sdf");
 ///
 /// // Register callbacks, for example:
-/// fixture.OnPostUpdate([&](const sim::UpdateInfo &,
-///   const sim::EntityComponentManager &_ecm)
+/// fixture.OnPostUpdate([&](const gz::sim::UpdateInfo &,
+///   const gz::sim::EntityComponentManager &_ecm)
 ///   {
 ///     // Add expectations here
 ///   }).Finalize();
@@ -100,7 +100,7 @@ class IGNITION_GAZEBO_VISIBLE TestFixture
   public: TestFixture &Finalize();
 
   /// \brief Get pointer to underlying server.
-  public: std::shared_ptr<sim::Server> Server() const;
+  public: std::shared_ptr<gz::sim::Server> Server() const;
 
   /// \internal
   /// \brief Pointer to private data.

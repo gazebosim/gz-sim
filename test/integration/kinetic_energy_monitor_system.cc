@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 #include <mutex>
 
 #include <gz/common/Console.hh>
@@ -30,7 +30,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test Kinetic Energy Monitor system
 class KineticEnergyMonitorTest : public InternalFixture<::testing::Test>

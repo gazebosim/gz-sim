@@ -34,7 +34,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test Thermal system
 class ThermalTest : public InternalFixture<::testing::Test>

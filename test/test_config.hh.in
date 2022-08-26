@@ -31,9 +31,9 @@
 #    define pclose _pclose
 #endif
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Create a special test world that doesn't use physics to avoid some issues
 // where ODE doesn't initialize properly in multiple physics instances in the

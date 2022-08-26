@@ -17,8 +17,8 @@
 
 #include "LogPlayback.hh"
 
-#include <gz/msgs/pose_v.pb.h>
-#include <gz/msgs/log_playback_stats.pb.h>
+#include <ignition/msgs/pose_v.pb.h>
+#include <ignition/msgs/log_playback_stats.pb.h>
 
 #include <set>
 #include <string>
@@ -29,7 +29,7 @@
 #include <gz/common/Time.hh>
 #include <gz/fuel_tools/Zip.hh>
 #include <gz/math/Pose3.hh>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 #include <gz/plugin/RegisterMore.hh>
 #include <gz/transport/log/QueryOptions.hh>
 #include <gz/transport/log/Log.hh>
@@ -49,7 +49,7 @@
 #include "gz/sim/components/World.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private LogPlayback data class.
@@ -265,14 +265,14 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
   for (; iter != this->batch.end(); ++iter)
   {
     auto msgType = iter->Type();
-    if (msgType == "gz.msgs.SerializedState")
+    if (msgType == "ignition.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
       this->Parse(_ecm, msg);
       break;
     }
-    else if (msgType == "gz.msgs.SerializedStateMap")
+    else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -537,18 +537,18 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     auto msgType = iter->Type();
 
     // Only set the last pose of a sequence of poses.
-    if (msgType != "gz.msgs.Pose_V" && queuedPose.pose_size() > 0)
+    if (msgType != "ignition.msgs.Pose_V" && queuedPose.pose_size() > 0)
     {
       this->dataPtr->Parse(queuedPose, clearCachedPoseUpdates);
       queuedPose.Clear();
     }
 
-    if (msgType == "gz.msgs.Pose_V")
+    if (msgType == "ignition.msgs.Pose_V")
     {
       // Queue poses to be set later
       queuedPose.ParseFromString(iter->Data());
     }
-    else if (msgType == "gz.msgs.SerializedState")
+    else if (msgType == "ignition.msgs.SerializedState")
     {
       msgs::SerializedState msg;
       msg.ParseFromString(iter->Data());
@@ -574,7 +574,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "gz.msgs.SerializedStateMap")
+    else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
       msg.ParseFromString(iter->Data());
@@ -601,7 +601,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       this->dataPtr->Parse(_ecm, msg);
     }
-    else if (msgType == "gz.msgs.StringMsg")
+    else if (msgType == "ignition.msgs.StringMsg")
     {
       // Do nothing, we assume this is the SDF string
     }
@@ -661,4 +661,4 @@ IGNITION_ADD_PLUGIN(LogPlayback,
                     LogPlayback::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
-                          "gz::sim::systems::LogPlayback")
+                          "sim::systems::LogPlayback")

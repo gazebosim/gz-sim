@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/empty.pb.h>
-#include <gz/msgs/twist.pb.h>
+#include <ignition/msgs/empty.pb.h>
+#include <ignition/msgs/twist.pb.h>
 
 #include <optional>
 #include <regex>
@@ -43,7 +43,7 @@
 #include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 class BreadcrumbsTest : public InternalFixture<::testing::Test>
 {

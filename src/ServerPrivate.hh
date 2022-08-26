@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SERVERPRIVATE_HH_
 #define GZ_GAZEBO_SERVERPRIVATE_HH_
 
-#include <gz/msgs/stringmsg_v.pb.h>
+#include <ignition/msgs/stringmsg_v.pb.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -39,7 +39,7 @@
 
 #include <gz/transport/Node.hh>
 
-#include <gz/msgs/server_control.pb.h>
+#include <ignition/msgs/server_control.pb.h>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Export.hh"
@@ -48,9 +48,9 @@
 
 using namespace std::chrono_literals;
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

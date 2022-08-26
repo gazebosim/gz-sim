@@ -17,7 +17,7 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>
@@ -36,7 +36,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Test AckermannSteering system

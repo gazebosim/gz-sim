@@ -35,10 +35,10 @@ class gz::sim::WorldPrivate
 };
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
-World::World(sim::Entity _entity)
+World::World(gz::sim::Entity _entity)
   : dataPtr(std::make_unique<WorldPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -210,4 +210,3 @@ uint64_t World::ModelCount(const EntityComponentManager &_ecm) const
 {
   return this->Models(_ecm).size();
 }
-

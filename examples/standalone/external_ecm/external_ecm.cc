@@ -19,7 +19,7 @@
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
-#include <gz/msgs/serialized.pb.h>
+#include <ignition/msgs/serialized.pb.h>
 #include <gz/transport/Node.hh>
 
 //////////////////////////////////////////////////
@@ -68,18 +68,18 @@ int main(int argc, char **argv)
   ecm.SetState(res.state());
 
   // Print some information
-  ecm.Each<gz::sim::components::Name>(
+  ecm.Each<sim::components::Name>(
       [&](const gz::sim::Entity &_entity,
           const gz::sim::components::Name *_name) -> bool
   {
     auto parentComp =
-        ecm.Component<gz::sim::components::ParentEntity>(_entity);
+        ecm.Component<sim::components::ParentEntity>(_entity);
 
     std::string parentInfo;
     if (parentComp)
     {
       auto parentNameComp =
-          ecm.Component<gz::sim::components::Name>(
+          ecm.Component<sim::components::Name>(
           parentComp->Data());
 
       if (parentNameComp)

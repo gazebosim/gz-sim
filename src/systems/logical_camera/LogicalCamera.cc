@@ -17,7 +17,7 @@
 
 #include "LogicalCamera.hh"
 
-#include <gz/msgs/logical_camera_image.pb.h>
+#include <ignition/msgs/logical_camera_image.pb.h>
 
 #include <map>
 #include <string>
@@ -47,7 +47,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private LogicalCamera data class.
@@ -305,4 +305,4 @@ IGNITION_ADD_PLUGIN(LogicalCamera, System,
 
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
-    "gz::sim::systems::LogicalCamera")
+    "sim::systems::LogicalCamera")

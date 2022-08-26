@@ -17,8 +17,8 @@
 
 #include "Shapes.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -33,15 +33,15 @@
 
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class ShapesPrivate
   {
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 Shapes::Shapes()

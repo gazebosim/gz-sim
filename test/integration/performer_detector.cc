@@ -16,7 +16,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <gz/transport/Node.hh>
 #include <gz/utilities/ExtraTestMacros.hh>
@@ -33,7 +33,7 @@
 #include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 class PerformerDetectorTest : public InternalFixture<::testing::Test>

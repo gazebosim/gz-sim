@@ -20,9 +20,9 @@
 #include <gz/plugin/SpecializedPluginPtr.hh>
 #include <gz/sim/System.hh>
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     using SystemPluginPtr = gz::plugin::SpecializedPluginPtr<
       System,

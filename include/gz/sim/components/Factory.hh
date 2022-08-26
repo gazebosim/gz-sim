@@ -32,9 +32,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -335,10 +335,10 @@ namespace components
     { \
       if (_classname::typeId != 0) \
         return; \
-      using namespace gz;\
-      using Desc = sim::components::ComponentDescriptor<_classname>; \
-      using StorageDesc = sim::components::StorageDescriptor<_classname>; \
-      sim::components::Factory::Instance()->Register<_classname>(\
+      using namespace ignition;\
+      using Desc = gz::sim::components::ComponentDescriptor<_classname>; \
+      using StorageDesc = gz::sim::components::StorageDescriptor<_classname>; \
+      gz::sim::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc(), new StorageDesc());\
     } \
   }; \

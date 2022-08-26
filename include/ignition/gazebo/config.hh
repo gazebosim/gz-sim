@@ -45,14 +45,21 @@
 /* #undef IGNITION_GAZEBO_BUILD_TYPE_DEBUG */
 /* #undef IGNITION_GAZEBO_BUILD_TYPE_RELEASE */
 
-namespace gz
-{
-}
-
 namespace ignition
 {
-  using namespace gz;
+  namespace gazebo
+  {
+  }
 }
 
+namespace gz
+{
+  using namespace ignition;
+
+  namespace sim
+  {
+    using namespace gazebo;
+  }
+}
 
 #endif

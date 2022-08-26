@@ -18,17 +18,17 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/entity_factory.pb.h>
-#include <gz/msgs/pose.pb.h>
-#include <gz/msgs/pose_v.pb.h>
-#include <gz/msgs/physics.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/entity_factory.pb.h>
+#include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/pose_v.pb.h>
+#include <ignition/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
@@ -53,12 +53,12 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
@@ -836,4 +836,4 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
-                          "gz::sim::systems::UserCommands")
+                          "sim::systems::UserCommands")

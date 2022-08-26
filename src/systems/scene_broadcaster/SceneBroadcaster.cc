@@ -17,7 +17,7 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <gz/msgs/scene.pb.h>
+#include <ignition/msgs/scene.pb.h>
 
 #include <chrono>
 #include <condition_variable>
@@ -66,7 +66,7 @@
 using namespace std::chrono_literals;
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -1155,4 +1155,4 @@ IGNITION_ADD_PLUGIN(SceneBroadcaster,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "gz::sim::systems::SceneBroadcaster")
+                          "sim::systems::SceneBroadcaster")

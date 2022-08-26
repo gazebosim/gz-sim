@@ -25,9 +25,9 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/config.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 namespace gui {
 // Inline bracket to help doxygen filtering.
@@ -213,7 +213,7 @@ namespace events
 }  // namespace events
 }
 }  // namespace gui
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_GUI_GUIEVENTS_HH_

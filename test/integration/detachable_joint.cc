@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
-#include <gz/msgs/Utility.hh>
+#include <ignition/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Link.hh"
@@ -38,7 +38,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test DetachableJoint system
 class DetachableJointTest : public InternalFixture<::testing::Test>

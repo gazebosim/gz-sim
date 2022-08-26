@@ -15,7 +15,7 @@
  *
 */
 
-#include <gz/msgs/marker.pb.h>
+#include <ignition/msgs/marker.pb.h>
 
 #include <mutex>
 #include <string>
@@ -39,7 +39,7 @@
 
 #include "Plot3D.hh"
 
-namespace gz::sim::gui
+namespace ignition::gazebo::gui
 {
   /// \brief Private data class for Plot3D
   class Plot3DPrivate
@@ -88,9 +88,9 @@ namespace gz::sim::gui
   };
 }
 
-using namespace gz;
-using namespace gz::sim;
-using namespace gz::sim::gui;
+using namespace ignition;
+using namespace ignition::gazebo;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 Plot3D::Plot3D()
@@ -265,7 +265,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
+    if (_event->type() == ignition::gazebo::gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -274,7 +274,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == ignition::gazebo::gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);

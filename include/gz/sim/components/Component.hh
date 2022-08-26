@@ -29,11 +29,11 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
-// namespace gz
+// namespace ignition
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace traits

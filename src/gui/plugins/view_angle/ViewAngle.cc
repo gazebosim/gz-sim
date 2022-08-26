@@ -17,9 +17,9 @@
 
 #include "ViewAngle.hh"
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/gui_camera.pb.h>
-#include <gz/msgs/vector3d.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <string>
@@ -28,7 +28,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class ViewAnglePrivate
   {
@@ -49,8 +49,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()

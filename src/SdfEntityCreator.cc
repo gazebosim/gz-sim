@@ -92,7 +92,7 @@ class gz::sim::SdfEntityCreatorPrivate
 };
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to

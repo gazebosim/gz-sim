@@ -20,9 +20,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -47,8 +47,8 @@ namespace gz
       SimulationSecondary = 3,
     };
     }
-  }  // namespace sim
-}  // namespace gz
+  }  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_NETWORKROLE_HH_
 

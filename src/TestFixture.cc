@@ -21,7 +21,7 @@
 #include "gz/sim/TestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief System that is inserted into the simulation loop to observe the ECM.
 class HelperSystem :

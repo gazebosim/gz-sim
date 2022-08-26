@@ -17,7 +17,7 @@
 
 #include "JointStatePublisher.hh"
 
-#include <gz/msgs/model.pb.h>
+#include <ignition/msgs/model.pb.h>
 
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@
 #include "gz/sim/components/Pose.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -292,4 +292,4 @@ IGNITION_ADD_PLUGIN(JointStatePublisher,
                     JointStatePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
-    "gz::sim::systems::JointStatePublisher")
+    "sim::systems::JointStatePublisher")

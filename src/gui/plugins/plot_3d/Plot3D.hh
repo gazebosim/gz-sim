@@ -24,9 +24,9 @@
 
 #include "gz/gui/qt.h"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 namespace gui
 {
@@ -59,7 +59,7 @@ namespace gui
   /// After this number is reached, the older points start being deleted.
   /// Defaults to 1000.
   ///
-  class Plot3D : public gz::sim::GuiSystem
+  class Plot3D : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 

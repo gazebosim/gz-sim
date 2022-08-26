@@ -24,9 +24,9 @@
 
 #include <gz/sim/gui/GuiSystem.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class EntityTreePrivate;
 
@@ -104,7 +104,7 @@ namespace sim
   ///
   /// ## Configuration
   /// None
-  class EntityTree : public gz::sim::GuiSystem
+  class EntityTree : public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 

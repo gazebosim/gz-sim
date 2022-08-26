@@ -28,9 +28,9 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -43,7 +43,7 @@ namespace systems
   /// represented by an gz::math::AxisAlignedBox, intersects with the
   /// PerformerDetector's region, which is also represented by an
   /// gz::math::AxisAlignedBox. When a performer is detected, the system
-  /// publishes an gz.msgs.Pose message with the pose of the detected
+  /// publishes an ignition.msgs.Pose message with the pose of the detected
   /// performer with respect to the model containing the PerformerDetector. The
   /// name and id fields of the Pose message will be set to the name and the
   /// entity of the detected performer respectively. The header of the Pose
@@ -64,7 +64,7 @@ namespace systems
   /// `<topic>`: Custom topic to be used for publishing when a performer is
   /// detected. If not set, the default topic with the following pattern would
   /// be used "/model/<model_name>/performer_detector/status". The topic type
-  /// is gz.msgs.Pose
+  /// is ignition.msgs.Pose
   /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.

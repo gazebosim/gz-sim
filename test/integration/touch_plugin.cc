@@ -27,7 +27,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test TouchPlugin system
 class TouchPluginTest : public InternalFixture<::testing::Test>
@@ -249,7 +249,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
         </link>
         <plugin
           filename="libignition-gazebo-touchplugin-system.so"
-          name="gz::sim::systems::TouchPlugin">
+          name="sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
           <namespace>white_touches_only_green</namespace>

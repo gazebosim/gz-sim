@@ -22,7 +22,7 @@
 #include "gz/common/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 NetworkConfig NetworkConfig::FromValues(const std::string &_role,

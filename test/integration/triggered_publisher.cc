@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/empty.pb.h>
-#include <gz/msgs/vector3d.pb.h>
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/empty.pb.h>
+#include <ignition/msgs/vector3d.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -39,7 +39,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 class TriggeredPublisherTest : public InternalFixture<::testing::Test>

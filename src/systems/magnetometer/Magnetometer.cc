@@ -44,7 +44,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Magnetometer data class.
@@ -310,4 +310,4 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "gz::sim::systems::Magnetometer")
+                          "sim::systems::Magnetometer")

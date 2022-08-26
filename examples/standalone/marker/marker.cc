@@ -17,7 +17,7 @@
 
 #include <gz/transport.hh>
 #include <gz/math.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 #include <gz/common/Time.hh>
 
 #include <iostream>

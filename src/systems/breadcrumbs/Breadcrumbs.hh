@@ -34,9 +34,9 @@
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/System.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -60,7 +60,7 @@ namespace systems
   /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
   /// not set, the default topic with the following pattern would be used
   /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. The topic
-  /// type is gz.msgs.Empty
+  /// type is ignition.msgs.Empty
   /// - `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic
   /// will have no effect. If a negative number is set, the maximum deployment

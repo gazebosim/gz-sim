@@ -17,7 +17,7 @@
 
 #include "AirPressure.hh"
 
-#include <gz/msgs/air_pressure_sensor.pb.h>
+#include <ignition/msgs/air_pressure_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -44,7 +44,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private AirPressure data class.
@@ -282,4 +282,4 @@ IGNITION_ADD_PLUGIN(AirPressure, System,
   AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
+IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "sim::systems::AirPressure")

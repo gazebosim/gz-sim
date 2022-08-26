@@ -29,7 +29,7 @@
 
 #include "gz/sim/Entity.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems::physics_system
@@ -94,7 +94,7 @@ namespace systems::physics_system
     /// requested feature.
     public: template <typename ToFeatureList>
             PhysicsEntityPtr<ToFeatureList>
-            EntityCast(sim::Entity _entity) const
+            EntityCast(gz::sim::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError

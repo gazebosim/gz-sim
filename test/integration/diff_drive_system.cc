@@ -35,7 +35,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Test DiffDrive system

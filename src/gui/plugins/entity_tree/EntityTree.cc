@@ -42,7 +42,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   class EntityTreePrivate
   {
@@ -57,8 +57,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 QString entityType(Entity _entity,

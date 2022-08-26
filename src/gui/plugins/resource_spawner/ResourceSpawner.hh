@@ -24,9 +24,9 @@
 
 #include <gz/gui/Plugin.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class ResourceSpawnerPrivate;
 

@@ -17,7 +17,7 @@
 
 #include "TrackedVehicle.hh"
 
-#include <gz/msgs/odometry.pb.h>
+#include <ignition/msgs/odometry.pb.h>
 
 #include <limits>
 #include <map>
@@ -41,7 +41,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -775,4 +775,4 @@ IGNITION_ADD_PLUGIN(TrackedVehicle,
                     TrackedVehicle::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "gz::sim::systems::TrackedVehicle")
+                          "sim::systems::TrackedVehicle")

@@ -35,7 +35,7 @@
 #include "gz/sim/components/SlipComplianceCmd.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
@@ -365,4 +365,4 @@ IGNITION_ADD_PLUGIN(WheelSlip,
                     WheelSlip::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
-                          "gz::sim::systems::WheelSlip")
+                          "sim::systems::WheelSlip")

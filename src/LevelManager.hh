@@ -18,8 +18,8 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 
 #include <list>
 #include <memory>
@@ -38,9 +38,9 @@
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Types.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

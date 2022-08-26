@@ -28,7 +28,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Private data for PluginInfoConfig.
 class gz::sim::ServerConfig::PluginInfoPrivate
@@ -562,7 +562,7 @@ ServerConfig::LogPlaybackPlugin() const
 {
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "gz::sim::systems::LogPlayback";
+  auto pluginName = "sim::systems::LogPlayback";
   auto pluginFilename = "ignition-gazebo-log-system";
 
   sdf::ElementPtr playbackElem;
@@ -592,7 +592,7 @@ ServerConfig::LogRecordPlugin() const
 {
   auto entityName = "*";
   auto entityType = "world";
-  auto pluginName = "gz::sim::systems::LogRecord";
+  auto pluginName = "sim::systems::LogRecord";
   auto pluginFilename = std::string("ignition-gazebo") +
     IGNITION_GAZEBO_MAJOR_VERSION_STR + "-log-system";
 
@@ -800,7 +800,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-sim::parsePluginsFromFile(const std::string &_fname)
+ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
@@ -809,7 +809,7 @@ sim::parsePluginsFromFile(const std::string &_fname)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-sim::parsePluginsFromString(const std::string &_str)
+ignition::gazebo::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
@@ -819,7 +819,7 @@ sim::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-sim::loadPluginInfo(bool _isPlayback)
+ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 
@@ -834,7 +834,7 @@ sim::loadPluginInfo(bool _isPlayback)
     if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = sim::parsePluginsFromFile(envConfig);
+      ret = gz::sim::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
@@ -914,7 +914,7 @@ sim::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = sim::parsePluginsFromFile(defaultConfig);
+  ret = gz::sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {
@@ -928,4 +928,3 @@ sim::loadPluginInfo(bool _isPlayback)
 
   return ret;
 }
-

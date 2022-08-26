@@ -15,8 +15,8 @@
  *
  */
 
-#include <gz/msgs/actuators.pb.h>
-#include <gz/msgs/twist.pb.h>
+#include <ignition/msgs/actuators.pb.h>
+#include <ignition/msgs/twist.pb.h>
 
 #include <limits>
 
@@ -45,7 +45,7 @@
 
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 using namespace multicopter_control;
 
@@ -434,4 +434,4 @@ IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
 
 IGNITION_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
-    "gz::sim::systems::MulticopterVelocityControl")
+    "sim::systems::MulticopterVelocityControl")

@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/int32.pb.h>
+#include <ignition/msgs/int32.pb.h>
 
 #include <gz/transport/Node.hh>
 
@@ -31,7 +31,7 @@
 #include "gz/sim/test_config.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Test fixture for Elevator system

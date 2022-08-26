@@ -24,9 +24,9 @@
 
 #include "gz/rendering/RenderTypes.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 // Forward declare private data class.

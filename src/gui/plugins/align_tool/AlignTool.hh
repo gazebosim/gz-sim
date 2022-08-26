@@ -24,9 +24,9 @@
 #include <gz/gui/Plugin.hh>
 #include <gz/rendering/Node.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   /// \brief Enumeration of the states within the Align Tool.
   enum class AlignState
@@ -61,7 +61,7 @@ namespace sim
   /// ## Configuration
   /// \<service\> : Set the service to receive align tool requests.
   class AlignTool :
-    public gz::sim::GuiSystem
+    public ignition::gazebo::GuiSystem
   {
     Q_OBJECT
 

@@ -31,9 +31,9 @@
 
 #include "PeerInfo.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -218,8 +218,8 @@ namespace gz
       private: gz::transport::Node::Publisher announcePub;
     };
     }
-  }  // namespace sim
-}  // namespace gz
+  }  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_NETWORKCONFIG_HH_
 

@@ -33,9 +33,9 @@
 #include "utils/DoorTimer.hh"
 #include "utils/JointMonitor.hh"
 
-#include <gz/msgs/double.pb.h>
-#include <gz/msgs/int32.pb.h>
-#include <gz/msgs/laserscan.pb.h>
+#include <ignition/msgs/double.pb.h>
+#include <ignition/msgs/int32.pb.h>
+#include <ignition/msgs/laserscan.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -50,9 +50,9 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -444,9 +444,9 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "sim::systems::Elevator")
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition

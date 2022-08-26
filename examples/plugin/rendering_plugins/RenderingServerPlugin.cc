@@ -35,7 +35,7 @@ void RenderingServerPlugin::Configure(
     gz::sim::EventManager &_eventMgr)
 {
 //! [connectToServerEvent]
-  this->connection = _eventMgr.Connect<gz::sim::events::PreRender>(
+  this->connection = _eventMgr.Connect<sim::events::PreRender>(
     std::bind(&RenderingServerPlugin::PerformRenderingOperations, this));
 //! [connectToServerEvent]
 }

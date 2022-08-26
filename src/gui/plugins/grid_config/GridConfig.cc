@@ -26,7 +26,7 @@
 #include "gz/sim/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
-namespace gz::sim
+namespace ignition::gazebo
 {
   struct GridParam
   {
@@ -62,8 +62,8 @@ namespace gz::sim
   };
 }
 
-using namespace gz;
-using namespace sim;
+using namespace ignition;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 GridConfig::GridConfig()

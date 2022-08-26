@@ -23,7 +23,7 @@
 #include <gz/sim/test_config.hh>
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 TEST(ParsePluginsFromString, Valid)
@@ -35,21 +35,21 @@ TEST(ParsePluginsFromString, Valid)
         entity_name="default"
         entity_type="world"
         filename="TestWorldSystem"
-        name="gz::sim::TestWorldSystem">
+        name="sim::TestWorldSystem">
         <world_key>0.123</world_key>
       </plugin>
       <plugin
         entity_name="box"
         entity_type="model"
         filename="TestModelSystem"
-        name="gz::sim::TestModelSystem">
+        name="sim::TestModelSystem">
         <model_key>987</model_key>
       </plugin>
       <plugin
         entity_name="default::box::link_1::camera"
         entity_type="sensor"
         filename="TestSensorSystem"
-        name="gz::sim::TestSensorSystem">
+        name="sim::TestSensorSystem">
         <sensor_key>456</sensor_key>
       </plugin>
     </plugins>
@@ -63,21 +63,21 @@ TEST(ParsePluginsFromString, Valid)
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("sim::TestWorldSystem", plugin->Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
   EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("sim::TestModelSystem", plugin->Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
   EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("sim::TestSensorSystem", plugin->Name());
 }
 
 //////////////////////////////////////////////////
@@ -89,7 +89,7 @@ TEST(ParsePluginsFromString, Invalid)
       entity_name="default"
       entity_type="world"
       filename="TestWorldSystem"
-      name="gz::sim::TestWorldSystem">
+      name="sim::TestWorldSystem">
       <world_key>0.123</world_key>
     </plugin>
   </server_config>)";
@@ -115,21 +115,21 @@ TEST(ParsePluginsFromFile, Valid)
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("sim::TestWorldSystem", plugin->Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
   EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("sim::TestModelSystem", plugin->Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
   EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("sim::TestSensorSystem", plugin->Name());
 }
 
 //////////////////////////////////////////////////
@@ -202,14 +202,14 @@ TEST(LoadPluginInfo, FromValidEnv)
   EXPECT_EQ("*", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("sim::TestWorldSystem", plugin->Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
   EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("sim::TestModelSystem", plugin->Name());
 
   EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
@@ -225,6 +225,6 @@ TEST(ServerConfig, GenerateRecordPlugin)
   auto plugin = config.LogRecordPlugin();
   EXPECT_EQ(plugin.EntityName(), "*");
   EXPECT_EQ(plugin.EntityType(), "world");
-  EXPECT_EQ(plugin.Name(), "gz::sim::systems::LogRecord");
+  EXPECT_EQ(plugin.Name(), "sim::systems::LogRecord");
 }
 

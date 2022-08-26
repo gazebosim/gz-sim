@@ -17,8 +17,8 @@
 #ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <gz/msgs/serialized.pb.h>
-#include <gz/msgs/serialized_map.pb.h>
+#include <ignition/msgs/serialized.pb.h>
+#include <ignition/msgs/serialized_map.pb.h>
 
 #include <map>
 #include <memory>
@@ -41,9 +41,9 @@
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/detail/View.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -574,13 +574,13 @@ namespace gz
       /// \param[in] _c Changed state value, defaults to one-time-change.
       public: void SetChanged(
           const Entity _entity, const ComponentTypeId _type,
-          sim::ComponentState _c = ComponentState::OneTimeChange);
+          gz::sim::ComponentState _c = ComponentState::OneTimeChange);
 
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
       /// \return Component's current state
-      public: sim::ComponentState ComponentState(const Entity _entity,
+      public: gz::sim::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
 
       /// \brief All future entities will have an id that starts at _offset.

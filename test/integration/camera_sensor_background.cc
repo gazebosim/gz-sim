@@ -74,12 +74,12 @@ TEST_F(CameraSensorBackgroundFixture,
     IGN_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
 {
   // Start server
-  sim::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/camera_sensor_empty_scene.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 

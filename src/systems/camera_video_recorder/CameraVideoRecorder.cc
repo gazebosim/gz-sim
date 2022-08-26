@@ -47,7 +47,7 @@
 #include "CameraVideoRecorder.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -468,4 +468,4 @@ IGNITION_ADD_PLUGIN(CameraVideoRecorder,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
-                          "gz::sim::systems::CameraVideoRecorder")
+                          "sim::systems::CameraVideoRecorder")

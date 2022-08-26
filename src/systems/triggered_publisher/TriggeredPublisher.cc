@@ -34,7 +34,7 @@
 #endif
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Base class for input matchers.
@@ -74,7 +74,7 @@ class systems::InputMatcher
                                      const transport::ProtoMsg &_input);
 
   /// \brief Factory function for creating matchers.
-  /// \param[in] _msgType Input message type (eg. gz.msgs.Boolean)
+  /// \param[in] _msgType Input message type (eg. ignition.msgs.Boolean)
   /// \param[in] _matchElem the SDFormat Element that contains the configuration
   /// for the matcher
   /// \return A concrete InputMatcher initialized according to the contents of
@@ -668,4 +668,4 @@ IGNITION_ADD_PLUGIN(TriggeredPublisher,
                     TriggeredPublisher::ISystemConfigure)
 
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
-                          "gz::sim::systems::TriggeredPublisher")
+                          "sim::systems::TriggeredPublisher")

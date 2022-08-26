@@ -23,9 +23,9 @@
 #include <gz/gui/Plugin.hh>
 #include <gz/rendering.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
   class GridConfigPrivate;
 

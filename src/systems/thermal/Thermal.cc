@@ -26,7 +26,7 @@
 #include "Thermal.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Thermal data class.
@@ -63,4 +63,4 @@ IGNITION_ADD_PLUGIN(Thermal, System,
   Thermal::ISystemConfigure
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
+IGNITION_ADD_PLUGIN_ALIAS(Thermal, "sim::systems::Thermal")

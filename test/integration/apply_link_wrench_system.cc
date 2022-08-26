@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/entity.pb.h>
-#include <gz/msgs/entity_wrench.pb.h>
+#include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/entity_wrench.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -39,7 +39,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Test fixture for ApplyLinkWrench system

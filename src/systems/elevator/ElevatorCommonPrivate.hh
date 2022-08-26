@@ -29,9 +29,9 @@
 
 #include <gz/transport/Node.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
@@ -93,7 +93,7 @@ class ElevatorCommonPrivate
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
+}  // namespace gazebo
+}  // namespace ignition
 
 #endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_COMMON_PRIVATE_HH_

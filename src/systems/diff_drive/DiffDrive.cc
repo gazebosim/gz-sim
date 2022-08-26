@@ -17,7 +17,7 @@
 
 #include "DiffDrive.hh"
 
-#include <gz/msgs/odometry.pb.h>
+#include <ignition/msgs/odometry.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -38,7 +38,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -561,4 +561,4 @@ IGNITION_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "sim::systems::DiffDrive")

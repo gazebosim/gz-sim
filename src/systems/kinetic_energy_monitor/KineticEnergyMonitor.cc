@@ -16,7 +16,7 @@
  */
 
 #include <google/protobuf/message.h>
-#include <gz/msgs/double.pb.h>
+#include <ignition/msgs/double.pb.h>
 
 #include <string>
 
@@ -39,7 +39,7 @@
 #include "KineticEnergyMonitor.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private data class
@@ -168,4 +168,4 @@ IGNITION_ADD_PLUGIN(KineticEnergyMonitor, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-  "gz::sim::systems::KineticEnergyMonitor")
+  "sim::systems::KineticEnergyMonitor")

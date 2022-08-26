@@ -28,7 +28,7 @@
 #include "gz/sim/gui/GuiSystem.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod

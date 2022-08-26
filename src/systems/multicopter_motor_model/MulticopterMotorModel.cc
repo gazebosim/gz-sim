@@ -34,7 +34,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
-#include <gz/msgs.hh>
+#include <ignition/msgs.hh>
 
 #include <sdf/sdf.hh>
 
@@ -98,7 +98,7 @@ class FirstOrderFilter {
 };
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -670,4 +670,4 @@ IGNITION_ADD_PLUGIN(MulticopterMotorModel,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "gz::sim::systems::MulticopterMotorModel")
+                          "sim::systems::MulticopterMotorModel")

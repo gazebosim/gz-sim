@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/magnetometer.pb.h>
+#include <ignition/msgs/magnetometer.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -40,7 +40,7 @@
 #define TOL 1e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test MagnetometerTest system
 class MagnetometerTest : public InternalFixture<::testing::Test>

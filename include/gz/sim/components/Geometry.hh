@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_GEOMETRY_HH_
 #define GZ_GAZEBO_COMPONENTS_GEOMETRY_HH_
 
-#include <gz/msgs/geometry.pb.h>
+#include <ignition/msgs/geometry.pb.h>
 
 #include <sdf/Geometry.hh>
 
@@ -27,9 +27,9 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 
-namespace gz
+namespace ignition
 {
-namespace sim
+namespace gazebo
 {
 // Inline bracket to help doxygen filtering.
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {

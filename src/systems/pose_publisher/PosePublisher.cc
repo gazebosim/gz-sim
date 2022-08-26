@@ -17,7 +17,7 @@
 
 #include "PosePublisher.hh"
 
-#include <gz/msgs/pose.pb.h>
+#include <ignition/msgs/pose.pb.h>
 
 #include <stack>
 #include <string>
@@ -52,7 +52,7 @@
 #include "gz/sim/Model.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
@@ -556,4 +556,4 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "gz::sim::systems::PosePublisher")
+                          "sim::systems::PosePublisher")

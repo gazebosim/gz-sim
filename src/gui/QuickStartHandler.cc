@@ -20,8 +20,8 @@
 #include <gz/common/Console.hh>
 
 using namespace gz;
-using namespace sim;
-using namespace sim::gui;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const

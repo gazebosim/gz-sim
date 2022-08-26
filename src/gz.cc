@@ -27,7 +27,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/Result.hh>
 #include <gz/fuel_tools/WorldIdentifier.hh>
-#include <gz/msgs/stringmsg.pb.h>
+#include <ignition/msgs/stringmsg.pb.h>
 #include <gz/transport/Node.hh>
 #include <sdf/Console.hh>
 
@@ -137,7 +137,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
     const char *_file, const char *_recordTopics, int _waitGui)
 {
   std::string startingWorldPath{""};
-  sim::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
@@ -402,7 +402,7 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runServer(const char *_sdfString,
   }
 
   // Create the Gazebo server
-  sim::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
@@ -426,6 +426,6 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
   // be converted to a const char *. The const cast is here to prevent a warning
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
-  return sim::gui::runGui(
+  return gz::sim::gui::runGui(
     argc, &argv, _guiConfig, _file, _waitGui);
 }

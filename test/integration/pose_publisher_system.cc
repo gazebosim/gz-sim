@@ -39,7 +39,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>

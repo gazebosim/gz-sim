@@ -17,21 +17,21 @@
 #ifndef GZ_GAZEBO_CONVERSIONS_HH_
 #define GZ_GAZEBO_CONVERSIONS_HH_
 
-#include <gz/msgs/actor.pb.h>
-#include <gz/msgs/atmosphere.pb.h>
-#include <gz/msgs/axis.pb.h>
-#include <gz/msgs/entity.pb.h>
-#include <gz/msgs/geometry.pb.h>
-#include <gz/msgs/gui.pb.h>
-#include <gz/msgs/inertial.pb.h>
-#include <gz/msgs/light.pb.h>
-#include <gz/msgs/material.pb.h>
-#include <gz/msgs/physics.pb.h>
-#include <gz/msgs/scene.pb.h>
-#include <gz/msgs/sensor.pb.h>
-#include <gz/msgs/sensor_noise.pb.h>
-#include <gz/msgs/time.pb.h>
-#include <gz/msgs/world_stats.pb.h>
+#include <ignition/msgs/actor.pb.h>
+#include <ignition/msgs/atmosphere.pb.h>
+#include <ignition/msgs/axis.pb.h>
+#include <ignition/msgs/entity.pb.h>
+#include <ignition/msgs/geometry.pb.h>
+#include <ignition/msgs/gui.pb.h>
+#include <ignition/msgs/inertial.pb.h>
+#include <ignition/msgs/light.pb.h>
+#include <ignition/msgs/material.pb.h>
+#include <ignition/msgs/physics.pb.h>
+#include <ignition/msgs/scene.pb.h>
+#include <ignition/msgs/sensor.pb.h>
+#include <ignition/msgs/sensor_noise.pb.h>
+#include <ignition/msgs/time.pb.h>
+#include <ignition/msgs/world_stats.pb.h>
 
 #include <chrono>
 #include <string>
@@ -55,9 +55,9 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
-namespace gz
+namespace ignition
 {
-  namespace sim
+  namespace gazebo
   {
     // Inline bracket to help doxygen filtering.
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
@@ -69,7 +69,7 @@ namespace gz
     set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf);
 
     /// \brief Helper function that sets a mutable msgs::WorldStatistics object
-    /// to the values contained in a sim::UpdateInfo  object.
+    /// to the values contained in a gz::sim::UpdateInfo  object.
     /// \param[out] _msg WorldStatistics message to set.
     /// \param[in] _in UpdateInfo object.
     void IGNITION_GAZEBO_VISIBLE

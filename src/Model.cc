@@ -37,7 +37,7 @@ class gz::sim::ModelPrivate
 using namespace gz::sim;
 
 //////////////////////////////////////////////////
-Model::Model(sim::Entity _entity)
+Model::Model(gz::sim::Entity _entity)
   : dataPtr(std::make_unique<ModelPrivate>())
 {
   this->dataPtr->id = _entity;

@@ -16,7 +16,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <gz/msgs/sdf_generator_config.pb.h>
+#include <ignition/msgs/sdf_generator_config.pb.h>
 #include <tinyxml2.h>
 
 #include <sdf/Collision.hh>
@@ -41,7 +41,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 class SdfGeneratorFixture : public InternalFixture<::testing::Test>

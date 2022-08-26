@@ -31,7 +31,7 @@ using namespace gz;
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
-  sim::SystemLoader sm;
+  gz::sim::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
   auto testBuildPath = common::joinPaths(
@@ -43,7 +43,7 @@ TEST(SystemLoader, Constructor)
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='gz::sim::systems::Physics'></plugin>"
+      "name='sim::systems::Physics'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();
@@ -60,7 +60,7 @@ TEST(SystemLoader, Constructor)
 
 TEST(SystemLoader, EmptyNames)
 {
-  sim::SystemLoader sm;
+  gz::sim::SystemLoader sm;
   sdf::ElementPtr element;
   auto system = sm.LoadPlugin("", "", element);
   ASSERT_FALSE(system.has_value());

@@ -17,7 +17,7 @@
 
 #include "Breadcrumbs.hh"
 
-#include <gz/msgs/empty.pb.h>
+#include <ignition/msgs/empty.pb.h>
 
 #include <algorithm>
 #include <iterator>
@@ -44,7 +44,7 @@
 #include "gz/sim/components/World.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -394,4 +394,4 @@ IGNITION_ADD_PLUGIN(Breadcrumbs,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
+IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "sim::systems::Breadcrumbs")

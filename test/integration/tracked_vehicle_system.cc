@@ -43,7 +43,7 @@
 #define tol 10e-4
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \

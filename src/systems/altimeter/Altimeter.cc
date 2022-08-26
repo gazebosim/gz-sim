@@ -17,7 +17,7 @@
 
 #include "Altimeter.hh"
 
-#include <gz/msgs/altimeter.pb.h>
+#include <ignition/msgs/altimeter.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -46,7 +46,7 @@
 #include "gz/sim/Util.hh"
 
 using namespace gz;
-using namespace sim;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
@@ -288,4 +288,4 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "sim::systems::Altimeter")

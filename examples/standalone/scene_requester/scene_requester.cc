@@ -16,7 +16,7 @@
 */
 
 #include <iostream>
-#include <gz/msgs/scene.pb.h>
+#include <ignition/msgs/scene.pb.h>
 #include <gz/transport/Node.hh>
 
 //////////////////////////////////////////////////
