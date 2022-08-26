@@ -118,7 +118,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -652,7 +652,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 1 x model + 1 x link + 1 x
@@ -922,7 +922,7 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
@@ -1067,7 +1067,7 @@ TEST_P(SimulationRunnerTest, Time)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Check state
   EXPECT_TRUE(runner.Paused());
@@ -1196,7 +1196,7 @@ TEST_P(SimulationRunnerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Get world entity
   Entity worldId{kNullEntity};
@@ -1309,7 +1309,7 @@ TEST_P(SimulationRunnerTest,
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+  SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader,
       serverConfig);
 
   ASSERT_EQ(2u, runner.SystemCount());
@@ -1340,7 +1340,7 @@ TEST_P(SimulationRunnerTest,
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+  SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader,
       serverConfig);
 
   // Get world entity
@@ -1433,7 +1433,7 @@ TEST_P(SimulationRunnerTest,
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader);
   ASSERT_EQ(3u, runner.SystemCount());
   common::unsetenv(sim::kServerConfigPathEnv);
 }
@@ -1450,7 +1450,7 @@ TEST_P(SimulationRunnerTest,
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader);
   runner.SetPaused(false);
 
   // Get model entities
@@ -1549,7 +1549,7 @@ TEST_P(SimulationRunnerTest,
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
+  SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader,
       serverConfig);
 
   // 1 model plugin from SDF and 2 world plugins from config
@@ -1568,7 +1568,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   // Create requester
   transport::Node node;
@@ -1605,7 +1605,7 @@ TEST_P(SimulationRunnerTest, GenerateWorldSdf)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   msgs::SdfGeneratorConfig req;
   msgs::StringMsg genWorldSdf;
@@ -1654,7 +1654,7 @@ TEST_P(SimulationRunnerTest, GeneratedSdfHasNoSpuriousPlugins)
 
   // Create simulation runner
   auto systemLoader = std::make_shared<SystemLoader>();
-  SimulationRunner runner(root.WorldByIndex(0), systemLoader);
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
   msgs::SdfGeneratorConfig req;
   msgs::StringMsg genWorldSdf;

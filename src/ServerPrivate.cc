@@ -32,6 +32,24 @@
 using namespace gz;
 using namespace sim;
 
+/// \brief This struct provides access to the default world.
+struct DefaultWorld
+{
+  /// \brief Get the default world as a string.
+  /// Plugins will be loaded from the server.config file.
+  /// \return An SDF string that contains the default world.
+  public: static std::string &World()
+  {
+    static std::string world = std::string("<?xml version='1.0'?>"
+      "<sdf version='1.6'>"
+        "<world name='default'>") +
+        "</world>"
+      "</sdf>";
+
+    return world;
+  }
+};
+
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -101,6 +119,10 @@ ServerPrivate::~ServerPrivate()
   if (this->stopThread && this->stopThread->joinable())
   {
     this->stopThread->join();
+  }
+  if (this->downloadThread.joinable())
+  {
+    this->downloadThread.join();
   }
 }
 
@@ -277,16 +299,22 @@ void ServerPrivate::CreateEntities()
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
   {
-    auto world = this->sdfRoot.WorldByIndex(worldIndex);
-
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    if (world)
     {
-      std::lock_guard<std::mutex> lock(this->worldsMutex);
-      this->worldNames.push_back(world->Name());
+      {
+        std::lock_guard<std::mutex> lock(this->worldsMutex);
+        this->worldNames.push_back(world->Name());
+      }
+      auto runner = std::make_unique<SimulationRunner>(
+          *world, this->systemLoader, this->config);
+      runner->SetFuelUriMap(this->fuelUriMap);
+      this->simRunners.push_back(std::move(runner));
     }
-    auto runner = std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->config);
-    runner->SetFuelUriMap(this->fuelUriMap);
-    this->simRunners.push_back(std::move(runner));
+    else
+    {
+      gzerr << "Failed to get SDF world. Can't start simulation runner.\n";
+    }
   }
 }
 
@@ -537,16 +565,19 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  auto path =
-      fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
-
-  if (!path.empty())
+  std::string path;
+  if (this->enableDownload)
   {
-    for (auto &runner : this->simRunners)
+    path = fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+
+    if (!path.empty())
     {
-      runner->AddToFuelUriMap(path, _uri);
+      for (auto &runner : this->simRunners)
+      {
+        runner->AddToFuelUriMap(path, _uri);
+      }
+      fuelUriMap[path] = _uri;
     }
-    fuelUriMap[path] = _uri;
   }
   return path;
 }
@@ -555,4 +586,74 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
 std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 {
   return this->FetchResource(_uri.Str());
+}
+
+//////////////////////////////////////////////////
+sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
+    sdf::Root &_root, std::string &_outputMsgs)
+{
+  sdf::Errors errors;
+
+  switch (_config.Source())
+  {
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
+      {
+        _root = _config.SdfRoot()->Clone();
+        _outputMsgs += "Loading SDF world from SDF DOM.\n";
+        break;
+      }
+
+    case ServerConfig::SourceType::kSdfString:
+      {
+        std::string msg = "Loading SDF string. ";
+        if (_config.SdfFile().empty())
+        {
+          _outputMsgs += "File path not available.\n";
+        }
+        else
+        {
+          _outputMsgs += "File path [" + _config.SdfFile() + "].\n";
+        }
+        errors = _root.LoadSdfString(_config.SdfString());
+        break;
+      }
+
+    case ServerConfig::SourceType::kSdfFile:
+      {
+        std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+            _config.ResourceCache());
+
+        if (filePath.empty())
+        {
+          std::string errStr = "Failed to find world ["
+            + _config.SdfFile() + "]";
+          gzerr << errStr << std::endl;
+          errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
+          return errors;
+        }
+
+        _outputMsgs += "Loading SDF world file[" + filePath + "].\n";
+
+        // \todo(nkoenig) Async resource download.
+        // This call can block for a long period of time while
+        // resources are downloaded. Blocking here causes the GUI to block with
+        // a black screen (search for "Async resource download" in
+        // 'src/gui_main.cc'.
+        errors = _root.Load(filePath);
+        break;
+      }
+
+    case ServerConfig::SourceType::kNone:
+    default:
+      {
+        _outputMsgs += "Loading default world.\n";
+        // Load an empty world.
+        /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+        errors = _root.LoadSdfString(DefaultWorld::World());
+        break;
+      }
+  }
+
+  return errors;
 }

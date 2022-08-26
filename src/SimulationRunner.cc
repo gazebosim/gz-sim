@@ -45,28 +45,20 @@ using StringSet = std::unordered_set<std::string>;
 
 
 //////////////////////////////////////////////////
-SimulationRunner::SimulationRunner(const sdf::World *_world,
+SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const ServerConfig &_config)
-    // \todo(nkoenig) Either copy the world, or add copy constructor to the
-    // World and other elements.
     : sdfWorld(_world), serverConfig(_config)
 {
-  if (nullptr == _world)
-  {
-    gzerr << "Can't start simulation runner with null world." << std::endl;
-    return;
-  }
-
   // Keep world name
-  this->worldName = _world->Name();
+  this->worldName = this->sdfWorld.Name();
 
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
-  auto physics = _world->PhysicsByIndex(0);
+  const sdf::Physics *physics = this->sdfWorld.PhysicsByIndex(0);
   if (!physics)
   {
-    physics = _world->PhysicsDefault();
+    physics = this->sdfWorld.PhysicsDefault();
   }
 
   // Step size
@@ -220,9 +212,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
-  if (_world->Gui())
+  if (this->sdfWorld.Gui())
   {
-    this->guiMsg = convert<msgs::GUI>(*_world->Gui());
+    this->guiMsg = convert<msgs::GUI>(*this->sdfWorld.Gui());
   }
 
   std::string infoService{"gui/info"};
@@ -231,7 +223,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
-  gzmsg << "World [" << _world->Name() << "] initialized with ["
+  gzmsg << "World [" << this->sdfWorld.Name() << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
 
   std::string genWorldSdfService{"generate_world_sdf"};
@@ -464,7 +456,7 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
-  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  auto sdf = _sdf.value_or(this->sdfWorld.ToElement());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
@@ -475,7 +467,7 @@ void SimulationRunner::AddSystem(
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
-  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  auto sdf = _sdf.value_or(this->sdfWorld.ToElement());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
@@ -543,6 +535,24 @@ void SimulationRunner::UpdateSystems()
     GZ_PROFILE("Reset");
     this->systemMgr->Reset(this->currentInfo, this->entityCompMgr);
     return;
+  }
+
+  // Add assets, if any exist.
+  if (!this->assetsToCreate.empty())
+  {
+    std::lock_guard<std::mutex> lock(this->assetCreationMutex);
+    auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+        this->eventMgr);
+
+    // Create the asset
+    for (const auto &variant : this->assetsToCreate)
+    {
+      std::visit([&](auto &&arg) {
+          Entity entity = creator->CreateEntities(&arg);
+          creator->SetParent(entity, worldEntity(this->entityCompMgr));
+      }, variant);
+    }
+    this->assetsToCreate.clear();
   }
 
   {
@@ -1059,6 +1069,16 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
+  // Skip if attempting to unpause while initial set of models are being
+  // downloaded in the background. We must remain paused while downloading.
+  if (!_paused && this->forcedPause)
+  {
+    gzmsg << "Received run request while simulation assets are downloading. "
+      << "Simulation will start running once all the assets are downloaded.\n";
+    this->requestedPause = _paused;
+    return;
+  }
+
   // Only update the realtime clock if Run() has been called.
   if (this->running)
   {
@@ -1485,4 +1505,32 @@ bool SimulationRunner::NextStepIsBlockingPaused() const
 void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::CreateEntity(const std::variant<
+                     sdf::Actor, sdf::Light, sdf::Model> &_asset)
+{
+  std::lock_guard<std::mutex> lock(this->assetCreationMutex);
+  this->assetsToCreate.push_back(_asset);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetForcedPause(bool _p)
+{
+  bool setRequested = this->forcedPause && !_p;
+  bool setPaused = !this->forcedPause && _p;
+
+  this->forcedPause = _p;
+
+  if (setRequested)
+    this->SetPaused(this->requestedPause);
+  else if (setPaused)
+    this->SetPaused(setPaused);
+}
+
+//////////////////////////////////////////////////
+const sdf::World &SimulationRunner::WorldSdf() const
+{
+  return this->sdfWorld;
 }

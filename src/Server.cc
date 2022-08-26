@@ -33,24 +33,6 @@
 using namespace gz;
 using namespace sim;
 
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
-
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
@@ -71,73 +53,20 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  sdf::Errors errors;
+  std::string outputMsgs;
 
-  switch (_config.Source())
+  // Ignore the sdf::Errors returned by this function. The errors will be
+  // displayed later in the downloadThread.
+  this->dataPtr->LoadSdfRootHelper(_config, this->dataPtr->sdfRoot, outputMsgs);
+  gzmsg << outputMsgs;
+
+  // Remove all the models from the primary sdfRoot object so that they can
+  // be downloaded and added to simulation in the background.
+  for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
   {
-    // Load a world if specified. Check SDF string first, then SDF file
-    case ServerConfig::SourceType::kSdfRoot:
-    {
-      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-      gzmsg << "Loading SDF world from SDF DOM.\n";
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfString:
-    {
-      std::string msg = "Loading SDF string. ";
-      if (_config.SdfFile().empty())
-      {
-        msg += "File path not available.\n";
-      }
-      else
-      {
-        msg += "File path [" + _config.SdfFile() + "].\n";
-      }
-      gzmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfFile:
-    {
-      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-          _config.ResourceCache());
-
-      if (filePath.empty())
-      {
-        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
-               << std::endl;
-        return;
-      }
-
-      gzmsg << "Loading SDF world file[" << filePath << "].\n";
-
-      // \todo(nkoenig) Async resource download.
-      // This call can block for a long period of time while
-      // resources are downloaded. Blocking here causes the GUI to block with
-      // a black screen (search for "Async resource download" in
-      // 'src/gui_main.cc'.
-      errors = this->dataPtr->sdfRoot.Load(filePath);
-      break;
-    }
-
-    case ServerConfig::SourceType::kNone:
-    default:
-    {
-      gzmsg << "Loading default world.\n";
-      // Load an empty world.
-      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-      break;
-    }
-  }
-
-  if (!errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << "\n";
-    return;
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
   }
 
   // Add record plugin
@@ -157,6 +86,59 @@ Server::Server(const ServerConfig &_config)
 
   // Establish publishers and subscribers.
   this->dataPtr->SetupTransport();
+
+  // Turn on downloads.
+  this->dataPtr->enableDownload = true;
+
+  // Force each simulation runner to remain paused until the downloads are
+  // complete.
+  for (auto &runner : this->dataPtr->simRunners)
+  {
+    runner->SetForcedPause(true);
+  }
+
+  // Download models in a separate thread.
+  this->dataPtr->downloadThread = std::thread([&]()
+  {
+    // Reload the SDF root, which will cause the models to download.
+    sdf::Root localRoot;
+    std::string ignoreMessages;
+    sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
+        localRoot, ignoreMessages);
+
+    // Output any errors.
+    if (!errors.empty())
+    {
+      for (auto &err : errors)
+        gzerr << err << "\n";
+    }
+    else
+    {
+      // Add the models back into the worlds.
+      for (auto &runner : this->dataPtr->simRunners)
+      {
+        std::string worldName = runner->WorldSdf().Name();
+        const sdf::World *world = localRoot.WorldByName(worldName);
+        if (world)
+        {
+          for (uint64_t i = 0; i < world->ActorCount(); ++i)
+            runner->CreateEntity(*world->ActorByIndex(i));
+          for (uint64_t i = 0; i < world->LightCount(); ++i)
+            runner->CreateEntity(*world->LightByIndex(i));
+          for (uint64_t i = 0; i < world->ModelCount(); ++i)
+            runner->CreateEntity(*world->ModelByIndex(i));
+        }
+        else
+        {
+          gzerr << "Unable to find world with name[" << worldName << "]. "
+            << "Downloaded models may not appear.\n";
+        }
+
+        // Allow the runner to resume normal operations.
+        runner->SetForcedPause(false);
+      }
+    }
+  });
 }
 
 /////////////////////////////////////////////////

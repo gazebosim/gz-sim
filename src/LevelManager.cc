@@ -81,11 +81,11 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
   this->CreatePerformers();
 
   std::string service = transport::TopicUtils::AsValidTopic("/world/" +
-      this->runner->sdfWorld->Name() + "/level/set_performer");
+      this->runner->sdfWorld.Name() + "/level/set_performer");
   if (service.empty())
   {
     gzerr << "Failed to generate set_performer topic for world ["
-           << this->runner->sdfWorld->Name() << "]" << std::endl;
+           << this->runner->sdfWorld.Name() << "]" << std::endl;
     return;
   }
   this->node.Advertise(service, &LevelManager::OnSetPerformer, this);
@@ -101,15 +101,15 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
                                                components::World());
   this->runner->entityCompMgr.CreateComponent(
-      this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
+      this->worldEntity, components::Name(this->runner->sdfWorld.Name()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-      components::Gravity(this->runner->sdfWorld->Gravity()));
+      components::Gravity(this->runner->sdfWorld.Gravity()));
 
-  auto physics = this->runner->sdfWorld->PhysicsByIndex(0);
+  auto physics = this->runner->sdfWorld.PhysicsByIndex(0);
   if (!physics)
   {
-    physics = this->runner->sdfWorld->PhysicsDefault();
+    physics = this->runner->sdfWorld.PhysicsDefault();
   }
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::Physics(*physics));
@@ -140,7 +140,7 @@ void LevelManager::ReadLevelPerformerInfo()
   }
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-      components::MagneticField(this->runner->sdfWorld->MagneticField()));
+      components::MagneticField(this->runner->sdfWorld.MagneticField()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::PhysicsEnginePlugin(
@@ -158,41 +158,41 @@ void LevelManager::ReadLevelPerformerInfo()
       components::RenderEngineGuiPlugin(
       this->runner->serverConfig.RenderEngineGui()));
 
-  auto worldElem = this->runner->sdfWorld->Element();
+  auto worldElem = this->runner->sdfWorld.Element();
 
   // Create Wind
   auto windEntity = this->runner->entityCompMgr.CreateEntity();
   this->runner->entityCompMgr.CreateComponent(windEntity, components::Wind());
   this->runner->entityCompMgr.CreateComponent(
       windEntity, components::WorldLinearVelocity(
-                      this->runner->sdfWorld->WindLinearVelocity()));
+                      this->runner->sdfWorld.WindLinearVelocity()));
   // Initially the wind linear velocity is used as the seed velocity
   this->runner->entityCompMgr.CreateComponent(
       windEntity, components::WorldLinearVelocitySeed(
-                      this->runner->sdfWorld->WindLinearVelocity()));
+                      this->runner->sdfWorld.WindLinearVelocity()));
 
   this->entityCreator->SetParent(windEntity, this->worldEntity);
 
   // scene
-  if (this->runner->sdfWorld->Scene())
+  if (this->runner->sdfWorld.Scene())
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-        components::Scene(*this->runner->sdfWorld->Scene()));
+        components::Scene(*this->runner->sdfWorld.Scene()));
   }
 
   // atmosphere
-  if (this->runner->sdfWorld->Atmosphere())
+  if (this->runner->sdfWorld.Atmosphere())
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-        components::Atmosphere(*this->runner->sdfWorld->Atmosphere()));
+        components::Atmosphere(*this->runner->sdfWorld.Atmosphere()));
   }
 
   // spherical coordinates
-  if (this->runner->sdfWorld->SphericalCoordinates())
+  if (this->runner->sdfWorld.SphericalCoordinates())
   {
     this->runner->entityCompMgr.CreateComponent(this->worldEntity,
         components::SphericalCoordinates(
-        *this->runner->sdfWorld->SphericalCoordinates()));
+        *this->runner->sdfWorld.SphericalCoordinates()));
   }
 
   // TODO(anyone) This should probably go somewhere else as it is a global
@@ -230,16 +230,16 @@ void LevelManager::ReadLevelPerformerInfo()
 
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
-      this->runner->sdfWorld->Plugins());
+      this->runner->sdfWorld.Plugins());
 
   GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
-      this->runner->sdfWorld->Element());
+      this->runner->sdfWorld.Element());
   GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->runner->entityCompMgr.CreateComponent(
-      worldEntity, components::WorldSdf(*this->runner->sdfWorld));
+      worldEntity, components::WorldSdf(this->runner->sdfWorld));
 }
 
 /////////////////////////////////////////////////
@@ -458,11 +458,11 @@ void LevelManager::ConfigureDefaultLevel()
 
   // Models
   for (uint64_t modelIndex = 0;
-       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
+       modelIndex < this->runner->sdfWorld.ModelCount(); ++modelIndex)
   {
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
-    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
+    auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
     // If model is a performer, it will be handled separately
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
@@ -478,11 +478,11 @@ void LevelManager::ConfigureDefaultLevel()
 
   // Actors
   for (uint64_t actorIndex = 0;
-       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+       actorIndex < this->runner->sdfWorld.ActorCount(); ++actorIndex)
   {
     // There is no sdf::World::ActorByName so we have to iterate by index and
     // check if the actor is in this level
-    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
     // If actor is a performer, it will be handled separately
     if (this->performerMap.find(actor->Name()) != this->performerMap.end())
     {
@@ -499,9 +499,9 @@ void LevelManager::ConfigureDefaultLevel()
   // Lights
   // We assume no performers are lights
   for (uint64_t lightIndex = 0;
-       lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
+       lightIndex < this->runner->sdfWorld.LightCount(); ++lightIndex)
   {
-    auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
+    auto light = this->runner->sdfWorld.LightByIndex(lightIndex);
     if (this->entityNamesInLevels.find(light->Name()) ==
         this->entityNamesInLevels.end())
     {
@@ -531,9 +531,9 @@ void LevelManager::CreatePerformers()
   }
   // Models
   for (uint64_t modelIndex = 0;
-       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
+       modelIndex < this->runner->sdfWorld.ModelCount(); ++modelIndex)
   {
-    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
+    auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
       Entity modelEntity = this->entityCreator->CreateEntities(model);
@@ -549,9 +549,9 @@ void LevelManager::CreatePerformers()
 
   // Actors
   for (uint64_t actorIndex = 0;
-       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+       actorIndex < this->runner->sdfWorld.ActorCount(); ++actorIndex)
   {
-    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
     if (this->performerMap.find(actor->Name()) != this->performerMap.end())
     {
       Entity actorEntity = this->entityCreator->CreateEntities(actor);
@@ -806,11 +806,11 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 
   // Models
   for (uint64_t modelIndex = 0;
-       modelIndex < this->runner->sdfWorld->ModelCount(); ++modelIndex)
+       modelIndex < this->runner->sdfWorld.ModelCount(); ++modelIndex)
   {
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
-    auto model = this->runner->sdfWorld->ModelByIndex(modelIndex);
+    auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
     if (_namesToLoad.find(model->Name()) != _namesToLoad.end())
     {
       Entity modelEntity = this->entityCreator->CreateEntities(model);
@@ -821,11 +821,11 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 
   // Actors
   for (uint64_t actorIndex = 0;
-       actorIndex < this->runner->sdfWorld->ActorCount(); ++actorIndex)
+       actorIndex < this->runner->sdfWorld.ActorCount(); ++actorIndex)
   {
     // There is no sdf::World::ActorByName so we have to iterate by index and
     // check if the actor is in this level
-    auto actor = this->runner->sdfWorld->ActorByIndex(actorIndex);
+    auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
     if (_namesToLoad.find(actor->Name()) != _namesToLoad.end())
     {
       Entity actorEntity = this->entityCreator->CreateEntities(actor);
@@ -836,9 +836,9 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 
   // Lights
   for (uint64_t lightIndex = 0;
-       lightIndex < this->runner->sdfWorld->LightCount(); ++lightIndex)
+       lightIndex < this->runner->sdfWorld.LightCount(); ++lightIndex)
   {
-    auto light = this->runner->sdfWorld->LightByIndex(lightIndex);
+    auto light = this->runner->sdfWorld.LightByIndex(lightIndex);
     if (_namesToLoad.find(light->Name()) != _namesToLoad.end())
     {
       Entity lightEntity = this->entityCreator->CreateEntities(light);

@@ -98,6 +98,9 @@ namespace gz
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
 
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config,
+                  sdf::Root &_root, std::string &_outputMsgs);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -185,6 +188,12 @@ namespace gz
       /// \brief Map from file paths to fuel URIs. This is set and updated by
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
+
+      /// \brief Used to set whether models should be downloaded from Fuel.
+      public: bool enableDownload = false;
+
+      /// \brief Thread used to download models in the background.
+      public: std::thread downloadThread;
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

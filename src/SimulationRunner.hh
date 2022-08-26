@@ -32,6 +32,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <sdf/World.hh>
@@ -74,7 +75,7 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
-      public: explicit SimulationRunner(const sdf::World *_world,
+      public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
                                 const ServerConfig &_config = ServerConfig());
 
@@ -366,6 +367,30 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Get a reference to the SDF world used by this runner.
+      /// \return Reference to the SDF world for this runner.
+      public: const sdf::World &WorldSdf() const;
+
+      /// \brief Create an asset (actor, light, model). This will add the
+      /// asset to a queue that will be processed on the next preupdate.
+      /// \param[in] _asset Model to create.
+      public: void CreateEntity(const std::variant<
+                  sdf::Actor, sdf::Light, sdf::Model> &_asset);
+
+
+      /// \brief Set whether the paused state of true should be enforced.
+      /// Setting this to true will force simulation to pause, and it can only
+      /// be unpaused if this function is called with a false parameter value.
+      ///
+      /// Do not expose this API function. It's meant as mechanism to
+      /// override user commands in specific situations, such as initial model
+      /// download.
+      ///
+      /// \param[in] _p True to force simulation to pause. False to unpause.
+      /// When false is passed in and the previous value was true, then the
+      /// requested pause state will be set.
+      public: void SetForcedPause(bool _p);
+
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();
@@ -467,7 +492,7 @@ namespace gz
       private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
-      private: const sdf::World *sdfWorld;
+      private: const sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
@@ -496,6 +521,13 @@ namespace gz
 
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
+
+      /// \brief Asset creation mutex.
+      private: std::mutex assetCreationMutex;
+
+      /// \brief Set of assets to create during the next preupdate.
+      private: std::vector<
+               std::variant<sdf::Actor, sdf::Light, sdf::Model>> assetsToCreate;
 
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
@@ -531,6 +563,17 @@ namespace gz
       /// \brief Holds new world state information so that it can be processed
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
+
+      /// \brief On start, the server will download models in the
+      /// background. The simulation runner must remain paused while this
+      /// takes place. This flag can be used to make sure simulation stays
+      /// paused.
+      private: bool forcedPause{true};
+
+      /// \brief During a forced pause, the user may request that simulation
+      /// should run. This flag will capture that request, and then be used
+      /// when the forced pause ends.
+      private: bool requestedPause{true};
 
       private: bool resetInitiated{false};
       friend class LevelManager;
