@@ -22,8 +22,8 @@
  *   $ acoustic_comms_demo
  */
 
+#include <atomic>
 #include <chrono>
-#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -33,28 +33,17 @@
 
 using namespace gz;
 
-bool tethysMsgReceived = false;
-bool daphneMsgReceived = false;
-std::mutex mutex;
+std::atomic<bool> tethysMsgReceived = false;
+std::atomic<bool> daphneMsgReceived = false;
 
 void cbTethys(const msgs::Dataframe &_msg)
 {
-  std::lock_guard<std::mutex> lock(mutex);
-  msgs::StringMsg receivedMsg;
-  receivedMsg.ParseFromString(_msg.data());
-  if (receivedMsg.data() == "START")
-    std::cout  << "Hello 1 again" << std::endl;
-    tethysMsgReceived = true;
+  tethysMsgReceived = true;
 }
 
 void cbDaphne(const msgs::Dataframe &_msg)
 {
-  std::lock_guard<std::mutex> lock(mutex);
-  msgs::StringMsg receivedMsg;
-  receivedMsg.ParseFromString(_msg.data());
-  if (receivedMsg.data() == "START")
-    std::cout << "Hello 2 again" << std::endl;
-    daphneMsgReceived = true;
+  daphneMsgReceived = true;
 }
 
 int main(int argc, char** argv)
@@ -85,7 +74,6 @@ int main(int argc, char** argv)
       propellerTopics[i]);
   }
 
-  std::vector<double> rudderCmds = {0.0, 0.0, 0.0};
   std::vector<double> propellerCmds = {-20, 0, 0};
 
   // Setup publishers and callbacks for comms topics.
@@ -117,12 +105,9 @@ int main(int argc, char** argv)
 
   while (true)
   {
-
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    std::lock_guard<std::mutex> lock(mutex);
     std::cout << "--------------------------" << std::endl;
-
     if (tethysMsgReceived)
       propellerCmds[1] = -20.0;
     else
@@ -139,8 +124,8 @@ int main(int argc, char** argv)
       propellerMsg.set_data(propellerCmds[i]);
       propellerPubs[i].Publish(propellerMsg);
 
-      std::cout << "Commanding " << ns[i] << " rudder angle " << rudderCmds[i]
-        << " rad, thrust " << propellerCmds[i] << " Newtons" << std::endl;
+      std::cout << "Commanding thrust: " << propellerCmds[i]
+        << " Newtons" << std::endl;
     }
   }
 }
