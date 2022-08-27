@@ -608,7 +608,8 @@ void Sensors::Update(const UpdateInfo &_info,
 #ifdef __APPLE__
   // On macOS the render engine must be initialised on the main thread.
   if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::Camera::typeId) ||
+      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
+       _ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
        _ecm.HasComponentType(components::RgbdCamera::typeId) ||
