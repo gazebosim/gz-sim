@@ -39,7 +39,6 @@
 #include <gz/common/Event.hh>
 #include <gz/common/WorkerPool.hh>
 #include <gz/math/Stopwatch.hh>
-#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/config.hh"

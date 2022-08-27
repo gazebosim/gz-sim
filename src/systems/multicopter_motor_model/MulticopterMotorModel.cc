@@ -26,6 +26,8 @@
 #include <mutex>
 #include <string>
 
+#include <gz/msgs/actuators.pb.h>
+
 #include <gz/common/Profiler.hh>
 
 #include <gz/plugin/Register.hh>
@@ -34,7 +36,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
-#include <gz/msgs.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 

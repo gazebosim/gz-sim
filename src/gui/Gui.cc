@@ -17,6 +17,7 @@
 #include <QScreen>
 
 #include <gz/msgs/gui.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>

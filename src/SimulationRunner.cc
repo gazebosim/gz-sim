@@ -19,6 +19,12 @@
 
 #include <algorithm>
 
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
 #include <sdf/Root.hh>
 
 #include "gz/common/Profiler.hh"

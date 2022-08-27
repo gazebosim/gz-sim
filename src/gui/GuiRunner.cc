@@ -19,13 +19,17 @@
 #include <utility>
 #include <vector>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
-#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 // Include all components so they have first-class support
