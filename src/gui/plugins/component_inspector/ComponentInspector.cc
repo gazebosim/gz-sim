@@ -693,7 +693,7 @@ void ComponentInspector::Update(const UpdateInfo &,
       QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
           "RemoveComponentType",
           Qt::QueuedConnection,
-          Q_ARG(ComponentTypeId, typeId));
+          Q_ARG(ignition::gazebo::ComponentTypeId, typeId));
     }
   }
 }

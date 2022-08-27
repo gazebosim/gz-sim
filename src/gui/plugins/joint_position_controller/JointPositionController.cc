@@ -292,7 +292,7 @@ void JointPositionController::Update(const UpdateInfo &,
       QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
           "RemoveJoint",
           Qt::QueuedConnection,
-          Q_ARG(Entity, jointEntity));
+          Q_ARG(ignition::gazebo::Entity, jointEntity));
     }
   }
 }
