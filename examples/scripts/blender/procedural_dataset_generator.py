@@ -1,12 +1,49 @@
+#!/usr/bin/env -S blender --python
 """
-Blender exporter of SDF models with support for generating procedural datasets via node
-based modifiers, e.g. Geometry Nodes.
+This script contains a Blender exporter of SDF models `sdf_model_exporter` for Gazebo
+and a generator of procedural SDF datasets `procedural_dataset_generator`.
+
+The SDF exporter outputs models that are compatible with Fuel. It processes all selected
+objects in the Blender scene (or all existing objects if none is selected). The exporter
+is fully configurable via CLI arguments. It can export separate visual and collision
+geometry at different resolution levels. It supports automatic estimation of inertial
+properties for non-static models by `trimesh` Python module. Several attributes such as
+model mass and surface friction can be randomized via uniform distribution by specifying
+a range of minimum and maximum values.
+
+The dataset generator is based on Blender's `Geometry Nodes` modifiers with support
+for variations via `random_seed` input attribute (seed for the pseudorandom generation).
+This module-based class inherits all functionalities of the SDF model exporter.
+
+You can run this script in multiple ways:
+a) Directly in Blender's [Text Editor] tab | with the default parameters (configurable)
+  1. Copy this script into a [New Text] data block in your 'file.blend'
+  2. Configure the default script parameters for your model via constants below
+  3. Run the script using the [Run script] button at the top of the [Text Editor] tab
+b) Running an internal script (saved within 'file.blend') | with CLI args (configurable)
+  $ blender [blender options] file.blend --python-text script.py -- [script options]
+c) Running an external script | with CLI args (configurable)
+  $ blender [blender options] file.blend --python external_script.py -- [script options]
+
+Show the help message of this script ([script options]):
+  $ blender file.blend --python-text script.py -- -h
+  $ blender file.blend --python external_script.py -- -h
+
+Show the help message of Blender ([blender options]):
+  $ blender -h
 """
 from __future__ import annotations
 
-# Please, manually adjust the last tested (and working) Blender version for this script
-LAST_TESTED_VERSION: Tuple(int, int, int) = (3, 1, 2)
+# Raise an informative error in case the script is run outside Python env of Blender
+try:
+    import bpy
+except ImportError as err:
+    raise ImportError(
+        "Python module of Blender 'bpy' not found! Please, execute this script inside "
+        "a Blender environment (e.g. run inside the Scripting tab of Blender)."
+    ) from err
 
+import argparse
 import enum
 import os
 import random
@@ -18,119 +55,70 @@ from typing import Any, Dict, Iterable, List, Optional, TextIO, Tuple, Union
 from xml.dom import minidom
 from xml.etree import ElementTree
 
-### Default parameters for `sdf_model_exporter`
-DIRNAME_EXPORT: str = path.join(path.dirname(path.realpath(__file__)), "blender_export")
+# Last tested and working version of Blender for this script (MAJOR, MINOR)
+LAST_WORKING_VERSION: Tuple(int, int) = (3, 2)
+
+### Default script parameters (adjustable via CLI arguments)
+## Parameters for SDF model exporter `sdf_model_exporter`
+OUTPUT_DIR: str = path.join(os.getcwd(), "sdf_models")
 MODEL_VERSION: Optional[int] = None
-###
-
-### Default parameters for `procedural_dataset_generator`
-INITIAL_SEED: int = 0
+## Parameters for procedural dataset generator `procedural_dataset_generator`
+FIRST_SEED: int = 0
 NUMBER_OF_VARIANTS: int = 8
-###
 
-### Default model-specific parameters
+### Default model-specific parameters (adjustable via CLI arguments)
+## Default level of detail for exported geometry, e.g. subdivision level
+DETAIL_LEVEL_VISUAL: int = 1
+DETAIL_LEVEL_COLLISION: int = 0
+## Default objects to ignore while exporting visual/collision geometry, even if selected
+IGNORE_OBJECTS_VISUAL: List[str] = []
+IGNORE_OBJECTS_COLLISION: List[str] = []
+## Default source of textures for the model
+# Options: "collada" == "dae" | "wavefront" == "obj" | "stl"
+FILETYPE_VISUAL: str = "collada"
+FILETYPE_COLLISION: str = "stl"
+## Default source of textures for the model
+# If true, symbolic links will be created for all textures instead of copies
+SYMLINK_EXTERNAL_TEXTURES: bool = True
+# Options: "none" | "path"
+TEXTURE_SOURCE_MODE: str = "none"
+TEXTURE_SOURCE_VALUE: Optional[str] = None
+MATERIAL_TEXTURE_DIFFUSE: Optional[Tuple[float, float, float]] = (1.0, 1.0, 1.0)
+MATERIAL_TEXTURE_SPECULAR: Optional[Tuple[float, float, float]] = (0.2, 0.2, 0.2)
+## Default inertial and dynamic properties of exported models
+# If true, the model is immovable and it won't be updated by physics engine
 STATIC: bool = False
+# Options: "none" | "density" | "random_density" | "mass" | "random_mass"
+INERTIAL_ESTIMATION_MODE: str = "none"
+INERTIAL_ESTIMATION_VALUE: Optional[List[float]] = None
+# (Random) coefficient of the surface friction (equal in both directions)
+FRICTION_COEFFICIENT: List[float] = [1.0]
 
-SUBDIVISION_LEVEL_VISUAL: int = 4
-SUBDIVISION_LEVEL_COLLISION: int = 2
-
-IGNORE_OBJECT_NAMES_VISUAL: List[str] = []
-IGNORE_OBJECT_NAMES_COLLISION: List[str] = []
-
-SHADE_SMOOTH: bool = True
-TEXTURE_SOURCE: str = "none"
-TEXTURE_SOURCE_VALUE: Optional[Any] = None
-MATERIAL_TEXTURE_DIFFUSE: Union[
-    Tuple[float, float, float], Tuple[float, float, float, float]
-] = (1.0, 1.0, 1.0, 1.0)
-MATERIAL_TEXTURE_SPECULAR: Union[
-    Tuple[float, float, float], Tuple[float, float, float, float]
-] = (0.2, 0.2, 0.2, 1.0)
-
-MODEL_TARGET_MASS: Optional[Union[float, Tuple[float, float]]] = None
-MODEL_DENSITY: Union[float, Tuple[float, float]] = 1.0
-
-FRICTION_COEFFICIENT: Optional[Union[float, Tuple[float, float]]] = 1.0
-###
-
-### All additional keyword arguments can go here, e.g. `{"filetype_visual": "OBJ"}`
+### Default keyword arguments for additional parameters (overwritten by CLI arguments)
 DEFAULT_KWARGS: Any = {}
-###
-
-
-# Raise an informative error in case the script is run outside Python env of Blender
-try:
-    import bpy
-except ImportError as err:
-    raise ImportError(
-        "Python module of Blender 'bpy' not found! Please, execute this script inside "
-        "a Blender environment (e.g. copy-paste into Scripting tab)."
-    ) from err
 
 
 class sdf_model_exporter(ModuleType):
     """
-    Blender exporter of mesh objects as SDF models.
+    Blender exporter of objects as SDF models.
 
     Note: This class is designed as a "module class" to enable simple copy-pasting
     among Blender projects and environments, i.e. methods do not require an instance
     during their call while still supporting inheritance.
     """
 
-    # TODO[desing decision]: Consider exporting individual meshes for each object
-    #       Exporting objects individually and genering SDF with multiple <visual>
-    #       and <colision> tags might be more robust
-    # Benefit  - Support multiple materials with different textures and overlapping UVs
-    # Drawback - Much more complex, especially for estimating inertial properties
-
-    # Default args for export
-    DEFAULT_DIRNAME_EXPORT: str = DIRNAME_EXPORT
-    DEFAULT_MODEL_VERSION: Optional[int] = MODEL_VERSION
-
-    # Default args for model being static
-    DEFAULT_STATIC: bool = STATIC
-
-    # Default args for which objects to ignore from mesh exporting
-    DEFAULT_IGNORE_OBJECT_NAMES_VISUAL: List[str] = IGNORE_OBJECT_NAMES_VISUAL
-    DEFAULT_IGNORE_OBJECT_NAMES_COLLISION: List[str] = IGNORE_OBJECT_NAMES_COLLISION
-
-    # Default args for subdivision level
-    DEFAULT_SUBDIVISION_LEVEL_VISUAL: int = SUBDIVISION_LEVEL_VISUAL
-    DEFAULT_SUBDIVISION_LEVEL_COLLISION: int = SUBDIVISION_LEVEL_COLLISION
-
-    # Default args for smooth shading (visual geometry)
-    DEFAULT_SHADE_SMOOTH: bool = SHADE_SMOOTH
-
-    # Default args for material
-    DEFAULT_MATERIAL_TEXTURE_DIFFUSE: Union[
-        Tuple[float, float, float], Tuple[float, float, float, float]
-    ] = MATERIAL_TEXTURE_DIFFUSE
-    DEFAULT_MATERIAL_TEXTURE_SPECULAR: Union[
-        Tuple[float, float, float], Tuple[float, float, float, float]
-    ] = MATERIAL_TEXTURE_SPECULAR
-
-    # Default args for inertial properties
-    DEFAULT_MODEL_TARGET_MASS: Optional[
-        Union[float, Tuple[float, float]]
-    ] = MODEL_TARGET_MASS
-    DEFAULT_MODEL_DENSITY: Union[float, Tuple[float, float]] = MODEL_DENSITY
-
-    # Default args for surface friction
-    DEFAULT_FRICTION_COEFFICIENT: Optional[
-        Union[float, Tuple[float, float]]
-    ] = FRICTION_COEFFICIENT
-
-    # Default directory and basenames compatible with SDF directory structure
-    # All of these are expressed with respect to the model base directory
-    BASENAME_SDF: str = "model.sdf"
-    BASENAME_SDF_MODEL_CONFIG: str = "model.config"
-    DIRNAME_MESHES: str = "meshes"
+    ## Directory structure compatible with Gazebo Fuel
+    MODEL_ROOT: str = ""
+    BASENAME_SDF: str = path.join(MODEL_ROOT, "model.sdf")
+    BASENAME_SDF_MODEL_CONFIG: str = path.join(MODEL_ROOT, "model.config")
+    DIRNAME_MESHES: str = path.join(MODEL_ROOT, "meshes")
     DIRNAME_MESHES_VISUAL: str = path.join(DIRNAME_MESHES, "visual")
     DIRNAME_MESHES_COLLISION: str = path.join(DIRNAME_MESHES, "collision")
-    DIRNAME_MATERIALS: str = "materials"
+    DIRNAME_MATERIALS: str = path.join(MODEL_ROOT, "materials")
     DIRNAME_TEXTURES: str = path.join(DIRNAME_MATERIALS, "textures")
-    DIRNAME_THUMBNAILS: str = "thumbnails"
-    # Targetted version of SDF
+    DIRNAME_THUMBNAILS: str = path.join(MODEL_ROOT, "thumbnails")
+
+    # Targeted version of SDF
     SDF_VERSION: str = "1.9"
 
     @enum.unique
@@ -149,7 +137,7 @@ class sdf_model_exporter(ModuleType):
             Use Blender exporter of the corresponding mesh format. The desired
             `filepath` might be adjusted to include the appropriate file extension. Upon
             success, the absolute filepath of the exported mesh is returned. Note, that
-            only the selected mesh object(s) will be exported.
+            only the selected object(s) will be exported.
             """
 
             # Make sure the file has the correct extension
@@ -297,7 +285,7 @@ class sdf_model_exporter(ModuleType):
             Return the default filetype for visual mesh geometry.
             """
 
-            return cls.COLLADA
+            return cls.from_str(FILETYPE_VISUAL)
 
         @classmethod
         def default_collision(cls) -> sdf_model_exporter.ExportFormat:
@@ -305,7 +293,7 @@ class sdf_model_exporter(ModuleType):
             Return the default filetype for collision mesh geometry.
             """
 
-            return cls.STL
+            return cls.from_str(FILETYPE_COLLISION)
 
         @property
         def extension(self) -> str:
@@ -322,36 +310,326 @@ class sdf_model_exporter(ModuleType):
             else:
                 raise ValueError(f"Unknown extension for '{self}' filetype.")
 
+    @enum.unique
+    class TextureSource(enum.Enum):
+        """
+        Helper enum of possible sources for textures. Each source should provide a path
+        to searchable directory with the following structure (each texture type is
+        optional and image format must be supported by Gazebo):
+        ├── ./
+            ├── texture_0/
+                ├── *albedo*.png || *color*.png
+                ├── *normal*.png
+                ├── *roughness*.png
+                └── *specular*.png || *metalness*.png
+            ├── ...
+            └── texture_n/
+        Alternatively, it can point to a directory that directly contains textures and
+        no other subdirectories.
+        """
+
+        NONE = enum.auto()
+        BLENDER_MODEL = enum.auto()
+        FILEPATH = enum.auto()
+        ONLINE = enum.auto()
+
+        def get_path(self, value: Optional[str] = None) -> Optional[str]:
+            """
+            Return a path to a directory with PBR textures.
+            """
+
+            if self.NONE == self:
+                return None
+            elif self.BLENDER_MODEL == self:
+                return path.abspath(self._generate_baked_textures())
+            elif self.FILEPATH == self:
+                if not value or not path.isdir(value):
+                    raise ValueError(
+                        f"Value '{value}' is an invalid path to a directory with "
+                        "textures."
+                    )
+                return path.abspath(value)
+            elif self.ONLINE == self:
+                return path.abspath(self._pull_online_textures(value))
+            else:
+                raise ValueError(f"Texture source '{self}' is not supported.")
+
+        def is_enabled(self) -> bool:
+            """
+            Returns true if textures are enabled.
+            """
+
+            return not self.NONE == self
+
+        @classmethod
+        def from_str(cls, source_str: str) -> sdf_model_exporter.TextureSource:
+            """
+            Return TextureSource that corresponds with a matched `source_str` string.
+            """
+
+            source_str = source_str.strip().upper()
+            if not source_str or "NONE" in source_str:
+                return cls.NONE
+            elif "BLENDER" in source_str:
+                return cls.BLENDER_MODEL
+            elif "PATH" in source_str:
+                return cls.FILEPATH
+            elif "ONLINE" in source_str:
+                return cls.ONLINE
+            else:
+                raise ValueError(f"Unknown '{source_str}' texture source.")
+
+        @classmethod
+        def default(cls) -> sdf_model_exporter.TextureSource:
+            """
+            Return the default texture source.
+            """
+
+            return cls.from_str(TEXTURE_SOURCE_MODE)
+
+        def _generate_baked_textures(
+            cls,
+        ) -> str:
+            """
+            Bake PBR textures for the model and return a path to a directory that
+            contains them.
+            """
+
+            # TODO[feature]: Implement baking of textures from Blender materials
+            return NotImplementedError("Baking of textures is not yet implemented!")
+
+        def _pull_online_textures(
+            cls,
+            value: Optional[Any] = None,
+        ) -> str:
+            """
+            Get PBR textures from an online source.
+            """
+
+            # TODO[feature]: Add option for pulling PBR textures from an online source
+            return NotImplementedError(
+                "Getting textures from an online source is not yet implemented!"
+            )
+
+    @enum.unique
+    class InertialEstimator(enum.Enum):
+        """
+        Helper enum for estimating inertial properties of a model.
+        """
+
+        ## Modes of estimation
+        NONE = enum.auto()
+        DENSITY = enum.auto()
+        RANDOM_DENSITY = enum.auto()
+        MASS = enum.auto()
+        RANDOM_MASS = enum.auto()
+
+        def estimate_inertial_properties(
+            self,
+            analysed_mesh_filepath: str,
+            value: List[float],
+        ) -> Dict[
+            str,
+            Union[
+                float,
+                Tuple[float, float, float],
+                Tuple[
+                    Tuple[float, float, float],
+                    Tuple[float, float, float],
+                    Tuple[float, float, float],
+                ],
+            ],
+        ]:
+            """
+            Estimate inertial properties of the mesh assuming uniform density.
+            """
+
+            # Try to import trimesh or try to install it within the Python environment
+            # Note: This step might throw an exception if it is not possible
+            # TODO[enhancement]: Add other methods for estimating inertial properties
+            self._try_install_trimesh()
+            import trimesh
+
+            # Load the mesh
+            mesh = trimesh.load(
+                analysed_mesh_filepath, force="mesh", ignore_materials=True
+            )
+
+            # Extract or sample a floating point value from the input
+            value = self.sample_value(value)
+
+            # Set the density (either via density or mass)
+            if self.DENSITY == self or self.RANDOM_DENSITY == self:
+                mesh.density = value
+            elif self.MASS == self or self.RANDOM_MASS == self:
+                mesh.density = value / mesh.volume
+            else:
+                raise ValueError(
+                    f"Mode for estimation of inertial properties '{self}'  is not "
+                    "supported."
+                )
+
+            return {
+                "mass": mesh.mass,
+                "inertia": mesh.moment_inertia,
+                "centre_of_mass": mesh.center_mass,
+            }
+
+        def sample_value(self, value: Optional[List[float]] = None) -> Optional[float]:
+            """
+            Extract or sample a value that should be used when estimating inertial
+            properties.
+            """
+
+            if self.NONE == self:
+                return None
+            elif self.DENSITY == self or self.MASS == self:
+                if not value or (isinstance(value, Iterable) and len(value) != 1):
+                    raise ValueError(
+                        "Exactly a single value must be provided when estimating "
+                        "inertial properties with either target density of mass."
+                    )
+                return value[0] if isinstance(value, Iterable) else value
+            elif self.RANDOM_DENSITY == self or self.RANDOM_MASS == self:
+                if not value or (isinstance(value, Iterable) and len(value) != 2):
+                    raise ValueError(
+                        "A range with two values (MIN and MAX) must be provided when "
+                        "sampling a random density of mass during estimation of "
+                        "inertial properties."
+                    )
+                return random.uniform(value[0], value[1])
+            else:
+                raise ValueError(
+                    f"Mode for estimation of inertial properties '{self}'  is not "
+                    "supported."
+                )
+
+        def is_enabled(self) -> bool:
+            """
+            Returns true if estimation of inertial properties is enabled.
+            """
+
+            return not self.NONE == self
+
+        @classmethod
+        def from_str(cls, source_str: str) -> sdf_model_exporter.InertialEstimator:
+            """
+            Return InertialEstimator that corresponds with a matched `source_str`
+            string.
+            """
+
+            source_str = source_str.strip().upper()
+            if not source_str or "NONE" in source_str:
+                return cls.NONE
+            elif "RANDOM" in source_str:
+                if "DENSITY" in source_str:
+                    return cls.RANDOM_DENSITY
+                elif "MASS" in source_str:
+                    return cls.RANDOM_MASS
+            elif "DENSITY" in source_str:
+                return cls.DENSITY
+            elif "MASS" in source_str:
+                return cls.MASS
+            else:
+                raise ValueError(
+                    f"Unknown '{source_str}' mode for estimation of inertial "
+                    "properties."
+                )
+
+        @classmethod
+        def default(cls) -> sdf_model_exporter.InertialEstimator:
+            """
+            Return the default mode for estimating inertial properties.
+            """
+
+            return cls.from_str(INERTIAL_ESTIMATION_MODE)
+
+        @classmethod
+        def _try_install_trimesh(cls):
+            """
+            Return the default mode for estimating inertial properties.
+            """
+
+            try:
+                import trimesh
+            except ImportError as err:
+                import site
+                import subprocess
+
+                cls._print_bpy(
+                    "Warn: Python module 'trimesh' could not found! This module is "
+                    "necessary to estimate inertial properties of objects. Attempting "
+                    "to install the module automatically via 'pip'...",
+                    file=sys.stderr,
+                )
+                try:
+                    subprocess.check_call([sys.executable, "-m", "ensurepip", "--user"])
+                    subprocess.check_call(
+                        [
+                            sys.executable,
+                            "-m",
+                            "pip",
+                            "install",
+                            "--upgrade",
+                            "trimesh",
+                            "pycollada",
+                            "--target",
+                            str(site.getsitepackages()[0]),
+                        ]
+                    )
+                    import trimesh
+                except subprocess.CalledProcessError as err:
+                    err_msg = (
+                        "Python module 'trimesh' cannot be installed automatically! To "
+                        "enable estimation of inertial properties, please install the "
+                        "module manually (within Blender's Python environment) or use "
+                        "the Python environment of your system (by passing Blender "
+                        "option `--python-use-system-env`). Alternatively, you can "
+                        "disable the estimation of inertial properties via script "
+                        "argument `--inertial-estimation-mode none`."
+                    )
+                    cls._print_bpy(
+                        f"Err: {err_msg}",
+                        file=sys.stderr,
+                    )
+                    raise ImportError(err_msg) from err
+
     @classmethod
     def export(
         cls,
-        export_dir: Optional[str] = DEFAULT_DIRNAME_EXPORT,
-        model_version: Optional[int] = DEFAULT_MODEL_VERSION,
-        filetype_visual: Union[ExportFormat, str] = ExportFormat.default_visual(),
-        filetype_collision: Union[ExportFormat, str] = ExportFormat.default_collision(),
-        symlink_external_textures: bool = True,
-        estimate_inertial_properties: bool = True,
-        estimate_inertial_properties_from_collision_geometry: bool = False,
-        estimate_inertial_properties_target_mass: Optional[
-            Union[float, Tuple[float, float]]
-        ] = DEFAULT_MODEL_TARGET_MASS,
-        estimate_inertial_properties_density: Union[
-            float, Tuple[float, float]
-        ] = DEFAULT_MODEL_DENSITY,
-        subdivision_level_visual: int = DEFAULT_SUBDIVISION_LEVEL_VISUAL,
-        subdivision_level_collision: int = DEFAULT_SUBDIVISION_LEVEL_COLLISION,
-        shade_smooth: bool = DEFAULT_SHADE_SMOOTH,
-        ignore_object_names_visual: List[str] = DEFAULT_IGNORE_OBJECT_NAMES_VISUAL,
-        ignore_object_names_collision: List[
-            str
-        ] = DEFAULT_IGNORE_OBJECT_NAMES_COLLISION,
-        generate_thumbnails: bool = True,
+        output_dir: Optional[str] = OUTPUT_DIR,
+        model_version: Optional[int] = MODEL_VERSION,
         model_name_prefix: str = "",
         model_name_suffix: str = "",
+        filetype_visual: Union[ExportFormat, str] = ExportFormat.default_visual(),
+        filetype_collision: Union[ExportFormat, str] = ExportFormat.default_collision(),
+        detail_level_visual: int = DETAIL_LEVEL_VISUAL,
+        detail_level_collision: int = DETAIL_LEVEL_COLLISION,
+        ignore_objects_visual: List[str] = IGNORE_OBJECTS_VISUAL,
+        ignore_objects_collision: List[str] = IGNORE_OBJECTS_COLLISION,
+        symlink_external_textures: bool = SYMLINK_EXTERNAL_TEXTURES,
+        texture_source_mode: Union[TextureSource, str] = TextureSource.default(),
+        texture_source_value: Optional[str] = TEXTURE_SOURCE_VALUE,
+        material_texture_diffuse: Optional[
+            Tuple[float, float, float]
+        ] = MATERIAL_TEXTURE_DIFFUSE,
+        material_texture_specular: Optional[
+            Tuple[float, float, float]
+        ] = MATERIAL_TEXTURE_SPECULAR,
+        static: bool = STATIC,
+        inertial_estimation_mode: Union[
+            InertialEstimator, str
+        ] = InertialEstimator.default(),
+        inertial_estimation_value: Optional[List[float]] = INERTIAL_ESTIMATION_VALUE,
+        inertial_estimation_use_collision_mesh: bool = True,
+        friction_coefficient: Optional[
+            Union[float, Tuple[float, float]]
+        ] = FRICTION_COEFFICIENT,
+        generate_thumbnails: bool = True,
         **kwargs,
     ):
         """
-        The primary function enables exporting of SDF models.
+        The primary function enables exporting of a single SDF model.
         """
 
         # Store the list of originally selected objects
@@ -366,8 +644,7 @@ class sdf_model_exporter(ModuleType):
 
         # Separate different object types to process them differently
         # Note: Not all types are currently supported by this script
-        # TODO[feature]: Support exporting cameras and lights? Might be useful for some
-        #                assets...
+        # TODO[feature]: Support exporting of cameras and lights as SDF entities
         meshes_to_process = cameras_to_process = lights_to_process = []
         for obj in objects_to_process:
             if obj.type == "MESH":
@@ -400,39 +677,33 @@ class sdf_model_exporter(ModuleType):
             model_name = meshes_to_process[0].name
         else:
             # Use the project name as a joint model name if there are multiple meshes
-            model_name = path.basename(bpy.data.filepath).split(".")[0]
+            model_name = bpy.path.basename(bpy.data.filepath).split(".")[0]
         # Add prefix and suffix if desired
         model_name = f"{model_name_prefix}{model_name}{model_name_suffix}"
 
-        # If export directory is not set (not even "" or "."), use the default Ignition
-        # Fuel model path
-        # TODO[design]: I originally hoped that models exported to LocalCache of Fuel
-        #               would be automatically discovered. However, it is not the case.
-        #               Using `ign fuel update` does not make the models discoverable
-        #               either ('Failed to fetch model details for model' is returned).
-        #               Therefore, there might be little reason to export directly to
-        #               the LocalCache of Fuel. Consider removing this...
-        if export_dir is None:
-            export_dir = path.join(
+        # If output directory is not set (None), use the default Fuel model path
+        if output_dir is None:
+            output_dir = path.join(
                 os.environ.get(
-                    "IGN_FUEL_CACHE_PATH",
-                    default=path.join(path.expanduser("~"), ".ignition", "fuel"),
+                    "GZ_FUEL_CACHE_PATH",
+                    default=path.join(path.expanduser("~"), ".gazebo", "fuel"),
                 ),
-                "fuel.ignitionrobotics.org",
+                "fuel.gazebosim.org",
                 os.getlogin(),
                 "models",
             )
-            # Ignition Fuel requires model versioning, therefore, default to the next
-            # available version if the model already exists (begins with version 1)
+            # Fuel requires model versioning, therefore, default to the next available
+            # version if the model already exists (begins with version 1)
             if model_version is None:
                 model_version = -1
-        # Get the absolute path and create the directory if it does not already exist
-        export_dir = path.abspath(export_dir)
-        os.makedirs(name=export_dir, exist_ok=True)
 
-        # Get the versioned model path (if desired)
-        export_path = cls.__try_get_versioned_model_path(
-            export_dir=export_dir,
+        # Get the absolute path and create the directory if it does not already exist
+        output_dir = path.abspath(output_dir)
+        os.makedirs(name=output_dir, exist_ok=True)
+
+        # Get a versioned model path (if desired)
+        output_path = cls._try_get_versioned_model_path(
+            output_dir=output_dir,
             model_name=model_name,
             model_version=model_version,
         )
@@ -443,57 +714,74 @@ class sdf_model_exporter(ModuleType):
         # Process and export meshes
         exported_meshes = cls._process_meshes(
             meshes_to_process=meshes_to_process,
-            export_path=export_path,
+            output_path=output_path,
             model_name=model_name,
             filetype_visual=filetype_visual,
             filetype_collision=filetype_collision,
-            subdivision_level_visual=subdivision_level_visual,
-            subdivision_level_collision=subdivision_level_collision,
-            shade_smooth=shade_smooth,
-            ignore_object_names_visual=ignore_object_names_visual,
-            ignore_object_names_collision=ignore_object_names_collision,
+            detail_level_visual=detail_level_visual,
+            detail_level_collision=detail_level_collision,
+            ignore_objects_visual=ignore_objects_visual,
+            ignore_objects_collision=ignore_objects_collision,
         )
         sdf_data.update(exported_meshes)
 
         # Sample textures
-        textures = cls._sample_textures()
-        sdf_data.update(textures)
-
-        # Estimate inertial properties from the mesh (either visual or collision)
-        if estimate_inertial_properties:
-            analysis_mesh_filepath = path.join(
-                export_path,
-                exported_meshes["filepath_mesh_collision"]
-                if estimate_inertial_properties_from_collision_geometry
-                else exported_meshes["filepath_mesh_visual"],
+        texture_source = (
+            texture_source_mode
+            if isinstance(texture_source_mode, cls.TextureSource)
+            else cls.TextureSource.from_str(texture_source_mode)
+        )
+        if texture_source.is_enabled():
+            textures_dirpath = texture_source.get_path(texture_source_value)
+            textures = cls._sample_textures(textures_dirpath=textures_dirpath)
+            sdf_data.update(textures)
+        else:
+            cls._print_bpy(
+                "Warn: Models will be exported without any textures.",
+                file=sys.stderr,
             )
-            inertial_properties = cls._estimate_inertial_properties(
-                analysed_mesh_filepath=analysis_mesh_filepath,
-                target_mass=estimate_inertial_properties_target_mass,
-                density=estimate_inertial_properties_density,
-            )
-            sdf_data.update(inertial_properties)
 
-        # Enable overriding of kwargs from the external caller
-        sdf_data.update(kwargs)
+        # Estimate inertial properties (if enabled)
+        if not static:
+            inertial_estimator = (
+                inertial_estimation_mode
+                if isinstance(inertial_estimation_mode, cls.InertialEstimator)
+                else cls.InertialEstimator.from_str(inertial_estimation_mode)
+            )
+            if inertial_estimator.is_enabled():
+                analysis_mesh_filepath = path.join(
+                    output_path,
+                    exported_meshes["filepath_mesh_collision"]
+                    if inertial_estimation_use_collision_mesh
+                    else exported_meshes["filepath_mesh_visual"],
+                )
+                inertial_properties = inertial_estimator.estimate_inertial_properties(
+                    analysed_mesh_filepath=analysis_mesh_filepath,
+                    value=inertial_estimation_value,
+                )
+                sdf_data.update(inertial_properties)
 
         # Write data into an SDF file
         cls._generate_sdf_file(
-            export_path=export_path,
+            output_path=output_path,
             model_name=model_name,
+            static=static,
+            friction_coefficient=friction_coefficient,
             symlink_external_textures=symlink_external_textures,
+            material_texture_diffuse=material_texture_diffuse,
+            material_texture_specular=material_texture_specular,
             **sdf_data,
         )
 
         # Create a corresponding config file for the SDF model
-        cls._generate_model_config_file(export_path=export_path, model_name=model_name)
+        cls._generate_model_config_file(output_path=output_path, model_name=model_name)
 
         # Render few images to generate thumbnails
         if not bpy.app.background and generate_thumbnails:
-            cls._generate_thumbnails(export_path=export_path)
+            cls._generate_thumbnails(output_path=output_path)
 
         cls._print_bpy(
-            f"Info: Model '{model_name}' exported to 'file://{export_path}'."
+            f"Info: Model '{model_name}' exported to 'file://{output_path}'."
         )
 
         # Select the original objects again to keep the UI (almost) the same
@@ -512,25 +800,26 @@ class sdf_model_exporter(ModuleType):
         for window in bpy.context.window_manager.windows:
             for area in window.screen.areas:
                 if area.type == "CONSOLE":
-                    bpy.ops.console.scrollback_append(
-                        {"window": window, "screen": window.screen, "area": area},
-                        text=str(msg),
-                        type="ERROR" if file == sys.stderr else "OUTPUT",
-                    )
+                    with bpy.context.temp_override(
+                        window=window, screen=window.screen, area=area
+                    ):
+                        bpy.ops.console.scrollback_append(
+                            text=str(msg),
+                            type="ERROR" if file == sys.stderr else "OUTPUT",
+                        )
 
     @classmethod
     def _process_meshes(
         cls,
         meshes_to_process: List,
-        export_path: str,
+        output_path: str,
         model_name: str,
         filetype_visual: Union[ExportFormat, str],
         filetype_collision: Union[ExportFormat, str],
-        subdivision_level_visual: int,
-        subdivision_level_collision: int,
-        shade_smooth: bool,
-        ignore_object_names_visual: List[str],
-        ignore_object_names_collision: List[str],
+        detail_level_visual: int,
+        detail_level_collision: int,
+        ignore_objects_visual: List[str],
+        ignore_objects_collision: List[str],
     ) -> Dict[str, str]:
         """
         Process and export meshes of the model.
@@ -544,15 +833,11 @@ class sdf_model_exporter(ModuleType):
 
         # Keep only object names that need processing in the ignore list
         meshes_to_process_names = [mesh.name for mesh in meshes_to_process]
-        ignore_object_names_visual = [
-            name
-            for name in ignore_object_names_visual
-            if name in meshes_to_process_names
+        ignore_objects_visual = [
+            name for name in ignore_objects_visual if name in meshes_to_process_names
         ]
-        ignore_object_names_collision = [
-            name
-            for name in ignore_object_names_collision
-            if name in meshes_to_process_names
+        ignore_objects_collision = [
+            name for name in ignore_objects_collision if name in meshes_to_process_names
         ]
 
         # Deselect all objects
@@ -562,66 +847,63 @@ class sdf_model_exporter(ModuleType):
             obj.select_set(True)
 
         return cls._export_geometry(
-            export_path=export_path,
+            output_path=output_path,
             model_name=model_name,
             filetype_visual=filetype_visual,
             filetype_collision=filetype_collision,
-            subdivision_level_visual=subdivision_level_visual,
-            subdivision_level_collision=subdivision_level_collision,
-            shade_smooth=shade_smooth,
-            ignore_object_names_visual=ignore_object_names_visual,
-            ignore_object_names_collision=ignore_object_names_collision,
+            detail_level_visual=detail_level_visual,
+            detail_level_collision=detail_level_collision,
+            ignore_objects_visual=ignore_objects_visual,
+            ignore_objects_collision=ignore_objects_collision,
         )
 
     @classmethod
     def _export_geometry(
         cls,
-        export_path: str,
+        output_path: str,
         model_name: str,
         filetype_visual: ExportFormat,
         filetype_collision: ExportFormat,
-        subdivision_level_visual: int,
-        subdivision_level_collision: int,
-        shade_smooth: bool,
-        ignore_object_names_visual: List[str],
-        ignore_object_names_collision: List[str],
+        detail_level_visual: int,
+        detail_level_collision: int,
+        ignore_objects_visual: List[str],
+        ignore_objects_collision: List[str],
     ) -> Dict[str, str]:
         """
         Export both visual and collision mesh geometry.
         """
 
         filepath_collision = cls._export_geometry_collision(
-            export_path=export_path,
+            output_path=output_path,
             model_name=model_name,
             filetype=filetype_collision,
-            subdivision_level=subdivision_level_collision,
-            ignore_object_names=ignore_object_names_collision,
+            detail_level=detail_level_collision,
+            ignore_object_names=ignore_objects_collision,
         )
         filepath_visual = cls._export_geometry_visual(
-            export_path=export_path,
+            output_path=output_path,
             model_name=model_name,
             filetype=filetype_visual,
-            subdivision_level=subdivision_level_visual,
-            shade_smooth=shade_smooth,
-            ignore_object_names=ignore_object_names_visual,
+            detail_level=detail_level_visual,
+            ignore_object_names=ignore_objects_visual,
         )
 
         return {
             "filepath_mesh_collision": path.relpath(
-                path=filepath_collision, start=export_path
+                path=filepath_collision, start=output_path
             ),
             "filepath_mesh_visual": path.relpath(
-                path=filepath_visual, start=export_path
+                path=filepath_visual, start=output_path
             ),
         }
 
     @classmethod
     def _export_geometry_collision(
         cls,
-        export_path: str,
+        output_path: str,
         model_name: str,
         filetype: ExportFormat,
-        subdivision_level: int,
+        detail_level: int,
         ignore_object_names: List[str],
     ) -> str:
         """
@@ -632,26 +914,25 @@ class sdf_model_exporter(ModuleType):
 
         # Hook call before export of collision geometry
         cls._pre_export_geometry_collision(
-            subdivision_level=subdivision_level, ignore_object_names=ignore_object_names
+            detail_level=detail_level, ignore_object_names=ignore_object_names
         )
 
-        resulting_export_path = filetype.export(
-            path.join(export_path, cls.DIRNAME_MESHES_COLLISION, model_name)
+        resulting_output_path = filetype.export(
+            path.join(output_path, cls.DIRNAME_MESHES_COLLISION, model_name)
         )
 
         # Hook call after export of collision geometry
         cls._post_export_geometry_collision(ignore_object_names=ignore_object_names)
 
-        return resulting_export_path
+        return resulting_output_path
 
     @classmethod
     def _export_geometry_visual(
         cls,
-        export_path: str,
+        output_path: str,
         model_name: str,
         filetype: ExportFormat,
-        subdivision_level: int,
-        shade_smooth: bool,
+        detail_level: int,
         ignore_object_names: List[str],
     ) -> str:
         """
@@ -662,167 +943,102 @@ class sdf_model_exporter(ModuleType):
 
         # Hook call before export of visual geometry
         cls._pre_export_geometry_visual(
-            subdivision_level=subdivision_level,
-            shade_smooth=shade_smooth,
+            detail_level=detail_level,
             ignore_object_names=ignore_object_names,
         )
 
-        resulting_export_path = filetype.export(
-            path.join(export_path, cls.DIRNAME_MESHES_VISUAL, model_name)
+        resulting_output_path = filetype.export(
+            path.join(output_path, cls.DIRNAME_MESHES_VISUAL, model_name)
         )
 
         # Hook call after export of visual geometry
         cls._post_export_geometry_collision(ignore_object_names=ignore_object_names)
 
-        return resulting_export_path
-
-    @classmethod
-    def _estimate_inertial_properties(
-        cls,
-        analysed_mesh_filepath: str,
-        target_mass: Optional[Union[float, Tuple[float, float]]],
-        density: Union[float, Tuple[float, float]],
-    ) -> Dict[
-        str,
-        Union[
-            float,
-            Tuple[float, float, float],
-            Tuple[
-                Tuple[float, float, float],
-                Tuple[float, float, float],
-                Tuple[float, float, float],
-            ],
-        ],
-    ]:
-        """
-        Estimate inertial properties of the mesh assuming uniform density. If
-        `target_mass` is passed in, it is used to compute density based on object's
-        volume. Otherwise, `density` is used directly. Both `target_mass` and `density`
-        can also be specified as a range and sampled randomly (uniform distribution).
-        """
-
-        # TODO[feature]: Consider supporting other methods/libraries for estimating
-        #                inertial properties. Maybe there is some good Blender addon?
-
-        # Import trimesh or try to install it within the Blender's Python environment
-        # if it is not detected
-        # Note: Depending on the installation process of Blender, 'sudo' might be
-        #       required to perform this step. With snap installation, it might not be
-        #       possible at all
-        try:
-            import trimesh
-        except ImportError as err:
-            import site
-            import subprocess
-
-            cls._print_bpy(
-                "Warn: Python module 'trimesh' could not found! This module is "
-                "necessary to estimate inertial properties of objects. Attempting "
-                "to install the module automatically via 'pip'...",
-                file=sys.stderr,
-            )
-            try:
-                subprocess.check_call([sys.executable, "-m", "ensurepip", "--user"])
-                subprocess.check_call(
-                    [
-                        sys.executable,
-                        "-m",
-                        "pip",
-                        "install",
-                        "--upgrade",
-                        "trimesh",
-                        "pycollada",
-                        "--target",
-                        str(site.getsitepackages()[0]),
-                    ]
-                )
-                import trimesh
-            except subprocess.CalledProcessError as err:
-                err_msg = (
-                    "Python module 'trimesh' cannot be installed automatically! To "
-                    "enable estimation of inertial properties, please install the "
-                    "module manually (within Blender environment or using the Python "
-                    "environment of the system via `--python-use-system-env` flag when "
-                    "running Blender)."
-                )
-                cls._print_bpy(
-                    f"Err: {err_msg}",
-                    file=sys.stderr,
-                )
-                raise ImportError(err_msg) from err
-
-        mesh = trimesh.load(analysed_mesh_filepath, force="mesh", ignore_materials=True)
-
-        # Set the density (either through target mass, randomized mass/density or
-        # directly with the passed value)
-        if target_mass is not None:
-            if isinstance(target_mass, Iterable) and len(target_mass) == 2:
-                # Randomize target mass if a range is passed
-                target_mass = random.uniform(target_mass[0], target_mass[1])
-            # Deduce density from the target mass
-            mesh.density = target_mass / mesh.volume
-        elif isinstance(density, Iterable):
-            # TODO[design/discussion]: Maybe Gaussian distribution is more appropriate?
-            # Randomize density if a range is passed
-            mesh.density = random.uniform(density[0], density[1])
-        else:
-            # Otherwise just used the passed density
-            mesh.density = density
-
-        return {
-            "mass": mesh.mass,
-            "inertia": mesh.moment_inertia,
-            "centre_of_mass": mesh.center_mass,
-        }
+        return resulting_output_path
 
     @classmethod
     def _sample_textures(
-        cls,
+        cls, textures_dirpath: Optional[str]
     ) -> Dict[str, Optional[str]]:
         """
-        Abstract method for getting PBR textures for the exported model. These can have
-        different origins, e.g. baked from Blender or imported from external sources.
-        No texture is returned by default.
+        Get PBR textures for the exported model from `textures_dirpath`. If the
+        directory contains multiple texture sets, it is selected at random.
         """
 
-        # TODO[feature]: Default to baked model textures (once implemented)
-        #                (Taking the base color texture would not support procedural
-        #                textures)
-        return {}  # abstractclassmethod
+        # Do not process if the texture directory is None
+        if not textures_dirpath:
+            return {}
 
-    def _generate_baked_textures(
-        cls,
-    ) -> str:
-        """
-        Bake PBR textures for the model and return a path to a directory that contains
-        them.
-        """
+        # Get the content of the texture directory
+        textures = os.listdir(textures_dirpath)
 
-        # TODO[feature]: Find a way of including baked textures
-        return NotImplementedError("Baking of textures is not yet implemented!")
+        # Determine whether the directory contains multiple sets of textures
+        choose_sample_random: bool = False
+        for texture in textures:
+            if path.isdir(path.join(textures_dirpath, texture)):
+                choose_sample_random = True
+                break
+
+        if choose_sample_random:
+            # Select a random set of PBR textures
+            texture_dirpath = path.join(textures_dirpath, random.choice(textures))
+        else:
+            # The directory already points to a set of PBR textures
+            texture_dirpath = textures_dirpath
+
+        # Get the appropriate texture files
+        texture_albedo: Optional[str] = None
+        texture_roughness: Optional[str] = None
+        texture_metalness: Optional[str] = None
+        texture_normal: Optional[str] = None
+        for texture in os.listdir(texture_dirpath):
+            texture_cmp = cls._unify_string(texture)
+            if not texture_albedo and (
+                "color" in texture_cmp or "albedo" in texture_cmp
+            ):
+                texture_albedo = path.join(texture_dirpath, texture)
+            elif not texture_roughness and "roughness" in texture_cmp:
+                texture_roughness = path.join(texture_dirpath, texture)
+            elif not texture_metalness and (
+                "specular" in texture_cmp or "metalness" in texture_cmp
+            ):
+                texture_metalness = path.join(texture_dirpath, texture)
+            elif not texture_normal and "normal" in texture_cmp:
+                texture_normal = path.join(texture_dirpath, texture)
+            else:
+                cls._print_bpy(
+                    f"Warn: File 'file://{path.join(texture_dirpath, texture)}' is "
+                    "not a recognized texture type or there are multiple textures "
+                    "of the same type inside 'file://{texture_dirpath}'.",
+                    file=sys.stderr,
+                )
+
+        return {
+            "texture_albedo": texture_albedo,
+            "texture_roughness": texture_roughness,
+            "texture_metalness": texture_metalness,
+            "texture_normal": texture_normal,
+        }
 
     @classmethod
     def _generate_sdf_file(
         cls,
-        export_path: str,
+        output_path: str,
         model_name: str,
         filepath_mesh_visual: str,
         filepath_mesh_collision: str,
-        static: bool = DEFAULT_STATIC,
-        material_texture_diffuse: Union[
-            Tuple[float, float, float], Tuple[float, float, float, float]
-        ] = DEFAULT_MATERIAL_TEXTURE_DIFFUSE,
-        material_texture_specular: Union[
-            Tuple[float, float, float], Tuple[float, float, float, float]
-        ] = DEFAULT_MATERIAL_TEXTURE_SPECULAR,
-        symlink_external_textures: bool = True,
         texture_albedo: Optional[str] = None,
         texture_roughness: Optional[str] = None,
         texture_metalness: Optional[str] = None,
         texture_normal: Optional[str] = None,
-        friction_coefficient: Optional[
-            Union[float, Tuple[float, float]]
-        ] = DEFAULT_FRICTION_COEFFICIENT,
+        material_texture_diffuse: Optional[
+            Tuple[float, float, float]
+        ] = MATERIAL_TEXTURE_DIFFUSE,
+        material_texture_specular: Optional[
+            Tuple[float, float, float]
+        ] = MATERIAL_TEXTURE_SPECULAR,
+        symlink_external_textures: bool = SYMLINK_EXTERNAL_TEXTURES,
+        static: bool = STATIC,
         mass: Optional[float] = None,
         inertia: Optional[
             Tuple[
@@ -832,9 +1048,12 @@ class sdf_model_exporter(ModuleType):
             ]
         ] = None,
         centre_of_mass: Optional[Tuple[float, float, float]] = None,
+        friction_coefficient: Optional[
+            Union[float, Tuple[float, float]]
+        ] = FRICTION_COEFFICIENT,
     ):
         """
-        Generate SDF file from passed arguments and export to `export_path`.
+        Generate SDF file from passed arguments and export to `output_path`.
         """
 
         # Initialize SDF with a single model and a link
@@ -855,8 +1074,6 @@ class sdf_model_exporter(ModuleType):
         visual_mesh_uri = ElementTree.SubElement(visual_mesh, "uri")
         visual_mesh_uri.text = filepath_mesh_visual
         # Material
-        # TODO[feature]: Add better mapping of materials (in addition to COLLADA
-        #                exporter)
         textures = (
             texture_albedo,
             texture_roughness,
@@ -869,9 +1086,9 @@ class sdf_model_exporter(ModuleType):
             metal = ElementTree.SubElement(pbr, "metal")
 
             texture_albedo, texture_roughness, texture_metalness, texture_normal = (
-                cls.__preprocess_texture_path(
+                cls._preprocess_texture_path(
                     texture,
-                    export_path=export_path,
+                    output_path=output_path,
                     symlink_external_textures=symlink_external_textures,
                 )
                 for texture in textures
@@ -879,9 +1096,11 @@ class sdf_model_exporter(ModuleType):
 
             if texture_albedo:
                 diffuse = ElementTree.SubElement(material, "diffuse")
-                diffuse.text = " ".join(map(str, material_texture_diffuse))
+                if material_texture_diffuse:
+                    diffuse.text = " ".join(map(str, material_texture_diffuse))
                 specular = ElementTree.SubElement(material, "specular")
-                specular.text = " ".join(map(str, material_texture_specular))
+                if material_texture_specular:
+                    specular.text = " ".join(map(str, material_texture_specular))
                 albedo_map = ElementTree.SubElement(metal, "albedo_map")
                 albedo_map.text = texture_albedo
             if texture_roughness:
@@ -908,14 +1127,15 @@ class sdf_model_exporter(ModuleType):
         ode_friction = ElementTree.SubElement(surface_friction, "ode")
         ode_friction_mu = ElementTree.SubElement(ode_friction, "mu")
         ode_friction_mu2 = ElementTree.SubElement(ode_friction, "mu2")
-        if (
-            isinstance(friction_coefficient, Iterable)
-            and len(friction_coefficient) == 2
-        ):
-            # Randomize friction coefficient if a range is passed
-            friction_coefficient = random.uniform(
-                friction_coefficient[0], friction_coefficient[1]
-            )
+        if isinstance(friction_coefficient, Iterable):
+            if len(friction_coefficient) == 2:
+                # Randomize friction coefficient if a range is passed
+                friction_coefficient = random.uniform(
+                    friction_coefficient[0], friction_coefficient[1]
+                )
+            else:
+                friction_coefficient = friction_coefficient[0]
+
         ode_friction_mu.text = ode_friction_mu2.text = str(friction_coefficient)
         bullet_friction = ElementTree.SubElement(surface_friction, "bullet")
         bullet_friction_coef = ElementTree.SubElement(bullet_friction, "friction")
@@ -951,14 +1171,14 @@ class sdf_model_exporter(ModuleType):
         sdf_xml_string = minidom.parseString(
             ElementTree.tostring(sdf, encoding="unicode")
         ).toprettyxml(indent="  ")
-        sdf_file = open(path.join(export_path, cls.BASENAME_SDF), "w")
+        sdf_file = open(path.join(output_path, cls.BASENAME_SDF), "w")
         sdf_file.write(sdf_xml_string)
         sdf_file.close()
 
     @classmethod
     def _generate_model_config_file(
         cls,
-        export_path: str,
+        output_path: str,
         model_name: str,
     ):
         """
@@ -971,9 +1191,10 @@ class sdf_model_exporter(ModuleType):
         name.text = model_name
 
         # Version of the model (try to match version from the exported path)
-        version = ElementTree.SubElement(model_config, "version")
-        maybe_version = path.basename(export_path)
-        version.text = maybe_version if maybe_version.isnumeric() else "1"
+        maybe_version = path.basename(output_path)
+        if maybe_version.isnumeric():
+            version = ElementTree.SubElement(model_config, "version")
+            version.text = maybe_version
 
         # Path to SDF
         sdf_tag = ElementTree.SubElement(
@@ -990,14 +1211,10 @@ class sdf_model_exporter(ModuleType):
         producer.text = f"Blender {bpy.app.version_string}"
 
         # Describe how the model was generated
-        script_relpath = path.join(
-            path.basename(bpy.data.filepath),
-            path.relpath(path=__file__, start=bpy.data.filepath),
-        )
         description = ElementTree.SubElement(model_config, "description")
         description.text = (
-            f"Model generated from '{path.basename(bpy.data.filepath)}' by "
-            f"'{script_relpath}' Python script"
+            f"Model generated from '{bpy.path.basename(bpy.data.filepath)}' by "
+            f"'{path.relpath(path=__file__, start=bpy.data.filepath)}' Python script"
         )
 
         # Convert config to xml string and write to file
@@ -1005,20 +1222,20 @@ class sdf_model_exporter(ModuleType):
             ElementTree.tostring(model_config, encoding="unicode")
         ).toprettyxml(indent="  ")
         model_config_file = open(
-            path.join(export_path, cls.BASENAME_SDF_MODEL_CONFIG), "w"
+            path.join(output_path, cls.BASENAME_SDF_MODEL_CONFIG), "w"
         )
         model_config_file.write(model_config_xml_string)
         model_config_file.close()
 
     @classmethod
-    def _generate_thumbnails(cls, export_path: str):
+    def _generate_thumbnails(cls, output_path: str):
         """
         Render thumbnails for the SDF model.
         Currently, only a single viewport render is created using OpenGL.
         """
 
         # Create thumbnails directory for the model
-        thumbnails_dir = path.join(export_path, cls.DIRNAME_THUMBNAILS)
+        thumbnails_dir = path.join(output_path, cls.DIRNAME_THUMBNAILS)
         os.makedirs(name=thumbnails_dir, exist_ok=True)
 
         # Specify path for the thumbnail
@@ -1035,7 +1252,7 @@ class sdf_model_exporter(ModuleType):
 
     @classmethod
     def _pre_export_geometry_collision(
-        cls, subdivision_level: int, ignore_object_names: List[str] = []
+        cls, detail_level: int, ignore_object_names: List[str] = []
     ):
         """
         A hook that is called before exporting collision geometry. Always chain up the
@@ -1043,9 +1260,7 @@ class sdf_model_exporter(ModuleType):
         By default, this hook handles reselecting objects from `ignore_object_names`.
         """
 
-        cls.__select_objects(
-            names=ignore_object_names, type_filter="MESH", select=False
-        )
+        cls._select_objects(names=ignore_object_names, type_filter="MESH", select=False)
 
     @classmethod
     def _post_export_geometry_collision(cls, ignore_object_names: List[str] = []):
@@ -1055,13 +1270,12 @@ class sdf_model_exporter(ModuleType):
         By default, this hook handles deselecting objects from `ignore_object_names`.
         """
 
-        cls.__select_objects(names=ignore_object_names, type_filter="MESH", select=True)
+        cls._select_objects(names=ignore_object_names, type_filter="MESH", select=True)
 
     @classmethod
     def _pre_export_geometry_visual(
         cls,
-        subdivision_level: int,
-        shade_smooth: bool,
+        detail_level: int,
         ignore_object_names: List[str] = [],
     ):
         """
@@ -1070,9 +1284,7 @@ class sdf_model_exporter(ModuleType):
         By default, this hook handles reselecting objects from `ignore_object_names`.
         """
 
-        cls.__select_objects(
-            names=ignore_object_names, type_filter="MESH", select=False
-        )
+        cls._select_objects(names=ignore_object_names, type_filter="MESH", select=False)
 
     @classmethod
     def _post_export_geometry_visual(cls, ignore_object_names: List[str] = []):
@@ -1082,9 +1294,9 @@ class sdf_model_exporter(ModuleType):
         By default, this hook handles deselecting objects from `ignore_object_names`.
         """
 
-        cls.__select_objects(names=ignore_object_names, type_filter="MESH", select=True)
+        cls._select_objects(names=ignore_object_names, type_filter="MESH", select=True)
 
-    def __select_objects(
+    def _select_objects(
         names=List[str], type_filter: Optional[str] = None, select: bool = True
     ):
         """
@@ -1098,445 +1310,7 @@ class sdf_model_exporter(ModuleType):
             if obj.name in names:
                 obj.select_set(select)
 
-    @classmethod
-    def __preprocess_texture_path(
-        cls,
-        texture_original_filepath: Optional[str],
-        export_path: str,
-        symlink_external_textures: bool,
-    ):
-        """
-        Preprocess filepath of a texture such that it is in the local model directory
-        path. If `symlink_external_textures` is enabled, a symbolic link will be
-        created. No copy/symlink will be made is the `texture_original_filepath` is
-        already a subpath of `export_path`.
-        This can fail due to the lack of filesystem permissions.
-        """
-
-        # Skip processing of unset textures
-        if not texture_original_filepath:
-            return None
-
-        # Make sure the texture is valid
-        if not path.exists(texture_original_filepath):
-            raise ValueError(
-                f"Texture 'file://{texture_original_filepath}' does not exist!"
-            )
-
-        # Copy over the texture inside the model directory, or create a symbolic link
-        # Only do this if the texture is not already under the export directory
-        if texture_original_filepath.startswith(export_path):
-            texture_target_filepath = texture_original_filepath
-        else:
-            texture_dir = path.join(export_path, cls.DIRNAME_TEXTURES)
-            texture_target_filepath = path.join(
-                texture_dir, path.basename(texture_original_filepath)
-            )
-            os.makedirs(name=texture_dir, exist_ok=True)
-            if symlink_external_textures:
-                try:
-                    os.symlink(
-                        src=texture_original_filepath, dst=texture_target_filepath
-                    )
-                except OSError as err:
-                    import errno
-
-                    if err.errno == errno.EEXIST:
-                        os.remove(texture_target_filepath)
-                        os.symlink(
-                            src=texture_original_filepath, dst=texture_target_filepath
-                        )
-                    else:
-                        raise err
-            else:
-                shutil.copy(src=texture_original_filepath, dst=texture_target_filepath)
-
-        return path.relpath(path=texture_target_filepath, start=export_path)
-
-    @classmethod
-    def __try_get_versioned_model_path(
-        cls, export_dir: str, model_name: str, model_version: Optional[int]
-    ) -> str:
-        """
-        Return versioned model directory path if `model_version` is specified. For
-        negative `model_version` and existing model directory, the next version will
-        be used to avoid overwriting.
-        """
-
-        unversioned_model_path = path.join(export_dir, model_name)
-
-        if model_version is None:
-            return unversioned_model_path
-        elif model_version < 0:
-            return path.join(
-                unversioned_model_path,
-                str(cls.__get_next_model_version(model_path=unversioned_model_path)),
-            )
-        else:
-            return path.join(unversioned_model_path, model_version)
-
-    def __get_next_model_version(model_path: str) -> int:
-        """
-        Return the next version if model already exists. Otherwise, return '1' as the
-        initial (first) version.
-        """
-
-        if path.exists(model_path):
-            last_version = max(
-                [
-                    int(path.basename(subdir))
-                    for subdir in os.scandir(model_path)
-                    if subdir.is_dir() and path.basename(subdir).isnumeric()
-                ]
-            )
-            return last_version + 1
-        else:
-            return 1
-
-
-class procedural_dataset_generator(sdf_model_exporter):
-    """
-    Generator of procedural datasets using Blender's Geometry Nodes.
-    """
-
-    # Default export args
-    DEFAULT_INITIAL_SEED: int = INITIAL_SEED
-    DEFAULT_NUMBER_OF_VARIANTS: int = NUMBER_OF_VARIANTS
-
-    # Default texture source
-    DEFAULT_TEXTURE_SOURCE: str = TEXTURE_SOURCE
-    DEFAULT_TEXTURE_SOURCE_VALUE: Optional[Any] = TEXTURE_SOURCE_VALUE
-
-    # The following lookup phrases are used to find the corresponding input attributes
-    # of the node system (exact match, insensitive to case, insensitive to '_'/'-'/...)
-    LOOKUP_PHRASES_RANDOM_SEED: List[str] = [
-        "rng",
-        "seed",
-        "randomseed",
-        "pseodorandomseed",
-    ]
-    LOOKUP_PHRASES_SUBDIVISION_LEVEL: List[str] = [
-        "detail",
-        "detailobject",
-        "levelofdetail",
-        "subdivionlevel",
-        "subdivlevel",
-    ]
-    LOOKUP_PHRASES_SHADE_SMOOTH: List[str] = [
-        "shadesmooth",
-        "smoothshade",
-        "smoothshading",
-    ]
-
-    @enum.unique
-    class TextureSource(enum.Enum):
-        """
-        Helper enum of possible sources for textures. Each source should provide a path
-        to searchable directory with the following structure (each texture type is
-        optional and image format must be supported by Ignition Gazebo):
-        ├── ./
-            ├── texture_0/
-                ├── *albedo*.png || *color*.png
-                ├── *normal*.png
-                ├── *roughness*.png
-                └── *specular*.png || *metalness*.png
-            ├── ...
-            └── texture_n/
-        Alternatively, it can point to a directory that directly contains textures and
-        no other subdirectories.
-        """
-
-        NONE = enum.auto()
-        BLENDER_MODEL = enum.auto()
-        FILEPATH = enum.auto()
-        ENV_VARIABLE = enum.auto()
-        ONLINE = enum.auto()
-
-        def get_path(self, value: Optional[Any] = None) -> Optional[str]:
-            """
-            Return a path to a directory with PBR textures.
-            """
-
-            if self.NONE == self:
-                return None
-            elif self.BLENDER_MODEL == self:
-                return path.abspath(sdf_model_exporter._generate_baked_textures())
-            elif self.FILEPATH == self:
-                return path.abspath(value)
-            elif self.ENV_VARIABLE == self:
-                return os.environ.get(str(value), default=None)
-            elif self.ONLINE == self:
-                # TODO(feature): Implement option for pulling PBR textures from an
-                #                online source
-                return NotImplementedError(
-                    "Getting textures from an online source is not yet implemented!"
-                )
-            else:
-                raise ValueError(f"Texture source '{self}' is not supported.")
-
-        @classmethod
-        def from_str(
-            cls, source_str: str
-        ) -> procedural_dataset_generator.TextureSource:
-            """
-            Return TextureSource that corresponds with a matched `source_str` string.
-            """
-
-            source_str = source_str.strip().upper()
-            if not source_str or "NONE" in source_str:
-                return cls.NONE
-            elif "BLENDER" in source_str:
-                return cls.BLENDER_MODEL
-            elif "PATH" in source_str:
-                return cls.FILEPATH
-            elif "ENV" in source_str and "VAR" in source_str:
-                return cls.ENV_VARIABLE
-            elif "ONLINE" in source_str:
-                return cls.ONLINE
-            else:
-                raise ValueError(f"Unknown '{source_str}' texture source.")
-
-        @classmethod
-        def default(cls) -> procedural_dataset_generator.TextureSource:
-            """
-            Return the default texture source.
-            """
-
-            return cls.NONE
-
-    @classmethod
-    def generate(
-        cls,
-        initial_seed: int = DEFAULT_INITIAL_SEED,
-        number_of_variants: int = DEFAULT_NUMBER_OF_VARIANTS,
-        texture_source: Union[TextureSource, str] = DEFAULT_TEXTURE_SOURCE,
-        texture_source_value: Optional[Any] = DEFAULT_TEXTURE_SOURCE_VALUE,
-        redraw_viewport_during_processing: bool = True,
-        **kwargs,
-    ):
-        """
-        Generate `number_of_variants` different models by changing the random seed in
-        the Geometry Nodes system of the individual meshes.
-        """
-
-        cls._print_bpy(
-            f"Generating {number_of_variants} model variants in the seed range "
-            f"[{initial_seed}, {initial_seed + number_of_variants}]."
-        )
-
-        # Get path to textures (if enabled)
-        global textures_dirpath
-        if not isinstance(texture_source, cls.TextureSource):
-            texture_source = cls.TextureSource.from_str(texture_source)
-        textures_dirpath = texture_source.get_path(texture_source_value)
-        if not textures_dirpath:
-            cls._print_bpy(
-                "Warn: Models will be exported without any textures.",
-                file=sys.stderr,
-            )
-        elif not path.isdir(textures_dirpath):
-            raise ValueError(
-                f"Texture directory '{textures_dirpath}' is not valid!",
-            )
-
-        # Export models for the entire range of random seeds
-        global current_seed
-        for seed in range(initial_seed, initial_seed + number_of_variants):
-            current_seed = seed
-            random.seed(seed)
-            cls.export(model_name_suffix=str(seed), **kwargs)
-
-            # Update the viewport to keep track of progress and look *fancy*
-            # Performance might be lowered because the scene needs to be re-rendered
-            if not bpy.app.background and redraw_viewport_during_processing:
-                bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
-
-    @classmethod
-    def _pre_export_geometry_collision(
-        cls, subdivision_level: int, ignore_object_names: List[str] = []
-    ):
-        """
-        A hook that is called before exporting collision geometry. This implementation
-        adjusts input attributes of the Geometry Nodes system for each mesh.
-        """
-
-        # Call parent impl
-        sdf_model_exporter._pre_export_geometry_collision(
-            subdivision_level=subdivision_level,
-            ignore_object_names=ignore_object_names,
-        )
-
-        global current_seed
-        selected_meshes = bpy.context.selected_objects
-        for obj in selected_meshes:
-            for nodes_modifier in cls.__get_all_nodes_modifiers(obj):
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
-                )
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier,
-                    cls.LOOKUP_PHRASES_SUBDIVISION_LEVEL,
-                    subdivision_level,
-                )
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier, cls.LOOKUP_PHRASES_SHADE_SMOOTH, int(False)
-                )
-            cls.__trigger_modifier_update(obj)
-
-    @classmethod
-    def _pre_export_geometry_visual(
-        cls,
-        subdivision_level: int,
-        shade_smooth: bool,
-        ignore_object_names: List[str] = [],
-    ):
-        """
-        A hook that is called before exporting visual geometry. This implementation
-        adjusts input attributes of the Geometry Nodes system for each mesh.
-        """
-
-        # Call parent impl
-        sdf_model_exporter._pre_export_geometry_visual(
-            subdivision_level=subdivision_level,
-            shade_smooth=shade_smooth,
-            ignore_object_names=ignore_object_names,
-        )
-
-        global current_seed
-        selected_meshes = bpy.context.selected_objects
-        for obj in selected_meshes:
-            for nodes_modifier in cls.__get_all_nodes_modifiers(obj):
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
-                )
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier,
-                    cls.LOOKUP_PHRASES_SUBDIVISION_LEVEL,
-                    subdivision_level,
-                )
-                cls.__try_set_nodes_input_attribute(
-                    nodes_modifier,
-                    cls.LOOKUP_PHRASES_SHADE_SMOOTH,
-                    int(shade_smooth),
-                )
-
-            cls.__trigger_modifier_update(obj)
-
-    @classmethod
-    def _sample_textures(
-        cls,
-    ) -> Dict[str, Optional[str]]:
-        """
-        Abstract method for getting PBR textures for the exported model. These can have
-        different origins, e.g. baked from Blender or imported from external sources.
-        This implementation returns a set of textures depending on global
-        `textures_dirpath`.
-        """
-
-        texture_albedo: Optional[str] = None
-        texture_roughness: Optional[str] = None
-        texture_metalness: Optional[str] = None
-        texture_normal: Optional[str] = None
-        global textures_dirpath
-        if textures_dirpath:
-            textures = os.listdir(textures_dirpath)
-
-            # Determine whether the directory contains multiple sets of textures
-            choose_sample_random: bool = False
-            for texture in textures:
-                if path.isdir(path.join(textures_dirpath, texture)):
-                    choose_sample_random = True
-                    break
-            if choose_sample_random:
-                # Select a random set of PBR textures
-                texture_dirpath = path.join(textures_dirpath, random.choice(textures))
-            else:
-                # The directory already points to a set of PBR textures
-                texture_dirpath = textures_dirpath
-
-            # Get the appropriate texture files
-            for texture in os.listdir(texture_dirpath):
-                texture_cmp = cls.__unify_string(texture)
-                if not texture_albedo and (
-                    "color" in texture_cmp or "albedo" in texture_cmp
-                ):
-                    texture_albedo = path.join(texture_dirpath, texture)
-                elif not texture_roughness and "roughness" in texture_cmp:
-                    texture_roughness = path.join(texture_dirpath, texture)
-                elif not texture_metalness and (
-                    "specular" in texture_cmp or "metalness" in texture_cmp
-                ):
-                    texture_metalness = path.join(texture_dirpath, texture)
-                elif not texture_normal and "normal" in texture_cmp:
-                    texture_normal = path.join(texture_dirpath, texture)
-                else:
-                    cls._print_bpy(
-                        f"Warn: File 'file://{path.join(texture_dirpath, texture)}' is "
-                        "not a recognized texture type or there are multiple textures "
-                        "of the same type inside 'file://{texture_dirpath}'.",
-                        file=sys.stderr,
-                    )
-
-        return {
-            "texture_albedo": texture_albedo,
-            "texture_roughness": texture_roughness,
-            "texture_metalness": texture_metalness,
-            "texture_normal": texture_normal,
-        }
-
-    def __get_all_nodes_modifiers(obj: bpy.types.Object):
-        """
-        Return all node-based modifiers of an object.
-        """
-
-        return [modifier for modifier in obj.modifiers if modifier.type == "NODES"]
-
-    @classmethod
-    def __try_set_nodes_input_attribute(
-        cls,
-        modifier: bpy.types.NodesModifier,
-        lookup_phrases: Iterable[str],
-        value: Any,
-    ):
-        """
-        Try to set an input attribute of a nodes system to a `value`. The attribute
-        looked is performed by using `lookup_phrases`.
-        """
-
-        # Try to find the corresponding ID of the input attribute
-        input_id: Optional[str] = None
-        for attribute in modifier.node_group.inputs:
-            if cls.__unify_string(attribute.name) in lookup_phrases:
-                input_id = attribute.identifier
-                break
-        if input_id is None:
-            cls._print_bpy(
-                f"Warn: Cannot match an input attribute of '{modifier.name}' for any "
-                f"of the requested lookup phrases {lookup_phrases}.",
-                file=sys.stderr,
-            )
-            return
-
-        # Set the attribute
-        modifier[input_id] = value
-
-    def __trigger_modifier_update(obj: bpy.types.Object):
-        """
-        Trigger an update of object's modifiers after changing its attributes.
-        """
-
-        # Not sure how else to trigger update of the modifiers, but setting the index
-        # of any modifier does the trick (even if the index stays the same)
-        # TODO[enhancement]: Figure out a better way of updating modifiers after
-        #                    programatic changes
-        bpy.context.view_layer.objects.active = obj
-        if len(obj.modifiers.values()):
-            bpy.ops.object.modifier_move_to_index(
-                modifier=obj.modifiers.values()[0].name,
-                index=0,
-            )
-
-    def __unify_string(
+    def _unify_string(
         string: str,
         chars_to_remove: Union[str, Iterable[str]] = (
             " ",
@@ -1564,18 +1338,285 @@ class procedural_dataset_generator(sdf_model_exporter):
         else:
             return string.upper()
 
+    @classmethod
+    def _preprocess_texture_path(
+        cls,
+        texture_original_filepath: Optional[str],
+        output_path: str,
+        symlink_external_textures: bool,
+    ):
+        """
+        Preprocess filepath of a texture such that it is in the local model directory
+        path. If `symlink_external_textures` is enabled, symbolic links will be
+        created. No copy or symlink will be made if the `texture_original_filepath` is
+        already a subpath of `output_path`.
+        This can fail due to the lack of filesystem permissions.
+        """
+
+        # Skip processing of unset textures
+        if not texture_original_filepath:
+            return None
+
+        # Make sure the texture is valid
+        if not path.exists(texture_original_filepath):
+            raise ValueError(
+                f"Texture 'file://{texture_original_filepath}' does not exist!"
+            )
+
+        # Copy over the texture inside the model directory, or create a symbolic link
+        # Only do this if the texture is not already under the export directory
+        if texture_original_filepath.startswith(output_path):
+            texture_target_filepath = texture_original_filepath
+        else:
+            texture_dir = path.join(output_path, cls.DIRNAME_TEXTURES)
+            texture_target_filepath = path.join(
+                texture_dir, path.basename(texture_original_filepath)
+            )
+            os.makedirs(name=texture_dir, exist_ok=True)
+            if symlink_external_textures:
+                try:
+                    os.symlink(
+                        src=texture_original_filepath, dst=texture_target_filepath
+                    )
+                except OSError as err:
+                    import errno
+
+                    if err.errno == errno.EEXIST:
+                        os.remove(texture_target_filepath)
+                        os.symlink(
+                            src=texture_original_filepath, dst=texture_target_filepath
+                        )
+                    else:
+                        raise err
+            else:
+                shutil.copy(src=texture_original_filepath, dst=texture_target_filepath)
+
+        return path.relpath(path=texture_target_filepath, start=output_path)
+
+    @classmethod
+    def _try_get_versioned_model_path(
+        cls, output_dir: str, model_name: str, model_version: Optional[int]
+    ) -> str:
+        """
+        Return versioned model directory path if `model_version` is specified. For
+        negative `model_version` and an existing model directory, the next version will
+        be used to avoid overwriting.
+        """
+
+        unversioned_model_path = path.join(output_dir, model_name)
+
+        if model_version is None:
+            return unversioned_model_path
+        elif model_version < 0:
+            return path.join(
+                unversioned_model_path,
+                str(cls._get_next_model_version(model_path=unversioned_model_path)),
+            )
+        else:
+            return path.join(unversioned_model_path, model_version)
+
+    def _get_next_model_version(model_path: str) -> int:
+        """
+        Return the next version if model already exists. Otherwise, return '1' as the
+        initial (first) version.
+        """
+
+        if path.exists(model_path):
+            last_version = max(
+                [
+                    int(path.basename(subdir))
+                    for subdir in os.scandir(model_path)
+                    if subdir.is_dir() and path.basename(subdir).isnumeric()
+                ]
+            )
+            return last_version + 1
+        else:
+            return 1
+
+
+class procedural_dataset_generator(sdf_model_exporter):
+    """
+    Generator of procedural datasets using Blender's Geometry Nodes.
+    """
+
+    # The following lookup phrases are used to find the corresponding input attributes
+    # of the node system (exact match, insensitive to case, insensitive to '_'/'-'/...)
+    LOOKUP_PHRASES_RANDOM_SEED: List[str] = [
+        "rng",
+        "seed",
+        "randomseed",
+        "pseodorandomseed",
+    ]
+    LOOKUP_PHRASES_DETAIL_LEVEL: List[str] = [
+        "detail",
+        "detaillevel",
+        "detailobject",
+        "levelofdetail",
+        "subdivisionlevel",
+        "subdivlevel",
+    ]
+
+    @classmethod
+    def generate(
+        cls,
+        first_seed: int = FIRST_SEED,
+        number_of_variants: int = NUMBER_OF_VARIANTS,
+        redraw_viewport_during_processing: bool = True,
+        **kwargs,
+    ):
+        """
+        Generate `number_of_variants` different models by changing the random seed in
+        the Geometry Nodes system of the individual meshes.
+        """
+
+        cls._print_bpy(
+            f"Generating {number_of_variants} model variants in the seed range "
+            f"[{first_seed}:{first_seed + number_of_variants}]."
+        )
+
+        # Export models for the entire range of random seeds
+        global current_seed
+        for seed in range(first_seed, first_seed + number_of_variants):
+            current_seed = seed
+            random.seed(seed)
+            name_suffix = str(seed)
+            if "model_name_suffix" in kwargs:
+                name_suffix = f'{kwargs.pop("model_name_suffix")}{name_suffix}'
+            cls.export(model_name_suffix=name_suffix, **kwargs)
+
+            # Update the viewport to keep track of progress (only if GUI is enabled)
+            # Performance might be lowered because the scene needs to be re-rendered
+            if not bpy.app.background and redraw_viewport_during_processing:
+                bpy.ops.wm.redraw_timer(type="DRAW_WIN_SWAP", iterations=1)
+
+    @classmethod
+    def _pre_export_geometry_collision(
+        cls, detail_level: int, ignore_object_names: List[str] = []
+    ):
+        """
+        A hook that is called before exporting collision geometry. This implementation
+        adjusts input attributes of the Geometry Nodes system for each mesh.
+        """
+
+        # Call parent impl
+        sdf_model_exporter._pre_export_geometry_collision(
+            detail_level=detail_level,
+            ignore_object_names=ignore_object_names,
+        )
+
+        global current_seed
+        selected_meshes = bpy.context.selected_objects
+        for obj in selected_meshes:
+            for nodes_modifier in cls._get_all_nodes_modifiers(obj):
+                cls._try_set_nodes_input_attribute(
+                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
+                )
+                cls._try_set_nodes_input_attribute(
+                    nodes_modifier,
+                    cls.LOOKUP_PHRASES_DETAIL_LEVEL,
+                    detail_level,
+                )
+            cls._trigger_modifier_update(obj)
+
+    @classmethod
+    def _pre_export_geometry_visual(
+        cls,
+        detail_level: int,
+        ignore_object_names: List[str] = [],
+    ):
+        """
+        A hook that is called before exporting visual geometry. This implementation
+        adjusts input attributes of the Geometry Nodes system for each mesh.
+        """
+
+        # Call parent impl
+        sdf_model_exporter._pre_export_geometry_visual(
+            detail_level=detail_level,
+            ignore_object_names=ignore_object_names,
+        )
+
+        global current_seed
+        selected_meshes = bpy.context.selected_objects
+        for obj in selected_meshes:
+            for nodes_modifier in cls._get_all_nodes_modifiers(obj):
+                cls._try_set_nodes_input_attribute(
+                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
+                )
+                cls._try_set_nodes_input_attribute(
+                    nodes_modifier,
+                    cls.LOOKUP_PHRASES_DETAIL_LEVEL,
+                    detail_level,
+                )
+
+            cls._trigger_modifier_update(obj)
+
+    def _get_all_nodes_modifiers(obj: bpy.types.Object) -> List[bpy.types.Modifier]:
+        """
+        Return all node-based modifiers of an object.
+        """
+
+        return [modifier for modifier in obj.modifiers if modifier.type == "NODES"]
+
+    @classmethod
+    def _try_set_nodes_input_attribute(
+        cls,
+        modifier: bpy.types.NodesModifier,
+        lookup_phrases: Iterable[str],
+        value: Any,
+    ):
+        """
+        Try to set an input attribute of a nodes system to a `value`. The attribute
+        looked is performed by using `lookup_phrases`.
+        """
+
+        # Try to find the corresponding ID of the input attribute
+        input_id: Optional[str] = None
+        for attribute in modifier.node_group.inputs:
+            if cls._unify_string(attribute.name) in lookup_phrases:
+                input_id = attribute.identifier
+                break
+        if input_id is None:
+            cls._print_bpy(
+                f"Warn: Cannot match an input attribute of '{modifier.name}' for any "
+                f"of the requested lookup phrases {lookup_phrases}.",
+                file=sys.stderr,
+            )
+            return
+
+        # Set the attribute
+        modifier[input_id] = value
+
+    def _trigger_modifier_update(obj: bpy.types.Object):
+        """
+        Trigger an update of object's modifiers after changing its attributes.
+        """
+
+        # Not sure how else to trigger update of the modifiers, but setting the index
+        # of any modifier does the trick (even if the index stays the same)
+        # TODO[enhancement]: Improve updating of modifiers after programmatic changes
+        bpy.context.view_layer.objects.active = obj
+        if len(obj.modifiers.values()):
+            bpy.ops.object.modifier_move_to_index(
+                modifier=obj.modifiers.values()[0].name,
+                index=0,
+            )
+
 
 def main(**kwargs):
 
     # Warn the user in case an untested version of Blender is used
-    if (
-        bpy.app.version[0] != LAST_TESTED_VERSION[0]
-        or bpy.app.version[1] < LAST_TESTED_VERSION[1]
-    ):
+    if bpy.app.version[0] != LAST_WORKING_VERSION[0]:
         sdf_model_exporter._print_bpy(
-            f"Warn: Untested version of Blender detected ({bpy.app.version_string})! "
-            "This script might not work as originally intended. Please consider using "
-            f"version [>={LAST_TESTED_VERSION[0]}.{LAST_TESTED_VERSION[1]}].",
+            f"Err: Untested major version of Blender ({bpy.app.version_string})! "
+            "This script will likely fail. Please, use Blender version "
+            f"[~{LAST_WORKING_VERSION[0]}.{LAST_WORKING_VERSION[1]}].",
+            file=sys.stderr,
+        )
+    elif bpy.app.version[1] < LAST_WORKING_VERSION[1]:
+        sdf_model_exporter._print_bpy(
+            f"Warn: Untested minor version of Blender ({bpy.app.version_string})! "
+            "This script might not work as intended. Please, consider using Blender "
+            f"version [~{LAST_WORKING_VERSION[0]}.{LAST_WORKING_VERSION[1]}].",
             file=sys.stderr,
         )
 
@@ -1583,15 +1624,309 @@ def main(**kwargs):
     export_kwargs = DEFAULT_KWARGS
     export_kwargs.update(kwargs)
 
-    ### Generate a single SDF model
-    # sdf_model_exporter.export(**export_kwargs)
-
-    ### Generate a dataset of procedural models
-    procedural_dataset_generator.generate(**export_kwargs)
+    if export_kwargs.pop("export_dataset"):
+        # Generate a dataset of procedural models
+        procedural_dataset_generator.generate(**export_kwargs)
+    else:
+        # Export a single SDF model
+        sdf_model_exporter.export(**export_kwargs)
 
 
 if __name__ == "__main__":
-    kwargs = {
-        arg.split("=")[0]: arg.split("=")[1] for arg in sys.argv[1:] if "=" in arg
-    }
-    main(**kwargs)
+
+    # Setup argument parser
+    parser = argparse.ArgumentParser(
+        description="Generate a procedural dataset of SDF models using Blender.",
+        usage=(
+            f"\n\t{sys.argv[0]} [blender options] file.blend --python-text "
+            "script.py -- [script options]"
+            f"\n\t{sys.argv[0]} [blender options] file.blend --python "
+            "external_script.py -- [script options]"
+            "\nlist script options:"
+            f"\n\t{sys.argv[0]} file.blend --python-text script.py -- -h"
+            f"\n\t{sys.argv[0]} file.blend --python external_script.py -- -h"
+            "\nlist blender options:"
+            f"\n\t{sys.argv[0]} -h"
+        ),
+        epilog=f"Default keyword arguments of the script (model): {DEFAULT_KWARGS}"
+        if DEFAULT_KWARGS
+        else "",
+        argument_default=argparse.SUPPRESS,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # Append example to usage (with the specific internal/external script)
+    if "--python-text" in sys.argv and bpy.data.filepath:
+        blend_relpath = path.relpath(path=bpy.data.filepath, start=os.getcwd())
+        py_relpath = path.relpath(path=__file__, start=bpy.data.filepath)
+        parser.usage += (
+            f"\nexample:\n\t{sys.argv[0]} {blend_relpath} --python-text {py_relpath} "
+            f"-- -o {OUTPUT_DIR}"
+        )
+    else:
+        py_relpath = path.relpath(path=__file__, start=os.getcwd())
+        parser.usage += (
+            f"\nexample:\n\t{sys.argv[0]} file.blend --python {py_relpath} "
+            f"-- -o {OUTPUT_DIR}"
+        )
+
+    # Exit if opened without a Blender project
+    if not bpy.data.filepath:
+        print(
+            "Err: Blender project was not opened before running the script.",
+            file=sys.stderr,
+        )
+        parser.print_usage()
+
+        sys.exit(22)
+
+    ### Specify all CLI arguments
+    ## Helper argparse types
+    def str2bool(value: Union[str, bool]) -> bool:
+        """
+        Convert logical string to boolean. Can be used as argparse type.
+        """
+
+        if isinstance(value, bool):
+            return value
+        if value.lower() in ("yes", "true", "t", "y", "1"):
+            return True
+        elif value.lower() in ("no", "false", "f", "n", "0"):
+            return False
+        else:
+            raise argparse.ArgumentTypeError("Boolean value expected.")
+
+    def str_empty2none(value: Optional[str]) -> Optional[str]:
+        """
+        If string is empty, convert to None. Can be used as argparse type.
+        """
+
+        return str(value) if value else None
+
+    ## Command mode of the script
+    parser.add_argument(
+        "--export-dataset",
+        action="store_true",
+        default=True,
+        help="[default mode] Generate a procedural dataset.",
+    )
+    parser.add_argument(
+        "--export-model",
+        dest="export_dataset",
+        action="store_false",
+        help="[alternative mode] Export a single model.",
+    )
+    ## Parameters for SDF model exporter `sdf_model_exporter`
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        type=str_empty2none,
+        default=OUTPUT_DIR,
+        help="The output directory for all models (each model is located under its own "
+        "subdirectory). When exporting a single SDF model, its output path is "
+        "'OUTPUT_DIR/MODEL_NAME'. For datasets, the path of each SDF model name is "
+        "appended by the random seed used during its generation as "
+        "'OUTPUT_DIR/MODEL_NAME+VARIANT_SEED'. If set to empty, Fuel cache "
+        "'${GZ_FUEL_CACHE_PATH}/fuel.gazebosim.org/${USER}/models' is used.",
+    )
+    parser.add_argument(
+        "-v",
+        "--model-version",
+        type=int,
+        default=MODEL_VERSION,
+        help="The version of exported model path that is joined with the model output "
+        "path 'OUTPUT_DIR/MODEL_NAME/MODEL_VERSION', or "
+        "'OUTPUT_DIR/MODEL_NAME+VARIANT_SEED/MODEL_VERSION'. The output path is "
+        "modified only if 'MODEL_VERSION' is set (not None). For negative values "
+        "and an existing model directory, the next unique version is used to avoid "
+        "overwriting. If 'OUTPUT_DIR' is empty (export to Fuel cache), a negative "
+        "value is used to guarantee a unique version.",
+    )
+    parser.add_argument(
+        "--model-name-prefix",
+        type=str,
+        help="Prefix of exported model as 'OUTPUT_DIR/MODEL_NAME_PREFIX+MODEL_NAME' "
+        ", or 'OUTPUT_DIR/MODEL_NAME_PREFIX+MODEL_NAME+VARIANT_SEED' (default: '').",
+    )
+    parser.add_argument(
+        "--model-name-suffix",
+        type=str,
+        help="Suffix of exported model as 'OUTPUT_DIR/MODEL_NAME+MODEL_NAME_SUFFIX' "
+        ", or 'OUTPUT_DIR/MODEL_NAME+MODEL_NAME_SUFFIX+VARIANT_SEED' (default: '').",
+    )
+    ## Parameters for procedural dataset generator `procedural_dataset_generator`
+    parser.add_argument(
+        "-s",
+        "--first-seed",
+        type=int,
+        default=FIRST_SEED,
+        help="The random seed of the first model when generating a dataset.",
+    )
+    parser.add_argument(
+        "-n",
+        "--number-of-variants",
+        type=int,
+        default=NUMBER_OF_VARIANTS,
+        help="Number of model variants to export when generating a dataset.",
+    )
+    ## Filetypes of exported geometry
+    parser.add_argument(
+        "--filetype-visual",
+        type=str,
+        default=FILETYPE_VISUAL,
+        choices=["collada", "dae", "wavefront", "obj", "stl"],
+        help="The format of exported visual geometry ['collada' == 'dae', "
+        "'wavefront' == 'obj'].",
+    )
+    parser.add_argument(
+        "--filetype-collision",
+        type=str,
+        default=FILETYPE_COLLISION,
+        choices=["collada", "dae", "wavefront", "obj", "stl"],
+        help="The format of exported collision geometry ['collada' == 'dae', "
+        "'wavefront' == 'obj'].",
+    )
+    ## Level of detail for exported visual/collision geometry, e.g. subdivision level
+    parser.add_argument(
+        "--detail-level-visual",
+        type=int,
+        default=DETAIL_LEVEL_VISUAL,
+        help="Level of detail for exported visual geometry, e.g. subdivision level.",
+    )
+    parser.add_argument(
+        "--detail-level-collision",
+        type=int,
+        default=DETAIL_LEVEL_COLLISION,
+        help="Level of detail for exported collision geometry, e.g. subdivision level.",
+    )
+    ## Objects to ignore while exporting visual/collision geometry, even if selected
+    parser.add_argument(
+        "--ignore-objects-visual",
+        type=str,
+        nargs="+",
+        default=IGNORE_OBJECTS_VISUAL,
+        help="List of objects to ignore when exporting visual geometry.",
+    )
+    parser.add_argument(
+        "--ignore-objects-collision",
+        type=str,
+        nargs="+",
+        default=IGNORE_OBJECTS_COLLISION,
+        help="List of objects to ignore when exporting collision geometry.",
+    )
+    ## Source of textures for the model
+    parser.add_argument(
+        "--symlink-external-textures",
+        type=str2bool,
+        default=SYMLINK_EXTERNAL_TEXTURES,
+        help="If true, symbolic links will be created for all textures instead of "
+        "copies. No copy or symlink will be if the texture is already under the output "
+        "path.",
+    )
+    parser.add_argument(
+        "--texture-source-mode",
+        type=str,
+        choices=["none", "path", "online", "blender"],
+        default=TEXTURE_SOURCE_MODE,
+        help="The source from which to select/extract (PBR) textures for the model. "
+        "Option 'none' disables texturing in SDF and relies on mesh exporters. "
+        "Option 'path' should either point to a single set of textures or a number of "
+        "texture sets, from which a set would be sampled at random. "
+        "Options 'online' (textures from an online source) and 'blender' (baking of "
+        "textures) are currently not implemented. "
+        "The value must be specified using the 'TEXTURE_SOURCE_VALUE' option.",
+    )
+    parser.add_argument(
+        "--texture-source-value",
+        type=str_empty2none,
+        default=TEXTURE_SOURCE_VALUE,
+        help="Value for the texture source, with the context based on the selected "
+        "'TEXTURE_SOURCE_MODE'. For example, this value expresses path to a directory "
+        "with textures or a name of the environment.",
+    )
+    parser.add_argument(
+        "--material-texture-diffuse",
+        type=float,
+        nargs="+",
+        default=MATERIAL_TEXTURE_DIFFUSE,
+        help="Diffuse intensity of the albedo texture map. "
+        "Please, enter values for each channel as `--material-texture-diffuse R G B`.",
+    )
+    parser.add_argument(
+        "--material-texture-specular",
+        type=float,
+        nargs="+",
+        default=MATERIAL_TEXTURE_SPECULAR,
+        help="Specular intensity of the albedo texture map. "
+        "Please, enter values for each channel as `--material-texture-specular R G B`.",
+    )
+    ## Inertial and dynamic properties of exported models
+    parser.add_argument(
+        "--static",
+        type=str2bool,
+        default=STATIC,
+        help="If true, the SDF model is exported as immovable and it won't be updated "
+        "by the physics engine.",
+    )
+    parser.add_argument(
+        "--inertial-estimation-mode",
+        type=str,
+        choices=["none", "density", "random_density", "mass", "random_mass"],
+        default=INERTIAL_ESTIMATION_MODE,
+        help="The mode used during the estimation of inertial properties. "
+        "Option 'none' disables estimation of inertial properties. "
+        "Option '[random_]density' assumes a uniform density of the model. "
+        "Option '[random_]mass' determines a uniform density based on the target mass. "
+        "Random options uniformly sample the target value from a specified range. "
+        "The value must be specified using the 'INERTIAL_ESTIMATION_VALUE' option. "
+        "Estimation of inertial properties is always disabled for 'STATIC' models.",
+    )
+    parser.add_argument(
+        "--inertial-estimation-value",
+        type=float,
+        nargs="+",
+        default=INERTIAL_ESTIMATION_VALUE,
+        help="Value for the inertial estimation, with the context based on the "
+        "selected 'INERTIAL_ESTIMATION_MODE'. "
+        "For non-random modes, please use a single value as "
+        "`--inertial-estimation-value TARGER_VALUE`. "
+        "For a random range, please enter min and max values as "
+        "`--inertial-estimation-value MIN MAX`.",
+    )
+    parser.add_argument(
+        "--inertial-estimation-use-collision-mesh",
+        type=str2bool,
+        help="If true, collision geometry will be used for the estimation of inertial "
+        "properties instead of the visual geometry of the model. (default: True)",
+    )
+    parser.add_argument(
+        "--friction-coefficient",
+        type=float,
+        nargs="+",
+        default=FRICTION_COEFFICIENT,
+        help="Coefficient of the surface friction, equal in both directions. "
+        "For a random range, please enter min and max values as "
+        "`--friction-coefficient MIN MAX`.",
+    )
+    ## Miscellaneous
+    parser.add_argument(
+        "--generate-thumbnails",
+        type=str2bool,
+        help="If true, thumbnails will be generated for the exported models. Only "
+        "applicable if Blender is run in the foreground without `-b`. (default: True)",
+    )
+
+    # Parse arguments
+    if "--" in sys.argv:
+        args = parser.parse_args(sys.argv[sys.argv.index("--") + 1 :])
+    else:
+        args, unknown_args = parser.parse_known_args()
+        sdf_model_exporter._print_bpy(
+            f"Warn: The following arguments are not recognized by '{py_relpath}'!"
+            f"\n\t{unknown_args}\nHint: Please, delimit your arguments for Python "
+            "script with '--' (see usage).",
+            file=sys.stderr,
+        )
+
+    # Pass as keyword arguments to the main function
+    main(**vars(args))
