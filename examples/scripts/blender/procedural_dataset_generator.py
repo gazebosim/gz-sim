@@ -1470,7 +1470,7 @@ class procedural_dataset_generator(sdf_model_exporter):
         """
 
         cls._print_bpy(
-            f"Generating {number_of_variants} model variants in the seed range "
+            f"Info: Generating {number_of_variants} model variants in the seed range "
             f"[{first_seed}:{first_seed + number_of_variants}]."
         )
 
@@ -1627,9 +1627,24 @@ def main(**kwargs):
     if export_kwargs.pop("export_dataset"):
         # Generate a dataset of procedural models
         procedural_dataset_generator.generate(**export_kwargs)
+        sdf_model_exporter._print_bpy(
+            f'Info: A dataset with {export_kwargs["number_of_variants"]} models was '
+            "exported."
+        )
     else:
         # Export a single SDF model
         sdf_model_exporter.export(**export_kwargs)
+        sdf_model_exporter._print_bpy("Info: A single SDF models was exported.")
+
+    # Inform user how to make the models discoverable by Gazebo
+    if export_kwargs["output_dir"] is not None:
+        output_dir = path.abspath(export_kwargs["output_dir"])
+        sdf_model_exporter._print_bpy(
+            "Info: Please, set GZ_SIM_RESOURCE_PATH environment variable to make the "
+            "exported models discoverable."
+            f'\n\texport GZ_SIM_RESOURCE_PATH="{output_dir}'
+            '${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOURCE_PATH}}"',
+        )
 
 
 if __name__ == "__main__":
