@@ -19,8 +19,12 @@
 
 #include <algorithm>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/world_control.pb.h>
 #include <gz/msgs/world_control_state.pb.h>
 #include <gz/msgs/world_stats.pb.h>
