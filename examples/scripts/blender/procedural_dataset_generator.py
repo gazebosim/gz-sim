@@ -26,8 +26,8 @@ c) Running an external script | with CLI args (configurable)
   $ blender [blender options] file.blend --python external_script.py -- [script options]
 
 Show the help message of this script ([script options]):
-  $ blender file.blend --python-text script.py -- -h
-  $ blender file.blend --python external_script.py -- -h
+  $ blender -b file.blend --python-text script.py -- -h
+  $ blender -b file.blend --python external_script.py -- -h
 
 Show the help message of Blender ([blender options]):
   $ blender -h
@@ -75,7 +75,7 @@ IGNORE_OBJECTS_VISUAL: List[str] = []
 IGNORE_OBJECTS_COLLISION: List[str] = []
 ## Default source of textures for the model
 # Options: "collada" == "dae" | "wavefront" == "obj" | "stl"
-FILETYPE_VISUAL: str = "collada"
+FILETYPE_VISUAL: str = "wavefront"
 FILETYPE_COLLISION: str = "stl"
 ## Default source of textures for the model
 # If true, symbolic links will be created for all textures instead of copies
@@ -169,6 +169,7 @@ class sdf_model_exporter(ModuleType):
                     filter_collada=True,
                     filter_alembic=False,
                     filter_usd=False,
+                    filter_obj=False,
                     filter_volume=False,
                     filter_folder=True,
                     filter_blenlib=False,
@@ -211,52 +212,39 @@ class sdf_model_exporter(ModuleType):
             elif self.STL == self:
                 bpy.ops.export_mesh.stl(
                     filepath=filepath,
+                    check_existing=False,
                     use_selection=True,
+                    axis_forward="Y",
+                    axis_up="Z",
+                    global_scale=1,
+                    use_scene_unit=False,
+                    ascii=False,
                     use_mesh_modifiers=True,
                 )
             elif self.WAVEFRONT == self:
-                bpy.ops.wm.obj_export(
+                bpy.ops.export_scene.obj(
                     filepath=filepath,
                     check_existing=False,
-                    filter_blender=False,
-                    filter_backup=False,
-                    filter_image=False,
-                    filter_movie=False,
-                    filter_python=False,
-                    filter_font=False,
-                    filter_sound=False,
-                    filter_text=False,
-                    filter_archive=False,
-                    filter_btx=False,
-                    filter_collada=False,
-                    filter_alembic=False,
-                    filter_usd=False,
-                    filter_obj=True,
-                    filter_volume=False,
-                    filter_folder=True,
-                    filter_blenlib=False,
-                    filemode=8,
-                    display_type="DEFAULT",
-                    sort_method="DEFAULT",
-                    export_animation=False,
-                    start_frame=-2147483648,
-                    end_frame=2147483647,
-                    forward_axis="Y_FORWARD",
-                    up_axis="Z_UP",
-                    scaling_factor=1,
-                    apply_modifiers=True,
-                    export_eval_mode="DAG_EVAL_VIEWPORT",
-                    export_selected_objects=False,
-                    export_uv=True,
-                    export_normals=True,
-                    export_materials=True,
-                    export_triangulated_mesh=False,
-                    export_curves_as_nurbs=False,
-                    export_object_groups=False,
-                    export_material_groups=False,
-                    export_vertex_groups=False,
-                    export_smooth_groups=False,
-                    smooth_group_bitflags=False,
+                    axis_forward="Y",
+                    axis_up="Z",
+                    use_selection=True,
+                    use_animation=False,
+                    use_mesh_modifiers=True,
+                    use_edges=True,
+                    use_smooth_groups=False,
+                    use_smooth_groups_bitflags=False,
+                    use_normals=True,
+                    use_uvs=True,
+                    use_materials=True,
+                    use_triangles=True,
+                    use_nurbs=False,
+                    use_vertex_groups=False,
+                    use_blen_objects=True,
+                    group_by_object=False,
+                    group_by_material=False,
+                    keep_vertex_order=False,
+                    global_scale=1,
+                    path_mode="AUTO",
                 )
             else:
                 raise ValueError(f"Filetype '{self}' is not supported for export.")
@@ -735,11 +723,6 @@ class sdf_model_exporter(ModuleType):
             textures_dirpath = texture_source.get_path(texture_source_value)
             textures = cls._sample_textures(textures_dirpath=textures_dirpath)
             sdf_data.update(textures)
-        else:
-            cls._print_bpy(
-                "Warn: Models will be exported without any textures.",
-                file=sys.stderr,
-            )
 
         # Estimate inertial properties (if enabled)
         if not static:
@@ -1509,9 +1492,14 @@ class procedural_dataset_generator(sdf_model_exporter):
         for obj in selected_meshes:
             for nodes_modifier in cls._get_all_nodes_modifiers(obj):
                 cls._try_set_nodes_input_attribute(
-                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
+                    obj,
+                    nodes_modifier,
+                    cls.LOOKUP_PHRASES_RANDOM_SEED,
+                    current_seed,
+                    print_warning=True,
                 )
                 cls._try_set_nodes_input_attribute(
+                    obj,
                     nodes_modifier,
                     cls.LOOKUP_PHRASES_DETAIL_LEVEL,
                     detail_level,
@@ -1540,9 +1528,14 @@ class procedural_dataset_generator(sdf_model_exporter):
         for obj in selected_meshes:
             for nodes_modifier in cls._get_all_nodes_modifiers(obj):
                 cls._try_set_nodes_input_attribute(
-                    nodes_modifier, cls.LOOKUP_PHRASES_RANDOM_SEED, current_seed
+                    obj,
+                    nodes_modifier,
+                    cls.LOOKUP_PHRASES_RANDOM_SEED,
+                    current_seed,
+                    print_warning=True,
                 )
                 cls._try_set_nodes_input_attribute(
+                    obj,
                     nodes_modifier,
                     cls.LOOKUP_PHRASES_DETAIL_LEVEL,
                     detail_level,
@@ -1560,9 +1553,11 @@ class procedural_dataset_generator(sdf_model_exporter):
     @classmethod
     def _try_set_nodes_input_attribute(
         cls,
+        obj: bpy.types.Object,
         modifier: bpy.types.NodesModifier,
         lookup_phrases: Iterable[str],
         value: Any,
+        print_warning: bool = False,
     ):
         """
         Try to set an input attribute of a nodes system to a `value`. The attribute
@@ -1576,11 +1571,14 @@ class procedural_dataset_generator(sdf_model_exporter):
                 input_id = attribute.identifier
                 break
         if input_id is None:
-            cls._print_bpy(
-                f"Warn: Cannot match an input attribute of '{modifier.name}' for any "
-                f"of the requested lookup phrases {lookup_phrases}.",
-                file=sys.stderr,
-            )
+            if print_warning:
+                cls._print_bpy(
+                    "Warn: Unable to find a matching input attribute of the object's "
+                    f"'{obj.name}' modifier '{modifier.name}' for any of the requested "
+                    f"lookup phrases {lookup_phrases}. You can ignore this warning if "
+                    "the modifier is not supposed to have the requested input.",
+                    file=sys.stderr,
+                )
             return
 
         # Set the attribute
@@ -1658,8 +1656,8 @@ if __name__ == "__main__":
             f"\n\t{sys.argv[0]} [blender options] file.blend --python "
             "external_script.py -- [script options]"
             "\nlist script options:"
-            f"\n\t{sys.argv[0]} file.blend --python-text script.py -- -h"
-            f"\n\t{sys.argv[0]} file.blend --python external_script.py -- -h"
+            f"\n\t{sys.argv[0]} -b file.blend --python-text script.py -- -h"
+            f"\n\t{sys.argv[0]} -b file.blend --python external_script.py -- -h"
             "\nlist blender options:"
             f"\n\t{sys.argv[0]} -h"
         ),
