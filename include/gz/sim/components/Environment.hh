@@ -45,10 +45,14 @@ namespace components
     using FrameT = common::DataFrame<std::string, T>;
     using ReferenceT = math::SphericalCoordinates::CoordinateType;
 
-    EnvironmentalData(FrameT _frame, ReferenceT _reference)
-      : frame(std::move(_frame)), reference(_reference)
-    {
-    }
+    /// \brief Instantiate environmental data.
+    ///
+    /// An std::make_shared equivalent that ensures
+    /// dynamically loaded call sites use a template
+    /// instantiation that is guaranteed to outlive
+    /// them.
+    static std::shared_ptr<EnvironmentalData>
+    MakeShared(FrameT _frame, ReferenceT _reference);
 
     /// \brief Environmental data frame.
     FrameT frame;

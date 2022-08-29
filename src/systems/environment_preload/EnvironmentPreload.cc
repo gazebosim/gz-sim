@@ -18,14 +18,17 @@
 
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gz/common/CSVStreams.hh>
 #include <gz/common/DataFrame.hh>
+#include <gz/common/Filesystem.hh>
 
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Environment.hh"
+#include "gz/sim/components/World.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -33,7 +36,16 @@ using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
-EnvironmentPreload::EnvironmentPreload() : System()
+class gz::sim::systems::EnvironmentPreloadPrivate
+{
+  public: bool loaded{false};
+
+  public: std::shared_ptr<const sdf::Element> sdf;
+};
+
+//////////////////////////////////////////////////
+EnvironmentPreload::EnvironmentPreload()
+  : System(), dataPtr(new EnvironmentPreloadPrivate)
 {
 }
 
@@ -44,94 +56,117 @@ EnvironmentPreload::~EnvironmentPreload() = default;
 void EnvironmentPreload::Configure(
     const Entity &/*_entity*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm,
+    EntityComponentManager &/*_ecm*/,
     EventManager &/*_eventMgr*/)
 {
-  if (!_sdf->HasElement("data"))
+  this->dataPtr->sdf = _sdf;
+}
+
+//////////////////////////////////////////////////
+void EnvironmentPreload::PreUpdate(
+  const gz::sim::UpdateInfo &,
+  gz::sim::EntityComponentManager &_ecm)
+{
+  if (!std::exchange(this->dataPtr->loaded, true))
   {
-    gzerr << "No environmental data file was specified";
-    return;
-  }
-
-  const std::string dataPath =
-      _sdf->Get<std::string>("data");
-  std::ifstream dataFile(dataPath);
-  if (!dataFile.is_open())
-  {
-    gzerr << "No environmental data file was found at " << dataPath;
-    return;
-  }
-
-
-  std::string timeColumnName{"t"};
-  std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
-  auto spatialReference = math::SphericalCoordinates::GLOBAL;
-
-  sdf::ElementConstPtr elem = _sdf->FindElement("dimensions");
-  if (elem)
-  {
-    if (elem->HasElement("time"))
+    if (!this->dataPtr->sdf->HasElement("data"))
     {
-      timeColumnName = elem->Get<std::string>("time");
+      gzerr << "No environmental data file was specified";
+      return;
     }
-    elem = elem->FindElement("space");
+
+    std::string dataPath =
+        this->dataPtr->sdf->Get<std::string>("data");
+    if (common::isRelativePath(dataPath))
+    {
+      auto * component =
+          _ecm.Component<components::WorldSdf>(worldEntity(_ecm));
+      const std::string rootPath =
+          common::parentPath(component->Data().Element()->FilePath());
+      dataPath = common::joinPaths(rootPath, dataPath);
+    }
+
+    std::ifstream dataFile(dataPath);
+    if (!dataFile.is_open())
+    {
+      gzerr << "No environmental data file was found at " << dataPath;
+      return;
+    }
+
+    std::string timeColumnName{"t"};
+    std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
+    auto spatialReference = math::SphericalCoordinates::GLOBAL;
+
+    sdf::ElementConstPtr elem =
+        this->dataPtr->sdf->FindElement("dimensions");
     if (elem)
     {
-      if (elem->HasAttribute("reference"))
+      if (elem->HasElement("time"))
       {
-        const std::string referenceName = elem->Get<std::string>("reference");
-        if (referenceName == "global")
-        {
-          spatialReference = math::SphericalCoordinates::GLOBAL;
-        }
-        else if (referenceName == "spherical")
-        {
-          spatialReference = math::SphericalCoordinates::SPHERICAL;
-        }
-        else if (referenceName == "ecef")
-        {
-          spatialReference = math::SphericalCoordinates::ECEF;
-        }
-        else
-        {
-          gzerr << "Unknown reference '" << referenceName << "'" << std::endl;
-          return;
-        }
+        timeColumnName = elem->Get<std::string>("time");
       }
-      for (size_t i = 0; i < spatialColumnNames.size(); ++i)
+      elem = elem->FindElement("space");
+      if (elem)
       {
-        if (elem->HasElement(spatialColumnNames[i]))
+        if (elem->HasAttribute("reference"))
         {
-          spatialColumnNames[i] =
-              elem->Get<std::string>(spatialColumnNames[i]);
+          const std::string referenceName =
+              elem->Get<std::string>("reference");
+          if (referenceName == "global")
+          {
+            spatialReference = math::SphericalCoordinates::GLOBAL;
+          }
+          else if (referenceName == "spherical")
+          {
+            spatialReference = math::SphericalCoordinates::SPHERICAL;
+          }
+          else if (referenceName == "ecef")
+          {
+            spatialReference = math::SphericalCoordinates::ECEF;
+          }
+          else
+          {
+            gzerr << "Unknown reference '" << referenceName << "'"
+                  << std::endl;
+            return;
+          }
+        }
+        for (size_t i = 0; i < spatialColumnNames.size(); ++i)
+        {
+          if (elem->HasElement(spatialColumnNames[i]))
+          {
+            spatialColumnNames[i] =
+                elem->Get<std::string>(spatialColumnNames[i]);
+          }
         }
       }
     }
-  }
 
-  try
-  {
-    using ComponentDataT = components::EnvironmentalData;
-    auto data = std::make_shared<ComponentDataT>(
-      common::IO<ComponentDataT::FrameT>::ReadFrom(
-          common::CSVIStreamIterator(dataFile),
-          common::CSVIStreamIterator(),
-          timeColumnName, spatialColumnNames),
-      spatialReference);
+    try
+    {
+      using ComponentDataT = components::EnvironmentalData;
+      auto data = ComponentDataT::MakeShared(
+          common::IO<ComponentDataT::FrameT>::ReadFrom(
+              common::CSVIStreamIterator(dataFile),
+              common::CSVIStreamIterator(),
+              timeColumnName, spatialColumnNames),
+          spatialReference);
 
-    using ComponentT = components::Environment;
-    auto component = ComponentT{std::move(data)};
-    _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
-  }
-  catch (const std::invalid_argument &exc)
-  {
-    gzerr << "Failed to load environment data" << std::endl
-          << exc.what() << std::endl;
+      using ComponentT = components::Environment;
+      auto component = ComponentT{std::move(data)};
+      _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
+    }
+    catch (const std::invalid_argument &exc)
+    {
+      gzerr << "Failed to load environment data" << std::endl
+            << exc.what() << std::endl;
+    }
   }
 }
 
 // Register this plugin
 GZ_ADD_PLUGIN(EnvironmentPreload, System,
-    EnvironmentPreload::ISystemConfigure)
+    EnvironmentPreload::ISystemConfigure,
+    EnvironmentPreload::ISystemPreUpdate)
 GZ_ADD_PLUGIN_ALIAS(EnvironmentPreload,
     "gz::sim::systems::EnvironmentPreload")
