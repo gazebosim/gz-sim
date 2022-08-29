@@ -53,11 +53,6 @@ class GZ_SIM_GUI_VISIBLE GuiRunner : public QObject
   // Documentation inherited
   protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
-  /// \brief Callback when a plugin has been added.
-  /// This function has no effect and is left here for ABI compatibility.
-  /// \param[in] _objectName Plugin's object name.
-  public slots: void OnPluginAdded(const QString &_objectName);
-
   /// \brief Make a new state request to the server.
   public slots: void RequestState();
 
