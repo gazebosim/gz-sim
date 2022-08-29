@@ -57,6 +57,7 @@ extern "C" const char *worldInstallDir();
 /// it receives a world path from GUI.
 /// null to record the default topics.
 /// \param[in] _headless True if server rendering should run headless
+/// \param[in] _recordPeriod --record-period option
 /// \return 0 if successful, 1 if not.
 extern "C" int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, int _levels,
@@ -65,7 +66,8 @@ extern "C" int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics, int _waitGui, int _headless);
+    const char *_recordTopics, int _waitGui, int _headless,
+    float _recordPeriod);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.

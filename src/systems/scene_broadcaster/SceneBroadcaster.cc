@@ -45,6 +45,7 @@
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -252,6 +253,10 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \brief Store SDF scene information so that it can be inserted into
   /// scene message.
   public: sdf::Scene sdfScene;
+
+  /// \brief Flag used to indicate if periodic changes need to be published
+  /// This is currently only used in playback mode.
+  public: bool pubPeriodicChanges{false};
 };
 
 //////////////////////////////////////////////////
@@ -351,8 +356,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   auto now = std::chrono::system_clock::now();
   bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod[_info.paused]);
+  // check if we need to publish periodic changes in playback mode.
+  bool pubChanges = this->dataPtr->pubPeriodicChanges &&
+      _manager.HasPeriodicComponentChanges();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
+       (changeEvent || itsPubTime || pubChanges);
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
@@ -375,9 +383,39 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else if (!_info.paused)
     {
       GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, periodicComponents);
+
+      if (_manager.HasPeriodicComponentChanges())
+      {
+        auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
+        _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+             {}, periodicComponents);
+        this->dataPtr->pubPeriodicChanges = false;
+      }
+      else
+      {
+        // log files may be recorded at lower rate than sim time step. So in
+        // playback mode, the scene broadcaster may not see any periodic
+        // changed states here since it no longer happens every iteration.
+        // As the result, no state changes are published to be GUI, causing
+        // visuals in the GUI scene to miss updates. The visuals are only
+        // updated if by some timing coincidence that log playback updates
+        // the ECM at the same iteration as when the scene broadcaster is going
+        // to publish perioidc changes here.
+        // To work around the issue, we force the scene broadcaster
+        // to publish states at an offcycle iteration the next time it sees
+        // periodic changes.
+        auto playbackComp =
+            _manager.Component<components::LogPlaybackStatistics>(
+            this->dataPtr->worldEntity);
+        if (playbackComp)
+        {
+          this->dataPtr->pubPeriodicChanges = true;
+        }
+        // this creates an empty state in the msg even there are no periodic
+        // changed components - done to preseve existing behavior.
+        // we may be able to remove this in the future and update tests
+        this->dataPtr->stepMsg.mutable_state();
+      }
     }
 
     // Full state on demand

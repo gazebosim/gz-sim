@@ -216,125 +216,23 @@ ColumnLayout {
     font.bold: true
   }
 
-  GridLayout {
+  GzPose {
+    y: 30
     width: parent.width
-    columns: 6
-
-    Text {
-      text: "X (m)"
-      color: "dimgrey"
-      Layout.row: 0
-      Layout.column: 0
-      leftPadding: 5
+    Layout.fillWidth: true
+    readOnly: false
+    xValue: ViewAngle.camPose[0]
+    yValue: ViewAngle.camPose[1]
+    zValue: ViewAngle.camPose[2]
+    rollValue: ViewAngle.camPose[3]
+    pitchValue: ViewAngle.camPose[4]
+    yawValue: ViewAngle.camPose[5]
+    onGzPoseSet: {
+      // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
+      // from gz-gui GzPose.qml
+      ViewAngle.SetCamPose(_x, _y, _z, _roll, _pitch, _yaw)
     }
-    GzSpinBox {
-      id: x
-      Layout.fillWidth: true
-      Layout.row: 0
-      Layout.column: 1
-      value: ViewAngle.camPose[0]
-      maximumValue: Number.MAX_VALUE
-      minimumValue: -Number.MAX_VALUE
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
-    Text {
-      text: "Y (m)"
-      color: "dimgrey"
-      Layout.row: 1
-      Layout.column: 0
-      leftPadding: 5
-    }
-    GzSpinBox {
-      id: y
-      Layout.fillWidth: true
-      Layout.row: 1
-      Layout.column: 1
-      value: ViewAngle.camPose[1]
-      maximumValue: Number.MAX_VALUE
-      minimumValue: -Number.MAX_VALUE
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
-    Text {
-      text: "Z (m)"
-      color: "dimgrey"
-      Layout.row: 2
-      Layout.column: 0
-      leftPadding: 5
-    }
-    GzSpinBox {
-      id: z
-      Layout.fillWidth: true
-      Layout.row: 2
-      Layout.column: 1
-      value: ViewAngle.camPose[2]
-      maximumValue: Number.MAX_VALUE
-      minimumValue: -Number.MAX_VALUE
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
-
-    Text {
-      text: "Roll (rad)"
-      color: "dimgrey"
-      Layout.row: 0
-      Layout.column: 2
-      leftPadding: 5
-    }
-    GzSpinBox {
-      id: roll
-      Layout.fillWidth: true
-      Layout.row: 0
-      Layout.column: 3
-      value: ViewAngle.camPose[3]
-      maximumValue: 6.28
-      minimumValue: -6.28
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
-    Text {
-      text: "Pitch (rad)"
-      color: "dimgrey"
-      Layout.row: 1
-      Layout.column: 2
-      leftPadding: 5
-    }
-    GzSpinBox {
-      id: pitch
-      Layout.fillWidth: true
-      Layout.row: 1
-      Layout.column: 3
-      value: ViewAngle.camPose[4]
-      maximumValue: 6.28
-      minimumValue: -6.28
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
-    Text {
-      text: "Yaw (rad)"
-      color: "dimgrey"
-      Layout.row: 2
-      Layout.column: 2
-      leftPadding: 5
-    }
-    GzSpinBox {
-      id: yaw
-      Layout.fillWidth: true
-      Layout.row: 2
-      Layout.column: 3
-      value: ViewAngle.camPose[5]
-      maximumValue: 6.28
-      minimumValue: -6.28
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamPose(x.value, y.value, z.value, roll.value, pitch.value, yaw.value)
-    }
+    expand: true
   }
 
   // Set camera's near/far clipping distance

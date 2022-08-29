@@ -252,6 +252,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     this->config.SetLogRecordPath(_config.LogRecordPath());
   }
 
+  if (_config.LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    this->config.SetLogRecordPeriod(_config.LogRecordPeriod());
+  }
+
   if (_config.LogRecordResources())
     this->config.SetLogRecordResources(true);
 

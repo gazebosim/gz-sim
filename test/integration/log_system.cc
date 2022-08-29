@@ -1643,3 +1643,84 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   this->CreateLogsDir();
 #endif
 }
+
+/////////////////////////////////////////////////
+TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
+{
+  // Create temp directory to store log
+  this->CreateLogsDir();
+
+  // test world
+  const auto recordSdfPath = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+    "log_record_resources.sdf");
+
+  // Change environment variable so that downloaded fuel files aren't written
+  // to $HOME
+  std::string homeOrig;
+  common::env(IGN_HOMEDIR, homeOrig);
+  std::string homeFake = common::joinPaths(this->logsDir, "default");
+  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+
+  const std::string recordPath = this->logDir;
+  std::string statePath = common::joinPaths(recordPath, "state.tlog");
+
+  int numIterations = 100;
+#ifndef __APPLE__
+  // Log from command line
+  {
+    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    std::string cmd = kIgnCommand + " -r -v 4 --iterations "
+      + std::to_string(numIterations) + " "
+      + "--record-period 0.002 "
+      + "--record-path " + recordPath + " " + recordSdfPath;
+    std::cout << "Running command [" << cmd << "]" << std::endl;
+
+    // Run
+    std::string output = customExecStr(cmd);
+    std::cout << output << std::endl;
+  }
+
+  std::string consolePath = common::joinPaths(recordPath, "server_console.log");
+  EXPECT_TRUE(common::exists(consolePath)) << consolePath;
+  EXPECT_TRUE(common::exists(statePath)) << statePath;
+
+  // Recorded models should exist
+  EXPECT_GT(entryCount(recordPath), 1);
+
+  // Verify file is created
+  auto logFile = common::joinPaths(recordPath, "state.tlog");
+  EXPECT_TRUE(common::exists(logFile));
+
+  // Load the state log file into a player.
+  transport::log::Playback player(statePath);
+  const int64_t addTopicResult = player.AddTopic(std::regex(".*"));
+
+  // There should be 2 topics (sdf, & state)
+  EXPECT_EQ(2, addTopicResult);
+
+  int msgCount = 0;
+  std::function<void(const msgs::SerializedStateMap &)> stateCb =
+      [&](const msgs::SerializedStateMap &) -> void
+  {
+    msgCount++;
+  };
+
+  // Subscribe to the state topic
+  transport::Node node;
+  node.Subscribe("/world/default/changed_state", stateCb);
+
+  // Begin playback
+  transport::log::PlaybackHandlePtr handle =
+    player.Start(std::chrono::seconds(5), false);
+  handle->WaitUntilFinished();
+
+  // There were 100 iterations of simulation, and we were recording at 2ms
+  // so there should be 50 state messages.
+  EXPECT_EQ(50, msgCount);
+
+  // Remove artifacts. Recreate new directory
+  this->RemoveLogsDir();
+  this->CreateLogsDir();
+#endif
+}
