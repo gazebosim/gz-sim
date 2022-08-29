@@ -903,7 +903,7 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   EXPECT_EQ(gz::math::Vector3d::UnitZ, axis->Xyz());
   EXPECT_EQ(gz::math::Vector3d::UnitY, axis2->Xyz());
 
-  EXPECT_EQ("__model__", axis->XyzExpressedIn());
+  EXPECT_EQ("", axis->XyzExpressedIn());
   EXPECT_TRUE(axis2->XyzExpressedIn().empty());
 
   EXPECT_DOUBLE_EQ(-0.5, axis->Lower());
