@@ -32,6 +32,10 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
+set(component_sources
+  components/Environment.cc
+)
+
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -68,6 +72,7 @@ set (sources
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
+  ${component_sources}
 )
 
 set (gtest_sources
