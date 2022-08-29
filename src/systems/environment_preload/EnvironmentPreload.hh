@@ -30,13 +30,16 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
+  class EnvironmentPreloadPrivate;
+
   /// \class EnvironmentPreload EnvironmentPreload.hh
   ///     gz/sim/systems/EnvironmentPreload.hh
   /// \brief A plugin to preload an Environment component
   /// into the ECM upon simulation start-up.
   class EnvironmentPreload :
     public System,
-    public ISystemConfigure
+    public ISystemConfigure,
+    public ISystemPreUpdate
   {
     /// \brief Constructor
     public: explicit EnvironmentPreload();
@@ -50,6 +53,15 @@ namespace systems
         const std::shared_ptr<const sdf::Element> &_sdf,
         EntityComponentManager &_ecm,
         sim::EventManager &_eventMgr) final;
+
+    // Documentation inherited
+    public: void PreUpdate(
+        const UpdateInfo &_info,
+        EntityComponentManager &_ecm) final;
+
+    /// \internal
+    /// \brief Pointer to private data
+    private: std::unique_ptr<EnvironmentPreloadPrivate> dataPtr;
   };
   }
 }

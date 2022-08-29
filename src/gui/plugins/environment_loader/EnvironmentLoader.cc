@@ -122,7 +122,7 @@ void EnvironmentLoader::Update(const UpdateInfo &,
     try
     {
       using ComponentDataT = components::EnvironmentalData;
-      auto data = std::make_shared<ComponentDataT>(
+      auto data = ComponentDataT::MakeShared(
           common::IO<ComponentDataT::FrameT>::ReadFrom(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
