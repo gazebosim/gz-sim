@@ -236,9 +236,9 @@ foreach(CMD_TEST
   # in build directory in necessary. For regular tests, the trick is to place all libraries
   # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
   # as they are in the same directory where the executable is loaded. For tests that are
-  # launched via ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
+  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
   # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that is only available
-  # since CMake 3.22 . However, if an older CMake is used another trick to install the libraries
+  # since CMake 3.22. However, if an older CMake is used another trick to install the libraries
   # beforehand
   if (WIN32 AND CMAKE_VERSION STRGREATER "3.22")
     set_tests_properties(${CMD_TEST} PROPERTIES
