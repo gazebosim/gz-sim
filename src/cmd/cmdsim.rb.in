@@ -478,7 +478,8 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       if options['server'] == 0 && options['gui'] == 0
 
         if plugin.end_with? ".dylib"
-          puts "`gz sim` currently only works with the -s argument on macOS.
+          puts "On macOS `gz sim` currently only works with either the -s argument
+or the -g argument, you cannot run both server and gui in one terminal. 
 See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
@@ -538,12 +539,6 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['parallel-download'])
             # Otherwise run the gui
       else options['gui']
-        if plugin.end_with? ".dylib"
-          puts "`gz sim` currently only works with the -s argument on macOS.
-See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-          exit(-1)
-        end
-
         ENV['RMT_PORT'] = '1501'
         Importer.runGui(options['gui_config'], options['file'],
             options['wait_gui'], options['render_engine_gui'])
