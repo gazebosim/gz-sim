@@ -131,7 +131,7 @@ In order to demonstrate the generation of procedural datasets, the following two
 
 - [rock.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/rock.blend)
   — Models of randomized rocks for Gazebo that robots can interact with
-- [garden.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/garden.blend)
+- [woodland.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/woodland.blend)
   — Static environments of natural scenery with randomly scattered assets of
   low-poly trees, rocks, grass and flowers
 
@@ -140,7 +140,7 @@ that either manually on GitHub or via `wget`/`curl`.
 
 ```bash
 wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/rock.blend
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/garden.blend
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/woodland.blend
 ```
 
 ### Try Demo Files
@@ -151,12 +151,12 @@ directly from the console and configure CLI arguments as desired.
 
 ```bash
 blender rock.blend --python-text procedural_dataset_generator.py -- -o sdf_models/rock
-blender garden.blend --python-text procedural_dataset_generator.py -- -o sdf_models/garden
+blender woodland.blend --python-text procedural_dataset_generator.py -- -o sdf_models/woodland
 ```
 
 @image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_rock.gif "Example of generating a dataset of rock SDF models" width=100%
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_garden.gif "Example of generating a dataset of garden SDF models" width=100%
+@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_woodland.gif "Example of generating a dataset of woodland SDF models" width=100%
 
 You can configure the script in several ways (see
 `blender rock.blend --python-text procedural_dataset_generator.py -- -h`). For
@@ -193,9 +193,9 @@ each model.
   │ └── model.sdf    # SDF description of the model
   ├── rock1/         # SDF Model directory of the 2nd model
   └── ...
-└── garden/          # Identical structure for the dataset of garden models ...
-  ├── garden0/
-  ├── garden1/
+└── woodland/          # Identical structure for the dataset of woodland models ...
+  ├── woodland0/
+  ├── woodland1/
   └── ...
 ```
 
@@ -210,18 +210,18 @@ exact path after the export of models is finished.
 
 ```bash
 export GZ_SIM_RESOURCE_PATH="${PWD}/sdf_models/rock${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOURCE_PATH}}"
-export GZ_SIM_RESOURCE_PATH="${PWD}/sdf_models/garden${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOURCE_PATH}}"
+export GZ_SIM_RESOURCE_PATH="${PWD}/sdf_models/woodland${GZ_SIM_RESOURCE_PATH:+:${GZ_SIM_RESOURCE_PATH}}"
 ```
 
 ### Spawn Models in Gazebo
 
 Hereafter, you can spawn the generated models inside Gazebo with your preferred
 approach, e.g. via the Resource Spawner GUI plugin. Below are some examples of
-Gazebo environments using the rock and garden SDF models.
+Gazebo environments using the rock and woodland SDF models.
 
 @image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_rock.png "Example of the generated rock SDF models in Gazebo" width=100%
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_garden.png "Example of the generated garden SDF models in Gazebo" width=100%
+@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_woodland.png "Example of the generated woodland SDF models in Gazebo" width=100%
 
 Every object that uses Geometry Nodes in these projects has several input
 attributes that can be configured. You can open the `.blend` projects again,
