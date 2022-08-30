@@ -19,6 +19,7 @@
 
 #include <iostream>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 
 // Create a transport node.
