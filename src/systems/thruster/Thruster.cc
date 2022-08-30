@@ -177,7 +177,7 @@ void Thruster::Configure(
   // Get a custom topic.
   if (_sdf->HasElement("topic"))
   {
-    this->dataPtr->topic = ignition::transport::TopicUtils::AsValidTopic(
+    this->dataPtr->topic = transport::TopicUtils::AsValidTopic(
       _sdf->Get<std::string>("topic"));
   }
 
@@ -215,7 +215,7 @@ void Thruster::Configure(
   if (!this->dataPtr->topic.empty())
     thrusterTopic = ns + "/" + this->dataPtr->topic;
 
-  thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(thrusterTopic);
+  thrusterTopic = transport::TopicUtils::AsValidTopic(thrusterTopic);
 
   this->dataPtr->node.Subscribe(
     thrusterTopic,
