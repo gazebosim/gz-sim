@@ -105,6 +105,7 @@
         <velocity_control>true</velocity_control>
         <max_thrust_cmd>300</max_thrust_cmd>
         <min_thrust_cmd>0</min_thrust_cmd>
+        <topic>thrust</topic>
       </plugin>
 
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
