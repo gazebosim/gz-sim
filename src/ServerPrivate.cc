@@ -635,11 +635,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 
         _outputMsgs += "Loading SDF world file[" + filePath + "].\n";
 
-        // \todo(nkoenig) Async resource download.
-        // This call can block for a long period of time while
-        // resources are downloaded. Blocking here causes the GUI to block with
-        // a black screen (search for "Async resource download" in
-        // 'src/gui_main.cc'.
         errors = _root.Load(filePath);
         break;
       }

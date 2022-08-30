@@ -45,7 +45,9 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
-  // Turn on/off downloads.
+  // Turn on/off downloads based on the WaitForAssets flag. If WaitForAssets
+  // is true, then simulation assets should be downloaded when the SDF
+  // file/string is parsed.
   this->dataPtr->enableDownload = _config.WaitForAssets();
 
   // Configure SDF to fetch assets from Gazebo Fuel.
@@ -60,24 +62,40 @@ Server::Server(const ServerConfig &_config)
 
   // Ignore the sdf::Errors returned by this function. The errors will be
   // displayed later in the downloadThread.
+  //
+  // If `enableDownload` is true at this point, then simulation assets will
+  // be downloaded. If false, simulation assets will be downloaded in
+  // a thread later in this function.
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
       this->dataPtr->sdfRoot, outputMsgs);
   gzmsg << outputMsgs;
 
-  if (_config.WaitForAssets())
+  // Exit here if errors were found while parsing SDF and we were also
+  // waiting for assets to download.
+  if (_config.WaitForAssets() && !errors.empty())
   {
-    if (!errors.empty())
-    {
-      for (auto &err : errors)
-        gzerr << err << "\n";
-      return;
-    }
+    for (auto &err : errors)
+      gzerr << err << "\n";
+    return;
   }
 
   // Add record plugin
   if (_config.UseLogRecord())
   {
     this->dataPtr->AddRecordPlugin(_config);
+  }
+
+  // Remove all the models, lights, and actors from the primary sdfRoot object
+  // so that they can be downloaded and added to simulation in the background.
+  // Do this before the `CreateEntities` function call.
+  if (!_config.WaitForAssets())
+  {
+    for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
+    {
+      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
+      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
+      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
+    }
   }
 
   this->dataPtr->CreateEntities();
@@ -146,7 +164,6 @@ Server::Server(const ServerConfig &_config)
       }
     });
   }
-
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.

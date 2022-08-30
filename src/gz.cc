@@ -396,7 +396,7 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
-  serverConfig.SetWaitForAssets(!_waitForAssets);
+  serverConfig.SetWaitForAssets(_waitForAssets);
 
   // Create the Gazebo server
   gz::sim::Server server(serverConfig);

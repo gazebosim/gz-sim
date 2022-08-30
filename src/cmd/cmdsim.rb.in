@@ -537,7 +537,7 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
             options['render_engine_server'], options['render_engine_gui'],
             options['file'], options['record-topics'].join(':'),
             options['wait_gui'], options['headless-rendering'],
-            options['parallel-download'])
+            options['wait-for-assets'])
             # Otherwise run the gui
       else options['gui']
         ENV['RMT_PORT'] = '1501'
