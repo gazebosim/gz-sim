@@ -333,6 +333,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
+
+  /// \brief True to block while simulation assets download.
+  public: bool waitForAssets = true;
 };
 
 //////////////////////////////////////////////////
@@ -717,6 +720,18 @@ const std::chrono::time_point<std::chrono::system_clock> &
 ServerConfig::Timestamp() const
 {
   return this->dataPtr->timestamp;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetWaitForAssets(bool _set)
+{
+  this->dataPtr->waitForAssets = _set;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::WaitForAssets() const
+{
+  return this->dataPtr->waitForAssets;
 }
 
 /////////////////////////////////////////////////

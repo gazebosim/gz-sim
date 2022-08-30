@@ -568,7 +568,7 @@ namespace gz
       /// background. The simulation runner must remain paused while this
       /// takes place. This flag can be used to make sure simulation stays
       /// paused.
-      private: bool forcedPause{true};
+      private: bool forcedPause{false};
 
       /// \brief During a forced pause, the user may request that simulation
       /// should run. This flag will capture that request, and then be used
@@ -576,6 +576,7 @@ namespace gz
       private: bool requestedPause{true};
 
       private: bool resetInitiated{false};
+
       friend class LevelManager;
     };
     }

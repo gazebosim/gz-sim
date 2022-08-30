@@ -257,7 +257,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       }
     }
   }
-  else
+  else if (_in.Type() != sdf::GeometryType::EMPTY)
   {
     gzerr << "Geometry type [" << static_cast<int>(_in.Type())
            << "] not supported" << std::endl;
