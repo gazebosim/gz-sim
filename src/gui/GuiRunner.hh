@@ -70,7 +70,6 @@ class GZ_SIM_GUI_VISIBLE GuiRunner : public QObject
   private: Q_INVOKABLE void OnStateQt(const msgs::SerializedStepMap &_msg);
 
   /// \brief Update the plugins.
-  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
   private: Q_INVOKABLE void UpdatePlugins();
 
   /// \brief Load systems
