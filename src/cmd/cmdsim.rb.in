@@ -109,7 +109,8 @@ COMMANDS = { 'sim' =>
   "\n"\
   "  --headless-rendering         Run rendering in headless mode                   \n"\
   "\n"\
-  "  --parallel-download          Download assets in a background thread.         \n"\
+  "  --wait-for-assets            Wait for simulation assets to download before   \n"\
+  "                               starting.                                       \n"\
   "\n"\
   "  -r                           Run simulation on start.                         \n"\
   "\n"\
