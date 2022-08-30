@@ -133,7 +133,8 @@ In order to demonstrate the generation of procedural datasets, the following two
   — Models of randomized rocks for Gazebo that robots can interact with
 - [woodland.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/woodland.blend)
   — Static environments of natural scenery with randomly scattered assets of
-  low-poly trees, rocks, grass and flowers
+  low-poly trees, rocks, grass and flowers (these assets were adapted from
+  [Blender Studio](https://studio.blender.org))
 
 You need to download these `.blend` projects to follow the examples. You can do
 that either manually on GitHub or via `wget`/`curl`.
