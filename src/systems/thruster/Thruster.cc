@@ -120,6 +120,9 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Diameter of propeller in m, default: 0.02
   public: double propellerDiameter = 0.02;
 
+  /// \brief Topic name used to control thrust.
+  public: std::string topic = "";
+
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
 
@@ -195,6 +198,13 @@ void Thruster::Configure(
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
 
+  // Get a custom topic.
+  if (_sdf->HasElement("topic"))
+  {
+    this->dataPtr->topic = transport::TopicUtils::AsValidTopic(
+      _sdf->Get<std::string>("topic"));
+  }
+
   // Get the operation mode
   if (_sdf->HasElement("use_angvel_cmd"))
   {
@@ -232,6 +242,8 @@ void Thruster::Configure(
       gz::transport::TopicUtils::AsValidTopic(
         "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
 
+    ignwarn << thrusterTopicOld << " topic is deprecated" << std::endl;
+
     this->dataPtr->node.Subscribe(
       thrusterTopicOld,
       &ThrusterPrivateData::OnCmdThrust,
@@ -240,6 +252,11 @@ void Thruster::Configure(
     // Subscribe to force commands
     std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
+
+    if (!this->dataPtr->topic.empty())
+      thrusterTopic = ns + "/" + this->dataPtr->topic;
+
+    thrusterTopic = transport::TopicUtils::AsValidTopic(thrusterTopic);
 
     this->dataPtr->node.Subscribe(
       thrusterTopic,
@@ -261,6 +278,11 @@ void Thruster::Configure(
     // Subscribe to angvel commands
     std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
+
+    if (!this->dataPtr->topic.empty())
+      thrusterTopic = ns + "/" + this->dataPtr->topic;
+
+    thrusterTopic = transport::TopicUtils::AsValidTopic(thrusterTopic);
 
     this->dataPtr->node.Subscribe(
       thrusterTopic,
