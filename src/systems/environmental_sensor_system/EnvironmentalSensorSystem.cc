@@ -30,7 +30,15 @@
 #include <gz/sensors/SensorTypes.hh>
 #include <gz/sensors/Util.hh>
 
+#include <gz/math/Pose3.hh>
+
+#include <chrono>
+
+using namespace gz;
 using namespace gz::sim;
+
+
+const std::string SENSOR_TYPE_PREFIX =  "environmental_sensor/";
 
 class EnvironmentalSensor : public gz::sensors::Sensor
 {
@@ -40,26 +48,26 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   /// \brief Publishes sensor data
   private: gz::transport::Node::Publisher pub;
 
-  private: const std::string SENSOR_TYPE_PREFIX =  "environmental_sensor/";
   public: virtual bool Load(const sdf::Sensor &_sdf) override
   {
     auto type = gz::sensors::customType(_sdf);
-    if (type.substr(0, SENSOR_TYPE_PREFIX.size()) == SENSOR_TYPE_PREFIX ||
+    if (type.substr(0, SENSOR_TYPE_PREFIX.size()) != SENSOR_TYPE_PREFIX ||
       type.size() <= SENSOR_TYPE_PREFIX.size())
     {
       gzerr << "Trying to load [" << SENSOR_TYPE_PREFIX << "] sensor, but got type ["
-            << type << "] instead." << std::endl;
+            << type << "] instead." <<  std::endl;
       return false;
     }
+
+    // Load common sensor params
+    gz::sensors::Sensor::Load(_sdf);
 
     this->pub = this->node.Advertise<gz::msgs::Double>(this->Topic());
 
     this->field = type.substr(SENSOR_TYPE_PREFIX.size());
 
-    gzdbg << "Loaded environmental sensor for " << this->field<< std::endl;
+    gzdbg << "Loaded environmental sensor for " << this->field<< " publishing on " << this->Topic() << std::endl;
 
-    // Load common sensor params
-    gz::sensors::Sensor::Load(_sdf);
     return true;
   }
 
@@ -69,33 +77,67 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   public: virtual bool Update(
     const std::chrono::steady_clock::duration &_now) override
   {
-    if (!data_set) return false;
+    if (!this->ready) return false;
+
+    if (!this->session.has_value()) return false;
+
+    this->session = this->gridField.StepTo(this->session.value(), std::chrono::duration<double>(_now).count());
+
+    if (!this->session.has_value()) return false;
 
     gz::msgs::Double msg;
     *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
     auto frame = msg.mutable_header()->add_data();
     frame->set_key("frame_id");
     frame->add_value(this->Name());
-    msg.set_data();
+    auto data = this->gridField.LookUp(this->session.value(), this->position);
+    if (!data.has_value())
+      return false;
+    msg.set_data(data.value());
     //TODO(anyone) Add sensor noise.
     this->pub.Publish(msg);
     return true;
   }
 
-  public: void TrackComponent(const components::EnvironmentalData* _data)
+  public: void SetDataTable(
+    const components::EnvironmentalData* _data,
+    const std::chrono::steady_clock::duration &_curr_time)
   {
+    gzdbg << "Setting data table\n" ;
     auto data = _data->Data();
-   
+    if(!data.Has(this->field))
+    {
+      gzwarn << "Environmental sensor could not find field " << this->field << "\n";
+      ready = false;
+      return;
+    }
+    this->ready = true;
+    this->gridField = data[this->field];
+    this->session = this->gridField.CreateSession();
+    this->session = this->gridField.StepTo(
+      *this->session,
+      std::chrono::duration<double>(_curr_time).count());
+
+    if(!this->session.has_value())
+    {
+      gzerr << "Exceeded time stamp." << std::endl;
+    }
   }
 
-  public: void SetPose(const double& _data)
+
+  public: void SetPosition(
+    const math::Vector3d& _position)
   {
+    this->position = _position;
   }
 
   public: std::string Field() const
   {
+    return field;
   }
 
+  private: bool ready {false};
+  private: math::Vector3d position;
   private: std::string field;
   private: std::optional<gz::math::InMemorySession<double, double>> session;
   private: gz::math::InMemoryTimeVaryingVolumetricGrid<double, double, double>
@@ -117,7 +159,7 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
         {
           if (this->entitySensorMap.erase(_entity) == 0)
           {
-            gzerr << "Internal error, missing odometer for entity ["
+            gzerr << "Internal error, missing environmen for entity ["
                           << _entity << "]" << std::endl;
           }
           return true;
@@ -138,7 +180,7 @@ EnvironmentalSensorSystem::EnvironmentalSensorSystem () :
 void EnvironmentalSensorSystem::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EntityComponentManager &/*_ecm*/,
   gz::sim::EventManager &/*_eventMgr*/)
 {
   dataPtr->worldEntity = _entity;
@@ -153,7 +195,8 @@ void EnvironmentalSensorSystem::Configure(
 void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
-   _ecm.EachNew<components::CustomSensor, components::ParentEntity>(
+
+  _ecm.EachNew<components::CustomSensor, components::ParentEntity>(
     [&](const Entity &_entity,
         const components::CustomSensor *_custom,
         const components::ParentEntity *_parent)->bool
@@ -165,6 +208,13 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         data.SetName(sensorScopedName);
 
         auto type = gz::sensors::customType(data);
+        if (
+          type.substr(0, SENSOR_TYPE_PREFIX.size()) != SENSOR_TYPE_PREFIX ||
+          type.size() <= SENSOR_TYPE_PREFIX.size())
+        {
+          return true;
+        }
+
 
         // Default to scoped name as topic
         if (data.Topic().empty())
@@ -172,16 +222,13 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
           std::string topic = scopedName(_entity, _ecm) + type;
           data.SetTopic(topic);
         }
+        else
+        {
+          gzerr << data.Topic() << std::endl;
+        }
 
         gz::sensors::SensorFactory sensorFactory;
         auto sensor = sensorFactory.CreateSensor<EnvironmentalSensor>(data);
-        if (nullptr == sensor)
-        {
-          gzerr <<
-            "Failed to create environmental sensor [" << sensorScopedName << "]"
-            << std::endl;
-          return false;
-        }
 
         // Set sensor parent
         auto parentName = _ecm.Component<components::Name>(
@@ -192,10 +239,19 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         _ecm.CreateComponent(_entity,
             components::SensorTopic(sensor->Topic()));
 
+        // Get current EnvironmentalData component
+        auto environData =
+          _ecm.Component<components::EnvironmentalData>(
+            this->dataPtr->worldEntity);
+
+        if (environData != nullptr)
+        {
+          sensor->SetDataTable(environData, _info.simTime);
+        }
+
         // Keep track of this sensor
         this->dataPtr->entitySensorMap.insert(std::make_pair(_entity,
             std::move(sensor)));
-
         return true;
       });
 }
@@ -203,7 +259,15 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
 void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-
+  _ecm.EachNew<components::EnvironmentalData>([&](const Entity &/*_entity*/,
+    const components::EnvironmentalData *_environmental_data)->bool
+    {
+      for (auto &[entity, sensor] : this->dataPtr->entitySensorMap)
+      {
+        sensor->SetDataTable(_environmental_data, _info.simTime);
+      }
+      return true;
+    });
   // Only update and publish if not paused.
   if (_info.paused)
   {
@@ -211,7 +275,7 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     for (auto &[entity, sensor] : this->dataPtr->entitySensorMap)
     {
       auto position = worldPose(entity, _ecm).Pos();
-      //sensor->SetData();
+      sensor->SetPosition(position);
       sensor->Update(_info.simTime);
     }
   }
