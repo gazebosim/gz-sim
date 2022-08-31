@@ -673,7 +673,7 @@ void TriggeredPublisher::Configure(const Entity &,
           if (this->srvOutputInfo.size() > 0)
           {
             std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
-            this->triggerSrv = true;
+            ++this->serviceCount;
           }
         }
       });
@@ -713,43 +713,46 @@ void TriggeredPublisher::PublishMsg(std::size_t pending)
 }
 
 //////////////////////////////////////////////////
-void TriggeredPublisher::CallService()
+void TriggeredPublisher::CallService(std::size_t pendingSrv)
 {
   for (auto &serviceInfo : this->srvOutputInfo)
   {
-    bool result;
-    auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
-    if (!req)
+    for (std::size_t i = 0; i < pendingSrv; ++i)
     {
-      ignerr << "Unable to create request for type ["
-             << serviceInfo.reqType << "].\n";
-      return;
-    }
-
-    auto rep = msgs::Factory::New(serviceInfo.repType);
-    if (!rep)
-    {
-      ignerr << "Unable to create response for type ["
-             << serviceInfo.repType << "].\n";
-      return;
-    }
-
-    bool executed = this->node.Request(serviceInfo.srvName, *req,
-                                       serviceInfo.timeout, *rep, result);
-    if (executed)
-    {
-      if (!result)
+      bool result;
+      auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
+      if (!req)
       {
-        ignerr << "Service call [" << serviceInfo.srvName << "] failed\n";
+        ignerr << "Unable to create request for type ["
+               << serviceInfo.reqType << "].\n";
+        return;
+      }
+
+      auto rep = msgs::Factory::New(serviceInfo.repType);
+      if (!rep)
+      {
+        ignerr << "Unable to create response for type ["
+               << serviceInfo.repType << "].\n";
+        return;
+      }
+
+      bool executed = this->node.Request(serviceInfo.srvName, *req,
+                                         serviceInfo.timeout, *rep, result);
+      if (executed)
+      {
+        if (!result)
+        {
+          ignerr << "Service call [" << serviceInfo.srvName << "] failed\n";
+        }
+        else
+        {
+          ignmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
+        }
       }
       else
       {
-        ignmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
+        ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
       }
-    }
-    else
-    {
-      ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
     }
   }
 }
@@ -779,17 +782,17 @@ void TriggeredPublisher::DoWork()
 
     PublishMsg(pending);
 
-    // check whether to call a service by checking triggerSrv
-    bool callSrv{false};
+    // check whether to call a service by checking serviceCount
+    std::size_t pendingSrv{0};
     {
       std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
-      if (!this->triggerSrv || this->done){
+      if (this->serviceCount == 0 || this->done){
         continue;
       }
-      std::swap(callSrv, this->triggerSrv);
+      std::swap(pendingSrv, this->serviceCount);
     }
 
-    CallService();
+    CallService(pendingSrv);
   }
 }
 

@@ -195,7 +195,7 @@ namespace systems
     public: void DoWork();
 
     /// \brief Method that calls a service
-    private: void CallService();
+    private: void CallService(std::size_t pendingSrv);
 
     /// \brief Method that publishes a message
     private: void PublishMsg(std::size_t pending);
@@ -259,11 +259,11 @@ namespace systems
     /// \brief Ignition communication node.
     private: transport::Node node;
 
+    /// \brief Counter that tells how manny times to call the service
+    private: std::size_t serviceCount{0};
+
     /// \brief Counter that tells the publisher how many times to publish
     private: std::size_t publishCount{0};
-
-    /// \brief Flag to trigger calling a service in the DoWork thread
-    private: bool triggerSrv{false};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
