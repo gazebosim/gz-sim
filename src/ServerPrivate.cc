@@ -18,6 +18,11 @@
 
 #include <tinyxml2.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/server_control.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 

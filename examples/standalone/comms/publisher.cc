@@ -24,8 +24,9 @@
 #include <string>
 #include <thread>
 
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/transport/Node.hh>
 
 /// \brief Flag used to break the publisher loop and terminate the program.
 static std::atomic<bool> g_terminatePub(false);

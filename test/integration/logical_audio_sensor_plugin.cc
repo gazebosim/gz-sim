@@ -23,11 +23,13 @@
 #include <thread>
 #include <vector>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/double.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/LogicalAudio.hh"

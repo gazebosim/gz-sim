@@ -25,14 +25,16 @@
 #include <unordered_set>
 #include <utility>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/double.pb.h>
+
 #include <gz/sim/components/LogicalAudio.hh>
 #include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/World.hh>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/transport/Node.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SdfEntityCreator.hh>
 #include <gz/sim/Util.hh>

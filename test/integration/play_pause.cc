@@ -19,8 +19,11 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "gz/msgs.hh"
-#include "gz/transport.hh"
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
+#include <gz/transport/Node.hh>
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
