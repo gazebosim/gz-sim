@@ -672,11 +672,8 @@ void TriggeredPublisher::Configure(const Entity &,
           }
           if (this->srvOutputInfo.size() > 0)
           {
-            {
-              std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
-              this->triggerSrv = true;
-            }
-            this->newMatchSignal.notify_one();
+            std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+            this->triggerSrv = true;
           }
         }
       });
@@ -754,10 +751,6 @@ void TriggeredPublisher::CallService()
     {
       ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
     }
-    {
-      std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
-      this->triggerSrv = false;
-    }
   }
 }
 
@@ -766,6 +759,7 @@ void TriggeredPublisher::DoWork()
 {
   while (!this->done)
   {
+    // check whether to publish a msg by checking publishCount
     std::size_t pending{0};
     {
       using namespace std::chrono_literals;
@@ -773,25 +767,29 @@ void TriggeredPublisher::DoWork()
       this->newMatchSignal.wait_for(lock, 1s,
         [this]
         {
-          return (this->publishCount > 0) || this-> triggerSrv || this->done;
+          return (this->publishCount > 0) || this->done;
         });
 
       if (this->publishCount == 0 || this->done)
       {
         continue;
       }
-
       std::swap(pending, this->publishCount);
     }
 
-    if (pending > 0)
+    PublishMsg(pending);
+
+    // check whether to call a service by checking triggerSrv
+    bool callSrv{false};
     {
-      PublishMsg(pending);
+      std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+      if (!this->triggerSrv || this->done){
+        continue;
+      }
+      std::swap(callSrv, this->triggerSrv);
     }
-    if (this->triggerSrv)
-    {
-      CallService();
-    }
+
+    CallService();
   }
 }
 

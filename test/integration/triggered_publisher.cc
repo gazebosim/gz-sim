@@ -769,7 +769,7 @@ TEST_F(TriggeredPublisherTest,
   for (int i = 0; i < pubCount; ++i)
   {
     EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
-    IGN_SLEEP_MS(10);
+    IGN_SLEEP_MS(100);
   }
 
   waitUntil(5000, [&]
