@@ -1,4 +1,4 @@
-gz_add_system(environmental-sensor-system
+gz_add_system(environmental-sensor
   SOURCES
   EnvironmentalSensorSystem.cc
   PUBLIC_LINK_LIBS
