@@ -1,5 +1,19 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.12.0 (2022-08-30)
+
+1. Add topic parameter to thrust plugin
+    * [Pull request #1681](https://github.com/gazebosim/gz-sim/pull/1681)
+
+1. Add information about `<topic>` system parameter
+    * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
+
+1. Adding tests for hydrodynamics
+    * [Pull request #1617](https://github.com/gazebosim/gz-sim/pull/1617)
+
+1. Fix Windows and Doxygen
+    * [Pull request #1643](https://github.com/gazebosim/gz-sim/pull/1643)
+
 ### Gazebo Sim 6.11.0 (2022-08-17)
 
 1. Add support for specifying log record period
