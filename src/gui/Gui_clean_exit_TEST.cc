@@ -77,7 +77,7 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-TEST_P(GazeboDeathTest, CleanExit)
+TEST_P(GazeboDeathTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
 {
   std::string githubAction;
   // This test hangs when there is high CPU usage, so we skip it on Github
