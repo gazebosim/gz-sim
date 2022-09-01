@@ -25,6 +25,8 @@
 #include <sstream>
 #include <utility>
 
+#include <gz/msgs/double.pb.h>
+
 #include <gz/common/Console.hh>
 
 #include "../ElevatorStateMachine.hh"
@@ -36,8 +38,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace GZ_SIM_VERSION_NAMESPACE
-{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 class ElevatorStateMachinePrivate

@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/image.pb.h>
+
 #include <string>
 
 #include <gz/transport/Node.hh>

@@ -17,7 +17,9 @@
 
 #include <array>
 
-#include <gz/msgs.hh>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
 #include <gz/math/Stopwatch.hh>
 #include <gz/common/Console.hh>
 

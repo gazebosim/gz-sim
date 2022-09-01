@@ -2583,11 +2583,20 @@ void RenderUtil::Init()
   rendering::setPluginPaths(pluginPath.PluginPaths());
 
   std::map<std::string, std::string> params;
+#ifdef __APPLE__
+  // TODO(srmainwaring): implement facility for overriding the default
+  //    graphics API in macOS, in which case there are restrictions on
+  //    the version of OpenGL used.
+  params["metal"] = "1";
+#else
   if (this->dataPtr->useCurrentGLContext)
     params["useCurrentGLContext"] = "1";
+#endif
+
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
   params["winID"] = this->dataPtr->winID;
+
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
   if (!this->dataPtr->engine)
   {

@@ -21,8 +21,11 @@
 #include <vector>
 #include <unordered_map>
 
+#include <gz/msgs/twist.pb.h>
+
 #include <gz/common/Profiler.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
