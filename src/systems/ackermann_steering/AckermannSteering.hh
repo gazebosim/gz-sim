@@ -111,7 +111,7 @@ namespace systems
   /// right_steering_joint
   ///
   /// References:
-  /// https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems/diff_drive
+  /// https://github.com/gazebosim/gz-sim/tree/main/src/systems/ackermann_steering
   /// https://www.auto.tuwien.ac.at/bib/pdf_TR/TR0183.pdf
   /// https://github.com/froohoo/ackermansteer/blob/master/ackermansteer/
 
