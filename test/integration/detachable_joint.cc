@@ -342,6 +342,9 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    // distance traveled along the x-axis by the vehicle model
    auto distTraveledVehicle = abs(vehiclePoses.back().Pos().X() -
        vehiclePoses.front().Pos().X());
+   igndbg << "dist by B1: " << distTraveledB1 << " ,dist by vehicle: "
+          << distTraveledVehicle << ", diff: "
+          << abs(distTraveledB1 - distTraveledVehicle) << std::endl;
 
    // since the two models are attached, the distances traveled by both objects
    // should be close.
