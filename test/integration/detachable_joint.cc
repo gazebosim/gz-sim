@@ -345,5 +345,5 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 
    // since the two models are attached, the distances traveled by both objects
    // should be close.
-   EXPECT_TRUE(abs(distTraveledB1 - distTraveledVehicle) < 0.001);
+   EXPECT_TRUE(abs(distTraveledB1 - distTraveledVehicle) < 0.01);
  }
