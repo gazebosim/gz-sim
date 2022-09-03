@@ -186,7 +186,8 @@ void DetachableJoint::PreUpdate(
                                          this->childLinkEntity, "fixed"}));
         this->attachRequested = false;
         this->isAttached = true;
-        igndbg<<"Attaching entity: " << this->detachableJointEntity <<std::endl;
+        igndbg << "Attaching entity: " << this->detachableJointEntity
+               << std::endl;
       }
       else
       {
