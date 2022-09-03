@@ -702,15 +702,15 @@ TEST_F(TriggeredPublisherTest,
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), "test");
-        if (req.data() == "test")
+        {
+          EXPECT_EQ(req.data(), "test");
+          if (req.data() == "test")
           {
             ++recvCount;
             return true;
           }
-        return false;
-      });
+          return false;
+        });
 
   std::string service = "/srv-test";
   node.Advertise(service, srvEchoCb);
@@ -750,10 +750,10 @@ TEST_F(TriggeredPublisherTest,
         {
           std::lock_guard<std::mutex> lock(recvMsgMutex);
           if (req.data())
-            {
-              _msgVector.push_back(req.data());
-              return true;
-            }
+          {
+            _msgVector.push_back(req.data());
+            return true;
+          }
           return false;
         });
   };
@@ -802,15 +802,15 @@ TEST_F(TriggeredPublisherTest,
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), "test");
-        if (req.data() == "test")
         {
-          ++recvCount;
-          return true;
-        }
-        return false;
-      });
+          EXPECT_EQ(req.data(), "test");
+          if (req.data() == "test")
+          {
+            ++recvCount;
+            return true;
+          }
+          return false;
+        });
 
   // Advertise a dummy service
   std::string service = "/srv-test";
@@ -842,15 +842,15 @@ TEST_F(TriggeredPublisherTest,
   auto srvEchoCb = std::function<bool(const msgs::Boolean &,
       msgs::StringMsg &)>(
       [&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), true);
-        if (req.data() == true)
         {
-          ++recvCount;
-          return true;
-        }
-        return false;
-      });
+          EXPECT_EQ(req.data(), true);
+          if (req.data() == true)
+          {
+            ++recvCount;
+            return true;
+          }
+          return false;
+        });
 
   // Advertise a dummy service
   std::string service = "/srv-diff-type-0";
@@ -882,15 +882,15 @@ TEST_F(TriggeredPublisherTest,
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::Boolean &)>(
       [&recvCount](const auto &req, auto &rep)
-      {
-        EXPECT_EQ(req.data(), "test");
-        if (req.data() == "test")
         {
-          ++recvCount;
-          return true;
-        }
-        return false;
-      });
+          EXPECT_EQ(req.data(), "test");
+          if (req.data() == "test")
+          {
+            ++recvCount;
+            return true;
+          }
+          return false;
+        });
 
   // Advertise a dummy service
   std::string service = "/srv-diff-type-1";
