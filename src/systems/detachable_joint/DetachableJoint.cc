@@ -96,15 +96,46 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
 
   // Setup detach topic
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+  std::vector<std::string> detachTopics;
+  if (_sdf->HasElement("detach_topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    detachTopics.push_back(_sdf->Get<std::string>("detach_topic"));
   }
-  topics.push_back("/model/" + this->model.Name(_ecm) +
+  detachTopics.push_back("/model/" + this->model.Name(_ecm) +
       "/detachable_joint/detach");
-  this->topic = validTopic(topics);
+  this->detachTopic = validTopic(detachTopics);
 
+  // Setup subscriber for detach topic
+  this->node.Subscribe(
+      this->detachTopic, &DetachableJoint::OnDetachRequest, this);
+
+  ignmsg << "DetachableJoint subscribing to messages on "
+         << "[" << this->detachTopic << "]" << std::endl;
+
+  // Setup attach topic
+  std::vector<std::string> attachTopics;
+  if (_sdf->HasElement("attach_topic"))
+  {
+    attachTopics.push_back(_sdf->Get<std::string>("attach_topic"));
+  }
+  attachTopics.push_back("/model/" + this->model.Name(_ecm) +
+      "/attachable_joint/attach");
+  this->attachTopic = validTopic(attachTopics);
+
+  // Setup subscriber for attach topic
+  auto msgCb = std::function<void(const transport::ProtoMsg &)>(
+      [this](const auto &)
+      {
+        this->attachRequested = true;
+      });
+
+  if (!this->node.Subscribe(this->attachTopic, msgCb))
+  {
+    ignerr << "Subscriber could not be created for [attach] topic.\n";
+    return;
+  }
+
+  // Supress Child Warning
   this->suppressChildWarning =
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
           .first;
@@ -118,8 +149,13 @@ void DetachableJoint::PreUpdate(
   ignition::gazebo::EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DetachableJoint::PreUpdate");
-  if (this->validConfig && !this->initialized)
+  // only allow attaching if child entity is detached
+  if (this->validConfig && !this->isAttached)
   {
+    // return if attach is not requested.
+    if (!this->attachRequested){
+      return;
+    }
     // Look for the child model and link
     Entity modelEntity{kNullEntity};
 
@@ -148,14 +184,9 @@ void DetachableJoint::PreUpdate(
             this->detachableJointEntity,
             components::DetachableJoint({this->parentLinkEntity,
                                          this->childLinkEntity, "fixed"}));
-
-        this->node.Subscribe(
-            this->topic, &DetachableJoint::OnDetachRequest, this);
-
-        ignmsg << "DetachableJoint subscribing to messages on "
-               << "[" << this->topic << "]" << std::endl;
-
-        this->initialized = true;
+        this->attachRequested = false;
+        this->isAttached = true;
+        igndbg<<"Attaching entity: " << this->detachableJointEntity <<std::endl;
       }
       else
       {
@@ -170,7 +201,8 @@ void DetachableJoint::PreUpdate(
     }
   }
 
-  if (this->initialized)
+ // only allow detaching if child entity is attached
+  if (this->isAttached)
   {
     if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
     {
@@ -179,6 +211,7 @@ void DetachableJoint::PreUpdate(
       _ecm.RequestRemoveEntity(this->detachableJointEntity);
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
+      this->isAttached = false;
     }
   }
 }

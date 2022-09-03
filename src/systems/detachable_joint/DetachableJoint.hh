@@ -86,7 +86,10 @@ namespace systems
     private: std::string childLinkName;
 
     /// \brief Topic to be used for detaching connections
-    private: std::string topic;
+    private: std::string detachTopic;
+
+    /// \brief Topic to be used for re-attaching connections
+    private: std::string attachTopic;
 
     /// \brief Whether to suppress warning about missing child model.
     private: bool suppressChildWarning{false};
@@ -103,14 +106,18 @@ namespace systems
     /// \brief Whether detachment has been requested
     private: std::atomic<bool> detachRequested{false};
 
+    /// \brief Whether attachment has been requested
+    private: std::atomic<bool> attachRequested{true};
+
+    /// \brief Whether child entity is attached
+    private: std::atomic<bool> isAttached{false};
+
     /// \brief Ignition communication node.
     public: transport::Node node;
 
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
-    /// \brief Whether the system has been initialized
-    private: bool initialized{false};
   };
   }
 }

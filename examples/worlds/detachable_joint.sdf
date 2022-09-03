@@ -353,23 +353,29 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B1</child_model>
        <child_link>body</child_link>
-       <topic>/B1/detach</topic>
+       <detach_topic>/B1/detach</detach_topic>
+       <attach_topic>/B1/attach</attach_topic>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B2</child_model>
        <child_link>body</child_link>
-       <topic>/B2/detach</topic>
+       <detach_topic>/B2/detach</detach_topic>
+       <attach_topic>/B2/attach</attach_topic>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="ignition::gazebo::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B3</child_model>
        <child_link>body</child_link>
-       <topic>/B3/detach</topic>
+       <detach_topic>/B3/detach</detach_topic>
+       <attach_topic>/B3/attach</attach_topic>
       </plugin>
     </model>
 

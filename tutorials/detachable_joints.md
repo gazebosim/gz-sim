@@ -7,6 +7,7 @@ models. Because the system uses joints to connect models, the resulting
 kinematic topology has to be a tree, i.e., kinematic loops are not currently
 supported. This affects the choice of the parent link, and therefore, the
 parent model, which is the model that contains the `DetachableJoint` system.
+Once detached, the joint can be re-attached by publishing to a topic.
 
 For example, [detachable_joint.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
@@ -48,6 +49,10 @@ joint.
 * `<child_model_link>`:  Name of the link in the `<child_model>` that will be used
 as the child link in the detachable joint.
 
-* topic (optional): Topic name to be used for detaching connections. If empty,
-a default topic will be created with a pattern
+* `detach_topic` (optional): Topic name to be used for detaching connections.
+ If empty, a default topic will be created with a pattern
 `/model/<model_name>/detachable_joint/detach`.
+
+* `attach_topic` (optional): Topic name to be used for re-attaching connections.
+ If empty, a default topic will be created with a pattern
+`/model/<model_name>/attachable_joint/attach`.
