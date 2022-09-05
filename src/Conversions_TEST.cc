@@ -36,7 +36,7 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 
 #include "gz/sim/Conversions.hh"
 

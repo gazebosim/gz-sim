@@ -18,7 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -32,7 +32,7 @@
 #include <gz/common/SystemPaths.hh>
 #include <gz/common/Util.hh>
 #include <gz/fuel_tools/Zip.hh>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/log/Log.hh>
@@ -701,4 +701,8 @@ IGNITION_ADD_PLUGIN(LogRecord,
                     LogRecord::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
-                          "sim::systems::LogRecord")
+                          "gz::sim::systems::LogRecord")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
+                          "ignition::gazebo::systems::LogRecord")

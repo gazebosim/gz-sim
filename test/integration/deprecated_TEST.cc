@@ -22,5 +22,5 @@
 // Make sure the ignition namespace still works
 TEST(Deprecated, IgnitionNamespace)
 {
-  ignition::sim::System system;
+  ignition::gazebo::System system;
 }

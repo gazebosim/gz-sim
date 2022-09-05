@@ -17,7 +17,7 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <gz/msgsscene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
 #include <chrono>
 #include <condition_variable>
@@ -1155,4 +1155,8 @@ IGNITION_ADD_PLUGIN(SceneBroadcaster,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "sim::systems::SceneBroadcaster")
+                          "gz::sim::systems::SceneBroadcaster")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "ignition::gazebo::systems::SceneBroadcaster")

@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsimage.pb.h>
+#include <gz/msgs/image.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

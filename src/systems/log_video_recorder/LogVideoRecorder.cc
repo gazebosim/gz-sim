@@ -17,8 +17,8 @@
 
 #include "LogVideoRecorder.hh"
 
-#include <gz/msgsscene.pb.h>
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/scene.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <set>
@@ -452,4 +452,8 @@ IGNITION_ADD_PLUGIN(LogVideoRecorder,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
-                          "sim::systems::LogVideoRecorder")
+                          "gz::sim::systems::LogVideoRecorder")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+                          "ignition::gazebo::systems::LogVideoRecorder")

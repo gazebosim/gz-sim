@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsimu.pb.h>
+#include <gz/msgs/imu.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

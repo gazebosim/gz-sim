@@ -18,8 +18,8 @@
 #include "WindEffects.hh"
 
 #include <google/protobuf/message.h>
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsentity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@
 #include <sdf/Error.hh>
 
 #include <gz/common/Profiler.hh>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/sensors/Noise.hh>
@@ -569,4 +569,9 @@ IGNITION_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "sim::systems::WindEffects")
+IGNITION_ADD_PLUGIN_ALIAS(WindEffects,
+                          "gz::sim::systems::WindEffects")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(WindEffects,
+                          "ignition::gazebo::systems::WindEffects")

@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/StringUtils.hh>

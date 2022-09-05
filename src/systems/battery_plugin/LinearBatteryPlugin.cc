@@ -17,8 +17,8 @@
 
 #include "LinearBatteryPlugin.hh"
 
-#include <gz/msgsbattery_state.pb.h>
-#include <gz/msgsboolean.pb.h>
+#include <gz/msgs/battery_state.pb.h>
+#include <gz/msgs/boolean.pb.h>
 
 #include <algorithm>
 #include <atomic>
@@ -615,4 +615,8 @@ IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
-  "sim::systems::LinearBatteryPlugin")
+  "gz::sim::systems::LinearBatteryPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+  "ignition::gazebo::systems::LinearBatteryPlugin")

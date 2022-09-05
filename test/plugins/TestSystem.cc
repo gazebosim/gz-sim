@@ -34,4 +34,7 @@ TestSystem::~TestSystem() = default;
 // Register this plugin
 IGNITION_ADD_PLUGIN(TestSystem, System)
 
-IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "sim::TestSystem")
+IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TestSystem, "ignition::gazebo::TestSystem")

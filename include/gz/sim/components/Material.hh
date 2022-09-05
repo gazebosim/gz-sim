@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_MATERIAL_HH_
 #define GZ_GAZEBO_COMPONENTS_MATERIAL_HH_
 
-#include <gz/msgsmaterial.pb.h>
+#include <gz/msgs/material.pb.h>
 
 #include <sdf/Material.hh>
 

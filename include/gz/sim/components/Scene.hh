@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_SCENE_HH_
 #define GZ_GAZEBO_COMPONENTS_SCENE_HH_
 
-#include <gz/msgsscene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
 #include <sdf/Scene.hh>
 #include <gz/sim/components/Factory.hh>

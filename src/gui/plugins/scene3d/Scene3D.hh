@@ -18,11 +18,11 @@
 #ifndef GZ_GAZEBO_GUI_SCENE3D_HH_
 #define GZ_GAZEBO_GUI_SCENE3D_HH_
 
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsgui_camera.pb.h>
-#include <gz/msgsstringmsg.pb.h>
-#include <gz/msgsvector3d.pb.h>
-#include <gz/msgsvideo_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <string>
 #include <memory>

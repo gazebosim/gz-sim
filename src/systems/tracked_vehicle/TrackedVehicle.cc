@@ -17,7 +17,7 @@
 
 #include "TrackedVehicle.hh"
 
-#include <gz/msgsodometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <map>
@@ -775,4 +775,8 @@ IGNITION_ADD_PLUGIN(TrackedVehicle,
                     TrackedVehicle::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "sim::systems::TrackedVehicle")
+                          "gz::sim::systems::TrackedVehicle")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+                          "ignition::gazebo::systems::TrackedVehicle")

@@ -17,7 +17,7 @@
 
 #include "LogicalCamera.hh"
 
-#include <gz/msgslogical_camera_image.pb.h>
+#include <gz/msgs/logical_camera_image.pb.h>
 
 #include <map>
 #include <string>
@@ -305,4 +305,8 @@ IGNITION_ADD_PLUGIN(LogicalCamera, System,
 
 
 IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
-    "sim::systems::LogicalCamera")
+    "gz::sim::systems::LogicalCamera")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogicalCamera,
+    "ignition::gazebo::systems::LogicalCamera")

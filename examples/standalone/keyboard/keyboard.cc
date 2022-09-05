@@ -24,7 +24,7 @@
  */
 
 
-#include <gz/msgstwist.pb.h>
+#include <gz/msgs/twist.pb.h>
 #include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
 #include <gz/common/Time.hh>

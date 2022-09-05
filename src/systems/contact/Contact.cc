@@ -17,8 +17,8 @@
 
 #include "Contact.hh"
 
-#include <gz/msgscontact.pb.h>
-#include <gz/msgscontacts.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -299,5 +299,7 @@ IGNITION_ADD_PLUGIN(Contact, System,
   Contact::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "sim::systems::Contact")
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")

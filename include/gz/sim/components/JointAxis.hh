@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 #define GZ_GAZEBO_COMPONENTS_JOINTAXIS_HH_
 
-#include <gz/msgsaxis.pb.h>
+#include <gz/msgs/axis.pb.h>
 #include <sdf/JointAxis.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>

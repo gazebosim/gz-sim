@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsempty.pb.h>
-#include <gz/msgstwist.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <optional>
 #include <regex>

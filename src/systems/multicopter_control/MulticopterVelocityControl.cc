@@ -15,8 +15,8 @@
  *
  */
 
-#include <gz/msgsactuators.pb.h>
-#include <gz/msgstwist.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 
@@ -434,4 +434,9 @@ IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
 
 IGNITION_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
-    "sim::systems::MulticopterVelocityControl")
+    "gz::sim::systems::MulticopterVelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(
+    MulticopterVelocityControl,
+    "ignition::gazebo::systems::MulticopterVelocityControl")

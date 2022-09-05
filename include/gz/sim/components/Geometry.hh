@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_GEOMETRY_HH_
 #define GZ_GAZEBO_COMPONENTS_GEOMETRY_HH_
 
-#include <gz/msgsgeometry.pb.h>
+#include <gz/msgs/geometry.pb.h>
 
 #include <sdf/Geometry.hh>
 

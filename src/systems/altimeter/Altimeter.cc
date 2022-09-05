@@ -17,7 +17,7 @@
 
 #include "Altimeter.hh"
 
-#include <gz/msgsaltimeter.pb.h>
+#include <gz/msgs/altimeter.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -288,4 +288,7 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "sim::systems::Altimeter")
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

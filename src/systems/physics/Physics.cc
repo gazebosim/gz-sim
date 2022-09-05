@@ -17,10 +17,10 @@
 
 #include "Physics.hh"
 
-#include <gz/msgscontact.pb.h>
-#include <gz/msgscontacts.pb.h>
-#include <gz/msgsentity.pb.h>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -2812,4 +2812,7 @@ IGNITION_ADD_PLUGIN(Physics,
                     Physics::ISystemConfigure,
                     Physics::ISystemUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Physics, "sim::systems::Physics")
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

@@ -17,8 +17,8 @@
 
 #include <string>
 
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgspose.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include "Pose3d.hh"
 

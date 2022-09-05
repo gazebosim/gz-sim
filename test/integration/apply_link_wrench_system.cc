@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsentity.pb.h>
-#include <gz/msgsentity_wrench.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

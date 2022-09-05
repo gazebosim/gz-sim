@@ -17,7 +17,7 @@
 
 #include "PosePublisher.hh"
 
-#include <gz/msgspose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <stack>
 #include <string>
@@ -556,4 +556,8 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "sim::systems::PosePublisher")
+                          "gz::sim::systems::PosePublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+                          "ignition::gazebo::systems::PosePublisher")

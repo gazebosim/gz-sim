@@ -17,7 +17,7 @@
 
 #include "PathManager.hh"
 
-#include <gz/msgssdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <string>
 #include <vector>

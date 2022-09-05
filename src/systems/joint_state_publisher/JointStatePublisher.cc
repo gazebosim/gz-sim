@@ -17,7 +17,7 @@
 
 #include "JointStatePublisher.hh"
 
-#include <gz/msgsmodel.pb.h>
+#include <gz/msgs/model.pb.h>
 
 #include <string>
 #include <vector>
@@ -292,4 +292,8 @@ IGNITION_ADD_PLUGIN(JointStatePublisher,
                     JointStatePublisher::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
-    "sim::systems::JointStatePublisher")
+    "gz::sim::systems::JointStatePublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+    "ignition::gazebo::systems::JointStatePublisher")

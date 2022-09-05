@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsentity_factory.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

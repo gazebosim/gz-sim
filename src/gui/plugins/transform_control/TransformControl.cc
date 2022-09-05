@@ -17,8 +17,8 @@
 
 #include "TransformControl.hh"
 
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <iostream>
 #include <string>

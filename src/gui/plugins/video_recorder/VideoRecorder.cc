@@ -17,8 +17,8 @@
 
 #include "VideoRecorder.hh"
 
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsvideo_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <iostream>
 #include <string>

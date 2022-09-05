@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <gz/msgspose_v.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <algorithm>
 #include <climits>

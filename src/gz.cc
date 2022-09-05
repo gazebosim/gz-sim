@@ -27,7 +27,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/Result.hh>
 #include <gz/fuel_tools/WorldIdentifier.hh>
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/transport/Node.hh>
 #include <sdf/Console.hh>
 

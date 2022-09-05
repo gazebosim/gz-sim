@@ -18,17 +18,17 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsentity_factory.pb.h>
-#include <gz/msgspose.pb.h>
-#include <gz/msgspose_v.pb.h>
-#include <gz/msgsphysics.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
@@ -836,4 +836,8 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
-                          "sim::systems::UserCommands")
+                          "gz::sim::systems::UserCommands")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+                          "ignition::gazebo::systems::UserCommands")

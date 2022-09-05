@@ -20,8 +20,8 @@
 #include <condition_variable>
 #include <gz/utilities/ExtraTestMacros.hh>
 
-#include "gz/msgsworld_control.pb.h"
-#include "gz/msgsworld_stats.pb.h"
+#include "gz/msgs/world_control.pb.h"
+#include "gz/msgs/world_stats.pb.h"
 #include "gz/transport/Node.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)

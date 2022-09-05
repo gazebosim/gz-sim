@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 #define GZ_GAZEBO_COMPONENTS_PHYSICSCMD_HH_
 
-#include <gz/msgsphysics.pb.h>
+#include <gz/msgs/physics.pb.h>
 
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>

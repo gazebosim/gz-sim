@@ -17,7 +17,7 @@
 
 #include "AckermannSteering.hh"
 
-#include <gz/msgsodometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <mutex>
 #include <set>
@@ -794,4 +794,8 @@ IGNITION_ADD_PLUGIN(AckermannSteering,
                     AckermannSteering::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "sim::systems::AckermannSteering")
+                          "gz::sim::systems::AckermannSteering")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+                          "ignition::gazebo::systems::AckermannSteering")

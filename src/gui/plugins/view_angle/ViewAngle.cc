@@ -17,9 +17,9 @@
 
 #include "ViewAngle.hh"
 
-#include <gz/msgsboolean.pb.h>
-#include <gz/msgsgui_camera.pb.h>
-#include <gz/msgsvector3d.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <string>

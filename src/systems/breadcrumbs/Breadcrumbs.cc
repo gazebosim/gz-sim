@@ -17,7 +17,7 @@
 
 #include "Breadcrumbs.hh"
 
-#include <gz/msgsempty.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 #include <algorithm>
 #include <iterator>
@@ -394,4 +394,7 @@ IGNITION_ADD_PLUGIN(Breadcrumbs,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "sim::systems::Breadcrumbs")
+IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Breadcrumbs, "igntion::gazebo::systems::Breadcrumbs")

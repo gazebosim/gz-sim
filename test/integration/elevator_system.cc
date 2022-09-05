@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsint32.pb.h>
+#include <gz/msgs/int32.pb.h>
 
 #include <gz/transport/Node.hh>
 

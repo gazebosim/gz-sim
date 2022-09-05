@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <gz/msgsentity_wrench.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <mutex>
 #include <string>
@@ -24,7 +24,7 @@
 #include <gz/common/Profiler.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Vector3.hh>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
@@ -357,4 +357,8 @@ IGNITION_ADD_PLUGIN(ApplyLinkWrench,
                     ApplyLinkWrench::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
-                          "sim::systems::ApplyLinkWrench")
+                          "gz::sim::systems::ApplyLinkWrench")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
+                          "ignition::gazebo::systems::ApplyLinkWrench")

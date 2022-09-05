@@ -17,7 +17,7 @@
 
 #include "DiffDrive.hh"
 
-#include <gz/msgsodometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -561,4 +561,7 @@ IGNITION_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "sim::systems::DiffDrive")
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

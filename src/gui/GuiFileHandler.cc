@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/msgssdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <fstream>
 

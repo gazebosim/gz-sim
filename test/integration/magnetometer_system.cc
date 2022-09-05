@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsmagnetometer.pb.h>
+#include <gz/msgs/magnetometer.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

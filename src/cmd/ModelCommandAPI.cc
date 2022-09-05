@@ -21,8 +21,8 @@
 #include <vector>
 #include <map>
 
-#include <gz/msgsserialized.pb.h>
-#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgs/serialized.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>

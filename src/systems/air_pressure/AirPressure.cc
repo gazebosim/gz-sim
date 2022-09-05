@@ -17,7 +17,7 @@
 
 #include "AirPressure.hh"
 
-#include <gz/msgsair_pressure_sensor.pb.h>
+#include <gz/msgs/air_pressure_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -282,4 +282,7 @@ IGNITION_ADD_PLUGIN(AirPressure, System,
   AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "sim::systems::AirPressure")
+IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")

@@ -33,9 +33,9 @@
 #include "utils/DoorTimer.hh"
 #include "utils/JointMonitor.hh"
 
-#include <gz/msgsdouble.pb.h>
-#include <gz/msgsint32.pb.h>
-#include <gz/msgslaserscan.pb.h>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -444,7 +444,10 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(Elevator, "sim::systems::Elevator")
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
 
 }  // namespace systems
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE

@@ -17,7 +17,7 @@
 
 #include "JointController.hh"
 
-#include <gz/msgsdouble.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 
@@ -247,4 +247,8 @@ IGNITION_ADD_PLUGIN(JointController,
                     JointController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
-                          "sim::systems::JointController")
+                          "gz::sim::systems::JointController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointController,
+                          "ignition::gazebo::systems::JointController")

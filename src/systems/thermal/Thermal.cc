@@ -63,4 +63,7 @@ IGNITION_ADD_PLUGIN(Thermal, System,
   Thermal::ISystemConfigure
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Thermal, "sim::systems::Thermal")
+IGNITION_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Thermal, "ignition::gazebo::systems::Thermal")

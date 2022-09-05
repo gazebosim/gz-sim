@@ -16,7 +16,7 @@
  */
 
 #include <google/protobuf/message.h>
-#include <gz/msgsdouble.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 
@@ -168,4 +168,8 @@ IGNITION_ADD_PLUGIN(KineticEnergyMonitor, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-  "sim::systems::KineticEnergyMonitor")
+  "gz::sim::systems::KineticEnergyMonitor")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+  "ignition::gazebo::systems::KineticEnergyMonitor")

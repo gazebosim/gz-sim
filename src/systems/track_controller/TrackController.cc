@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <gz/msgsdouble.pb.h>
-#include <gz/msgsmarker.pb.h>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <gz/math/eigen3.hh>
 #include <gz/math/SpeedLimiter.hh>
@@ -619,4 +619,8 @@ IGNITION_ADD_PLUGIN(TrackController,
                     TrackController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
-                          "sim::systems::TrackController")
+                          "gz::sim::systems::TrackController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+                          "ignition::gazebo::systems::TrackController")

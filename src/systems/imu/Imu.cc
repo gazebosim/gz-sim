@@ -317,4 +317,7 @@ IGNITION_ADD_PLUGIN(Imu, System,
   Imu::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Imu, "sim::systems::Imu")
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")

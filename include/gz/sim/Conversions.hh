@@ -17,21 +17,21 @@
 #ifndef GZ_GAZEBO_CONVERSIONS_HH_
 #define GZ_GAZEBO_CONVERSIONS_HH_
 
-#include <gz/msgsactor.pb.h>
-#include <gz/msgsatmosphere.pb.h>
-#include <gz/msgsaxis.pb.h>
-#include <gz/msgsentity.pb.h>
-#include <gz/msgsgeometry.pb.h>
-#include <gz/msgsgui.pb.h>
-#include <gz/msgsinertial.pb.h>
-#include <gz/msgslight.pb.h>
-#include <gz/msgsmaterial.pb.h>
-#include <gz/msgsphysics.pb.h>
-#include <gz/msgsscene.pb.h>
-#include <gz/msgssensor.pb.h>
-#include <gz/msgssensor_noise.pb.h>
-#include <gz/msgstime.pb.h>
-#include <gz/msgsworld_stats.pb.h>
+#include <gz/msgs/actor.pb.h>
+#include <gz/msgs/atmosphere.pb.h>
+#include <gz/msgs/axis.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/geometry.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/inertial.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/material.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/scene.pb.h>
+#include <gz/msgs/sensor.pb.h>
+#include <gz/msgs/sensor_noise.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/world_stats.pb.h>
 
 #include <chrono>
 #include <string>

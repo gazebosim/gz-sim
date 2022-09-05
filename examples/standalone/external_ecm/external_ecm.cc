@@ -19,7 +19,7 @@
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
-#include <gz/msgsserialized.pb.h>
+#include <gz/msgs/serialized.pb.h>
 #include <gz/transport/Node.hh>
 
 //////////////////////////////////////////////////

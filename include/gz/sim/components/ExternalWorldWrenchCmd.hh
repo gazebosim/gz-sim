@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 #define GZ_GAZEBO_COMPONENTS_EXTERNALWORLDWRENCHCMD_HH_
 
-#include <gz/msgswrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Serialization.hh>

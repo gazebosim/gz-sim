@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <gz/msgswrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
 #include <mutex>
 #include <string>
@@ -30,7 +30,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
@@ -271,4 +271,8 @@ IGNITION_ADD_PLUGIN(Buoyancy,
                     Buoyancy::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "sim::systems::Buoyancy")
+                          "gz::sim::systems::Buoyancy")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+                          "ignition::gazebo::systems::Buoyancy")

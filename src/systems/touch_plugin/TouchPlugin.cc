@@ -407,4 +407,7 @@ IGNITION_ADD_PLUGIN(TouchPlugin,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "sim::systems::TouchPlugin")
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

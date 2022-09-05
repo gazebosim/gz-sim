@@ -17,8 +17,8 @@
 
 #include "LogPlayback.hh"
 
-#include <gz/msgspose_v.pb.h>
-#include <gz/msgslog_playback_stats.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/log_playback_stats.pb.h>
 
 #include <set>
 #include <string>
@@ -29,7 +29,7 @@
 #include <gz/common/Time.hh>
 #include <gz/fuel_tools/Zip.hh>
 #include <gz/math/Pose3.hh>
-#include <gz/msgsUtility.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/RegisterMore.hh>
 #include <gz/transport/log/QueryOptions.hh>
 #include <gz/transport/log/Log.hh>
@@ -661,4 +661,8 @@ IGNITION_ADD_PLUGIN(LogPlayback,
                     LogPlayback::ISystemUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
-                          "sim::systems::LogPlayback")
+                          "gz::sim::systems::LogPlayback")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogPlayback,
+                          "ignition::gazebo::systems::LogPlayback")

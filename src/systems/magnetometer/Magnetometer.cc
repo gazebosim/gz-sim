@@ -310,4 +310,8 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "sim::systems::Magnetometer")
+                          "gz::sim::systems::Magnetometer")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+                          "ignition::gazebo::systems::Magnetometer")

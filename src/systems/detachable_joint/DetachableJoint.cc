@@ -187,4 +187,8 @@ IGNITION_ADD_PLUGIN(DetachableJoint,
                     DetachableJoint::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
-  "sim::systems::DetachableJoint")
+  "gz::sim::systems::DetachableJoint")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
+  "ignition::gazebo::systems::DetachableJoint")

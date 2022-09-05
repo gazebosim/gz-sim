@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsempty.pb.h>
-#include <gz/msgsvector3d.pb.h>
-#include <gz/msgspose.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>

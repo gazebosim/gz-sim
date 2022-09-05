@@ -15,7 +15,7 @@
  *
 */
 
-#include <gz/msgsmarker.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <mutex>
 #include <string>

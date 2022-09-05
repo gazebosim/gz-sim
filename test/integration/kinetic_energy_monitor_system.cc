@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgsdouble.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <mutex>
 
 #include <gz/common/Console.hh>

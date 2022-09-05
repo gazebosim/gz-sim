@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SERVERPRIVATE_HH_
 #define GZ_GAZEBO_SERVERPRIVATE_HH_
 
-#include <gz/msgsstringmsg_v.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <atomic>
 #include <condition_variable>
@@ -39,7 +39,7 @@
 
 #include <gz/transport/Node.hh>
 
-#include <gz/msgsserver_control.pb.h>
+#include <gz/msgs/server_control.pb.h>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Export.hh"

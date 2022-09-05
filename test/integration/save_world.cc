@@ -16,7 +16,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <gz/msgssdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 #include <tinyxml2.h>
 
 #include <sdf/Collision.hh>

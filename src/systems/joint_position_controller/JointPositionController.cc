@@ -17,7 +17,7 @@
 
 #include "JointPositionController.hh"
 
-#include <gz/msgsdouble.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 #include <unordered_set>
@@ -274,4 +274,8 @@ IGNITION_ADD_PLUGIN(JointPositionController,
                     JointPositionController::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
-                          "sim::systems::JointPositionController")
+                          "gz::sim::systems::JointPositionController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+                          "ignition::gazebo::systems::JointPositionController")

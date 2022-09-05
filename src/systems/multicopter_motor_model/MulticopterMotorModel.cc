@@ -670,4 +670,8 @@ IGNITION_ADD_PLUGIN(MulticopterMotorModel,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "sim::systems::MulticopterMotorModel")
+                          "gz::sim::systems::MulticopterMotorModel")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+                          "ignition::gazebo::systems::MulticopterMotorModel")

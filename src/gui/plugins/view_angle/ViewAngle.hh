@@ -18,7 +18,7 @@
 #ifndef GZ_GAZEBO_GUI_VIEWANGLE_HH_
 #define GZ_GAZEBO_GUI_VIEWANGLE_HH_
 
-#include <gz/msgspose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <memory>
 

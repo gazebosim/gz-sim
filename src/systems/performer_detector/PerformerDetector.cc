@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/msgspose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/AxisAlignedBox.hh>
@@ -260,4 +260,8 @@ IGNITION_ADD_PLUGIN(PerformerDetector,
                     PerformerDetector::ISystemPostUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "sim::systems::PerformerDetector")
+                          "gz::sim::systems::PerformerDetector")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(PerformerDetector,
+                          "ignition::gazebo::systems::PerformerDetector")
