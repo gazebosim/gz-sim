@@ -33,14 +33,20 @@
 #include <gz/math/Pose3.hh>
 
 #include <chrono>
+#include <unordered_map>
+#include <utility>
+#include <unordered_set>
+#include <memory>
+#include <string>
 
 using namespace gz;
 using namespace gz::sim;
 
 /// Sensor prefix to be used. All envionment_sensors are to be prefixed by
-/// "environment_sensor/" in their 
-const std::string SENSOR_TYPE_PREFIX =  "environmental_sensor/";
+/// "environment_sensor/" in their gz:type field.
+const char* SENSOR_TYPE_PREFIX =  "environmental_sensor/";
 
+////////////////////////////////////////////////////////////////
 /// \brief Envirtonment Sensor used for looking up environment values in our
 /// CSV file.
 class EnvironmentalSensor : public gz::sensors::Sensor
@@ -51,15 +57,17 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   /// \brief Publishes sensor data
   private: gz::transport::Node::Publisher pub;
 
+  ////////////////////////////////////////////////////////////////
   /// Documentation inherited
   public: virtual bool Load(const sdf::Sensor &_sdf) override
   {
     auto type = gz::sensors::customType(_sdf);
-    if (type.substr(0, SENSOR_TYPE_PREFIX.size()) != SENSOR_TYPE_PREFIX ||
-      type.size() <= SENSOR_TYPE_PREFIX.size())
+    if (type.substr(0, strlen(SENSOR_TYPE_PREFIX)) != SENSOR_TYPE_PREFIX ||
+      type.size() <= strlen(SENSOR_TYPE_PREFIX))
     {
-      gzerr << "Trying to load [" << SENSOR_TYPE_PREFIX << "] sensor, but got type ["
-            << type << "] instead." <<  std::endl;
+      gzerr << "Trying to load [" << SENSOR_TYPE_PREFIX
+        << "] sensor, but got type ["
+        << type << "] instead." <<  std::endl;
       return false;
     }
 
@@ -68,13 +76,15 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     this->pub = this->node.Advertise<gz::msgs::Double>(this->Topic());
 
-    this->field = type.substr(SENSOR_TYPE_PREFIX.size());
+    this->field = type.substr(strlen(SENSOR_TYPE_PREFIX));
 
-    gzdbg << "Loaded environmental sensor for " << this->field<< " publishing on " << this->Topic() << std::endl;
+    gzdbg << "Loaded environmental sensor for " << this->field
+      << " publishing on " << this->Topic() << std::endl;
 
     return true;
   }
 
+  ////////////////////////////////////////////////////////////////
   /// \brief Update the sensor and generate data
   /// \param[in] _now The current time
   /// \return True if the update was successful
@@ -85,7 +95,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     if (!this->session.has_value()) return false;
 
-    this->session = this->gridField->frame[this->field].StepTo(this->session.value(), std::chrono::duration<double>(_now).count());
+    this->session = this->gridField->frame[this->field].StepTo(
+      this->session.value(), std::chrono::duration<double>(_now).count());
 
     if (!this->session.has_value()) return false;
 
@@ -94,15 +105,17 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     auto frame = msg.mutable_header()->add_data();
     frame->set_key("frame_id");
     frame->add_value(this->Name());
-    auto data = this->gridField->frame[this->field].LookUp(this->session.value(), this->position);
+    auto data = this->gridField->frame[this->field].LookUp(
+      this->session.value(), this->position);
     if (!data.has_value())
       return false;
     msg.set_data(data.value());
-    //TODO(anyone) Add sensor noise.
+    // TODO(anyone) Add sensor noise.
     this->pub.Publish(msg);
     return true;
   }
 
+  ////////////////////////////////////////////////////////////////
   /// \brief Attempts to set a data table.
   /// \param[in] _data - The data table
   /// \param[in] _curr_time - The current time.
@@ -110,11 +123,12 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     const components::Environment* _data,
     const std::chrono::steady_clock::duration &_curr_time)
   {
-    gzdbg << "Setting new data table\n" ;
+    gzdbg << "Setting new data table\n";
     auto data = _data->Data();
     if(!data->frame.Has(this->field))
     {
-      gzwarn << "Environmental sensor could not find field " << this->field << "\n";
+      gzwarn << "Environmental sensor could not find field "
+        << this->field << "\n";
       ready = false;
       return;
     }
@@ -245,8 +259,8 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
 
         auto type = gz::sensors::customType(data);
         if (
-          type.substr(0, SENSOR_TYPE_PREFIX.size()) != SENSOR_TYPE_PREFIX ||
-          type.size() <= SENSOR_TYPE_PREFIX.size())
+          type.substr(0, strlen(SENSOR_TYPE_PREFIX)) != SENSOR_TYPE_PREFIX ||
+          type.size() <= strlen(SENSOR_TYPE_PREFIX))
         {
           return true;
         }
