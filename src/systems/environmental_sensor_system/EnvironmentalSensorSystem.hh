@@ -21,6 +21,7 @@
 #include <gz/sensors/Sensor.hh>
 #include <gz/transport/Node.hh>
 
+#include <memory>
 
 namespace gz
 {
