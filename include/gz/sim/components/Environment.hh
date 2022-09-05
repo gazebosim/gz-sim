@@ -57,7 +57,7 @@ namespace components
     /// \brief Environmental data frame.
     FrameT frame;
 
-    /// \brief Spatial reference for data coordinates. 
+    /// \brief Spatial reference for data coordinates.
     ReferenceT reference;
   };
 

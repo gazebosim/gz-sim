@@ -144,6 +144,7 @@ void EnvironmentPreload::PreUpdate(
 
     try
     {
+      gzerr << "Creating sensor data\n";
       using ComponentDataT = components::EnvironmentalData;
       auto data = ComponentDataT::MakeShared(
           common::IO<ComponentDataT::FrameT>::ReadFrom(

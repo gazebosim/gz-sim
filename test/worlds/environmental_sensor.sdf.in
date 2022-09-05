@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
-<!-- This example show cases how to load and unload environmental data. -->
 <sdf version="1.6">
-  <world name="environmental_sensor_example">
+  <world name="environmental_sensor_test">
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -23,7 +22,7 @@
     <plugin
       filename="gz-sim-environment-preload-system"
       name="gz::sim::systems::EnvironmentPreload">
-      <data>environmental_data.csv</data>
+      <data>@CMAKE_SOURCE_DIR@/test/worlds/environmental_sensor.csv</data>
       <dimensions>
         <time>timestamp</time>
         <space>

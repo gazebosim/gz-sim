@@ -23,7 +23,7 @@
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Name.hh>
-#include <gz/sim/components/EnvironmentalData.hh>
+#include <gz/sim/components/Environment.hh>
 #include <gz/sim/Util.hh>
 
 #include <gz/sensors/SensorFactory.hh>
@@ -37,17 +37,21 @@
 using namespace gz;
 using namespace gz::sim;
 
-
+/// Sensor prefix to be used. All envionment_sensors are to be prefixed by
+/// "environment_sensor/" in their 
 const std::string SENSOR_TYPE_PREFIX =  "environmental_sensor/";
 
+/// \brief Envirtonment Sensor used for looking up environment values in our
+/// CSV file.
 class EnvironmentalSensor : public gz::sensors::Sensor
 {
-   /// \brief Node for communication
+  /// \brief Node for communication
   private: gz::transport::Node node;
 
   /// \brief Publishes sensor data
   private: gz::transport::Node::Publisher pub;
 
+  /// Documentation inherited
   public: virtual bool Load(const sdf::Sensor &_sdf) override
   {
     auto type = gz::sensors::customType(_sdf);
@@ -81,7 +85,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     if (!this->session.has_value()) return false;
 
-    this->session = this->gridField.StepTo(this->session.value(), std::chrono::duration<double>(_now).count());
+    this->session = this->gridField->frame[this->field].StepTo(this->session.value(), std::chrono::duration<double>(_now).count());
 
     if (!this->session.has_value()) return false;
 
@@ -90,7 +94,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     auto frame = msg.mutable_header()->add_data();
     frame->set_key("frame_id");
     frame->add_value(this->Name());
-    auto data = this->gridField.LookUp(this->session.value(), this->position);
+    auto data = this->gridField->frame[this->field].LookUp(this->session.value(), this->position);
     if (!data.has_value())
       return false;
     msg.set_data(data.value());
@@ -99,24 +103,28 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     return true;
   }
 
+  /// \brief Attempts to set a data table.
+  /// \param[in] _data - The data table
+  /// \param[in] _curr_time - The current time.
   public: void SetDataTable(
-    const components::EnvironmentalData* _data,
+    const components::Environment* _data,
     const std::chrono::steady_clock::duration &_curr_time)
   {
-    gzdbg << "Setting data table\n" ;
+    gzdbg << "Setting new data table\n" ;
     auto data = _data->Data();
-    if(!data.Has(this->field))
+    if(!data->frame.Has(this->field))
     {
       gzwarn << "Environmental sensor could not find field " << this->field << "\n";
       ready = false;
       return;
     }
-    this->ready = true;
-    this->gridField = data[this->field];
-    this->session = this->gridField.CreateSession();
-    this->session = this->gridField.StepTo(
+
+    this->gridField = data;
+    this->session = this->gridField->frame[this->field].CreateSession();
+    this->session = this->gridField->frame[this->field].StepTo(
       *this->session,
       std::chrono::duration<double>(_curr_time).count());
+    this->ready = true;
 
     if(!this->session.has_value())
     {
@@ -124,13 +132,37 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     }
   }
 
-
-  public: void SetPosition(
-    const math::Vector3d& _position)
+  ////////////////////////////////////////////////////////////////
+  /// \brief Updates the position of the sensor at each time step
+  /// to track a given entity,
+  /// \param[in] - The sensor entity.
+  /// \param[in] - The ECM to use for tracking.
+  public: bool UpdatePosition(
+    const Entity _entity,
+    const EntityComponentManager& _ecm)
   {
-    this->position = _position;
+    if (this->gridField->reference != math::SphericalCoordinates::SPHERICAL)
+    {
+      auto position = worldPose(_entity, _ecm).Pos();
+      this->position = position;
+      return true;
+    }
+    else
+    {
+      auto coordinates = gz::sim::sphericalCoordinates(_entity, _ecm);
+      if (!coordinates.has_value())
+      {
+        gzerr << "Sensor data is in spherical coordinates,"
+          << " but world has no spherical coordinates set.\n";
+        return false;
+      }
+
+      this->position = coordinates.value();
+      return true;
+    }
   }
 
+  ////////////////////////////////////////////////////////////////
   public: std::string Field() const
   {
     return field;
@@ -140,7 +172,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   private: math::Vector3d position;
   private: std::string field;
   private: std::optional<gz::math::InMemorySession<double, double>> session;
-  private: gz::math::InMemoryTimeVaryingVolumetricGrid<double, double, double>
+  private: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
     gridField;
 };
 
@@ -159,7 +191,7 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
         {
           if (this->entitySensorMap.erase(_entity) == 0)
           {
-            gzerr << "Internal error, missing environmen for entity ["
+            gzerr << "Internal error, missing environment sensor for entity ["
                           << _entity << "]" << std::endl;
           }
           return true;
@@ -171,12 +203,15 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
   public: bool useSphericalCoords{false};
 };
 
+
+////////////////////////////////////////////////////////////////
 EnvironmentalSensorSystem::EnvironmentalSensorSystem () :
   dataPtr(std::make_unique<EnvironmentalSensorSystemPrivate>())
 {
 
 }
 
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
@@ -192,6 +227,7 @@ void EnvironmentalSensorSystem::Configure(
   }
 }
 
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
@@ -219,7 +255,7 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         // Default to scoped name as topic
         if (data.Topic().empty())
         {
-          std::string topic = scopedName(_entity, _ecm) + type;
+          std::string topic = scopedName(_entity, _ecm) + "/" + type;
           data.SetTopic(topic);
         }
         else
@@ -241,12 +277,16 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
 
         // Get current EnvironmentalData component
         auto environData =
-          _ecm.Component<components::EnvironmentalData>(
-            this->dataPtr->worldEntity);
+          _ecm.Component<components::Environment>(
+            worldEntity(_ecm));
 
         if (environData != nullptr)
         {
           sensor->SetDataTable(environData, _info.simTime);
+        }
+        else
+        {
+          gzerr << "No sensor data loaded\n";
         }
 
         // Keep track of this sensor
@@ -256,11 +296,12 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
       });
 }
 
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<components::EnvironmentalData>([&](const Entity &/*_entity*/,
-    const components::EnvironmentalData *_environmental_data)->bool
+  _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
+    const components::Environment *_environmental_data)->bool
     {
       for (auto &[entity, sensor] : this->dataPtr->entitySensorMap)
       {
@@ -269,13 +310,12 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
       return true;
     });
   // Only update and publish if not paused.
-  if (_info.paused)
+  if (!_info.paused)
   {
 
     for (auto &[entity, sensor] : this->dataPtr->entitySensorMap)
     {
-      auto position = worldPose(entity, _ecm).Pos();
-      sensor->SetPosition(position);
+      sensor->UpdatePosition(entity, _ecm);
       sensor->Update(_info.simTime);
     }
   }
@@ -286,7 +326,8 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
 GZ_ADD_PLUGIN(
   EnvironmentalSensorSystem, System,
   EnvironmentalSensorSystem::ISystemConfigure,
-  EnvironmentalSensorSystem::ISystemPreUpdate
+  EnvironmentalSensorSystem::ISystemPreUpdate,
+  EnvironmentalSensorSystem::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(
