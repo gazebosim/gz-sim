@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include <algorithm>
 #include <iostream>

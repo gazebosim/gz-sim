@@ -17,7 +17,7 @@
 
 #include "DiffDrive.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgsodometry.pb.h>
 
 #include <limits>
 #include <mutex>

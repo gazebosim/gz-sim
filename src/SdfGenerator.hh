@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_SDFGENERATOR_HH_
 #define GZ_GAZEBO_SDFGENERATOR_HH_
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgssdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
 #include <string>

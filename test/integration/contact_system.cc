@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgscontacts.pb.h>
 
 #include <thread>
 

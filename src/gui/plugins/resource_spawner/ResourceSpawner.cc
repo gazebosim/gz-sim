@@ -17,8 +17,8 @@
 
 #include "ResourceSpawner.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsstringmsg.pb.h>
 
 #include <algorithm>
 #include <set>

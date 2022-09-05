@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/fluid_pressure.pb.h>
+#include <gz/msgsfluid_pressure.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

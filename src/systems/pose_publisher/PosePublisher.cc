@@ -17,7 +17,7 @@
 
 #include "PosePublisher.hh"
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include <stack>
 #include <string>

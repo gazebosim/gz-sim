@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
 #define GZ_GAZEBO_COMPONENTS_LogPlaybackStatistics_HH_
 
-#include <ignition/msgs/log_playback_stats.pb.h>
+#include <gz/msgslog_playback_stats.pb.h>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Serialization.hh>

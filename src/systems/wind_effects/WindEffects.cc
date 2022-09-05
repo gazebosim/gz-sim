@@ -18,8 +18,8 @@
 #include "WindEffects.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsentity_factory.pb.h>
 
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@
 #include <sdf/Error.hh>
 
 #include <gz/common/Profiler.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/sensors/Noise.hh>

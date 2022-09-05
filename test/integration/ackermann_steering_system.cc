@@ -17,7 +17,7 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>

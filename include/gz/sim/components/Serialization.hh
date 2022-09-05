@@ -18,7 +18,7 @@
 #define GZ_GAZEBO_COMPONENTS_SERIALIZATION_HH_
 
 #include <google/protobuf/message_lite.h>
-#include <ignition/msgs/double_v.pb.h>
+#include <gz/msgsdouble_v.pb.h>
 
 #include <string>
 #include <vector>

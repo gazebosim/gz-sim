@@ -23,9 +23,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsdouble.pb.h>
+#include <gz/msgsmarker.pb.h>
+#include <gz/msgsUtility.hh>
 
 #include <gz/math/eigen3.hh>
 #include <gz/math/SpeedLimiter.hh>

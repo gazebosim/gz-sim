@@ -15,8 +15,8 @@
  *
  */
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgsactuators.pb.h>
+#include <gz/msgstwist.pb.h>
 
 #include <limits>
 

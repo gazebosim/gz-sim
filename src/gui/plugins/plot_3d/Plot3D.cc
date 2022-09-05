@@ -15,7 +15,7 @@
  *
 */
 
-#include <ignition/msgs/marker.pb.h>
+#include <gz/msgsmarker.pb.h>
 
 #include <mutex>
 #include <string>

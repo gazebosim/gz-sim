@@ -17,8 +17,8 @@
 
 #include "LinearBatteryPlugin.hh"
 
-#include <ignition/msgs/battery_state.pb.h>
-#include <ignition/msgs/boolean.pb.h>
+#include <gz/msgsbattery_state.pb.h>
+#include <gz/msgsboolean.pb.h>
 
 #include <algorithm>
 #include <atomic>

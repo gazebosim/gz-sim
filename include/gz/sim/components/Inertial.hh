@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_INERTIAL_HH_
 #define GZ_GAZEBO_COMPONENTS_INERTIAL_HH_
 
-#include <ignition/msgs/inertial.pb.h>
+#include <gz/msgsinertial.pb.h>
 #include <gz/math/Inertial.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>

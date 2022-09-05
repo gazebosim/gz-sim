@@ -18,17 +18,17 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/physics.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsentity_factory.pb.h>
+#include <gz/msgspose.pb.h>
+#include <gz/msgspose_v.pb.h>
+#include <gz/msgsphysics.pb.h>
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>

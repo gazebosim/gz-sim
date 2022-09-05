@@ -17,8 +17,8 @@
 
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsstringmsg.pb.h>
 
 #include <optional>
 #include <vector>

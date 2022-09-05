@@ -17,8 +17,8 @@
 
 #include "LogPlayback.hh"
 
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/log_playback_stats.pb.h>
+#include <gz/msgspose_v.pb.h>
+#include <gz/msgslog_playback_stats.pb.h>
 
 #include <set>
 #include <string>
@@ -29,7 +29,7 @@
 #include <gz/common/Time.hh>
 #include <gz/fuel_tools/Zip.hh>
 #include <gz/math/Pose3.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 #include <gz/plugin/RegisterMore.hh>
 #include <gz/transport/log/QueryOptions.hh>
 #include <gz/transport/log/Log.hh>

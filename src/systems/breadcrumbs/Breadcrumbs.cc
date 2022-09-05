@@ -17,7 +17,7 @@
 
 #include "Breadcrumbs.hh"
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgsempty.pb.h>
 
 #include <algorithm>
 #include <iterator>

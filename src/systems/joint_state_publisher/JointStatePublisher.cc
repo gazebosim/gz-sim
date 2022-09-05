@@ -17,7 +17,7 @@
 
 #include "JointStatePublisher.hh"
 
-#include <ignition/msgs/model.pb.h>
+#include <gz/msgsmodel.pb.h>
 
 #include <string>
 #include <vector>

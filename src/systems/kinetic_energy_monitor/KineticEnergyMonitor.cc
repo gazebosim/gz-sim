@@ -16,7 +16,7 @@
  */
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgsdouble.pb.h>
 
 #include <string>
 

@@ -15,7 +15,7 @@
  *
  */
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/CanonicalLink.hh"

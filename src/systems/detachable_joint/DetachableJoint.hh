@@ -18,7 +18,7 @@
 #ifndef GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 #define GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgsempty.pb.h>
 
 #include <memory>
 #include <string>

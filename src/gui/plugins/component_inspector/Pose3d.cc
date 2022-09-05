@@ -17,8 +17,8 @@
 
 #include <string>
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include "Pose3d.hh"
 

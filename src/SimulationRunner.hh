@@ -17,9 +17,9 @@
 #ifndef GZ_GAZEBO_SIMULATIONRUNNER_HH_
 #define GZ_GAZEBO_SIMULATIONRUNNER_HH_
 
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/log_playback_control.pb.h>
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgsgui.pb.h>
+#include <gz/msgslog_playback_control.pb.h>
+#include <gz/msgssdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>

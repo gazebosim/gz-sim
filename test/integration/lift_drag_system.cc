@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsdouble.pb.h>
+#include <gz/msgsUtility.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

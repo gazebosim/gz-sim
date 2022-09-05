@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/empty.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgsempty.pb.h>
+#include <gz/msgsvector3d.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>

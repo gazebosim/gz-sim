@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/wrench.pb.h>
+#include <gz/msgswrench.pb.h>
 
 #include <mutex>
 #include <string>
@@ -30,7 +30,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 
 #include <sdf/sdf.hh>
 

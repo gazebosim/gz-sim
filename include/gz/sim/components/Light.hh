@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_LIGHT_HH_
 #define GZ_GAZEBO_COMPONENTS_LIGHT_HH_
 
-#include <ignition/msgs/light.pb.h>
+#include <gz/msgslight.pb.h>
 
 #include <sdf/Light.hh>
 

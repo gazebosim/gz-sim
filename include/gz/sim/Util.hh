@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_UTIL_HH_
 #define GZ_GAZEBO_UTIL_HH_
 
-#include <ignition/msgs/entity.pb.h>
+#include <gz/msgsentity.pb.h>
 
 #include <string>
 #include <unordered_set>

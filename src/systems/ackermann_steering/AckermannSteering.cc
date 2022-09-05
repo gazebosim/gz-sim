@@ -17,7 +17,7 @@
 
 #include "AckermannSteering.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgsodometry.pb.h>
 
 #include <mutex>
 #include <set>

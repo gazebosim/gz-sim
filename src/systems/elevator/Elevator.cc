@@ -33,9 +33,9 @@
 #include "utils/DoorTimer.hh"
 #include "utils/JointMonitor.hh"
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgsdouble.pb.h>
+#include <gz/msgsint32.pb.h>
+#include <gz/msgslaserscan.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>

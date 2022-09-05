@@ -17,7 +17,7 @@
 
 #include "Altimeter.hh"
 
-#include <ignition/msgs/altimeter.pb.h>
+#include <gz/msgsaltimeter.pb.h>
 
 #include <string>
 #include <unordered_map>

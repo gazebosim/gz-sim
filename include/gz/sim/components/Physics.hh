@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
 #define GZ_GAZEBO_COMPONENTS_PHYSICS_HH_
 
-#include <ignition/msgs/physics.pb.h>
+#include <gz/msgsphysics.pb.h>
 
 #include <sdf/Physics.hh>
 

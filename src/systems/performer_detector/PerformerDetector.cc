@@ -15,7 +15,7 @@
  *
  */
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgspose.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/AxisAlignedBox.hh>

@@ -17,9 +17,9 @@
 
 #include "EntityContextMenu.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/entity.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsstringmsg.pb.h>
+#include <gz/msgsentity.pb.h>
 
 #include <iostream>
 #include <string>

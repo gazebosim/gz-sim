@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
 #define GZ_GAZEBO_COMPONENTS_AxisAlignedBox_HH_
 
-#include <ignition/msgs/axis_aligned_box.pb.h>
+#include <gz/msgsaxis_aligned_box.pb.h>
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>

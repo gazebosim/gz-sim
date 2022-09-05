@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgsentity_wrench.pb.h>
 
 #include <mutex>
 #include <string>
@@ -24,7 +24,7 @@
 #include <gz/common/Profiler.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Vector3.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 

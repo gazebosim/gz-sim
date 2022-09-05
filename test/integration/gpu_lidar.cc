@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgslaserscan.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

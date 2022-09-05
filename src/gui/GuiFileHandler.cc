@@ -15,7 +15,7 @@
  *
  */
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgssdf_generator_config.pb.h>
 
 #include <fstream>
 

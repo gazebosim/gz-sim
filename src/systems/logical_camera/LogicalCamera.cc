@@ -17,7 +17,7 @@
 
 #include "LogicalCamera.hh"
 
-#include <ignition/msgs/logical_camera_image.pb.h>
+#include <gz/msgslogical_camera_image.pb.h>
 
 #include <map>
 #include <string>

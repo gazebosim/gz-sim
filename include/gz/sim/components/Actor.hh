@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_ACTOR_HH_
 #define GZ_GAZEBO_COMPONENTS_ACTOR_HH_
 
-#include <ignition/msgs/actor.pb.h>
+#include <gz/msgsactor.pb.h>
 
 #include <sdf/Actor.hh>
 

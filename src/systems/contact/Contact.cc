@@ -17,8 +17,8 @@
 
 #include "Contact.hh"
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgscontact.pb.h>
+#include <gz/msgscontacts.pb.h>
 
 #include <string>
 #include <unordered_map>

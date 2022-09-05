@@ -17,7 +17,7 @@
 
 #include "AirPressure.hh"
 
-#include <ignition/msgs/air_pressure_sensor.pb.h>
+#include <gz/msgsair_pressure_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>

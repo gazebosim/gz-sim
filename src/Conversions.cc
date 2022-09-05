@@ -15,22 +15,22 @@
  *
 */
 
-#include <ignition/msgs/atmosphere.pb.h>
-#include <ignition/msgs/axis_aligned_box.pb.h>
-#include <ignition/msgs/boxgeom.pb.h>
-#include <ignition/msgs/cylindergeom.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/geometry.pb.h>
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/imu_sensor.pb.h>
-#include <ignition/msgs/lidar_sensor.pb.h>
-#include <ignition/msgs/actor.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/material.pb.h>
-#include <ignition/msgs/planegeom.pb.h>
-#include <ignition/msgs/plugin.pb.h>
-#include <ignition/msgs/spheregeom.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsatmosphere.pb.h>
+#include <gz/msgsaxis_aligned_box.pb.h>
+#include <gz/msgsboxgeom.pb.h>
+#include <gz/msgscylindergeom.pb.h>
+#include <gz/msgsentity.pb.h>
+#include <gz/msgsgeometry.pb.h>
+#include <gz/msgsgui.pb.h>
+#include <gz/msgsimu_sensor.pb.h>
+#include <gz/msgslidar_sensor.pb.h>
+#include <gz/msgsactor.pb.h>
+#include <gz/msgslight.pb.h>
+#include <gz/msgsmaterial.pb.h>
+#include <gz/msgsplanegeom.pb.h>
+#include <gz/msgsplugin.pb.h>
+#include <gz/msgsspheregeom.pb.h>
+#include <gz/msgsUtility.hh>
 
 #include <gz/math/Angle.hh>
 #include <gz/math/AxisAlignedBox.hh>

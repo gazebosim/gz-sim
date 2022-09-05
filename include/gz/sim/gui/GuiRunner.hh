@@ -17,7 +17,7 @@
 #ifndef GZ_GAZEBO_GUI_GUIRUNNER_HH_
 #define GZ_GAZEBO_GUI_GUIRUNNER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
+#include <gz/msgsserialized.pb.h>
 
 #include <QtCore>
 #include <memory>

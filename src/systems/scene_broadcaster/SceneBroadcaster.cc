@@ -17,7 +17,7 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <ignition/msgs/scene.pb.h>
+#include <gz/msgsscene.pb.h>
 
 #include <chrono>
 #include <condition_variable>

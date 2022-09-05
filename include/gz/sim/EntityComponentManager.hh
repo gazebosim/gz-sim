@@ -17,8 +17,8 @@
 #ifndef GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_GAZEBO_ENTITYCOMPONENTMANAGER_HH_
 
-#include <ignition/msgs/serialized.pb.h>
-#include <ignition/msgs/serialized_map.pb.h>
+#include <gz/msgsserialized.pb.h>
+#include <gz/msgsserialized_map.pb.h>
 
 #include <map>
 #include <memory>

@@ -16,7 +16,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/int32.pb.h>
+#include <gz/msgsint32.pb.h>
 
 #include <memory>
 

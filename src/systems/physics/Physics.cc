@@ -17,10 +17,10 @@
 
 #include "Physics.hh"
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgscontact.pb.h>
+#include <gz/msgscontacts.pb.h>
+#include <gz/msgsentity.pb.h>
+#include <gz/msgsUtility.hh>
 
 #include <algorithm>
 #include <iostream>

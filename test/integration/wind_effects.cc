@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Link.hh"

@@ -19,7 +19,7 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgsdouble.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif

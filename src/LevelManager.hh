@@ -18,8 +18,8 @@
 #ifndef IGNITION_GAZEBO_LEVELMANAGER_HH
 #define IGNITION_GAZEBO_LEVELMANAGER_HH
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgsboolean.pb.h>
+#include <gz/msgsstringmsg.pb.h>
 
 #include <list>
 #include <memory>

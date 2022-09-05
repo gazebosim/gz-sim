@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/altimeter.pb.h>
+#include <gz/msgsaltimeter.pb.h>
 #include <mutex>
 
 #include <gz/common/Console.hh>

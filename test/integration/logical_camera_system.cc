@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/logical_camera_image.pb.h>
+#include <gz/msgslogical_camera_image.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

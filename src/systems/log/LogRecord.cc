@@ -18,7 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgsstringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -32,7 +32,7 @@
 #include <gz/common/SystemPaths.hh>
 #include <gz/common/Util.hh>
 #include <gz/fuel_tools/Zip.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgsUtility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/log/Log.hh>

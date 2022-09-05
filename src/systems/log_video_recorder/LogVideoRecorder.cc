@@ -17,8 +17,8 @@
 
 #include "LogVideoRecorder.hh"
 
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgsscene.pb.h>
+#include <gz/msgsstringmsg.pb.h>
 
 #include <chrono>
 #include <set>
