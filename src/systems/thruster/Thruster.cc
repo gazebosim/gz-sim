@@ -122,6 +122,9 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief Linear velocity of the vehicle.
   public: double linearVelocity = 0.0;
 
+  /// \brief Topic name used to control thrust.
+  public: std::string topic = "";
+
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
 
@@ -227,6 +230,13 @@ void Thruster::Configure(
     }
   }
 
+  // Get a custom topic.
+  if (_sdf->HasElement("topic"))
+  {
+    this->dataPtr->topic = transport::TopicUtils::AsValidTopic(
+      _sdf->Get<std::string>("topic"));
+  }
+
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
   if (kNullEntity == this->dataPtr->jointEntity)
   {
@@ -247,14 +257,21 @@ void Thruster::Configure(
   std::string thrusterTopicOld = ignition::transport::TopicUtils::AsValidTopic(
     "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
 
+  ignwarn << thrusterTopicOld << " topic is deprecated" << std::endl;
+
   this->dataPtr->node.Subscribe(
     thrusterTopicOld,
     &ThrusterPrivateData::OnCmdThrust,
     this->dataPtr.get());
 
   // Subscribe to force commands
-  std::string thrusterTopic = ignition::transport::TopicUtils::AsValidTopic(
-    "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
+  std::string thrusterTopic =
+    "/model/" + ns + "/joint/" + jointName + "/cmd_thrust";
+
+  if (!this->dataPtr->topic.empty())
+    thrusterTopic = ns + "/" + this->dataPtr->topic;
+
+  thrusterTopic = transport::TopicUtils::AsValidTopic(thrusterTopic);
 
   this->dataPtr->node.Subscribe(
     thrusterTopic,
