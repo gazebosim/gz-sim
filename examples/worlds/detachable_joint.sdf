@@ -13,6 +13,18 @@
       ign topic -t "/B1/detach" -m ignition.msgs.Empty -p "unused: true"
       ign topic -t "/B2/detach" -m ignition.msgs.Empty -p "unused: true"
       ign topic -t "/B3/detach" -m ignition.msgs.Empty -p "unused: true"
+
+    To re-attach breadcrumbs
+
+      ign topic -t "/B1/attach" -m ignition.msgs.Empty -p "unused: true"
+      ign topic -t "/B2/attach" -m ignition.msgs.Empty -p "unused: true"
+      ign topic -t "/B3/attach" -m ignition.msgs.Empty -p "unused: true"
+
+    To monitor the state of each breadcrumbs
+
+      ign topic -e -t /B1/detached_state
+      ign topic -e -t /B2/detached_state
+      ign topic -e -t /B3/detached_state
 -->
 
 <sdf version="1.6">
@@ -360,6 +372,7 @@
        <child_link>body</child_link>
        <detach_topic>/B1/detach</detach_topic>
        <attach_topic>/B1/attach</attach_topic>
+       <output_topic>/B1/detached_state</output_topic>
       </plugin>
       <plugin filename="ignition-gazebo-detachable-joint-system"
               name="ignition::gazebo::systems::DetachableJoint">
@@ -368,6 +381,7 @@
        <child_link>body</child_link>
        <detach_topic>/B2/detach</detach_topic>
        <attach_topic>/B2/attach</attach_topic>
+       <output_topic>/B2/detached_state</output_topic>
       </plugin>
       <plugin filename="ignition-gazebo-detachable-joint-system"
               name="ignition::gazebo::systems::DetachableJoint">
@@ -376,6 +390,7 @@
        <child_link>body</child_link>
        <detach_topic>/B3/detach</detach_topic>
        <attach_topic>/B3/attach</attach_topic>
+       <output_topic>/B3/detached_state</output_topic>
       </plugin>
     </model>
 

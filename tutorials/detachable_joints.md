@@ -56,3 +56,7 @@ as the child link in the detachable joint.
 * `attach_topic` (optional): Topic name to be used for re-attaching connections.
  If empty, a default topic will be created with a pattern
 `/model/<model_name>/attachable_joint/attach`.
+
+* `output_topic` (optional): Topic name to be used for publishing the state of
+the detachment. If empty, a default topic will be created with a pattern
+`/model/<model_name>/detached_state`.
