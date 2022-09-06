@@ -43,19 +43,20 @@ class ThrusterTest : public InternalFixture<::testing::Test>
   /// \brief Test a world file
   /// \param[in] _world Path to world file
   /// \param[in] _namespace Namespace for topic
+  /// \param[in] _topic Thrust topic
   /// \param[in] _coefficient Thrust coefficient
   /// \param[in] _density Fluid density
   /// \param[in] _diameter Propeller diameter
   /// \param[in] _baseTol Base tolerance for most quantities
   public: void TestWorld(const std::string &_world,
-      const std::string &_namespace, double _coefficient, double _density,
-      double _diameter, double _baseTol);
+      const std::string &_namespace, const std::string &_topic,
+      double _coefficient, double _density, double _diameter, double _baseTol);
 };
 
 //////////////////////////////////////////////////
 void ThrusterTest::TestWorld(const std::string &_world,
-    const std::string &_namespace, double _coefficient, double _density,
-    double _diameter, double _baseTol)
+    const std::string &_namespace, const std::string &_topic,
+    double _coefficient, double _density, double _diameter, double _baseTol)
 {
   // Start server
   ServerConfig serverConfig;
@@ -122,8 +123,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   // Publish command and check that vehicle moved
   transport::Node node;
-  auto pub = node.Advertise<msgs::Double>(
-      "/model/" + _namespace + "/joint/propeller_joint/cmd_thrust");
+  auto pub = node.Advertise<msgs::Double>(_topic);
 
   int sleep{0};
   int maxSleep{30};
@@ -234,31 +234,39 @@ void ThrusterTest::TestWorld(const std::string &_world,
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
+  const std::string ns{"sub"};
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_thrust";
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_pid.sdf");
 
   // Tolerance could be lower (1e-6) if the joint pose had a precise 180
   // rotation
-  this->TestWorld(world, "sub", 0.004, 1000, 0.2, 1e-4);
+  this->TestWorld(world, ns, topic, 0.004, 1000, 0.2, 1e-4);
 }
 
 /////////////////////////////////////////////////
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
+  const std::string ns = "custom";
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_thrust";
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_vel_cmd.sdf");
 
   // Tolerance is high because the joint command disturbs the vehicle body
-  this->TestWorld(world, "custom", 0.005, 950, 0.25, 1e-2);
+  this->TestWorld(world, ns, topic, 0.005, 950, 0.25, 1e-2);
 }
 
 /////////////////////////////////////////////////
 TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
 {
+  const std::string ns = "lowbattery";
+  const std::string topic =  ns + "/thrust";
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_battery.sdf");
 
   // Tolerance is high because the joint command disturbs the vehicle body
-  this->TestWorld(world, "lowbattery", 0.005, 950, 0.25, 1e-2);
+  this->TestWorld(world, ns, topic, 0.005, 950, 0.25, 1e-2);
 }
 
