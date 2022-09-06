@@ -104,12 +104,13 @@ void DetachableJoint::Configure(const Entity &_entity,
   detachTopics.push_back("/model/" + this->model.Name(_ecm) +
       "/detachable_joint/detach");
   this->detachTopic = validTopic(detachTopics);
+  igndbg << "Detach topic is: " << this->detachTopic << std::endl;
 
   // Setup subscriber for detach topic
   this->node.Subscribe(
       this->detachTopic, &DetachableJoint::OnDetachRequest, this);
 
-  ignmsg << "DetachableJoint subscribing to messages on "
+  igndbg << "DetachableJoint subscribing to messages on "
          << "[" << this->detachTopic << "]" << std::endl;
 
   // Setup attach topic
@@ -121,6 +122,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   attachTopics.push_back("/model/" + this->model.Name(_ecm) +
       "/attachable_joint/attach");
   this->attachTopic = validTopic(attachTopics);
+  igndbg << "Attach topic is: " << this->attachTopic << std::endl;
 
   // Setup subscriber for attach topic
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
@@ -132,6 +134,27 @@ void DetachableJoint::Configure(const Entity &_entity,
   if (!this->node.Subscribe(this->attachTopic, msgCb))
   {
     ignerr << "Subscriber could not be created for [attach] topic.\n";
+    return;
+  }
+
+  // Setup output topic
+  std::vector<std::string> outputTopics;
+  if (_sdf->HasElement("output_topic"))
+  {
+    outputTopics.push_back(_sdf->Get<std::string>("output_topic"));
+  }
+  outputTopics.push_back("/ouput" + this->model.Name(_ecm) +
+      "/detached_state");
+  this->outputTopic = validTopic(outputTopics);
+  igndbg << "Output topic is: " << this->outputTopic << std::endl;
+
+  // Setup publisher for output topic
+  this->outputPub = this->node.Advertise<ignition::msgs::StringMsg>(
+      this->outputTopic);
+  if (!this->outputPub)
+  {
+    std::cerr << "Error advertising topic [" << this->outputTopic << "]"
+              << std::endl;
     return;
   }
 
@@ -186,6 +209,7 @@ void DetachableJoint::PreUpdate(
                                          this->childLinkEntity, "fixed"}));
         this->attachRequested = false;
         this->isAttached = true;
+        this->PublishOutput(this->isAttached);
         igndbg << "Attaching entity: " << this->detachableJointEntity
                << std::endl;
       }
@@ -213,8 +237,24 @@ void DetachableJoint::PreUpdate(
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
       this->isAttached = false;
+      this->PublishOutput(this->isAttached);
     }
   }
+}
+
+//////////////////////////////////////////////////
+void DetachableJoint::PublishOutput(bool attached)
+{
+  ignition::msgs::StringMsg detachedStateMsg;
+  if (attached)
+  {
+    detachedStateMsg.set_data("attached");
+  }
+  else
+  {
+    detachedStateMsg.set_data("detached");
+  }
+  this->outputPub.Publish(detachedStateMsg);
 }
 
 //////////////////////////////////////////////////
