@@ -107,11 +107,11 @@ class ignition::gazebo::systems::ThrusterPrivateData
 
   /// \brief Constant given by the open water propeller diagram. Used in the
   /// calculation of the thrust coefficient.
-  public: double alpha_1 = 1;
+  public: double alpha1 = 1;
 
   /// \brief Constant given by the open water propeller diagram. Used in the
   /// calculation of the thrust coefficient.
-  public: double alpha_2 = 0;
+  public: double alpha2 = 0;
 
   /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
   public: double fluidDensity = 1000;
@@ -205,7 +205,7 @@ void Thruster::Configure(
   // Get alpha_1, default to 1 othwewise
   if (_sdf->HasElement("alpha_1"))
   {
-    this->dataPtr->alpha_1 = _sdf->Get<double>("alpha_1");
+    this->dataPtr->alpha1 = _sdf->Get<double>("alpha_1");
     if (this->dataPtr->thrustCoefficientSet)
     {
       ignwarn << " The [alpha_2] value will be ignored as a "
@@ -219,7 +219,7 @@ void Thruster::Configure(
   // Get alpha_2, default to 1 othwewise
   if (_sdf->HasElement("alpha_2"))
   {
-    this->dataPtr->alpha_2 = _sdf->Get<double>("alpha_2");
+    this->dataPtr->alpha2 = _sdf->Get<double>("alpha_2");
     if (this->dataPtr->thrustCoefficientSet)
     {
       ignwarn << " The [alpha_2] value will be ignored as a "
@@ -379,8 +379,10 @@ void ThrusterPrivateData::OnCmdThrust(const msgs::Double &_msg)
 /////////////////////////////////////////////////
 double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
-  // Only update if the thrust coefficient was not set by configuration.
-  if (!this->thrustCoefficientSet)
+  // Only update if the thrust coefficient was not set by configuration
+  // and angular velocity is not zero. Some velocity is needed to calculate
+  // the thrust coefficient otherwise it will never start moving.
+  if (!this->thrustCoefficientSet && this->propellerAngVel !=0)
   {
     this->UpdateThrustCoefficient();
   }
@@ -399,12 +401,9 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 /////////////////////////////////////////////////
 void ThrusterPrivateData::UpdateThrustCoefficient()
 {
-  double calculatedThrustCoefficient = this->alpha_1 + this->alpha_2 *
+  this->thrustCoefficient = this->alpha1 + this->alpha2 *
       (((1 - this->wakeFraction) * this->linearVelocity)
       / (this->propellerAngVel * this->propellerDiameter));
-  if (!std::isnan(calculatedThrustCoefficient)
-      && calculatedThrustCoefficient!=0)
-     this->thrustCoefficient = calculatedThrustCoefficient;
 }
 
 /////////////////////////////////////////////////
@@ -458,6 +457,7 @@ void Thruster::PreUpdate(
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     desiredThrust = this->dataPtr->thrust;
+    this->dataPtr->propellerAngVel = this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
 

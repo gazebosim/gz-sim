@@ -71,14 +71,21 @@ namespace systems
   /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
   ///                      defaults to -1000N]
   /// - <wake_fraction>  - Relative speed reduction between the water
-  ///                      at the propeller vs behind the vessel.
+  ///                      at the propeller (Va) vs behind the vessel.
   ///                      [Optional, defults to 0.2]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  ///                Va = (1 - wake_fraction) * advance_speed
+  ///
   /// - <alpha_1> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coefficient.
+  ///               in the calculation of the thrust coefficient (Kt).
   ///               [Optional, defults to 1]
   /// - <alpha_2> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coefficient.
+  ///               in the calculation of the thrust coefficient (Kt).
   ///               [Optional, defults to 0]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example
