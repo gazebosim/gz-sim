@@ -656,7 +656,7 @@ TEST_F(TriggeredPublisherTest,
 
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
-      [&recvCount](const auto &req, auto &rep)
+      [&recvCount](const auto &req, auto &)
       {
         EXPECT_EQ(req.data(), "test");
         if (req.data() == "test")
@@ -701,7 +701,7 @@ TEST_F(TriggeredPublisherTest,
 
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
-      [&recvCount](const auto &req, auto &rep)
+      [&recvCount](const auto &req, auto &)
         {
           EXPECT_EQ(req.data(), "test");
           if (req.data() == "test")
@@ -746,7 +746,7 @@ TEST_F(TriggeredPublisherTest,
   auto cbCreator = [&recvMsgMutex](std::vector<bool> &_msgVector)
   {
     return std::function<bool(const msgs::Boolean &, msgs::Boolean &)>(
-        [&_msgVector, &recvMsgMutex](const auto &req, auto &rep)
+        [&_msgVector, &recvMsgMutex](const auto &req, auto &)
         {
           std::lock_guard<std::mutex> lock(recvMsgMutex);
           if (req.data())
@@ -801,7 +801,7 @@ TEST_F(TriggeredPublisherTest,
 
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::StringMsg &)>(
-      [&recvCount](const auto &req, auto &rep)
+      [&recvCount](const auto &req, auto &)
         {
           EXPECT_EQ(req.data(), "test");
           if (req.data() == "test")
@@ -841,7 +841,7 @@ TEST_F(TriggeredPublisherTest,
 
   auto srvEchoCb = std::function<bool(const msgs::Boolean &,
       msgs::StringMsg &)>(
-      [&recvCount](const auto &req, auto &rep)
+      [&recvCount](const auto &req, auto &)
         {
           EXPECT_EQ(req.data(), true);
           if (req.data() == true)
@@ -881,7 +881,7 @@ TEST_F(TriggeredPublisherTest,
 
   auto srvEchoCb = std::function<bool(const msgs::StringMsg &,
       msgs::Boolean &)>(
-      [&recvCount](const auto &req, auto &rep)
+      [&recvCount](const auto &req, auto &)
         {
           EXPECT_EQ(req.data(), "test");
           if (req.data() == "test")
