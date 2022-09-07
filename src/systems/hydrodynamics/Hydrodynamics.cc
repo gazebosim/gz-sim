@@ -103,6 +103,14 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
   /// \brief The ignition transport node
   public: transport::Node node;
 
+  /// \brief Plugin Parameter: Disable coriolis as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool enableCoriolis = true;
+
+  /// \brief Plugin Parameter: Disable added mass as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool enableAddedMass = true;
+
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
@@ -231,6 +239,9 @@ void Hydrodynamics::Configure(
   this->dataPtr->paramMqq         = SdfParamDouble(_sdf, "mQQ"         , 0);
   this->dataPtr->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
   this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
+
+  _sdf->Get<bool>("enable_coriolis", this->dataPtr->enableCoriolis, true);
+  _sdf->Get<bool>("enable_added_mass", this->dataPtr->enableCoriolis, true);
 
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
@@ -389,7 +400,16 @@ void Hydrodynamics::PreUpdate(
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+  Eigen::VectorXd kTotalWrench = kDvec;
+
+  if (this->dataPtr->enableAddedMass)
+  {
+    kTotalWrench += kAmassVec;
+  }
+  else if (this->dataPtr->enableCoriolis)
+  {
+    kTotalWrench += kCmatVec;
+  }
 
   ignition::math::Vector3d
     totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));

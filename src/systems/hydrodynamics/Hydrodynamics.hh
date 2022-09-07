@@ -77,6 +77,9 @@ namespace systems
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
   ///   * <default_current> - A generic current.
   ///      [vector3d m/s, optional, default = [0,0,0]m/s]
+  ///   * <enable_coriolis> - Enable Coriolis force [Boolean, Default: true]
+  ///   * <enable_added_mass> - Enable Added Mass [Boolean, Default: true]. To
+  ///   be deprecated in Garden.
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
