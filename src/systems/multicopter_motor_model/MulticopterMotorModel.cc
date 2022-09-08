@@ -253,7 +253,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else
   {
     ignwarn << "No robotNamespace set using entity name.\n";
-    this->dataPtr->robotNamespace = scopedName(_entity, _ecm);
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
