@@ -2497,15 +2497,21 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::InitRenderEnginePluginPaths()
+{
+  ignition::common::SystemPaths pluginPath;
+  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+  rendering::setPluginPaths(pluginPath.PluginPaths());
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::Init()
 {
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
 
-  ignition::common::SystemPaths pluginPath;
-  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
-  rendering::setPluginPaths(pluginPath.PluginPaths());
+  this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
