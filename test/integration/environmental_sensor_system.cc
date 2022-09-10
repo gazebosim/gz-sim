@@ -46,7 +46,7 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
     }
 
     /////////////////////////////////////////////////
-    public: void OnRecieveMsg(const gz::msgs::Double& msg)
+    public: void OnReceiveMsg(const gz::msgs::Double& msg)
     {
         // Data set is such that sensor value == time for the first second.
         double nsec = msg.header().stamp().nsec();

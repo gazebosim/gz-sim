@@ -44,7 +44,7 @@ using namespace gz::sim;
 
 /// Sensor prefix to be used. All envionment_sensors are to be prefixed by
 /// "environment_sensor/" in their gz:type field.
-const char* SENSOR_TYPE_PREFIX =  "environmental_sensor/";
+constexpr char SENSOR_TYPE_PREFIX[] =  "environmental_sensor/";
 
 ////////////////////////////////////////////////////////////////
 /// \brief Envirtonment Sensor used for looking up environment values in our
@@ -129,7 +129,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     {
       gzwarn << "Environmental sensor could not find field "
         << this->field << "\n";
-      ready = false;
+      this->ready = false;
       return;
     }
 
@@ -233,12 +233,6 @@ void EnvironmentalSensorSystem::Configure(
   gz::sim::EventManager &/*_eventMgr*/)
 {
   dataPtr->worldEntity = _entity;
-
-  if (_sdf->HasElement("use_spherical_coordinates"))
-  {
-    this->dataPtr->useSphericalCoords =
-      _sdf->Get<bool>("use_spherical_coordinates");
-  }
 }
 
 ////////////////////////////////////////////////////////////////
