@@ -18,6 +18,8 @@
 
 #include <gz/plugin/Register.hh>
 
+#include <gz/common/StringUtils.hh>
+
 #include <sdf/Sensor.hh>
 #include <gz/sim/components/CustomSensor.hh>
 #include <gz/sim/components/Sensor.hh>
@@ -62,8 +64,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   public: virtual bool Load(const sdf::Sensor &_sdf) override
   {
     auto type = gz::sensors::customType(_sdf);
-    if (type.substr(0, strlen(SENSOR_TYPE_PREFIX)) != SENSOR_TYPE_PREFIX ||
-      type.size() <= strlen(SENSOR_TYPE_PREFIX))
+    if (!common::StartsWith(type, SENSOR_TYPE_PREFIX))
     {
       gzerr << "Trying to load [" << SENSOR_TYPE_PREFIX
         << "] sensor, but got type ["
@@ -155,25 +156,22 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     const Entity _entity,
     const EntityComponentManager& _ecm)
   {
-    if (this->gridField->reference != math::SphericalCoordinates::SPHERICAL)
+    const auto position = worldPose(_entity, _ecm);
+    if (this->gridField->reference != math::SphericalCoordinates::LOCAL2)
     {
-      auto position = worldPose(_entity, _ecm).Pos();
-      this->position = position;
-      return true;
+        auto origin = _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+        if (!origin) 
+        {
+            return false;
+        }
+        this->position = origin->Data().PositionTransform(
+            position, math::SphericalCoordinates::LOCAL2, this->gridField->reference);
     }
     else
     {
-      auto coordinates = gz::sim::sphericalCoordinates(_entity, _ecm);
-      if (!coordinates.has_value())
-      {
-        gzerr << "Sensor data is in spherical coordinates,"
-          << " but world has no spherical coordinates set.\n";
-        return false;
-      }
-
-      this->position = coordinates.value();
-      return true;
+        this->position = position;
     }
+    return true;
   }
 
   ////////////////////////////////////////////////////////////////
@@ -252,13 +250,10 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         data.SetName(sensorScopedName);
 
         auto type = gz::sensors::customType(data);
-        if (
-          type.substr(0, strlen(SENSOR_TYPE_PREFIX)) != SENSOR_TYPE_PREFIX ||
-          type.size() <= strlen(SENSOR_TYPE_PREFIX))
+        if (!common::StartsWith(type, SENSOR_TYPE_PREFIX))
         {
           return true;
         }
-
 
         // Default to scoped name as topic
         if (data.Topic().empty())
