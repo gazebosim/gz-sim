@@ -48,33 +48,29 @@ void cbDaphne(const msgs::Dataframe &_msg)
 
 int main(int argc, char** argv)
 {
-  std::vector<std::string> ns;
-  ns.push_back("triton");
-  ns.push_back("tethys");
-  ns.push_back("daphne");
-
   transport::Node node;
 
-  std::vector<std::string> rudderTopics;
-  rudderTopics.resize(ns.size(), "");
-  std::vector<gz::transport::Node::Publisher> rudderPubs;
-  rudderPubs.resize(ns.size());
+  auto propellerTopicTriton =
+    gz::transport::TopicUtils::AsValidTopic(
+      "/model/triton/joint/propeller_joint/cmd_pos");
+  auto propellerPubTriton =
+    node.Advertise<gz::msgs::Double>(propellerTopicTriton);
 
-  std::vector<std::string> propellerTopics;
-  propellerTopics.resize(ns.size(), "");
-  std::vector<gz::transport::Node::Publisher> propellerPubs;
-  propellerPubs.resize(ns.size());
+  auto propellerTopicTethys =
+    gz::transport::TopicUtils::AsValidTopic(
+      "/model/tethys/joint/propeller_joint/cmd_pos");
+  auto propellerPubTethys =
+    node.Advertise<gz::msgs::Double>(propellerTopicTethys);
 
-  // Set up topic names and publishers
-  for (int i = 0; i < ns.size(); i++)
-  {
-    propellerTopics[i] = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns[i] + "/joint/propeller_joint/cmd_pos");
-    propellerPubs[i] = node.Advertise<gz::msgs::Double>(
-      propellerTopics[i]);
-  }
+  auto propellerTopicDaphne =
+    gz::transport::TopicUtils::AsValidTopic(
+      "/model/daphne/joint/propeller_joint/cmd_pos");
+  auto propellerPubDaphne =
+    node.Advertise<gz::msgs::Double>(propellerTopicDaphne);
 
-  std::vector<double> propellerCmds = {-20, 0, 0};
+  double propellerCmdTriton = -20;
+  double propellerCmdTethys = 0;
+  double propellerCmdDaphne = 0;
 
   // Setup publishers and callbacks for comms topics.
   auto senderAddressTriton = "1";
@@ -109,23 +105,28 @@ int main(int argc, char** argv)
 
     std::cout << "--------------------------" << std::endl;
     if (tethysMsgReceived)
-      propellerCmds[1] = -20.0;
+      propellerCmdTethys = -20.0;
     else
       pub.Publish(msgTethys);
 
     if (daphneMsgReceived)
-      propellerCmds[2] = -20.0;
+      propellerCmdDaphne = -20.0;
     else
       pub.Publish(msgDaphne);
 
-    for (int i = 0; i < ns.size(); i++)
-    {
-      msgs::Double propellerMsg;
-      propellerMsg.set_data(propellerCmds[i]);
-      propellerPubs[i].Publish(propellerMsg);
+    msgs::Double propellerMsg;
+    propellerMsg.set_data(propellerCmdTriton);
+    propellerPubTriton.Publish(propellerMsg);
 
-      std::cout << "Commanding thrust: " << propellerCmds[i]
-        << " N" << std::endl;
-    }
+    propellerMsg.set_data(propellerCmdTethys);
+    propellerPubTethys.Publish(propellerMsg);
+
+    propellerMsg.set_data(propellerCmdDaphne);
+    propellerPubDaphne.Publish(propellerMsg);
+
+    std::cout << "Commanding thrust: " << std::endl;
+    std::cout << "triton : " << propellerCmdTriton << " N" << std::endl;
+    std::cout << "tethys : " << propellerCmdTethys << " N" << std::endl;
+    std::cout << "daphne : " << propellerCmdDaphne << " N" << std::endl;
   }
 }
