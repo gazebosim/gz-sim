@@ -41,7 +41,7 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
         node.Subscribe("/world/environmental_sensor_test/"
             "model/model_with_sensor/link/link/sensor/custom_sensor/"
             "environmental_sensor/humidity",
-            &EnvironmentSensorTest::OnRecieveMsg,
+            &EnvironmentSensorTest::OnReceiveMsg,
             this);
     }
 

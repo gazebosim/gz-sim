@@ -28,7 +28,10 @@ namespace gz
 namespace sim
 {
 class EnvironmentalSensorSystemPrivate;
-/// \brief Environmental data loaded from the outside world.
+/// \brief Sensor for reading environmental data loaded from outside world.
+/// To use add this system to the world file, then instantiate sensors of custom
+/// type with gz:type="environmental_sensor/{field_name}". Where field_name
+/// refers to the type of data you would like to output.
 class EnvironmentalSensorSystem:
   public gz::sim::System,
   public gz::sim::ISystemConfigure,
