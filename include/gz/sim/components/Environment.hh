@@ -38,7 +38,7 @@ namespace components
 {
   /// \brief Environment data across time and space. This is useful to
   /// introduce physical quantities that may be of interest even if not
-  /// modelled in simulation. 
+  /// modelled in simulation.
   struct EnvironmentalData
   {
     using T = math::InMemoryTimeVaryingVolumetricGrid<double>;
@@ -57,7 +57,7 @@ namespace components
     /// \brief Environmental data frame.
     FrameT frame;
 
-    /// \brief Spatial reference for data coordinates. 
+    /// \brief Spatial reference for data coordinates.
     ReferenceT reference;
   };
 
