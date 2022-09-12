@@ -19,7 +19,7 @@
  * Check README for detailed instructions.
  * Usage:
  *   $ gz sim -r worlds/acoustic_comms_demo.sdf
- *   $ acoustic_comms_demo
+ *   $ ./acoustic_comms_demo
  */
 
 #include <atomic>
@@ -32,19 +32,6 @@
 #include <gz/transport.hh>
 
 using namespace gz;
-
-std::atomic<bool> tethysMsgReceived = false;
-std::atomic<bool> daphneMsgReceived = false;
-
-void cbTethys(const msgs::Dataframe &_msg)
-{
-  tethysMsgReceived = true;
-}
-
-void cbDaphne(const msgs::Dataframe &_msg)
-{
-  daphneMsgReceived = true;
-}
 
 int main(int argc, char** argv)
 {
@@ -77,6 +64,22 @@ int main(int argc, char** argv)
 
   std::string receiverAddressTethys = "2";
   std::string receiverAddressDaphne = "3";
+
+  // Set up callbacks
+  std::atomic<bool> tethysMsgReceived = false;
+  std::atomic<bool> daphneMsgReceived = false;
+
+  std::function<void(const msgs::Dataframe &)> cbTethys =
+    [&](const msgs::Dataframe &_msg)
+  {
+    tethysMsgReceived = true;
+  };
+
+  std::function<void(const msgs::Dataframe &)> cbDaphne =
+    [&](const msgs::Dataframe &_msg)
+  {
+    daphneMsgReceived = true;
+  };
 
   node.Subscribe("/" + receiverAddressTethys + "/rx", cbTethys);
   node.Subscribe("/" + receiverAddressDaphne + "/rx", cbDaphne);
