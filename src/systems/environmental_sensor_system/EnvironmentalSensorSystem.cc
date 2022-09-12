@@ -22,10 +22,11 @@
 
 #include <sdf/Sensor.hh>
 #include <gz/sim/components/CustomSensor.hh>
-#include <gz/sim/components/Sensor.hh>
-#include <gz/sim/components/ParentEntity.hh>
-#include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Environment.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Sensor.hh>
+#include <gz/sim/components/SphericalCoordinates.hh>
 #include <gz/sim/Util.hh>
 
 #include <gz/sensors/SensorFactory.hh>
@@ -77,7 +78,16 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     this->pub = this->node.Advertise<gz::msgs::Double>(this->Topic());
 
-    this->field = type.substr(strlen(SENSOR_TYPE_PREFIX));
+    // If "csv_column" is defined then remap sensor from existing data.
+    if (_sdf.Element() != nullptr &&
+      _sdf.Element()->HasElement("csv_column"))
+    {
+      this->field = _sdf.Element()->Get<std::string>("csv_column");
+    }
+    else
+    {
+      this->field = type.substr(strlen(SENSOR_TYPE_PREFIX));
+    }
 
     gzdbg << "Loaded environmental sensor for " << this->field
       << " publishing on " << this->Topic() << std::endl;
@@ -156,11 +166,12 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     const Entity _entity,
     const EntityComponentManager& _ecm)
   {
-    const auto position = worldPose(_entity, _ecm);
+    const auto position = worldPose(_entity, _ecm).Pos();
     if (this->gridField->reference != math::SphericalCoordinates::LOCAL2)
     {
-        auto origin = _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
-        if (!origin) 
+        auto origin =
+          _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+        if (!origin)
         {
             return false;
         }
