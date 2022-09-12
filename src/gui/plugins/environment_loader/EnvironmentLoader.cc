@@ -27,6 +27,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gz/common/CSVStreams.hh>
