@@ -104,23 +104,23 @@ since pose information is being logged in the `changed_state` topic.
 * The `GzScene3D` GUI plugin is being deprecated in favor of `MinimalScene`. In
   order to get the same functionality as `GzScene3D`, users need to add the
   following plugins:
-      + `MinimalScene`: base rendering functionality
-      + `GzSceneManager`: adds / removes / moves entities in the scene
-      + `EntityContextMenuPlugin`: right-click menu
-      + `InteractiveViewControl`: orbit controls
-      + `CameraTracking`: Move to, follow, set camera pose
-      + `MarkerManager`: Enables the use of markers
-      + `SelectEntities`: Select entities clicking on the scene
-      + `Spawn`: Functionality to spawn entities into the scene via GUI
-      + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
+    + `MinimalScene`: base rendering functionality
+    + `GzSceneManager`: adds / removes / moves entities in the scene
+    + `EntityContextMenuPlugin`: right-click menu
+    + `InteractiveViewControl`: orbit controls
+    + `CameraTracking`: Move to, follow, set camera pose
+    + `MarkerManager`: Enables the use of markers
+    + `SelectEntities`: Select entities clicking on the scene
+    + `Spawn`: Functionality to spawn entities into the scene via GUI
+    + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
 
   SDF code for all these can be found in:
   https://github.com/gazebosim/gz-sim/blob/ff1c82b41e548dfdc8076374f9500db2df2c35a1/examples/worlds/minimal_scene.sdf#L29-L128
 
-    Moreover, legacy mode needs to be turned off for the following plugins
-    for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
-      + `TransformControl`: Translate and rotate
-      + `ViewAndle`: Move camera to preset angles
+  Moreover, legacy mode needs to be turned off for the following plugins
+  for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
+    + `TransformControl`: Translate and rotate
+    + `ViewAndle`: Move camera to preset angles
 
 * The `gui.config` and `server.config` files are now located in a versioned
   folder inside `$HOME/.gz/sim`, i.e. `$HOME/.gz/sim/6/gui.config`.
