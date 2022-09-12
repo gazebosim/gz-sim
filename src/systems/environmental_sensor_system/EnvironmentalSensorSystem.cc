@@ -89,6 +89,13 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       this->field = type.substr(strlen(SENSOR_TYPE_PREFIX));
     }
 
+    // Allow setting custom frame_ids
+    if (_sdf.Element() != nullptr &&
+      _sdf.Element()->HasElement("frame_id"))
+    {
+      this->frame_id = _sdf.Element()->Get<std::string>("frame_id");
+    }
+
     gzdbg << "Loaded environmental sensor for " << this->field
       << " publishing on " << this->Topic() << std::endl;
 
@@ -115,7 +122,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
     auto frame = msg.mutable_header()->add_data();
     frame->set_key("frame_id");
-    frame->add_value(this->Name());
+    frame->add_value((this->frame_id == "") ? this->Name() : this->frame_id);
     auto data = this->gridField->frame[this->field].LookUp(
       this->session.value(), this->position);
     if (!data.has_value())
@@ -176,7 +183,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
             return false;
         }
         this->position = origin->Data().PositionTransform(
-            position, math::SphericalCoordinates::LOCAL2, this->gridField->reference);
+            position, math::SphericalCoordinates::LOCAL2,
+            this->gridField->reference);
     }
     else
     {
@@ -194,6 +202,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   private: bool ready {false};
   private: math::Vector3d position;
   private: std::string field;
+  private: std::string frame_id{""};
   private: std::optional<gz::math::InMemorySession<double, double>> session;
   private: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
     gridField;
