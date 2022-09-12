@@ -79,11 +79,11 @@ int main(int argc, char** argv)
   // Setup publishers and callbacks for comms topics.
   auto senderAddressTriton = "1";
 
-  auto receiverAddressTethys = "2";
-  auto receiverAddressDaphne = "3";
+  std::string receiverAddressTethys = "2";
+  std::string receiverAddressDaphne = "3";
 
-  node.Subscribe(std::string("/2/rx"), cbTethys);
-  node.Subscribe(std::string("/3/rx"), cbDaphne);
+  node.Subscribe("/" + receiverAddressTethys + "/rx", cbTethys);
+  node.Subscribe("/" + receiverAddressDaphne + "/rx", cbDaphne);
 
   // Publisher to send the START msg.
   auto pub = node.Advertise<gz::msgs::Dataframe>(
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
       propellerPubs[i].Publish(propellerMsg);
 
       std::cout << "Commanding thrust: " << propellerCmds[i]
-        << " Newtons" << std::endl;
+        << " N" << std::endl;
     }
   }
 }
