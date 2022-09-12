@@ -457,7 +457,7 @@ std::unique_ptr<gz::gui::Application> createGui(
                 "</gz-gui>"));
             }
 
-            msg += " SDF code to replace GzScene3D is available at "
+            msg += " SDF code to replace GzScene3D is available at " +
               " https://github.com/gazebosim/gz-sim/blob/gz-sim7/Migration.md\n"
 
             gzwarn << msg;
