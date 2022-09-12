@@ -48,6 +48,10 @@ message's header.
       * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
       * CMake `-config` files
       * Paths that depend on the project name
+
+  * The `Scene3D` plugin has been removed and replaced with `gz-gui`'s `MinimalScene` plugin. See
+    this same document for the instructions to replace it when it was deprecated 5.x to 6.x.
+
 * Python library `ignition` namespaces should be replaced with `gz`.
 
 ## Gazebo Sim 6.1 to 6.2
@@ -109,6 +113,9 @@ since pose information is being logged in the `changed_state` topic.
       + `SelectEntities`: Select entities clicking on the scene
       + `Spawn`: Functionality to spawn entities into the scene via GUI
       + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
+
+  SDF code for all these can be found in:
+  https://github.com/gazebosim/gz-sim/blob/ff1c82b41e548dfdc8076374f9500db2df2c35a1/examples/worlds/minimal_scene.sdf#L29-L128
 
     Moreover, legacy mode needs to be turned off for the following plugins
     for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
