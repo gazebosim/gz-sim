@@ -1109,9 +1109,7 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       {
         this->removeEntities[_entity] = _info.iterations;
         this->entityPoses.erase(_entity);
-        this->actorAnimationData.erase(_entity);
         this->actorTransforms.erase(_entity);
-        this->trajectoryPoses.erase(_entity);
         return true;
       });
   _ecm.EachRemoved<components::Model>(
