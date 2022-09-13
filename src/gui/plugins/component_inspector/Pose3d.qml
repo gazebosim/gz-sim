@@ -103,6 +103,7 @@ Rectangle {
         GzPose {
           id: gzPoseInstance
           Layout.fillWidth: true
+          Layout.preferredWidth: parent.width
 
           readOnly: {
             var isModel = entityType == "model"
