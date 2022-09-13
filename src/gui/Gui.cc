@@ -438,7 +438,9 @@ std::unique_ptr<gz::gui::Application> createGui(
                 "VisualizationCapabilities"};
 
             std::string msg{
-                "The [GzScene3D] GUI plugin has been removed since Garden. "
+                "The [GzScene3D] GUI plugin has been removed since Garden.\n"
+                "SDF code to replace GzScene3D is available at "
+                "https://github.com/gazebosim/gz-sim/blob/gz-sim7/Migration.md\n"
                 "Loading the following plugins instead:\n"};
 
             for (auto extra : extras)
@@ -456,9 +458,6 @@ std::unique_ptr<gz::gui::Application> createGui(
                 "  <property key='resizable' type='bool'>false</property>"
                 "</gz-gui>"));
             }
-
-            msg += " SDF code to replace GzScene3D is available at " +
-              " https://github.com/gazebosim/gz-sim/blob/gz-sim7/Migration.md\n"
 
             gzwarn << msg;
 
