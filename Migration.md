@@ -51,7 +51,7 @@ message's header.
 
   * The `Scene3D` plugin has been removed and replaced with `gz-gui`'s `MinimalScene` plugin. See
     this same document for the instructions to replace it when it was deprecated 5.x to 6.x.
-    The setting `<legacy>false</legacy>` is no longer required for TransformControl` and
+   Setting `<legacy>false</legacy>` is no longer required for `TransformControl` and
     `ViewAndle` plugins.
 
 * Python library `ignition` namespaces should be replaced with `gz`.
