@@ -382,7 +382,8 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   // Only update if the thrust coefficient was not set by configuration
   // and angular velocity is not zero. Some velocity is needed to calculate
   // the thrust coefficient otherwise it will never start moving.
-  if (!this->thrustCoefficientSet && this->propellerAngVel !=0)
+  if (!this->thrustCoefficientSet &&
+      std::abs(this->propellerAngVel) < std::numeric_limits<double>::epsilon())
   {
     this->UpdateThrustCoefficient();
   }
