@@ -192,6 +192,25 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
 )
 
+add_executable(gzserver
+  server_main.cc
+)
+
+target_link_libraries(gzserver
+  gz-utils${GZ_UTILS_VER}::cli
+  ${PROJECT_LIBRARY_TARGET_NAME}
+)
+
+add_executable(gzclient
+  gui_main.cc
+)
+
+target_link_libraries(gzclient
+  gz-utils${GZ_UTILS_VER}::cli
+  ${PROJECT_LIBRARY_TARGET_NAME}
+  gz-sim${PROJECT_VERSION_MAJOR}-gui
+)
+
 # Command line tests need extra settings
 foreach(CMD_TEST
   UNIT_gz_TEST
