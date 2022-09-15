@@ -36,32 +36,10 @@ function(configure_build_install_location _library_name)
   install(TARGETS ${_library_name}
     DESTINATION "${GZ_PYTHON_INSTALL_PATH}"
   )
-
-  # TODO(CH3): Deprecated. Remove on tock.
-  # Install Python library symlinks
-  if(${GZ_PYTHON_INSTALL_PATH} MATCHES "gz$")
-    cmake_policy(SET CMP0087 NEW)  # Allow evaluation of generator expressions in install(CODE )
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ignition")
-
-    string(REGEX REPLACE "gz$" "ignition" IGN_PYTHON_INSTALL_PATH ${GZ_PYTHON_INSTALL_PATH})
-    if (WIN32)  # Windows requires copy instead of symlink
-      install(TARGETS ${_library_name}
-        DESTINATION "${IGN_PYTHON_INSTALL_PATH}"
-      )
-    else()
-      install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink \
-          ../gz/$<TARGET_FILE_NAME:${_library_name}> \
-          ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>)")
-      install(FILES ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>
-        DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
-      )
-    endif()
-  endif()
-
 endfunction()
 
-# TODO(CH3): Deprecated. Remove on tock. Duplicating to reduce work...
-pybind11_add_module(gazebo SHARED
+set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
+pybind11_add_module(${BINDINGS_MODULE_NAME} SHARED
   src/gz/sim/_gz_sim_pybind11.cc
   src/gz/sim/EntityComponentManager.cc
   src/gz/sim/EventManager.cc
@@ -73,25 +51,7 @@ pybind11_add_module(gazebo SHARED
   src/gz/sim/World.cc
 )
 
-# TODO(CH3): Deprecated. Remove on tock. Duplicating to reduce work...
-target_link_libraries(gazebo PRIVATE
-  ${PROJECT_LIBRARY_TARGET_NAME}
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-)
-
-pybind11_add_module(sim SHARED
-  src/gz/sim/_gz_sim_pybind11.cc
-  src/gz/sim/EntityComponentManager.cc
-  src/gz/sim/EventManager.cc
-  src/gz/sim/TestFixture.cc
-  src/gz/sim/Server.cc
-  src/gz/sim/ServerConfig.cc
-  src/gz/sim/UpdateInfo.cc
-  src/gz/sim/Util.cc
-  src/gz/sim/World.cc
-)
-
-target_link_libraries(sim PRIVATE
+target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
@@ -106,8 +66,7 @@ target_link_libraries(common PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-configure_build_install_location(gazebo)  # TODO(CH3): Deprecated. Remove on tock.
-configure_build_install_location(sim)
+configure_build_install_location(${BINDINGS_MODULE_NAME})
 configure_build_install_location(common)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -117,7 +76,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   if(${pybind11_VERSION} VERSION_LESS "2.4.4")
     target_compile_options(common PRIVATE -fsized-deallocation)
     target_compile_options(sim PRIVATE -fsized-deallocation)
-    target_compile_options(gazebo PRIVATE -fsized-deallocation)  # TODO(CH3): Deprecated. Remove on tock.
   endif()
 endif()
 
