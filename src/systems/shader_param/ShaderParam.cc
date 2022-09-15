@@ -306,8 +306,6 @@ void ShaderParamPrivate::OnUpdate()
   {
     auto mat = scene->CreateMaterial();
 
-    bool shadersSet = false;
-
     if (scene->Engine() && scene->Engine()->GraphicsAPI() ==
         rendering::GraphicsAPI::METAL)
     {
