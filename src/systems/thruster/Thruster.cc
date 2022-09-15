@@ -16,6 +16,7 @@
  */
 #include <memory>
 #include <mutex>
+#include <limits>
 #include <string>
 
 #include <ignition/msgs/double.pb.h>
@@ -383,7 +384,7 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   // and angular velocity is not zero. Some velocity is needed to calculate
   // the thrust coefficient otherwise it will never start moving.
   if (!this->thrustCoefficientSet &&
-      std::abs(this->propellerAngVel) < std::numeric_limits<double>::epsilon())
+      std::abs(this->propellerAngVel) > std::numeric_limits<double>::epsilon())
   {
     this->UpdateThrustCoefficient();
   }
@@ -458,7 +459,8 @@ void Thruster::PreUpdate(
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     desiredThrust = this->dataPtr->thrust;
-    this->dataPtr->propellerAngVel = this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
+    this->dataPtr->propellerAngVel =
+        this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
 
