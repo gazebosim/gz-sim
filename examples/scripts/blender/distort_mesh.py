@@ -4,7 +4,7 @@
 #
 # Usage:
 #   This script is to be run from within the Blender GUI. Tested in Blender
-#   2.92.
+#   2.92, 3.0.1 and 3.2.
 #   distort_mesh.py <mesh_path> <object_prefix> [distort_extent] [method]
 #   where
 #   mesh_path: Absolute path to mesh file
