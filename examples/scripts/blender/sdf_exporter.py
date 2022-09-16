@@ -7,7 +7,7 @@ from bpy.types import Operator
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-# Target blender version: 2.82
+# Tested Blender version: 2.82/3.2
 
 ########################################################################################################################
 ### Exports model.dae of the scene with textures, its corresponding model.sdf file, and a default model.config file ####
@@ -22,7 +22,7 @@ def export_sdf(prefix_path):
     meshes_folder_prefix = 'meshes/'
     
     # Exports the dae file and its associated textures
-    bpy.ops.wm.collada_export(filepath=prefix_path+meshes_folder_prefix+dae_filename, check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
+    bpy.ops.wm.collada_export(filepath=os.path.join(prefix_path, meshes_folder_prefix, dae_filename), check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
 
     # objects = bpy.context.selected_objects
     objects = bpy.context.selectable_objects
@@ -46,21 +46,22 @@ def export_sdf(prefix_path):
         geometry = ET.SubElement(visual, "geometry")
         mesh = ET.SubElement(geometry, "mesh")
         uri = ET.SubElement(mesh, "uri")
-        uri.text = dae_filename
+        uri.text = os.path.join(meshes_folder_prefix, dae_filename)
         submesh = ET.SubElement(mesh, "submesh")
         submesh_name = ET.SubElement(submesh, "name")
         submesh_name.text = o.name
         
         # grab diffuse/albedo map
-        diffuse_map = ""    
-        nodes = o.active_material.node_tree.nodes
-        principled = next(n for n in nodes if n.type == 'BSDF_PRINCIPLED')
-        if principled is not None:
-            base_color = principled.inputs['Base Color'] #Or principled.inputs[0]
-            value = base_color.default_value
-            if len(base_color.links):
-                link_node = base_color.links[0].from_node
-                diffuse_map = link_node.image.name
+        diffuse_map = ""
+        if o.active_material is not None: 
+            nodes = o.active_material.node_tree.nodes
+            principled = next(n for n in nodes if n.type == 'BSDF_PRINCIPLED')
+            if principled is not None:
+                base_color = principled.inputs['Base Color'] #Or principled.inputs[0]
+                value = base_color.default_value
+                if len(base_color.links):
+                    link_node = base_color.links[0].from_node
+                    diffuse_map = link_node.image.name
         
         # setup diffuse/specular color
         material = ET.SubElement(visual, "material")
