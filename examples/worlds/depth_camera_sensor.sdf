@@ -102,6 +102,7 @@
         <gz-gui>
           <property key="state" type="string">docked</property>
         </gz-gui>
+        <topic>depth_camera</topic>
       </plugin>
     </gui>
 
