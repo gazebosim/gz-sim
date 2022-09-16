@@ -56,6 +56,9 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
+target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
+  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
+
 # TODO(ahcorde): Move this module to gz-common
 pybind11_add_module(common SHARED
   src/gz/common/_gz_common_pybind11.cc
