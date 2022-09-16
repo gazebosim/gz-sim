@@ -49,11 +49,10 @@ message's header.
       * CMake `-config` files
       * Paths that depend on the project name
 
-* Python library imports such `import ignition.gazebo and `from ignition import
+* Python library imports such `import ignition.gazebo` and `from ignition import
   gazebo` should be replaced with `import gz.sim7` and `from gz import sim7`.
   Note the change from `ignition` to `gz` and the addition of the major version
   number as a suffix to the package name.
-
 
 ## Gazebo Sim 6.1 to 6.2
 
