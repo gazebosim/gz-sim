@@ -136,6 +136,7 @@
         <gz-gui>
           <property key="state" type="string">docked</property>
         </gz-gui>
+        <topic>camera</topic>
       </plugin>
 
       <!-- Inspector -->
