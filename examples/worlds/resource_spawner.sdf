@@ -24,7 +24,6 @@
     </plugin>
 
     <gui fullscreen="0">
-
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
         <gz-gui>
