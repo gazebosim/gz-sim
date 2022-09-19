@@ -92,12 +92,10 @@
             <line own="bottom" target="bottom"/>
           </anchors>
         </gz-gui>
-
         <play_pause>true</play_pause>
         <step>true</step>
         <start_paused>true</start_paused>
         <use_event>true</use_event>
-
       </plugin>
 
       <!-- World statistics -->
