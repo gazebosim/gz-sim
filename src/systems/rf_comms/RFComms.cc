@@ -128,6 +128,9 @@ struct RadioState
 
   /// \brief Accumulation of bytes received in an epoch.
   uint64_t bytesReceivedThisEpoch = 0;
+
+  /// \brief Name of the model associated with the radio.
+  std::string name;
 };
 
 /// \brief Type for holding RF power as a Normally distributed random variable.
@@ -262,8 +265,8 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // Check current epoch bitrate vs capacity and fail to send accordingly
   if (bitsSent > this->radioConfig.capacity * this->epochDuration)
   {
-    ignwarn << "Bitrate limited: " << bitsSent << "bits sent (limit: "
-            << this->radioConfig.capacity * this->epochDuration << std::endl;
+    ignwarn << "Bitrate limited: [" << _txState.name << "] " << bitsSent << "bits sent (limit: "
+            << this->radioConfig.capacity * this->epochDuration << ")" << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
@@ -320,9 +323,9 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // Check current epoch bitrate vs capacity and fail to send accordingly.
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)
   {
-    // ignwarn << "Bitrate limited: " <<  bitsReceived
-    //         << "bits received (limit: "
-    //         << this->radioConfig.capacity * this->epochDuration << std::endl;
+    ignwarn << "Bitrate limited: [" << _rxState.name << "] " <<  bitsReceived
+            << "bits received (limit: "
+            << this->radioConfig.capacity * this->epochDuration << ")" << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
@@ -421,6 +424,7 @@ void RFComms::Step(
       this->dataPtr->radioStates[address].pose = kPose;
       this->dataPtr->radioStates[address].timeStamp =
         std::chrono::duration<double>(_info.simTime).count();
+      this->dataPtr->radioStates[address].name = content.modelName;
     }
   }
 
