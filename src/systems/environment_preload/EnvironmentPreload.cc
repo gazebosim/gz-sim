@@ -93,10 +93,11 @@ void EnvironmentPreload::PreUpdate(
       return;
     }
 
+    components::EnvironmentalData::ReferenceUnits unit{
+      components::EnvironmentalData::ReferenceUnits::RADIANS};
     std::string timeColumnName{"t"};
     std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
     auto spatialReference = math::SphericalCoordinates::GLOBAL;
-
     sdf::ElementConstPtr elem =
         this->dataPtr->sdf->FindElement("dimensions");
     if (elem)
@@ -108,10 +109,12 @@ void EnvironmentPreload::PreUpdate(
       elem = elem->FindElement("space");
       if (elem)
       {
+        gzerr << "Using custom reference\n" ;
         if (elem->HasAttribute("reference"))
         {
           const std::string referenceName =
               elem->Get<std::string>("reference");
+          gzerr << "Using custom reference" << referenceName;
           if (referenceName == "global")
           {
             spatialReference = math::SphericalCoordinates::GLOBAL;
@@ -119,6 +122,18 @@ void EnvironmentPreload::PreUpdate(
           else if (referenceName == "spherical")
           {
             spatialReference = math::SphericalCoordinates::SPHERICAL;
+            if (elem->HasAttribute("units"))
+            {
+              std::string unitName = elem->Get<std::string>("units");
+              if (unitName == "degrees")
+              {
+                unit = components::EnvironmentalData::ReferenceUnits::DEGREES;
+              }
+              else if (unitName != "radians")
+              {
+                ignerr << "Unrecognized unit " << unitName << "\n";
+              }
+            }
           }
           else if (referenceName == "ecef")
           {
@@ -151,7 +166,7 @@ void EnvironmentPreload::PreUpdate(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
               timeColumnName, spatialColumnNames),
-          spatialReference);
+          spatialReference, unit);
 
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
