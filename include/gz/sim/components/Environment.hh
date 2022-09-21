@@ -59,7 +59,7 @@ namespace components
     /// them.
     static std::shared_ptr<EnvironmentalData>
     MakeShared(FrameT _frame, ReferenceT _reference,
-      ReferenceUnits _units=RADIANS);
+      ReferenceUnits _units=RADIANS, bool _ignoreTimeStep = false);
 
     /// \brief Environmental data frame.
     FrameT frame;
@@ -69,6 +69,9 @@ namespace components
 
     /// \brief The units to be used (only for spherical coordinates)
     ReferenceUnits units;
+
+    /// \brief Use time axis or not.
+    bool staticTime;
   };
 
   /// \brief A component type that contains a environment data.

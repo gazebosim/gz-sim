@@ -113,8 +113,10 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     if (!this->session.has_value()) return false;
 
-    this->session = this->gridField->frame[this->field].StepTo(
-      this->session.value(), std::chrono::duration<double>(_now).count());
+    // Step time if its not static
+    if (!this->gridField->staticTime)
+      this->session = this->gridField->frame[this->field].StepTo(
+        this->session.value(), std::chrono::duration<double>(_now).count());
 
     if (!this->session.has_value()) return false;
 
@@ -127,11 +129,10 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       this->session.value(), this->position);
     if (!data.has_value())
     {
-      //gzwarn << "Failed to acquire value perhaps out of field?\n";
+      gzwarn << "Failed to acquire value perhaps out of field?\n";
       return false;
     }
     msg.set_data(data.value());
-
     // TODO(anyone) Add sensor noise.
     this->pub.Publish(msg);
     return true;
@@ -157,9 +158,12 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     this->gridField = data;
     this->session = this->gridField->frame[this->field].CreateSession();
-    this->session = this->gridField->frame[this->field].StepTo(
-      *this->session,
-      std::chrono::duration<double>(_curr_time).count());
+    if (!this->gridField->staticTime)
+    {
+      this->session = this->gridField->frame[this->field].StepTo(
+        *this->session,
+        std::chrono::duration<double>(_curr_time).count());
+    }
     this->ready = true;
 
     if(!this->session.has_value())

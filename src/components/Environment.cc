@@ -24,11 +24,12 @@ using namespace gz::sim::components;
 
 std::shared_ptr<EnvironmentalData>
 EnvironmentalData::MakeShared(FrameT _frame, ReferenceT _reference, 
-  ReferenceUnits _units)
+  ReferenceUnits _units, bool _ignoreTimeStep)
 {
   auto data = std::make_shared<EnvironmentalData>();
   data->frame = std::move(_frame);
   data->reference = _reference;
   data->units = _units;
+  data->staticTime = _ignoreTimeStep;
   return data;
 }
