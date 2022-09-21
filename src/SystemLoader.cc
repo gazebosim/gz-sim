@@ -150,7 +150,7 @@ class gz::sim::SystemLoaderPrivate
          << "- Detected Plugins:\n";
       for (const auto &pluginIt : pluginNames)
       {
-        ss << "  - " << pluginIt;
+        ss << "  - " << pluginIt << "\n";
         auto aliases = this->loader.AliasesOfPlugin(pluginIt);
         if (!aliases.empty())
         {
