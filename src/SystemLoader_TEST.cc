@@ -15,6 +15,7 @@
  *
 */
 
+#include "gtest/gtest.h"
 #include <gtest/gtest.h>
 
 #include <sdf/Root.hh>
@@ -65,8 +66,11 @@ TEST(SystemLoader, EmptyNames)
 {
   sim::SystemLoader sm;
   sdf::Plugin plugin;
+  ::testing::internal::CaptureStderr();
   auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());
+  auto output = ::testing::internal::GetCapturedStderr();
+  EXPECT_NE(std::string::npos, output.find("empty argument"));
 }
 
 /////////////////////////////////////////////////
@@ -91,10 +95,14 @@ TEST(SystemLoader, BadLibraryPath)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
+      ::testing::internal::CaptureStderr();
       sdf::Plugin plugin;
       plugin.Load(pluginElem);
       auto system = sm.LoadPlugin(plugin);
       ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("Could not find shared library")) << output.c_str();
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
@@ -123,10 +131,14 @@ TEST(SystemLoader, BadPluginName)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
+      ::testing::internal::CaptureStderr();
       sdf::Plugin plugin;
       plugin.Load(pluginElem);
       auto system = sm.LoadPlugin(plugin);
       ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("library does not contain")) << output.c_str();
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
