@@ -326,7 +326,7 @@ void ShaderParamPrivate::OnUpdate()
       {
         mat->SetVertexShader(it->second.vertexShaderUri);
         mat->SetFragmentShader(it->second.fragmentShaderUri);
-        gzmsg << "Using glsll shaders. " << std::endl;
+        gzmsg << "Using glsl shaders. " << std::endl;
       }
     }
 
