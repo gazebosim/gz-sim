@@ -96,12 +96,17 @@ void EnvironmentPreload::PreUpdate(
     components::EnvironmentalData::ReferenceUnits unit{
       components::EnvironmentalData::ReferenceUnits::RADIANS};
     std::string timeColumnName{"t"};
+    bool ignoreTime = false;
     std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
     auto spatialReference = math::SphericalCoordinates::GLOBAL;
     sdf::ElementConstPtr elem =
         this->dataPtr->sdf->FindElement("dimensions");
     if (elem)
     {
+      if (elem->HasElement("ignore_time"))
+      {
+        ignoreTime = elem->Get<bool>("ignore_time");
+      }
       if (elem->HasElement("time"))
       {
         timeColumnName = elem->Get<std::string>("time");
@@ -166,7 +171,7 @@ void EnvironmentPreload::PreUpdate(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
               timeColumnName, spatialColumnNames),
-          spatialReference, unit);
+          spatialReference, unit, ignoreTime);
 
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
