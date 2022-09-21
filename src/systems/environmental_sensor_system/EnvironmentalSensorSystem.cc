@@ -173,10 +173,13 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   /// to track a given entity,
   /// \param[in] - The sensor entity.
   /// \param[in] - The ECM to use for tracking.
+  /// \returns True if successful, false if not.
   public: bool UpdatePosition(
     const Entity _entity,
     const EntityComponentManager& _ecm)
   {
+    if (!this->ready) return false;
+
     const auto position = worldPose(_entity, _ecm).Pos();
     if (this->gridField->reference != math::SphericalCoordinates::LOCAL2)
     {
