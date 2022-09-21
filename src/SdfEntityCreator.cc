@@ -22,6 +22,16 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
+#if __APPLE__
+// This is here to avoid segfaults on macOS tests. The segfaults
+// happen when components are registered by plugins and component creation is
+// attempted after the plugin that registered the component has been unloaded.
+// Including this header insures that all components are registered by the core
+// library ahead of any plugin.
+// TODO (azeey) Find a better solution for keeping track of component
+// registrations.
+#include "gz/sim/components/components.hh"
+#else
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
@@ -81,6 +91,7 @@
 #include "gz/sim/components/WideAngleCamera.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
+#endif
 
 class gz::sim::SdfEntityCreatorPrivate
 {
