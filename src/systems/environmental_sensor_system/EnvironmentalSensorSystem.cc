@@ -213,7 +213,6 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     {
         this->position = position;
     }
-    gzerr << this->position << "\n";
     return true;
   }
 
@@ -304,10 +303,6 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         {
           std::string topic = scopedName(_entity, _ecm) + "/" + type;
           data.SetTopic(topic);
-        }
-        else
-        {
-          gzerr << data.Topic() << std::endl;
         }
 
         gz::sensors::SensorFactory sensorFactory;
