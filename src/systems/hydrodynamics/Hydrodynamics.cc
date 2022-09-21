@@ -406,7 +406,7 @@ void Hydrodynamics::PreUpdate(
   {
     kTotalWrench += kAmassVec;
   }
-  else if (this->dataPtr->enableCoriolis)
+  if (this->dataPtr->enableCoriolis)
   {
     kTotalWrench += kCmatVec;
   }
