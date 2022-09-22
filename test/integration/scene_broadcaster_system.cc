@@ -656,6 +656,7 @@ TEST_P(SceneBroadcasterTest,
       // remove a component from an entity
       if (_info.iterations == 2)
       {
+        std::vector<sim::Entity> entitiesToRemoveFrom;
         _ecm.Each<gz::sim::components::Model,
                   gz::sim::components::Name,
                   gz::sim::components::Pose>(
@@ -666,10 +667,14 @@ TEST_P(SceneBroadcasterTest,
           {
             if (_name->Data() == "box")
             {
-              _ecm.RemoveComponent<gz::sim::components::Pose>(_entity);
+              entitiesToRemoveFrom.push_back(_entity);
             }
             return true;
           });
+        for (const auto &entity : entitiesToRemoveFrom)
+        {
+          _ecm.RemoveComponent<gz::sim::components::Pose>(entity);
+        }
       }
       // add a component to an entity
       else if (_info.iterations == 3)
