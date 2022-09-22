@@ -54,7 +54,11 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _plugin.ToElement());
+    SystemInternal ss(system.value(), _entity);
+    ss.fname = _plugin.Filename();
+    ss.name = _plugin.Name();
+    ss.configureSdf = _plugin.ToElement();
+    this->AddSystemImpl(ss, ss.configureSdf);
     gzdbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
