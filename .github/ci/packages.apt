@@ -1,4 +1,5 @@
 freeglut3-dev
+libbenchmark-dev
 libdart-collision-ode-dev
 libdart-dev
 libdart-external-ikfast-dev
