@@ -671,7 +671,7 @@ TEST_P(SceneBroadcasterTest,
             }
             return true;
           });
-        for (const auto& entity: entitiesToRemoveFrom)
+        for (const auto &entity : entitiesToRemoveFrom)
         {
           _ecm.RemoveComponent<gz::sim::components::Pose>(entity);
         }
