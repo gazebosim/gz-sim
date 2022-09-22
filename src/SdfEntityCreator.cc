@@ -22,6 +22,16 @@
 #include "ignition/gazebo/Events.hh"
 #include "ignition/gazebo/SdfEntityCreator.hh"
 
+#if __APPLE__
+// This is here to avoid segfaults on macOS tests. The segfaults
+// happen when components are registered by plugins and component creation is
+// attempted after the plugin that registered the component has been unloaded.
+// Including this header insures that all components are registered by the core
+// library ahead of any plugin.
+// TODO(azeey) Find a better solution for keeping track of component
+// registrations.
+#include "ignition/gazebo/components/components.hh"
+#else
 #include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AirPressureSensor.hh"
 #include "ignition/gazebo/components/Altimeter.hh"
@@ -80,6 +90,7 @@
 #include "ignition/gazebo/components/Visual.hh"
 #include "ignition/gazebo/components/WindMode.hh"
 #include "ignition/gazebo/components/World.hh"
+#endif
 
 class ignition::gazebo::SdfEntityCreatorPrivate
 {
