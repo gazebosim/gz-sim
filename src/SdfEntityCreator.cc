@@ -28,7 +28,7 @@
 // attempted after the plugin that registered the component has been unloaded.
 // Including this header insures that all components are registered by the core
 // library ahead of any plugin.
-// TODO (azeey) Find a better solution for keeping track of component
+// TODO(azeey) Find a better solution for keeping track of component
 // registrations.
 #include "gz/sim/components/components.hh"
 #else
