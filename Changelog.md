@@ -328,7 +328,7 @@
 1. Update Docker instructions for Garden
     * [Pull request #1244](https://github.com/gazebosim/gz-sim/pull/1244)
 
-1. Bumps in garden : ci_matching_branch/bump_garden_ign-gazebo7
+1. Bumps in garden : `ci_matching_branch/bump_garden_ign-gazebo7`
     * [Pull request #1234](https://github.com/gazebosim/gz-sim/pull/1234)
 
 1. Bumps in garden : ign-gazebo7
