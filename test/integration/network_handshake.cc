@@ -125,7 +125,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 }
 
 /////////////////////////////////////////////////
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(NetworkHandshake, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");

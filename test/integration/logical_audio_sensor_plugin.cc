@@ -207,7 +207,9 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

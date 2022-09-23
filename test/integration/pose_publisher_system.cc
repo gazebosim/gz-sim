@@ -322,7 +322,9 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(PosePublisherTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(UpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -643,8 +645,9 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 }
 
 /////////////////////////////////////////////////
+// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(PosePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPoseUpdateFrequency))
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(StaticPoseUpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;

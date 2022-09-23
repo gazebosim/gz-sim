@@ -40,8 +40,10 @@ namespace systems
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`.
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`
+  ///   or on {namespace}/{topic} if {topic} is set.
   ///   [Optional]
+  /// - <topic> - The topic for receiving thrust commands. [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// - <fluid_density> - The fluid density of the liquid in which the thruster

@@ -30,6 +30,7 @@ GZ_SIM_COMPLETION_LIST="
   --record-path
   --record-resources
   --record-topic
+  --record-period
   --log-overwrite
   --log-compress
   --playback
