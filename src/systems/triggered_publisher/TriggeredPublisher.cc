@@ -773,10 +773,10 @@ void TriggeredPublisher::DoWork()
           return (this->publishCount > 0) || this->done;
         });
 
-      if (this->publishCount == 0 || this->done)
-      {
-        continue;
-      }
+      // if (this->publishCount == 0 || this->done)
+      // {
+      //   continue;
+      // }
       std::swap(pending, this->publishCount);
     }
 

@@ -79,7 +79,7 @@ The output of the plugin is via
       <pose>0 0 4 0 0 0</pose>
 
       <link name="link">
-        <collision name="collision">
+        <collision name="co1">
           <geometry>
             <box>
               <size>0.5 0.5 0.5</size>
@@ -96,7 +96,7 @@ The output of the plugin is via
 
         <sensor name="white_box_sensor" type="contact">
           <contact>
-            <collision>collision</collision>
+            <collision>co1</collision>
           </contact>
         </sensor>
 
@@ -106,7 +106,7 @@ The output of the plugin is via
         filename="ignition-gazebo-touchplugin-system"
         name="ignition::gazebo::systems::TouchPlugin">
         <target>green_box_for_white</target>
-        <time>3</time>
+        <time>1</time>
         <namespace>white_touches_only_green</namespace>
         <enabled>true</enabled>
       </plugin>
@@ -115,7 +115,7 @@ The output of the plugin is via
     <model name="green_box_for_white">
       <pose>0 0 0.5 0 0 0</pose>
       <link name="link">
-        <collision name="collision">
+        <collision name="c2">
           <geometry>
             <box>
               <size>1 1 1</size>
