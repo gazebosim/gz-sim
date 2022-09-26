@@ -101,7 +101,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   {
     detachTopics.push_back(_sdf->Get<std::string>("detach_topic"));
   }
-  detachTopics.push_back("/model/" + this->model.Name(_ecm) +
+  detachTopics.push_back("/model/" + this->childModelName  +
       "/detachable_joint/detach");
   this->detachTopic = validTopic(detachTopics);
   igndbg << "Detach topic is: " << this->detachTopic << std::endl;
