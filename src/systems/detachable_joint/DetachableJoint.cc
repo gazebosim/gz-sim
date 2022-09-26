@@ -143,7 +143,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   {
     outputTopics.push_back(_sdf->Get<std::string>("output_topic"));
   }
-  outputTopics.push_back("/ouput" + this->model.Name(_ecm) +
+  outputTopics.push_back(this->childModelName +
       "/detached_state");
   this->outputTopic = validTopic(outputTopics);
   igndbg << "Output topic is: " << this->outputTopic << std::endl;
