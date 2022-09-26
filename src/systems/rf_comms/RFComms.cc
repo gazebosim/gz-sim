@@ -248,7 +248,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Maintain running window of bytes sent over the last epoch, e.g., 1s.
   while (!_txState.bytesSent.empty() &&
-         _txState.bytesSent.front().first < now - this->epochDuration)
+         _txState.bytesSent.front().first <= now - this->epochDuration)
   {
     _txState.bytesSentThisEpoch -= _txState.bytesSent.front().second;
     _txState.bytesSent.pop_front();
