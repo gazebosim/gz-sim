@@ -237,7 +237,7 @@ RFPower RFComms::Implementation::LogNormalReceivedPower(
   const double kPL = this->rangeConfig.l0 +
     10 * this->rangeConfig.fadingExponent * log10(kRange);
 
-  return {_txPower - kPL, this->rangeConfig.sigma};
+  return {_txPower - kPL, pow(this->rangeConfig.sigma, 2.)};
 }
 
 /////////////////////////////////////////////
