@@ -48,7 +48,11 @@ message's header.
       * `GZ_<PROJECT>_<VISIBLE/HIDDEN>`
       * CMake `-config` files
       * Paths that depend on the project name
-* Python library `ignition` namespaces should be replaced with `gz`.
+
+* Python library imports such `import ignition.gazebo` and `from ignition import
+  gazebo` should be replaced with `import gz.sim7` and `from gz import sim7`.
+  Note the change from `ignition` to `gz` and the addition of the major version
+  number as a suffix to the package name.
 
 ## Gazebo Sim 6.1 to 6.2
 
@@ -116,7 +120,7 @@ since pose information is being logged in the `changed_state` topic.
       + `ViewAndle`: Move camera to preset angles
 
 * The `gui.config` and `server.config` files are now located in a versioned
-  folder inside `$HOME/.ignition/gazebo`, i.e. `$HOME/.ignition/gazebo/6/gui.config`.
+  folder inside `$HOME/.gz/sim`, i.e. `$HOME/.gz/sim/6/gui.config`.
 
 * The `Component::Clone` method has been marked `const` to reflect that it
   should not mutate internal component state. Component implementations that

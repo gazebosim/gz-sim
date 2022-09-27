@@ -18,6 +18,11 @@
 
 #include <tinyxml2.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/server_control.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
@@ -185,77 +190,53 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-sdf::ElementPtr GetRecordPluginElem(sdf::Root &_sdfRoot)
-{
-  sdf::ElementPtr rootElem = _sdfRoot.Element();
-
-  if (rootElem->HasElement("world"))
-  {
-    sdf::ElementPtr worldElem = rootElem->GetElement("world");
-
-    if (worldElem->HasElement("plugin"))
-    {
-      sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
-
-      while (pluginElem != nullptr)
-      {
-        sdf::ParamPtr pluginName = pluginElem->GetAttribute("name");
-        sdf::ParamPtr pluginFileName = pluginElem->GetAttribute("filename");
-
-        if (pluginName != nullptr && pluginFileName != nullptr)
-        {
-          // Found a logging plugin
-          if (pluginFileName->GetAsString().find(
-              LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
-          {
-            if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
-            {
-              return pluginElem;
-            }
-          }
-        }
-
-        pluginElem = pluginElem->GetNextElement();
-      }
-    }
-  }
-  return nullptr;
-}
-
-//////////////////////////////////////////////////
 void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 {
-  auto recordPluginElem = GetRecordPluginElem(this->sdfRoot);
-  bool sdfUseLogRecord = (recordPluginElem != nullptr);
-
   bool hasRecordResources {false};
   bool hasRecordTopics {false};
 
   bool sdfRecordResources;
   std::vector<std::string> sdfRecordTopics;
 
-  if (sdfUseLogRecord)
+  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
+       ++worldIndex)
   {
-    std::tie(sdfRecordResources, hasRecordResources) =
-      recordPluginElem->Get<bool>("record_resources", false);
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::Plugins &plugins = world->Plugins();
 
-    hasRecordTopics = recordPluginElem->HasElement("record_topic");
-    if (hasRecordTopics)
+    for (sdf::Plugins::iterator iter = plugins.begin();
+         iter != plugins.end(); ++iter)
     {
-      sdf::ElementPtr recordTopicElem =
-        recordPluginElem->GetElement("record_topic");
-      while (recordTopicElem)
+      std::string fname = iter->Filename();
+      std::string name = iter->Name();
+      if (fname.find(
+            LoggingPlugin::LoggingPluginSuffix()) != std::string::npos &&
+          name == LoggingPlugin::RecordPluginName())
       {
-        auto topic = recordTopicElem->Get<std::string>();
-        sdfRecordTopics.push_back(topic);
+        sdf::ElementPtr recordPluginElem = iter->ToElement();
+
+        std::tie(sdfRecordResources, hasRecordResources) =
+          recordPluginElem->Get<bool>("record_resources", false);
+
+        hasRecordTopics = recordPluginElem->HasElement("record_topic");
+        if (hasRecordTopics)
+        {
+          sdf::ElementPtr recordTopicElem =
+            recordPluginElem->GetElement("record_topic");
+          while (recordTopicElem)
+          {
+            auto topic = recordTopicElem->Get<std::string>();
+            sdfRecordTopics.push_back(topic);
+          }
+
+          recordTopicElem = recordTopicElem->GetNextElement();
+        }
+
+        // Remove the plugin, which will be added back in by ServerConfig.
+        plugins.erase(iter);
+        break;
       }
-
-      recordTopicElem = recordTopicElem->GetNextElement();
     }
-
-    // Remove from SDF
-    recordPluginElem->RemoveFromParent();
-    recordPluginElem->Reset();
   }
 
   // Set the config based on what is in the SDF:

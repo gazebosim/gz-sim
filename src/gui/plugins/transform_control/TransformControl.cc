@@ -18,7 +18,9 @@
 #include "TransformControl.hh"
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/pose.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -95,13 +97,6 @@ namespace gz::sim
     // TODO(anyone): check on mutex usage
     public: std::mutex mutex;
 
-    /// \brief Transform control service name
-    /// Only used when in legacy mode, where this plugin requests a
-    /// transport service provided by `GzScene3D`.
-    /// The new behaviour is that this plugin performs the entire transform
-    /// operation.
-    public: std::string service{"/gui/transform_mode"};
-
     /// \brief Flag for if the snapping values should be set to the grid.
     public: bool snapToGrid{false};
 
@@ -175,10 +170,6 @@ namespace gz::sim
 
     /// \brief Block orbit
     public: bool blockOrbit = false;
-
-    /// \brief Enable legacy features for plugin to work with GzScene3D.
-    /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{false};
   };
 }
 
@@ -196,29 +187,10 @@ TransformControl::TransformControl()
 TransformControl::~TransformControl() = default;
 
 /////////////////////////////////////////////////
-void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "Transform control";
-
-  if (_pluginElem)
-  {
-    if (auto elem = _pluginElem->FirstChildElement("legacy"))
-    {
-      elem->QueryBoolText(&this->dataPtr->legacy);
-    }
-  }
-
-  if (this->dataPtr->legacy)
-  {
-    gzdbg << "Legacy mode is enabled; this plugin must be used with "
-           << "GzScene3D." << std::endl;
-  }
-  else
-  {
-    gzdbg << "Legacy mode is disabled; this plugin must be used with "
-           << "MinimalScene." << std::endl;
-  }
 
   gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->installEventFilter(this);
@@ -236,17 +208,6 @@ void TransformControl::OnSnapUpdate(
   this->dataPtr->rpySnapVals = math::Vector3d(_roll, _pitch, _yaw);
   this->dataPtr->scaleSnapVals = math::Vector3d(_scaleX, _scaleY, _scaleZ);
 
-  // Emit event to GzScene3D in legacy mode
-  if (this->dataPtr->legacy)
-  {
-    gz::gui::events::SnapIntervals event(
-        this->dataPtr->xyzSnapVals,
-        this->dataPtr->rpySnapVals,
-        this->dataPtr->scaleSnapVals);
-    gz::gui::App()->sendEvent(
-        gz::gui::App()->findChild<gz::gui::MainWindow *>(), &event);
-  }
-
   this->newSnapValues();
 }
 
@@ -255,42 +216,24 @@ void TransformControl::OnMode(const QString &_mode)
 {
   auto modeStr = _mode.toStdString();
 
-  // Legacy behaviour: send request to GzScene3D
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        gzerr << "Error setting transform mode" << std::endl;
-    };
-
-    gz::msgs::StringMsg req;
-    req.set_data(modeStr);
-    this->dataPtr->node.Request(this->dataPtr->service, req, cb);
-  }
-  // New behaviour: handle the transform control locally
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  if (modeStr == "select")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_NONE;
+  else if (modeStr == "translate")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_TRANSLATION;
+  else if (modeStr == "rotate")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_ROTATION;
+  else if (modeStr == "scale")
+    this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
   else
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-    if (modeStr == "select")
-      this->dataPtr->transformMode = rendering::TransformMode::TM_NONE;
-    else if (modeStr == "translate")
-      this->dataPtr->transformMode = rendering::TransformMode::TM_TRANSLATION;
-    else if (modeStr == "rotate")
-      this->dataPtr->transformMode = rendering::TransformMode::TM_ROTATION;
-    else if (modeStr == "scale")
-      this->dataPtr->transformMode = rendering::TransformMode::TM_SCALE;
-    else
-      gzerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
+    gzerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
 
-    gz::sim::gui::events::TransformControlModeActive
-      transformControlModeActive(this->dataPtr->transformMode);
-    gz::gui::App()->sendEvent(
-        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-        &transformControlModeActive);
-    this->dataPtr->mouseDirty = true;
-  }
+  gz::sim::gui::events::TransformControlModeActive
+    transformControlModeActive(this->dataPtr->transformMode);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+      &transformControlModeActive);
+  this->dataPtr->mouseDirty = true;
 }
 
 /////////////////////////////////////////////////
@@ -349,7 +292,7 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
     if (this->dataPtr->snapToGrid)
     {
@@ -422,30 +365,6 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->keyEvent.Key() == Qt::Key_Escape)
     {
       this->activateSelect();
-    }
-  }
-
-  if (this->dataPtr->legacy)
-  {
-    if (_event->type() == QEvent::KeyPress)
-    {
-      QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
-      if (keyEvent->key() == Qt::Key_T)
-      {
-        this->activateTranslate();
-      }
-      else if (keyEvent->key() == Qt::Key_R)
-      {
-        this->activateRotate();
-      }
-    }
-    else if (_event->type() == QEvent::KeyRelease)
-    {
-      QKeyEvent *keyEvent = static_cast<QKeyEvent*>(_event);
-      if (keyEvent->key() == Qt::Key_Escape)
-      {
-        this->activateSelect();
-      }
     }
   }
 

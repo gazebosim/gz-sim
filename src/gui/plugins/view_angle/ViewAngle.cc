@@ -19,7 +19,9 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <iostream>
 #include <string>
@@ -101,10 +103,6 @@ namespace gz::sim
 
     /// \brief The pose set from the move to pose service.
     public: std::optional<math::Pose3d> moveToPoseValue;
-
-    /// \brief Enable legacy features for plugin to work with GzScene3D.
-    /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{false};
   };
 }
 
@@ -121,18 +119,10 @@ ViewAngle::ViewAngle()
 ViewAngle::~ViewAngle() = default;
 
 /////////////////////////////////////////////////
-void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "View Angle";
-
-  if (_pluginElem)
-  {
-    if (auto elem = _pluginElem->FirstChildElement("legacy"))
-    {
-      elem->QueryBoolText(&this->dataPtr->legacy);
-    }
-  }
 
   // For view angle requests
   this->dataPtr->viewAngleService = "/gui/view_angle";
@@ -197,29 +187,8 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 /////////////////////////////////////////////////
 void ViewAngle::OnAngleMode(int _x, int _y, int _z)
 {
-  // Legacy mode: request view angle from GzScene3d
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const msgs::Boolean &, const bool)> cb =
-        [](const msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        gzerr << "Error setting view angle mode" << std::endl;
-    };
-
-    msgs::Vector3d req;
-    req.set_x(_x);
-    req.set_y(_y);
-    req.set_z(_z);
-
-    this->dataPtr->node.Request(this->dataPtr->viewAngleService, req, cb);
-  }
-  // New behaviour: handle camera movement here
-  else
-  {
-    this->dataPtr->viewingAngle = true;
-    this->dataPtr->viewAngleDirection = math::Vector3d(_x, _y, _z);
-  }
+  this->dataPtr->viewingAngle = true;
+  this->dataPtr->viewAngleDirection = math::Vector3d(_x, _y, _z);
 }
 
 /////////////////////////////////////////////////
@@ -265,27 +234,7 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
                            double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
-
-  // Legacy mode: request view angle from GzScene3d
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const msgs::Boolean &, const bool)> cb =
-        [](const msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        gzerr << "Error sending move camera to pose request" << std::endl;
-    };
-
-    msgs::GUICamera req;
-    msgs::Set(req.mutable_pose(), this->dataPtr->camPose);
-
-    this->dataPtr->node.Request(this->dataPtr->moveToPoseService, req, cb);
-  }
-  // New behaviour: handle camera movement here
-  else
-  {
-    this->dataPtr->moveToPoseValue = {_x, _y, _z, _roll, _pitch, _yaw};
-  }
+  this->dataPtr->moveToPoseValue = {_x, _y, _z, _roll, _pitch, _yaw};
 }
 
 /////////////////////////////////////////////////

@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/Root.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
@@ -86,11 +87,24 @@ namespace gz
         /// \param[in] _name Name of the interface within the plugin library
         /// to load.
         /// \param[in] _sdf Plugin XML elements associated with this plugin.
-        public: PluginInfo(const std::string &_entityName,
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: GZ_DEPRECATED(7) PluginInfo(const std::string &_entityName,
                            const std::string &_entityType,
                            const std::string &_filename,
                            const std::string &_name,
                            const sdf::ElementPtr &_sdf);
+
+        /// \brief Constructor with plugin information specified.
+        /// \param[in] _entityName Name of the entity which should receive
+        /// this plugin. The name is used in conjuction with _entityType to
+        /// uniquely identify an entity.
+        /// \param[in] _entityType Entity type which should receive  this
+        /// plugin. The type is used in conjuction with _entityName to
+        /// uniquely identify an entity.
+        /// \param[in] _plugin SDF Plugin library information.
+        public: PluginInfo(const std::string &_entityName,
+                           const std::string &_entityType,
+                           const sdf::Plugin &_plugin);
 
         /// \brief Copy constructor.
         /// \param[in] _info Plugin to copy.
@@ -127,31 +141,49 @@ namespace gz
 
         /// \brief Get the plugin library filename.
         /// \return Plugin library filename.
-        public: const std::string &Filename() const;
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: const std::string GZ_DEPRECATED(7) & Filename() const;
 
         /// \brief Set the type of the entity which should receive this
         /// plugin. The type is used in conjuction with EntityName to
         /// uniquely identify an entity.
         /// \param[in] _filename Entity type string.
-        public: void SetFilename(const std::string &_filename);
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: void GZ_DEPRECATED(7) SetFilename(const std::string &_filename);
 
         /// \brief Name of the interface within the plugin library
         /// to load.
         /// \return Interface name.
-        public: const std::string &Name() const;
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: const std::string GZ_DEPRECATED(7) & Name() const;
 
         /// \brief Set the name of the interface within the plugin library
         /// to load.
         /// \param[in] _name Interface name.
-        public: void SetName(const std::string &_name);
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: void GZ_DEPRECATED(7) SetName(const std::string &_name);
 
         /// \brief Plugin XML elements associated with this plugin.
         /// \return SDF pointer.
-        public: const sdf::ElementPtr &Sdf() const;
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: const sdf::ElementPtr GZ_DEPRECATED(7) & Sdf() const;
 
         /// \brief Set the plugin XML elements associated with this plugin.
         /// \param[in] _sdf SDF pointer, it will be cloned.
-        public: void SetSdf(const sdf::ElementPtr &_sdf);
+        /// \deprecated Use `sdf::Plugin` interface.
+        public: void GZ_DEPRECATED(7) SetSdf(const sdf::ElementPtr &_sdf);
+
+        /// \brief Get the SDF plugin information.
+        /// \return The SDF Plugin object.
+        public: const sdf::Plugin &Plugin() const;
+
+        /// \brief Get a mutable version of the SDF plugin information.
+        /// \return The SDF Plugin object.
+        public: sdf::Plugin &Plugin();
+
+        /// \brief Set the SDF plugin information.
+        /// \param[in] _plugin The SDF Plugin object to use.
+        public: void SetPlugin(const sdf::Plugin &_plugin) const;
 
         /// \brief Private data pointer
         private: std::unique_ptr<ServerConfig::PluginInfoPrivate> dataPtr;

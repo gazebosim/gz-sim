@@ -17,7 +17,17 @@
 
 #include "WindEffects.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 
@@ -588,11 +598,16 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
         link.ResetEntity(_entity);
 
+        double forceScalingFactor =
+            this->forceApproximationScalingFactor(_linkPose->Data().Pos());
+        if (std::isnan(forceScalingFactor))
+        {
+          forceScalingFactor = 0.;
+        }
+
         const math::Vector3d windForce =
             _inertial->Data().MassMatrix().Mass() *
-            this->forceApproximationScalingFactor(
-                _linkPose->Data().Pos()) *
-            (windVel->Data() - _linkVel->Data());
+            forceScalingFactor * (windVel->Data() - _linkVel->Data());
 
         // Apply force at center of mass
         link.AddWorldForce(_ecm, windForce);

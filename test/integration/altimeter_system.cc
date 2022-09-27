@@ -60,8 +60,9 @@ void altimeterCb(const msgs::Altimeter &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling altimeter
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(AltimeterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
 {
   // Start server
   ServerConfig serverConfig;

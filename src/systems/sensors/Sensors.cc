@@ -32,6 +32,7 @@
 #include <gz/math/Helpers.hh>
 
 #include <gz/rendering/Scene.hh>
+#include <gz/sensors/BoundingBoxCameraSensor.hh>
 #include <gz/sensors/CameraSensor.hh>
 #include <gz/sensors/DepthCameraSensor.hh>
 #include <gz/sensors/GpuLidarSensor.hh>
@@ -44,6 +45,7 @@
 
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
@@ -246,7 +248,12 @@ void SensorsPrivate::WaitForInit()
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
         this->renderUtil.SetAmbientLight(*this->ambientLight);
+#ifndef __APPLE__
       this->renderUtil.Init();
+#else
+      // On macOS the render engine must be initialised on the main thread.
+      // See Sensors::Update.
+#endif
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
       this->initialized = true;
@@ -569,7 +576,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
-    igndbg << "Resetting Sensors\n";
+    gzdbg << "Resetting Sensors\n";
 
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
@@ -582,7 +589,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
       if (nullptr == s)
       {
-        ignwarn << "Sensor removed before reset: " << id << "\n";
+        gzwarn << "Sensor removed before reset: " << id << "\n";
         continue;
       }
 
@@ -597,6 +604,24 @@ void Sensors::Update(const UpdateInfo &_info,
 {
   GZ_PROFILE("Sensors::Update");
   std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+
+#ifdef __APPLE__
+  // On macOS the render engine must be initialised on the main thread.
+  if (!this->dataPtr->initialized &&
+      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
+       _ecm.HasComponentType(components::Camera::typeId) ||
+       _ecm.HasComponentType(components::DepthCamera::typeId) ||
+       _ecm.HasComponentType(components::GpuLidar::typeId) ||
+       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+       _ecm.HasComponentType(components::WideAngleCamera::typeId)))
+  {
+    igndbg << "Initialization needed" << std::endl;
+    this->dataPtr->renderUtil.Init();
+  }
+#endif
+
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
@@ -613,6 +638,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
         (this->dataPtr->forceUpdate ||
+         _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
          _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
@@ -791,6 +817,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::ThermalCameraSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+      sensors::BoundingBoxCameraSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::SEGMENTATION_CAMERA)
   {

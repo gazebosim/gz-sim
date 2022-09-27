@@ -92,12 +92,6 @@ namespace gz::sim
     /// \brief Record stats topic name
     public: std::string recorderStatsTopic = "/gui/record_video/stats";
 
-    /// \brief Record video service
-    /// Only used when in legacy mode, where this plugin requests a
-    /// transport service provided by `GzScene3D`.
-    /// The new behaviour is that this plugin performs the entire operation.
-    public: std::string service = "/gui/record_video";
-
     /// \brief True to indicate video recording in progress
     public: bool recording = false;
 
@@ -114,10 +108,6 @@ namespace gz::sim
 
     /// \brief Filename of the recorded video
     public: std::string filename;
-
-    /// \brief Enable legacy features for plugin to work with GzScene3D.
-    /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{false};
   };
 }
 
@@ -127,11 +117,6 @@ using namespace sim;
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::Initialize()
 {
-  // Don't setup rendering or transport in legacy mode, GzScene3D takes care of
-  // that
-  if (this->legacy)
-    return;
-
   // Already initialized
   if (this->scene)
     return;
@@ -170,10 +155,6 @@ void VideoRecorderPrivate::Initialize()
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::OnRender()
 {
-  // Don't render in legacy mode, GzScene3D takes care of that
-  if (this->legacy)
-    return;
-
   this->Initialize();
 
   // record video is requested
@@ -272,10 +253,6 @@ VideoRecorder::~VideoRecorder() = default;
 void VideoRecorder::Update(const UpdateInfo &_info,
     EntityComponentManager & /*_ecm*/)
 {
-  // Don't lockstep in legacy mode, GzScene3D takes care of that
-  if (this->dataPtr->legacy)
-    return;
-
   this->dataPtr->simTime = _info.simTime;
 
   // check if video recording is enabled and if we need to lock step
@@ -342,22 +319,6 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         }
       }
     }
-
-    if (auto elem = _pluginElem->FirstChildElement("legacy"))
-    {
-      elem->QueryBoolText(&this->dataPtr->legacy);
-    }
-  }
-
-  if (this->dataPtr->legacy)
-  {
-    gzdbg << "Legacy mode is enabled; this plugin must be used with "
-           << "GzScene3D." << std::endl;
-  }
-  else
-  {
-    gzdbg << "Legacy mode is disabled; this plugin must be used with "
-           << "MinimalScene." << std::endl;
   }
 
   gz::gui::App()->findChild<
@@ -383,21 +344,6 @@ void VideoRecorder::OnStart(const QString &_format)
   this->dataPtr->filename = "ign_recording." + this->dataPtr->format;
   this->dataPtr->recordVideo = true;
   this->dataPtr->recording = true;
-
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        gzerr << "Error sending video record start request" << std::endl;
-    };
-    gz::msgs::VideoRecord req;
-    req.set_start(this->dataPtr->recordVideo);
-    req.set_format(this->dataPtr->format);
-    req.set_save_filename(this->dataPtr->filename);
-    this->dataPtr->node.Request(this->dataPtr->service, req, cb);
-  }
 }
 
 /////////////////////////////////////////////////
@@ -405,20 +351,6 @@ void VideoRecorder::OnStop()
 {
   this->dataPtr->recordVideo = false;
   this->dataPtr->recording = false;
-
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-        [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        gzerr << "Error sending video record stop request" << std::endl;
-    };
-
-    gz::msgs::VideoRecord req;
-    req.set_stop(true);
-    this->dataPtr->node.Request(this->dataPtr->service, req, cb);
-  }
 }
 
 /////////////////////////////////////////////////

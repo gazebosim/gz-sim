@@ -3,7 +3,7 @@
   You can echo lidar messages using:
     gz topic -e -t /lidar
 -->
-<sdf version="1.6">
+<sdf version="1.10">
   <world name="visualize_lidar_world">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -268,7 +268,6 @@
               <resolution>0.01</resolution>
             </range>
           </lidar>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
       </link>
@@ -360,7 +359,6 @@
               <resolution>0.01</resolution>
             </range>
           </lidar>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
       </link>
@@ -514,7 +512,7 @@
 
     <include>
       <pose>0 0 0 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Playground</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Playground</uri>
     </include>
 
   </world>

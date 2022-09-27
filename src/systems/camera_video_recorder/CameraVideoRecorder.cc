@@ -333,7 +333,6 @@ void CameraVideoRecorderPrivate::OnPostRender()
     {
       this->camera->Copy(this->cameraImage);
       std::chrono::steady_clock::time_point t;
-        std::chrono::steady_clock::now();
       if (this->recordVideoUseSimTime)
         t = std::chrono::steady_clock::time_point(this->simTime);
       else

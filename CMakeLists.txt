@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # Initialize the project
 #============================================================================
 project(gz-sim7 VERSION 7.0.0)
+set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
 # Find gz-cmake
@@ -17,7 +18,7 @@ find_package(gz-cmake3 REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -40,13 +41,18 @@ endif()
 include(test/find_dri.cmake)
 FindDRI()
 
-option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
-      "Install python modules in standard system paths in the system"
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
       OFF)
 
-option(USE_DIST_PACKAGES_FOR_PYTHON
+include(CMakeDependentOption)
+cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
+      "Install python modules in standard system paths in the system"
+      OFF "NOT SKIP_PYBIND11" OFF)
+
+cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      OFF)
+      OFF "NOT SKIP_PYBIND11" OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -140,6 +146,7 @@ gz_find_package(gz-sensors7 REQUIRED
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
@@ -166,6 +173,9 @@ if (GZ_TOOLS_PROGRAM)
 else()
   message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
 endif()
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
@@ -184,24 +194,27 @@ set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
-include(GzPython)
-find_package(PythonLibs QUIET)
-if (NOT PYTHONLIBS_FOUND)
-  GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
-  message (STATUS "Searching for Python - not found.")
+if (SKIP_PYBIND11)
+  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+  find_package(PythonLibs QUIET)
+  if (NOT PYTHONLIBS_FOUND)
+    GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for Python - not found.")
+  else()
+    message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
+    set(PYBIND11_PYTHON_VERSION 3)
+    find_package(Python3 QUIET COMPONENTS Interpreter Development)
+    find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+    if (pybind11_FOUND)
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_INSTALL_DIR

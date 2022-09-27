@@ -19,7 +19,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <fstream>
 #include <string>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -29,10 +31,16 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kGzCommand(
     std::string(BREW_RUBY) + std::string(GZ_PATH) + " sim -s ");
+static const std::string kGzModelCommand(
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  // Augment the system plugin path.
+  gz::common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
+      gz::common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
@@ -160,4 +168,66 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
   output = customExecStr(path + cmd);
   EXPECT_EQ(output.find("Unable to find file plugins.sdf"), std::string::npos)
       << output;
+}
+
+//////////////////////////////////////////////////
+/// \brief Check --help message and bash completion script for consistent flags
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
+{
+  // Flags in help message
+  std::string helpOutput = customExecStr(kGzCommand + " sim --help");
+
+  // Call the output function in the bash completion script
+  std::string scriptPath = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "src", "cmd", "sim.bash_completion.sh");
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/sim.bash_completion.sh; _gz_sim_flags\""
+  std::string cmd = "bash -c \". " + scriptPath + "; _gz_sim_flags\"";
+  std::string scriptOutput = customExecStr(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << flag;
+  }
+}
+
+//////////////////////////////////////////////////
+/// \brief Check --help message and bash completion script for consistent flags
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
+{
+  // Flags in help message
+  std::string helpOutput = customExecStr(kGzModelCommand + " --help");
+
+  // Call the output function in the bash completion script
+  std::string scriptPath = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "src", "cmd", "model.bash_completion.sh");
+
+  // Equivalent to:
+  // sh -c "bash -c \". /path/to/model.bash_completion.sh; _gz_model_flags\""
+  std::string cmd = "bash -c \". " + scriptPath + "; _gz_model_flags\"";
+  std::string scriptOutput = customExecStr(cmd);
+
+  // Tokenize script output
+  std::istringstream iss(scriptOutput);
+  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
+    std::istream_iterator<std::string>());
+
+  EXPECT_GT(flags.size(), 0u);
+
+  // Match each flag in script output with help message
+  for (const auto &flag : flags)
+  {
+    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
+  }
 }

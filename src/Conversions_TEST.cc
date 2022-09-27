@@ -1001,8 +1001,8 @@ TEST(Conversions, ParticleEmitter)
   emitter.SetMaxVelocity(0.2);
   emitter.SetSize(math::Vector3d(1, 2, 3));
   emitter.SetParticleSize(math::Vector3d(4, 5, 6));
-  emitter.SetColorStart(math::Color(0.1, 0.2, 0.3));
-  emitter.SetColorEnd(math::Color(0.4, 0.5, 0.6));
+  emitter.SetColorStart(math::Color(0.1f, 0.2f, 0.3f));
+  emitter.SetColorEnd(math::Color(0.4f, 0.5f, 0.6f));
   emitter.SetColorRangeImage("range_image");
   emitter.SetTopic("my_topic");
   emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
@@ -1116,4 +1116,51 @@ TEST(Conversions, Plugin)
 
   EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
       std::string::npos) << pluginMsg.innerxml();
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, MsgsPluginToSdf)
+{
+  std::string innerXml ="<test>another_test</test>\n";
+  std::string innerXml2 ="<peanut>butter</peanut>\n";
+
+  msgs::Plugin msgPlugin;
+  msgPlugin.set_name("foo");
+  msgPlugin.set_filename("bar");
+  msgPlugin.set_innerxml(innerXml);
+
+  // Test conversion of a single msgs::Plugin to sdf::Plugin
+  sdf::Plugin sdfPlugin = convert<sdf::Plugin>(msgPlugin);
+  EXPECT_EQ("foo", sdfPlugin.Name());
+  EXPECT_EQ("bar", sdfPlugin.Filename());
+  ASSERT_EQ(1u, sdfPlugin.Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugin.Contents()[0]->ToString(""));
+
+  // Test conversion of a msgs::Plugin_V with 1 plugin to sdf::Plugins
+  msgs::Plugin_V msgsPlugin;
+  msgsPlugin.add_plugins()->CopyFrom(msgPlugin);
+  sdf::Plugins sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(1u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+
+  // Add another plugin the msgs::Plugin_V
+  msgs::Plugin anotherPlugin;
+  anotherPlugin.set_name("sandwich");
+  anotherPlugin.set_filename("time");
+  anotherPlugin.set_innerxml(innerXml + innerXml2);
+  msgsPlugin.add_plugins()->CopyFrom(anotherPlugin);
+  sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(2u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+  EXPECT_EQ("sandwich", sdfPlugins[1].Name());
+  EXPECT_EQ("time", sdfPlugins[1].Filename());
+  ASSERT_EQ(2u, sdfPlugins[1].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[1].Contents()[0]->ToString(""));
+  EXPECT_EQ(innerXml2, sdfPlugins[1].Contents()[1]->ToString(""));
 }

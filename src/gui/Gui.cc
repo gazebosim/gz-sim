@@ -14,15 +14,22 @@
  * limitations under the License.
  *
  */
+#include <QScreen>
+
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/SignalHandler.hh>
 #include <gz/common/Filesystem.hh>
 
 #include <gz/gui/Application.hh>
+#include <gz/gui/Dialog.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
 
+#include "gz/sim/Util.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Gui.hh"
 
@@ -30,6 +37,7 @@
 #include "GuiFileHandler.hh"
 #include "GuiRunner.hh"
 #include "PathManager.hh"
+#include "QuickStartHandler.hh"
 
 namespace gz
 {
@@ -39,11 +47,160 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace gui
 {
+/// \brief Get the path to the default config file. If the file doesn't exist
+/// yet, this function will copy the installed file into its location.
+/// \param[in] _isPlayback True if playing back a log file
+/// \param[in] _customDefaultConfig A default config passed by the CLI or
+/// another caller.
+/// \return Path to the default config file.
+std::string defaultGuiConfigFile(bool _isPlayback,
+    const char *_customDefaultConfig)
+{
+  std::string defaultConfig;
+  std::string defaultGuiConfigName = "gui.config";
+  if (nullptr == _customDefaultConfig)
+  {
+    // The playback flag (and not the gui-config flag) was
+    // specified from the command line
+    if (_isPlayback)
+    {
+      defaultGuiConfigName = "playback_gui.config";
+    }
+    common::env(GZ_HOMEDIR, defaultConfig);
+    defaultConfig = common::joinPaths(defaultConfig, ".gz",
+        "sim", GZ_SIM_MAJOR_VERSION_STR, defaultGuiConfigName);
+  }
+  else
+  {
+    // Downstream applications can override the default path
+    defaultConfig = _customDefaultConfig;
+  }
+
+  // Check if the default config file exists. If it doesn't, copy the installed
+  // file there first.
+  if (!common::exists(defaultConfig))
+  {
+    auto defaultConfigFolder = common::parentPath(defaultConfig);
+    if (!gz::common::exists(defaultConfigFolder))
+    {
+      if (!gz::common::createDirectories(defaultConfigFolder))
+      {
+        gzerr << "Failed to create the default config folder ["
+          << defaultConfigFolder << "]\n";
+        return nullptr;
+      }
+    }
+
+    auto installedConfig = common::joinPaths(
+        GZ_SIM_GUI_CONFIG_PATH, defaultGuiConfigName);
+    if (!common::copyFile(installedConfig, defaultConfig))
+    {
+      gzerr << "Failed to copy installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+      return nullptr;
+    }
+    else
+    {
+      gzmsg << "Copied installed config [" << installedConfig
+             << "] to default config [" << defaultConfig << "]."
+             << std::endl;
+    }
+  }
+
+  return defaultConfig;
+}
+
+//////////////////////////////////////////////////
+/// \brief Launch the quick start dialog
+/// \param[in] _argc Number of command line arguments.
+/// \param[in] _argv Command line arguments.
+/// \param[in] _defaultConfig Path to the default configuration file.
+/// \param[in] _configInUse The config that the user chose to load. If the user
+/// didn't pass one, this will be equal to _defaultConfig
+/// \return The path to the starting world or an empty string if none was
+/// chosen.
+std::string launchQuickStart(int &_argc, char **_argv,
+    const std::string &_defaultConfig,
+    const std::string &_configInUse)
+{
+  gzmsg << "Gazebo Sim Quick start dialog" << std::endl;
+
+  // Gui application in dialog mode
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kDialog);
+  app->SetDefaultConfigPath(_defaultConfig);
+
+  auto quickStartHandler = new QuickStartHandler();
+  quickStartHandler->setParent(app->Engine());
+
+  auto dialog = new gz::gui::Dialog();
+  dialog->setObjectName("quick_start");
+
+  gzdbg << "Reading Quick start menu config." << std::endl;
+  auto showDialog = dialog->ReadConfigAttribute(_configInUse, "show_again");
+  if (showDialog == "false")
+  {
+    gzmsg << "Not showing Quick start menu." << std::endl;
+    return "";
+  }
+
+  // This is the fixed window size for the quick start dialog
+  QSize winSize(960, 540);
+  dialog->QuickWindow()->resize(winSize);
+  dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
+  dialog->QuickWindow()->setTitle("Gazebo quick start");
+
+  // Position the quick start in the center of the screen
+  QSize screenSize = dialog->QuickWindow()->screen()->size();
+  screenSize /= 2.0;
+  screenSize -= winSize / 2.0;
+  dialog->QuickWindow()->setPosition(screenSize.width(), screenSize.height());
+
+  auto context = new QQmlContext(app->Engine()->rootContext());
+  context->setContextProperty("QuickStartHandler", quickStartHandler);
+
+  std::string qmlFile("qrc:/Gazebo/QuickStart.qml");
+
+  QQmlComponent dialogComponent(gz::gui::App()->Engine(),
+      QString(QString::fromStdString(qmlFile)));
+
+  auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
+  if (nullptr == dialogItem)
+  {
+    gzerr << "Failed to create quick start dialog." << std::endl;
+    return "";
+  }
+  dialogItem->setParentItem(dialog->RootItem());
+
+  // Run qt application and show quick dialog
+  if (nullptr != app)
+  {
+    app->exec();
+    gzdbg << "Shutting quick setup dialog" << std::endl;
+  }
+
+  // Update dialog config
+  dialog->UpdateConfigAttribute(_configInUse, "show_again",
+    quickStartHandler->ShowAgain());
+  return quickStartHandler->StartingWorld();
+}
+
 //////////////////////////////////////////////////
 std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_renderEngine)
+{
+  return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig,
+    _loadPluginsFromSdf, nullptr, 0, _renderEngine);
+}
+
+//////////////////////////////////////////////////
+std::unique_ptr<gz::gui::Application> createGui(
+    int &_argc, char **_argv, const char *_guiConfig,
+    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
+    const char *_sdfFile, int _waitGui, const char *_renderEngine)
 {
   gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -61,8 +218,63 @@ std::unique_ptr<gz::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  // Initialize Qt app
-  auto app = std::make_unique<gz::gui::Application>(_argc, _argv);
+  bool isPlayback = (nullptr != _guiConfig &&
+      std::string(_guiConfig) == "_playback_");
+  auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);
+
+  bool hasSdfFile = (nullptr != _sdfFile && strlen(_sdfFile) != 0);
+  bool configFromCli = (nullptr != _guiConfig && std::strlen(_guiConfig) > 0 &&
+      std::string(_guiConfig) != "_playback_");
+
+  transport::Node node;
+
+  // Quick start dialog if no specific SDF file was passed and it's not playback
+  std::string startingWorld;
+  if (!hasSdfFile && _waitGui && !isPlayback)
+  {
+    std::string configInUse = configFromCli ? _guiConfig : defaultConfig;
+    startingWorld = launchQuickStart(_argc, _argv, defaultConfig, configInUse);
+  }
+  else if (hasSdfFile)
+  {
+    startingWorld = _sdfFile;
+  }
+
+  if (sigKilled)
+  {
+    gzdbg << "Received kill signal. Not starting main window." << std::endl;
+    return nullptr;
+  }
+
+  // Publish starting world even if it's empty. The server is blocking waiting
+  // for it.
+  if (_waitGui)
+  {
+    std::string topic{"/gazebo/starting_world"};
+    auto startingWorldPub = node.Advertise<msgs::StringMsg>(topic);
+    msgs::StringMsg msg;
+    msg.set_data(startingWorld);
+
+    // Wait for the server to be listening, so we're sure it receives the
+    // message.
+    gzdbg << "Waiting for subscribers to [" << topic << "]..." << std::endl;
+    for (int sleep = 0; sleep < 100 && !startingWorldPub.HasConnections();
+        ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (!startingWorldPub.HasConnections())
+    {
+      gzwarn << "Waited for 10s for a subscriber to [" << topic
+              << "] and got none." << std::endl;
+    }
+    startingWorldPub.Publish(msg);
+  }
+
+  // Launch main window
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kMainWindow);
+
   app->AddPluginPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
 
   auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
@@ -76,33 +288,6 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   // add import path so we can load custom modules
   app->Engine()->addImportPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
-  std::string defaultGuiConfigName = "gui.config";
-
-  // Set default config file for Gazebo
-  std::string defaultConfig;
-
-  // Default config folder.
-  std::string defaultConfigFolder;
-
-  if (nullptr == _defaultGuiConfig)
-  {
-    // The playback flag (and not the gui-config flag) was
-    // specified from the command line
-    if (nullptr != _guiConfig && std::string(_guiConfig) == "_playback_")
-    {
-      defaultGuiConfigName = "playback_gui.config";
-    }
-    gz::common::env(GZ_HOMEDIR, defaultConfig);
-    defaultConfigFolder =
-      gz::common::joinPaths(defaultConfig, ".gz",
-        "sim", GZ_SIM_MAJOR_VERSION_STR);
-    defaultConfig = gz::common::joinPaths(defaultConfigFolder,
-        defaultGuiConfigName);
-  }
-  else
-  {
-    defaultConfig = _defaultGuiConfig;
-  }
 
   app->SetDefaultConfigPath(defaultConfig);
 
@@ -140,12 +325,11 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
 
   // Get list of worlds
-  gz::transport::Node node;
   bool executed{false};
   bool result{false};
   unsigned int timeout{5000};
   std::string service{"/gazebo/worlds"};
-  gz::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   // This loop is here to allow the server time to download resources.
   // \todo(nkoenig) Async resource download. Search for "Async resource
@@ -173,8 +357,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   std::size_t runnerCount = 0;
 
   // Configuration file from command line
-  if (_guiConfig != nullptr && std::strlen(_guiConfig) > 0 &&
-      std::string(_guiConfig) != "_playback_")
+  if (configFromCli)
   {
     // Use the first world name with the config file
     // TODO(anyone) Most of gz-sim's transport API includes the world name,
@@ -239,7 +422,46 @@ std::unique_ptr<gz::gui::Application> createGui(
         for (int p = 0; p < res.plugin_size(); ++p)
         {
           const auto &plugin = res.plugin(p);
-          const auto &fileName = plugin.filename();
+          auto fileName = plugin.filename();
+
+          // Redirect GzScene3D to MinimalScene for backwards compatibility,
+          // with warnings
+          if (fileName == "GzScene3D")
+          {
+            std::vector<std::string> extras{"GzSceneManager",
+                "InteractiveViewControl",
+                "CameraTracking",
+                "MarkerManager",
+                "SelectEntities",
+                "EntityContextMenuPlugin",
+                "Spawn",
+                "VisualizationCapabilities"};
+
+            std::string msg{
+                "The [GzScene3D] GUI plugin has been removed since Garden. "
+                "Loading the following plugins instead:\n"};
+
+            for (auto extra : extras)
+            {
+              msg += "* " + extra  + "\n";
+
+              auto newPlugin = res.add_plugin();
+              newPlugin->set_filename(extra);
+              newPlugin->set_innerxml(std::string(
+                "<gz-gui>"
+                "  <property key='state' type='string'>floating</property>"
+                "  <property key='width' type='double'>5</property>"
+                "  <property key='height' type='double'>5</property>"
+                "  <property key='showTitleBar' type='bool'>false</property>"
+                "  <property key='resizable' type='bool'>false</property>"
+                "</gz-gui>"));
+            }
+
+            gzwarn << msg;
+
+            fileName = "MinimalScene";
+          }
+
           std::string pluginStr = "<plugin filename='" + fileName + "'>" +
             plugin.innerxml() + "</plugin>";
 
@@ -264,48 +486,6 @@ std::unique_ptr<gz::gui::Application> createGui(
   auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
-    // Check if there's a default config file under
-    // ~/.gz/sim and use that. If there isn't, copy
-    // the installed file there first.
-    if (!gz::common::exists(defaultConfig))
-    {
-      if (!gz::common::exists(defaultConfigFolder))
-      {
-        if (!gz::common::createDirectories(defaultConfigFolder))
-        {
-          gzerr << "Failed to create the default config folder ["
-            << defaultConfigFolder << "]\n";
-          return nullptr;
-        }
-      }
-
-      auto installedConfig = gz::common::joinPaths(
-          GZ_SIM_GUI_CONFIG_PATH, defaultGuiConfigName);
-      if (!gz::common::exists(installedConfig))
-      {
-        gzerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << "(file " << installedConfig << " doesn't exist)"
-               << std::endl;
-        return nullptr;
-      }
-
-      if (!gz::common::copyFile(installedConfig, defaultConfig))
-      {
-        gzerr << "Failed to copy installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-        return nullptr;
-      }
-      else
-      {
-        gzmsg << "Copied installed config [" << installedConfig
-               << "] to default config [" << defaultConfig << "]."
-               << std::endl;
-      }
-    }
-
-    // Also set ~/.gz/sim/ver/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
       gzerr << "Failed to load config file[" << defaultConfig << "]."
@@ -313,7 +493,6 @@ std::unique_ptr<gz::gui::Application> createGui(
       return nullptr;
     }
   }
-
   return app;
 }
 
@@ -321,8 +500,16 @@ std::unique_ptr<gz::gui::Application> createGui(
 int runGui(int &_argc, char **_argv, const char *_guiConfig,
   const char *_renderEngine)
 {
-  auto app = sim::gui::createGui(
-    _argc, _argv, _guiConfig, nullptr, true, _renderEngine);
+  return runGui(_argc, _argv, _guiConfig, nullptr, 0, _renderEngine);
+}
+
+//////////////////////////////////////////////////
+int runGui(int &_argc, char **_argv,
+  const char *_guiConfig, const char *_sdfFile, int _waitGui,
+  const char *_renderEngine)
+{
+  auto app = sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+      _sdfFile, _waitGui, _renderEngine);
   if (nullptr != app)
   {
     // Run main window.

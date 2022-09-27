@@ -23,11 +23,13 @@
 #include <thread>
 #include <vector>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/double.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/LogicalAudio.hh"
@@ -207,7 +209,9 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LogicalAudioTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

@@ -387,7 +387,7 @@ std::vector<std::string> resourcePaths()
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
   // TODO(CH3): Deprecated. Remove on tock.
   else
@@ -420,16 +420,17 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
-    sdfPaths = common::Split(sdfPathCStr, ':');
+    sdfPaths = common::Split(sdfPathCStr, common::SystemPaths::Delimiter());
   }
 
-  // Gazebo file paths (for <uri>s)
+  // Gazebo Common file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
-  std::vector<std::string> ignPaths;
-  char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
-  if (ignPathCStr && *ignPathCStr != '\0')
+  std::vector<std::string> commonPaths;
+  char *commonPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
+  if (commonPathCStr && *commonPathCStr != '\0')
   {
-    ignPaths = common::Split(ignPathCStr, ':');
+    commonPaths = common::Split(commonPathCStr,
+        common::SystemPaths::Delimiter());
   }
 
   // Gazebo resource paths
@@ -437,7 +438,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
   if (gzPathCStr && *gzPathCStr != '\0')
   {
-    gzPaths = common::Split(gzPathCStr, ':');
+    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
   // TODO(CH3): Deprecated. Remove on tock.
   else
@@ -470,34 +471,35 @@ void addResourcePaths(const std::vector<std::string> &_paths)
       sdfPaths.push_back(path);
     }
 
-    if (std::find(ignPaths.begin(), ignPaths.end(), path) == ignPaths.end())
+    if (std::find(commonPaths.begin(),
+        commonPaths.end(), path) == commonPaths.end())
     {
-      ignPaths.push_back(path);
+      commonPaths.push_back(path);
     }
   }
 
   // Update the vars
   std::string sdfPathsStr;
   for (const auto &path : sdfPaths)
-    sdfPathsStr += ':' + path;
+    sdfPathsStr += common::SystemPaths::Delimiter() + path;
 
-  gz::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
+  common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
-  std::string ignPathsStr;
-  for (const auto &path : ignPaths)
-    ignPathsStr += ':' + path;
+  std::string commonPathsStr;
+  for (const auto &path : commonPaths)
+    commonPathsStr += common::SystemPaths::Delimiter() + path;
 
-  gz::common::setenv(
-    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
+  common::setenv(
+    systemPaths->FilePathEnv().c_str(), commonPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
-    gzPathsStr += ':' + path;
+    gzPathsStr += common::SystemPaths::Delimiter() + path;
 
-  gz::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
+  common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // TODO(CH3): Deprecated. Remove on tock.
-  gz::common::setenv(kResourcePathEnvDeprecated.c_str(), gzPathsStr.c_str());
+  common::setenv(kResourcePathEnvDeprecated.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -505,7 +507,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-gz::sim::Entity topLevelModel(const Entity &_entity,
+sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;
@@ -576,43 +578,73 @@ Entity entityFromMsg(const EntityComponentManager &_ecm,
     return _msg.id();
   }
 
+  // If there's no ID, check name + type
+  if (_msg.type() == msgs::Entity::NONE)
+  {
+    return kNullEntity;
+  }
+
   auto entities = entitiesFromScopedName(_msg.name(), _ecm);
   if (entities.empty())
   {
     return kNullEntity;
   }
 
-  if (_msg.type() == msgs::Entity::NONE)
+  for (const auto &entity : entities)
   {
-    return *entities.begin();
-  }
-
-  for (const auto entity : entities)
-  {
-    if (msgs::Entity::LIGHT && _ecm.Component<components::Light>(entity))
+    if (_msg.type() == msgs::Entity::LIGHT &&
+        _ecm.Component<components::Light>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::MODEL && _ecm.Component<components::Model>(entity))
+    if (_msg.type() == msgs::Entity::MODEL &&
+        _ecm.Component<components::Model>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::LINK && _ecm.Component<components::Link>(entity))
+    if (_msg.type() == msgs::Entity::LINK &&
+        _ecm.Component<components::Link>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::VISUAL && _ecm.Component<components::Visual>(entity))
+    if (_msg.type() == msgs::Entity::VISUAL &&
+        _ecm.Component<components::Visual>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::COLLISION && _ecm.Component<components::Collision>(entity))
+    if (_msg.type() == msgs::Entity::COLLISION &&
+        _ecm.Component<components::Collision>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::SENSOR && _ecm.Component<components::Sensor>(entity))
+    if (_msg.type() == msgs::Entity::SENSOR &&
+        _ecm.Component<components::Sensor>(entity))
+    {
       return entity;
+    }
 
-    if (msgs::Entity::JOINT && _ecm.Component<components::Joint>(entity))
+    if (_msg.type() == msgs::Entity::JOINT &&
+        _ecm.Component<components::Joint>(entity))
+    {
       return entity;
+    }
 
-    // TODO(chapulina) Add actor when forward-porting
-    // if (msgs::Entity::ACTOR && _ecm.Component<components::Actor>(entity))
-    //   return entity;
+    if (_msg.type() == msgs::Entity::ACTOR &&
+        _ecm.Component<components::Actor>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::WORLD &&
+        _ecm.Component<components::World>(entity))
+    {
+      return entity;
+    }
   }
   return kNullEntity;
 }

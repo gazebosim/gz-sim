@@ -53,6 +53,8 @@ extern "C" const char *worldInstallDir();
 /// \param[in] _renderEngineGui --render-engine-gui option
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// null to record the default topics.
 /// \param[in] _headless True if server rendering should run headless
 /// \return 0 if successful, 1 if not.
@@ -63,13 +65,18 @@ extern "C" int runServer(const char *_sdfString,
     int _logCompress, const char *_playback,
     const char *_physicsEngine, const char *_renderEngineServer,
     const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics, int _headless);
+    const char *_recordTopics, int _waitGui, int _headless);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.
+/// \param[in] _file The world file path passed as a command line argument.
+/// If set, QuickStart Dialog will not be shown.
+/// \param[in] _waitGui Flag indicating whether the server waits until
+/// it receives a world path from GUI.
 /// \param[in] _renderEngine --render-engine-gui option
 /// \return 0 if successful, 1 if not.
-extern "C" int runGui(const char *_guiConfig, const char *_renderEngine);
+extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+    const char *_renderEngine);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

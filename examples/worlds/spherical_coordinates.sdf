@@ -213,9 +213,6 @@ gz service -s /world/spherical_coordinates/set_spherical_coordinates \
           <property key="showTitleBar" type="bool">false</property>
           <property key="cardBackground" type="string">#777777</property>
         </gz-gui>
-
-        <!-- disable legacy features used to connect this plugin to GzScene3D -->
-        <legacy>false</legacy>
       </plugin>
 
       <!-- Entity tree -->

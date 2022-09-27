@@ -171,9 +171,10 @@ void TestPlugin::PreUpdate(const UpdateInfo &_info,
 
   auto pose = worldPose(this->objectModelEntity, _ecm);
 
-  if (pose.Y() < -0.01 && !this->errorLogged) {
+  if (pose.Y() < -0.01 && !this->errorLogged)
+  {
     this->errorLogged = true;
-    ignerr << "Object moved unexpectedly to left of table! \n";
+    gzerr << "Object moved unexpectedly to left of table! \n";
   }
 
   // The plugin behavior below is only for the first time the simulation runs,

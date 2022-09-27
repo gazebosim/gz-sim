@@ -19,13 +19,17 @@
 #include <utility>
 #include <vector>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
-#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 // Include all components so they have first-class support
@@ -82,7 +86,7 @@ class gz::sim::GuiRunner::Implementation
   public: std::mutex systemLoadMutex;
 
   /// \brief Events containing visual plugins to load
-  public: std::vector<std::pair<gz::sim::Entity, sdf::ElementPtr>>
+  public: std::vector<std::pair<gz::sim::Entity, sdf::Plugin>>
       visualPlugins;
 
   /// \brief Systems implementing PreUpdate
@@ -193,6 +197,22 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
   }
+  else if (_event->type() ==
+      gz::sim::gui::events::VisualPlugins::kType)
+  {
+    auto visualPluginEvent =
+      reinterpret_cast<gui::events::VisualPlugins *>(_event);
+    if (visualPluginEvent)
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
+
+      Entity entity = visualPluginEvent->Entity();
+      for (const sdf::Plugin &plugin : visualPluginEvent->Plugins())
+      {
+        this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
+      }
+    }
+  }
   else if (_event->type() == gz::sim::gui::events::VisualPlugin::kType)
   {
     auto visualPluginEvent =
@@ -203,11 +223,11 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 
       Entity entity = visualPluginEvent->Entity();
       sdf::ElementPtr pluginElem = visualPluginEvent->Element();
-      this->dataPtr->visualPlugins.push_back(
-         std::make_pair(entity, pluginElem));
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
     }
   }
-
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
@@ -248,13 +268,6 @@ void GuiRunner::RequestState()
 
   // send async state request
   this->dataPtr->node.Request(this->dataPtr->stateTopic + "_async", req);
-}
-
-/////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &)
-{
-  // This function used to call Update on the plugin, but that's no longer
-  // necessary. The function is left here for ABI compatibility.
 }
 
 /////////////////////////////////////////////////
@@ -332,16 +345,13 @@ void GuiRunner::LoadSystems()
   for (auto &visualPlugin : this->dataPtr->visualPlugins)
   {
     Entity entity = visualPlugin.first;
-    sdf::ElementPtr pluginElem = visualPlugin.second;
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
-    if (filename != "__default__" && name != "__default__")
+    sdf::Plugin plugin = visualPlugin.second;
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
       std::optional<SystemPluginPtr> system;
       if (!this->dataPtr->systemLoader)
         this->dataPtr->systemLoader = std::make_unique<SystemLoader>();
-      system = this->dataPtr->systemLoader->LoadPlugin(
-          filename, name, pluginElem);
+      system = this->dataPtr->systemLoader->LoadPlugin(plugin);
       if (system)
       {
         SystemPluginPtr sys = system.value();
@@ -356,10 +366,10 @@ void GuiRunner::LoadSystems()
         auto sysConfigure = sys->QueryInterface<ISystemConfigure>();
         if (sysConfigure)
         {
-          sysConfigure->Configure(entity, pluginElem, this->dataPtr->ecm,
-              this->dataPtr->eventMgr);
+          sysConfigure->Configure(entity, plugin.ToElement(),
+              this->dataPtr->ecm, this->dataPtr->eventMgr);
         }
-        gzdbg << "Loaded system [" << name
+        gzdbg << "Loaded system [" << plugin.Name()
                << "] for entity [" << entity << "] in GUI"
                << std::endl;
       }

@@ -16,6 +16,8 @@
 */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/model.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>

@@ -22,7 +22,6 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
-#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -2943,82 +2942,6 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(18u, manager.EntityCount());
 }
 
-/////////////////////////////////////////////////
-// Check that some widely used deprecated APIs still work
-TEST_P(EntityComponentManagerFixture,
-    GZ_UTILS_TEST_DISABLED_ON_WIN32(Deprecated))
-{
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-
-  // Fail to create component for inexistent entity
-  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(789,
-      IntComponent(123)));
-
-  // Create some entities
-  auto eInt = manager.CreateEntity();
-  auto eDouble = manager.CreateEntity();
-  auto eIntDouble = manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
-
-  // Add components and keep their unique ComponentKeys
-  EXPECT_NE(nullptr, manager.CreateComponent<IntComponent>(eInt,
-      IntComponent(123)));
-  ComponentKey cIntEInt = {IntComponent::typeId, eInt};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<DoubleComponent>(eDouble,
-      DoubleComponent(0.123)));
-  ComponentKey cDoubleEDouble = {DoubleComponent::typeId, eDouble};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<IntComponent>(eIntDouble,
-      IntComponent(456)));
-  ComponentKey cIntEIntDouble = {IntComponent::typeId, eIntDouble};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<DoubleComponent>(eIntDouble,
-      DoubleComponent(0.456)));
-  ComponentKey cDoubleEIntDouble = {DoubleComponent::typeId, eIntDouble};
-
-  // Check entities have the components
-  EXPECT_TRUE(manager.EntityHasComponent(eInt, cIntEInt));
-  EXPECT_EQ(1u, manager.ComponentTypes(eInt).size());
-  EXPECT_EQ(IntComponent::typeId, *manager.ComponentTypes(eInt).begin());
-
-  EXPECT_TRUE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
-  EXPECT_EQ(1u, manager.ComponentTypes(eDouble).size());
-  EXPECT_EQ(DoubleComponent::typeId, *manager.ComponentTypes(eDouble).begin());
-
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(2u, manager.ComponentTypes(eIntDouble).size());
-  auto types = manager.ComponentTypes(eIntDouble);
-  EXPECT_NE(types.end(), types.find(IntComponent::typeId));
-  EXPECT_NE(types.end(), types.find(DoubleComponent::typeId));
-
-  // Remove component by key
-  EXPECT_TRUE(manager.RemoveComponent(eInt, cIntEInt));
-  EXPECT_FALSE(manager.EntityHasComponent(eInt, cIntEInt));
-  EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
-
-  // Remove component by type id
-  auto typeDouble = DoubleComponent::typeId;
-
-  EXPECT_TRUE(manager.RemoveComponent(eDouble, typeDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
-  EXPECT_TRUE(manager.ComponentTypes(eDouble).empty());
-
-  // Remove component by type
-  EXPECT_TRUE(manager.RemoveComponent<IntComponent>(eIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(1u, manager.ComponentTypes(eIntDouble).size());
-
-  EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(eIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(0u, manager.ComponentTypes(eIntDouble).size());
-
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-}
-
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, PinnedEntity)
 {
@@ -3337,6 +3260,94 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
     ASSERT_EQ(1u, removedEntities.size());
     EXPECT_EQ(entity3, removedEntities.front());
   }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsStateMap))
+{
+  Entity e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_EQ(0, eachCount<IntComponent>(manager));
+
+  // add a component
+  auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(1, eachCount<IntComponent>(manager));
+  EXPECT_EQ(123, comp->Data());
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // remove a component
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // add same type of component back in using SetState
+  auto iter = stateMsg.mutable_entities()->find(e1);
+  ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
+  msgs::SerializedEntityMap &e1Msg = iter->second;
+
+  auto compIter = e1Msg.mutable_components()->find(comp->TypeId());
+  ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
+  msgs::SerializedComponent &e1c1Msg = compIter->second;
+  e1c1Msg.set_component(std::to_string(321));
+  (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
+  (*stateMsg.mutable_entities())[static_cast<int64_t>(e1)] = e1Msg;
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // check component
+  comp = manager.Component<IntComponent>(e1);
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(321, comp->Data());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsState))
+{
+  Entity e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_EQ(0, eachCount<IntComponent>(manager));
+
+  // add a component
+  auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(1, eachCount<IntComponent>(manager));
+  EXPECT_EQ(123, comp->Data());
+
+  // Serialize into a message
+  msgs::SerializedState stateMsg = manager.State();
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // remove a component
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // add same type of component back in using SetState
+  auto entityMsg = stateMsg.mutable_entities(0);
+  EXPECT_EQ(1, entityMsg->components().size());
+  auto compMsg = entityMsg->mutable_components(0);
+  compMsg->set_component(std::to_string(321));
+
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // check component
+  comp = manager.Component<IntComponent>(e1);
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(321, comp->Data());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

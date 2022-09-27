@@ -16,6 +16,10 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>
@@ -187,7 +191,9 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartDisabled))
 }
 
 //////////////////////////////////////////////////
-TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RemovalOfParentModel))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(TouchPluginTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(RemovalOfParentModel))
 {
   this->StartServer("/test/worlds/touch_plugin.sdf");
 

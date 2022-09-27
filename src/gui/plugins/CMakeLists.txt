@@ -26,6 +26,16 @@ function(gz_add_gui_library library_name)
   QT5_WRAP_CPP(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
   QT5_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
 
+  if(MSVC)
+    # Warning #4251 is the "dll-interface" warning that tells you when types
+    # used by a class are not being exported. These generated source files have
+    # private members that don't get exported, so they trigger this warning.
+    # However, the warning is not important since those members do not need to
+    # be interfaced with.
+    set_source_files_properties(${${library_name}_headers_MOC} COMPILE_FLAGS "/wd4251")
+    set_source_files_properties(${gz_add_gui_library_SOURCES} COMPILE_FLAGS "/wd4251")
+  endif()
+
   add_library(${library_name} SHARED
     ${gz_add_gui_library_SOURCES}
     ${${library_name}_headers_MOC}
@@ -131,7 +141,6 @@ add_subdirectory(playback_scrubber)
 add_subdirectory(plot_3d)
 add_subdirectory(plotting)
 add_subdirectory(resource_spawner)
-add_subdirectory(scene3d)
 add_subdirectory(select_entities)
 add_subdirectory(scene_manager)
 add_subdirectory(shapes)

@@ -1,13 +1,15 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="apply_link_wrench">
+    <gravity>0 0 0</gravity>
+
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-apply-link-wrench-system"
-      name="ignition::gazebo::systems::ApplyLinkWrench">
+      filename="gz-sim-apply-link-wrench-system"
+      name="gz::sim::systems::ApplyLinkWrench">
       <persistent>
         <entity_name>model1</entity_name>
         <entity_type>model</entity_type>
@@ -21,33 +23,6 @@
         <torque>0 0 -1.0</torque>
       </persistent>
     </plugin>
-
-    <model name="ground_plane">
-      <static>true</static>
-      <link name="link">
-        <collision name="collision">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <ambient>0.8 0.8 0.8 1</ambient>
-            <diffuse>0.8 0.8 0.8 1</diffuse>
-            <specular>0.8 0.8 0.8 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
 
     <model name="model1">
       <pose>0 0 0.5 0 0 0</pose>
@@ -123,30 +98,6 @@
 
     <model name="model4">
       <pose>0 6 0.5 0 0 0</pose>
-      <link name="link">
-        <inertial>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </collision>
-      </link>
-    </model>
-
-    <model name="model5">
-      <pose>0 8 0.5 0 0 0</pose>
       <link name="link">
         <inertial>
           <inertia>

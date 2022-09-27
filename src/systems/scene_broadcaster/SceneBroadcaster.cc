@@ -49,6 +49,7 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
@@ -155,6 +156,15 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \param[in] _graph Scene graph
   public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
+
+  /// \brief Adds particle emitters to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the particle
+  /// emitters will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
   /// \param[in] _entity Entity
@@ -1004,6 +1014,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Particle emitters
+  _manager.EachNew<components::ParticleEmitter, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitterComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto emitterMsg = std::make_shared<msgs::ParticleEmitter>();
+        emitterMsg->CopyFrom(_emitterComp->Data());
+        emitterMsg->set_id(_entity);
+        emitterMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
   // Update the whole scene graph from the new graph
   {
     std::lock_guard<std::mutex> lock(this->graphMutex);
@@ -1168,6 +1198,24 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto emitterMsg = std::dynamic_pointer_cast<msgs::ParticleEmitter>(
+        vertex.second.get().Data());
+    if (!emitterMsg)
+      continue;
+
+    _msg->add_particle_emitter()->CopyFrom(*emitterMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1192,6 +1240,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Sensors
     AddSensors(msgOut, vertex.second.get().Id(), _graph);
+
+    // Particle emitters
+    AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

@@ -21,12 +21,15 @@
 #include <mutex>
 #include <string>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/marker_v.pb.h>
+
 #include <gz/math/Color.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
 #include <gz/math/Vector3.hh>
-#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Events.hh"
@@ -504,7 +507,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     else
     {
       // Create the name for the marker
-      std::string name = "__IGN_MARKER_VISUAL_" + ns + "_" +
+      std::string name = "__GZ_MARKER_VISUAL_" + ns + "_" +
                          std::to_string(id);
 
       // Create the new marker

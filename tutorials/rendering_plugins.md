@@ -20,7 +20,7 @@ The server-side scene will only be created when using the
 scene that shows what the sensors see.
 
 The client-side scene will only be created when using the
-`gz::sim::Scene3D` GUI system plugin on the client. This is the
+`gz::gui::plugins::MinimalScene` GUI system plugin on the client. This is the
 scene that shows what the user sees.
 
 For the user to see what the sensors see, they need to use other GUI plugins

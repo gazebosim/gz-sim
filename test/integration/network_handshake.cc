@@ -21,9 +21,11 @@
 
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/msgs/world_control.pb.h"
-#include "gz/msgs/world_stats.pb.h"
-#include "gz/transport/Node.hh"
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+#include <gz/transport/Node.hh>
+
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
@@ -125,7 +127,8 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 }
 
 /////////////////////////////////////////////////
-TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(NetworkHandshake, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
@@ -136,10 +139,11 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo primaryPluginInfo;
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
-  primaryPluginInfo.SetFilename(
-      "gz-sim-scene-broadcaster-system");
-  primaryPluginInfo.SetName("gz::sim::systems::SceneBroadcaster");
-  primaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin plugin;
+  plugin.SetFilename("gz-sim-scene-broadcaster-system");
+  plugin.SetName("gz::sim::systems::SceneBroadcaster");
+  plugin.InsertContent(pluginElem);
+  primaryPluginInfo.SetPlugin(plugin);
 
   ServerConfig configPrimary;
   configPrimary.SetNetworkRole("primary");
@@ -158,9 +162,11 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   ServerConfig::PluginInfo secondaryPluginInfo;
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
-  secondaryPluginInfo.SetFilename("gz-sim-physics-system");
-  secondaryPluginInfo.SetName("gz::sim::systems::Physics");
-  secondaryPluginInfo.SetSdf(pluginElem);
+  sdf::Plugin secondPlugin;
+  secondPlugin.SetFilename("gz-sim-physics-system");
+  secondPlugin.SetName("gz::sim::systems::Physics");
+  secondPlugin.InsertContent(pluginElem);
+  secondaryPluginInfo.SetPlugin(secondPlugin);
 
   ServerConfig configSecondary;
   configSecondary.SetNetworkRole("secondary");

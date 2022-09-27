@@ -27,6 +27,7 @@
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material.pb.h>
 #include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/plugin.pb.h>
 #include <gz/msgs/plugin_v.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/scene.pb.h>
@@ -41,7 +42,6 @@
 #include <gz/common/Console.hh>
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Inertial.hh>
-#include <gz/math/Pose3.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/Collision.hh>
@@ -745,6 +745,54 @@ namespace gz
     /// \return Plugin message.
     template<>
     msgs::Plugin convert(const sdf::Plugin &_in);
+
+    /// \brief Generic conversion from an SDF plugins to another type.
+    /// \param[in] _in SDF plugins.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Plugins &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from an SDF plugins to a plugin_v message.
+    /// \param[in] _in SDF plugins.
+    /// \return Plugin_V message.
+    template<>
+    msgs::Plugin_V convert(const sdf::Plugins &_in);
+
+    /// \brief Generic conversion from a msgs::Plugin to another type.
+    /// \param[in] _in msgs::Plugin.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Plugin &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a msgs::Plugin to an sdf::Plugin.
+    /// \param[in] _in msgs::Plugin.
+    /// \return sdf::Plugin.
+    template<>
+    sdf::Plugin convert(const msgs::Plugin &_in);
+
+    /// \brief Generic conversion from a msgs::Plugin_V to another type.
+    /// \param[in] _in msgs::Plugin_V.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Plugin_V &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a msgs::Plugin_V to an sdf::Plugins.
+    /// \param[in] _in msgs::Plugin_V.
+    /// \return sdf::Plugins.
+    template<>
+    sdf::Plugins convert(const msgs::Plugin_V &_in);
     }
   }
 }
