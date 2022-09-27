@@ -710,6 +710,7 @@ TEST(Conversions, Scene)
   sky.SetCloudHumidity(0.11);
   sky.SetCloudMeanSize(0.88);
   sky.SetCloudAmbient(math::Color::Red);
+  sky.SetCubemapUri("test.dds");
   scene.SetSky(sky);
 
   auto sceneSkyMsg = convert<msgs::Scene>(scene);
@@ -723,6 +724,10 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
   EXPECT_EQ(math::Color::Red,
       msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+  ASSERT_GT(sceneSkyMsg.sky().header().data_size(), 0);
+  auto header = sceneSkyMsg.sky().header().data(0);
+  EXPECT_EQ("cubemap_uri", header.key());
+  EXPECT_EQ("test.dds", header.value(0));
 
   auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
   ASSERT_NE(nullptr, newSceneSky.Sky());
@@ -734,6 +739,7 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
   EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
   EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
+  EXPECT_EQ("test.dds", newSceneSky.Sky()->CubemapUri());
 }
 
 /////////////////////////////////////////////////

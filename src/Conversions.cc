@@ -863,6 +863,13 @@ msgs::Scene ignition::gazebo::convert(const sdf::Scene &_in)
     skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
     msgs::Set(skyMsg->mutable_cloud_ambient(),
         _in.Sky()->CloudAmbient());
+
+    if (!_in.Sky()->CubemapUri().empty())
+    {
+      auto header = skyMsg->mutable_header()->add_data();
+      header->set_key("cubemap_uri");
+      header->add_value(_in.Sky()->CubemapUri());
+    }
   }
 
   return out;
@@ -893,6 +900,16 @@ sdf::Scene ignition::gazebo::convert(const msgs::Scene &_in)
     sky.SetCloudHumidity(_in.sky().humidity());
     sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
     sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
+
+    for (int i = 0; i < _in.sky().header().data_size(); ++i)
+    {
+      auto data = _in.sky().header().data(i);
+      if (data.key() == "cubemap_uri" && data.value_size() > 0)
+      {
+        sky.SetCubemapUri(data.value(0));
+      }
+    }
+
     out.SetSky(sky);
   }
   return out;
