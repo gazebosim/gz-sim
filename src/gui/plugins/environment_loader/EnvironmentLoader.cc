@@ -64,6 +64,9 @@ class EnvironmentLoaderPrivate
   /// \brief Index of data dimension to be used as z coordinate.
   public: int zIndex{-1};
 
+  /// \brief Index of data dimension to be used as units.
+  public: QString unit;
+
   public: using ReferenceT = math::SphericalCoordinates::CoordinateType;
 
   /// \brief Map of supported spatial references.
@@ -71,6 +74,13 @@ class EnvironmentLoaderPrivate
     {QString("global"), math::SphericalCoordinates::GLOBAL},
     {QString("spherical"), math::SphericalCoordinates::SPHERICAL},
     {QString("ecef"), math::SphericalCoordinates::ECEF}};
+
+  /// \brief Map of supported spatial units.
+  public: const QMap<QString, components::EnvironmentalData::ReferenceUnits> 
+    unitMap{
+      {QString("degree"), components::EnvironmentalData::DEGREES},
+      {QString("radians"), components::EnvironmentalData::RADIANS}
+    };
 
   /// \brief Spatial reference.
   public: QString reference;
@@ -131,7 +141,8 @@ void EnvironmentLoader::Update(const UpdateInfo &,
                 static_cast<size_t>(this->dataPtr->xIndex),
                 static_cast<size_t>(this->dataPtr->yIndex),
                 static_cast<size_t>(this->dataPtr->zIndex)}),
-          this->dataPtr->referenceMap[this->dataPtr->reference]);
+          this->dataPtr->referenceMap[this->dataPtr->reference],
+          this->dataPtr->unitMap[this->dataPtr->unit]);
 
       using ComponentT = components::Environment;
       _ecm.CreateComponent(worldEntity(_ecm), ComponentT{std::move(data)});
@@ -210,6 +221,29 @@ QStringList EnvironmentLoader::DimensionList() const
   return this->dataPtr->dimensionList;
 }
 
+/////////////////////////////////////////////////
+QStringList EnvironmentLoader::UnitList() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->unitMap.keys();
+}
+
+/////////////////////////////////////////////////
+QString EnvironmentLoader::Unit() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  return this->dataPtr->unit;
+}
+
+/////////////////////////////////////////////////
+void EnvironmentLoader::SetUnit(QString _unit)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    this->dataPtr->unit = _unit;
+  }
+  this->IsConfiguredChanged();
+}
 /////////////////////////////////////////////////
 int EnvironmentLoader::TimeIndex() const
 {
