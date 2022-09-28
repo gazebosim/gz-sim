@@ -7,6 +7,7 @@ models. Because the system uses joints to connect models, the resulting
 kinematic topology has to be a tree, i.e., kinematic loops are not currently
 supported. This affects the choice of the parent link, and therefore, the
 parent model, which is the model that contains the `DetachableJoint` system.
+Once detached, the joint can be re-attached by publishing to a topic.
 
 For example, [detachable_joint.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
@@ -48,6 +49,18 @@ joint.
 * `<child_model_link>`:  Name of the link in the `<child_model>` that will be used
 as the child link in the detachable joint.
 
-* topic (optional): Topic name to be used for detaching connections. If empty,
-a default topic will be created with a pattern
-`/model/<model_name>/detachable_joint/detach`.
+* `detach_topic` (optional): Topic name to be used for detaching connections.
+ If empty, a default topic will be created with a pattern
+`/model/<model_name>/detachable_joint/detach`. If multiple detachable plugin is
+used in one model, `detach_topic` is REQUIRED to detach child models individually.
+
+* `attach_topic` (optional): Topic name to be used for re-attaching connections.
+ If empty, a default topic will be created with a pattern
+`/model/<model_name>/attachable_joint/attach`. If multiple detachable plugin is
+used in one model, `attach_topic` is REQUIRED to attach child models individually.
+
+* `output_topic` (optional): Topic name to be used for publishing the state of
+the detachment. If empty, a default topic will be created with a pattern
+`/model/<model_name>/detached_state`. If multiple detachable plugin is
+used in one model, `output_topic` is REQUIRED to publish child models state
+individually.
