@@ -128,6 +128,10 @@ void DetachableJoint::Configure(const Entity &_entity,
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
       [this](const auto &)
       {
+        if (this->isAttached){
+          igndbg << "Already attached" << std::endl;
+          return;
+        }
         this->attachRequested = true;
       });
 
@@ -260,6 +264,10 @@ void DetachableJoint::PublishOutput(bool attached)
 //////////////////////////////////////////////////
 void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 {
+  if (!this->isAttached){
+    igndbg << "Already detached" << std::endl;
+    return;
+  }
   this->detachRequested = true;
 }
 
