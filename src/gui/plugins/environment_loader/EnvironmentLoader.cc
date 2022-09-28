@@ -78,8 +78,10 @@ class EnvironmentLoaderPrivate
   /// \brief Map of supported spatial units.
   public: const QMap<QString, components::EnvironmentalData::ReferenceUnits> 
     unitMap{
-      {QString("degree"), components::EnvironmentalData::DEGREES},
-      {QString("radians"), components::EnvironmentalData::RADIANS}
+      {QString("degree"),
+        components::EnvironmentalData::ReferenceUnits::DEGREES},
+      {QString("radians"),
+        components::EnvironmentalData::ReferenceUnits::RADIANS}
     };
 
   /// \brief Spatial reference.

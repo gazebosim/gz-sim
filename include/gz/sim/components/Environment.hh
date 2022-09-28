@@ -59,7 +59,8 @@ namespace components
     /// them.
     static std::shared_ptr<EnvironmentalData>
     MakeShared(FrameT _frame, ReferenceT _reference,
-      ReferenceUnits _units=RADIANS, bool _ignoreTimeStep = false);
+      ReferenceUnits _units = ReferenceUnits::RADIANS,
+      bool _ignoreTimeStep = false);
 
     /// \brief Environmental data frame.
     FrameT frame;
