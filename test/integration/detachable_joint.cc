@@ -267,6 +267,10 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    this->server->AddSystem(testSystem2.systemPtr);
 
    transport::Node node;
+   // time required for the child and parent links to be attached
+   igndbg << "Initially attaching the links" << std::endl;
+   const std::size_t nItersInitialize{100};
+   this->server->Run(true, nItersInitialize, false);
 
    // detach the B1 model from the vehicle model
    auto pub = node.Advertise<msgs::Empty>("/B1/detach");
@@ -275,8 +279,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    const std::size_t nItersAfterDetach{100};
    this->server->Run(true, nItersAfterDetach, false);
 
-   ASSERT_EQ(nItersAfterDetach, b1Poses.size());
-   ASSERT_EQ(nItersAfterDetach, vehiclePoses.size());
+   ASSERT_EQ(nItersAfterDetach + nItersInitialize, b1Poses.size());
+   ASSERT_EQ(nItersAfterDetach + nItersInitialize, vehiclePoses.size());
 
    // Deafult distance between B1 and the vehicle is 1.5.
    auto defaultDist = 1.5;
