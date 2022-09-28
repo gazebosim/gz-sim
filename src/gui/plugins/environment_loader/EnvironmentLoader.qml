@@ -26,7 +26,7 @@ GridLayout {
   columns: 8
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 400
+  Layout.minimumHeight: 500
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
@@ -204,9 +204,34 @@ GridLayout {
     ToolTip.text: qsTr("Reference for spatial dimensions")
   }
 
+  Label {
+    Layout.row: 6
+    Layout.columnSpan: 1
+    horizontalAlignment: Text.AlignRight
+    id: unitText
+    color: "dimgrey"
+    text: qsTr("Units")
+  }
+
+  ComboBox {
+    Layout.row: 6
+    Layout.column: 2
+    Layout.columnSpan: 6
+    id: unitsConversion
+    Layout.fillWidth: true
+    enabled: referenceCombo.currentIndex == 2
+    model: EnvironmentLoader.unitList
+    onCurrentTextChanged: {
+      EnvironmentLoader.unit = currentText
+    }
+    ToolTip.visible: hovered
+    ToolTip.text: qsTr("Units")
+  }
+
+
   Button {
     text: qsTr("Load")
-    Layout.row: 6
+    Layout.row: 7
     Layout.columnSpan: 8
     Layout.fillWidth: true
     enabled: EnvironmentLoader.configured
