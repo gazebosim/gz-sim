@@ -446,11 +446,7 @@ void RFComms::Step(
           continue;
 
         auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-#if GOOGLE_PROTOBUF_VERSION < 3004001
-          itSrc->second, itDst->second, msg->ByteSize());
-#else
-          itSrc->second, itDst->second, msg->ByteSizeLong());
-#endif
+          itSrc->second, itDst->second, msg->data().size());
 
         if (sendPacket)
         {
