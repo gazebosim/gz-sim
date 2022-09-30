@@ -1362,6 +1362,11 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           // specifically uses AttachMeshShapeFeature and AttachHeightMapFeature
           // for those shapes. The physics plugin implementer needs to know to
           // implement those specific features instead.
+          auto linkCollisionFeature =
+              this->entityLinkMap.EntityCast<CollisionFeatureList>(
+                  _parent->Data());
+          this->entityCollisionMap.AddEntity(
+            _entity, linkCollisionFeature->GetCollision(_name->Data()));
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
           return true;
