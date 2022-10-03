@@ -556,6 +556,11 @@ namespace gz
       /// \return True if there are any components with one-time changes.
       public: bool HasOneTimeComponentChanges() const;
 
+      /// \brief Get whether there are periodic component changes. These changes
+      /// may happen frequently and are processed periodically.
+      /// \return True if there are any components with periodic changes.
+      public: bool HasPeriodicComponentChanges() const;
+
       /// \brief Get the components types that are marked as periodic changes.
       /// \return All the components that at least one entity marked as
       /// periodic changes.

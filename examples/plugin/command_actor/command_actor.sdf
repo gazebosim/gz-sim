@@ -52,7 +52,7 @@
 
     <include>
       <pose>1 1 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/Mingfei/models/actor</uri>
       <plugin filename="CommandActor"
               name="command_actor::CommandActor">
 

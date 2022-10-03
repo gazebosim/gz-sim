@@ -219,7 +219,7 @@
 
         <record_video>
           <use_sim_time>true</use_sim_time>
-          <lockstep>true</lockstep>
+          <lockstep>false</lockstep>
           <bitrate>4000000</bitrate>
         </record_video>
       </plugin>
