@@ -87,7 +87,7 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/fog generator</uri>
     </include>
 
     <!-- Nested model example, where the particles are bright red
