@@ -51,13 +51,17 @@ namespace systems
   /// creating a fixed joint with a link in the parent model.
   ///
   /// - `<detach_topic>` (optional): Topic name to be used for detaching
-  /// connections
+  /// connections. If multiple detachable plugin is used in one model,
+  /// `detach_topic` is REQUIRED to detach child models individually.
   ///
   /// - `<attach_topic>` (optional): Topic name to be used for attaching
-  /// connections
+  /// connections. If multiple detachable plugin is used in one model,
+  /// `attach_topic` is REQUIRED to attach child models individually.
   ///
   /// - `<output_topic>` (optional): Topic name to be used for publishing
-  /// the state of the detachment.
+  /// the state of the detachment. If multiple detachable plugin is used in
+  /// one model, `output_topic` is REQUIRED to publish child models state
+  /// individually.
   ///
   /// - `<suppress_child_warning>` (optional): If true, the system
   /// will not print a warning message if a child model does not exist yet.
@@ -89,7 +93,7 @@ namespace systems
     private: ignition::transport::Node::Publisher outputPub;
 
     /// \brief Helper function to publish the state of the detachment
-    private: void PublishOutput(bool attached);
+    private: void PublishJointState(bool attached);
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);

@@ -213,7 +213,7 @@ void DetachableJoint::PreUpdate(
                                          this->childLinkEntity, "fixed"}));
         this->attachRequested = false;
         this->isAttached = true;
-        this->PublishOutput(this->isAttached);
+        this->PublishJointState(this->isAttached);
         igndbg << "Attaching entity: " << this->detachableJointEntity
                << std::endl;
       }
@@ -241,13 +241,13 @@ void DetachableJoint::PreUpdate(
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
       this->isAttached = false;
-      this->PublishOutput(this->isAttached);
+      this->PublishJointState(this->isAttached);
     }
   }
 }
 
 //////////////////////////////////////////////////
-void DetachableJoint::PublishOutput(bool attached)
+void DetachableJoint::PublishJointState(bool attached)
 {
   ignition::msgs::StringMsg detachedStateMsg;
   if (attached)
