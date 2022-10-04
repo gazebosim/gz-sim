@@ -393,7 +393,7 @@ start falling.
         <parent_link>body</parent_link>
         <child_model>box1</child_model>
         <child_link>box_body</child_link>
-        <detach_topic>/box1/detach</detach_topic>
+        <topic>/box1/detach</topic>
       </plugin>
       <plugin
         filename="ignition-gazebo-detachable-joint-system"
@@ -401,7 +401,7 @@ start falling.
         <parent_link>body</parent_link>
         <child_model>box2</child_model>
         <child_link>box_body</child_link>
-        <detach_topic>/box2/detach</detach_topic>
+        <topic>/box2/detach</topic>
       </plugin>
     </model>
 
