@@ -54,9 +54,9 @@ GridLayout {
     Layout.column: 2
     Layout.columnSpan: 6
     id: stepSliderX
-    from: 10
+    from: 5
     value: 10
-    to: 1000
+    to: 50
     onMoved: function() {
       EnvironmentVisualization.xResolution = value;
     }
@@ -76,9 +76,9 @@ GridLayout {
     Layout.column: 2
     Layout.columnSpan: 6
     id: stepSliderY
-    from: 10
+    from: 5
     value: 10
-    to: 1000
+    to: 50
     onMoved: function() {
       EnvironmentVisualization.yResolution = value;
     }
@@ -98,9 +98,9 @@ GridLayout {
     Layout.column: 2
     Layout.columnSpan: 6
     id: stepSliderZ
-    from: 10
+    from: 5
     value: 10
-    to: 1000
+    to: 50
     onMoved: function() {
       EnvironmentVisualization.zResolution = value;
     }

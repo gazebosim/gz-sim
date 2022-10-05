@@ -184,9 +184,8 @@ class EnvironmentVisualizationPrivate
     auto numberOfPoints =
       ceil(xResolution) * ceil(yResolution) * ceil(zResolution);
     unsigned int dataSize{numberOfPoints * pcMsg.point_step()};
-    gzerr << "Datasize " << dataSize << "for" << numberOfPoints << "\n";
-
-    pcMsg.mutable_data()->resize(dataSize+1);
+    
+    pcMsg.mutable_data()->resize(dataSize);
     pcMsg.set_height(1);
     pcMsg.set_width(numberOfPoints);
 
