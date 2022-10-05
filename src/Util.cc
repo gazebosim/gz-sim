@@ -30,6 +30,7 @@
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
@@ -669,6 +670,43 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
 
   // Return degrees
   return math::Vector3d(GZ_RTOD(rad.X()), GZ_RTOD(rad.Y()), rad.Z());
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Vector3d> GetGridFieldCoordinates(
+  const EntityComponentManager &_ecm,
+  const math::Vector3d& _worldPosition,
+  const std::shared_ptr<components::EnvironmentalData>& _gridField
+  )
+{
+  if (_gridField->reference == math::SphericalCoordinates::SPHERICAL)
+  {
+      auto origin =
+        _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+      if (!origin)
+      {
+        gzerr << "World has no spherical coordinates,"
+            <<" but data was loaded with spherical reference plane" 
+            << std::endl;
+        return std::nullopt;
+      }
+      auto position = origin->Data().PositionTransform(
+          _worldPosition, math::SphericalCoordinates::LOCAL2,
+          _gridField->reference);
+      if (_gridField->units ==
+        components::EnvironmentalData::ReferenceUnits::DEGREES)
+      {
+        position = math::Vector3d{
+          GZ_RTOD(position.X()),
+          GZ_RTOD(position.Y()),
+          position.Z()
+        };
+      }
+  }
+  else
+  {
+    return _worldPosition;
+  }
 }
 
 //////////////////////////////////////////////////

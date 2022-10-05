@@ -40,6 +40,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   {
     Q_OBJECT
 
+    Q_PROPERTY(qreal xResolution MEMBER xResolution NOTIFY xResolutionChanged);
+    Q_PROPERTY(qreal yResolution MEMBER yResolution NOTIFY yResolutionChanged);
+    Q_PROPERTY(qreal zResolution MEMBER zResolution NOTIFY zResolutionChanged);
+
     /// \brief Constructor
     public: EnvironmentVisualization();
 
@@ -53,9 +57,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: void Update(const UpdateInfo &,
                         EntityComponentManager &_ecm) override;
 
+    signals: void xResolutionChanged();
+
+    signals: void yResolutionChanged();
+
+    signals: void zResolutionChanged();
+
     /// \internal
     /// \brief Pointer to private data
     private: std::unique_ptr<EnvironmentVisualizationPrivate> dataPtr;
+
+    public: qreal xResolution{10};
+
+    public: qreal yResolution{10};
+
+    public: qreal zResolution{10};
   };
 }
 }

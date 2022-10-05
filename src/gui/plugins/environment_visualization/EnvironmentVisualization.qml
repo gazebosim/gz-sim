@@ -55,8 +55,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: stepSliderX
     from: 10
-    value: 2
+    value: 10
     to: 1000
+    onMoved: function() {
+      EnvironmentVisualization.xResolution = value;
+    }
   }
 
   Label {
@@ -74,8 +77,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: stepSliderY
     from: 10
-    value: 2
+    value: 10
     to: 1000
+    onMoved: function() {
+      EnvironmentVisualization.yResolution = value;
+    }
   }
 
   Label {
@@ -93,7 +99,10 @@ GridLayout {
     Layout.columnSpan: 6
     id: stepSliderZ
     from: 10
-    value: 2
+    value: 10
     to: 1000
+    onMoved: function() {
+      EnvironmentVisualization.zResolution = value;
+    }
   }
 }

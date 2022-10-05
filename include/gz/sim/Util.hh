@@ -24,11 +24,14 @@
 #include <vector>
 
 #include <gz/math/Pose3.hh>
+
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
+
 
 namespace gz
 {
@@ -287,6 +290,16 @@ namespace gz
     /// haven't been defined, this will return nullopt.
     std::optional<math::Vector3d> GZ_SIM_VISIBLE sphericalCoordinates(
         Entity _entity, const EntityComponentManager &_ecm);
+
+    /// \brief Get grid field coordinates based on a world position in cartesian
+    /// coordinate frames.
+    /// \param[in] _ecm - The Entity Component Manager
+    /// \param[in] _worldPosition - The world position
+    /// \param[in] _gridField - The gridfield you are interested in.
+    std::optional<math::Vector3d> GetGridFieldCoordinates(
+      const EntityComponentManager &_ecm,
+      const math::Vector3d& _worldPosition,
+      const std::shared_ptr<components::EnvironmentalData>& _gridField);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
