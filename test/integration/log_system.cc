@@ -1523,7 +1523,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".gz", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".gz", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1558,11 +1558,11 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".gz", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".gz", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1658,9 +1658,9 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
   // Change environment variable so that downloaded fuel files aren't written
   // to $HOME
   std::string homeOrig;
-  common::env(IGN_HOMEDIR, homeOrig);
+  common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1670,7 +1670,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
   // Log from command line
   {
     // Command line triggers ign.cc, which handles initializing ignLogDirectory
-    std::string cmd = kIgnCommand + " -r -v 4 --iterations "
+    std::string cmd = kGzCommand + " -r -v 4 --iterations "
       + std::to_string(numIterations) + " "
       + "--record-period 0.002 "
       + "--record-path " + recordPath + " " + recordSdfPath;
