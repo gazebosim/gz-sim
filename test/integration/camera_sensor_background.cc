@@ -19,6 +19,8 @@
 
 #include <string>
 
+#include <gz/msgs/image.pb.h>
+
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 

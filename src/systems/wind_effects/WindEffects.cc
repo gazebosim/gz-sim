@@ -598,11 +598,16 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
         link.ResetEntity(_entity);
 
+        double forceScalingFactor =
+            this->forceApproximationScalingFactor(_linkPose->Data().Pos());
+        if (std::isnan(forceScalingFactor))
+        {
+          forceScalingFactor = 0.;
+        }
+
         const math::Vector3d windForce =
             _inertial->Data().MassMatrix().Mass() *
-            this->forceApproximationScalingFactor(
-                _linkPose->Data().Pos()) *
-            (windVel->Data() - _linkVel->Data());
+            forceScalingFactor * (windVel->Data() - _linkVel->Data());
 
         // Apply force at center of mass
         link.AddWorldForce(_ecm, windForce);

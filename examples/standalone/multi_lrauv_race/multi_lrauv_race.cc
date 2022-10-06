@@ -26,8 +26,9 @@
 #include <chrono>
 #include <thread>
 
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/msgs/double.pb.h>
+
+#include <gz/transport/Node.hh>
 
 // Fin joint limits from tethys model.sdf
 double random_angle_within_limits(double min=-0.261799, double max=0.261799)
@@ -84,7 +85,7 @@ int main(int argc, char** argv)
   propellerCmds.resize(ns.size(), 0.0);
 
   float artificial_speedup = 1;
-  
+
   while (true)
   {
     for (int i = 0; i < ns.size(); i++)
