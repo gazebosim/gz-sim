@@ -2277,14 +2277,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         }
       }
       if (addAnim)
-      {
-        if (!meshSkel->AddBvhAnimation(animFilename, animScale))
-        {
-          ignerr << "Bvh animation in file " << animFilename
-                 << " failed to load during actor creation" << std::endl;
-          continue;
-        }
-      }
+        meshSkel->AddBvhAnimation(animFilename, animScale);
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
