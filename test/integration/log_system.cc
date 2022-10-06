@@ -1645,7 +1645,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 }
 
 /////////////////////////////////////////////////
-TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
+TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
 {
   // Create temp directory to store log
   this->CreateLogsDir();
