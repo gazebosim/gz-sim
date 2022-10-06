@@ -19,6 +19,10 @@
 
 #include <iostream>
 
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 
 // Create a transport node.

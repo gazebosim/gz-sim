@@ -25,6 +25,8 @@
 #include <sstream>
 #include <utility>
 
+#include <gz/msgs/double.pb.h>
+
 #include <gz/common/Console.hh>
 
 #include "../ElevatorStateMachine.hh"

@@ -4,7 +4,7 @@
   The world consistes of 3 simple shape models and 2 camera sensors.
   The visibility mask and flags are set in a way that:
       * box is visible to camera_0x01 and gui camera
-      * cylinder is visible to camera_0x02
+      * cylinder is visible to camera_0x02 and gui camera
       * sphere is visible to gui camera
   The ground plane does not have its visibliity flags set so it should be
   visible to all cameras.

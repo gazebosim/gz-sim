@@ -20,10 +20,12 @@
 
 #include <optional>
 
-#include <gz/msgs.hh>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 

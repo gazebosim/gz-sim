@@ -17,6 +17,8 @@
 #ifndef GZ_SIM_TEST_TESTVISUALSYSTEM_HH_
 #define GZ_SIM_TEST_TESTVISUALSYSTEM_HH_
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/System.hh>
