@@ -212,6 +212,14 @@ namespace gazebo
       NOTIFY NestedModelChanged
     )
 
+    /// \brief System display name list
+    Q_PROPERTY(
+      QStringList systemNameList
+      READ SystemNameList
+      WRITE SetSystemNameList
+      NOTIFY SystemNameListChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -371,6 +379,28 @@ namespace gazebo
     /// \brief Node for communication
     /// \return Transport node
     public: transport::Node &TransportNode();
+
+    /// \brief Query system plugin info.
+    public: Q_INVOKABLE void QuerySystems();
+
+    /// \brief Get the system plugin display name list
+    /// \return A list of names that are potentially system plugins
+    public: Q_INVOKABLE QStringList SystemNameList() const;
+
+    /// \brief Set the system plugin display name list
+    /// \param[in] _systempFilenameList A list of system plugin display names
+    public: Q_INVOKABLE void SetSystemNameList(
+        const QStringList &_systemNameList);
+
+    /// \brief Notify that system plugin display name list has changed
+    signals: void SystemNameListChanged();
+
+    /// \brief Callback when a new system is to be added to an entity
+    /// \param[in] _name Name of system
+    /// \param[in] _filename Filename of system
+    /// \param[in] _innerxml Inner XML content of the system
+    public: Q_INVOKABLE void OnAddSystem(const QString &_name,
+        const QString &_filename, const QString &_innerxml);
 
     /// \internal
     /// \brief Pointer to private data.
