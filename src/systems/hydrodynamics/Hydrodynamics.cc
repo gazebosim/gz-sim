@@ -288,7 +288,7 @@ void Hydrodynamics::PreUpdate(
 
   // These variables follow Fossen's scheme in "Guidance and Control
   // of Ocean Vehicles." The `state` vector contains the ship's current velocity
-  // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
+  // in the format [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
   // `stateDot` consists of the first derivative in time of the state vector.
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
@@ -332,13 +332,15 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
+  // TODO(anyone) Make this configurable
   auto dt = static_cast<double>(_info.dt.count())/1e9;
   stateDot = (state - this->dataPtr->prevState)/dt;
 
   this->dataPtr->prevState = state;
 
   // The added mass
-  const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
+  // Negative sign signifies the behaviour change
+  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
