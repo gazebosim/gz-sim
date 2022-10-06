@@ -111,9 +111,7 @@ class EnvironmentVisualizationPrivate
     // Publish at 2 hz for now. In future make reconfigureable.
     if (dt.count() > 0.5)
     {
-      gzerr << "Visualize" << "\n";
       this->Visualize(data, xResolution, yResolution, zResolution);
-      gzerr << "Publish" << "\n";
       this->Publish();
       lastTick = now;
     }
@@ -184,7 +182,6 @@ class EnvironmentVisualizationPrivate
     auto numberOfPoints =
       ceil(xResolution) * ceil(yResolution) * ceil(zResolution);
     unsigned int dataSize{numberOfPoints * pcMsg.point_step()};
-    
     pcMsg.mutable_data()->resize(dataSize);
     pcMsg.set_height(1);
     pcMsg.set_width(numberOfPoints);
@@ -305,22 +302,11 @@ void EnvironmentVisualization::Update(const UpdateInfo &_info,
 }
 
 /////////////////////////////////////////////////
-/*void EnvironmentVisualization::xResolutionChanged()
+void EnvironmentVisualization::ResamplePointcloud()
 {
   this->dataPtr->resample = true;
 }
 
-/////////////////////////////////////////////////
-void EnvironmentVisualization::yResolutionChanged()
-{
-  this->dataPtr->resample = true;
-}
-
-/////////////////////////////////////////////////
-void EnvironmentVisualization::zResolutionChanged()
-{
-  this->dataPtr->resample = true;
-}*/
 
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::EnvironmentVisualization, gz::gui::Plugin)

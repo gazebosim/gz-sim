@@ -59,6 +59,7 @@ GridLayout {
     to: 50
     onMoved: function() {
       EnvironmentVisualization.xResolution = value;
+      EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -81,6 +82,7 @@ GridLayout {
     to: 50
     onMoved: function() {
       EnvironmentVisualization.yResolution = value;
+      EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -103,6 +105,7 @@ GridLayout {
     to: 50
     onMoved: function() {
       EnvironmentVisualization.zResolution = value;
+      EnvironmentVisualization.ResamplePointcloud();
     }
   }
 }
