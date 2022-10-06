@@ -414,7 +414,8 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
 
   int sleep = 0;
   int maxSleep = 30;
-  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  for (; (odomPoses.size() < 3 || odomPoses.size() != tfPoses.size()) &&
+       sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
