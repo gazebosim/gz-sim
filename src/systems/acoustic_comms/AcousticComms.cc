@@ -42,11 +42,20 @@ class AcousticComms::Implementation
   /// \brief Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 
+  /// \brief Default collision time interval in sec.
+  public: double collisionTimeInterval = 0;
+
   /// \brief Position of the transmitter at the time the message was
   /// sent, or first processed.
   public: std::unordered_map
           <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
           poseSrcAtMsgTimestamp;
+
+  /// \brief Map that holds data of the address of a receiver, and
+  /// the timestamp of the last message recevied by it.
+  public: std::unordered_map
+          <std::string, std::chrono::duration<double>>
+          lastMsgReceivedTime;
 };
 
 //////////////////////////////////////////////////
@@ -69,6 +78,11 @@ void AcousticComms::Load(
   if (_sdf->HasElement("speed_of_sound"))
   {
     this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
+  }
+  if (_sdf->HasElement("collision_time_interval"))
+  {
+    this->dataPtr->collisionTimeInterval =
+      _sdf->Get<double>("collision_time_interval");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<
@@ -175,8 +189,39 @@ void AcousticComms::Step(
         {
           if (distanceCoveredByMessage >= distanceToTransmitter)
           {
+            // This message has effectively reached the destination.
+            bool receivedSuccessfully = false;
+
+            // Check for time collision
+            if (this->dataPtr->lastMsgReceivedTime.count(
+                  msg->dst_address()) == 0)
+            {
+              // This is the first message received by this address.
+              receivedSuccessfully = true;
+            }
+            else
+            {
+              // A previous msg was already received at this address.
+              std::chrono::duration<double> timeGap = currTimestamp -
+                this->dataPtr->lastMsgReceivedTime[msg->dst_address()];
+
+              auto dropInterval = std::chrono::duration<double>(
+                  this->dataPtr->collisionTimeInterval);
+
+              if (timeGap >= dropInterval)
+                receivedSuccessfully = true;
+            }
+
+            this->dataPtr->lastMsgReceivedTime[msg->dst_address()] =
+              currTimestamp;
+
             // This message needs to be processed.
-            _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+            // Push the msg to inbound of the destination if receivedSuccessfully
+            // is true, else it is dropped.
+            if (receivedSuccessfully)
+              _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+
+            // Stop keeping track of the position of its source.
             this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
           }
           else

@@ -49,6 +49,9 @@ namespace systems
   ///                   happen beyond this range. Default is 1000.
   ///    * <speed_of_sound>: Speed of sound in the medium (meters/sec).
   ///                         Default is 343.0
+  ///    * <collision_time_interval> : If a subscriber receives multiple
+  ///                         messages in this time interval, the later
+  ///                         messages will be dropped.
   ///
   /// Here's an example:
   ///  <plugin
@@ -56,6 +59,7 @@ namespace systems
   ///    name="gz::sim::systems::AcousticComms">
   ///    <max_range>6</max_range>
   ///    <speed_of_sound>1400</speed_of_sound>
+  ///    <collision_time_interval>0.001</collision_time_interval>
   ///  </plugin>
 
   class AcousticComms:
