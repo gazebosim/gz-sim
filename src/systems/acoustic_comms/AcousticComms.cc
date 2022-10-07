@@ -212,14 +212,16 @@ void AcousticComms::Step(
                 receivedSuccessfully = true;
             }
 
-            this->dataPtr->lastMsgReceivedTime[msg->dst_address()] =
-              currTimestamp;
-
             // This message needs to be processed.
             // Push the msg to inbound of the destination if receivedSuccessfully
             // is true, else it is dropped.
             if (receivedSuccessfully)
+            {
               _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+              // Update the receive time of the last msg for this address.
+              this->dataPtr->lastMsgReceivedTime[msg->dst_address()] =
+                currTimestamp;
+            }
 
             // Stop keeping track of the position of its source.
             this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
