@@ -4,6 +4,7 @@ set(tests
   ackermann_steering_system.cc
   air_pressure_system.cc
   altimeter_system.cc
+  added_mass.cc
   apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
