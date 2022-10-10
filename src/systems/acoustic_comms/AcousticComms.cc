@@ -19,6 +19,7 @@
  * Development of this module has been funded by the Monterey Bay Aquarium
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
+#include <string>
 #include <unordered_map>
 
 #include <gz/common/Profiler.hh>
@@ -213,8 +214,8 @@ void AcousticComms::Step(
             }
 
             // This message needs to be processed.
-            // Push the msg to inbound of the destination if receivedSuccessfully
-            // is true, else it is dropped.
+            // Push the msg to inbound of the destination if
+            // receivedSuccessfully is true, else it is dropped.
             if (receivedSuccessfully)
             {
               _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
