@@ -1,7 +1,7 @@
 import bpy
 import os.path
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty
 from bpy.types import Operator
 
 import xml.etree.ElementTree as ET
