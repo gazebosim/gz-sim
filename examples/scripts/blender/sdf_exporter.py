@@ -1,5 +1,5 @@
 import bpy
-import os.path
+from os import path
 from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty
 from bpy.types import Operator
@@ -22,7 +22,7 @@ def export_sdf(prefix_path):
     meshes_folder_prefix = 'meshes/'
     
     # Exports the dae file and its associated textures
-    bpy.ops.wm.collada_export(filepath=os.path.join(prefix_path, meshes_folder_prefix, dae_filename), check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
+    bpy.ops.wm.collada_export(filepath=path.join(prefix_path, meshes_folder_prefix, dae_filename), check_existing=False, filter_blender=False, filter_image=False, filter_movie=False, filter_python=False, filter_font=False, filter_sound=False, filter_text=False, filter_btx=False, filter_collada=True, filter_folder=True, filemode=8)
 
     # objects = bpy.context.selected_objects
     objects = bpy.context.selectable_objects
@@ -46,7 +46,7 @@ def export_sdf(prefix_path):
         geometry = ET.SubElement(visual, "geometry")
         mesh = ET.SubElement(geometry, "mesh")
         uri = ET.SubElement(mesh, "uri")
-        uri.text = os.path.join(meshes_folder_prefix, dae_filename)
+        uri.text = path.join(meshes_folder_prefix, dae_filename)
         submesh = ET.SubElement(mesh, "submesh")
         submesh_name = ET.SubElement(submesh, "name")
         submesh_name.text = o.name
@@ -73,12 +73,12 @@ def export_sdf(prefix_path):
         metal = ET.SubElement(pbr, "metal")
         if diffuse_map != "":
             albedo_map = ET.SubElement(metal, "albedo_map")
-            albedo_map.text = meshes_folder_prefix + diffuse_map
+            albedo_map.text = path.join(meshes_folder_prefix, diffuse_map)
         
         # for lightmapping, add the UV and turn off casting of shadows
-        if os.path.isfile(lightmap_filename):
+        if path.isfile(lightmap_filename):
             light_map = ET.SubElement(metal, "light_map", attrib={"uv_set":"1"})
-            light_map.text = meshes_folder_prefix + lightmap_filename
+            light_map.text = path.join(meshes_folder_prefix, lightmap_filename)
             
             cast_shadows = ET.SubElement(visual, "cast_shadows")
             cast_shadows.text = "0"
@@ -140,7 +140,7 @@ def export_sdf(prefix_path):
     geometry = ET.SubElement(collision, "geometry")
     mesh = ET.SubElement(geometry, "mesh")
     uri = ET.SubElement(mesh, "uri")
-    uri.text = dae_filename
+    uri.text = path.join(meshes_folder_prefix, dae_filename)
 
     surface = ET.SubElement(collision, "surface")
     contact = ET.SubElement(collision, "contact")
@@ -151,7 +151,7 @@ def export_sdf(prefix_path):
     xml_string = ET.tostring(sdf, encoding='unicode')
     reparsed = minidom.parseString(xml_string)
 
-    sdf_file = open(prefix_path+sdf_filename, "w")
+    sdf_file = open(path.join(prefix_path, sdf_filename), "w")
     sdf_file.write(reparsed.toprettyxml(indent="  "))
     sdf_file.close()
 
@@ -173,7 +173,7 @@ def export_sdf(prefix_path):
     xml_string = ET.tostring(model, encoding='unicode')
     reparsed = minidom.parseString(xml_string)
 
-    config_file = open(prefix_path+model_config_filename, "w")
+    config_file = open(path.join(prefix_path,model_config_filename), "w")
     config_file.write(reparsed.toprettyxml(indent="  "))
     config_file.close()
 
@@ -188,7 +188,7 @@ class OT_TestOpenFilebrowser(Operator, ImportHelper):
   def execute(self, context):
     """Do the export with the selected file."""
 
-    if not os.path.isdir(self.directory):
+    if not path.isdir(self.directory):
         print(self.directory + " is not a directory!")
     else:
         print("exporting to directory: " + self.directory)
