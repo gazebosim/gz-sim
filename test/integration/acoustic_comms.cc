@@ -39,13 +39,16 @@ public:
   std::string worldFile;
   std::string srcAddr;
   std::string dstAddr;
-  int numMsgs;
+  int numMsgsSent;
+  int numMsgsReceived;
 
   AcousticCommsTestDefinition(
     std::string worldFile_, std::string srcAddr_,
-    std::string dstAddr_, int numMsgs_) :
+    std::string dstAddr_, int numMsgsSent_,
+    int numMsgsReceived_):
     worldFile(worldFile_), srcAddr(srcAddr_),
-    dstAddr(dstAddr_), numMsgs(numMsgs_) {}
+    dstAddr(dstAddr_), numMsgsSent(numMsgsSent_),
+    numMsgsReceived(numMsgsReceived_) {}
 };
 
 /////////////////////////////////////////////////
@@ -109,7 +112,7 @@ TEST_P(AcousticCommsTestFixture,
 
   // Publish some messages.
   gz::msgs::StringMsg payload;
-  int pubCount = param.numMsgs;
+  int pubCount = param.numMsgsSent;
   for (int i = 0; i < pubCount; ++i)
   {
     // Prepare the payload.
@@ -132,11 +135,11 @@ TEST_P(AcousticCommsTestFixture,
       done = (msgCounter == pubCount) && (pubCount != 0);
     }
   }
-  if (param.numMsgs != 0)
+  if (param.numMsgsSent != 0 && param.numMsgsSent == param.numMsgsReceived)
   {
     EXPECT_TRUE(done);
   }
-  EXPECT_EQ(pubCount, msgCounter);
+  EXPECT_EQ(param.numMsgsReceived, msgCounter);
 }
 
 INSTANTIATE_TEST_SUITE_P(
@@ -144,14 +147,20 @@ INSTANTIATE_TEST_SUITE_P(
   AcousticCommsTestFixture,
   ::testing::Values(
     AcousticCommsTestDefinition(
-      "acoustic_comms.sdf", "addr2", "addr1", 3),
+      "acoustic_comms.sdf", "addr2", "addr1", 3, 3),
+    // 3 msgs will be sent, but 0 will be received as
+    // the distance between endpoints exceeds the max range set in the plugin.
     AcousticCommsTestDefinition(
-      "acoustic_comms.sdf", "addr4", "addr3", 0),
+      "acoustic_comms.sdf", "addr4", "addr3", 3, 0),
     // The source is moving and the destination is stationary.
     AcousticCommsTestDefinition(
-      "acoustic_comms_moving_targets.sdf", "addr2", "addr1", 3),
+      "acoustic_comms_moving_targets.sdf", "addr2", "addr1", 3, 3),
     // The source is stationary and the destnation is moving.
     AcousticCommsTestDefinition(
-      "acoustic_comms_moving_targets.sdf", "addr4", "addr3", 3)
-  )
+      "acoustic_comms_moving_targets.sdf", "addr4", "addr3", 3, 3),
+    // Message packets will be dropped as they are sent too fast
+    // compared to "collision_time_interval".
+    AcousticCommsTestDefinition(
+      "acoustic_comms_packet_collision.sdf", "addr2", "addr1", 3, 1)
+    )
 );
