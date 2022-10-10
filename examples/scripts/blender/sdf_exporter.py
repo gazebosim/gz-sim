@@ -101,7 +101,7 @@ def export_sdf(prefix_path):
         if blender_light.type == "POINT":
             light = ET.SubElement(link, "light", attrib={"name":l.name, "type":"point"})
             diffuse = ET.SubElement(light, "diffuse")
-            diffuse.text = str(blender_light.color.r) + " " + str(blender_light.color.g) + " " + str(blender_light.color.b) + " 1.0"
+            diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
             blender_pointlight = bpy.types.PointLight(blender_light)
             
             add_attenuation_tags(light, blender_pointlight)
@@ -109,7 +109,7 @@ def export_sdf(prefix_path):
         if blender_light.type == "SPOT":
             light = ET.SubElement(link, "light", attrib={"name":l.name, "type":"spot"})
             diffuse = ET.SubElement(light, "diffuse")
-            diffuse.text = str(blender_light.color.r) + " " + str(blender_light.color.g) + " " + str(blender_light.color.b) + " 1.0"
+            diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
             blender_spotlight = bpy.types.SpotLight(blender_light)
             
             add_attenuation_tags(light, blender_spotlight)
@@ -118,12 +118,12 @@ def export_sdf(prefix_path):
         if blender_light.type == "SUN":
             light = ET.SubElement(link, "light", attrib={"name":l.name, "type":"directional"})
             diffuse = ET.SubElement(light, "diffuse")
-            diffuse.text = str(blender_light.color.r) + " " + str(blender_light.color.g) + " " + str(blender_light.color.b) + " 1.0"
+            diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
             blender_pointlight = bpy.types.SunLight(blender_light)
             
         if blender_light.type == "SUN" or blender_light.type == "SPOT":
             direction = ET.SubElement(light, "direction")
-            direction.text = str(l.matrix_world[0][2]) + " " + str(l.matrix_world[1][2]) + " " + str(l.matrix_world[2][2])
+            direction.text = f"{l.matrix_world[0][2]} {l.matrix_world[1][2]} {l.matrix_world[2][2]}"
             
         # unsupported: AREA lights
 
@@ -189,9 +189,9 @@ class OT_TestOpenFilebrowser(Operator, ImportHelper):
     """Do the export with the selected file."""
 
     if not path.isdir(self.directory):
-        print(self.directory + " is not a directory!")
+        print(f"{self.directory} is not a directory!")
     else:
-        print("exporting to directory: " + self.directory)
+        print(f"exporting to directory: {self.directory}")
         export_sdf(self.directory)
     return {'FINISHED'}
 
