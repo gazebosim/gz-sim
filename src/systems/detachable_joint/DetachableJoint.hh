@@ -86,7 +86,7 @@ namespace systems
                 const ignition::gazebo::UpdateInfo &_info,
                 ignition::gazebo::EntityComponentManager &_ecm) final;
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief A publisher to send state of the detachment
