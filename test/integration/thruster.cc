@@ -21,6 +21,7 @@
 
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
+#include <ignition/math/Helpers.hh>
 #include <ignition/transport/Node.hh>
 #include <ignition/utilities/ExtraTestMacros.hh>
 
@@ -244,7 +245,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     //    linear_velocity) / (angular_velocity * propeller_diameter))
     // omega = sqrt(thrust /
     //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-    if (_calculateCoefficient && angularVelocity != 0.0)
+    if (_calculateCoefficient && equal(angularVelocity, 0.0))
     {
       _thrustCoefficient = _alpha1 + _alpha2 * (((1 - _wakeFraction) *
           propellerLinVels[i].Length()) / (angularVelocity * _diameter));
