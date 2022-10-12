@@ -107,7 +107,7 @@ TEST_F(BatteryPluginTest, SingleBattery)
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-gazebo/issues/55
       EXPECT_GT(batComp->Data(), 0);
     };
 
