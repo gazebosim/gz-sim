@@ -28,6 +28,7 @@ using namespace gazebo::gui;
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()
 {
+  aboutText += "<b>Gazebo " + std::string(GZ_DISTRIBUTION) + "</b><br>";
   aboutText += std::string(IGNITION_GAZEBO_VERSION_HEADER);
   aboutText += "<table class='nostyle'>"
                  "<tr>"
