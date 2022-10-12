@@ -69,7 +69,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
                                       bool &_shouldSkip)
   {
 #if __APPLE__
-    // until https://github.com/gazebosim/gz-gazebo/issues/806 is fixed
+    // until https://github.com/gazebosim/gz-sim/issues/806 is fixed
     _shouldSkip = true;
 #else
     _shouldSkip = false;
