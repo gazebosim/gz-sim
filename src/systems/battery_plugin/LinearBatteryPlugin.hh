@@ -57,7 +57,7 @@ namespace systems
   /// - `<charging_time>` Hours taken to fully charge the battery.
   ///                 (Required if `<enable_recharge>` is set to true)
   /// - `<fix_issue_225>` True to change the battery behavior to fix some issues
-  /// described in https://github.com/ignitionrobotics/ign-gazebo/issues/225.
+  /// described in https://github.com/gazebosim/gz-sim/issues/225.
   class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,
