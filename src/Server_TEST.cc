@@ -1002,7 +1002,7 @@ TEST_P(ServerFixture, CachedFuelWorld)
 
   ServerConfig serverConfig;
   auto fuelWorldURL =
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    "https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Test%20world";
   EXPECT_TRUE(serverConfig.SetSdfFile(fuelWorldURL));
 
   EXPECT_EQ(fuelWorldURL, serverConfig.SdfFile());

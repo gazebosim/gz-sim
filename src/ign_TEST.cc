@@ -37,6 +37,10 @@ static const std::string kIgnModelCommand(
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  // Augment the system plugin path.
+  gz::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      gz::common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
