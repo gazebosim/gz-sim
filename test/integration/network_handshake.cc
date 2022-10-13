@@ -145,7 +145,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   configPrimary.SetUseLevels(true);
   // Can only test one secondary running physics, because running 2 physics in
   // the same process causes a segfault, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/18
+  // https://github.com/gazebosim/gz-sim/issues/18
   configPrimary.SetNetworkSecondaries(1);
   configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");

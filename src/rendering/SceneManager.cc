@@ -1127,6 +1127,28 @@ void SceneManager::RemoveEntity(Entity _id)
     return;
 
   {
+    auto it = this->dataPtr->actors.find(_id);
+    if (it != this->dataPtr->actors.end())
+    {
+      this->dataPtr->actors.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorTrajectories.find(_id);
+    if (it != this->dataPtr->actorTrajectories.end())
+    {
+      this->dataPtr->actorTrajectories.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorSkeletons.find(_id);
+    if (it != this->dataPtr->actorSkeletons.end())
+    {
+      this->dataPtr->actorSkeletons.erase(it);
+    }
+  }
+
+  {
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {

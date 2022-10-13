@@ -44,6 +44,6 @@ TEST_F(SdfInclude, DownloadFromFuel)
   Server server(serverConfig);
 
   EXPECT_TRUE(common::exists(path +
-        "/fuel.ignitionrobotics.org/openrobotics/models/ground plane" +
+        "/fuel.gazebosim.org/openrobotics/models/ground plane" +
         "/1/model.sdf"));
 }

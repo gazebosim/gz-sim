@@ -59,7 +59,7 @@ using namespace gazebo;
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 // TODO(anyone) Support command line options for OSX, see
-// https://github.com/ignitionrobotics/ign-gazebo/issues/25
+// https://github.com/gazebosim/gz-sim/issues/25
 #ifndef __APPLE__
 static const std::string kSdfFileOpt =  // NOLINT(runtime/string)
 " ";
@@ -1276,7 +1276,7 @@ TEST_F(LogSystemTest, LogOverwrite)
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until ign gazebo is fixed:
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/25
+  // https://github.com/gazebosim/gz-sim/issues/25
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
@@ -1739,7 +1739,7 @@ TEST_F(LogSystemTest, LogResources)
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1774,7 +1774,7 @@ TEST_F(LogSystemTest, LogResources)
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done

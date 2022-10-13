@@ -14,7 +14,7 @@ class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
 yet, feel free to
-[ticket an issue](https://github.com/ignitionrobotics/ign-gazebo/issues/).
+[ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
 ## Link API
 
@@ -34,14 +34,14 @@ can be divided in these categories:
 
 You'll find the Ignition APIs below on the following headers:
 
-* [ignition/gazebo/Link.hh](https://ignitionrobotics.org/api/gazebo/3.3/Link_8hh.html)
-* [ignition/gazebo/Util.hh](https://ignitionrobotics.org/api/gazebo/3.3/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://ignitionrobotics.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://ignitionrobotics.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [ignition/gazebo/Link.hh](https://gazebosim.org/api/gazebo/3.3/Link_8hh.html)
+* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
+* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
+* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
 the
-[EntityComponentManager](https://ignitionrobotics.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+[EntityComponentManager](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
 directly. The functions presented here exist for convenience and readability.
 
 ### Properties

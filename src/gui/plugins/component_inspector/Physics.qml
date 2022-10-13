@@ -84,35 +84,6 @@ Rectangle {
     }
   }
 
-  Component {
-    id: plotIcon
-    Image {
-      property string componentInfo: ""
-      source: "plottable_icon.svg"
-      anchors.top: parent.top
-      anchors.left: parent.left
-
-      Drag.mimeData: { "text/plain" : (model === null) ? "" :
-      "Component," + model.entity + "," + model.typeId + "," +
-                     model.dataType + "," + componentInfo + "," + model.shortName
-      }
-      Drag.dragType: Drag.Automatic
-      Drag.supportedActions : Qt.CopyAction
-      Drag.active: dragMouse.drag.active
-      // a point to drag from
-      Drag.hotSpot.x: 0
-      Drag.hotSpot.y: y
-      MouseArea {
-        id: dragMouse
-        anchors.fill: parent
-        drag.target: (model === null) ? null : parent
-        onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
-        onReleased: parent.Drag.drop();
-        cursorShape: Qt.DragCopyCursor
-      }
-    }
-  }
-
   Column {
     anchors.fill: parent
 
@@ -179,39 +150,23 @@ Rectangle {
       GridLayout {
         id: grid
         width: parent.width
-        columns: 3
+        columns: 2
 
-        // Left spacer
-        Item {
-          Layout.rowSpan: 3
-          width: margin + indentation
+        Text {
+          id : stepSizeText
+          text: ' Step Size (s)'
+          Layout.column: 0
+          Layout.row: 0
+          leftPadding: 5
+          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+          font.pointSize: 12
         }
 
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: stepSizeText.width + indentation*3
-          Loader {
-            id: loaderStepSize
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderStepSize.item.componentInfo = "stepSize"
-
-          Text {
-            id : stepSizeText
-            text: ' Step Size (s)'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
-        }
         Item {
           Layout.fillWidth: true
           height: 40
+          Layout.column: 1
+          Layout.row: 0
           Loader {
             id: stepSizeLoader
             anchors.fill: parent
@@ -222,31 +177,22 @@ Rectangle {
             }
           }
         }
-        Rectangle {
-          color: "transparent"
-          height: 40
-          Layout.preferredWidth: realTimeFactorText.width + indentation*3
-          Loader {
-            id: loaderRealTimeFactor
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
-          }
-          Component.onCompleted: loaderRealTimeFactor.item.componentInfo = "realTimeFactor"
 
-          Text {
-            id : realTimeFactorText
-            text: ' Real time factor'
-            leftPadding: 5
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            anchors.centerIn: parent
-          }
+        Text {
+          id : realTimeFactorText
+          text: ' Real time factor'
+          Layout.column: 0
+          Layout.row: 1
+          leftPadding: 5
+          color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+          font.pointSize: 12
         }
+
         Item {
           Layout.fillWidth: true
           height: 40
+          Layout.column: 1
+          Layout.row: 1
           Loader {
             id: realTimeFactorLoader
             anchors.fill: parent
