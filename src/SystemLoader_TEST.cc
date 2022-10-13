@@ -15,7 +15,6 @@
  *
 */
 
-#include "gtest/gtest.h"
 #include <gtest/gtest.h>
 
 #include <sdf/Root.hh>
@@ -143,4 +142,3 @@ TEST(SystemLoader, BadPluginName)
     }
   }
 }
-
