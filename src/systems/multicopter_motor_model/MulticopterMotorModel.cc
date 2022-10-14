@@ -120,7 +120,7 @@ enum class MotorType {
 class ignition::gazebo::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const ignition::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -377,8 +377,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterMotorModel::PreUpdate");
 
@@ -476,7 +476,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const ignition::msgs::Actuators &_msg)
+    const msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -566,8 +566,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = ignition::math::Pose3d;
-      using Vector3 = ignition::math::Vector3d;
+      using Pose = math::Pose3d;
+      using Vector3 = math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -678,7 +678,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 }
 
 IGNITION_ADD_PLUGIN(MulticopterMotorModel,
-                    ignition::gazebo::System,
+                    System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 

@@ -10,7 +10,7 @@ section below for usage information about
 
 This section describes how to build and run a docker image based on
 nightly builds of downstream
-[Ignition libraries](https://ignitionrobotics.org/libs). The Docker image will
+[Ignition libraries](https://gazebosim.org/libs). The Docker image will
 use the Ignition Gazebo code found in the current source tree.
 
 **Requirements**

@@ -8,7 +8,7 @@ The logical audio plugin does not play actual audio to a device like speakers, b
 
 ## Setup
 
-Let's take a look at [logical_audio_sensor_plugin.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/460d2b1cfbf0addf05a1e61c05e1f7a675a83785/examples/worlds/logical_audio_sensor_plugin.sdf), which defines a simulation world with 4 models (in this case, boxes) that have an audio object attached to them.
+Let's take a look at [logical_audio_sensor_plugin.sdf](https://github.com/gazebosim/gz-sim/blob/460d2b1cfbf0addf05a1e61c05e1f7a675a83785/examples/worlds/logical_audio_sensor_plugin.sdf), which defines a simulation world with 4 models (in this case, boxes) that have an audio object attached to them.
 This world attaches logical audio sources to the `red_box` and `blue_box` models, and attaches logical microphones to the `green_box` and `yellow_box` models.
 
 Let's take a look at the SDF relevant to the source for `red_box` to understand how to define a logical audio source in SDF:
@@ -30,7 +30,7 @@ Let's take a look at the SDF relevant to the source for `red_box` to understand 
 ```
 
 As we can see, we use a `<source>` tag to define an audio source.
-An explanation of all of the tags can be found in the [plugin documentation](https://github.com/ignitionrobotics/ign-gazebo/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130), but there are a few important things to point out:
+An explanation of all of the tags can be found in the [plugin documentation](https://github.com/gazebosim/gz-sim/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130), but there are a few important things to point out:
 * `<id>` is used to identify this source when operating on it via services (services will be discussed later).
 Since a model can have multiple sources and microphones attached to it, each source attached to a particular model must have a unique ID.
 This means that no other sources attached to `red_box` can have an ID of 1, but sources attached to other models can have an ID of 1 (assuming that other models don't already have a source with an ID of 1 attached to it).
@@ -55,7 +55,7 @@ Let's now take a look at the SDF relevant to the microphone for `green_box` to u
 ```
 
 The same rules regarding `<id>` and `<pose>` for a logical audio source also apply to a logical microphone.
-You can also take a look at the [microphone documentation](https://github.com/ignitionrobotics/ign-gazebo/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130) for a detailed explanation of the tags embedded in the `<microphone>` tag.
+You can also take a look at the [microphone documentation](https://github.com/gazebosim/gz-sim/blob/314477419d2aa946f384204dc99b17d9fcd963b3/src/systems/logical_audio_sensor_plugin/LogicalAudioSensorPlugin.hh#L35-L130) for a detailed explanation of the tags embedded in the `<microphone>` tag.
 
 ## Testing Source and Microphone Behavior
 

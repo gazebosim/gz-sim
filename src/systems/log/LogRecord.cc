@@ -371,7 +371,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
-      ignition::transport::log::RecorderError::SUCCESS)
+      transport::log::RecorderError::SUCCESS)
   {
     this->instStarted = true;
     return true;
@@ -736,11 +736,11 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(LogRecord,
+                    gazebo::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
                           "ignition::gazebo::systems::LogRecord")

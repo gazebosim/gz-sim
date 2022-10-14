@@ -40,7 +40,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
-  public: void OnCmdPos(const ignition::msgs::Double &_msg);
+  public: void OnCmdPos(const msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   public: Model model{kNullEntity};
 
   /// \brief Position PID controller.
-  public: ignition::math::PID posPid;
+  public: math::PID posPid;
 
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
@@ -218,8 +218,8 @@ void JointPositionController::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void JointPositionController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointPositionController::PreUpdate");
 
@@ -357,7 +357,7 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointPositionController,
-                    ignition::gazebo::System,
+                    System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 

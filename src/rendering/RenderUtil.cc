@@ -228,7 +228,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine{nullptr};
+  public: rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -2341,6 +2341,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
+  _ecm.EachRemoved<components::Actor>(
+      [&](const Entity &_entity, const components::Actor *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->entityPoses.erase(_entity);
+        this->actorTransforms.erase(_entity);
+        return true;
+      });
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
@@ -2499,7 +2507,7 @@ bool RenderUtil::HeadlessRendering() const
 /////////////////////////////////////////////////
 void RenderUtil::InitRenderEnginePluginPaths()
 {
-  ignition::common::SystemPaths pluginPath;
+  common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
 }

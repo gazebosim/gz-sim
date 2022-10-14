@@ -17,7 +17,7 @@ Some of them are listed below and demonstrated in this [example ERB file](https:
 ## Set up Ruby
 
 Firstly, Ruby needs to be installed.
-If you have gone through [Ignition's installation guide](https://ignitionrobotics.org/docs/latest/install), it's most likely you already have Ruby installed.
+If you have gone through [Ignition's installation guide](https://gazebosim.org/docs/latest/install), it's most likely you already have Ruby installed.
 To check if Ruby is installed, use 
 ```{.sh}
 ruby --version
@@ -102,7 +102,7 @@ Each box model also has a different name and pose to ensure they show up as indi
     %>
 ```
 
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
+[Here](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
 Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
 
@@ -116,11 +116,11 @@ Instead of simple shapes, you can also use a nested loop to generate 100 actors 
 
     <actor name="actor_<%= 10*i+j %>">
         <skin>
-        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
         </skin>
         <animation name="talk_b">
-        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>0.055</scale>
         <interpolate_x>true</interpolate_x>
         </animation>

@@ -100,12 +100,12 @@ class PhysicsSystemFixtureWithDart6_10 : public PhysicsSystemFixture
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
@@ -122,7 +122,7 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/falling.sdf";
@@ -133,22 +133,22 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
   const sdf::World *world = root.WorldByIndex(0);
   const sdf::Model *model = world->ModelByIndex(0);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
   const std::string modelName = "sphere";
-  std::vector<ignition::math::Pose3d> spherePoses;
+  std::vector<math::Pose3d> spherePoses;
 
   // Create a system that records the poses of the sphere
   test::Relay testSystem;
 
   testSystem.OnPostUpdate(
-    [modelName, &spherePoses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [modelName, &spherePoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName) {
@@ -191,7 +191,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 // must be correct.
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/canonical.sdf";
@@ -203,7 +203,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -212,7 +212,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 
   const sdf::Model *model = world->ModelByIndex(0);
 
-  std::unordered_map<std::string, ignition::math::Pose3d> expectedLinPoses;
+  std::unordered_map<std::string, math::Pose3d> expectedLinPoses;
   for (auto &linkName : linksToCheck)
     expectedLinPoses[linkName] = model->LinkByName(linkName)->RawPose();
   ASSERT_EQ(3u, expectedLinPoses.size());
@@ -220,14 +220,14 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpLinkPoses;
   testSystem.OnPostUpdate(
-    [&modelName, &postUpLinkPoses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&modelName, &postUpLinkPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const ignition::gazebo::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -263,7 +263,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/nondefault_canonical.sdf";
@@ -275,7 +275,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
@@ -284,13 +284,13 @@ TEST_F(PhysicsSystemFixture,
   // Create a system that records the pose of the model.
   test::Relay testSystem;
 
-  std::vector<ignition::math::Pose3d> modelPoses;
+  std::vector<math::Pose3d> modelPoses;
   testSystem.OnPostUpdate(
-    [&modelName, &modelPoses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&modelName, &modelPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName)
@@ -318,7 +318,7 @@ TEST_F(PhysicsSystemFixture,
 // Test physics integration with revolute joints
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -330,7 +330,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -347,11 +347,11 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
   // arm is in its initial position. The minimum distance is when the arm is in
   // line with the support arm.
   testSystem.OnPostUpdate(
-    [&rotatingLinkName, &armDistances](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&rotatingLinkName, &armDistances](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (rotatingLinkName == _name->Data())
@@ -397,8 +397,8 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
-  ignition::gazebo::ServerConfig serverConfig;
-  gazebo::Server server(serverConfig);
+  ServerConfig serverConfig;
+  Server server(serverConfig);
   server.SetPaused(false);
 
   // Create a system just to get the ECM
@@ -408,8 +408,8 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -481,29 +481,29 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/friction.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
   std::map<std::string, double> boxParams{
       {"box1", 0.01}, {"box2", 0.1}, {"box3", 1.0}};
-  std::map<std::string, std::vector<ignition::math::Pose3d>> poses;
+  std::map<std::string, std::vector<math::Pose3d>> poses;
 
   // Create a system that records the poses of the 3 boxes
   test::Relay testSystem;
 
   testSystem.OnPostUpdate(
-    [&boxParams, &poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&boxParams, &poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (boxParams.find(_name->Data()) != boxParams.end()) {
@@ -567,23 +567,23 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/demo_joint_types.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(0ns);
 
   test::Relay testSystem;
   // Create JointPosition components if they don't already exist
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Joint>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const Entity &_entity,
                 components::Joint *) -> bool
             {
               auto posComp = _ecm.Component<components::JointPosition>(_entity);
@@ -598,10 +598,10 @@ TEST_F(PhysicsSystemFixture,
   std::map<std::string, std::size_t> jointPosDof;
 
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name, components::JointPosition>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointPosition *_jointPos) -> bool
@@ -647,7 +647,7 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -659,7 +659,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -673,10 +673,10 @@ TEST_F(PhysicsSystemFixture,
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
       {
         EXPECT_NE(nullptr, _name);
@@ -711,11 +711,11 @@ TEST_F(PhysicsSystemFixture,
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name, components::JointPosition>(
-          [&](const ignition::gazebo::Entity &,
+          [&](const Entity &,
               const components::Joint *,
               const components::Name *_name,
               const components::JointPosition *_pos)
@@ -747,7 +747,7 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -759,7 +759,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -773,10 +773,10 @@ TEST_F(PhysicsSystemFixture,
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -809,12 +809,12 @@ TEST_F(PhysicsSystemFixture,
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointVelocity>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointVelocity *_vel)
@@ -845,7 +845,7 @@ TEST_F(PhysicsSystemFixture,
 /// Test joint position limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -857,7 +857,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -878,10 +878,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
   // commands do not break the positional limit.
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -934,12 +934,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointPosition>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointPosition *_pos)
@@ -968,7 +968,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 /// Test joint velocity limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -980,7 +980,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -1001,10 +1001,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
   // commands do not break the velocity limit.
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -1057,12 +1057,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointVelocity>(
-        [&](const ignition::gazebo::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointVelocity *_vel)
@@ -1092,7 +1092,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 /// Test joint effort limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint_equilibrium.sdf";
@@ -1104,7 +1104,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -1125,10 +1125,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
   // commands do not break the effort limit.
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const ignition::gazebo::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -1186,12 +1186,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
     _ecm.Each<components::Joint,
     components::Name,
     components::JointPosition>(
-      [&](const ignition::gazebo::Entity &,
+      [&](const Entity &,
         const components::Joint *,
         const components::Name *_name,
         const components::JointPosition *_pos)
@@ -1219,28 +1219,28 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/contact.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
   // a map of model name to its axis aligned box
-  std::map<std::string, ignition::math::AxisAlignedBox> bbox;
+  std::map<std::string, math::AxisAlignedBox> bbox;
 
   // Create a system that records the bounding box of a model
   test::Relay testSystem;
 
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &,
-    gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &,
+    EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Static>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        [&](const Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Static *)->bool
         {
           // create axis aligned box to be filled by physics
@@ -1258,13 +1258,13 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
     });
 
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       // store models that have axis aligned box computed
       _ecm.Each<components::Model, components::Name, components::Static,
         components::AxisAlignedBox>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Static *,
         const components::AxisAlignedBox *_aabb)->bool
         {
@@ -1279,9 +1279,9 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 
   EXPECT_EQ(1u, bbox.size());
   EXPECT_EQ("box1", bbox.begin()->first);
-  EXPECT_EQ(ignition::math::AxisAlignedBox(
-      ignition::math::Vector3d(-1.25, -2, 0),
-      ignition::math::Vector3d(-0.25, 2, 1)),
+  EXPECT_EQ(math::AxisAlignedBox(
+      math::Vector3d(-1.25, -2, 0),
+      math::Vector3d(-0.25, 2, 1)),
       bbox.begin()->second);
 }
 
@@ -1290,7 +1290,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/nested_model.sdf";
@@ -1302,22 +1302,22 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpLinkPoses;
   std::unordered_map<std::string, std::string> parents;
   testSystem.OnPostUpdate(
-    [&postUpModelPoses, &postUpLinkPoses, &parents](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        [&](const Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           // store model pose
@@ -1336,7 +1336,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const ignition::gazebo::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
