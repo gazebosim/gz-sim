@@ -265,8 +265,10 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // Check current epoch bitrate vs capacity and fail to send accordingly
   if (bitsSent > this->radioConfig.capacity * this->epochDuration)
   {
-    ignwarn << "Bitrate limited: [" << _txState.name << "] " << bitsSent << "bits sent (limit: "
-            << this->radioConfig.capacity * this->epochDuration << ")" << std::endl;
+    ignwarn << "Bitrate limited: [" << _txState.name << "] " << bitsSent
+            << " bits sent (limit: "
+            << this->radioConfig.capacity * this->epochDuration << ")"
+            << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
@@ -324,8 +326,9 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)
   {
     ignwarn << "Bitrate limited: [" << _rxState.name << "] " <<  bitsReceived
-            << "bits received (limit: "
-            << this->radioConfig.capacity * this->epochDuration << ")" << std::endl;
+            << " bits received (limit: "
+            << this->radioConfig.capacity * this->epochDuration << ")"
+            << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
