@@ -49,7 +49,7 @@ install( FILES
 # Note that the major version of the library is included in the name.
 set(cmd_model_script_name "cmdmodel${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_model_script_generated "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_${cmd_model_script_name}")
-set(cmd_model_script_configured "${CMAKE_CURRENT_BINARY_DIR}/${cmd_script_name}.configured")
+set(cmd_model_script_configured "${CMAKE_CURRENT_BINARY_DIR}/${cmd_model_script_name}.configured")
 
 configure_file(
   "cmdmodel.rb.in"
