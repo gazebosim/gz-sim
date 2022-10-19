@@ -27,6 +27,7 @@ end
 
 require 'optparse'
 require 'erb'
+require 'pathname'
 
 # Constants.
 LIBRARY_NAME = '@library_location@'
@@ -337,7 +338,8 @@ class Cmd
   def execute(args)
     options = parse(args)
 
-    if LIBRARY_NAME[0] == '/'
+    library_name_path = Pathname.new(LIBRARY_NAME)
+    if library_name_path.absolute?
       # If the first character is a slash, we'll assume that we've been given an
       # absolute path to the library. This is only used during test mode.
       plugin = LIBRARY_NAME
@@ -467,6 +469,12 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
           exit(-1)
         end
 
+        if plugin.end_with? ".dll"
+          puts "`ign gazebo` currently only works with the -s argument on Windows.
+See https://github.com/gazebosim/gz-sim/issues/168 for more info."
+          exit(-1)
+        end
+
         serverPid = Process.fork do
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
@@ -523,6 +531,12 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
         if plugin.end_with? ".dylib"
           puts "`ign gazebo` currently only works with the -s argument on macOS.
 See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+          exit(-1)
+        end
+
+        if plugin.end_with? ".dll"
+          puts "`ign gazebo` currently only works with the -s argument on Windows.
+See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           exit(-1)
         end
 
