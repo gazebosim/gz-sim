@@ -221,6 +221,11 @@ TEST(ServerConfig, GenerateRecordPlugin)
   config.SetUseLogRecord(true);
   config.SetLogRecordPath("foo/bar");
   config.SetLogRecordResources(true);
+  auto period =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    std::chrono::duration<double>(0.04));
+  config.SetLogRecordPeriod(period);
+  EXPECT_EQ(period, config.LogRecordPeriod());
 
   auto plugin = config.LogRecordPlugin();
   EXPECT_EQ(plugin.EntityName(), "*");

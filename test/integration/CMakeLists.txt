@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   ackermann_steering_system.cc
+  acoustic_comms.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
@@ -24,6 +25,7 @@ set(tests
   force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
+  hydrodynamics.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc

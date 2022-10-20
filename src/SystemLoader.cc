@@ -16,6 +16,7 @@
 */
 
 #include <optional>
+#include <sstream>
 #include <string>
 #include <unordered_set>
 
@@ -84,8 +85,22 @@ class gz::sim::SystemLoaderPrivate
         // We assume gz::sim corresponds to the levels feature
         if (_sdfPlugin.Name() != "gz::sim")
         {
-          gzerr << "Failed to load system plugin [" << filename <<
-                    "] : couldn't find shared library." << std::endl;
+          std::stringstream ss;
+          ss << "Failed to load system plugin: "
+             << "(Reason: Could not find shared library)\n"
+             << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+             << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+             << "- Library search paths:\n";
+
+          for (const auto &path : systemPaths.PluginPaths())
+          {
+            ss << "  - " << path << "\n";
+          }
+          for (const auto &path : systemPathsDep.PluginPaths())
+          {
+            ss << "  - (Deprecated) " << path << "\n";
+          }
+          gzerr << ss.str();
         }
         return false;
       }
@@ -101,36 +116,83 @@ class gz::sim::SystemLoaderPrivate
     auto pluginNames = this->loader.LoadLib(pathToLib, true);
     if (pluginNames.empty())
     {
-      gzerr << "Failed to load system plugin [" << filename <<
-                "] : couldn't load library on path [" << pathToLib <<
-                "]." << std::endl;
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: No plugins detected in library)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n";
+      gzerr << ss.str();
       return false;
     }
 
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      gzerr << "Failed to load system plugin [" << filename <<
-                "] : couldn't load library on path [" << pathToLib <<
-                "]." << std::endl;
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: No plugins detected in library)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n";
+      gzerr << ss.str();
       return false;
     }
 
     _gzPlugin = this->loader.Instantiate(_sdfPlugin.Name());
     if (!_gzPlugin)
     {
-      gzerr << "Failed to load system plugin [" << _sdfPlugin.Name() <<
-        "] : could not instantiate from library [" << _sdfPlugin.Filename() <<
-        "] from path [" << pathToLib << "]." << std::endl;
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: library does not contain requested plugin)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n"
+         << "- Detected Plugins:\n";
+      for (const auto &pluginIt : pluginNames)
+      {
+        ss << "  - " << pluginIt << "\n";
+        auto aliases = this->loader.AliasesOfPlugin(pluginIt);
+        if (!aliases.empty())
+        {
+          ss << "\n    aliases:\n";
+          for (const auto& alias : aliases)
+          {
+            ss << "      " << alias << "\n";
+          }
+        }
+      }
+      gzerr << ss.str();
       return false;
     }
 
     if (!_gzPlugin->HasInterface<System>())
     {
-      gzerr << "Failed to load system plugin [" << _sdfPlugin.Name() <<
-        "] : system not found in library  [" << _sdfPlugin.Filename() <<
-        "] from path [" << pathToLib << "]." << std::endl;
-
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: plugin does not implement System interface)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n"
+         << "- Detected Plugins:\n";
+      for (const auto &pluginIt : pluginNames)
+      {
+        ss << "  - " << pluginIt << "\n";
+        auto aliases = this->loader.AliasesOfPlugin(pluginIt);
+        if (!aliases.empty())
+        {
+          ss << "\n    aliases:\n";
+          for (const auto& alias : aliases)
+          {
+            ss << "      " << alias << "\n";
+          }
+        }
+      }
+      ss << "- Plugin Interfaces Implemented:\n";
+      for (const auto &interfaceIt : this->loader.InterfacesImplemented())
+      {
+        ss << "  - " << interfaceIt << "\n";
+      }
       return false;
     }
 

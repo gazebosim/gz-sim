@@ -251,6 +251,7 @@ class gz::sim::ServerConfigPrivate
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
+            logRecordPeriod(_cfg->logRecordPeriod),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordCompressPath(_cfg->logRecordCompressPath),
@@ -282,6 +283,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
+
+  /// \brief Time period to record states
+  public: std::chrono::steady_clock::duration logRecordPeriod{0};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -481,6 +485,19 @@ const std::string ServerConfig::LogRecordPath() const
 void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 {
   this->dataPtr->logRecordPath = _recordPath;
+}
+
+/////////////////////////////////////////////////
+std::chrono::steady_clock::duration ServerConfig::LogRecordPeriod() const
+{
+  return this->dataPtr->logRecordPeriod;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPeriod(
+  const std::chrono::steady_clock::duration &_period)
+{
+  this->dataPtr->logRecordPeriod = _period;
 }
 
 /////////////////////////////////////////////////
@@ -693,6 +710,17 @@ ServerConfig::LogRecordPlugin() const
     topicElem->AddValue("string", "false", false, "");
     topicElem->Set<std::string>(topic);
     plugin.InsertContent(topicElem);
+  }
+
+  if (this->LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    sdf::ElementPtr periodElem = std::make_shared<sdf::Element>();
+    periodElem->SetName("record_period");
+    periodElem->AddValue("double", "0", false, "");
+    double t = std::chrono::duration_cast<std::chrono::milliseconds>(
+        this->LogRecordPeriod()).count() * 1e-3;
+    periodElem->Set<double>(t);
+    plugin.InsertContent(periodElem);
   }
 
   gzdbg << plugin.ToElement()->ToString("") << std::endl;
