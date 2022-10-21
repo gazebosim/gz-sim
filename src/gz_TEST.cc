@@ -63,8 +63,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
+TEST(CmdLine, Server)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -79,6 +78,9 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
         << output;
   }
 
+// Disable on WIN32 as on Windows it is not support to prepend
+// a command with the env variable to set
+#ifndef _WIN32
   // Use GZ_SIM_RESOURCE_PATH instead of specifying the complete path
   cmd = std::string("GZ_SIM_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kGzCommand +
@@ -93,10 +95,11 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+#endif
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
+TEST(CmdLine, CachedFuelWorld)
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
@@ -110,7 +113,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
+TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -127,7 +130,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
+TEST(CmdLine, Gazebo)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";

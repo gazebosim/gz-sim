@@ -57,9 +57,9 @@ AcousticComms::AcousticComms()
 
 //////////////////////////////////////////////////
 void AcousticComms::Load(
-    const Entity &_entity,
+    const Entity &,
     std::shared_ptr<const sdf::Element> _sdf,
-    EntityComponentManager &_ecm,
+    EntityComponentManager &,
     EventManager &_eventMgr)
 {
   if (_sdf->HasElement("max_range"))

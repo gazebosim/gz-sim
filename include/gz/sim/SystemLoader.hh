@@ -79,6 +79,10 @@ namespace gz
       /// \returns A pretty string
       public: std::string PrettyStr() const;
 
+      /// \brief Get the plugin search paths used for loading system plugins
+      /// \return Paths to search for plugins
+      public: std::list<std::string> PluginPaths() const;
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
     };
