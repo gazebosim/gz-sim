@@ -27,12 +27,17 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/Result.hh>
 #include <ignition/fuel_tools/WorldIdentifier.hh>
+#include <ignition/msgs/stringmsg.pb.h>
+#include <ignition/transport/Node.hh>
+#include <sdf/Console.hh>
 
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/Server.hh"
 #include "ignition/gazebo/ServerConfig.hh"
 
 #include "ignition/gazebo/gui/Gui.hh"
+
+using namespace ignition;
 
 //////////////////////////////////////////////////
 extern "C" char *ignitionGazeboVersion()
@@ -50,7 +55,15 @@ extern "C" char *gazeboVersionHeader()
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  ignition::common::Console::SetVerbosity(std::atoi(_verbosity));
+  int verbosity = std::atoi(_verbosity);
+  ignition::common::Console::SetVerbosity(verbosity);
+
+  // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
+  // console output with zero verbosity.
+  if (verbosity == 0)
+  {
+    sdf::Console::Instance()->SetQuiet(true);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -121,10 +134,39 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics,
-    int _headless)
+    const char *_file, const char *_recordTopics, int _waitGui,
+    int _headless, float _recordPeriod)
 {
+  std::string startingWorldPath{""};
   ignition::gazebo::ServerConfig serverConfig;
+
+  // Lock until the starting world is received from Gui
+  if (_waitGui == 1)
+  {
+    transport::Node node;
+    std::condition_variable condition;
+    std::mutex mutex;
+
+    // Create a subscriber just so we can check when the message has propagated
+    std::function<void(const msgs::StringMsg &)> topicCb =
+        [&startingWorldPath, &mutex, &condition](const auto &_msg)
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          startingWorldPath = _msg.data();
+          condition.notify_all();
+        };
+
+    std::string topic{"/gazebo/starting_world"};
+    std::unique_lock<std::mutex> lock(mutex);
+    igndbg << "Subscribing to [" << topic << "]." << std::endl;
+    node.Subscribe(topic, topicCb);
+    igndbg << "Waiting for a world to be set from the GUI..." << std::endl;
+    condition.wait(lock);
+    ignmsg << "Received world [" << startingWorldPath << "] from the GUI."
+          << std::endl;
+    igndbg << "Unsubscribing from [" << topic << "]." << std::endl;
+    node.Unsubscribe(topic);
+  }
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
@@ -140,7 +182,7 @@ extern "C" int runServer(const char *_sdfString,
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0 ||
+    _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
     (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -151,6 +193,12 @@ extern "C" int runServer(const char *_sdfString,
 
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordResources(_recordResources);
+    if (_recordPeriod >= 0)
+    {
+      serverConfig.SetLogRecordPeriod(
+           std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+           std::chrono::duration<double>(_recordPeriod)));
+    }
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
@@ -293,7 +341,13 @@ extern "C" int runServer(const char *_sdfString,
       return -1;
     }
   }
-  serverConfig.SetSdfFile(_file);
+
+  // This ensures if the server was run stand alone with a world from
+  // command line, the correct world would be loaded.
+  if(_waitGui == 1)
+    serverConfig.SetSdfFile(startingWorldPath);
+  else
+    serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -358,7 +412,8 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
+extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+  const char *_renderEngine)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -372,5 +427,5 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   // since we do need to pass a char* to runGui
   char *argv = const_cast<char *>("ign-gazebo-gui");
   return ignition::gazebo::gui::runGui(
-    argc, &argv, _guiConfig, _renderEngine);
+    argc, &argv, _guiConfig, _file, _waitGui, _renderEngine);
 }

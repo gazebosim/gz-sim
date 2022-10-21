@@ -59,6 +59,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
 
+    /// \brief True if render engine plugins paths are initialized
+    public: bool renderEnginePluginPathsInit{false};
+
     /// \brief List of new entities from a gui event
     public: std::set<Entity> newEntities;
 
@@ -122,6 +125,12 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     return;
 
   IGN_PROFILE("GzSceneManager::Update");
+
+  if (!this->dataPtr->renderEnginePluginPathsInit)
+  {
+    this->dataPtr->renderUtil.InitRenderEnginePluginPaths();
+    this->dataPtr->renderEnginePluginPathsInit = true;
+  }
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
 
