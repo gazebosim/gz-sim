@@ -39,7 +39,7 @@ function(configure_build_install_location _library_name)
 endfunction()
 
 set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
-pybind11_add_module(${BINDINGS_MODULE_NAME} SHARED
+pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/_gz_sim_pybind11.cc
   src/gz/sim/EntityComponentManager.cc
   src/gz/sim/EventManager.cc
@@ -60,7 +60,7 @@ target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
 # TODO(ahcorde): Move this module to gz-common
-pybind11_add_module(common SHARED
+pybind11_add_module(common MODULE
   src/gz/common/_gz_common_pybind11.cc
   src/gz/common/Console.cc
 )
