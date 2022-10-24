@@ -45,10 +45,10 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
-  // Turn on/off downloads based on the WaitForAssets flag. If WaitForAssets
-  // is true, then simulation assets should be downloaded when the SDF
-  // file/string is parsed.
-  this->dataPtr->enableDownload = _config.WaitForAssets();
+  // Turn off downloads so that we can do an initial parsing of the SDF
+  // file. This will let us get the world names, which in turn allows the
+  // GUI to not-block while simulation assets download.
+  this->dataPtr->enableDownload = false;
 
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
@@ -62,120 +62,44 @@ Server::Server(const ServerConfig &_config)
 
   // Ignore the sdf::Errors returned by this function. The errors will be
   // displayed later in the downloadThread.
-  //
-  // If `enableDownload` is true at this point, then simulation assets will
-  // be downloaded. If false, simulation assets will be downloaded in
-  // a thread later in this function.
-  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
-      this->dataPtr->sdfRoot, outputMsgs);
+  this->dataPtr->LoadSdfRootHelper(_config, this->dataPtr->sdfRoot, outputMsgs);
   gzmsg << outputMsgs;
-
-  // Exit here if errors were found while parsing SDF and we were also
-  // waiting for assets to download.
-  if (_config.WaitForAssets() && !errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << "\n";
-    return;
-  }
 
   // Add record plugin
   if (_config.UseLogRecord())
-  {
     this->dataPtr->AddRecordPlugin(_config);
-  }
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
   // Do this before the `CreateEntities` function call.
-  if (!_config.WaitForAssets())
+  for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
   {
-    for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
-    {
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
-    }
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
   }
 
+  // This will create the simulation runners.
   this->dataPtr->CreateEntities();
 
-  if (!_config.WaitForAssets())
-  {
-    // Remove all the models from the primary sdfRoot object so that they can
-    // be downloaded and added to simulation in the background.
-    for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
-    {
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
-      this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
-    }
+  // Establish publishers and subscribers. Setup transport before
+  // downloading simulation assets so that the GUI is not blocked during
+  // download.
+  this->dataPtr->SetupTransport();
 
-    // Turn on downloads.
-    this->dataPtr->enableDownload = true;
+  // Force each simulation runner to remain paused until the downloads are
+  // complete.
+  for (auto &runner : this->dataPtr->simRunners)
+    runner->SetForcedPause(true);
 
-    // Force each simulation runner to remain paused until the downloads are
-    // complete.
-    for (auto &runner : this->dataPtr->simRunners)
-    {
-      runner->SetForcedPause(true);
-    }
-
-    // Download models in a separate thread.
-    this->dataPtr->downloadThread = std::thread([&]()
-    {
-      // Reload the SDF root, which will cause the models to download.
-      sdf::Root localRoot;
-      std::string ignoreMessages;
-      sdf::Errors localErrors = this->dataPtr->LoadSdfRootHelper(_config,
-          localRoot, ignoreMessages);
-
-      // Output any errors.
-      if (!localErrors.empty())
-      {
-        for (auto &err : localErrors)
-          gzerr << err << "\n";
-      }
-      else
-      {
-        // Add the models back into the worlds.
-        for (auto &runner : this->dataPtr->simRunners)
-        {
-          std::string worldName = runner->WorldSdf().Name();
-          const sdf::World *world = localRoot.WorldByName(worldName);
-          if (world)
-          {
-            for (uint64_t i = 0; i < world->ActorCount(); ++i)
-              runner->CreateEntity(*world->ActorByIndex(i));
-            for (uint64_t i = 0; i < world->LightCount(); ++i)
-              runner->CreateEntity(*world->LightByIndex(i));
-            for (uint64_t i = 0; i < world->ModelCount(); ++i)
-              runner->CreateEntity(*world->ModelByIndex(i));
-          }
-          else
-          {
-            gzerr << "Unable to find world with name[" << worldName << "]. "
-              << "Downloaded models may not appear.\n";
-          }
-
-          // Allow the runner to resume normal operations.
-          runner->SetForcedPause(false);
-        }
-      }
-    });
-  }
+  // Download the simulation assets. This function will block if
+  // _config.WaitForAssets() is true;
+  this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
-  {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
-  }
-
-  // Establish publishers and subscribers.
-  this->dataPtr->SetupTransport();
-
-
 }
 
 /////////////////////////////////////////////////
