@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEMLOADER_HH_
 #define GZ_SIM_SYSTEMLOADER_HH_
 
+#include <list>
 #include <memory>
 #include <optional>
 #include <string>
