@@ -75,7 +75,8 @@ TEST_F(EnvironmentPreloadTest, CanPreload)
                 EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
                 dataLoaded = true;
               }
-              EXPECT_EQ(data->reference, math::SphericalCoordinates::GLOBAL);
+              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
+
               return true;
             });
       });
