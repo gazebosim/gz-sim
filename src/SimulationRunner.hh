@@ -394,6 +394,11 @@ namespace gz
       /// requested pause state will be set.
       public: void SetForcedPause(bool _p);
 
+      /// \brief Create entities for the world simulated by this runner based
+      /// on the provided SDF Root object.
+      /// \param[in] _root SDF root object to read from.
+      public: void CreateEntities(const sdf::Root &_root);
+
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();
@@ -405,6 +410,10 @@ namespace gz
       /// \brief Process the new world state message, if it is present.
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
+
+      /// \brief Create all of the assets listed in the `assetsToCreate`
+      /// list.
+      private: void UpdateAssetCreation();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};

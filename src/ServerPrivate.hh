@@ -79,8 +79,8 @@ namespace gz
       /// \param[in] _config Server configuration parameters.
       public: void AddRecordPlugin(const ServerConfig &_config);
 
-      /// \brief Create all entities that exist in the sdf::Root object.
-      public: void CreateEntities();
+      /// \brief Create the simulation runners, one for each world.
+      public: void CreateSimulationRunners();
 
       /// \brief Stop server.
       public: void Stop();

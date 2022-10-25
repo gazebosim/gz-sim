@@ -102,10 +102,6 @@ namespace gz
       /// object
       private: void ReadLevelPerformerInfo();
 
-      /// \brief Create performers
-      /// Assuming that a simulation runner is performer-centered
-      private: void CreatePerformers();
-
       /// \brief Read information about performers from the sdf Element and
       /// create performer entities
       /// \param[in] _sdf sdf::ElementPtr of the gz::sim plugin tag

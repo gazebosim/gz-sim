@@ -190,9 +190,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
-  // Store the initial state of the ECM;
-  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
-
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
@@ -547,23 +544,7 @@ void SimulationRunner::UpdateSystems()
     return;
   }
 
-  // Add assets, if any exist.
-  if (!this->assetsToCreate.empty())
-  {
-    std::lock_guard<std::mutex> lock(this->assetCreationMutex);
-    auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
-        this->eventMgr);
-
-    // Create the asset
-    for (const auto &variant : this->assetsToCreate)
-    {
-      std::visit([&](auto &&arg) {
-          Entity entity = creator->CreateEntities(&arg);
-          creator->SetParent(entity, worldEntity(this->entityCompMgr));
-      }, variant);
-    }
-    this->assetsToCreate.clear();
-  }
+  this->UpdateAssetCreation();
 
   {
     GZ_PROFILE("PreUpdate");
@@ -1543,4 +1524,52 @@ void SimulationRunner::SetForcedPause(bool _p)
 const sdf::World &SimulationRunner::WorldSdf() const
 {
   return this->sdfWorld;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::UpdateAssetCreation()
+{
+  // Add assets, if any exist.
+  if (!this->assetsToCreate.empty())
+  {
+    std::lock_guard<std::mutex> lock(this->assetCreationMutex);
+    auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+        this->eventMgr);
+
+    // Create the asset
+    for (const auto &variant : this->assetsToCreate)
+    {
+      std::visit([&](auto &&arg) {
+          Entity entity = creator->CreateEntities(&arg);
+          creator->SetParent(entity, worldEntity(this->entityCompMgr));
+          }, variant);
+    }
+    this->assetsToCreate.clear();
+  }
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::CreateEntities(const sdf::Root &_root)
+{
+  const sdf::World *world = _root.WorldByName(this->worldName);
+
+  if (world)
+  {
+    for (uint64_t i = 0; i < world->ActorCount(); ++i)
+      this->CreateEntity(*world->ActorByIndex(i));
+    for (uint64_t i = 0; i < world->LightCount(); ++i)
+      this->CreateEntity(*world->LightByIndex(i));
+    for (uint64_t i = 0; i < world->ModelCount(); ++i)
+      this->CreateEntity(*world->ModelByIndex(i));
+  }
+  else
+  {
+    gzerr << "Unable to find world with name[" << this->worldName << "]. "
+      << "Downloaded models may not appear.\n";
+  }
+
+  this->UpdateAssetCreation();
+
+  // Store the initial state of the ECM;
+  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 }

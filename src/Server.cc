@@ -80,7 +80,7 @@ Server::Server(const ServerConfig &_config)
   }
 
   // This will create the simulation runners.
-  this->dataPtr->CreateEntities();
+  this->dataPtr->CreateSimulationRunners();
 
   // Establish publishers and subscribers. Setup transport before
   // downloading simulation assets so that the GUI is not blocked during

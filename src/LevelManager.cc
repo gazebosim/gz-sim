@@ -78,7 +78,6 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
       this->runner->eventMgr);
 
   this->ReadLevelPerformerInfo();
-  this->CreatePerformers();
 
   std::string service = transport::TopicUtils::AsValidTopic("/world/" +
       this->runner->sdfWorld.Name() + "/level/set_performer");
@@ -517,53 +516,6 @@ void LevelManager::ConfigureDefaultLevel()
       defaultLevel, components::LevelEntityNames(entityNamesInDefault));
 
   this->entityCreator->SetParent(defaultLevel, this->worldEntity);
-}
-
-/////////////////////////////////////////////////
-void LevelManager::CreatePerformers()
-{
-  GZ_PROFILE("LevelManager::CreatePerformers");
-
-  if (this->worldEntity == kNullEntity)
-  {
-    gzerr << "Could not find the world entity while creating performers\n";
-    return;
-  }
-  // Models
-  for (uint64_t modelIndex = 0;
-       modelIndex < this->runner->sdfWorld.ModelCount(); ++modelIndex)
-  {
-    auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
-    if (this->performerMap.find(model->Name()) != this->performerMap.end())
-    {
-      Entity modelEntity = this->entityCreator->CreateEntities(model);
-
-      // Make the model a parent of this performer
-      this->entityCreator->SetParent(this->performerMap[model->Name()],
-                                     modelEntity);
-
-      // Add parent world to the model
-      this->entityCreator->SetParent(modelEntity, this->worldEntity);
-    }
-  }
-
-  // Actors
-  for (uint64_t actorIndex = 0;
-       actorIndex < this->runner->sdfWorld.ActorCount(); ++actorIndex)
-  {
-    auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
-    if (this->performerMap.find(actor->Name()) != this->performerMap.end())
-    {
-      Entity actorEntity = this->entityCreator->CreateEntities(actor);
-
-      // Make the actor a parent of this performer
-      this->entityCreator->SetParent(this->performerMap[actor->Name()],
-                                     actorEntity);
-
-      // Add parent world to the actor
-      this->entityCreator->SetParent(actorEntity, this->worldEntity);
-    }
-  }
 }
 
 /////////////////////////////////////////////////

@@ -303,7 +303,7 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::CreateEntities()
+void ServerPrivate::CreateSimulationRunners()
 {
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex <
@@ -678,6 +678,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
   this->downloadThread = std::thread([&]()
   {
     std::lock_guard threadLocalLock(assetMutex);
+
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
     std::string ignoreMessages;
@@ -695,22 +696,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       // Add the models back into the worlds.
       for (auto &runner : this->simRunners)
       {
-        std::string worldName = runner->WorldSdf().Name();
-        const sdf::World *world = localRoot.WorldByName(worldName);
-        if (world)
-        {
-          for (uint64_t i = 0; i < world->ActorCount(); ++i)
-            runner->CreateEntity(*world->ActorByIndex(i));
-          for (uint64_t i = 0; i < world->LightCount(); ++i)
-            runner->CreateEntity(*world->LightByIndex(i));
-          for (uint64_t i = 0; i < world->ModelCount(); ++i)
-            runner->CreateEntity(*world->ModelByIndex(i));
-        }
-        else
-        {
-          gzerr << "Unable to find world with name[" << worldName << "]. "
-            << "Downloaded models may not appear.\n";
-        }
+        // Create the entities for the simulation runner.
+        runner->CreateEntities(localRoot);
 
         // Allow the runner to resume normal operations.
         runner->SetForcedPause(false);
