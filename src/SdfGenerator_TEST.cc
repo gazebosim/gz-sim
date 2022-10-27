@@ -584,7 +584,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 {
-  const auto worldFile = common::joinPaths("test","worlds", "save_world.sdf");
+  const auto worldFile = common::joinPaths("test", "worlds", "save_world.sdf");
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
