@@ -52,10 +52,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 /// \brief Private data class for EnvironmentVisualization
 class EnvironmentVisualizationPrivate
 {
-
   public: EnvironmentVisualizationPrivate()
   {
-    this->pcPub = node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
+    this->pcPub =
+      this->node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
   }
   /// \brief To synchronize member access.
   public: std::mutex mutex;
@@ -69,8 +69,8 @@ class EnvironmentVisualizationPrivate
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {
     this->pubs.clear();
-    auto keys = data->frame.Keys();
-    for (auto key: keys)
+    this->sessions.clear();
+    for (auto key: data->frame.Keys())
     {
       this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
       gz::msgs::Float_V msg;
@@ -89,7 +89,7 @@ class EnvironmentVisualizationPrivate
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt(now - this->lastTick);
 
-    if (this->resample.load())
+    if (this->resample)
     {
       this->CreatePointCloudTopics(data);
       this->ResizeCloud(data, _ecm, xResolution, yResolution, zResolution);
@@ -135,14 +135,13 @@ class EnvironmentVisualizationPrivate
       std::size_t idx = 0;
       for (std::size_t x_steps = 0; x_steps < ceil(xResolution); x_steps++)
       {
+        auto x = lower_bound.X() + x_steps * dx;
         for (std::size_t y_steps = 0; y_steps < ceil(yResolution); y_steps++)
         {
+          auto y = lower_bound.Y() + y_steps * dy;
           for (std::size_t z_steps = 0; z_steps < ceil(zResolution); z_steps++)
           {
-            auto x = lower_bound.X() + x_steps * dx;
-            auto y = lower_bound.Y() + y_steps * dy;
             auto z = lower_bound.Z() + z_steps * dz;
-
             auto res = frame.LookUp(
               session, math::Vector3d(x, y, z));
 
@@ -181,7 +180,7 @@ class EnvironmentVisualizationPrivate
         {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
     auto numberOfPoints =
       ceil(xResolution) * ceil(yResolution) * ceil(zResolution);
-    unsigned int dataSize{numberOfPoints * pcMsg.point_step()};
+    std::size_t dataSize{numberOfPoints * pcMsg.point_step()};
     pcMsg.mutable_data()->resize(dataSize);
     pcMsg.set_height(1);
     pcMsg.set_width(numberOfPoints);

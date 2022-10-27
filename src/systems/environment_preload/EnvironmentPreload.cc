@@ -114,12 +114,10 @@ void EnvironmentPreload::PreUpdate(
       elem = elem->FindElement("space");
       if (elem)
       {
-        gzerr << "Using custom reference\n" ;
         if (elem->HasAttribute("reference"))
         {
           const std::string referenceName =
               elem->Get<std::string>("reference");
-          gzerr << "Using custom reference" << referenceName;
           if (referenceName == "global")
           {
             spatialReference = math::SphericalCoordinates::GLOBAL;
