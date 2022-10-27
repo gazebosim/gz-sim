@@ -73,8 +73,6 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  sdf::ParserConfig::GlobalConfig().SetStoreResovledURIs(true);
-
   switch (_config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file

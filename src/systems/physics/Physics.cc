@@ -1066,7 +1066,6 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         }
         // TODO(anyone) Don't load models unless they have collisions
 
-
         // Check if parent world / model exists
         sdf::Model model;
         if (const auto *modelSdfComp =
@@ -1079,6 +1078,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         // ModelSdf component.
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
+        model.SetPoseRelativeTo("");
+
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
@@ -1116,17 +1117,22 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               return true;
             }
             auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
-            this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-            this->topLevelModelMap.insert(std::make_pair(_entity,
-                topLevelModel(_entity, _ecm)));
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+              this->topLevelModelMap.insert(std::make_pair(_entity,
+                  topLevelModel(_entity, _ecm)));
+            }
           }
           else
           {
             auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-
-            this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-            this->topLevelModelMap.insert(std::make_pair(_entity,
-                topLevelModel(_entity, _ecm)));
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+              this->topLevelModelMap.insert(std::make_pair(_entity,
+                  topLevelModel(_entity, _ecm)));
+            }
           }
         }
         // check if parent is a model (nested model)
@@ -1232,7 +1238,6 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
                   << "] not found on model map." << std::endl;
           return true;
         }
-
         auto basicModelPtrPhys = this->entityModelMap.Get(_parent->Data());
 
         if (const auto existingLink = basicModelPtrPhys->GetLink(_name->Data()))
@@ -1261,6 +1266,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         sdf::Link link;
         link.SetName(_name->Data());
         link.SetRawPose(_pose->Data());
+        link.SetPoseRelativeTo("");
 
         if (this->staticEntities.find(_parent->Data()) !=
             this->staticEntities.end())
@@ -1348,25 +1354,11 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
         {
           // No need to create this collision shape because it was already
           // created when parsing the model.
-
-          // TODO(MXG): There's some significant design inconsistency in this
-          // CreateCollisionEntities function. There's a mix of using the
-          // ConstructSdfCollision feature and other collision attachment
-          // features like AttachHeightMapFeature and AttachMeshShape. This
-          // makes it confusing for physics plugin implementers to know where
-          // and how to implement the construction of collision shapes.
-          //
-          // In the current implementation, if a physics engine implements
-          // constructing a mesh or heightmap in ConstructSdfCollision then that
-          // ability won't actually get leveraged by gz-sim because it
-          // specifically uses AttachMeshShapeFeature and AttachHeightMapFeature
-          // for those shapes. The physics plugin implementer needs to know to
-          // implement those specific features instead.
           auto linkCollisionFeature =
               this->entityLinkMap.EntityCast<CollisionFeatureList>(
                   _parent->Data());
           this->entityCollisionMap.AddEntity(
-            _entity, linkCollisionFeature->GetCollision(_name->Data()));
+            _entity, linkCollisionFeature->GetShape(_name->Data()));
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
           return true;
@@ -1662,10 +1654,9 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           return true;
         }
 
-        auto modelJointFeature =
-            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
-                _parentModel->Data());
-        if (!modelJointFeature)
+        auto basicModelPtrPhys = this->entityModelMap
+            .EntityCast<JointFeatureList>(_parentModel->Data());
+        if (!basicModelPtrPhys)
         {
           static bool informed{false};
           if (!informed)
