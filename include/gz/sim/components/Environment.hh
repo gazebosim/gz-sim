@@ -27,6 +27,7 @@
 
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
+#include <gz/sim/Export.hh>
 
 namespace gz
 {
@@ -39,7 +40,7 @@ namespace components
   /// \brief Environment data across time and space. This is useful to
   /// introduce physical quantities that may be of interest even if not
   /// modelled in simulation.
-  struct EnvironmentalData
+  struct GZ_SIM_VISIBLE EnvironmentalData
   {
     using T = math::InMemoryTimeVaryingVolumetricGrid<double>;
     using FrameT = common::DataFrame<std::string, T>;
