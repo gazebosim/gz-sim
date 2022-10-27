@@ -66,12 +66,12 @@
 
     <include>
       <pose>-5 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/mabelzhang/models/Turquoise turbidity generator</uri>
+      <uri>https://fuel.gazebosim.org/1.0/mabelzhang/models/Turquoise turbidity generator</uri>
     </include>
 
     <include>
       <pose>0 0 1 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
 
       <!-- Acoustic comms endpoint -->
       <plugin
@@ -172,7 +172,7 @@
 
     <include>
       <pose>15 0 1 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
       <name>triton</name>
 
       <!-- Acoustic comms endpoint -->
@@ -274,7 +274,7 @@
 
     <include>
       <pose>-15 0 1 0 0 1.57</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
       <name>daphne</name>
 
       <!-- Acoustic comms endpoint -->
