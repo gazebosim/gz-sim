@@ -533,7 +533,7 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     gz::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
       p.X(), p.Y(), p.Z(), rot.Roll(), rot.Pitch(), rot.Yaw()));
     this->debugMarker.mutable_material()->mutable_diffuse()->set_r(
-      surfaceMotion >= 0 ? 0 : 1);
+      surfaceMotion >= 0 ? 0.0f : 1.0f);
 
     this->node.Request("/marker", this->debugMarker);
   }

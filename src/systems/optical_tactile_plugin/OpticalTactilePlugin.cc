@@ -805,10 +805,12 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // Forces buffer is composed of XYZ coordinates, while _msg buffer is
       // made up of XYZRGB values
       bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
-      normalForcesBuffer.get()[bufferIndex] = normalForce.X();
-      normalForcesBuffer.get()[bufferIndex + sizeof(float)] = normalForce.Y();
+      normalForcesBuffer.get()[bufferIndex] = 
+        *reinterpret_cast<char*>(&normalForce.X());
+      normalForcesBuffer.get()[bufferIndex + sizeof(float)] =
+        *reinterpret_cast<char*>(&normalForce.Y());
       normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] =
-        normalForce.Z();
+        *reinterpret_cast<char*>(&normalForce.Z());
 
       if (!_visualizeForces)
         continue;
