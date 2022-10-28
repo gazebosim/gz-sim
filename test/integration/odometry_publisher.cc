@@ -539,13 +539,13 @@ class OdometryPublisherTest
     }
 
     // Check that the mean values are close to zero.
-    EXPECT_NEAR(linVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.5);
 
-    EXPECT_NEAR(angVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.5);
 
     // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
