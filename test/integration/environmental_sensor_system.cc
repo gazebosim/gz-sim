@@ -53,11 +53,11 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
         double sec = msg.header().stamp().sec();
         auto time = nsec * 1e-9 + sec;
         EXPECT_NEAR(time, msg.data(), 1e-9);
-        recieved_data = true;
+        this->receivedData = true;
     }
 
     /////////////////////////////////////////////////
-    public: std::atomic<bool> recieved_data{false};
+    public: std::atomic<bool> receivedData{false};
 
     /////////////////////////////////////////////////
     public: transport::Node node;
@@ -79,5 +79,5 @@ TEST_F(EnvironmentSensorTest, CanPreload)
   EXPECT_FALSE(*server.Running(0));
   // Run server
   server.Run(true, 1000, false);
-  EXPECT_TRUE(this->recieved_data.load());
+  EXPECT_TRUE(this->receivedData.load());
 }
