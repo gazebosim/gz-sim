@@ -27,6 +27,7 @@
       <max_range>6</max_range>
       <speed_of_sound>1400</speed_of_sound>
       <collision_time_per_byte>1</collision_time_per_byte>
+      <collision_time_packet_drop>0.1</collision_time_packet_drop>
     </plugin>
 
     <light type="directional" name="sun">

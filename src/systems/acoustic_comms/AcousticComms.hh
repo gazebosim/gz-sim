@@ -56,6 +56,9 @@ namespace systems
   ///                         'b' bytes long at time 't0', it won't receive
   ///                         and other message till time :
   ///                         't0 + b * collision_time_per_byte'
+  ///    * <collision_time_packet_drop> : If a packet is dropped at time
+  ///                         `t0`, the next packet won't be received until
+  ///                         time `t0 + collision_time_packet_drop`
   ///
   /// Here's an example:
   ///  <plugin
@@ -64,6 +67,7 @@ namespace systems
   ///    <max_range>6</max_range>
   ///    <speed_of_sound>1400</speed_of_sound>
   ///    <collision_time_per_byte>0.001</collision_time_per_byte>
+  ///    <collision_time_packet_drop>0.001</collision_time_packet_drop>
   ///  </plugin>
 
   class AcousticComms:

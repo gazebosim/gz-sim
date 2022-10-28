@@ -44,6 +44,10 @@ class AcousticComms::Implementation
   /// \brief Default collision time interval per byte in sec.
   public: double collisionTimePerByte = 0;
 
+  /// \brief Default collision time when packet is dropped
+  /// in sec.
+  public: double collisionTimePacketDrop = 0;
+
   /// \brief Position of the transmitter at the time the message was
   /// sent, or first processed.
   public: std::unordered_map
@@ -53,7 +57,9 @@ class AcousticComms::Implementation
   /// \brief Map that holds data of the address of a receiver,
   /// the timestamp, length of the last message recevied by it.
   public: std::unordered_map
-          <std::string, std::tuple<std::chrono::duration<double>, int>>
+          <std::string,
+           std::tuple<std::chrono::duration<double>,
+            std::chrono::duration<double>>>
           lastMsgReceivedInfo;
 };
 
@@ -208,7 +214,6 @@ void AcousticComms::Step(
               // drop interval = collision time interval per byte *
               //                 length of last msg received.
               auto dropInterval = std::chrono::duration<double>(
-                  this->dataPtr->collisionTimePerByte *
                   std::get<1>(this->dataPtr->lastMsgReceivedInfo[msg->dst_address()]));
 
               if (timeGap >= dropInterval)
@@ -223,8 +228,22 @@ void AcousticComms::Step(
               _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
               // Update the (receive time, length of msg) tuple
               // for the last msg for this address.
+              auto blockingTime = std::chrono::duration<double>(
+                this->dataPtr->collisionTimePerByte *
+                msg->data().length());
+
               this->dataPtr->lastMsgReceivedInfo[msg->dst_address()] =
-                std::make_tuple(currTimestamp, msg->data().length());
+                std::make_tuple(currTimestamp, blockingTime);
+            }
+            else
+            {
+              // Packet was dropped due to collision.
+              auto blockingTime = std::chrono::duration<double>(
+                  this->dataPtr->collisionTimePacketDrop
+                );
+
+              std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                          msg->dst_address()]) += blockingTime;
             }
 
             // Stop keeping track of the position of its source.
