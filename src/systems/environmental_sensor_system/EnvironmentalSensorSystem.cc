@@ -280,7 +280,6 @@ void EnvironmentalSensorSystem::Configure(
 void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
-
   _ecm.EachNew<components::CustomSensor, components::ParentEntity>(
     [&](const Entity &_entity,
         const components::CustomSensor *_custom,
