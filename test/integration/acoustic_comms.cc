@@ -83,7 +83,7 @@ TEST_P(AcousticCommsTestFixture,
   {
     // Verify msg content
     std::lock_guard<std::mutex> lock(mutex);
-    std::string expected = "hello world " + std::to_string(msgCounter);
+    std::string expected = std::to_string(msgCounter);
 
     gz::msgs::StringMsg receivedMsg;
     receivedMsg.ParseFromString(_msg.data());
@@ -116,7 +116,7 @@ TEST_P(AcousticCommsTestFixture,
   for (int i = 0; i < pubCount; ++i)
   {
     // Prepare the payload.
-    payload.set_data("hello world " + std::to_string(i));
+    payload.set_data(std::to_string(i));
     std::string serializedData;
     EXPECT_TRUE(payload.SerializeToString(&serializedData))
         << payload.DebugString();

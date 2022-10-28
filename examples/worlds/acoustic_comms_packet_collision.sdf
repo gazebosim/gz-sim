@@ -26,7 +26,7 @@
       name="gz::sim::systems::AcousticComms">
       <max_range>6</max_range>
       <speed_of_sound>1400</speed_of_sound>
-      <collision_time_interval>1</collision_time_interval>
+      <collision_time_per_byte>1</collision_time_per_byte>
     </plugin>
 
     <light type="directional" name="sun">

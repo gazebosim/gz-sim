@@ -19,8 +19,6 @@
  * Development of this module has been funded by the Monterey Bay Aquarium
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
-#include <string>
-#include <unordered_map>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -43,8 +41,8 @@ class AcousticComms::Implementation
   /// \brief Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 
-  /// \brief Default collision time interval in sec.
-  public: double collisionTimeInterval = 0;
+  /// \brief Default collision time interval per byte in sec.
+  public: double collisionTimePerByte = 0;
 
   /// \brief Position of the transmitter at the time the message was
   /// sent, or first processed.
@@ -52,11 +50,11 @@ class AcousticComms::Implementation
           <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
           poseSrcAtMsgTimestamp;
 
-  /// \brief Map that holds data of the address of a receiver, and
-  /// the timestamp of the last message recevied by it.
+  /// \brief Map that holds data of the address of a receiver,
+  /// the timestamp, length of the last message recevied by it.
   public: std::unordered_map
-          <std::string, std::chrono::duration<double>>
-          lastMsgReceivedTime;
+          <std::string, std::tuple<std::chrono::duration<double>, int>>
+          lastMsgReceivedInfo;
 };
 
 //////////////////////////////////////////////////
@@ -80,10 +78,10 @@ void AcousticComms::Load(
   {
     this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
   }
-  if (_sdf->HasElement("collision_time_interval"))
+  if (_sdf->HasElement("collision_time_per_byte"))
   {
-    this->dataPtr->collisionTimeInterval =
-      _sdf->Get<double>("collision_time_interval");
+    this->dataPtr->collisionTimePerByte =
+      _sdf->Get<double>("collision_time_per_byte");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<
@@ -194,7 +192,7 @@ void AcousticComms::Step(
             bool receivedSuccessfully = false;
 
             // Check for time collision
-            if (this->dataPtr->lastMsgReceivedTime.count(
+            if (this->dataPtr->lastMsgReceivedInfo.count(
                   msg->dst_address()) == 0)
             {
               // This is the first message received by this address.
@@ -203,11 +201,15 @@ void AcousticComms::Step(
             else
             {
               // A previous msg was already received at this address.
+              // time gap = current time - time at which last msg was received.
               std::chrono::duration<double> timeGap = currTimestamp -
-                this->dataPtr->lastMsgReceivedTime[msg->dst_address()];
+                std::get<0>(this->dataPtr->lastMsgReceivedInfo[msg->dst_address()]);
 
+              // drop interval = collision time interval per byte *
+              //                 length of last msg received.
               auto dropInterval = std::chrono::duration<double>(
-                  this->dataPtr->collisionTimeInterval);
+                  this->dataPtr->collisionTimePerByte *
+                  std::get<1>(this->dataPtr->lastMsgReceivedInfo[msg->dst_address()]));
 
               if (timeGap >= dropInterval)
                 receivedSuccessfully = true;
@@ -219,9 +221,10 @@ void AcousticComms::Step(
             if (receivedSuccessfully)
             {
               _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
-              // Update the receive time of the last msg for this address.
-              this->dataPtr->lastMsgReceivedTime[msg->dst_address()] =
-                currTimestamp;
+              // Update the (receive time, length of msg) tuple
+              // for the last msg for this address.
+              this->dataPtr->lastMsgReceivedInfo[msg->dst_address()] =
+                std::make_tuple(currTimestamp, msg->data().length());
             }
 
             // Stop keeping track of the position of its source.
