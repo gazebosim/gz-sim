@@ -209,12 +209,14 @@ void AcousticComms::Step(
               // A previous msg was already received at this address.
               // time gap = current time - time at which last msg was received.
               std::chrono::duration<double> timeGap = currTimestamp -
-                std::get<0>(this->dataPtr->lastMsgReceivedInfo[msg->dst_address()]);
+                std::get<0>(this->dataPtr->lastMsgReceivedInfo[
+                            msg->dst_address()]);
 
               // drop interval = collision time interval per byte *
               //                 length of last msg received.
               auto dropInterval = std::chrono::duration<double>(
-                  std::get<1>(this->dataPtr->lastMsgReceivedInfo[msg->dst_address()]));
+                  std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                              msg->dst_address()]));
 
               if (timeGap >= dropInterval)
                 receivedSuccessfully = true;
