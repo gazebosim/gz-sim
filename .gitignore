@@ -15,3 +15,8 @@ build_*
 
 # clangd index
 .cache
+
+
+# Python cache
+__pycache__
+*.pyc
