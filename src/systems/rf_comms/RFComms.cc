@@ -317,7 +317,8 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Compute prospective accumulated bits along with time window
   // (including this packet).
-  double bitsReceived = (_rxState.bytesReceivedThisEpoch + _numBytes) * 8;
+  auto bitsReceived =
+    static_cast<double>((_rxState.bytesReceivedThisEpoch + _numBytes) * 8);
 
   // Check current epoch bitrate vs capacity and fail to send accordingly.
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)
