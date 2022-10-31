@@ -960,10 +960,12 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_TRUE(result);
 
   ASSERT_TRUE(res.has_ambient());
-  EXPECT_EQ(math::Color(1.0, 1.0, 1.0, 1.0), msgs::Convert(res.ambient()));
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            msgs::Convert(res.ambient()));
 
   ASSERT_TRUE(res.has_background());
-  EXPECT_EQ(math::Color(0.8, 0.8, 0.8, 1.0), msgs::Convert(res.background()));
+  EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1.0f),
+            msgs::Convert(res.background()));
 
   EXPECT_TRUE(res.shadows());
   EXPECT_FALSE(res.grid());
