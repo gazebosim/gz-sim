@@ -76,7 +76,7 @@ class EnvironmentLoaderPrivate
     {QString("ecef"), math::SphericalCoordinates::ECEF}};
 
   /// \brief Map of supported spatial units.
-  public: const QMap<QString, components::EnvironmentalData::ReferenceUnits> 
+  public: const QMap<QString, components::EnvironmentalData::ReferenceUnits>
     unitMap{
       {QString("degree"),
         components::EnvironmentalData::ReferenceUnits::DEGREES},

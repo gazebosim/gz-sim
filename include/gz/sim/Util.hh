@@ -19,6 +19,7 @@
 
 #include <gz/msgs/entity.pb.h>
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>

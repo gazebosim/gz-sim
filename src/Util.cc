@@ -686,7 +686,7 @@ std::optional<math::Vector3d> GetGridFieldCoordinates(
       if (!origin)
       {
         gzerr << "World has no spherical coordinates,"
-            <<" but data was loaded with spherical reference plane" 
+            <<" but data was loaded with spherical reference plane"
             << std::endl;
         return std::nullopt;
       }

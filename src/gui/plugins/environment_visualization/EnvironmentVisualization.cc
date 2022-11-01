@@ -27,6 +27,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -70,7 +71,7 @@ class EnvironmentVisualizationPrivate
     std::shared_ptr<components::EnvironmentalData> data) {
     this->pubs.clear();
     this->sessions.clear();
-    for (auto key: data->frame.Keys())
+    for (auto key : data->frame.Keys())
     {
       this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
       gz::msgs::Float_V msg;
@@ -97,7 +98,7 @@ class EnvironmentVisualizationPrivate
       this->lastTick = now;
     }
 
-    for (auto &it: this->sessions)
+    for (auto &it : this->sessions)
     {
       auto res =
         data->frame[it.first].StepTo(it.second,
@@ -122,7 +123,7 @@ class EnvironmentVisualizationPrivate
     std::shared_ptr<components::EnvironmentalData> data,
     double xSamples, double ySamples, double zSamples) {
 
-    for (auto key: data->frame.Keys())
+    for (auto key : data->frame.Keys())
     {
       const auto session = this->sessions[key];
       auto frame = data->frame[key];
@@ -161,7 +162,7 @@ class EnvironmentVisualizationPrivate
   public: void Publish()
   {
     pcPub.Publish(this->pcMsg);
-    for(auto &[key, pub]: this->pubs)
+    for(auto &[key, pub] : this->pubs)
     {
       pub.Publish(this->floatFields[key]);
     }
@@ -186,7 +187,7 @@ class EnvironmentVisualizationPrivate
     pcMsg.set_width(numberOfPoints);
 
     auto session = this->sessions[this->pubs.begin()->first];
-    auto frame= data->frame[this->pubs.begin()->first];
+    auto frame = data->frame[this->pubs.begin()->first];
     auto [lower_bound, upper_bound] =
       frame.Bounds(session);
 
@@ -229,7 +230,7 @@ class EnvironmentVisualizationPrivate
         }
       }
     }
-    for (auto key: data->frame.Keys())
+    for (auto key : data->frame.Keys())
     {
       this->floatFields[key].mutable_data()->Resize(
         numberOfPoints, std::nanf(""));
