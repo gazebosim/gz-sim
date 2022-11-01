@@ -46,7 +46,7 @@ GridLayout {
     horizontalAlignment: Text.AlignRight
     id: dimensionLabelX
     color: "dimgrey"
-    text: qsTr("X resolution")
+    text: qsTr("X Samples")
   }
 
   Slider {
@@ -58,7 +58,7 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.xResolution = value;
+      EnvironmentVisualization.xSamples = value;
       EnvironmentVisualization.ResamplePointcloud();
     }
   }
@@ -69,7 +69,7 @@ GridLayout {
     horizontalAlignment: Text.AlignRight
     id: dimensionLabelY
     color: "dimgrey"
-    text: qsTr("Y resolution")
+    text: qsTr("Y Samples")
   }
 
   Slider {
@@ -81,7 +81,7 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.yResolution = value;
+      EnvironmentVisualization.ySamples = value;
       EnvironmentVisualization.ResamplePointcloud();
     }
   }
@@ -92,7 +92,7 @@ GridLayout {
     horizontalAlignment: Text.AlignRight
     id: dimensionLabelZ
     color: "dimgrey"
-    text: qsTr("Z resolution")
+    text: qsTr("Z Samples")
   }
 
   Slider {
@@ -104,7 +104,7 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.zResolution = value;
+      EnvironmentVisualization.zSamples = value;
       EnvironmentVisualization.ResamplePointcloud();
     }
   }

@@ -84,7 +84,7 @@ class EnvironmentVisualizationPrivate
     const UpdateInfo &_info,
     std::shared_ptr<components::EnvironmentalData> &data,
     const EntityComponentManager& _ecm,
-    double xResolution, double yResolution, double zResolution)
+    double xSamples, double ySamples, double zSamples)
   {
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt(now - this->lastTick);
@@ -92,7 +92,7 @@ class EnvironmentVisualizationPrivate
     if (this->resample)
     {
       this->CreatePointCloudTopics(data);
-      this->ResizeCloud(data, _ecm, xResolution, yResolution, zResolution);
+      this->ResizeCloud(data, _ecm, xSamples, ySamples, zSamples);
       this->resample = false;
       this->lastTick = now;
     }
@@ -111,7 +111,7 @@ class EnvironmentVisualizationPrivate
     // Publish at 2 hz for now. In future make reconfigureable.
     if (dt.count() > 0.5)
     {
-      this->Visualize(data, xResolution, yResolution, zResolution);
+      this->Visualize(data, xSamples, ySamples, zSamples);
       this->Publish();
       lastTick = now;
     }
@@ -120,7 +120,7 @@ class EnvironmentVisualizationPrivate
   /////////////////////////////////////////////////
   public: void Visualize(
     std::shared_ptr<components::EnvironmentalData> data,
-    double xResolution, double yResolution, double zResolution) {
+    double xSamples, double ySamples, double zSamples) {
 
     for (auto key: data->frame.Keys())
     {
@@ -129,17 +129,17 @@ class EnvironmentVisualizationPrivate
       auto [lower_bound, upper_bound] =
         frame.Bounds(session);
       auto step = upper_bound - lower_bound;
-      auto dx = step.X() / xResolution;
-      auto dy = step.Y() / yResolution;
-      auto dz = step.Z() / zResolution;
+      auto dx = step.X() / xSamples;
+      auto dy = step.Y() / ySamples;
+      auto dz = step.Z() / zSamples;
       std::size_t idx = 0;
-      for (std::size_t x_steps = 0; x_steps < ceil(xResolution); x_steps++)
+      for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
       {
         auto x = lower_bound.X() + x_steps * dx;
-        for (std::size_t y_steps = 0; y_steps < ceil(yResolution); y_steps++)
+        for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
         {
           auto y = lower_bound.Y() + y_steps * dy;
-          for (std::size_t z_steps = 0; z_steps < ceil(zResolution); z_steps++)
+          for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
           {
             auto z = lower_bound.Z() + z_steps * dz;
             auto res = frame.LookUp(
@@ -171,7 +171,7 @@ class EnvironmentVisualizationPrivate
   public: void ResizeCloud(
     std::shared_ptr<components::EnvironmentalData> data,
     const EntityComponentManager& _ecm,
-    double xResolution, double yResolution, double zResolution)
+    double xSamples, double ySamples, double zSamples)
   {
     assert (pubs.size() > 0);
 
@@ -179,7 +179,7 @@ class EnvironmentVisualizationPrivate
     gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
         {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
     auto numberOfPoints =
-      ceil(xResolution) * ceil(yResolution) * ceil(zResolution);
+      ceil(xSamples) * ceil(ySamples) * ceil(zSamples);
     std::size_t dataSize{numberOfPoints * pcMsg.point_step()};
     pcMsg.mutable_data()->resize(dataSize);
     pcMsg.set_height(1);
@@ -191,20 +191,20 @@ class EnvironmentVisualizationPrivate
       frame.Bounds(session);
 
     auto step = upper_bound - lower_bound;
-    auto dx = step.X() / xResolution;
-    auto dy = step.Y() / yResolution;
-    auto dz = step.Z() / zResolution;
+    auto dx = step.X() / xSamples;
+    auto dy = step.Y() / ySamples;
+    auto dz = step.Z() / zSamples;
 
     // Populate point cloud
     gz::msgs::PointCloudPackedIterator<float> xIter(pcMsg, "x");
     gz::msgs::PointCloudPackedIterator<float> yIter(pcMsg, "y");
     gz::msgs::PointCloudPackedIterator<float> zIter(pcMsg, "z");
 
-    for (std::size_t x_steps = 0; x_steps < ceil(xResolution); x_steps++)
+    for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
     {
-      for (std::size_t y_steps = 0; y_steps < ceil(yResolution); y_steps++)
+      for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
       {
-        for (std::size_t z_steps = 0; z_steps < ceil(zResolution); z_steps++)
+        for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
         {
           auto x = lower_bound.X() + x_steps * dx;
           auto y = lower_bound.Y() + y_steps * dy;
@@ -296,7 +296,7 @@ void EnvironmentVisualization::Update(const UpdateInfo &_info,
 
   this->dataPtr->Step(
     _info, environData->Data(), _ecm,
-    this->xResolution, this->yResolution, this->zResolution
+    this->xSamples, this->ySamples, this->zSamples
   );
 }
 

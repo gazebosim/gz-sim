@@ -78,11 +78,11 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     this->pub = this->node.Advertise<gz::msgs::Double>(this->Topic());
 
-    // If "csv_column" is defined then remap sensor from existing data.
+    // If "environment_variable" is defined then remap sensor from existing data.
     if (_sdf.Element() != nullptr &&
-      _sdf.Element()->HasElement("csv_column"))
+      _sdf.Element()->HasElement("environment_variable"))
     {
-      this->fieldName = _sdf.Element()->Get<std::string>("csv_column");
+      this->fieldName = _sdf.Element()->Get<std::string>("environment_variable");
     }
     else
     {
@@ -185,7 +185,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     if (!this->ready) return false;
 
     const auto position = worldPose(_entity, _ecm).Pos();
-    if (this->gridField->reference != math::SphericalCoordinates::LOCAL2)
+    if (this->gridField->reference == math::SphericalCoordinates::SPHERICAL)
     {
         auto origin =
           _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
