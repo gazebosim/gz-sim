@@ -133,7 +133,7 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.sdf)" ]
+    nameFilters: [ "SDF files (*.sdf)" ]
     selectMultiple: false
     selectExisting: false
     onAccepted: {
