@@ -192,6 +192,13 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
 )
 
+# Server unit tests require rendering.
+if (TARGET UNIT_Server_TEST)
+ target_link_libraries(UNIT_Server_TEST
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
+
 # Command line tests need extra settings
 foreach(CMD_TEST
   UNIT_gz_TEST
