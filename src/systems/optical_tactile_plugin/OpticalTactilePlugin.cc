@@ -614,8 +614,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
       this->sensorSize,
       this->forceLength,
       this->cameraUpdateRate,
-      this->depthCameraOffset,
-      this->visualizationResolution);
+      this->depthCameraOffset);
 
   this->initialized = true;
 }

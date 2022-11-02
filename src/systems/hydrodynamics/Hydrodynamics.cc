@@ -104,6 +104,14 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief The Gazebo Transport node
   public: transport::Node node;
 
+  /// \brief Plugin Parameter: Disable coriolis as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableCoriolis = false;
+
+  /// \brief Plugin Parameter: Disable added mass as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableAddedMass = false;
+
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
@@ -223,6 +231,9 @@ void Hydrodynamics::Configure(
   this->dataPtr->paramMqq         = SdfParamDouble(_sdf, "mQQ"         , 0);
   this->dataPtr->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
   this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
+
+  _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
+  _sdf->Get<bool>("disable_added_mass", this->dataPtr->disableAddedMass, false);
 
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
@@ -381,7 +392,16 @@ void Hydrodynamics::PreUpdate(
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+  Eigen::VectorXd kTotalWrench = kDvec;
+
+  if (!this->dataPtr->disableAddedMass)
+  {
+    kTotalWrench += kAmassVec;
+  }
+  if (!this->dataPtr->disableCoriolis)
+  {
+    kTotalWrench += kCmatVec;
+  }
 
   gz::math::Vector3d
     totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));

@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEMLOADER_HH_
 #define GZ_SIM_SYSTEMLOADER_HH_
 
+#include <list>
 #include <memory>
 #include <optional>
 #include <string>
@@ -78,6 +79,10 @@ namespace gz
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
       public: std::string PrettyStr() const;
+
+      /// \brief Get the plugin search paths used for loading system plugins
+      /// \return Paths to search for plugins
+      public: std::list<std::string> PluginPaths() const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
