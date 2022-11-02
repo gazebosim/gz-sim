@@ -104,7 +104,7 @@ TEST(CmdLine, CachedFuelWorld)
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/openroboticstest/worlds/test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);
