@@ -502,7 +502,8 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
