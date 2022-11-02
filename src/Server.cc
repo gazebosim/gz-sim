@@ -113,7 +113,7 @@ Server::Server(const ServerConfig &_config)
 
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
-      sdf::Root sdfRoot = sdf::Root();
+      sdf::Root sdfRoot;
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
@@ -128,11 +128,9 @@ Server::Server(const ServerConfig &_config)
         {
           // If the specified file only contains a model, load the default
           // world and add the model to it.
-          const sdf::Model model = *(sdfRoot.Model());
           errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-          assert(this->dataPtr->sdfRoot.WorldCount() == 1);
           sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
-          assert(world->AddModel(model));
+          world->AddModel(*sdfRoot.Model());
           if (errors.empty()) {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
