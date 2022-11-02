@@ -51,66 +51,28 @@ TEST_P(ServerFixture, LoadSdfModelRelativeUri)
 
     private: EventManager *eventMgr{nullptr};
 
-    bool FindScene()
+    void FindScene()
     {
       auto loadedEngNames = gz::rendering::loadedEngines();
-      if (loadedEngNames.empty())
-      {
-        gzdbg << "No rendering engine is loaded yet" << std::endl;
-        return false;
-      }
+      ASSERT_EQ(loadedEngNames.size(), 1);
 
-      // assume there is only one engine loaded
       auto engineName = loadedEngNames[0];
-      if (loadedEngNames.size() > 1)
-      {
-        gzdbg << "More than one engine is available. "
-          << "Using engine [" << engineName << "]" << std::endl;
-        return false;
-      }
       auto engine = gz::rendering::engine(engineName);
-      if (!engine)
-      {
-        gzerr << "Internal error: failed to load engine [" << engineName
-          << "]. Grid plugin won't work." << std::endl;
-        return false;
-      }
+      ASSERT_TRUE(engine);
+      ASSERT_EQ(engine->SceneCount(), 1);
 
-      if (engine->SceneCount() == 0)
-      {
-        gzdbg << "No scene has been created yet" << std::endl;
-        return false;
-      }
-
-      // Get first scene
       auto scenePtr = engine->SceneByIndex(0);
-      if (nullptr == scenePtr)
-      {
-        gzerr << "Internal error: scene is null." << std::endl;
-        return false;
-      }
-
-      if (engine->SceneCount() > 1)
-      {
-        gzdbg << "More than one scene is available. "
-          << "Using scene [" << scene->Name() << "]" << std::endl;
-      }
-
-      if (!scenePtr->IsInitialized() || nullptr == scenePtr->RootVisual())
-      {
-        return false;
-      }
+      ASSERT_NE(scenePtr, nullptr);
+      ASSERT_TRUE(scenePtr->IsInitialized());
+      ASSERT_NE(scenePtr->RootVisual(), nullptr);
 
       this->scene = scenePtr;
-      return true;
     };
 
     private: void CheckMeshes(){
       if (this->scene == nullptr){
-        ASSERT_TRUE(this->FindScene());
+        this->FindScene();
       }
-      ASSERT_TRUE(this->scene != nullptr);
-      ASSERT_TRUE(this->scene->IsInitialized());
 
       std::shared_ptr<rendering::Visual> v1 = this->scene->VisualByName(
         "relative_resource_uri::L1::V1"
