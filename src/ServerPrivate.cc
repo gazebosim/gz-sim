@@ -227,9 +227,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           {
             auto topic = recordTopicElem->Get<std::string>();
             sdfRecordTopics.push_back(topic);
+            recordTopicElem = recordTopicElem->GetNextElement();
           }
-
-          recordTopicElem = recordTopicElem->GetNextElement();
         }
 
         // Remove the plugin, which will be added back in by ServerConfig.

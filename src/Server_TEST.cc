@@ -1217,14 +1217,31 @@ TEST_P(ServerFixture, Stop)
 
   sim::Server server(serverConfig);
 
+  std::mutex testMutex;
+  std::condition_variable testCv;
+  test::Relay testSystem;
+  unsigned int preUpdates{0};
+  testSystem.OnPreUpdate(
+    [&](const sim::UpdateInfo &,
+    sim::EntityComponentManager &)
+    {
+      std::scoped_lock localLock(testMutex);
+      ++preUpdates;
+      testCv.notify_one();
+      return true;
+    });
+
+  server.AddSystem(testSystem.systemPtr);
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));
   EXPECT_FALSE(server.Running());
 
   // Run the server.
+  std::unique_lock<std::mutex> testLock(testMutex);
   EXPECT_TRUE(server.Run(false, 0, false));
-  EXPECT_TRUE(*server.Running(0));
   EXPECT_TRUE(server.Running());
+  testCv.wait(testLock, [&]() -> bool {return preUpdates > 0;});
+  EXPECT_TRUE(*server.Running(0));
 
   // Stop the server
   server.Stop();

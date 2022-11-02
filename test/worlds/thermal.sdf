@@ -302,12 +302,27 @@
       </link>
     </model>
 
-    <!-- test a fuel model heat signature URI -->
-    <include>
-      <pose>0 0 0 0 0 1.570796</pose>
-      <name>rescue_randy</name>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Rescue Randy</uri>
-    </include>
+    <model name="rescue_randy">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <diffuse>1.0 1.0 1.0</diffuse>
+            <specular>1.0 1.0 1.0</specular>
+          </material>
+          <plugin filename="gz-sim-thermal-system"
+                  name="gz::sim::systems::Thermal">
+          <heat_signature>../media/RescueRandy_Thermal.png</heat_signature>
+            <max_temp>310</max_temp>
+          </plugin>
+        </visual>
+      </link>
+    </model>
 
     <model name="thermal_camera_8bit">
       <pose>4.5 0 0.5 0.0 0.0 3.14</pose>
