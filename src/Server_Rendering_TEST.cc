@@ -1,0 +1,194 @@
+/*
+ * Copyright (C) 2022 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include <gtest/gtest.h>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/sim/rendering/Events.hh>
+#include <gz/rendering/Scene.hh>
+
+#include "gz/sim/Server.hh"
+#include "gz/sim/System.hh"
+
+#include "plugins/MockSystem.hh"
+#include "../test/helpers/Relay.hh"
+#include "../test/helpers/EnvTestFixture.hh"
+
+using namespace gz;
+using namespace gz::sim;
+
+/////////////////////////////////////////////////
+class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
+{
+};
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, LoadSdfModelRelativeUri)
+{
+
+  class CheckMeshPlugin:
+    public System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
+  {
+    private: common::ConnectionPtr connection{nullptr};
+
+    private: rendering::ScenePtr scene{nullptr};
+
+    private: EventManager *eventMgr{nullptr};
+
+    bool FindScene()
+    {
+      auto loadedEngNames = gz::rendering::loadedEngines();
+      if (loadedEngNames.empty())
+      {
+        gzdbg << "No rendering engine is loaded yet" << std::endl;
+        return false;
+      }
+
+      // assume there is only one engine loaded
+      auto engineName = loadedEngNames[0];
+      if (loadedEngNames.size() > 1)
+      {
+        gzdbg << "More than one engine is available. "
+          << "Using engine [" << engineName << "]" << std::endl;
+        return false;
+      }
+      auto engine = gz::rendering::engine(engineName);
+      if (!engine)
+      {
+        gzerr << "Internal error: failed to load engine [" << engineName
+          << "]. Grid plugin won't work." << std::endl;
+        return false;
+      }
+
+      if (engine->SceneCount() == 0)
+      {
+        gzdbg << "No scene has been created yet" << std::endl;
+        return false;
+      }
+
+      // Get first scene
+      auto scenePtr = engine->SceneByIndex(0);
+      if (nullptr == scenePtr)
+      {
+        gzerr << "Internal error: scene is null." << std::endl;
+        return false;
+      }
+
+      if (engine->SceneCount() > 1)
+      {
+        gzdbg << "More than one scene is available. "
+          << "Using scene [" << scene->Name() << "]" << std::endl;
+      }
+
+      if (!scenePtr->IsInitialized() || nullptr == scenePtr->RootVisual())
+      {
+        return false;
+      }
+
+      this->scene = scenePtr;
+      return true;
+    };
+
+    private: void CheckMeshes(){
+      if (this->scene == nullptr){
+        ASSERT_TRUE(this->FindScene());
+      }
+      ASSERT_TRUE(this->scene != nullptr);
+      ASSERT_TRUE(this->scene->IsInitialized());
+
+      std::shared_ptr<rendering::Visual> v1 = this->scene->VisualByName(
+        "relative_resource_uri::L1::V1"
+      );
+      // There's only one geometry under this visual, which has to be the mesh.
+      EXPECT_EQ(v1->GeometryCount(), 1);
+      std::shared_ptr<rendering::Geometry> v1Geom = v1->GeometryByIndex(0);
+      // Attempt to cast the geometry into a mesh, in order to determine that
+      // the mesh has been properly loaded.
+      std::shared_ptr<rendering::Mesh> v1Mesh =
+        std::dynamic_pointer_cast<rendering::Mesh>(v1Geom);
+      EXPECT_NE(v1Mesh, nullptr);
+
+      std::shared_ptr<rendering::Visual> v2 = this->scene->VisualByName(
+        "relative_resource_uri::L1::V2"
+      );
+      // There should be no geometries under this visual, as the mesh file
+      // refers to a non-existent file, and the mesh should not be loaded.
+      EXPECT_EQ(v2->GeometryCount(), 0);
+    }
+
+    public: void Configure(
+      const Entity &,
+      const std::shared_ptr<const sdf::Element> &,
+      EntityComponentManager &,
+      EventManager &_eventMgr
+    )
+    {
+      // Register CheckMeshes with the PreRender event.
+      this->connection =
+        _eventMgr.Connect<events::PreRender>(
+          std::bind(&CheckMeshPlugin::CheckMeshes, this)
+        );
+      this->eventMgr = &_eventMgr;
+    };
+
+    public: void PreUpdate(const UpdateInfo &, EntityComponentManager &)
+    {
+      // Emit a ForceRender event so the PreRender event is triggered.
+      this->eventMgr->Emit<events::ForceRender>();
+    };
+  };
+
+  gz::sim::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "models", "relative_resource_uri", "model2.sdf"));
+
+  // Add the Sensors plugin so rendering is available.
+  sdf::Plugin sdfSensorsPlugin = sdf::Plugin(
+    "gz-sim-sensors-system",
+    "gz::sim::systems::Sensors",
+    "<render_engine>ogre2</render_engine>"
+  );
+  ServerConfig::PluginInfo sensorsPluginInfo = ServerConfig::PluginInfo(
+    "default",
+    "world",
+    sdfSensorsPlugin
+  );
+  serverConfig.AddPlugin(sensorsPluginInfo);
+
+  sim::Server server = Server(serverConfig);
+  EXPECT_TRUE(server.HasEntity("relative_resource_uri"));
+  EXPECT_TRUE(server.HasEntity("L1"));
+  EXPECT_TRUE(server.HasEntity("V1"));
+  EXPECT_TRUE(server.HasEntity("V2"));
+
+  std::shared_ptr<CheckMeshPlugin> meshChecker =
+    std::make_shared<CheckMeshPlugin>();
+  std::optional<bool> meshCheckerAddSuccess = server.AddSystem(meshChecker);
+  ASSERT_TRUE(meshCheckerAddSuccess);
+  if (meshCheckerAddSuccess) {
+    ASSERT_TRUE(meshCheckerAddSuccess.value());
+  }
+  ASSERT_TRUE(server.RunOnce());
+  ASSERT_TRUE(server.RunOnce(false));
+}
+
+// Run multiple times. We want to make sure that static globals don't cause
+// problems.
+INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));

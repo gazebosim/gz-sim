@@ -85,6 +85,7 @@ set (gtest_sources
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
   ServerConfig_TEST.cc
+  Server_Rendering_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
@@ -192,9 +193,9 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
 )
 
-# Server unit tests require rendering.
-if (TARGET UNIT_Server_TEST)
- target_link_libraries(UNIT_Server_TEST
+# Some server unit tests require rendering.
+if (TARGET UNIT_Server_Rendering_TEST)
+ target_link_libraries(UNIT_Server_Rendering_TEST
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()
