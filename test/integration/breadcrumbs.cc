@@ -80,7 +80,7 @@ void remainingCb(const msgs::Int32 &_msg)
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
   kRemaining = 0;
 
   test::Relay testSystem;
@@ -138,7 +138,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -203,7 +203,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -259,7 +259,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -312,7 +312,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -386,7 +386,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"), true);
 
   test::Relay testSystem;
   transport::Node node;
@@ -440,7 +440,7 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -572,7 +572,8 @@ std::vector<Entity> ModelsByNameRegex(
 TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs_levels.sdf", true);
+  this->LoadWorld(
+      common::joinPaths("test", "worlds", "breadcrumbs_levels.sdf"), true);
 
   test::Relay testSystem;
   transport::Node node;

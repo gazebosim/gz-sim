@@ -52,15 +52,12 @@ namespace optical_tactile_sensor
     /// \param[in] _forceLength Value of the forceLength attribute
     /// \param[in] _cameraUpdateRate Value of the cameraUpdateRate attribute
     /// \param[in] _depthCameraOffset Value of the depthCameraOffset attribute
-    /// \param[in] _visualizationResolution Value of the
-    /// visualizationResolution attribute
     public: OpticalTactilePluginVisualization(
         std::string &_modelName,
         gz::math::Vector3d &_sensorSize,
         double &_forceLength,
         float &_cameraUpdateRate,
-        gz::math::Pose3f &_depthCameraOffset,
-        int &_visualizationResolution);
+        gz::math::Pose3f &_depthCameraOffset);
 
     /// \brief Initialize the marker message representing the optical tactile
     /// sensor
@@ -152,9 +149,6 @@ namespace optical_tactile_sensor
 
     /// \brief Offset between depth camera pose and model pose
     private: gz::math::Pose3f depthCameraOffset;
-
-    /// \brief Resolution of the sensor in pixels to skip.
-    private: int visualizationResolution;
 
     /// \brief Whether the normal forces messages are initialized or not
     private: bool normalForcesMsgsAreInitialized{false};

@@ -94,7 +94,6 @@ set (gtest_sources
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
-  gz_TEST.cc
   comms/Broker_TEST.cc
   comms/MsgManager_TEST.cc
   network/NetworkConfig_TEST.cc
@@ -102,14 +101,20 @@ set (gtest_sources
   network/NetworkManager_TEST.cc
 )
 
+# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
+# CMake generators, see also cmd/CMakeLists.txt
+get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT GENERATOR_IS_MULTI_CONFIG)
+  list(APPEND gtest_sources gz_TEST.cc)
+endif()
+
+
 # Tests that require a valid display
 set(tests_needing_display
-  ModelCommandAPI_TEST.cc
 )
 
-# Disable tests that need CLI if gz-tools is not found
-if (MSVC OR NOT GZ_TOOLS_PROGRAM)
-  list(REMOVE_ITEM gtest_sources gz_TEST.cc ModelCommandAPI_TEST.cc)
+if(NOT GENERATOR_IS_MULTI_CONFIG)
+  list(APPEND tests_needing_display ModelCommandAPI_TEST.cc)
 endif()
 
 # Add systems that need a valid display here.
@@ -236,8 +241,19 @@ foreach(CMD_TEST
   set_tests_properties(${CMD_TEST} PROPERTIES
     ENVIRONMENT "${_env_vars}")
 
+  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
+  # in build directory in necessary. For regular tests, the trick is to place all libraries
+  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
+  # as they are in the same directory where the executable is loaded. For tests that are
+  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
+  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that is only available
+  # since CMake 3.22. However, if an older CMake is used another trick to install the libraries
+  # beforehand
+  if (WIN32 AND CMAKE_VERSION STRGREATER "3.22")
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+  endif()
+
 endforeach()
 
-if(NOT WIN32)
-  add_subdirectory(cmd)
-endif()
+add_subdirectory(cmd)
