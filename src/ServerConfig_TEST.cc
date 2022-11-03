@@ -191,11 +191,11 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
 TEST(LoadPluginInfo, FromEmptyEnv)
 {
   // Set environment to something that doesn't exist
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, "foo"));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, "foo"));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
-  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
@@ -204,7 +204,7 @@ TEST(LoadPluginInfo, FromValidEnv)
   auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
 
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
@@ -226,7 +226,7 @@ TEST(LoadPluginInfo, FromValidEnv)
   EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
   EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Plugin().Name());
 
-  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////

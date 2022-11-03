@@ -21,9 +21,9 @@
 
 #include <fstream>
 #include <string>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
 
@@ -37,6 +37,11 @@ static const std::string kIgnModelCommand(
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  // Augment the system plugin path.
+  ignition::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      ignition::common::joinPaths(
+        std::string(PROJECT_BINARY_PATH), "lib").c_str());
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
@@ -100,7 +105,7 @@ TEST(CmdLine, CachedFuelWorld)
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   ignition::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);

@@ -53,7 +53,7 @@ Next, you can find a description of the SDF parameters used:
 
 * `<power_load>`: Power load on battery (W).
 
-* `<fix_issue_225>`: As reported [here](https://github.com/ignitionrobotics/ign-gazebo/issues/225),
+* `<fix_issue_225>`: As reported [here](https://github.com/gazebosim/gz-sim/issues/225),
 there are some issues affecting batteries in Ignition Blueprint and Citadel.
 This parameter fixes the issues. Feel free to omit the parameter if you have
 legacy code and want to preserve the old behavior.

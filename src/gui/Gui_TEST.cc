@@ -44,17 +44,17 @@ class GuiTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// https://github.com/ignitionrobotics/ign-gazebo/issues/8
+// https://github.com/gazebosim/gz-sim/issues/8
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 {
   common::Console::SetVerbosity(4);
   igndbg << "Start test" << std::endl;
 
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
-  ignition::common::setenv("SDF_PATH", "");
-  ignition::common::setenv("IGN_FILE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("IGN_FILE_PATH", "");
   igndbg << "Environment set" << std::endl;
 
   transport::Node node;
@@ -94,8 +94,8 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   igndbg << "Paths advertised" << std::endl;
 
-  auto app = ignition::gazebo::gui::createGui(
-    gg_argc, gg_argv, nullptr, nullptr, false, nullptr);
+  auto app = createGui(gg_argc, gg_argv, nullptr,
+    nullptr, false, nullptr);
   EXPECT_NE(nullptr, app);
   igndbg << "GUI created" << std::endl;
 

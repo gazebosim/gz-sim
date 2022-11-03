@@ -35,7 +35,7 @@ class ignition::gazebo::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const ignition::msgs::Double &_msg);
+  public: void OnCmdForce(const msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -111,8 +111,8 @@ void ApplyJointForce::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ApplyJointForce::PreUpdate");
 
@@ -164,7 +164,7 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(ApplyJointForce,
-                    ignition::gazebo::System,
+                    System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
