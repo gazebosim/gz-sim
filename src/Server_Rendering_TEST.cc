@@ -33,12 +33,12 @@ using namespace gz;
 using namespace gz::sim;
 
 /////////////////////////////////////////////////
-class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
+class ServerFixture : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, LoadSdfModel)
+TEST_F(ServerFixture, LoadSdfModel)
 {
   gz::sim::ServerConfig serverConfig;
 
@@ -50,7 +50,7 @@ TEST_P(ServerFixture, LoadSdfModel)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
+TEST_F(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
 {
 
   class CheckMeshPlugin:
@@ -163,7 +163,3 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
   ASSERT_TRUE(server.RunOnce());
   ASSERT_TRUE(server.RunOnce(false));
 }
-
-// Run multiple times. We want to make sure that static globals don't cause
-// problems.
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
