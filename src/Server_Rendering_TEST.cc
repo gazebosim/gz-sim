@@ -20,6 +20,7 @@
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/sim/rendering/Events.hh>
 #include <gz/rendering/Scene.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/System.hh"
@@ -49,7 +50,7 @@ TEST_P(ServerFixture, LoadSdfModel)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, LoadSdfModelRelativeUri)
+TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
 {
 
   class CheckMeshPlugin:
