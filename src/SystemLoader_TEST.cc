@@ -21,6 +21,7 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/SystemPaths.hh>
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 
@@ -94,8 +95,8 @@ TEST(SystemLoader, PluginPaths)
   {
     // the returned path string may not be exact match due to extra '/'
     // appended at the end of the string. So use NormalizeDirectoryPath
-    if (common::NormalizeDirectoryPath(s) ==
-        common::NormalizeDirectoryPath(testBuildPath))
+    if (common::SystemPaths::NormalizeDirectoryPath(s) ==
+        common::SystemPaths::NormalizeDirectoryPath(testBuildPath))
     {
       hasPath = true;
       break;
