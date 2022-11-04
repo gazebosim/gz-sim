@@ -1258,8 +1258,6 @@ bool CreateCommand::Execute()
   {
     auto poseComp = this->iface->ecm->Component<components::Pose>(entity);
     *poseComp = components::Pose(createPose.value());
-    gzdbg << poseComp->Data().X() << " " << poseComp->Data().Y() << " " << poseComp->Data().Z() << std::endl;
-    gzdbg << poseComp->Data().Roll() << " " << poseComp->Data().Pitch() << " " << poseComp->Data().Yaw() << std::endl;
   }
 
   gzdbg << "Created entity [" << entity << "] named [" << desiredName << "]"

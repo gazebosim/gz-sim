@@ -1080,6 +1080,10 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         model.SetRawPose(_pose->Data());
         model.SetPoseRelativeTo("");
 
+        sdf::Root root;
+        root.SetModel(model);
+        root.UpdateGraphs();
+
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
@@ -1116,7 +1120,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               }
               return true;
             }
-            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+            auto modelPtrPhys =
+              nestedModelFeature->ConstructNestedModel(*root.Model());
             if (modelPtrPhys)
             {
               this->entityModelMap.AddEntity(_entity, modelPtrPhys);
@@ -1126,7 +1131,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           }
           else
           {
-            auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
+            auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
             if (modelPtrPhys)
             {
               this->entityModelMap.AddEntity(_entity, modelPtrPhys);
