@@ -111,6 +111,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  Server_Rendering_TEST.cc
 )
 
 if(NOT GENERATOR_IS_MULTI_CONFIG)
