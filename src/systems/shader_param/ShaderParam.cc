@@ -441,7 +441,7 @@ void ShaderParamPrivate::OnUpdate()
         if (!spv.type.empty() && spv.type == "int_array")
         {
           for (const auto &v : values)
-            floatArrayValue.push_back(std::stoi(v));
+            floatArrayValue.push_back(std::stof(v));
           paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
         }
         // treat everything else as float_array

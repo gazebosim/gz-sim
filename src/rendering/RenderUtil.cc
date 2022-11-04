@@ -2563,13 +2563,9 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::Init()
+void RenderUtil::InitRenderEnginePluginPaths()
 {
-  // Already initialized
-  if (nullptr != this->dataPtr->scene)
-    return;
-
-  gz::common::SystemPaths pluginPath;
+  common::SystemPaths pluginPath;
 
   // TODO(CH3): Deprecated. Remove on tock.
   std::string result;
@@ -2592,6 +2588,16 @@ void RenderUtil::Init()
   }
 
   rendering::setPluginPaths(pluginPath.PluginPaths());
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::Init()
+{
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
+  this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
 #ifdef __APPLE__

@@ -112,7 +112,7 @@ std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(
 /////////////////////////////////////////////////
 /// This test evaluates whether the hydrodynamic plugin affects the motion
 /// of the body when a force is applied.
-TEST_F(HydrodynamicsTest, VelocityTestinOil)
+TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");

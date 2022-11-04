@@ -6,6 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +52,7 @@
 #include "gz/sim/components/Wind.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -252,7 +254,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Please specify a robotNamespace.\n";
+    gzwarn << "No robotNamespace set using entity name.\n";
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
@@ -366,6 +369,10 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
            << "]" << std::endl;
     return;
+  }
+  else
+  {
+    gzdbg << "Listening to topic: " << topic << std::endl;
   }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());

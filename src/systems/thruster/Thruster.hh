@@ -49,8 +49,10 @@ namespace systems
   /// - <namespace> - The namespace in which the robot exists. The plugin will
   ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`or
   ///   `/model/{namespace}/joint/{joint_name}/cmd_vel` depending on the mode of
-  ///   operation.
+  ///   operation. If {topic} is set then the plugin will listen on
+  ///   {namespace}/{topic}
   ///   [Optional]
+  /// - <topic> - The topic for receiving thrust commands. [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// - <use_angvel_cmd> - If set to true will make the thruster
@@ -83,7 +85,19 @@ namespace systems
   ///                      [Optional, defaults to 1000N or 1000rad/s]
   /// - <min_thrust_cmd> - Minimum input thrust or angular velocity command.
   ///                      [Optional, defaults to -1000N or -1000rad/s]
-  ///
+  /// - <wake_fraction>  - Relative speed reduction between the water
+  ///                      at the propeller (Va) vs behind the vessel.
+  ///                      [Optional, defults to 0.2]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///                Va = (1 - wake_fraction) * advance_speed
+  /// - <alpha_1> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 1]
+  /// - <alpha_2> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 0]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
   /// ## Example
   /// An example configuration is installed with Gazebo. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the

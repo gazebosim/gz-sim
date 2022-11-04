@@ -454,7 +454,24 @@ start falling.
           linear: {x: 3}
       </output>
     </plugin>
-    <plugin filename="gz-sim-triggered-publisher-system" name="gz::sim::systems::TriggeredPublisher">
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/reset_robot"/>
+      <output type="gz.msgs.Twist" topic="/cmd_vel">
+          linear: {x: 0}
+      </output>
+      <service
+        name="/world/triggered_publisher/set_pose"
+        reqType="gz.msgs.Pose"
+        repType="gz.msgs.Boolean"
+        timeout="3000"
+        reqMsg="name: 'vehicle_blue', position: {x: -3, z: 0.325}">
+      </service>
+    </plugin>
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
       <input type="gz.msgs.Boolean" topic="/trigger/touched">
         <match>data: true</match>
       </input>

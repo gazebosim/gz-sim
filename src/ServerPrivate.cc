@@ -227,9 +227,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
           {
             auto topic = recordTopicElem->Get<std::string>();
             sdfRecordTopics.push_back(topic);
+            recordTopicElem = recordTopicElem->GetNextElement();
           }
-
-          recordTopicElem = recordTopicElem->GetNextElement();
         }
 
         // Remove the plugin, which will be added back in by ServerConfig.
@@ -495,9 +494,9 @@ bool ServerPrivate::ResourcePathsResolveService(
   std::string req = _req.data();
 
   // Handle the case where the request is already a valid path
-  if (common::exists(req))
+  if (common::exists(common::absPath(req)))
   {
-    _res.set_data(req);
+    _res.set_data(common::absPath(req));
     return true;
   }
 

@@ -257,7 +257,8 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Compute prospective accumulated bits along with time window
   // (including this packet).
-  double bitsSent = (_txState.bytesSentThisEpoch + _numBytes) * 8;
+  auto bitsSent =
+    static_cast<double>((_txState.bytesSentThisEpoch + _numBytes) * 8);
 
   // Check current epoch bitrate vs capacity and fail to send accordingly
   if (bitsSent > this->radioConfig.capacity * this->epochDuration)
@@ -286,8 +287,9 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // error rate (BER).
   double ber = this->QPSKPowerToBER(
     this->DbmToPow(rxPower), this->DbmToPow(this->radioConfig.noiseFloor));
+  double packetDropProb =
 
-  double packetDropProb = 1.0 - exp(_numBytes * log(1 - ber));
+    1.0 - exp(static_cast<double>(_numBytes) * log(1 - ber));
 
   // gzdbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
   //           "RX power (dBm): " << rxPower << "\n" <<
@@ -315,7 +317,8 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Compute prospective accumulated bits along with time window
   // (including this packet).
-  double bitsReceived = (_rxState.bytesReceivedThisEpoch + _numBytes) * 8;
+  auto bitsReceived =
+    static_cast<double>((_rxState.bytesReceivedThisEpoch + _numBytes) * 8);
 
   // Check current epoch bitrate vs capacity and fail to send accordingly.
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)

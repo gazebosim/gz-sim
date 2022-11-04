@@ -53,6 +53,11 @@ message's header.
   gazebo` should be replaced with `import gz.sim7` and `from gz import sim7`.
   Note the change from `ignition` to `gz` and the addition of the major version
   number as a suffix to the package name.
+## Ignition Gazebo 6.11.X to 6.12.X
+
+ * **Modified**:
+   + In the Hydrodynamics plugin, inverted the added mass contribution to make it
+     act in the correct direction.
 
 ## Gazebo Sim 6.1 to 6.2
 
