@@ -37,6 +37,18 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, LoadSdfModel)
+{
+  gz::sim::ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "models", "sphere", "model.sdf"));
+
+  sim::Server server = Server(serverConfig);
+  EXPECT_TRUE(server.HasEntity("sphere"));
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, LoadSdfModelRelativeUri)
 {
 
