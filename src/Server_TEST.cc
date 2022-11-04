@@ -1108,9 +1108,9 @@ TEST_P(ServerFixture, AddResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, ResolveResourcePaths)
 {
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
-  ignition::common::setenv("SDF_PATH", "");
-  ignition::common::setenv("IGN_FILE_PATH", "");
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
   gazebo::Server server(serverConfig);
@@ -1143,10 +1143,10 @@ TEST_P(ServerFixture, ResolveResourcePaths)
         });
 
   // Make sure the resource path is clear
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH", "");
 
-  // An absolute path should return the same absolute path
-  test(PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+  // A valid path should be returned as an absolute path
+  test(PROJECT_SOURCE_PATH, common::absPath(PROJECT_SOURCE_PATH), true);
 
   // An absolute path, with the file:// prefix, should return the absolute path
   test(std::string("file://") +
@@ -1168,7 +1168,7 @@ TEST_P(ServerFixture, ResolveResourcePaths)
 
   // The model:// URI should not resolve
   test("model://include_nested/model.sdf", "", false);
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
   // The model:// URI should now resolve because the RESOURCE_PATH has been
   // updated.
