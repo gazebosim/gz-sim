@@ -382,7 +382,3 @@ GZ_ADD_PLUGIN(VelocityControl,
 
 GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "gz::sim::systems::VelocityControl")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(VelocityControl,
-                          "ignition::gazebo::systems::VelocityControl")

@@ -714,7 +714,3 @@ GZ_ADD_PLUGIN(gz::sim::systems::LogRecord,
 
 GZ_ADD_PLUGIN_ALIAS(LogRecord,
                           "gz::sim::systems::LogRecord")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogRecord,
-                          "ignition::gazebo::systems::LogRecord")

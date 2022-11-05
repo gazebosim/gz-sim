@@ -233,12 +233,6 @@ class Cmd
 
     usage = COMMANDS[args[0]]
 
-    # TODO(CH3): Deprecated. Remove on tock.
-    # Print deprecation warning
-    if args[0] == 'gazebo'
-      puts 'The `gazebo` verb is deprecated. Please use `sim` instead.'
-    end
-
     opt_parser = OptionParser.new do |opts|
       opts.banner = usage
 

@@ -680,6 +680,3 @@ GZ_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

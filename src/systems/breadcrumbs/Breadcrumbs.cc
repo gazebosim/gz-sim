@@ -439,6 +439,3 @@ GZ_ADD_PLUGIN(Breadcrumbs,
                     Breadcrumbs::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "ignition::gazebo::systems::Breadcrumbs")

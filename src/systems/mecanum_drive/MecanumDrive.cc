@@ -567,7 +567,3 @@ GZ_ADD_PLUGIN(MecanumDrive,
 
 GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
                           "gz::sim::systems::MecanumDrive")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
-                          "ignition::gazebo::systems::MecanumDrive")

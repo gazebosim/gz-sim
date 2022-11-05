@@ -392,7 +392,3 @@ GZ_ADD_PLUGIN(WheelSlip,
 
 GZ_ADD_PLUGIN_ALIAS(WheelSlip,
                           "gz::sim::systems::WheelSlip")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(WheelSlip,
-                          "ignition::gazebo::systems::WheelSlip")

@@ -453,7 +453,3 @@ GZ_ADD_PLUGIN(LogVideoRecorder,
 // namespace
 GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "gz::sim::systems::LogVideoRecorder")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
-                          "ignition::gazebo::systems::LogVideoRecorder")

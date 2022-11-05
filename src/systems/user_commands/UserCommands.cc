@@ -1839,7 +1839,3 @@ GZ_ADD_PLUGIN(UserCommands, System,
 
 GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "gz::sim::systems::UserCommands")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(UserCommands,
-                          "ignition::gazebo::systems::UserCommands")
