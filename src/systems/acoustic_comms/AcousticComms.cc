@@ -19,7 +19,6 @@
  * Development of this module has been funded by the Monterey Bay Aquarium
  * Research Institute (MBARI) and the David and Lucile Packard Foundation
  */
-#include <unordered_map>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -42,11 +41,26 @@ class AcousticComms::Implementation
   /// \brief Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 
+  /// \brief Default collision time interval per byte in sec.
+  public: double collisionTimePerByte = 0;
+
+  /// \brief Default collision time when packet is dropped
+  /// in sec.
+  public: double collisionTimePacketDrop = 0;
+
   /// \brief Position of the transmitter at the time the message was
   /// sent, or first processed.
   public: std::unordered_map
           <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
           poseSrcAtMsgTimestamp;
+
+  /// \brief Map that holds data of the address of a receiver,
+  /// the timestamp, length of the last message recevied by it.
+  public: std::unordered_map
+          <std::string,
+           std::tuple<std::chrono::duration<double>,
+            std::chrono::duration<double>>>
+          lastMsgReceivedInfo;
 };
 
 //////////////////////////////////////////////////
@@ -69,6 +83,11 @@ void AcousticComms::Load(
   if (_sdf->HasElement("speed_of_sound"))
   {
     this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
+  }
+  if (_sdf->HasElement("collision_time_per_byte"))
+  {
+    this->dataPtr->collisionTimePerByte =
+      _sdf->Get<double>("collision_time_per_byte");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<
@@ -175,8 +194,61 @@ void AcousticComms::Step(
         {
           if (distanceCoveredByMessage >= distanceToTransmitter)
           {
+            // This message has effectively reached the destination.
+            bool receivedSuccessfully = false;
+
+            // Check for time collision
+            if (this->dataPtr->lastMsgReceivedInfo.count(
+                  msg->dst_address()) == 0)
+            {
+              // This is the first message received by this address.
+              receivedSuccessfully = true;
+            }
+            else
+            {
+              // A previous msg was already received at this address.
+              // time gap = current time - time at which last msg was received.
+              std::chrono::duration<double> timeGap = currTimestamp -
+                std::get<0>(this->dataPtr->lastMsgReceivedInfo[
+                            msg->dst_address()]);
+
+              // drop interval = collision time interval per byte *
+              //                 length of last msg received.
+              auto dropInterval = std::chrono::duration<double>(
+                  std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                              msg->dst_address()]));
+
+              if (timeGap >= dropInterval)
+                receivedSuccessfully = true;
+            }
+
             // This message needs to be processed.
-            _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+            // Push the msg to inbound of the destination if
+            // receivedSuccessfully is true, else it is dropped.
+            if (receivedSuccessfully)
+            {
+              _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+              // Update the (receive time, length of msg) tuple
+              // for the last msg for this address.
+              auto blockingTime = std::chrono::duration<double>(
+                this->dataPtr->collisionTimePerByte *
+                msg->data().length());
+
+              this->dataPtr->lastMsgReceivedInfo[msg->dst_address()] =
+                std::make_tuple(currTimestamp, blockingTime);
+            }
+            else
+            {
+              // Packet was dropped due to collision.
+              auto blockingTime = std::chrono::duration<double>(
+                  this->dataPtr->collisionTimePacketDrop
+                );
+
+              std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                          msg->dst_address()]) += blockingTime;
+            }
+
+            // Stop keeping track of the position of its source.
             this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
           }
           else
