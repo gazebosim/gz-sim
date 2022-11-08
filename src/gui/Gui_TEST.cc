@@ -217,6 +217,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   std::mutex guiMutex;
   std::condition_variable guiCv;
   std::unique_lock threadLock(guiMutex);
+  bool runningMainWindow = false;
 
   // Thread to check and close quick start dialog
   std::thread checkingThread([&]()
@@ -251,7 +252,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;
-    guiCv.wait(internalLock);
+    guiCv.wait(internalLock, [&] () {return runningMainWindow;});
 
     gzdbg << "Closing main window" << std::endl;
     // Close main window
@@ -293,6 +294,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(startingWorldCalled);
 
+  runningMainWindow = true;
   guiCv.notify_one();
   threadLock.unlock();
   gzdbg << "Running main window" << std::endl;
