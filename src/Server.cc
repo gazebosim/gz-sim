@@ -130,6 +130,9 @@ Server::Server(const ServerConfig &_config)
           // world and add the model to it.
           errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
           sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
+          if (world == nullptr) {
+            return;
+          }
           world->AddModel(*sdfRoot.Model());
           if (errors.empty()) {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
