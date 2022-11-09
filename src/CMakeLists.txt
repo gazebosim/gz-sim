@@ -110,6 +110,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  Server_Rendering_TEST.cc
 )
 
 if(NOT GENERATOR_IS_MULTI_CONFIG)
@@ -196,6 +197,13 @@ gz_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
 )
+
+# Some server unit tests require rendering.
+if (TARGET UNIT_Server_Rendering_TEST)
+ target_link_libraries(UNIT_Server_Rendering_TEST
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
 
 # Command line tests need extra settings
 foreach(CMD_TEST
