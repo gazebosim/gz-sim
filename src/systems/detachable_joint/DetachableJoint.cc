@@ -114,8 +114,8 @@ void DetachableJoint::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const UpdateInfo &/*_info*/,
+  EntityComponentManager &_ecm)
 {
   IGN_PROFILE("DetachableJoint::PreUpdate");
   if (this->validConfig && !this->initialized)
@@ -190,7 +190,7 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 }
 
 IGNITION_ADD_PLUGIN(DetachableJoint,
-                    ignition::gazebo::System,
+                    System,
                     DetachableJoint::ISystemConfigure,
                     DetachableJoint::ISystemPreUpdate)
 

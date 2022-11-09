@@ -72,7 +72,7 @@ TEST_F(ApplyJointForceTestFixture,
   test::Relay testSystem;
   std::vector<double> jointForceCmd;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));

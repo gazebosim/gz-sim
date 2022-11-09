@@ -335,8 +335,8 @@ math::Inertiald MulticopterVelocityControl::VehicleInertial(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterVelocityControl::PreUpdate");
 
@@ -427,7 +427,7 @@ void MulticopterVelocityControl::OnEnable(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PublishRotorVelocities(
-    ignition::gazebo::EntityComponentManager &_ecm,
+    EntityComponentManager &_ecm,
     const Eigen::VectorXd &_vels)
 {
   if (_vels.size() != this->rotorVelocitiesMsg.velocity_size())
@@ -464,7 +464,7 @@ void MulticopterVelocityControl::PublishRotorVelocities(
 }
 
 IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
-                    ignition::gazebo::System,
+                    System,
                     MulticopterVelocityControl::ISystemConfigure,
                     MulticopterVelocityControl::ISystemPreUpdate)
 

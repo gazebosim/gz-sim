@@ -463,5 +463,5 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,
+IGNITION_ADD_PLUGIN(ViewAngle,
                     ignition::gui::Plugin)

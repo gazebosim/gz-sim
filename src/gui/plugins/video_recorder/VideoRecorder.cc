@@ -367,7 +367,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
 /////////////////////////////////////////////////
 bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -386,13 +386,13 @@ void VideoRecorder::OnStart(const QString &_format)
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record start request" << std::endl;
     };
-    ignition::msgs::VideoRecord req;
+    msgs::VideoRecord req;
     req.set_start(this->dataPtr->recordVideo);
     req.set_format(this->dataPtr->format);
     req.set_save_filename(this->dataPtr->filename);
@@ -408,14 +408,14 @@ void VideoRecorder::OnStop()
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record stop request" << std::endl;
     };
 
-    ignition::msgs::VideoRecord req;
+    msgs::VideoRecord req;
     req.set_stop(true);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -462,5 +462,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VideoRecorder,
+IGNITION_ADD_PLUGIN(VideoRecorder,
                     ignition::gui::Plugin)

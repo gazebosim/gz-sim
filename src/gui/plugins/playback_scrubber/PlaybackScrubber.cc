@@ -251,5 +251,5 @@ void PlaybackScrubber::OnDrop(double _value)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::PlaybackScrubber,
+IGNITION_ADD_PLUGIN(PlaybackScrubber,
                     ignition::gui::Plugin)

@@ -332,7 +332,7 @@ TEST_F(ComponentTest, OStream)
     EXPECT_EQ("Mass: 0", ostr.str());
   }
 
-  // Component with a ignition::msgs type that gets serialized by the default
+  // Component with a msgs type that gets serialized by the default
   // serializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,
@@ -484,7 +484,7 @@ TEST_F(ComponentTest, IStream)
     EXPECT_DOUBLE_EQ(200, comp.Data()->MassMatrix().Mass());
   }
 
-  // Component with a ignition::msgs type that gets deserialized by the message
+  // Component with a msgs type that gets deserialized by the message
   // deserializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,

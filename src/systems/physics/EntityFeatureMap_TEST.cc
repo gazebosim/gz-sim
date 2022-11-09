@@ -64,7 +64,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
         << "Failed to find plugin [" << pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library.";
@@ -82,7 +82,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
                           << pathToLib << "]";
 
       this->engine =
-          ignition::physics::RequestEngine<physics::FeaturePolicy3d,
+          physics::RequestEngine<physics::FeaturePolicy3d,
                                            MinimumFeatureList>::From(plugin);
 
       ASSERT_NE(nullptr, this->engine);

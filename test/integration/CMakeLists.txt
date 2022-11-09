@@ -25,6 +25,7 @@ set(tests
   fuel_cached_server.cc
   halt_motion.cc
   hydrodynamics.cc
+  hydrodynamics_flags.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
