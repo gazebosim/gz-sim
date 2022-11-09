@@ -111,7 +111,8 @@ namespace ignition
       /// \brief Configure the parameters of the system.
       /// \param[in] _registry The parameter registry.
       public: virtual void ConfigureParameters(
-                  ignition::transport::parameters::ParametersRegistry & _registry,
+                  ignition::transport::parameters::ParametersRegistry &
+                    _registry,
                   EntityComponentManager &_ecm) = 0;
     };
 

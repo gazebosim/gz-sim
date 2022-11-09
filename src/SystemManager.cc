@@ -104,7 +104,7 @@ size_t SystemManager::ActivatePendingSystems()
 
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
-    
+
     if (system.configureParameters)
       this->systemsConfigureParameters.push_back(system.configureParameters);
 
@@ -176,7 +176,9 @@ void SystemManager::AddSystemImpl(
   }
 
   // Configure the system parameters, if necessary
-  if (_system.configureParameters && this->entityCompMgr && this->parametersRegistry)
+  if (
+    _system.configureParameters && this->entityCompMgr &&
+    this->parametersRegistry)
   {
     _system.configureParameters->ConfigureParameters(
       *this->parametersRegistry,
@@ -195,7 +197,8 @@ const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemConfigureParameters *>& SystemManager::SystemsConfigureParameters()
+const std::vector<ISystemConfigureParameters *>&
+SystemManager::SystemsConfigureParameters()
 {
   return this->systemsConfigureParameters;
 }

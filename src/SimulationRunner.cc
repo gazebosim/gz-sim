@@ -136,8 +136,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // Create the system manager
-  this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr, validNs, this->parametersRegistry.get());
+  this->systemMgr = std::make_unique<SystemManager>(
+      _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
+      this->parametersRegistry.get());
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
