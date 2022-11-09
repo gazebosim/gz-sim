@@ -133,7 +133,8 @@ TEST_F(HydrodynamicsTest, VelocityTestinOil)
     // Expect sphere1 to fall faster than sphere 2 as no hydro
     // drag is applied to it.
     EXPECT_LE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
-    if(sphere1Vels[i].Z() < sphere2Vels[i].Z())
+    if(sphere1Vels[i].Z() < sphere2Vels[i].Z()
+      &&  whenSphere1ExceedsSphere2Vel > 1000)
     {
       // Mark this as the time when velocity of sphere1 exceeds sphere 2
       whenSphere1ExceedsSphere2Vel = i;
