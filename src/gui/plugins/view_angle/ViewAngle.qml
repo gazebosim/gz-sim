@@ -207,6 +207,19 @@ ColumnLayout {
     }
   }
 
+  // toggle view control reference visual
+  CheckBox {
+    Layout.alignment: Qt.AlignHCenter
+    id: displayVisual
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    text: qsTr("Display View Control Reference Visual")
+    checked: true
+    onClicked: {
+      ViewAngle.OnViewControlReferenceVisual(checked)
+    }
+  }
+
   // Set camera pose
   Text {
     text: "Camera Pose"
