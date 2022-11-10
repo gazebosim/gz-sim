@@ -61,7 +61,61 @@ class AcousticComms::Implementation
            std::tuple<std::chrono::duration<double>,
             std::chrono::duration<double>>>
           lastMsgReceivedInfo;
+
+  public: bool propagationModel(double distToSource);
+
+  public: double sourcePower;
+
+  public: double noiseLevel = 0;
+
+  public: double directivityIndex = 0;
+
+  // Reference: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
+  public: double spectralEfficiency = 7.0;
 };
+
+//////////////////////////////////////////////////
+bool AcousticComms::Implementation::propagationModel(
+  double _distToSource,
+  int _numBytes
+)
+{
+  // From https://www.mathworks.com/help/phased/ug/sonar-equation.html
+  // SNR = SL - TL - (NL - DI)
+  // SNR : Signal to noise ratio.
+  // SL : Source level. Ratio of the transmitted intensity from
+  //      the source to a reference intensity (1 m from source),
+  //      converted to dB.
+  // TL : Transmission loss (dB)
+  // NL : Noise level.
+  // DI : Receiver directivity index.
+
+  double sl = 171.5 + 10 * std::log10(this->sourcePower);
+  double tl = 20 * std::log10(distToSource);
+
+  // Calculate SNR.
+  auto snr = sl - tl - (this->noiseLevel - this->directivityIndex);
+
+  // References : https://www.montana.edu/aolson/ee447/EB%20and%20NO.pdf
+  // https://en.wikipedia.org/wiki/Eb/N0
+  auto EbByN0 = snr / this->spectralEfficiency;
+
+  // BER using BPSK.
+  // Reference : https://www.gaussianwaves.com/2012/07/
+  // intuitive-derivation-of-performance-of-an-optimum-
+  // bpsk-receiver-in-awgn-channel/
+  // Reference : https://unetstack.net/handbook/unet-handbook_modems
+  // _and_channel_models.html
+  auto ber = 0.5 * std::erfc(EbByN0);
+
+  // Calculate if the packet was dropped.
+  double packetDropProb =
+    1.0 - std::exp(std::static_cast<double>(_numBytes) *
+                   std::log(1 - ber));
+
+  double randDraw = gz::math::Rand::DblUniform();
+  return randDraw > packetDropProb;
+}
 
 //////////////////////////////////////////////////
 AcousticComms::AcousticComms()
