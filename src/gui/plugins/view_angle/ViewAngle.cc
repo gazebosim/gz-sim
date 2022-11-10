@@ -60,7 +60,7 @@ namespace ignition::gazebo
     /// \brief View Control service name
     public: std::string viewControlService;
 
-    /// \brief View Control service name
+    /// \brief View Control reference visual service name
     public: std::string viewControlRefVisualService;
 
     /// \brief Move gui camera to pose service name
