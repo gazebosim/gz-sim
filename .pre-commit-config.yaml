@@ -16,3 +16,4 @@ repos:
     -   id: destroyed-symlinks
     -   id: end-of-file-fixer
     -   id: mixed-line-ending
+    -   id: trailing-whitespace
