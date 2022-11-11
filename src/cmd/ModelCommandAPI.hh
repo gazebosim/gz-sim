@@ -30,4 +30,3 @@ extern "C" GZ_SIM_VISIBLE void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName,
     const char *_sensorName);
-

@@ -222,5 +222,3 @@ namespace gz
 }  // namespace gz
 
 #endif  // GZ_SIM_NETWORKCONFIG_HH_
-
-

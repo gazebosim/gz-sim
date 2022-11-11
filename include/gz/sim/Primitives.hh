@@ -79,5 +79,3 @@ namespace gz
 
 
 #endif  // GZ_SIM_PRIMITIVES_HH_
-
-

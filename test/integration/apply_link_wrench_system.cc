@@ -344,4 +344,3 @@ TEST_F(ApplyLinkWrenchTestFixture,
   EXPECT_EQ(targetIterations, iterations);
   EXPECT_EQ(1u, impulseIterations);
 }
-

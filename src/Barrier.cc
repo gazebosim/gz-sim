@@ -97,4 +97,3 @@ void Barrier::Cancel()
   this->dataPtr->cancelled = true;
   this->dataPtr->cv.notify_all();
 }
-

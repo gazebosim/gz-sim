@@ -233,4 +233,3 @@ There are example calls in the Python script.
 - Blender sometimes does not export the texture back to a COLLADA file
   correctly.
   Importing OBJ and exporting COLLADA works fine.
-

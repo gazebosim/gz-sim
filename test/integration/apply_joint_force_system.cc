@@ -117,4 +117,3 @@ TEST_F(ApplyJointForceTestFixture,
   }
   EXPECT_DOUBLE_EQ(jointForceCmd.back(), testJointForce);
 }
-

@@ -14,3 +14,4 @@ repos:
     -   id: check-yaml
     -   id: check-xml
     -   id: destroyed-symlinks
+    -   id: end-of-file-fixer
