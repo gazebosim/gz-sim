@@ -67,7 +67,7 @@ class AcousticComms::Implementation
 
   /// \brief Source power in Watts.
   /// \ref https://www.sciencedirect.com/topics/
-  /// computer-science/underwater-acoustic-signal 
+  /// computer-science/underwater-acoustic-signal
   public: double sourcePower = 2000;
 
   /// \brief Ratio of the noise intensity at the
@@ -76,14 +76,14 @@ class AcousticComms::Implementation
 
   /// \brief Ratio of the total noise power at the array to the
   /// noise received by the array along its main response axis.
-  /// \ref https://ieeexplore.ieee.org/document/5664178 
+  /// \ref https://ieeexplore.ieee.org/document/5664178
   public: double directivityIndex = 4;
 
   /// \brief Information rate that can be transmitted over a given
-  /// bandwidth in a specific communication system, in (bits/sec)/Hz. 
+  /// bandwidth in a specific communication system, in (bits/sec)/Hz.
   /// \ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
   public: double spectralEfficiency = 7.0;
-  
+
   /// \brief Flag to store if the propagation model should be used.
   public: bool usePropagationModel = false;
 };
