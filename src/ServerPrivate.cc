@@ -385,7 +385,7 @@ void ServerPrivate::SetupTransport()
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(gz::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -401,7 +401,7 @@ bool ServerPrivate::WorldsService(gz::msgs::StringMsg_V &_res)
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ServerControlService(
-  const gz::msgs::ServerControl &_req, msgs::Boolean &_res)
+  const msgs::ServerControl &_req, msgs::Boolean &_res)
 {
   _res.set_data(false);
 
@@ -444,7 +444,7 @@ bool ServerPrivate::ServerControlService(
 
 //////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const gz::msgs::StringMsg_V &_req)
+    const msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -467,7 +467,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    gz::msgs::StringMsg_V &_res)
+    msgs::StringMsg_V &_res)
 {
   _res.Clear();
 

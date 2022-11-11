@@ -28,15 +28,16 @@ using namespace sim::gui;
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()
 {
+  aboutText += "<b>Gazebo " + std::string(GZ_DISTRIBUTION) + "</b><br>";
   aboutText += std::string(GZ_SIM_VERSION_HEADER);
   aboutText += "<table class='nostyle'>"
                  "<tr>"
                    "<td style='padding-right: 10px;'>Documentation:"
                    "</td>"
                    "<td>"
-                     "<a href='https://gazebosim.org/libs/gazebo' "
+                     "<a href='https://gazebosim.org/libs/sim' "
                      "style='text-decoration: none; color: #f58113'>"
-                       "https://gazebosim.org/libs/gazebo"
+                       "https://gazebosim.org/libs/sim"
                      "</a>"
                    "</td>"
                  "</tr>"

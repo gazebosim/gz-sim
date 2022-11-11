@@ -710,8 +710,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    gz::common::MeshManager *meshManager =
-        gz::common::MeshManager::Instance();
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -1924,6 +1924,28 @@ void SceneManager::RemoveEntity(Entity _id)
 {
   if (!this->dataPtr->scene)
     return;
+
+  {
+    auto it = this->dataPtr->actors.find(_id);
+    if (it != this->dataPtr->actors.end())
+    {
+      this->dataPtr->actors.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorTrajectories.find(_id);
+    if (it != this->dataPtr->actorTrajectories.end())
+    {
+      this->dataPtr->actorTrajectories.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorSkeletons.find(_id);
+    if (it != this->dataPtr->actorSkeletons.end())
+    {
+      this->dataPtr->actorSkeletons.erase(it);
+    }
+  }
 
   {
     auto it = this->dataPtr->visuals.find(_id);

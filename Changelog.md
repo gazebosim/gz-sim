@@ -433,6 +433,71 @@
 
 ## Gazebo Sim 6.x
 
+### Gazebo Sim 6.13.0 (2022-11-04)
+
+1. Fix two tests on Windows
+    * [Pull request #1779](https://github.com/gazebosim/ign-gazebo/pull/1779)
+
+1. 3 to 6 20221013
+    * [Pull request #1762](https://github.com/gazebosim/ign-gazebo/pull/1762)
+
+1. Some minor changes to hydrodynamic flags test
+    * [Pull request #1772](https://github.com/gazebosim/ign-gazebo/pull/1772)
+
+1. Fix thruster integration test
+    * [Pull request #1767](https://github.com/gazebosim/ign-gazebo/pull/1767)
+
+1. Fix scene_broadcaster_system test
+    * [Pull request #1766](https://github.com/gazebosim/ign-gazebo/pull/1766)
+
+1. Script and tutorial for generating procedural datasets with Blender
+    * [Pull request #1412](https://github.com/gazebosim/ign-gazebo/pull/1412)
+
+1. Enable use of ign gazebo -s on Windows (take two)
+    * [Pull request #1764](https://github.com/gazebosim/ign-gazebo/pull/1764)
+
+1. Removed unused speedlimit file
+    * [Pull request #1761](https://github.com/gazebosim/ign-gazebo/pull/1761)
+
+1. Fortress: Removed warnings
+    * [Pull request #1754](https://github.com/gazebosim/ign-gazebo/pull/1754)
+
+1. Enable/Disable individual hydrodynamic components.
+    * [Pull request #1692](https://github.com/gazebosim/ign-gazebo/pull/1692)
+
+1. Adding thrust coefficient calculation
+    * [Pull request #1652](https://github.com/gazebosim/ign-gazebo/pull/1652)
+
+1. Restore Add System GUI plugin
+    * [Pull request #1685](https://github.com/gazebosim/ign-gazebo/pull/1685)
+
+1. Return absolute path when finding a resource
+    * [Pull request #1741](https://github.com/gazebosim/ign-gazebo/pull/1741)
+
+1. Adds sky cubemap URI to the sky.proto's header
+    * [Pull request #1739](https://github.com/gazebosim/ign-gazebo/pull/1739)
+
+1. Update triggered_publisher.sdf
+    * [Pull request #1737](https://github.com/gazebosim/ign-gazebo/pull/1737)
+
+1. Add ResourceSpawner example file
+    * [Pull request #1701](https://github.com/gazebosim/ign-gazebo/pull/1701)
+
+1. Enable inherited model topic name.
+    * [Pull request #1689](https://github.com/gazebosim/ign-gazebo/pull/1689)
+
+1. Fix loading render engine plugins in GUI 
+    * [Pull request #1694](https://github.com/gazebosim/ign-gazebo/pull/1694)
+
+1. Add a service to trigger functionality
+    * [Pull request #1611](https://github.com/gazebosim/ign-gazebo/pull/1611)
+
+1. Fix installation instructions on Ubuntu 22.04
+    * [Pull request #1686](https://github.com/gazebosim/ign-gazebo/pull/1686)
+
+1. Fix reference link in ackermann steering
+    * [Pull request #1683](https://github.com/gazebosim/ign-gazebo/pull/1683)
+
 ### Gazebo Sim 6.12.0 (2022-08-30)
 
 1. Add topic parameter to thrust plugin

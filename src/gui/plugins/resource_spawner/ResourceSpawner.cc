@@ -218,7 +218,7 @@ ResourceSpawner::ResourceSpawner()
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
-    std::make_unique<gz::fuel_tools::FuelClient>();
+    std::make_unique<fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -483,7 +483,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        gz::common::URI(_path.toStdString()), localPath))
+        common::URI(_path.toStdString()), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -565,7 +565,7 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     std::set<std::string> ownerSet;
     for (auto const &server : servers)
     {
-      std::vector<gz::fuel_tools::ModelIdentifier> models;
+      std::vector<fuel_tools::ModelIdentifier> models;
       for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
       {
         models.push_back(iter->Identification());
@@ -585,10 +585,10 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         // If the resource is cached, we can go ahead and populate the
         // respective information
         if (this->dataPtr->fuelClient->CachedModel(
-              gz::common::URI(id.UniqueName()), path))
+              common::URI(id.UniqueName()), path))
         {
           resource.isDownloaded = true;
-          resource.sdfPath = gz::common::joinPaths(path, "model.sdf");
+          resource.sdfPath = common::joinPaths(path, "model.sdf");
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
         }
@@ -634,5 +634,5 @@ void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::ResourceSpawner,
-    gz::gui::Plugin)
+GZ_ADD_PLUGIN(ResourceSpawner,
+              gz::gui::Plugin)

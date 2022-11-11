@@ -261,7 +261,6 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Vector3d linearVel;
           math::Pose3d worldPose = _worldPose->Data();
           it->second->SetPosition(worldPose.Pos().Z());
           it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
