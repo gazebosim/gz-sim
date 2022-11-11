@@ -23,6 +23,8 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/TestFixture.hh"
 
+#include <gz/utils/ExtraTestMacros.hh>
+
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -36,7 +38,7 @@ class EnvironmentPreloadTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(EnvironmentPreloadTest, CanPreload)
+TEST_F(EnvironmentPreloadTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
 {
   // Start server
   ServerConfig serverConfig;
