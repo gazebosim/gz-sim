@@ -306,9 +306,11 @@ void AcousticComms::Step(
             // Packet has survived collisions, check if the propagation model
             // should be run on this packet.
             if (this->dataPtr->usePropagationModel)
-            receivedSuccessfully = receivedSuccessfully &&
+            {
+              receivedSuccessfully = receivedSuccessfully &&
                 this->dataPtr->propagationModel(distanceCoveredByMessage,
                                                 msg->data().length());
+            }
 
             // This message needs to be processed.
             // Push the msg to inbound of the destination if
