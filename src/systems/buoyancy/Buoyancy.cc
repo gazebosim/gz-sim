@@ -337,8 +337,8 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void Buoyancy::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Buoyancy::PreUpdate");
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
@@ -376,8 +376,8 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    gz::math::Vector3d weightedPosInLinkSum =
-      gz::math::Vector3d::Zero;
+    math::Vector3d weightedPosInLinkSum =
+      math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -581,7 +581,7 @@ bool Buoyancy::IsEnabled(Entity _entity,
 }
 
 GZ_ADD_PLUGIN(Buoyancy,
-                    gz::sim::System,
+                    System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 

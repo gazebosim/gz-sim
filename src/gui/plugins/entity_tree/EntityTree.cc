@@ -526,7 +526,7 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
 /////////////////////////////////////////////////
 bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gz::sim::gui::events::EntitiesSelected::kType)
+  if (_event->type() == gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
         reinterpret_cast<gui::events::EntitiesSelected *>(_event);
@@ -544,7 +544,7 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           gz::sim::gui::events::DeselectAllEntities::kType)
+           gui::events::DeselectAllEntities::kType)
   {
     auto deselectAllEvent =
         reinterpret_cast<gui::events::DeselectAllEntities *>(_event);
@@ -577,5 +577,5 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::EntityTree,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(EntityTree,
+              gz::gui::Plugin)

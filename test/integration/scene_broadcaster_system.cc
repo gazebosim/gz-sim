@@ -57,7 +57,7 @@ class SceneBroadcasterTest
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -107,7 +107,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -124,7 +124,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 
   bool result{false};
   unsigned int timeout{5000};
-  gz::msgs::Scene res;
+  msgs::Scene res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res, result));
   EXPECT_TRUE(result);
@@ -142,7 +142,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
   }
 
   // Repeat the request to make sure the same information is returned
-  gz::msgs::Scene res2;
+  msgs::Scene res2;
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, res2, result));
   EXPECT_TRUE(result);
 
@@ -153,7 +153,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -170,7 +170,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 
   bool result{false};
   unsigned int timeout{5000};
-  gz::msgs::StringMsg res;
+  msgs::StringMsg res;
 
   EXPECT_TRUE(node.Request("/world/default/scene/graph", timeout, res, result));
   EXPECT_TRUE(result);
@@ -193,7 +193,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -225,7 +225,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 
   bool result{false};
   unsigned int timeout{5000};
-  gz::msgs::Scene msg;
+  msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/default/scene/info", timeout, msg, result));
   EXPECT_TRUE(result);
@@ -238,7 +238,7 @@ TEST_P(SceneBroadcasterTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
@@ -270,7 +270,7 @@ TEST_P(SceneBroadcasterTest,
 
   bool result{false};
   unsigned int timeout{5000};
-  gz::msgs::Scene msg;
+  msgs::Scene msg;
 
   EXPECT_TRUE(node.Request("/world/altimeter_sensor/scene/info",
         timeout, msg, result));
@@ -289,7 +289,7 @@ TEST_P(SceneBroadcasterTest,
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -350,7 +350,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
@@ -396,8 +396,8 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 
   // Check that the model is in the scene/infor response
   {
-    gz::msgs::Empty req;
-    gz::msgs::Scene rep;
+    msgs::Empty req;
+    msgs::Scene rep;
     bool result;
     unsigned int timeout = 2000;
     EXPECT_TRUE(node.Request("/world/default/scene/info", req, timeout,
@@ -420,7 +420,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
@@ -511,7 +511,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
   std::string reqSrv = "/state_async_callback_test";
   node.Advertise(reqSrv, cbAsync);
 
-  gz::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
   node.Request("/world/default/state_async", req);
 
@@ -531,7 +531,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
-  gz::sim::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 

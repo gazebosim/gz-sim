@@ -411,5 +411,5 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::ViewAngle,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(ViewAngle,
+              gz::gui::Plugin)

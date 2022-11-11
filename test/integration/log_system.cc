@@ -329,7 +329,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::string homeOrig;
   common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
@@ -416,7 +416,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -472,7 +472,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::string homeOrig;
   common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
@@ -685,7 +685,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -1497,7 +1497,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   std::string homeOrig;
   common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1584,7 +1584,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   std::string homeOrig;
   common::env(GZ_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(gz::common::setenv(GZ_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");

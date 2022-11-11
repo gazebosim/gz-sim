@@ -132,10 +132,10 @@ class gz::sim::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: gz::common::ConnectionPtr stopConn;
+  public: common::ConnectionPtr stopConn;
 
   /// \brief Connection to events::ForceRender event, used to force rendering
-  public: gz::common::ConnectionPtr forceRenderConn;
+  public: common::ConnectionPtr forceRenderConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
