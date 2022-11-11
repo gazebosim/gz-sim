@@ -40,8 +40,10 @@ namespace systems
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`.
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`
+  ///   or on {namespace}/{topic} if {topic} is set.
   ///   [Optional]
+  /// - <topic> - The topic for receiving thrust commands. [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
@@ -68,6 +70,22 @@ namespace systems
   ///                      defaults to 1000N]
   /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
   ///                      defaults to -1000N]
+  /// - <wake_fraction>  - Relative speed reduction between the water
+  ///                      at the propeller (Va) vs behind the vessel.
+  ///                      [Optional, defults to 0.2]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  ///                Va = (1 - wake_fraction) * advance_speed
+  ///
+  /// - <alpha_1> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 1]
+  /// - <alpha_2> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 0]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example

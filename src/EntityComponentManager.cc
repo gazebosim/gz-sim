@@ -493,7 +493,17 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
 
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    auto updateData =
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (updateData)
+    {
+      // When a cloned entity is removed, it erases all components/data so a new
+      // cloned entity should not have components to be updated
+      // LCOV_EXCL_START
+      ignerr << "Internal error: The component's data needs to be updated but "
+             << "this should not happen." << std::endl;
+      // LCOV_EXCL_STOP
+    }
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -933,6 +943,12 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 bool EntityComponentManager::HasOneTimeComponentChanges() const
 {
   return !this->dataPtr->oneTimeChangedComponents.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasPeriodicComponentChanges() const
+{
+  return !this->dataPtr->periodicChangedComponents.empty();
 }
 
 /////////////////////////////////////////////////
@@ -1499,9 +1515,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 }
 
 //////////////////////////////////////////////////
-ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
+msgs::SerializedState EntityComponentManager::ChangedState() const
 {
-  ignition::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
 
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1526,7 +1542,7 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 
 //////////////////////////////////////////////////
 void EntityComponentManager::ChangedState(
-    ignition::msgs::SerializedStateMap &_state) const
+    msgs::SerializedStateMap &_state) const
 {
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1594,11 +1610,11 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 }
 
 //////////////////////////////////////////////////
-ignition::msgs::SerializedState EntityComponentManager::State(
+msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
 {
-  ignition::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
   for (const auto &it : this->dataPtr->componentTypeIndex)
   {
     auto entity = it.first;
@@ -1664,7 +1680,7 @@ void EntityComponentManager::State(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const ignition::msgs::SerializedState &_stateMsg)
+    const msgs::SerializedState &_stateMsg)
 {
   IGN_PROFILE("EntityComponentManager::SetState Non-map");
   // Create / remove / update entities
@@ -1726,11 +1742,11 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
-      std::istringstream istr(compMsg.component());
-
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         auto newComp = components::Factory::Instance()->New(type);
         if (nullptr == newComp)
         {
@@ -1739,11 +1755,20 @@ void EntityComponentManager::SetState(
           continue;
         }
         newComp->Deserialize(istr);
-        this->CreateComponentImplementation(entity, type, newComp.get());
+
+        auto updateData =
+          this->CreateComponentImplementation(entity, type, newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, type);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
+        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
@@ -1753,7 +1778,7 @@ void EntityComponentManager::SetState(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const ignition::msgs::SerializedStateMap &_stateMsg)
+    const msgs::SerializedStateMap &_stateMsg)
 {
   IGN_PROFILE("EntityComponentManager::SetState Map");
   // Create / remove / update entities
@@ -1809,29 +1834,34 @@ void EntityComponentManager::SetState(
       components::BaseComponent *comp =
         this->ComponentImplementation(entity, compIter.first);
 
-      std::istringstream istr(compMsg.component());
-
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         // Create component
         auto newComp = components::Factory::Instance()->New(compMsg.type());
-
         if (nullptr == newComp)
         {
           ignerr << "Failed to create component of type [" << compMsg.type()
             << "]" << std::endl;
           continue;
         }
-
         newComp->Deserialize(istr);
 
-        this->CreateComponentImplementation(entity,
-            newComp->TypeId(), newComp.get());
+        auto updateData = this->CreateComponentImplementation(
+          entity, newComp->TypeId(), newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, compIter.first);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
+        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?

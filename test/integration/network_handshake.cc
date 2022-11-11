@@ -45,8 +45,8 @@ uint64_t testPaused(bool _paused)
   bool paused = !_paused;
   uint64_t iterations = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb =
-      [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb =
+      [&](const msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -125,7 +125,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 }
 
 /////////////////////////////////////////////////
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(NetworkHandshake, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
@@ -147,7 +148,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   configPrimary.SetUseLevels(true);
   // Can only test one secondary running physics, because running 2 physics in
   // the same process causes a segfault, see
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/18
+  // https://github.com/gazebosim/gz-sim/issues/18
   configPrimary.SetNetworkSecondaries(1);
   configPrimary.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/performers.sdf");
@@ -177,8 +178,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Updates))
   // Subscribe to pose updates, which should come from the primary
   transport::Node node;
   std::vector<double> zPos;
-  std::function<void(const ignition::msgs::Pose_V &)> cb =
-      [&](const ignition::msgs::Pose_V &_msg)
+  std::function<void(const msgs::Pose_V &)> cb =
+      [&](const msgs::Pose_V &_msg)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {

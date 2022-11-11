@@ -73,15 +73,15 @@ class ModelMover: public test::Relay
     poseCmd = std::move(_pose);
   }
 
-  public: gazebo::Entity Id() const
+  public: Entity Id() const
   {
     return entity;
   }
 
   /// \brief Sets the pose component of the entity to the commanded pose. This
   /// function meant to be called in the preupdate phase
-  private: void MoveModel(const gazebo::UpdateInfo &,
-                          gazebo::EntityComponentManager &_ecm)
+  private: void MoveModel(const UpdateInfo &,
+                          EntityComponentManager &_ecm)
   {
     if (this->poseCmd)
     {
@@ -93,7 +93,7 @@ class ModelMover: public test::Relay
 
 
   /// \brief Entity to move
-  private: gazebo::Entity entity;
+  private: Entity entity;
   /// \brief Pose command
   private: std::optional<math::Pose3d> poseCmd;
 };
@@ -106,7 +106,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    ignition::gazebo::ServerConfig serverConfig;
+    ServerConfig serverConfig;
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,
@@ -116,12 +116,12 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     serverConfig.SetUseLevels(true);
 
     EXPECT_EQ(nullptr, this->server);
-    this->server = std::make_unique<gazebo::Server>(serverConfig);
+    this->server = std::make_unique<Server>(serverConfig);
 
     test::Relay testSystem;
     // Check entities loaded on the default level
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const UpdateInfo &,
+                            const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
@@ -170,7 +170,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     this->server->Run(true, 1, false);
   }
 
-  public: std::unique_ptr<gazebo::Server> server;
+  public: std::unique_ptr<Server> server;
   public: std::vector<std::string> loadedModels;
   public: std::vector<std::string> unloadedModels;
   public: std::vector<std::string> loadedLights;
@@ -179,15 +179,16 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LevelManagerFixture, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
   test::Relay recorder;
   // Check entities loaded on the default level
-  recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+  recorder.OnPostUpdate([&](const UpdateInfo &,
+                            const EntityComponentManager &_ecm)
   {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,
@@ -432,8 +433,9 @@ TEST_F(LevelManagerFixture,
 
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
+// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(LevelManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
+     IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));

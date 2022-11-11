@@ -128,7 +128,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: ignition::common::ConnectionPtr stopConn;
+  public: common::ConnectionPtr stopConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;

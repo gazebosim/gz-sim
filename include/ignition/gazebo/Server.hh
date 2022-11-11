@@ -285,6 +285,7 @@ namespace ignition
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
+      /// \brief Stop the server. This will stop all running simulations.
       public: void Stop();
 
       /// \brief Private data

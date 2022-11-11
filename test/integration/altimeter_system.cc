@@ -60,8 +60,9 @@ void altimeterCb(const msgs::Altimeter &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the world pose and sensor readings of a falling altimeter
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(AltimeterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(AltimeterTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
 {
   // Start server
   ServerConfig serverConfig;
@@ -82,13 +83,13 @@ TEST_F(AltimeterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   test::Relay testSystem;
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> velocities;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Altimeter, components::Name,
                   components::WorldPose,
                   components::WorldLinearVelocity>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::Altimeter *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,

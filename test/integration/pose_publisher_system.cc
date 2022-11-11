@@ -143,8 +143,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -191,7 +191,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          math::durationToSecNsec(_info.simTime);
        timestamps.push_back(
            math::secNsecToTimePoint(
              simTimeSecNsec.first,
@@ -240,7 +240,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 
   // sort the pose msgs according to timestamp
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
-      const ignition::msgs::Pose &_l, const ignition::msgs::Pose &_r)
+      const msgs::Pose &_l, const msgs::Pose &_r)
   {
     std::chrono::steady_clock::time_point lt =
       math::secNsecToTimePoint(
@@ -322,7 +322,9 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UpdateFrequency))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(PosePublisherTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(UpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;
@@ -438,8 +440,8 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       [&modelName, &baseName, &lowerLinkName, &upperLinkName, &sensorName,
       &poses, &basePoses, &lowerLinkPoses, &upperLinkPoses, &sensorPoses,
       &timestamps, &staticPoseTimestamps](
-      const gazebo::UpdateInfo &_info,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm)
     {
       // get our double pendulum model
       auto id = _ecm.EntityByComponents(
@@ -486,7 +488,7 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 
       // timestamps
       auto simTimeSecNsec =
-          ignition::math::durationToSecNsec(_info.simTime);
+          math::durationToSecNsec(_info.simTime);
       timestamps.push_back(
           math::secNsecToTimePoint(
             simTimeSecNsec.first, simTimeSecNsec.second));
@@ -643,8 +645,9 @@ TEST_F(PosePublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
 }
 
 /////////////////////////////////////////////////
+// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(PosePublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(StaticPoseUpdateFrequency))
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(StaticPoseUpdateFrequency))
 {
   // Start server
   ServerConfig serverConfig;

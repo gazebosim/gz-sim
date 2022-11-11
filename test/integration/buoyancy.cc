@@ -181,8 +181,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 
   bool finished = false;
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                             const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                             const EntityComponentManager &_ecm)
   {
     // Check pose
     Entity submarine = _ecm.EntityByComponents(
@@ -217,7 +217,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineLink);
     ASSERT_NE(submarineCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(math::Vector3d(0, 0, 0),
         submarineCenterOfVolume->Data());
 
     // Get the submarine buoyant link
@@ -235,7 +235,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineBuoyantCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineBuoyantLink);
     ASSERT_NE(submarineBuoyantCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(math::Vector3d(0, 0, 0),
         submarineBuoyantCenterOfVolume->Data());
 
     // Get the submarine sinking link
@@ -253,7 +253,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto submarineSinkingCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(submarineSinkingLink);
     ASSERT_NE(submarineSinkingCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, 0),
+    EXPECT_EQ(math::Vector3d(0, 0, 0),
         submarineSinkingCenterOfVolume->Data());
 
     // Get the duck link
@@ -269,7 +269,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(ignition::math::Vector3d(0, 0, -0.4),
+    EXPECT_EQ(math::Vector3d(0, 0, -0.4),
         duckCenterOfVolume->Data());
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
@@ -464,8 +464,8 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
 
   std::size_t iterations{0};
   fixture.OnPostUpdate([&](
-      const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
   {
     // Get links
     auto noOffsets = entitiesFromScopedName("no_offset::link", _ecm);

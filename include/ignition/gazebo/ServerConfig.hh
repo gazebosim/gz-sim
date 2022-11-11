@@ -313,6 +313,15 @@ namespace ignition
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get time period to record states
+      /// \return Time period to record states
+      public: std::chrono::steady_clock::duration LogRecordPeriod() const;
+
+      /// \brief Set time period to record states
+      /// \param[in] _period Time period to record states
+      public: void SetLogRecordPeriod(
+          const std::chrono::steady_clock::duration &_period);
+
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.
       public: void AddLogRecordTopic(const std::string &_topic);
@@ -365,14 +374,14 @@ namespace ignition
               UpdatePeriod() const;
 
       /// \brief Path to where simulation resources, such as models downloaded
-      /// from fuel.ignitionrobotics.org, should be stored.
+      /// from fuel.gazebosim.org, should be stored.
       /// \return Path to a location on disk. An empty string indicates that
       /// the default value will be used, which is currently
       /// ~/.ignition/fuel.
       public: const std::string &ResourceCache() const;
 
       /// \brief Set the path to where simulation resources, such as models
-      /// downloaded from fuel.ignitionrobotics.org, should be stored.
+      /// downloaded from fuel.gazebosim.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
       /// indicates that the default value will be used, which is currently
       /// ~/.ignition/fuel.

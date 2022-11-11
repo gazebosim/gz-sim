@@ -65,10 +65,10 @@ TEST_F(LogicalAudioTest,
   EXPECT_FALSE(*server.Running(0));
 
   // helper variables for checking the validity of the ECM
-  const ignition::math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
   const auto zeroSeconds = std::chrono::seconds(0);
-  const ignition::math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
-  const ignition::math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
+  const math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
   std::chrono::steady_clock::duration sourceStartTime;
   bool firstTime{true};
 
@@ -207,7 +207,9 @@ TEST_F(LogicalAudioTest,
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioServices))
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

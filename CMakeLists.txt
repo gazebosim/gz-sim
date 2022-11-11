@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.9.0)
+project(ignition-gazebo6 VERSION 6.13.0)
+set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
 # Find ignition-cmake
@@ -59,7 +60,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED VERSION 12.4)
+ign_find_package(sdformat12 REQUIRED VERSION 12.6)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -74,7 +75,7 @@ set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.5)
+ign_find_package(ignition-msgs8 REQUIRED VERSION 8.6)
 set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
 
 #--------------------------------------
@@ -96,7 +97,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.3)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -234,7 +235,7 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+# https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
   ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"

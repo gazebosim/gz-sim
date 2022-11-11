@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
+#include <mutex>
 #include <ignition/transport/Node.hh>
 #include "ignition/gazebo/System.hh"
 
@@ -37,8 +37,10 @@ namespace systems
 
   /// \brief The triggered publisher system publishes a user specified message
   /// on an output topic in response to an input message that matches user
-  /// specified criteria. An optional simulation time delay can be used
-  /// delay message publication.
+  /// specified criteria. It can also call a user specified service as an
+  /// output in response to an input message. It currently supports blocking
+  /// service call. An optional simulation time delay can be used delay message
+  /// publication.
   ///
   /// ## System Parameters
   ///
@@ -75,8 +77,18 @@ namespace systems
   ///     the human-readable representation of a protobuf message as used by
   ///     `ign topic` for publishing messages
   ///
-  /// `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
+  /// - `<delay_ms>`: Integer number of milliseconds, in simulation time,  to
   /// delay publication.
+  ///
+  /// - `<service>`: Contains configuration for service to call: Multiple
+  /// `<service>` tags are possible. A service will be called for each input
+  /// that matches.
+  ///   * Attributes:
+  ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
+  ///     * `timeout`: Service timeout
+  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
+  ///     * `repType`: Service response message type (eg. ignition.msgs.Empty)
+  ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// Examples:
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
@@ -182,6 +194,12 @@ namespace systems
     /// \brief Thread that handles publishing output messages
     public: void DoWork();
 
+    /// \brief Method that calls a service
+    private: void CallService(std::size_t pendingSrv);
+
+    /// \brief Method that publishes a message
+    private: void PublishMsg(std::size_t pending);
+
     /// \brief Helper function that calls Match on every InputMatcher available
     /// \param[in] _inputMsg Input message
     /// \return True if all of the matchers return true
@@ -210,20 +228,48 @@ namespace systems
       transport::Node::Publisher pub;
     };
 
+    /// \brief Class that holds necessary bits for each specified service output
+    private: struct SrvOutputInfo
+    {
+      /// \brief Service name
+      std::string srvName;
+
+      /// \brief Service request type
+      std::string reqType;
+
+      /// \brief Service reply type
+      std::string repType;
+
+      /// \brief Service request message
+      std::string reqMsg;
+
+      /// \brief Serivce timeout
+      int timeout;
+    };
+
     /// \brief List of InputMatchers
     private: std::vector<std::unique_ptr<InputMatcher>> matchers;
 
     /// \brief List of outputs
     private: std::vector<OutputInfo> outputInfo;
 
+    /// \brief List of service outputs
+    private: std::vector<SrvOutputInfo> srvOutputInfo;
+
     /// \brief Ignition communication node.
     private: transport::Node node;
+
+    /// \brief Counter that tells how manny times to call the service
+    private: std::size_t serviceCount{0};
 
     /// \brief Counter that tells the publisher how many times to publish
     private: std::size_t publishCount{0};
 
     /// \brief Mutex to synchronize access to publishCount
     private: std::mutex publishCountMutex;
+
+    /// \brief Mutex to synchronize access to serviceCount
+    private: std::mutex triggerSrvMutex;
 
     /// \brief Condition variable to signal that new matches have occured
     private: std::condition_variable newMatchSignal;
@@ -244,9 +290,8 @@ namespace systems
     /// \brief Mutex to synchronize access to publishQueue
     private: std::mutex publishQueueMutex;
   };
-  }
 }
 }
 }
-
+}
 #endif

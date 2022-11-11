@@ -201,6 +201,10 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
 
+    /// \brief Init render engine plugins paths. This lets gz-rendering know
+    /// paths to find render engine plugins
+    public: void InitRenderEnginePluginPaths();
+
     /// \brief Helper function to get all child links of a model entity.
     /// \param[in] _entity Entity to find child links
     /// \return Vector of child links found for the parent entity

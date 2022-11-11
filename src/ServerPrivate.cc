@@ -252,6 +252,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
     this->config.SetLogRecordPath(_config.LogRecordPath());
   }
 
+  if (_config.LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    this->config.SetLogRecordPeriod(_config.LogRecordPeriod());
+  }
+
   if (_config.LogRecordResources())
     this->config.SetLogRecordResources(true);
 
@@ -376,7 +381,7 @@ void ServerPrivate::SetupTransport()
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -392,7 +397,7 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ServerControlService(
-  const ignition::msgs::ServerControl &_req, msgs::Boolean &_res)
+  const msgs::ServerControl &_req, msgs::Boolean &_res)
 {
   _res.set_data(false);
 
@@ -435,7 +440,7 @@ bool ServerPrivate::ServerControlService(
 
 //////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const ignition::msgs::StringMsg_V &_req)
+    const msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -458,7 +463,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    ignition::msgs::StringMsg_V &_res)
+    msgs::StringMsg_V &_res)
 {
   _res.Clear();
 
@@ -485,9 +490,9 @@ bool ServerPrivate::ResourcePathsResolveService(
   std::string req = _req.data();
 
   // Handle the case where the request is already a valid path
-  if (common::exists(req))
+  if (common::exists(common::absPath(req)))
   {
-    _res.set_data(req);
+    _res.set_data(common::absPath(req));
     return true;
   }
 

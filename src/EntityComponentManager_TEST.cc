@@ -52,27 +52,27 @@ using IntComponent = components::Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
-using UIntComponent = components::Component<int, class IntComponentTag>;
+using UIntComponent = Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
     UIntComponent)
 
-using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+using DoubleComponent = Component<double, class DoubleComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
-    components::Component<std::string, class StringComponentTag>;
+    Component<std::string, class StringComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
     StringComponent)
 
-using BoolComponent = components::Component<bool, class BoolComponentTag>;
+using BoolComponent = Component<bool, class BoolComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
     BoolComponent)
 
-using Even = components::Component<components::NoData, class EvenTag>;
+using Even = Component<NoData, class EvenTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Even", Even)
 
-using Odd = components::Component<components::NoData, class OddTag>;
+using Odd = Component<NoData, class OddTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Odd", Odd)
 
 struct Custom
@@ -80,7 +80,7 @@ struct Custom
   int dummy{123};
 };
 
-using CustomComponent = components::Component<Custom, class CustomTag>;
+using CustomComponent = Component<Custom, class CustomTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.CustomComponent",
     CustomComponent)
 }
@@ -394,19 +394,19 @@ TEST_P(EntityComponentManagerFixture,
   }
 
   {
-    const auto *value = manager.Component<components::Pose>(ePose);
+    const auto *value = manager.Component<Pose>(ePose);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), value->Data());
 
-    auto data = manager.ComponentData<components::Pose>(ePose);
+    auto data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), data);
 
-    EXPECT_TRUE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_TRUE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
-    data = manager.ComponentData<components::Pose>(ePose);
+    data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), data);
 
-    EXPECT_FALSE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_FALSE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
   }
 
@@ -1533,11 +1533,11 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.SetParentEntity(e6, e2));
   EXPECT_TRUE(manager.SetParentEntity(e7, e2));
 
-  EXPECT_FALSE(manager.SetParentEntity(e1, gazebo::Entity(1000)));
-  EXPECT_FALSE(manager.SetParentEntity(gazebo::Entity(1000), e1));
+  EXPECT_FALSE(manager.SetParentEntity(e1, Entity(1000)));
+  EXPECT_FALSE(manager.SetParentEntity(Entity(1000), e1));
 
   // Check their parents
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e1));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e1));
   EXPECT_EQ(e1, manager.ParentEntity(e2));
   EXPECT_EQ(e1, manager.ParentEntity(e3));
   EXPECT_EQ(e2, manager.ParentEntity(e4));
@@ -1546,8 +1546,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(e2, manager.ParentEntity(e7));
 
   // Detach from graph
-  EXPECT_TRUE(manager.SetParentEntity(e7, gazebo::kNullEntity));
-  EXPECT_EQ(gazebo::kNullEntity, manager.ParentEntity(e7));
+  EXPECT_TRUE(manager.SetParentEntity(e7, kNullEntity));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e7));
 
   // Reparent
   EXPECT_TRUE(manager.SetParentEntity(e5, e3));
@@ -2220,6 +2220,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, c2);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2232,6 +2233,7 @@ TEST_P(EntityComponentManagerFixture,
   // updated
   manager.RunSetAllComponentsUnchanged();
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2246,6 +2248,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(0, manager.ChangedState().entities_size());
 
@@ -2273,6 +2276,7 @@ TEST_P(EntityComponentManagerFixture,
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
   // Expect a single component type to be marked as PeriodicChange
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
   ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(IntComponent().TypeId(),
       *manager.ComponentTypesWithPeriodicChanges().begin());
@@ -2285,6 +2289,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.RemoveComponent(e1, c1->TypeId()));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -3077,11 +3082,11 @@ TEST_P(EntityComponentManagerFixture,
 
   // create an entity and component
   auto entity = originalECMStateMap.CreateEntity();
-  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+  originalECMStateMap.CreateComponent(entity, IntComponent(1));
 
   int foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -3093,8 +3098,8 @@ TEST_P(EntityComponentManagerFixture,
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -3104,12 +3109,12 @@ TEST_P(EntityComponentManagerFixture,
 
   // modify a component and then share the update with the other ECM
   stateMapMsg.Clear();
-  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.SetComponentData<IntComponent>(entity, 2);
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());
@@ -3123,8 +3128,8 @@ TEST_P(EntityComponentManagerFixture,
   EntityComponentManager otherECMState;
 
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -3132,13 +3137,13 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(0, foundEntities);
 
   entity = originalECMState.CreateEntity();
-  originalECMState.CreateComponent(entity, components::IntComponent(1));
+  originalECMState.CreateComponent(entity, IntComponent(1));
 
   auto stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -3147,18 +3152,106 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 
   stateMsg.Clear();
-  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMState.SetComponentData<IntComponent>(entity, 2);
   stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());
         return true;
       });
   EXPECT_EQ(1, foundEntities);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsStateMap))
+{
+  Entity e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_EQ(0, eachCount<IntComponent>(manager));
+
+  // add a component
+  auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(1, eachCount<IntComponent>(manager));
+  EXPECT_EQ(123, comp->Data());
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // remove a component
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // add same type of component back in using SetState
+  auto iter = stateMsg.mutable_entities()->find(e1);
+  ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
+  msgs::SerializedEntityMap &e1Msg = iter->second;
+
+  auto compIter = e1Msg.mutable_components()->find(comp->TypeId());
+  ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
+  msgs::SerializedComponent &e1c1Msg = compIter->second;
+  e1c1Msg.set_component(std::to_string(321));
+  (*e1Msg.mutable_components())[e1c1Msg.type()] = e1c1Msg;
+  (*stateMsg.mutable_entities())[static_cast<int64_t>(e1)] = e1Msg;
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // check component
+  comp = manager.Component<IntComponent>(e1);
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(321, comp->Data());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsState))
+{
+  Entity e1 = manager.CreateEntity();
+  EXPECT_EQ(1u, manager.EntityCount());
+  EXPECT_EQ(0, eachCount<IntComponent>(manager));
+
+  // add a component
+  auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(1, eachCount<IntComponent>(manager));
+  EXPECT_EQ(123, comp->Data());
+
+  // Serialize into a message
+  msgs::SerializedState stateMsg = manager.State();
+  ASSERT_EQ(1, stateMsg.entities_size());
+
+  // remove a component
+  EXPECT_TRUE(manager.RemoveComponent(e1, IntComponent::typeId));
+  EXPECT_EQ(nullptr, manager.Component<IntComponent>(e1));
+  manager.RunClearNewlyCreatedEntities();
+  auto changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(0, changedStateMsg.entities_size());
+
+  // add same type of component back in using SetState
+  auto entityMsg = stateMsg.mutable_entities(0);
+  EXPECT_EQ(1, entityMsg->components().size());
+  auto compMsg = entityMsg->mutable_components(0);
+  compMsg->set_component(std::to_string(321));
+
+  manager.SetState(stateMsg);
+  changedStateMsg = manager.ChangedState();
+  EXPECT_EQ(1, changedStateMsg.entities_size());
+
+  // check component
+  comp = manager.Component<IntComponent>(e1);
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(321, comp->Data());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

@@ -104,9 +104,9 @@ TEST_F(DepthCameraTest, IGN_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
 
   // Lock access to buffer and don't release it
   mutex.lock();
-  EXPECT_DOUBLE_EQ(depthBuffer[left], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[left], math::INF_D);
   EXPECT_NEAR(depthBuffer[mid], expectedRangeAtMidPointBox1, DEPTH_TOL);
-  EXPECT_DOUBLE_EQ(depthBuffer[right], ignition::math::INF_D);
+  EXPECT_DOUBLE_EQ(depthBuffer[right], math::INF_D);
 
   delete[] depthBuffer;
 }

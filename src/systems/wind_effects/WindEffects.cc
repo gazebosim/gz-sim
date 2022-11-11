@@ -17,7 +17,17 @@
 
 #include "WindEffects.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <ignition/msgs/boolean.pb.h>
 #include <ignition/msgs/entity_factory.pb.h>
 
@@ -382,7 +392,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
-  ignition::math::Vector3d windVel;
+  math::Vector3d windVel;
   windVel.X(magnitude * std::cos(IGN_DTOR(direction)));
   windVel.Y(magnitude * std::sin(IGN_DTOR(direction)));
 

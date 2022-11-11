@@ -53,7 +53,7 @@ class ignition::gazebo::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<ignition::sensors::ImuSensor>> entitySensorMap;
+      std::unique_ptr<sensors::ImuSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
