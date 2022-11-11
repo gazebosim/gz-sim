@@ -62,16 +62,30 @@ class AcousticComms::Implementation
             std::chrono::duration<double>>>
           lastMsgReceivedInfo;
 
-  public: bool propagationModel(double distToSource);
+  public: bool propagationModel(double _distToSource,
+                                int _numBytes);
 
-  public: double sourcePower;
+  /// \brief Source power in Watts.
+  /// \ref https://www.sciencedirect.com/topics/
+  /// computer-science/underwater-acoustic-signal 
+  public: double sourcePower = 2000;
 
-  public: double noiseLevel = 0;
+  /// \brief Ratio of the noise intensity at the
+  /// receiver to the same reference intensity used for source level.
+  public: double noiseLevel = 1;
 
-  public: double directivityIndex = 0;
+  /// \brief Ratio of the total noise power at the array to the
+  /// noise received by the array along its main response axis.
+  /// \ref https://ieeexplore.ieee.org/document/5664178 
+  public: double directivityIndex = 4;
 
-  // Reference: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
+  /// \brief Information rate that can be transmitted over a given
+  /// bandwidth in a specific communication system, in (bits/sec)/Hz. 
+  /// \ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
   public: double spectralEfficiency = 7.0;
+  
+  /// \brief Flag to store if the propagation model should be used.
+  public: bool usePropagationModel = false;
 };
 
 //////////////////////////////////////////////////
@@ -91,7 +105,7 @@ bool AcousticComms::Implementation::propagationModel(
   // DI : Receiver directivity index.
 
   double sl = 171.5 + 10 * std::log10(this->sourcePower);
-  double tl = 20 * std::log10(distToSource);
+  double tl = 20 * std::log10(_distToSource);
 
   // Calculate SNR.
   auto snr = sl - tl - (this->noiseLevel - this->directivityIndex);
@@ -100,7 +114,7 @@ bool AcousticComms::Implementation::propagationModel(
   // https://en.wikipedia.org/wiki/Eb/N0
   auto EbByN0 = snr / this->spectralEfficiency;
 
-  // BER using BPSK.
+  // Bit error rate calculation using BPSK.
   // Reference : https://www.gaussianwaves.com/2012/07/
   // intuitive-derivation-of-performance-of-an-optimum-
   // bpsk-receiver-in-awgn-channel/
@@ -110,7 +124,7 @@ bool AcousticComms::Implementation::propagationModel(
 
   // Calculate if the packet was dropped.
   double packetDropProb =
-    1.0 - std::exp(std::static_cast<double>(_numBytes) *
+    1.0 - std::exp(static_cast<double>(_numBytes) *
                    std::log(1 - ber));
 
   double randDraw = gz::math::Rand::DblUniform();
@@ -142,6 +156,19 @@ void AcousticComms::Load(
   {
     this->dataPtr->collisionTimePerByte =
       _sdf->Get<double>("collision_time_per_byte");
+  }
+
+  if (_sdf->HasElement("propagation_model"))
+  {
+    this->dataPtr->usePropagationModel = true;
+    sdf::ElementPtr propElement = _sdf->Clone()->
+                                   GetElement("propagation_model");
+    this->dataPtr->sourcePower = propElement->Get<double>("source_power");
+    this->dataPtr->noiseLevel = propElement->Get<double>("noise_level");
+    this->dataPtr->directivityIndex =
+      propElement->Get<double>("directivity_index");
+    this->dataPtr->spectralEfficiency =
+      propElement->Get<double>("spectral_efficiency");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<
@@ -275,6 +302,13 @@ void AcousticComms::Step(
               if (timeGap >= dropInterval)
                 receivedSuccessfully = true;
             }
+
+            // Packet has survived collisions, check if the propagation model
+            // should be run on this packet.
+            if (this->dataPtr->usePropagationModel)
+            receivedSuccessfully = receivedSuccessfully &&
+                this->dataPtr->propagationModel(distanceCoveredByMessage,
+                                                msg->data().length());
 
             // This message needs to be processed.
             // Push the msg to inbound of the destination if

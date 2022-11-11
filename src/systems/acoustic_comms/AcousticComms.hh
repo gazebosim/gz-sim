@@ -28,6 +28,7 @@
 #include <unordered_map>
 
 #include <sdf/sdf.hh>
+#include <gz/math/Rand.hh>
 #include "gz/sim/comms/ICommsModel.hh"
 #include <gz/sim/System.hh>
 #include <gz/sim/Entity.hh>
@@ -55,16 +56,18 @@ namespace systems
   ///    * <collision_time_per_byte> : If a subscriber receives a message
   ///                         'b' bytes long at time 't0', it won't receive
   ///                         and other message till time :
-  ///                         't0 + b * collision_time_per_byte'
+  ///                         't0 + b * collision_time_per_byte'.
+  ///                         Defaults to zero.
   ///    * <collision_time_packet_drop> : If a packet is dropped at time
   ///                         `t0`, the next packet won't be received until
-  ///                         time `t0 + collision_time_packet_drop`
+  ///                         time `t0 + collision_time_packet_drop`.
+  ///                         Defaults to zero.
   ///
   /// Here's an example:
   ///  <plugin
   ///    filename="gz-sim-acoustic-comms-system"
   ///    name="gz::sim::systems::AcousticComms">
-  ///    <max_range>6</max_range>
+  ///    <max_range>500</max_range>
   ///    <speed_of_sound>1400</speed_of_sound>
   ///    <collision_time_per_byte>0.001</collision_time_per_byte>
   ///    <collision_time_packet_drop>0.001</collision_time_packet_drop>
