@@ -106,7 +106,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    ignition::gazebo::ServerConfig serverConfig;
+    sim::ServerConfig serverConfig;
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,
@@ -116,12 +116,12 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     serverConfig.SetUseLevels(true);
 
     EXPECT_EQ(nullptr, this->server);
-    this->server = std::make_unique<gazebo::Server>(serverConfig);
+    this->server = std::make_unique<sim::Server>(serverConfig);
 
     test::Relay testSystem;
     // Check entities loaded on the default level
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
@@ -170,7 +170,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     this->server->Run(true, 1, false);
   }
 
-  public: std::unique_ptr<gazebo::Server> server;
+  public: std::unique_ptr<sim::Server> server;
   public: std::vector<std::string> loadedModels;
   public: std::vector<std::string> unloadedModels;
   public: std::vector<std::string> loadedLights;
@@ -187,8 +187,8 @@ TEST_F(LevelManagerFixture, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DefaultLevel))
 
   test::Relay recorder;
   // Check entities loaded on the default level
-  recorder.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                            const gazebo::EntityComponentManager &_ecm)
+  recorder.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
   {
     _ecm.Each<components::DefaultLevel, components::LevelEntityNames>(
         [&](const Entity &, const components::DefaultLevel *,

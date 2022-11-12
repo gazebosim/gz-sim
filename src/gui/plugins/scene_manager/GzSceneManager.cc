@@ -132,12 +132,6 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     this->dataPtr->renderEnginePluginPathsInit = true;
   }
 
-  if (!this->dataPtr->renderEnginePluginPathsInit)
-  {
-    this->dataPtr->renderUtil.InitRenderEnginePluginPaths();
-    this->dataPtr->renderEnginePluginPathsInit = true;
-  }
-
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
 
   std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);

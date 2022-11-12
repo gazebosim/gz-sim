@@ -11,12 +11,8 @@
       name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
-    </plugin>
-    <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">

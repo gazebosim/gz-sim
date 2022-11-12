@@ -168,7 +168,6 @@ class gz::sim::systems::PhysicsPrivate
           physics::LinkFrameSemantics,
           physics::ForwardStep,
           physics::RemoveModelFromWorld,
-          physics::sdf::ConstructSdfLink,
           physics::sdf::ConstructSdfModel,
           physics::sdf::ConstructSdfWorld,
           physics::GetLinkFromModel,
@@ -470,8 +469,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::GetJointFromModel,
             physics::GetBasicJointProperties,
             physics::GetBasicJointState,
-            physics::SetBasicJointState,
-            physics::sdf::ConstructSdfJoint>{};
+            physics::SetBasicJointState>{};
 
   /// \brief Feature list to construct joints
   public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<

@@ -291,7 +291,7 @@ void JointPositionController::Update(const UpdateInfo &,
       QMetaObject::invokeMethod(&this->dataPtr->jointsModel,
           "RemoveJoint",
           Qt::QueuedConnection,
-          Q_ARG(gz:sim::Entity, jointEntity));
+          Q_ARG(sim::Entity, jointEntity));
     }
   }
 }
