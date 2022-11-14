@@ -179,7 +179,7 @@ void Hydrodynamics::Configure(
   this->dataPtr->waterDensity = SdfParamDouble(_sdf, "waterDensity",
                                   SdfParamDouble(_sdf, "water_density", 998)
                                 );
-  // Load stability derivateves
+  // Load stability derivatives
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
   const auto snameConventionMoment = "xyzkmn";
@@ -334,7 +334,7 @@ void Hydrodynamics::PreUpdate(
   // for the under water vehicle's additional DOF. We are just considering
   // diagonal terms here. Have yet to add the cross terms here. Also note, since
   // $M_a(0,0) = \dot X_u $ , $M_a(1,1) = \dot Y_v $ and so forth, we simply
-  // load the stability deravitives from $M_a$.
+  // load the stability derivatives from $M_a$.
   Cmat(0, 4) = - this->dataPtr->Ma(2, 2) * state(2);
   Cmat(0, 5) = - this->dataPtr->Ma(1, 1) * state(1);
   Cmat(1, 3) =   this->dataPtr->Ma(2, 2) * state(2);

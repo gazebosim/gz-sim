@@ -66,7 +66,7 @@ namespace systems
   /// ### Cross terms
   /// In general we support cross terms as well. These are terms which act on
   /// non-diagonal sides. We use the SNAMe convention of naming search terms.
-  /// (x, y, z) correspond to the respective axis. (p, q, r) correspond to
+  /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
   /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
   /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
   /// and yaw axis respectively.
