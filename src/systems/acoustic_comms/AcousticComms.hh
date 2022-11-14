@@ -62,15 +62,39 @@ namespace systems
   ///                         `t0`, the next packet won't be received until
   ///                         time `t0 + collision_time_packet_drop`.
   ///                         Defaults to zero.
+  ///    * <propagation_model> : Enables the use of propagation model.
+  ///                            Disabled by default.
+  ///       * <source_power> : Source power at the transmitter in Watts.
+  ///                          Defaults to 2 kW.
+  ///       * <noise_level> : Ratio of the noise intensity at the
+  ///                         receiver to the same reference intensity used
+  ///                         for source level. Defaults to 1.
+  ///       * <directivity_index> : Ratio of the total noise power at the
+  ///                               array to the noise received by the array
+  ///                               along its main response axis. Defaults to 4.
+  ///       * <spectral_efficiency> : Information rate that can be transmitted
+  ///                                 over a given bandwidth in a specific
+  ///                                 communication system, in (bits/sec)/Hz.
+  ///                                 Defaults to 7 bits/sec/Hz.
   ///
   /// Here's an example:
   ///  <plugin
   ///    filename="gz-sim-acoustic-comms-system"
   ///    name="gz::sim::systems::AcousticComms">
+  ///
   ///    <max_range>500</max_range>
   ///    <speed_of_sound>1400</speed_of_sound>
+  ///
   ///    <collision_time_per_byte>0.001</collision_time_per_byte>
   ///    <collision_time_packet_drop>0.001</collision_time_packet_drop>
+  ///
+  ///    <propagation_model>
+  ///      <source_power>2000</source_power>
+  ///      <noise_level>1</noise_level>
+  ///      <directivity_index>4</directivity_index>
+  ///      <spectral_efficiency>7</spectral_efficiency>
+  ///    </propagation_model>
+  ///
   ///  </plugin>
 
   class AcousticComms:
