@@ -276,7 +276,7 @@ void Hydrodynamics::PreUpdate(
 
   // These variables follow Fossen's scheme in "Guidance and Control
   // of Ocean Vehicles." The `state` vector contains the ship's current velocity
-  // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
+  // in the format [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
   // `stateDot` consists of the first derivative in time of the state vector.
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
