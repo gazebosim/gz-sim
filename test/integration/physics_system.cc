@@ -2000,8 +2000,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/heightmap.sdf";
+  const auto sdfFile = common::joinPaths(PROJECT_BINARY_PATH,
+    "test", "worlds", "heightmap.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;

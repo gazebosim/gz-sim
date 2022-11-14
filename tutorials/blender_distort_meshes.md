@@ -13,8 +13,8 @@ It offers a Python API for most things available in its GUI.
 
 ## Prerequisites
 
-These instructions have been tested in [Blender](https://www.blender.org/) 2.92
-and 3.0.1.
+These instructions have been tested in [Blender](https://www.blender.org/) 2.92,
+3.0.1 and 3.2.
 Version 2.8x and above have a revamped user interface from previous versions.
 The version in packaging managers such as `apt-get` may be older.
 In that case, install manually as needed.
@@ -25,7 +25,7 @@ If newer versions do not work for you, Blender 2.92 can be found
 ## Usage
 
 Locate or download the Blender Python
-[script](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo7/examples/scripts/blender/distort_mesh.py).
+[script](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/scripts/blender/distort_mesh.py).
 
 Launch the Blender GUI.
 
@@ -41,7 +41,7 @@ find the name of the part in the actual model file.
 These will be passed as parameters to the script.
 
 1. We will use the
-  [Coke](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Coke)
+  [Coke](https://app.gazebosim.org/OpenRobotics/fuel/models/Coke)
   model as an example.
 
   The rest of the tutorial will assume that you have downloaded the model into
@@ -99,7 +99,7 @@ Run the Blender executable in the background (`-b`), passing it the Python
 (`-P`) script file and custom arguments to the distortion script (arguments
 after `--`):
 ```
-blender -b -P distort_mesh.py -- '/path/to/models/Coke/meshes/coke.obj' 'LPCoke_Cube' 0.2 "['subdiv_mod', 'vert_rand', 'edge_subdiv']"
+blender -b -P distort_mesh.py -- '/path/to/models/Coke/meshes/coke.obj' 'LPCoke_Cube' 0.005 "['subdiv_mod', 'vert_rand', 'edge_subdiv']"
 ```
 
 Note that the list needs to be in quotes.
@@ -151,7 +151,7 @@ This will execute the script with the command line arguments defined in
 
 ### Coke Can object distorted at increased extents
 
-This example shows the [Coke Can](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Coke%20Can), which we first converted to OBJ format and then distorted.
+This example shows the [Coke Can](https://app.gazebosim.org/OpenRobotics/fuel/models/Coke%20Can), which we first converted to OBJ format and then distorted.
 
 Wireframe view:
 

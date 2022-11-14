@@ -718,6 +718,7 @@ TEST(Conversions, Scene)
   sky.SetCloudHumidity(0.11);
   sky.SetCloudMeanSize(0.88);
   sky.SetCloudAmbient(math::Color::Red);
+  sky.SetCubemapUri("test.dds");
   scene.SetSky(sky);
 
   auto sceneSkyMsg = convert<msgs::Scene>(scene);
@@ -731,6 +732,10 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
   EXPECT_EQ(math::Color::Red,
       msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+  ASSERT_GT(sceneSkyMsg.sky().header().data_size(), 0);
+  auto header = sceneSkyMsg.sky().header().data(0);
+  EXPECT_EQ("cubemap_uri", header.key());
+  EXPECT_EQ("test.dds", header.value(0));
 
   auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
   ASSERT_NE(nullptr, newSceneSky.Sky());
@@ -742,6 +747,7 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
   EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
   EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
+  EXPECT_EQ("test.dds", newSceneSky.Sky()->CubemapUri());
 }
 
 /////////////////////////////////////////////////
@@ -1032,9 +1038,10 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_NEAR(0.2, emitterMsg.max_velocity().data(), 1e-3);
   EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(emitterMsg.size()));
   EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
-  EXPECT_EQ(math::Color(0.1, 0.2, 0.3),
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f),
       msgs::Convert(emitterMsg.color_start()));
-  EXPECT_EQ(math::Color(0.4, 0.5, 0.6), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f),
+      msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
 
   auto header = emitterMsg.header().data(0);

@@ -230,14 +230,14 @@ gz service -s /world/spherical_coordinates/set_spherical_coordinates \
       </plugin>
 
       <!-- Map -->
-      <plugin filename="NavSatMap" name="NavSat Map">
+      <!-- <plugin filename="NavSatMap" name="NavSat Map">
         <gz-gui>
           <title>NavSat Map</title>
           <property key="state" type="string">docked</property>
         </gz-gui>
         <topic>/navsat</topic>
         <topic_picker>true</topic_picker>
-      </plugin>
+      </plugin> -->
     </gui>
 
     <light type="directional" name="sun">

@@ -11,7 +11,7 @@
         <collision name="collision">
           <geometry>
             <heightmap>
-              <uri>../media/heightmap_bowl.png</uri>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/heightmap_bowl.png</uri>
               <size>129 129 10</size>
               <pos>0 0 0</pos>
             </heightmap>

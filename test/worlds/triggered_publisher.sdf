@@ -166,7 +166,91 @@
       <input type="gz.msgs.Empty" topic="/invalid_input_1"/>
     </plugin>
     <!-- End invalid configuration -->
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_14"/>
+      <service
+        name="/srv-test"
+        reqType="gz.msgs.StringMsg"
+        repType="gz.msgs.StringMsg"
+        timeout="100"
+        reqMsg="data: 'test'">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_15"/>
+      <service
+        name="/srv-test-0"
+        reqType="gz.msgs.Boolean"
+        repType="gz.msgs.Boolean"
+        timeout="100"
+        reqMsg="data: true">
+      </service>
+      <service
+        name="/srv-test-1"
+        reqType="gz.msgs.Boolean"
+        repType="gz.msgs.Boolean"
+        timeout="100"
+        reqMsg="data: true">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_16"/>
+      <service
+        name="/srv-test"
+        reqType="gz.msgs.InvalidReqType"
+        repType="gz.msgs.StringMsg"
+        timeout="100"
+        reqMsg="data: 'test'">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_16"/>
+      <service
+        name="/srv-test"
+        reqType="gz.msgs.StringMsg"
+        repType="gz.msgs.InvalidRepType"
+        timeout="100"
+        reqMsg="data: 'test'">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_18"/>
+      <service
+        name="/srv-diff-type-0"
+        reqType="gz.msgs.Boolean"
+        repType="gz.msgs.StringMsg"
+        timeout="100"
+        reqMsg="data: true">
+      </service>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-triggered-publisher-system"
+      name="gz::sim::systems::TriggeredPublisher">
+      <input type="gz.msgs.Empty" topic="/in_19"/>
+      <service
+        name="/srv-diff-type-1"
+        reqType="gz.msgs.StringMsg"
+        repType="gz.msgs.Boolean"
+        timeout="100"
+        reqMsg="data: 'test'">
+      </service>
+    </plugin>
   </world>
 </sdf>
-
 

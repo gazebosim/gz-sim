@@ -274,7 +274,7 @@ void JointPositionController::Update(const UpdateInfo &,
     // Value
     double value = 0.0;
     auto posComp = _ecm.Component<components::JointPosition>(jointEntity);
-    if (posComp)
+    if (posComp && !posComp->Data().empty())
     {
       value = posComp->Data()[0];
     }

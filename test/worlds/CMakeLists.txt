@@ -1,1 +1,4 @@
 configure_file (buoyancy.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/buoyancy.sdf)
+configure_file (mesh.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/mesh.sdf)
+configure_file (thermal.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/thermal.sdf)
+configure_file (heightmap.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/heightmap.sdf)

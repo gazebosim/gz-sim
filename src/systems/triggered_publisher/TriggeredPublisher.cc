@@ -595,9 +595,52 @@ void TriggeredPublisher::Configure(const Entity &,
       }
     }
   }
-  else
+
+  if (sdfClone->HasElement("service"))
   {
-    gzerr << "No ouptut specified" << std::endl;
+    for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
+         serviceElem = serviceElem->GetNextElement("service"))
+    {
+      SrvOutputInfo serviceInfo;
+      serviceInfo.srvName = serviceElem->Get<std::string>("name");
+      if (serviceInfo.srvName.empty())
+      {
+        ignerr << "Service name cannot be empty\n";
+        return;
+      }
+      serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
+      if (serviceInfo.reqType.empty())
+      {
+        ignerr << "Service request type cannot be empty\n";
+        return;
+      }
+      serviceInfo.repType = serviceElem->Get<std::string>("repType");
+      if (serviceInfo.repType.empty())
+      {
+        ignerr << "Service reply type cannot be empty\n";
+        return;
+      }
+      serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
+      if (serviceInfo.reqMsg.empty())
+      {
+        ignerr << "Service request message cannot be empty\n";
+        return;
+      }
+      std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
+      if (timeoutInfo.empty())
+      {
+        ignerr << "Timeout value cannot be empty\n";
+        return;
+      }
+
+      serviceInfo.timeout = std::stoi(timeoutInfo);
+      this->srvOutputInfo.push_back(std::move(serviceInfo));
+    }
+  }
+  if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
+  {
+    ignerr << "No output and service specified. Make sure to specify at least"
+      "one of them." << std::endl;
     return;
   }
 
@@ -606,23 +649,27 @@ void TriggeredPublisher::Configure(const Entity &,
       {
         if (this->MatchInput(_msg))
         {
+          if (this->delay > 0ms)
           {
-            if (this->delay > 0ms)
+            std::lock_guard<std::mutex> lock(this->publishQueueMutex);
+            this->publishQueue.push_back(this->delay);
+          }
+          else
+          {
             {
-              std::lock_guard<std::mutex> lock(this->publishQueueMutex);
-              this->publishQueue.push_back(this->delay);
+              std::lock_guard<std::mutex> lock(this->publishCountMutex);
+              ++this->publishCount;
             }
-            else
-            {
-              {
-                std::lock_guard<std::mutex> lock(this->publishCountMutex);
-                ++this->publishCount;
-              }
-              this->newMatchSignal.notify_one();
-            }
+            this->newMatchSignal.notify_one();
+          }
+          if (this->srvOutputInfo.size() > 0)
+          {
+            std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+            ++this->serviceCount;
           }
         }
       });
+
   if (!this->node.Subscribe(this->inputTopic, msgCb))
   {
     gzerr << "Input subscriber could not be created for topic ["
@@ -646,10 +693,68 @@ void TriggeredPublisher::Configure(const Entity &,
 }
 
 //////////////////////////////////////////////////
+void TriggeredPublisher::PublishMsg(std::size_t pending)
+{
+  for (auto &info : this->outputInfo)
+  {
+    for (std::size_t i = 0; i < pending; ++i)
+    {
+      info.pub.Publish(*info.msgData);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void TriggeredPublisher::CallService(std::size_t pendingSrv)
+{
+  for (auto &serviceInfo : this->srvOutputInfo)
+  {
+    for (std::size_t i = 0; i < pendingSrv; ++i)
+    {
+      bool result;
+      auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
+      if (!req)
+      {
+        ignerr << "Unable to create request for type ["
+               << serviceInfo.reqType << "].\n";
+        return;
+      }
+
+      auto rep = msgs::Factory::New(serviceInfo.repType);
+      if (!rep)
+      {
+        ignerr << "Unable to create response for type ["
+               << serviceInfo.repType << "].\n";
+        return;
+      }
+
+      bool executed = this->node.Request(serviceInfo.srvName, *req,
+                                         serviceInfo.timeout, *rep, result);
+      if (executed)
+      {
+        if (!result)
+        {
+          ignerr << "Service call [" << serviceInfo.srvName << "] failed\n";
+        }
+        else
+        {
+          ignmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
+        }
+      }
+      else
+      {
+        ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
+      }
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void TriggeredPublisher::DoWork()
 {
   while (!this->done)
   {
+    // check whether to publish a msg by checking publishCount
     std::size_t pending{0};
     {
       using namespace std::chrono_literals;
@@ -666,13 +771,19 @@ void TriggeredPublisher::DoWork()
       std::swap(pending, this->publishCount);
     }
 
-    for (auto &info : this->outputInfo)
+    PublishMsg(pending);
+
+    // check whether to call a service by checking serviceCount
+    std::size_t pendingSrv{0};
     {
-      for (std::size_t i = 0; i < pending; ++i)
-      {
-        info.pub.Publish(*info.msgData);
+      std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+      if (this->serviceCount == 0 || this->done){
+        continue;
       }
+      std::swap(pendingSrv, this->serviceCount);
     }
+
+    CallService(pendingSrv);
   }
 }
 

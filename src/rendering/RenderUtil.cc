@@ -2388,6 +2388,17 @@ void RenderUtilPrivate::RemoveRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   GZ_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
+  _ecm.EachRemoved<components::Actor>(
+      [&](const Entity &_entity, const components::Actor *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->entityPoses.erase(_entity);
+        this->actorAnimationData.erase(_entity);
+        this->actorTransforms.erase(_entity);
+        this->trajectoryPoses.erase(_entity);
+        return true;
+      });
+
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
@@ -2552,13 +2563,9 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
-void RenderUtil::Init()
+void RenderUtil::InitRenderEnginePluginPaths()
 {
-  // Already initialized
-  if (nullptr != this->dataPtr->scene)
-    return;
-
-  gz::common::SystemPaths pluginPath;
+  common::SystemPaths pluginPath;
 
   // TODO(CH3): Deprecated. Remove on tock.
   std::string result;
@@ -2581,6 +2588,16 @@ void RenderUtil::Init()
   }
 
   rendering::setPluginPaths(pluginPath.PluginPaths());
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::Init()
+{
+  // Already initialized
+  if (nullptr != this->dataPtr->scene)
+    return;
+
+  this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
 #ifdef __APPLE__

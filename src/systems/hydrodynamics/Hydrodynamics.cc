@@ -104,6 +104,14 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief The Gazebo Transport node
   public: transport::Node node;
 
+  /// \brief Plugin Parameter: Disable coriolis as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableCoriolis = false;
+
+  /// \brief Plugin Parameter: Disable added mass as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableAddedMass = false;
+
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
@@ -224,6 +232,9 @@ void Hydrodynamics::Configure(
   this->dataPtr->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
   this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
 
+  _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
+  _sdf->Get<bool>("disable_added_mass", this->dataPtr->disableAddedMass, false);
+
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
 
@@ -288,7 +299,7 @@ void Hydrodynamics::PreUpdate(
 
   // These variables follow Fossen's scheme in "Guidance and Control
   // of Ocean Vehicles." The `state` vector contains the ship's current velocity
-  // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
+  // in the format [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
   // `stateDot` consists of the first derivative in time of the state vector.
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
@@ -332,13 +343,15 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
+  // TODO(anyone) Make this configurable
   auto dt = static_cast<double>(_info.dt.count())/1e9;
   stateDot = (state - this->dataPtr->prevState)/dt;
 
   this->dataPtr->prevState = state;
 
   // The added mass
-  const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
+  // Negative sign signifies the behaviour change
+  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
@@ -379,7 +392,16 @@ void Hydrodynamics::PreUpdate(
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+  Eigen::VectorXd kTotalWrench = kDvec;
+
+  if (!this->dataPtr->disableAddedMass)
+  {
+    kTotalWrench += kAmassVec;
+  }
+  if (!this->dataPtr->disableCoriolis)
+  {
+    kTotalWrench += kCmatVec;
+  }
 
   gz::math::Vector3d
     totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));
