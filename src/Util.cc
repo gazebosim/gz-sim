@@ -673,40 +673,42 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
 }
 
 //////////////////////////////////////////////////
-std::optional<math::Vector3d> GetGridFieldCoordinates(
+std::optional<math::Vector3d> getGridFieldCoordinates(
   const EntityComponentManager &_ecm,
   const math::Vector3d& _worldPosition,
   const std::shared_ptr<components::EnvironmentalData>& _gridField
   )
 {
-  if (_gridField->reference == math::SphericalCoordinates::SPHERICAL)
+
+  auto origin =
+    _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+  if (!origin)
   {
-      auto origin =
-        _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
-      if (!origin)
-      {
-        gzerr << "World has no spherical coordinates,"
-            <<" but data was loaded with spherical reference plane"
-            << std::endl;
-        return std::nullopt;
-      }
-      auto position = origin->Data().PositionTransform(
-          _worldPosition, math::SphericalCoordinates::LOCAL2,
-          _gridField->reference);
-      if (_gridField->units ==
-        components::EnvironmentalData::ReferenceUnits::DEGREES)
-      {
-        position = math::Vector3d{
-          GZ_RTOD(position.X()),
-          GZ_RTOD(position.Y()),
-          position.Z()
-        };
-      }
+    if (_gridField->reference == math::SphericalCoordinates::SPHERICAL)
+    {
+      // If the reference frame is spherical, we must have some world reference
+      // coordinates.
+      gzerr << "World has no spherical coordinates,"
+          << " but data was loaded with spherical reference plane"
+          << std::endl;
+      return std::nullopt;
+    }
+    else
+    {
+      // No need to transform
+      return _worldPosition;
+    }
   }
-  else
+  auto position = origin->Data().PositionTransform(
+      _worldPosition, math::SphericalCoordinates::LOCAL2,
+      _gridField->reference);
+  if (_gridField->reference == math::SphericalCoordinates::SPHERICAL &&
+    _gridField->units == components::EnvironmentalData::ReferenceUnits::DEGREES)
   {
-    return _worldPosition;
+    position.X(GZ_RTOD(position.X()));
+    position.Y(GZ_RTOD(position.Y()));
   }
+  return position;
 }
 
 //////////////////////////////////////////////////

@@ -34,7 +34,7 @@
       <world_frame_orientation>ENU</world_frame_orientation>
       <latitude_deg>36.80079505</latitude_deg>
       <longitude_deg>-121.789472517</longitude_deg>
-      <elevation>0.8</elevation>
+      <elevation>0</elevation>
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
@@ -45,7 +45,7 @@
       <data>@CMAKE_SOURCE_DIR@/test/worlds/environmental_data.csv</data>
       <dimensions>
         <time>timestamp</time>
-        <space reference="spherical">
+        <space reference="spherical" units="degrees">
           <x>latitude</x>
           <y>longitude</y>
           <z>altitude</z>

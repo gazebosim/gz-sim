@@ -78,7 +78,7 @@ TEST_F(EnvironmentPreloadTest, CanPreload)
                 EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
                 dataLoaded = true;
               }
-              EXPECT_EQ(data->reference, math::SphericalCoordinates::GLOBAL);
+              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
               return true;
             });
       });
@@ -126,16 +126,16 @@ TEST_F(EnvironmentPreloadTest, CorrectSphericalTransform)
               EXPECT_TRUE(humiditySession.has_value());
               if (humiditySession.has_value())
               {
-                const math::Vector3d position{0, 0, 0};
+                const math::Vector3d position{0, 0, 0.8};
                 auto transformedCoordinates =
-                  GetGridFieldCoordinates(_ecm, position, data);
+                  getGridFieldCoordinates(_ecm, position, data);
                 auto humidity =
                     humidityData.LookUp(humiditySession.value(),
                       transformedCoordinates.value());
                 EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
                 dataLoaded = true;
               }
-              EXPECT_EQ(data->reference, math::SphericalCoordinates::GLOBAL);
+              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
               return true;
             });
       });

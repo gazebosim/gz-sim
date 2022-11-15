@@ -212,7 +212,7 @@ class EnvironmentVisualizationPrivate
         for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
         {
           auto z = lower_bound.Z() + z_steps * dz;
-          auto coords = GetGridFieldCoordinates(
+          auto coords = getGridFieldCoordinates(
             _ecm, math::Vector3d{x, y, z},
             data);
 

@@ -187,7 +187,16 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     if (!this->ready) return false;
 
     const auto position = worldPose(_entity, _ecm).Pos();
-    if (this->gridField->reference == math::SphericalCoordinates::SPHERICAL)
+    auto lookupCoords =
+      getGridFieldCoordinates(_ecm, position, this->gridField);
+
+    if (!lookupCoords.has_value())
+    {
+      return false;
+    }
+
+    this->position = lookupCoords.value();
+    /*if (this->gridField->reference == math::SphericalCoordinates::SPHERICAL)
     {
         auto origin =
           _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
@@ -214,7 +223,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     else
     {
         this->position = position;
-    }
+    }*/
     return true;
   }
 
