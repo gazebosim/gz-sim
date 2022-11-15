@@ -2203,7 +2203,7 @@ void TextureNode::PrepareNode()
         newId, sz, QQuickWindow::TextureIsOpaque);
 #else
     // TODO(anyone) Use createTextureFromNativeObject
-    // https://github.com/ignitionrobotics/ign-gui/issues/113
+    // https://github.com/gazebosim/gz-gui/issues/113
 #ifndef _WIN32
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"

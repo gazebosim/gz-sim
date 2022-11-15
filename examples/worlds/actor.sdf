@@ -147,16 +147,16 @@
     </model>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor</uri>
+      <uri>https://fuel.gazebosim.org/1.0/Mingfei/models/actor</uri>
     </include>
 
     <actor name="actor_talking">
       <skin>
-        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </skin>
       <animation name="talk_b">
-        <filename>https://fuel.ignitionrobotics.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/talk_b.dae</filename>
         <scale>0.055</scale>
         <interpolate_x>true</interpolate_x>
       </animation>

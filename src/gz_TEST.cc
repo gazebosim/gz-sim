@@ -37,6 +37,10 @@ static const std::string kIgnModelCommand(
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  // Augment the system plugin path.
+  gz::common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+      gz::common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
@@ -96,7 +100,7 @@ TEST(CmdLine, CachedFuelWorld)
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);

@@ -38,7 +38,7 @@ using namespace gz;
 using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
-// https://github.com/ignitionrobotics/ign-gazebo/issues/8
+// https://github.com/gazebosim/gz-sim/issues/8
 TEST(GuiTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PathManager))
 {
   common::Console::SetVerbosity(4);

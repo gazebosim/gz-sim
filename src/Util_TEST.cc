@@ -722,7 +722,7 @@ TEST_F(UtilTest, EntityFromMsg)
   ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
 
   // Check entities
-  auto createMsg = [&ecm](Entity _id, const std::string &_name = "",
+  auto createMsg = [&](Entity _id, const std::string &_name = "",
       msgs::Entity::Type _type = msgs::Entity::NONE) -> msgs::Entity
   {
     msgs::Entity msg;
