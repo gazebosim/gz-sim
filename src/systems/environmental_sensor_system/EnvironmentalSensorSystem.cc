@@ -196,34 +196,6 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     }
 
     this->position = lookupCoords.value();
-    /*if (this->gridField->reference == math::SphericalCoordinates::SPHERICAL)
-    {
-        auto origin =
-          _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
-        if (!origin)
-        {
-          gzerr << "World has no spherical coordinates,"
-              <<" but data was loaded with spherical reference plane"
-              << std::endl;
-          return false;
-        }
-        this->position = origin->Data().PositionTransform(
-            position, math::SphericalCoordinates::LOCAL2,
-            this->gridField->reference);
-        if (this->gridField->units ==
-          components::EnvironmentalData::ReferenceUnits::DEGREES)
-        {
-          this->position = math::Vector3d{
-            GZ_RTOD(this->position.X()),
-            GZ_RTOD(this->position.Y()),
-            this->position.Z()
-          };
-        }
-    }
-    else
-    {
-        this->position = position;
-    }*/
     return true;
   }
 
