@@ -23,8 +23,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <gz/msgs/entity.pb.h>
-
 #include <gz/math/Pose3.hh>
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
