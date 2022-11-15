@@ -32,7 +32,7 @@
 #include "../helpers/EnvTestFixture.hh"
 
 // World file path.
-const char *kWorldFilePath{"/test/worlds/added_mass.sdf"};
+const char *kWorldFilePath{"/test/worlds/added_mass_ellipsoids.sdf"};
 
 // Names of the models.
 const std::vector<std::string> kModelNames = {"body1", "body2", "body3"};
