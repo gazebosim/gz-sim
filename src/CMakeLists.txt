@@ -72,6 +72,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  AddedMass_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc
