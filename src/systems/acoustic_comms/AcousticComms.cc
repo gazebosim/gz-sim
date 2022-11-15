@@ -62,6 +62,8 @@ class AcousticComms::Implementation
             std::chrono::duration<double>>>
           lastMsgReceivedInfo;
 
+  /// \brief This method simulates the propagation model,
+  /// and returns false if the packet was dropped, otherwise true.
   public: bool propagationModel(double _distToSource,
                                 int _numBytes);
 
@@ -104,7 +106,9 @@ bool AcousticComms::Implementation::propagationModel(
   // NL : Noise level.
   // DI : Receiver directivity index.
 
-  double sl = 171.5 + 10 * std::log10(this->sourcePower);
+  // The constant 170.8 comes from reference intensity measured
+  // 1m from the source.
+  double sl = 170.8 + 10 * std::log10(this->sourcePower);
   double tl = 20 * std::log10(_distToSource);
 
   // Calculate SNR.
