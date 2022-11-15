@@ -294,9 +294,9 @@ namespace gz
 
     /// \brief Get grid field coordinates based on a world position in cartesian
     /// coordinate frames.
-    /// \param[in] _ecm - The Entity Component Manager
-    /// \param[in] _worldPosition - The world position
-    /// \param[in] _gridField - The gridfield you are interested in.
+    /// \param[in] _ecm Entity Component Manager
+    /// \param[in] _worldPosition world position
+    /// \param[in] _gridField Gridfield you are interested in.
     std::optional<math::Vector3d> GetGridFieldCoordinates(
       const EntityComponentManager &_ecm,
       const math::Vector3d& _worldPosition,

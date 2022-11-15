@@ -127,8 +127,7 @@ class EnvironmentVisualizationPrivate
     {
       const auto session = this->sessions[key];
       auto frame = data->frame[key];
-      auto [lower_bound, upper_bound] =
-        frame.Bounds(session);
+      auto [lower_bound, upper_bound] = frame.Bounds(session);
       auto step = upper_bound - lower_bound;
       auto dx = step.X() / xSamples;
       auto dy = step.Y() / ySamples;
@@ -143,13 +142,16 @@ class EnvironmentVisualizationPrivate
           for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
           {
             auto z = lower_bound.Z() + z_steps * dz;
-            auto res = frame.LookUp(
-              session, math::Vector3d(x, y, z));
+            auto res = frame.LookUp(session, math::Vector3d(x, y, z));
 
             if (res.has_value())
             {
               this->floatFields[key].mutable_data()->Set(idx,
                 static_cast<float>(res.value()));
+            }
+            else
+            {
+              this->floatFields[key].mutable_data()->Set(idx, std::nanf(""));
             }
             idx++;
           }
@@ -203,21 +205,20 @@ class EnvironmentVisualizationPrivate
 
     for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
     {
+      auto x = lower_bound.X() + x_steps * dx;
       for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
       {
+        auto y = lower_bound.Y() + y_steps * dy;
         for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
         {
-          auto x = lower_bound.X() + x_steps * dx;
-          auto y = lower_bound.Y() + y_steps * dy;
           auto z = lower_bound.Z() + z_steps * dz;
-
           auto coords = GetGridFieldCoordinates(
             _ecm, math::Vector3d{x, y, z},
             data);
 
           if (!coords.has_value())
           {
-            return;
+            continue;
           }
 
           auto pos = coords.value();

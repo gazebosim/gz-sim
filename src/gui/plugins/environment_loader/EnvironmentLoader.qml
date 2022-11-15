@@ -196,7 +196,6 @@ GridLayout {
     Layout.fillWidth: true
     enabled: EnvironmentLoader.configured
     model: EnvironmentLoader.referenceList
-    //currentText: EnvironmentLoader.reference
     onCurrentTextChanged: {
       EnvironmentLoader.reference = currentText
     }
