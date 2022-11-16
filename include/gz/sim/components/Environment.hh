@@ -38,12 +38,18 @@ namespace components
 {
   /// \brief Environment data across time and space. This is useful to
   /// introduce physical quantities that may be of interest even if not
-  /// modelled in simulation. 
+  /// modelled in simulation.
   struct EnvironmentalData
   {
     using T = math::InMemoryTimeVaryingVolumetricGrid<double>;
     using FrameT = common::DataFrame<std::string, T>;
     using ReferenceT = math::SphericalCoordinates::CoordinateType;
+
+    /// \brief Reference units
+    enum class ReferenceUnits {
+      RADIANS = 0,
+      DEGREES
+    };
 
     /// \brief Instantiate environmental data.
     ///
@@ -52,13 +58,21 @@ namespace components
     /// instantiation that is guaranteed to outlive
     /// them.
     static std::shared_ptr<EnvironmentalData>
-    MakeShared(FrameT _frame, ReferenceT _reference);
+    MakeShared(FrameT _frame, ReferenceT _reference,
+      ReferenceUnits _units = ReferenceUnits::RADIANS,
+      bool _ignoreTimeStep = false);
 
     /// \brief Environmental data frame.
     FrameT frame;
 
-    /// \brief Spatial reference for data coordinates. 
+    /// \brief Spatial reference for data coordinates.
     ReferenceT reference;
+
+    /// \brief The units to be used (only for spherical coordinates)
+    ReferenceUnits units;
+
+    /// \brief Use time axis or not.
+    bool staticTime;
   };
 
   /// \brief A component type that contains a environment data.
