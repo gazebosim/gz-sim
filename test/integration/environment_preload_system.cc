@@ -18,12 +18,12 @@
 #include <gtest/gtest.h>
 
 #include <gz/common/Filesystem.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/TestFixture.hh"
-
-#include <gz/utils/ExtraTestMacros.hh>
+#include "gz/sim/Util.hh"
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -73,12 +73,69 @@ TEST_F(EnvironmentPreloadTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
               {
                 const math::Vector3d position{36.80079505, -121.789472517, 0.8};
                 auto humidity =
-                    humidityData.LookUp(humiditySession.value(), position);
+                    humidityData.LookUp(humiditySession.value(),
+                      position);
                 EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
                 dataLoaded = true;
               }
               EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
+              return true;
+            });
+      });
 
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server
+  server.RunOnce();
+
+  EXPECT_TRUE(dataLoaded);
+}
+
+
+/////////////////////////////////////////////////
+TEST_F(EnvironmentPreloadTest, CorrectSphericalTransform)
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test",
+      "worlds", "environmental_data.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  bool dataLoaded{false};
+
+  // Create a system that looks for environmental data components
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+      [&](const sim::UpdateInfo &,
+          const sim::EntityComponentManager &_ecm)
+      {
+        _ecm.EachNew<components::Environment>(
+            [&](const gz::sim::Entity &,
+                const components::Environment *_component) -> bool
+            {
+              auto data = _component->Data();
+              EXPECT_TRUE(data->frame.Has("humidity"));
+              const auto &humidityData = data->frame["humidity"];
+              auto humiditySession = humidityData.StepTo(
+                  humidityData.CreateSession(), 1658923062.5);
+              EXPECT_TRUE(humiditySession.has_value());
+              if (humiditySession.has_value())
+              {
+                const math::Vector3d position{0, 0, 0.8};
+                auto transformedCoordinates =
+                  getGridFieldCoordinates(_ecm, position, data);
+                auto humidity =
+                    humidityData.LookUp(humiditySession.value(),
+                      transformedCoordinates.value());
+                EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
+                dataLoaded = true;
+              }
+              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
               return true;
             });
       });

@@ -55,6 +55,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       NOTIFY DimensionListChanged
     )
 
+    /// \brief Unit list
+    Q_PROPERTY(
+      QStringList unitList
+      READ UnitList
+    )
+
+        /// \brief Unit list
+    Q_PROPERTY(
+      QString unit
+      READ Unit
+      WRITE SetUnit
+      NOTIFY UnitChanged
+    )
+
     /// \brief Time index
     Q_PROPERTY(
       int timeIndex
@@ -136,6 +150,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Get dimensions available in the data file
     public: Q_INVOKABLE QStringList DimensionList() const;
 
+    /// \brief Get available units
+    public: Q_INVOKABLE QStringList UnitList() const;
+
     /// \brief Notify that the list of dimensions has changed
     signals: void DimensionListChanged();
 
@@ -186,6 +203,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Notify the spatial reference has changed
     signals: void ReferenceChanged() const;
+
+    /// \brief Get index of the unit in the list
+    public: Q_INVOKABLE QString Unit() const;
+
+    /// \brief Set index of the unit in the list
+    public: Q_INVOKABLE void SetUnit(QString _unit);
+
+    /// \brief Notify the unit index has changed
+    signals: void UnitChanged() const;
 
     /// \brief Get configuration status
     public: Q_INVOKABLE bool IsConfigured() const;
