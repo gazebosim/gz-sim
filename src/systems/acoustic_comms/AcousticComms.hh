@@ -69,9 +69,6 @@ namespace systems
   ///       * <noise_level> : Ratio of the noise intensity at the
   ///                         receiver to the same reference intensity used
   ///                         for source level. Defaults to 1.
-  ///       * <directivity_index> : Ratio of the total noise power at the
-  ///                               array to the noise received by the array
-  ///                               along its main response axis. Defaults to 4.
   ///       * <spectral_efficiency> : Information rate that can be transmitted
   ///                                 over a given bandwidth in a specific
   ///                                 communication system, in (bits/sec)/Hz.
@@ -91,7 +88,6 @@ namespace systems
   ///    <propagation_model>
   ///      <source_power>2000</source_power>
   ///      <noise_level>1</noise_level>
-  ///      <directivity_index>4</directivity_index>
   ///      <spectral_efficiency>7</spectral_efficiency>
   ///    </propagation_model>
   ///

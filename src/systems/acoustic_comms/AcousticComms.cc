@@ -76,11 +76,6 @@ class AcousticComms::Implementation
   /// receiver to the same reference intensity used for source level.
   public: double noiseLevel = 1;
 
-  /// \brief Ratio of the total noise power at the array to the
-  /// noise received by the array along its main response axis.
-  /// \ref https://ieeexplore.ieee.org/document/5664178
-  public: double directivityIndex = 4;
-
   /// \brief Information rate that can be transmitted over a given
   /// bandwidth in a specific communication system, in (bits/sec)/Hz.
   /// \ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
@@ -104,7 +99,6 @@ bool AcousticComms::Implementation::propagationModel(
   //      converted to dB.
   // TL : Transmission loss (dB)
   // NL : Noise level.
-  // DI : Receiver directivity index.
 
   // The constant 170.8 comes from reference intensity measured
   // 1m from the source.
@@ -112,7 +106,7 @@ bool AcousticComms::Implementation::propagationModel(
   double tl = 20 * std::log10(_distToSource);
 
   // Calculate SNR.
-  auto snr = sl - tl - (this->noiseLevel - this->directivityIndex);
+  auto snr = sl - tl - this->noiseLevel;
 
   // References : https://www.montana.edu/aolson/ee447/EB%20and%20NO.pdf
   // https://en.wikipedia.org/wiki/Eb/N0
@@ -169,8 +163,6 @@ void AcousticComms::Load(
                                    GetElement("propagation_model");
     this->dataPtr->sourcePower = propElement->Get<double>("source_power");
     this->dataPtr->noiseLevel = propElement->Get<double>("noise_level");
-    this->dataPtr->directivityIndex =
-      propElement->Get<double>("directivity_index");
     this->dataPtr->spectralEfficiency =
       propElement->Get<double>("spectral_efficiency");
   }

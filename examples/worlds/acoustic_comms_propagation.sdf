@@ -32,7 +32,6 @@
       <propagation_model>
         <source_power>0.001</source_power>
         <noise_level>150</noise_level>
-        <directivity_index>4</directivity_index>
         <spectral_efficiency>7</spectral_efficiency>
       </propagation_model>
 
