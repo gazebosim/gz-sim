@@ -130,7 +130,8 @@ extern "C" const char *findFuelResource(
 
 //////////////////////////////////////////////////
 extern "C" int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, int _levels, const char *_networkRole,
+    int _iterations, int _run, float _hz, float _initialSimTime,
+    int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
@@ -349,6 +350,9 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetSdfFile(startingWorldPath);
   else
     serverConfig.SetSdfFile(_file);
+
+  // Initial simulation time.
+  serverConfig.SetInitialSimTime(_initialSimTime);
 
   // Set the update rate.
   if (_hz > 0.0)
