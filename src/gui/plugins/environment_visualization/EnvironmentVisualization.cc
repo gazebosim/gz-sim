@@ -183,7 +183,8 @@ class EnvironmentVisualizationPrivate
         {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
     auto numberOfPoints =
       ceil(xSamples) * ceil(ySamples) * ceil(zSamples);
-    std::size_t dataSize{numberOfPoints * pcMsg.point_step()};
+    std::size_t dataSize{
+      static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
     pcMsg.mutable_data()->resize(dataSize);
     pcMsg.set_height(1);
     pcMsg.set_width(numberOfPoints);
@@ -279,8 +280,8 @@ void EnvironmentVisualization::Update(const UpdateInfo &_info,
 {
   _ecm.EachNew<components::Environment>(
     [this](
-      const Entity &_entity,
-      const components::Environment* environment
+      const Entity &/*_entity*/,
+      const components::Environment* /*environment*/
     ) {
       this->dataPtr->resample = true;
       return true;
