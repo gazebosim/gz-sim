@@ -118,4 +118,3 @@ TEST(EventManager, Disambiguate)
   eventManager.Emit<TestEvent2>();
   EXPECT_EQ(1, calls);
 }
-

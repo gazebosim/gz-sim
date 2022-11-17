@@ -1,7 +1,7 @@
 add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/gtest-all.cc)
 add_library(gtest_main STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/gtest_main.cc)
 
-target_include_directories(gtest 
+target_include_directories(gtest
   SYSTEM PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   PRIVATE

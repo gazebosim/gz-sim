@@ -71,4 +71,3 @@ PathManager::PathManager()
   // Get path updates through this topic
   this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 }
-

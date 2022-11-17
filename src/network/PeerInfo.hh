@@ -65,4 +65,3 @@ namespace gz
 }  // namespace gz
 
 #endif  // GZ_SIM_NETWORK_PEERINFO_HH_
-

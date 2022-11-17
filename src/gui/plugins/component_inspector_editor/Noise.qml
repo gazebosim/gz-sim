@@ -49,7 +49,7 @@ Rectangle {
   property double dynamicBiasCorrelationTime: 0.0
 
   // Signal that a user of this component can connect to in order to receive
-  // noise updates 
+  // noise updates
   signal onNoiseUpdate(double _mean, double _meanBias, double _stdDev,
       double _stdDevBias, double _dynamicBiasStdDev,
       double _dynamicBiasCorrelationTime)
@@ -114,7 +114,7 @@ Rectangle {
         width: parent.width
         columns: 4
 
-        // Padding 
+        // Padding
         Rectangle {
           Layout.columnSpan: 4
           height: 4
@@ -171,7 +171,7 @@ Rectangle {
           }
         }
         // End of mean
- 
+
         // Mean Bias
         Rectangle {
           color: "transparent"
@@ -214,8 +214,8 @@ Rectangle {
           }
         }
         // End of mean bias
-     
-        // Padding 
+
+        // Padding
         Rectangle {
           Layout.columnSpan: 4
           height: 4
@@ -316,7 +316,7 @@ Rectangle {
         }
         // End of stddev bias
 
-        // Padding 
+        // Padding
         Rectangle {
           Layout.columnSpan: 4
           height: 4

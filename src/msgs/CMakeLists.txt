@@ -11,4 +11,3 @@ set(PROTO_PRIVATE_HEADERS ${PROTO_PRIVATE_HEADERS} PARENT_SCOPE)
 add_custom_target(gz-sim_private_msgs
   DEPENDS ${PROTO_PRIVATE_SRC}
 )
-

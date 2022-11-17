@@ -51,4 +51,3 @@ namespace gz
 }  // namespace gz
 
 #endif  // GZ_SIM_NETWORKROLE_HH_
-
