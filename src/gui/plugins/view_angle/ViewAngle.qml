@@ -207,6 +207,7 @@ ColumnLayout {
     }
   }
 
+  // view control sensitivity
   GridLayout {
     Layout.fillWidth: true
     Layout.margins: 10
