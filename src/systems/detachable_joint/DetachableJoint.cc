@@ -106,6 +106,36 @@ void DetachableJoint::Configure(const Entity &_entity,
   this->detachTopic = validTopic(detachTopics);
   igndbg << "Detach topic is: " << this->detachTopic << std::endl;
 
+  // Warn if DEPRECATED <topic> tag is used instead of <detach_topic>
+  if (_sdf->HasElement("topic"))
+  {
+    ignerr << "<topic> tag is DEPRECATED. Please use <detach_topic> instead."
+           << std::endl;
+    if (_sdf->HasElement("detach_topic"))
+    {
+      if (_sdf->Get<std::string>("topic") !=
+          _sdf->Get<std::string>("detach_topic"))
+      {
+        ignerr << "<topic> and <detach_topic> tags have different contents. "
+                  "Please verify the correct string and use <detach_topic>."
+               << std::endl;
+      }
+      else
+      {
+        ignwarn << "Ignoring <topic> tag and using <detach_topic> tag."
+                << std::endl;
+      }
+    }
+    else
+    {
+      detachTopics.pop_back();
+      detachTopics.push_back(_sdf->Get<std::string>("topic"));
+      this->detachTopic = validTopic(detachTopics);
+      ignerr << "Implicitly converted <topic> to <detach_topic>. "
+             << "Detach topic is: " << this->detachTopic << std::endl;
+    }
+  }
+
   // Setup subscriber for detach topic
   this->node.Subscribe(
       this->detachTopic, &DetachableJoint::OnDetachRequest, this);
