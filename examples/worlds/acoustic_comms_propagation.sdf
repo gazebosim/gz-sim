@@ -33,6 +33,7 @@
         <source_power>0.001</source_power>
         <noise_level>150</noise_level>
         <spectral_efficiency>7</spectral_efficiency>
+        <seed>0</seed>
       </propagation_model>
 
     </plugin>

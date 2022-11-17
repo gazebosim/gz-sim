@@ -83,6 +83,9 @@ class AcousticComms::Implementation
 
   /// \brief Flag to store if the propagation model should be used.
   public: bool usePropagationModel = false;
+
+  /// \brief Seed value for random sampling.
+  public: unsigned int seed = 0;
 };
 
 //////////////////////////////////////////////////
@@ -125,6 +128,7 @@ bool AcousticComms::Implementation::propagationModel(
     1.0 - std::exp(static_cast<double>(_numBytes) *
                    std::log(1 - ber));
 
+  gz::math::Rand::Seed(this->seed);
   double randDraw = gz::math::Rand::DblUniform();
   return randDraw > packetDropProb;
 }
@@ -165,6 +169,7 @@ void AcousticComms::Load(
     this->dataPtr->noiseLevel = propElement->Get<double>("noise_level");
     this->dataPtr->spectralEfficiency =
       propElement->Get<double>("spectral_efficiency");
+    this->dataPtr->seed = propElement->Get<int>("seed");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<

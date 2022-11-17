@@ -73,6 +73,7 @@ namespace systems
   ///                                 over a given bandwidth in a specific
   ///                                 communication system, in (bits/sec)/Hz.
   ///                                 Defaults to 7 bits/sec/Hz.
+  ///       * <seed> : Seed value to be used for random sampling.
   ///
   /// Here's an example:
   ///  <plugin
