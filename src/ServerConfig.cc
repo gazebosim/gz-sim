@@ -248,6 +248,7 @@ class gz::sim::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
+            initialSimTime(_cfg->initialSimTime),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
@@ -274,6 +275,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
+
+  /// \brief The initial simulation time in seconds.
+  public: double initialSimTime = 0;
 
   /// \brief Use the level system
   public: bool useLevels{false};
@@ -390,10 +394,22 @@ std::string ServerConfig::SdfString() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::SetInitialSimTime(const double &_initialSimTime) const
+{
+  this->dataPtr->initialSimTime = _initialSimTime;
+}
+
+//////////////////////////////////////////////////
 void ServerConfig::SetUpdateRate(const double &_hz)
 {
   if (_hz > 0)
     this->dataPtr->updateRate = _hz;
+}
+
+/////////////////////////////////////////////////
+double ServerConfig::InitialSimTime() const
+{
+  return this->dataPtr->initialSimTime;
 }
 
 /////////////////////////////////////////////////
