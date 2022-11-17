@@ -63,6 +63,9 @@ namespace ignition::gazebo
     /// \brief View Control reference visual service name
     public: std::string viewControlRefVisualService;
 
+    /// \brief View Control sensitivity service name
+    public: std::string viewControlSensitivityService;
+
     /// \brief Move gui camera to pose service name
     public: std::string moveToPoseService;
 
@@ -144,7 +147,12 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   this->dataPtr->viewControlService = "/gui/camera/view_control";
 
   // view control reference visual requests
-  this->dataPtr->viewControlRefVisualService = "/gui/camera/reference_visual";
+  this->dataPtr->viewControlRefVisualService =
+      "/gui/camera/view_control/reference_visual";
+
+  // view control sensitivity requests
+  this->dataPtr->viewControlSensitivityService =
+      "/gui/camera/view_control/sensitivity";
 
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
@@ -268,6 +276,29 @@ void ViewAngle::OnViewControlReferenceVisual(bool _enable)
 
   this->dataPtr->node.Request(
       this->dataPtr->viewControlRefVisualService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControlSensitivity(double _sensitivity)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller sensitivity" << std::endl;
+  };
+
+  if (_sensitivity <= 0.0)
+  {
+    ignerr << "View controller sensitivity must be greater than 0" << std::endl;
+    return;
+  }
+
+  msgs::Double req;
+  req.set_data(_sensitivity);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlSensitivityService, req, cb);
 }
 
 /////////////////////////////////////////////////
