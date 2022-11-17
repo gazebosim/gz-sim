@@ -297,7 +297,7 @@ namespace gz
     /// \param[in] _ecm Entity Component Manager
     /// \param[in] _worldPosition world position
     /// \param[in] _gridField Gridfield you are interested in.
-    std::optional<math::Vector3d> getGridFieldCoordinates(
+    std::optional<math::Vector3d> GZ_SIM_VISIBLE getGridFieldCoordinates(
       const EntityComponentManager &_ecm,
       const math::Vector3d& _worldPosition,
       const std::shared_ptr<components::EnvironmentalData>& _gridField);
