@@ -186,9 +186,9 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   {
     if (!this->ready) return false;
 
-    const auto position = worldPose(_entity, _ecm).Pos();
+    const auto worldPosition = worldPose(_entity, _ecm).Pos();
     auto lookupCoords =
-      getGridFieldCoordinates(_ecm, position, this->gridField);
+      getGridFieldCoordinates(_ecm, worldPosition, this->gridField);
 
     if (!lookupCoords.has_value())
     {
@@ -252,7 +252,7 @@ EnvironmentalSensorSystem::EnvironmentalSensorSystem () :
 ////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::Configure(
   const gz::sim::Entity &_entity,
-  const std::shared_ptr<const sdf::Element> &_sdf,
+  const std::shared_ptr<const sdf::Element> &/*_sdf*/,
   gz::sim::EntityComponentManager &/*_ecm*/,
   gz::sim::EventManager &/*_eventMgr*/)
 {
