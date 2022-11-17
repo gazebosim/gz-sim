@@ -192,6 +192,10 @@ namespace gz
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
+      /// \brief Get the simulation epoch.
+      /// \return The simulation epoch.
+      public: const std::chrono::steady_clock::duration &SimTimeEpoch() const;
+
       /// \brief Get the update period.
       /// \return The update period.
       public: const std::chrono::steady_clock::duration &UpdatePeriod() const;
@@ -426,6 +430,10 @@ namespace gz
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};
+
+      /// \brief The simulation epoch.
+      /// All simulation times will be larger than the epoch. It defaults to 0.
+      private: std::chrono::steady_clock::duration simTimeEpoch{0};
 
       /// \brief List of simulation times used to compute averages.
       private: std::list<std::chrono::steady_clock::duration> simTimes;

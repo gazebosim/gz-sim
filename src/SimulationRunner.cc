@@ -122,6 +122,12 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // Epoch
+  // TODO: Decide on chrono precision.
+  this->simTimeEpoch = std::chrono::round<std::chrono::milliseconds>(
+    std::chrono::duration<double>{_config.InitialSimTime()}
+  );
+
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -266,13 +272,13 @@ void SimulationRunner::UpdateCurrentInfo()
   // Rewind
   if (this->requestedRewind)
   {
-    gzdbg << "Rewinding simulation back to time zero." << std::endl;
+    gzdbg << "Rewinding simulation back to initial time." << std::endl;
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = -this->currentInfo.simTime;
-    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.dt = this->simTimeEpoch - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->simTimeEpoch;
     this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
     this->currentInfo.iterations = 0;
     this->realTimeWatch.Reset();
@@ -845,8 +851,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->UpdateSystems();
 
   if (!this->Paused() &&
-       this->requestedRunToSimTime >
-       std::chrono::steady_clock::duration::zero() &&
+       this->requestedRunToSimTime > this->simTimeEpoch &&
        this->currentInfo.simTime >= this->requestedRunToSimTime)
   {
     this->SetPaused(true);
@@ -1104,8 +1109,7 @@ bool SimulationRunner::Stepping() const
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
-  if (_time >= std::chrono::steady_clock::duration::zero() &&
-      _time > this->currentInfo.simTime)
+  if (_time >= this->simTimeEpoch && _time > this->currentInfo.simTime)
   {
     this->requestedRunToSimTime = _time;
   }
@@ -1353,6 +1357,13 @@ EventManager &SimulationRunner::EventMgr()
 const UpdateInfo &SimulationRunner::CurrentInfo() const
 {
   return this->currentInfo;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
+  SimulationRunner::SimTimeEpoch() const
+{
+  return this->simTimeEpoch;
 }
 
 /////////////////////////////////////////////////
