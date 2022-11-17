@@ -135,7 +135,7 @@ void EnvironmentLoader::Update(const UpdateInfo &,
     try
     {
       using ComponentDataT = components::EnvironmentalData;
-      auto data = ComponentDataT::MakeShared(
+      auto data = ComponentDataT::MakeSharedWithUnits(
           common::IO<ComponentDataT::FrameT>::ReadFrom(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
@@ -144,7 +144,8 @@ void EnvironmentLoader::Update(const UpdateInfo &,
                 static_cast<size_t>(this->dataPtr->yIndex),
                 static_cast<size_t>(this->dataPtr->zIndex)}),
           this->dataPtr->referenceMap[this->dataPtr->reference],
-          this->dataPtr->unitMap[this->dataPtr->unit]);
+          this->dataPtr->unitMap[this->dataPtr->unit],
+          false);
 
       using ComponentT = components::Environment;
       _ecm.CreateComponent(worldEntity(_ecm), ComponentT{std::move(data)});

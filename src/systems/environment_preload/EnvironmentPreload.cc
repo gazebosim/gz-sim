@@ -164,7 +164,7 @@ void EnvironmentPreload::PreUpdate(
     {
       gzmsg << "Loading Environment Data\n";
       using ComponentDataT = components::EnvironmentalData;
-      auto data = ComponentDataT::MakeShared(
+      auto data = ComponentDataT::MakeSharedWithUnits(
           common::IO<ComponentDataT::FrameT>::ReadFrom(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
