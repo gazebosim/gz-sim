@@ -489,7 +489,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
 
         if plugin.end_with? ".dylib"
           puts "On macOS `gz sim` currently only works with either the -s argument
-or the -g argument, you cannot run both server and gui in one terminal. 
+or the -g argument, you cannot run both server and gui in one terminal.
 See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end

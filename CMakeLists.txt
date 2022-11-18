@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.0.0)
+project(gz-sim7 VERSION 7.1.0)
 set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
@@ -93,6 +93,7 @@ gz_find_package(gz-common5
     profiler
     events
     av
+    io
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})

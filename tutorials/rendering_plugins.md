@@ -135,4 +135,3 @@ the one on the GUI. Try pausing simulation and pressing the
 `RANDOM GUI COLOR` button to see which scene gets updated.
 
 @image html files/rendering_plugins.gif
-

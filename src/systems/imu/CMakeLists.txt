@@ -6,4 +6,3 @@ gz_add_system(imu
   PRIVATE_LINK_LIBS
     gz-sensors${GZ_SENSORS_VER}::imu
 )
-

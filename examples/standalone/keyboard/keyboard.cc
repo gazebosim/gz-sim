@@ -34,7 +34,7 @@
 
 #include <unistd.h>  // read()
 
-#define KEYCODE_ARR_R 0x43 
+#define KEYCODE_ARR_R 0x43
 #define KEYCODE_ARR_L 0x44
 #define KEYCODE_ARR_U 0x41
 #define KEYCODE_ARR_D 0x42
@@ -101,11 +101,11 @@ void KeyboardTeleop::KeyLoop()
   bool dirty = false, dirty2 = false;
 
 
-  // get the console in raw mode                                                              
+  // get the console in raw mode
   tcgetattr(kfd, &cooked);
   memcpy(&raw, &cooked, sizeof(struct termios));
   raw.c_lflag &=~ (ICANON | ECHO);
-  // Setting a new line, then end of file                         
+  // Setting a new line, then end of file
   raw.c_cc[VEOL] = 1;
   raw.c_cc[VEOF] = 2;
   tcsetattr(kfd, TCSANOW, &raw);
@@ -117,7 +117,7 @@ void KeyboardTeleop::KeyLoop()
 
   for (;;)
   {
-    // get the next event from the keyboard  
+    // get the next event from the keyboard
     if (read(kfd, &c, 1) < 0)
     {
       perror("read():");
@@ -127,7 +127,7 @@ void KeyboardTeleop::KeyLoop()
     double linear = 0, linear2 = 0;
     double angular = 0, angular2 = 0;
     fprintf (stderr, "value: 0x%02X\n", c);
-  
+
     switch (c)
     {
       // robot 1
@@ -173,7 +173,7 @@ void KeyboardTeleop::KeyLoop()
         dirty2 = true;
         break;
     }
-   
+
     gz::msgs::Twist cmdVelMsg;
     cmdVelMsg.mutable_linear()->set_x(lScale * linear);
     cmdVelMsg.mutable_angular()->set_z(aScale * angular);
@@ -240,6 +240,6 @@ int main(int argc, char** argv)
     scaleAngular.Z());
   signal(SIGINT, Quit);
   teleop_turtle.KeyLoop();
-  
+
   return(0);
 }

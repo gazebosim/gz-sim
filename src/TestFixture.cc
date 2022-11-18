@@ -212,4 +212,3 @@ std::shared_ptr<sim::Server> TestFixture::Server() const
 {
   return this->dataPtr->server;
 }
-

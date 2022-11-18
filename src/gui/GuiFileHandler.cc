@@ -114,4 +114,3 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
   }
   emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }
-

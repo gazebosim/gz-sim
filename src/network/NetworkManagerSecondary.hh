@@ -87,4 +87,3 @@ namespace gz
 }  // namespace gz
 
 #endif  // GZ_SIM_NETWORKMANAGERSECONDARY_HH_
-
