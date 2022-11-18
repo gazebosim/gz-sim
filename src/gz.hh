@@ -60,7 +60,7 @@ extern "C" GZ_SIM_VISIBLE const char *worldInstallDir();
 /// \param[in] _recordPeriod --record-period option
 /// \return 0 if successful, 1 if not.
 extern "C" GZ_SIM_VISIBLE int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, float _initialSimTime, int _levels,
+    int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
     int _logCompress, const char *_playback,

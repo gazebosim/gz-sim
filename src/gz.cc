@@ -130,7 +130,7 @@ extern "C" const char *findFuelResource(
 
 //////////////////////////////////////////////////
 extern "C" int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, float _initialSimTime,
+    int _iterations, int _run, float _hz, double _initialSimTime,
     int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
