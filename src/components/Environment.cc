@@ -23,15 +23,8 @@
 using namespace gz::sim::components;
 
 std::shared_ptr<EnvironmentalData>
-  EnvironmentalData::MakeShared(FrameT _frame, ReferenceT _reference)
-{
-  return EnvironmentalData::MakeSharedWithUnits(
-    _frame, _reference, ReferenceUnits::RADIANS, false);
-}
-
-std::shared_ptr<EnvironmentalData>
-  EnvironmentalData::MakeSharedWithUnits(FrameT _frame, ReferenceT _reference,
-    ReferenceUnits _units, bool _ignoreTimeStep)
+EnvironmentalData::MakeShared(FrameT _frame, ReferenceT _reference,
+  ReferenceUnits _units, bool _ignoreTimeStep)
 {
   auto data = std::make_shared<EnvironmentalData>();
   data->frame = std::move(_frame);
