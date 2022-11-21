@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/common/Filesystem.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/Server.hh"
