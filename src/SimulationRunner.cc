@@ -123,8 +123,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   // Epoch
-  // TODO: Decide on chrono precision.
-  this->simTimeEpoch = std::chrono::round<std::chrono::milliseconds>(
+  this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
 
