@@ -32,10 +32,6 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
-set(component_sources
-  components/Environment.cc
-)
-
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -72,7 +68,6 @@ set (sources
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
-  ${component_sources}
 )
 
 set (gtest_sources
@@ -162,6 +157,7 @@ gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   gz-math${GZ_MATH_VER}
+  gz-sensors${GZ_SENSORS_VER}
   gz-plugin${GZ_PLUGIN_VER}::core
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
   gz-common${GZ_COMMON_VER}::profiler
