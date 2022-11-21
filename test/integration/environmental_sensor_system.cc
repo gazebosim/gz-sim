@@ -65,7 +65,7 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(EnvironmentSensorTest, CanPreload)
+TEST_F(EnvironmentSensorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
 {
   // Start server
   ServerConfig serverConfig;
