@@ -93,7 +93,8 @@ TEST_F(EnvironmentPreloadTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
 
 
 /////////////////////////////////////////////////
-TEST_F(EnvironmentPreloadTest, CorrectSphericalTransform)
+TEST_F(EnvironmentPreloadTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(CorrectSphericalTransform))
 {
   // Start server
   ServerConfig serverConfig;

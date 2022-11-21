@@ -128,6 +128,8 @@ void EnvironmentLoader::Update(const UpdateInfo &,
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
     this->dataPtr->needsLoad = false;
 
+    /// TODO(arjo): Handle the case where we are loading a file in windows.
+    /// Should SDFormat files support going from windows <=> unix paths?
     std::ifstream dataFile(this->dataPtr->dataPath.toStdString());
     gzmsg << "Loading environmental data from "
           << this->dataPtr->dataPath.toStdString()
