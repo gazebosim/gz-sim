@@ -51,7 +51,7 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
     {
         // Data set is such that sensor value == time for the first second.
         double nsec = msg.header().stamp().nsec();
-        double sec = msg.header().stamp().sec();
+        double sec = static_cast<double>(msg.header().stamp().sec());
         auto time = nsec * 1e-9 + sec;
         EXPECT_NEAR(time, msg.data(), 1e-9);
         this->receivedData = true;
