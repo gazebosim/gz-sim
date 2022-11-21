@@ -20,6 +20,7 @@ set(tests
   entity_erase.cc
   entity_system.cc
   environment_preload_system.cc
+  environmental_sensor_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
