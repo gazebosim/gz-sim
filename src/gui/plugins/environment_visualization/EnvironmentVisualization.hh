@@ -41,13 +41,13 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     Q_OBJECT
 
     /// \brief Samples along x axis
-    Q_PROPERTY(qreal xSamples MEMBER xSamples)
+    Q_PROPERTY(unsigned int xSamples MEMBER xSamples)
 
     /// \brief Samples along y axis
-    Q_PROPERTY(qreal ySamples MEMBER ySamples)
+    Q_PROPERTY(unsigned int ySamples MEMBER ySamples)
 
     /// \brief Samples along z axis
-    Q_PROPERTY(qreal zSamples MEMBER zSamples)
+    Q_PROPERTY(unsigned int zSamples MEMBER zSamples)
 
     /// \brief Constructor
     public: EnvironmentVisualization();
@@ -68,11 +68,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Pointer to private data
     private: std::unique_ptr<EnvironmentVisualizationPrivate> dataPtr;
 
-    public: qreal xSamples{10};
+    public: unsigned int xSamples{10};
 
-    public: qreal ySamples{10};
+    public: unsigned int ySamples{10};
 
-    public: qreal zSamples{10};
+    public: unsigned int zSamples{10};
   };
 }
 }

@@ -174,15 +174,14 @@ class EnvironmentVisualizationPrivate
   public: void ResizeCloud(
     std::shared_ptr<components::EnvironmentalData> data,
     const EntityComponentManager& _ecm,
-    double xSamples, double ySamples, double zSamples)
+    unsigned int xSamples, unsigned int ySamples, unsigned int zSamples)
   {
     assert (pubs.size() > 0);
 
     // Assume all data have same point cloud.
     gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
         {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
-    auto numberOfPoints =
-      ceil(xSamples) * ceil(ySamples) * ceil(zSamples);
+    auto numberOfPoints = xSamples * ySamples * zSamples;
     std::size_t dataSize{
       static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
     pcMsg.mutable_data()->resize(dataSize);
@@ -204,13 +203,13 @@ class EnvironmentVisualizationPrivate
     gz::msgs::PointCloudPackedIterator<float> yIter(pcMsg, "y");
     gz::msgs::PointCloudPackedIterator<float> zIter(pcMsg, "z");
 
-    for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
+    for (std::size_t x_steps = 0; x_steps < xSamples; x_steps++)
     {
       auto x = lower_bound.X() + x_steps * dx;
-      for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
+      for (std::size_t y_steps = 0; y_steps < ySamples; y_steps++)
       {
         auto y = lower_bound.Y() + y_steps * dy;
-        for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
+        for (std::size_t z_steps = 0; z_steps < zSamples; z_steps++)
         {
           auto z = lower_bound.Z() + z_steps * dz;
           auto coords = getGridFieldCoordinates(
