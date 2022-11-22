@@ -1,4 +1,4 @@
-\page environmental_data Visuallizing Environment Data
+\page environmental_data Visualizing Environment Data
 
 Lot of times you may come accross environment properties that vary with time and
 space. For instance if you'd like to model properties such as gas distribution
