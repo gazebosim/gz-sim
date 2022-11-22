@@ -544,7 +544,7 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
       elsif options['server'] == 1
         ENV['RMT_PORT'] = '1500'
         Importer.runServer(parsed, options['iterations'], options['run'],
-            options['hz'], optionas['initial_sim_time'], options['levels'],
+            options['hz'], options['initial_sim_time'], options['levels'],
             options['network_role'], options['network_secondaries'],
             options['record'], options['record-path'],
             options['record-resources'], options['log-overwrite'],
