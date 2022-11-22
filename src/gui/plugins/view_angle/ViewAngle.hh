@@ -54,6 +54,13 @@ namespace gazebo
       NOTIFY CamClipDistChanged
     )
 
+    /// \brief gui camera horizontal fov
+    Q_PROPERTY(
+      double horizontalFOV
+      READ HorizontalFOV
+      NOTIFY CamHorizontalFOVChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -82,8 +89,19 @@ namespace gazebo
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
 
+    /// \brief Get the current gui horizontal fov.
+    public: Q_INVOKABLE double HorizontalFOV() const;
+
+    /// \brief Notify that the gui camera's horizontal fov changed
+    signals: void CamHorizontalFOVChanged();
+
     /// \brief Notify that the gui camera pose has changed.
     signals: void CamPoseChanged();
+
+    /// \brief Updates gui camera's near/far clipping distances
+    /// \param[in] _near Near clipping plane distance
+    /// \param[in] _far Far clipping plane distance
+    public slots: void SetHorizontalFOV(double _horizontal_fov);
 
     /// \brief Callback to update gui camera pose
     /// \param[in] _x, _y, _z cartesion coordinates
