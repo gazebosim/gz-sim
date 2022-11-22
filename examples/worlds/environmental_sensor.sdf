@@ -1,5 +1,8 @@
 <?xml version="1.0" ?>
-<!-- This example show cases how to load and unload environmental data. -->
+<!-- This example show cases how to use a custom sensor to sample data.
+You should be able to get data echoed on the topic
+"/world/environmental_sensor_test/model/model_with_sensor/link/link/sensor/custom_sensor/environmental_sensor/humidity"
+-->
 <sdf version="1.6">
   <world name="environmental_sensor_example">
     <plugin
@@ -20,6 +23,7 @@
       name="gz::sim::systems::EnvironmentalSystem">
     </plugin>
 
+    <!-- Load the file-->
     <plugin
       filename="gz-sim-environment-preload-system"
       name="gz::sim::systems::EnvironmentPreload">
