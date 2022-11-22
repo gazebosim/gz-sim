@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -378,7 +379,7 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void BuoyancyPrivate::CommitNewEntities(EntityComponentManager &_ecm)
 {
-  for (const auto [_entity, _cov]: this->centerOfVolumes)
+  for (const auto [_entity, _cov] : this->centerOfVolumes)
   {
     if (_ecm.HasEntity(_entity))
     {
@@ -386,7 +387,7 @@ void BuoyancyPrivate::CommitNewEntities(EntityComponentManager &_ecm)
     }
   }
 
-  for (const auto [_entity, _vol]: this->volumes)
+  for (const auto [_entity, _vol] : this->volumes)
   {
     if (_ecm.HasEntity(_entity))
     {
