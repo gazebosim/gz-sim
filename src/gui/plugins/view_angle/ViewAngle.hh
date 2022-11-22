@@ -98,10 +98,9 @@ namespace gazebo
     /// \brief Notify that the gui camera pose has changed.
     signals: void CamPoseChanged();
 
-    /// \brief Updates gui camera's near/far clipping distances
-    /// \param[in] _near Near clipping plane distance
-    /// \param[in] _far Far clipping plane distance
-    public slots: void SetHorizontalFOV(double _horizontal_fov);
+    /// \brief Updates gui camera's Horizontal fov
+    /// \param[in] _horizontalFOV Horizontal fov
+    public slots: void SetHorizontalFOV(double _horizontalFOV);
 
     /// \brief Callback to update gui camera pose
     /// \param[in] _x, _y, _z cartesion coordinates

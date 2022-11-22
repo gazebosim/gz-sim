@@ -86,9 +86,9 @@ namespace ignition::gazebo
     /// \return True if there is a new clipping distance from gui camera
     public: bool UpdateQtCamClipDist();
 
-    /// \brief Checks if there is new camera clipping distance from gui camera,
+    /// \brief Checks if there is new camera horizontal fov from gui camera,
     /// used to update qml side
-    /// \return True if there is a new clipping distance from gui camera
+    /// \return True if there is a new horizontal fov from gui camera
     public: bool UpdateQtCamHorizontalFOV();
 
     /// \brief User camera
@@ -177,7 +177,7 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     {
       this->CamClipDistChanged();
     }
-    // updates qml cam clip distance spin boxes if changed
+    // updates qml cam horizontal fov spin boxes if changed
     if (this->dataPtr->UpdateQtCamHorizontalFOV())
     {
       this->CamHorizontalFOVChanged();
@@ -326,9 +326,9 @@ double ViewAngle::HorizontalFOV() const
 }
 
 /////////////////////////////////////////////////
-void ViewAngle::SetHorizontalFOV(double _horizontal_fov)
+void ViewAngle::SetHorizontalFOV(double _horizontalFOV)
 {
-  this->dataPtr->horizontal_fov = _horizontal_fov;
+  this->dataPtr->horizontal_fov = _horizontalFOV;
   this->dataPtr->newHorizontalFOV = true;
 }
 

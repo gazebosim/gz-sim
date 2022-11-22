@@ -289,7 +289,7 @@ ColumnLayout {
     }
   }
 
-  // Set camera's near/far clipping distance
+  // Set camera's horizontal FOV
   Text {
     text: "Horizontal FOV"
     Layout.fillWidth: true
