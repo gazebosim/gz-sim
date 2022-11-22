@@ -486,7 +486,7 @@
 1. Enable inherited model topic name.
     * [Pull request #1689](https://github.com/gazebosim/ign-gazebo/pull/1689)
 
-1. Fix loading render engine plugins in GUI 
+1. Fix loading render engine plugins in GUI
     * [Pull request #1694](https://github.com/gazebosim/ign-gazebo/pull/1694)
 
 1. Add a service to trigger functionality
