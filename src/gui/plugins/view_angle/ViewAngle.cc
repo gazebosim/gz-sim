@@ -56,14 +56,8 @@ namespace gz::sim
     /// \brief Mutex to protect angle mode
     public: std::mutex mutex;
 
-    /// \brief View Angle service name
-    public: std::string viewAngleService;
-
     /// \brief View Control service name
     public: std::string viewControlService;
-
-    /// \brief Move gui camera to pose service name
-    public: std::string moveToPoseService;
 
     /// \brief gui camera pose
     public: math::Pose3d camPose;
@@ -124,9 +118,6 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "View Angle";
 
-  // For view angle requests
-  this->dataPtr->viewAngleService = "/gui/view_angle";
-
   // view control requests
   this->dataPtr->viewControlService = "/gui/camera/view_control";
 
@@ -134,9 +125,6 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
     topic, &ViewAngle::CamPoseCb, this);
-
-  // Move to pose service
-  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
 
   gz::gui::App()->findChild<
     gz::gui::MainWindow *>()->installEventFilter(this);
