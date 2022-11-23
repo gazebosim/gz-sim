@@ -89,12 +89,14 @@ class gz::sim::systems::BuoyancyPrivate
   void GradedFluidDensity(
     const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity);
 
-  /// \brief Check and populate new buoyancy components
-  /// \param[in] _ecm The Entity compontent manager.
+  /// \brief Check for new links to apply buoyancy forces to. Calculates the
+  /// volume and center of volume for every new link and stages them to be
+  /// commited when `CommitNewEntities` is called.
+  /// \param[in] _ecm The Entity Component Manager.
   public: void CheckForNewEntities(const EntityComponentManager &_ecm);
 
-  /// \brief Check and populate new buoyancy components
-  /// \param[in] _ecm The Entity compontent manager.
+  /// \brief Commits the new entities to the ECM.
+  /// \param[in] _ecm The Entity Component Manager.
   public: void CommitNewEntities(EntityComponentManager &_ecm);
 
   /// \brief Check if an entity is enabled or not.
@@ -361,15 +363,10 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 
     if (volumeSum > 0)
     {
-      // Stage t
+      // Stage calculation results for future commit. We do this because
+      // during PostUpdate the ECM is const, so we can't modify it,
       this->centerOfVolumes[_entity] = weightedPosInLinkSum / volumeSum;
       this->volumes[_entity] = volumeSum;
-
-      /*_ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosInLinkSum / volumeSum));
-
-      // Store the volume
-      _ecm.CreateComponent(_entity, components::Volume(volumeSum));*/
     }
 
     return true;
