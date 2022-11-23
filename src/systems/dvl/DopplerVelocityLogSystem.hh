@@ -18,6 +18,8 @@
 #ifndef GZ_SIM_DOPPLERVELOCITYLOGSYSTEM_H_
 #define GZ_SIM_DOPPLERVELOCITYLOGSYSTEM_H_
 
+#include <memory>
+
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -25,7 +27,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace GZ_SIM_VERSION_NAMESPACE 
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 namespace systems
 {

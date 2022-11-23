@@ -34,7 +34,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
   using EnvironmentalData = gz::sensors::EnvironmentalData;
-  
+
   /// \brief A component type that contains a environment data.
   /// Ownership is shared to avoid data copies unless necessary.
   using Environment =

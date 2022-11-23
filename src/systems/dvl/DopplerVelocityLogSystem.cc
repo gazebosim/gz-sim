@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -218,19 +219,19 @@ void DopplerVelocityLogSystem::Implementation::DoConfigure(
 {
   this->preRenderConn =
       _eventMgr.Connect<gz::sim::events::PreRender>(
-          std::bind(&DopplerVelocityLogSystem::Implementation::OnPreRender, this));
+          std::bind(&Implementation::OnPreRender, this));
 
   this->renderConn =
       _eventMgr.Connect<gz::sim::events::Render>(
-          std::bind(&DopplerVelocityLogSystem::Implementation::OnRender, this));
+          std::bind(&Implementation::OnRender, this));
 
   this->postRenderConn =
       _eventMgr.Connect<gz::sim::events::PostRender>(
-          std::bind(&DopplerVelocityLogSystem::Implementation::OnPostRender, this));
+          std::bind(&Implementation::OnPostRender, this));
 
   this->renderTeardownConn =
       _eventMgr.Connect<gz::sim::events::RenderTeardown>(
-          std::bind(&DopplerVelocityLogSystem::Implementation::OnRenderTeardown, this));
+          std::bind(&Implementation::OnRenderTeardown, this));
 
   this->eventMgr = &_eventMgr;
 }
