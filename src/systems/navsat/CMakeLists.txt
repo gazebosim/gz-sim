@@ -6,4 +6,3 @@ gz_add_system(navsat
   PRIVATE_LINK_LIBS
     gz-sensors${GZ_SENSORS_VER}::navsat
 )
-

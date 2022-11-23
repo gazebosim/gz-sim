@@ -53,4 +53,3 @@ TEST_F(EventTrigger, GZ_UTILS_TEST_DISABLED_ON_WIN32(TriggerPause))
   server.Run(true, 1, true);
   EXPECT_FALSE(*server.Paused());
 }
-

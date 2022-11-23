@@ -93,6 +93,7 @@ gz_find_package(gz-common5
     profiler
     events
     av
+    io
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})

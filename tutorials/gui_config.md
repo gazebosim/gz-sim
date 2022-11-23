@@ -190,6 +190,3 @@ hand, we'll create it from the UI.
 save directly to `$HOME/.gz/sim/<#>/gui.config`.
 
 @image html files/gui_config/cmd_line.png
-
-
-

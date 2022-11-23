@@ -261,4 +261,3 @@ TEST_F(ModelIntegrationTest, CanonicalLink)
   EXPECT_EQ(canonicalLink, model.CanonicalLink(ecm));
   EXPECT_EQ(2u, model.LinkCount(ecm));
 }
-

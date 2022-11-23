@@ -1,5 +1,5 @@
-\page headless_rendering Headless Rendering 
-  
+\page headless_rendering Headless Rendering
+
 It is often desirable to run simulation on a remote computer, such as
 a computer managed by cloud provider, in order to paralellize work or access
 specific compute resources. Simulated sensors that require GPU access have
@@ -35,7 +35,7 @@ here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-hea
 3. Select `Ubuntu Server` version 20.04 or greater from the AMI list.
 4. Choose a GPU enabled instance type, such as `g3.4xlarge`.
 5. Enable `Auto-assign Public IP` on the `Configure Instance Details` step.
-   This is not the best practice, but it simplifies this tutorial. 
+   This is not the best practice, but it simplifies this tutorial.
 6. Add around 200GB storage to your instance on the `Add Storage` step.
 7. Enable ssh source `Anywhere` on the `Configure Security Group` step.
 8. Review and launch your instance. Make sure to setup a key pair in the

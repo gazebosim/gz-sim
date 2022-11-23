@@ -92,4 +92,3 @@ namespace gz
   }
 }
 #endif  // GZ_SIM_SYSTEMLOADER_HH_
-
