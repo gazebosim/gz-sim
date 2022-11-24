@@ -36,6 +36,7 @@
 #include "ignition/gazebo/test_config.hh"
 #include "ignition/gazebo/Entity.hh"
 #include "ignition/gazebo/components/BatterySoC.hh"
+#include "ignition/gazebo/components/BatteryPowerLoad.hh"
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
@@ -73,7 +74,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
 
 
 /////////////////////////////////////////////////
-// Single model consuming single batter
+// Single model consuming single battery
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 {
@@ -106,7 +107,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
         components::BatterySoC::typeId));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
-      // Check voltage is never zero.
+      // Check state of charge is never zero.
       // This check is here to guarantee that components::BatterySoC in
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
@@ -134,8 +135,8 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
     components::BatterySoC::typeId));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
-  // Check voltage after consumption is lower than initial voltage
-  EXPECT_LT(batComp->Data(), 12.592);
+  // Check state of charge after consumption is lower than 1 (full charge).
+  EXPECT_LT(batComp->Data(), 1);
 
   // Check there is a single battery matching exactly the one specified
   int linearBatCount = 0;
@@ -152,8 +153,8 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
           EXPECT_NE(kNullEntity, _batEntity);
           EXPECT_EQ(_nameComp->Data(), "linear_battery");
 
-          // Check battery component voltage data is lower than initial voltage
-          EXPECT_LT(_batComp->Data(), 12.592);
+          // Check state of charge is lower than initial charge.
+          EXPECT_LT(_batComp->Data(), 1);
         }
 
         return true;
@@ -163,7 +164,114 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 }
 
 /////////////////////////////////////////////////
-// Battery with  power draining topics
+// Single battery with 1 extra consumer
+TEST_F(BatteryPluginTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBatteryMultipleConsumers))
+{
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "battery.sdf");
+  sdf::Root root;
+  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
+  EXPECT_GT(root.WorldCount(), 0lu);
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfPath);
+
+  // A pointer to the ecm. This will be valid once we run the mock system
+  gazebo::EntityComponentManager *ecm = nullptr;
+  this->mockSystem->preUpdateCallback =
+    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+
+      // Check a battery exists
+      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+
+      // Find the battery entity
+      Entity batEntity = ecm->EntityByComponents(components::Name(
+        "linear_battery"));
+      EXPECT_NE(kNullEntity, batEntity);
+
+      // Find the battery component
+      EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+        components::BatterySoC::typeId));
+      auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+
+      // Check state of charge is never zero.
+      // This check is here to guarantee that components::BatterySoC in
+      // the LinearBatteryPlugin is not zero when created. If
+      // components::BatterySoC is zero on start, then the Physics plugin
+      // can disable a joint. This in turn can prevent the joint from
+      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      EXPECT_GT(batComp->Data(), 0);
+    };
+
+  // Start server
+  Server server(serverConfig);
+  server.AddSystem(this->systemPtr);
+  server.Run(true, 100, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check a battery exists
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+
+  // Find the battery entity
+  Entity batEntity = ecm->EntityByComponents(components::Name(
+    "linear_battery"));
+  EXPECT_NE(kNullEntity, batEntity);
+
+  // Find the battery component
+  EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+    components::BatterySoC::typeId));
+  auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+
+  // Check state of charge after consumption is lower than initial one
+  EXPECT_LT(batComp->Data(), 1);
+
+  auto batLoad = batComp->Data();
+
+  // Add Enbtity with a battery power load component
+  Entity consumerEntity =  ecm->CreateEntity();
+  components::BatteryPowerLoadInfo batteryPowerLoadInfo{"linear_battery", 500 };
+  ecm->CreateComponent(consumerEntity,
+      components::BatteryPowerLoad(batteryPowerLoadInfo));
+
+  // Reset battery state of charge and run the server
+  batComp->Data() = 1;
+  EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
+  server.Run(true, 100, false);
+
+  // Battery consumed this time should be lower than before due to
+  // the extra consumer
+  EXPECT_LT(batComp->Data(), batLoad);
+
+  // Check there is a single battery matching exactly the one specified
+  int linearBatCount = 0;
+  int totalBatCount = 0;
+  ecm->Each<components::BatterySoC, components::Name>(
+      [&](const Entity &_batEntity, components::BatterySoC *_batComp,
+          components::Name *_nameComp) -> bool
+      {
+        totalBatCount++;
+        if (_nameComp->Data() == "linear_battery")
+        {
+          linearBatCount++;
+
+          EXPECT_NE(kNullEntity, _batEntity);
+          EXPECT_EQ(_nameComp->Data(), "linear_battery");
+
+          // Check battery component state of charge data is lower than initial
+          EXPECT_LT(_batComp->Data(), 1);
+        }
+
+        return true;
+      });
+  EXPECT_EQ(linearBatCount, 1);
+  EXPECT_EQ(totalBatCount, 2);
+}
+
+/////////////////////////////////////////////////
+// Battery with power draining topics
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 {
@@ -196,7 +304,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
         components::BatterySoC::typeId));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
-      // Check voltage is never zero.
+      // Check state of charge is never zero.
       // This check is here to guarantee that components::BatterySoC in
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
@@ -225,13 +333,13 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge should be 1, since the batery has not drained
-  // and the <initial_charge> is equivalent ot the <capacity>.
+  // and the <initial_charge> is equivalent to the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
   // Send a message on one of the <power_draining_topic> topics, which will
   // start the battery draining when the server starts again.
   ignition::transport::Node node;
-  auto pub = node.Advertise<msgs::StringMsg>("/battery/discharge2");
+  auto pub = node.Advertise<msgs::StringMsg>("/battery/discharge");
   msgs::StringMsg msg;
   pub.Publish(msg);
 
@@ -240,5 +348,17 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
   // The state of charge should be <1, since the batery has started
   // draining.
+  double stateOfCharge = batComp->Data();
   EXPECT_LT(batComp->Data(), 1.0);
+
+  // Send a message on one of the <stop_power_draining_topic> topics, which
+  // will stop the battery draining when the server starts again.
+  auto pub2 = node.Advertise<msgs::StringMsg>("/battery/stop_discharge");
+  pub2.Publish(msg);
+
+  // Run the server again.
+  server.Run(true, 100, false);
+
+  // The state of charge should be the same since the discharge was stopped
+  EXPECT_DOUBLE_EQ(batComp->Data(), stateOfCharge);
 }
