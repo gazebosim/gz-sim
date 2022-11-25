@@ -23,7 +23,6 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/Pose3.hh>
 
-#include <iostream>
 namespace gz {
 namespace sim {
 /// \brief Transform Type
@@ -44,7 +43,8 @@ enum TransformType {
 };
 
 /// \brief Given a string return the type of transform
-/// \param[in]
+/// \param[in] _str - input string
+/// \return std::nullopt if string invalid, else corresponding transform
 std::optional<TransformType> getTransformType(const std::string &_str)
 {
   if(_str == "ADD_VELOCITY_LOCAL")
@@ -58,11 +58,18 @@ std::optional<TransformType> getTransformType(const std::string &_str)
   return std::nullopt;
 }
 
-math::Vector3d transform(const TransformType _type, const math::Pose3d& _pose,
-    const math::Vector3d& _velocity, const math::Vector3d& _reading)
+/// \brief Given a string return the type of transform
+/// \param[in] _type - Transform type.
+/// \param[in] _pose - Global pose of frame to be transformed into.
+/// \param[in] _velocity - Velocity of current frame.
+/// \param[in] _reading - vector to be transformed.
+/// \return transformed vector.
+math::Vector3d transformFrame(
+  const TransformType _type, const math::Pose3d& _pose,
+  const math::Vector3d& _velocity, const math::Vector3d& _reading)
 {
   math::Vector3d result;
-  math::Vector3d offset{0,0,0};
+  math::Vector3d offset{0, 0, 0};
 
   if (_type == ADD_VELOCITY_LOCAL || _type == ADD_VELOCITY_GLOBAL)
   {

@@ -220,7 +220,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       // Step time if its not static
       if (!this->gridField->staticTime)
         this->session[i] = this->gridField->frame[this->fieldName[i]].StepTo(
-          this->session[i].value(), std::chrono::duration<double>(_now).count());
+          this->session[i].value(),
+          std::chrono::duration<double>(_now).count());
 
       if (!this->session[i].has_value()) return false;
 
@@ -259,7 +260,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       }
 
       math::Vector3d vector(dataPoints[0].value(), dataPoints[1].value(), 0);
-      auto transformed = transform(this->transformType, this->objectPose,
+      auto transformed = transformFrame(this->transformType, this->objectPose,
         this->velocity, vector);
 
       msg.set_x(transformed.X());
@@ -283,7 +284,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
       math::Vector3d vector(
         dataPoints[0].value(), dataPoints[1].value(), dataPoints[2].value());
-      auto transformed = transform(this->transformType, this->objectPose,
+      auto transformed = transformFrame(this->transformType, this->objectPose,
         this->velocity, vector);
 
       msg.set_x(transformed.X());
