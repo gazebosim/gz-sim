@@ -15,6 +15,7 @@
  *
 */
 #include "EnvironmentalSensorSystem.hh"
+#include "TransformTypes.hh"
 
 #include <gz/plugin/Register.hh>
 
@@ -27,6 +28,7 @@
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/SphericalCoordinates.hh>
+#include <gz/sim/components/LinearVelocity.hh>
 #include <gz/sim/Util.hh>
 
 #include <gz/sensors/SensorFactory.hh>
@@ -76,6 +78,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     // Load common sensor params
     gz::sensors::Sensor::Load(_sdf);
 
+    // Handle the field type
     if (_sdf.Element() != nullptr &&
       _sdf.Element()->HasElement("field_type"))
     {
@@ -84,13 +87,39 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       {
         this->numberOfFields = 1;
       }
-      elif (dataType == "vector2")
+      else if (dataType == "vector2")
       {
         this->numberOfFields = 2;
       }
-      elif (dataType == "vector3")
+      else if (dataType == "vector3")
       {
-        this->numberOfFields = 2;
+        this->numberOfFields = 3;
+      }
+      else
+      {
+        gzerr << "Invalid data type of " << dataType << " given."
+          << "valid options are scalar, vector2 or vector3. "
+          << "Defaulting to scalar" << std::endl;
+      }
+    }
+
+    // Hansle the transform type
+    if (_sdf.Element() != nullptr &&
+      _sdf.Element()->HasElement("transform_type"))
+    {
+      auto res =
+        getTransformType(_sdf.Element()->Get<std::string>("transform_type"));
+
+      if (!res.has_value())
+      {
+        gzerr << "Invalid transform type of "
+          << _sdf.Element()->Get<std::string>("transform_type")
+          << " given. Valid types are ADD_VELOCITY_LOCAL, ADD_VELOCITY_GLOBAL,"
+          << " LOCAL, and GLOBAL. Defaulting to GLOBAL." << std::endl;
+      }
+      else
+      {
+        this->transformType = res.value();
       }
     }
 
@@ -104,6 +133,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       case 3:
         this->pub = this->node.Advertise<gz::msgs::Vector3d>(this->Topic());
         break;
+      default:
+        gzerr << "Unable to create publisher too many fields" << "\n";
     }
 
     // If "environment_variable" is defined then remap
@@ -144,7 +175,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
           _sdf.Element()->Get<std::string>("x_variable");
         this->fieldName[1] =
           _sdf.Element()->Get<std::string>("y_variable");
-        this->fieldName[1] =
+        this->fieldName[2] =
           _sdf.Element()->Get<std::string>("z_variable");
       }
       else
@@ -197,33 +228,68 @@ class EnvironmentalSensor : public gz::sensors::Sensor
         this->session[i].value(), this->position);
     }
 
-    switch(this->numberOfFields) {
-      case 1:
-        gz::msgs::Double msg;
-        *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
-        auto frame = msg.mutable_header()->add_data();
-        frame->set_key("frame_id");
-        frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
-        auto data = dataPoints[0];
-        if (!data.has_value())
-        {
-          gzwarn << "Failed to acquire value perhaps out of field?\n";
-          return false;
-        }
-        msg.set_data(data.value());
-        // TODO(anyone) Add sensor noise.
+    if(this->numberOfFields == 1) {
+      gz::msgs::Double msg;
+      *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
+      auto frame = msg.mutable_header()->add_data();
+      frame->set_key("frame_id");
+      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
+      auto data = dataPoints[0];
+      if (!data.has_value())
+      {
+        gzwarn << "Failed to acquire value perhaps out of field?\n";
+        return false;
+      }
+      msg.set_data(data.value());
+      // TODO(anyone) Add sensor noise.
+      this->pub.Publish(msg);
+    }
+    else if (this->numberOfFields == 2)
+    {
+      gz::msgs::Vector2d msg;
+      *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
+      auto frame = msg.mutable_header()->add_data();
+      frame->set_key("frame_id");
+      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
 
-        this->pub.Publish(msg);
-        break;
-      case 2:
-        gz::msgs::Vector2d msg;
-        *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
-        auto frame = msg.mutable_header()->add_data();
-        frame->set_key("frame_id");
-        frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
-        break;
-      case 3:
-        break;
+      if (!dataPoints[0].has_value() || !dataPoints[1].has_value())
+      {
+        gzwarn << "Failed to acquire value perhaps out of field?\n";
+        return false;
+      }
+
+      math::Vector3d vector(dataPoints[0].value(), dataPoints[1].value(), 0);
+      auto transformed = transform(this->transformType, this->objectPose,
+        this->velocity, vector);
+
+      msg.set_x(transformed.X());
+      msg.set_y(transformed.Y());
+
+      this->pub.Publish(msg);
+    }
+    else if (this->numberOfFields == 3)
+    {
+      gz::msgs::Vector3d msg;
+      *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
+      auto frame = msg.mutable_header()->add_data();
+      frame->set_key("frame_id");
+      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
+
+      if (!dataPoints[0].has_value() || !dataPoints[1].has_value())
+      {
+        gzwarn << "Failed to acquire value perhaps out of field?\n";
+        return false;
+      }
+
+      math::Vector3d vector(
+        dataPoints[0].value(), dataPoints[1].value(), dataPoints[2].value());
+      auto transformed = transform(this->transformType, this->objectPose,
+        this->velocity, vector);
+
+      msg.set_x(transformed.X());
+      msg.set_y(transformed.Y());
+      msg.set_z(transformed.Z());
+      this->pub.Publish(msg);
     }
     return true;
   }
@@ -238,18 +304,22 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   {
     gzdbg << "Setting new data table\n";
     auto data = _data->Data();
-    if(!data->frame.Has(this->fieldName[0]))
+    for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
-      gzwarn << "Environmental sensor could not find field "
-        << this->fieldName[0] << "\n";
-      this->ready = false;
-      return;
+      if(!data->frame.Has(this->fieldName[i]))
+      {
+        gzwarn << "Environmental sensor could not find field "
+          << this->fieldName[0] << "\n";
+        this->ready = false;
+        return;
+      }
     }
 
     this->gridField = data;
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
-      this->session[i] = this->gridField->frame[this->fieldName[i]].CreateSession();
+      this->session[i] =
+        this->gridField->frame[this->fieldName[i]].CreateSession();
       if (!this->gridField->staticTime)
       {
         this->session[i] = this->gridField->frame[this->fieldName[i]].StepTo(
@@ -277,7 +347,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   {
     if (!this->ready) return false;
 
-    const auto worldPosition = worldPose(_entity, _ecm).Pos();
+    this->objectPose = worldPose(_entity, _ecm);
+    const auto worldPosition = this->objectPose.Pos();
     auto lookupCoords =
       getGridFieldCoordinates(_ecm, worldPosition, this->gridField);
 
@@ -286,6 +357,11 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       return false;
     }
 
+    auto vel = _ecm.Component<components::WorldLinearVelocity>(_entity);
+    if (vel != nullptr)
+    {
+      this->velocity = vel->Data();
+    }
     this->position = lookupCoords.value();
     return true;
   }
@@ -297,14 +373,15 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   }
 
   private: bool ready {false};
-  private: math::Vector3d position;
+  private: math::Vector3d position, velocity;
+  private: math::Pose3d objectPose;
   private: std::size_t numberOfFields{1};
   private: std::string fieldName[3];
   private: std::string frameId;
   private: std::optional<gz::math::InMemorySession<double, double>> session[3];
   private: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
     gridField;
-  private: bool transformToLocalFrame{false};
+  private: TransformType transformType{TransformType::GLOBAL};
 };
 
 class gz::sim::EnvironmentalSensorSystemPrivate {
@@ -405,6 +482,8 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         {
           gzerr << "No sensor data loaded\n";
         }
+
+        enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
 
         // Keep track of this sensor
         this->dataPtr->entitySensorMap.insert(std::make_pair(_entity,
