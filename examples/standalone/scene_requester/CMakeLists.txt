@@ -8,4 +8,3 @@ set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 add_executable(scene_requester scene_requester.cc)
 target_link_libraries(scene_requester
   gz-transport${GZ_TRANSPORT_VER}::core)
-

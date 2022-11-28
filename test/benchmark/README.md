@@ -34,4 +34,3 @@ The previous setting can be restored with:
 ```
 sudo cpupower frequency-set --governor powersave
 ```
-

@@ -128,4 +128,3 @@ namespace gz
 }  // namespace gz
 
 #endif  // GZ_SIM_NETWORKMANAGERPRIMARY_HH_
-

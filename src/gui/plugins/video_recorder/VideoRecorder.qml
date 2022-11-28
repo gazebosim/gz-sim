@@ -43,7 +43,7 @@ ToolBar {
         function getFormat(url) {
           return (url.slice(url.lastIndexOf(".") + 1))
         }
-        
+
         onAccepted: {
           fileFormat = getFormat(fileUrl.toString())
           if (fileFormat == fileUrl.toString()) {
@@ -67,7 +67,7 @@ ToolBar {
     }
 
     Dialog {
-      id: mismatchDialog 
+      id: mismatchDialog
       title: "Enconding and filename mismatch"
       modal: true
       focus: false

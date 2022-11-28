@@ -482,7 +482,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
 
         if plugin.end_with? ".dylib"
           puts "On macOS `gz sim` currently only works with either the -s argument
-or the -g argument, you cannot run both server and gui in one terminal. 
+or the -g argument, you cannot run both server and gui in one terminal.
 See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
@@ -546,12 +546,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
             options['wait_gui'], options['headless-rendering'], options['record-period'])
             # Otherwise run the gui
       else options['gui']
-        if plugin.end_with? ".dylib"
-          puts "`gz sim` currently only works with the -s argument on macOS.
-See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-          exit(-1)
-        end
-
         if plugin.end_with? ".dll"
           puts "`gz sim` currently only works with the -s argument on Windows.
 See https://github.com/gazebosim/gz-sim/issues/168 for more info."
