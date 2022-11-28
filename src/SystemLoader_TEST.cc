@@ -21,6 +21,7 @@
 #include <sdf/World.hh>
 
 #include <ignition/common/Filesystem.hh>
+#include <ignition/common/SystemPaths.hh>
 #include "ignition/gazebo/System.hh"
 #include "ignition/gazebo/SystemLoader.hh"
 
@@ -35,7 +36,7 @@ TEST(SystemLoader, Constructor)
   gazebo::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
-  auto testBuildPath = ignition::common::joinPaths(
+  auto testBuildPath = common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
 
@@ -93,13 +94,13 @@ TEST(SystemLoader, PluginPaths)
   for (const auto &s : paths)
   {
     // the returned path string may not be exact match due to extra '/'
-    // appended at the end of the string. So use absPath to generate
-    // a path string that matches the format returned by joinPaths
-    if (common::absPath(s) == testBuildPath)
+    // appended at the end of the string. So use NormalizeDirectoryPath
+    if (common::SystemPaths::NormalizeDirectoryPath(s) ==
+        common::SystemPaths::NormalizeDirectoryPath(testBuildPath))
     {
       hasPath = true;
       break;
     }
   }
-  EXPECT_TRUE(hasPath);
+  EXPECT_TRUE(hasPath) << testBuildPath;
 }

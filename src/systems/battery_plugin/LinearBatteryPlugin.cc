@@ -64,11 +64,11 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Callback executed to start recharging.
   /// \param[in] _req This value should be true.
-  public: void OnEnableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnEnableRecharge(const msgs::Boolean &_req);
 
   /// \brief Callback executed to stop recharging.
   /// \param[in] _req This value should be true.
-  public: void OnDisableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnDisableRecharge(const msgs::Boolean &_req);
 
   /// \brief Callback connected to additional topics that can start battery
   /// draining.
@@ -445,7 +445,7 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnEnableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for start charging received" << std::endl;
   this->startCharging = true;
@@ -453,7 +453,7 @@ void LinearBatteryPluginPrivate::OnEnableRecharge(
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnDisableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const msgs::Boolean &/*_req*/)
 {
   igndbg << "Request for stop charging received" << std::endl;
   this->startCharging = false;
@@ -475,8 +475,8 @@ void LinearBatteryPluginPrivate::OnBatteryStopDrainingMsg(
 
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const UpdateInfo &/*_info*/,
+  EntityComponentManager &_ecm)
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
 
@@ -727,7 +727,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 }
 
 IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
-                    ignition::gazebo::System,
+                    System,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate,

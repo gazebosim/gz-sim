@@ -65,8 +65,8 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       test::Relay testSystem;
 
       std::vector<math::Pose3d> poses;
-      testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-        const gazebo::EntityComponentManager &_ecm)
+      testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
         {
           auto id = _ecm.EntityByComponents(
             components::Model(),
@@ -128,8 +128,8 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       double desiredLinVel = movementDirection * 10.5;
       double desiredAngVel = 0.2;
       velocityRamp.OnPreUpdate(
-          [&](const gazebo::UpdateInfo &/*_info*/,
-              const gazebo::EntityComponentManager &)
+          [&](const UpdateInfo &/*_info*/,
+              const EntityComponentManager &)
           {
             msgs::Set(msg.mutable_linear(),
                       math::Vector3d(desiredLinVel, 0, 0));
@@ -249,8 +249,8 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       auto id = _ecm.EntityByComponents(
         components::Model(),
@@ -351,8 +351,8 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       auto id = _ecm.EntityByComponents(
         components::Model(),

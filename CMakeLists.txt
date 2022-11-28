@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.12.0)
+project(ignition-gazebo6 VERSION 6.13.0)
 set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
@@ -235,7 +235,7 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+# https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
   ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"

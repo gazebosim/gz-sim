@@ -64,11 +64,11 @@ TEST_F(AirPressureTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 
   // Create a system that checks sensor topic
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::AirPressureSensor, components::Name>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::AirPressureSensor *,
                 const components::Name *_name) -> bool
             {

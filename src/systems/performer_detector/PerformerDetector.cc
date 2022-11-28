@@ -130,8 +130,8 @@ void PerformerDetector::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void PerformerDetector::PostUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &_ecm)
+  const UpdateInfo &_info,
+  const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("PerformerDetector::PostUpdate");
 
@@ -260,7 +260,7 @@ void PerformerDetector::Publish(
 }
 
 IGNITION_ADD_PLUGIN(PerformerDetector,
-                    ignition::gazebo::System,
+                    System,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 

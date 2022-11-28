@@ -677,8 +677,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -745,7 +745,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
 
     std::string name("POLYLINE_" + common::Uuid().String());
 
-    auto meshManager = ignition::common::MeshManager::Instance();
+    auto meshManager = common::MeshManager::Instance();
     meshManager->CreateExtrudedPolyline(name, vertices,
         _geom.PolylineShape()[0].Height());
 
@@ -1951,6 +1951,28 @@ void SceneManager::RemoveEntity(Entity _id)
     return;
 
   {
+    auto it = this->dataPtr->actors.find(_id);
+    if (it != this->dataPtr->actors.end())
+    {
+      this->dataPtr->actors.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorTrajectories.find(_id);
+    if (it != this->dataPtr->actorTrajectories.end())
+    {
+      this->dataPtr->actorTrajectories.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorSkeletons.find(_id);
+    if (it != this->dataPtr->actorSkeletons.end())
+    {
+      this->dataPtr->actorSkeletons.erase(it);
+    }
+  }
+
+  {
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
@@ -2277,7 +2299,14 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         }
       }
       if (addAnim)
-        meshSkel->AddBvhAnimation(animFilename, animScale);
+      {
+        if (!meshSkel->AddBvhAnimation(animFilename, animScale))
+        {
+          ignerr << "Bvh animation in file " << animFilename
+                 << " failed to load during actor creation" << std::endl;
+          continue;
+        }
+      }
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")

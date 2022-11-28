@@ -39,13 +39,13 @@ TEST_F(SdfInclude, IGN_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
   std::string path = common::cwd() + "/test_cache";
 
   // Configure the gazebo server, which will cause a model to be downloaded.
-  gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include.sdf");
-  gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
   EXPECT_TRUE(common::exists(path +
-        "/fuel.ignitionrobotics.org/openrobotics/models/ground plane" +
+        "/fuel.gazebosim.org/openrobotics/models/ground plane" +
         "/1/model.sdf"));
 }

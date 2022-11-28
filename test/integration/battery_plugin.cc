@@ -61,15 +61,15 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<MockSystem *>(
+        systemPtr->QueryInterface<System>());
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: SystemPluginPtr systemPtr;
+  public: MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: SystemLoader sm;
 };
 
 
@@ -88,9 +88,9 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
@@ -112,7 +112,7 @@ TEST_F(BatteryPluginTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-sim/issues/55
       EXPECT_GT(batComp->Data(), 0);
     };
 

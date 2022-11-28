@@ -44,6 +44,7 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.
+  /// ### Diagonal terms:
   ///   * <xDotU> - Added mass in x direction [kg]
   ///   * <yDotV> - Added mass in y direction [kg]
   ///   * <zDotW> - Added mass in z direction [kg]
@@ -62,6 +63,20 @@ namespace systems
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
   ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
+  /// ### Cross terms
+  /// In general we support cross terms as well. These are terms which act on
+  /// non-diagonal sides. We use the SNAMe convention of naming search terms.
+  /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
+  /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
+  /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
+  /// and yaw axis respectively.
+  ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
+  ///       Units are either kg or kgm^2 depending on the choice of terms.
+  ///   * Quadratic Damping:  <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
+  ///       e.g. <xRQ>
+  ///       Units are either kg/m or kg/m^2.
+  ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
+  ///       Units are either kg or kg or kg/m.
   /// Additionally the system also supports the following parameters:
   ///   * <waterDensity> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
