@@ -538,6 +538,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
   this->dataPtr->ecm->CreateComponent(lightEntity,
     components::LightType(convert(_light->Type())));
 
+  // Light Visual
+  Entity lightVisualEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity, components::Visual());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Pose());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Name(_light->Name() + "_visual"));
+
   return lightEntity;
 }
 

@@ -1187,27 +1187,29 @@ void RenderUtil::Update()
 
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(std::get<0>(light),
-          std::get<1>(light), std::get<2>(light), std::get<3>(light));
+      auto newLightRendering = this->dataPtr->sceneManager.CreateLight(
+        std::get<0>(light),
+        std::get<1>(light),
+        std::get<2>(light),
+        std::get<3>(light));
 
-      // TODO(anyone) This needs to be updated for when sensors and GUI use
-      // the same scene
-      // create a new id for the light visual, if we're not loading sensors
-      if (!this->dataPtr->enableSensors)
+      if (newLightRendering)
       {
-        auto attempts = 100000u;
-        for (auto i = 0u; i < attempts; ++i)
+        // TODO(anyone) This needs to be updated for when sensors and GUI use
+        // the same scene
+        // create a new id for the light visual, if we're not loading sensors
+        if (!this->dataPtr->enableSensors)
         {
-          Entity id = std::numeric_limits<uint64_t>::min() + i;
-          if (!this->dataPtr->sceneManager.HasEntity(id))
-          {
-            rendering::VisualPtr lightVisual =
-              this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<2>(light), std::get<0>(light));
-            this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
-            break;
-          }
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              std::get<0>(light) + 1, std::get<1>(light), std::get<2>(light), std::get<0>(light));
+          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = std::get<0>(light) + 1;
+          break;
         }
+      }
+      else
+      {
+        ignerr << "Failed to create light" << std::endl;
       }
     }
 
