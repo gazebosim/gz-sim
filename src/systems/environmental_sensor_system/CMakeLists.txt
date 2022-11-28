@@ -1,8 +1,6 @@
 gz_add_system(environmental-sensor
   SOURCES
   EnvironmentalSensorSystem.cc
-  GET_TARGET_NAME
-    system_target
   PUBLIC_LINK_LIBS
     gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
