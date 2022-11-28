@@ -75,8 +75,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -354,8 +354,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -538,8 +538,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -712,8 +712,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -1057,8 +1057,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });

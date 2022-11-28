@@ -1,1 +1,1 @@
-See the [Gazebo contributing guide](https://gazebosim.org/docs/all/contributing).
+See [Gazebo's contribution guide](https://gazebosim.org/docs/all/contributing).

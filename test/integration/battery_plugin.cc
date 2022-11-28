@@ -60,15 +60,15 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
 
-    this->mockSystem = static_cast<sim::MockSystem *>(
-        systemPtr->QueryInterface<sim::System>());
+    this->mockSystem = static_cast<MockSystem *>(
+        systemPtr->QueryInterface<System>());
     EXPECT_NE(nullptr, this->mockSystem);
   }
 
-  public: gz::sim::SystemPluginPtr systemPtr;
-  public: sim::MockSystem *mockSystem;
+  public: SystemPluginPtr systemPtr;
+  public: MockSystem *mockSystem;
 
-  private: sim::SystemLoader sm;
+  private: SystemLoader sm;
 };
 
 
@@ -87,9 +87,9 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  sim::EntityComponentManager *ecm = nullptr;
+  EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 

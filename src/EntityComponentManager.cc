@@ -1547,9 +1547,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 }
 
 //////////////////////////////////////////////////
-gz::msgs::SerializedState EntityComponentManager::ChangedState() const
+msgs::SerializedState EntityComponentManager::ChangedState() const
 {
-  gz::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
 
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1574,7 +1574,7 @@ gz::msgs::SerializedState EntityComponentManager::ChangedState() const
 
 //////////////////////////////////////////////////
 void EntityComponentManager::ChangedState(
-    gz::msgs::SerializedStateMap &_state) const
+    msgs::SerializedStateMap &_state) const
 {
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1642,11 +1642,11 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 }
 
 //////////////////////////////////////////////////
-gz::msgs::SerializedState EntityComponentManager::State(
+msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
 {
-  gz::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
   for (const auto &it : this->dataPtr->componentTypeIndex)
   {
     auto entity = it.first;
@@ -1712,7 +1712,7 @@ void EntityComponentManager::State(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const gz::msgs::SerializedState &_stateMsg)
+    const msgs::SerializedState &_stateMsg)
 {
   GZ_PROFILE("EntityComponentManager::SetState Non-map");
   // Create / remove / update entities
@@ -1810,7 +1810,7 @@ void EntityComponentManager::SetState(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const gz::msgs::SerializedStateMap &_stateMsg)
+    const msgs::SerializedStateMap &_stateMsg)
 {
   GZ_PROFILE("EntityComponentManager::SetState Map");
   // Create / remove / update entities

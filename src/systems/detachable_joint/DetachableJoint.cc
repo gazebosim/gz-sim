@@ -114,8 +114,8 @@ void DetachableJoint::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
-  const gz::sim::UpdateInfo &/*_info*/,
-  gz::sim::EntityComponentManager &_ecm)
+  const UpdateInfo &/*_info*/,
+  EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DetachableJoint::PreUpdate");
   if (this->validConfig && !this->initialized)
@@ -190,7 +190,7 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 }
 
 GZ_ADD_PLUGIN(DetachableJoint,
-                    gz::sim::System,
+                    System,
                     DetachableJoint::ISystemConfigure,
                     DetachableJoint::ISystemPreUpdate)
 

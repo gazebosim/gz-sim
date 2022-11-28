@@ -83,13 +83,13 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   test::Relay testSystem;
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> velocities;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
-                              const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Altimeter, components::Name,
                   components::WorldPose,
                   components::WorldLinearVelocity>(
-            [&](const gz::sim::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::Altimeter *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,

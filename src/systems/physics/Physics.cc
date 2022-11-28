@@ -161,38 +161,38 @@ class gz::sim::systems::PhysicsPrivate
   /// implement to be supported by this system.
   /// New features can't be added to this list in minor / patch releases, in
   /// order to maintain backwards compatibility with downstream physics plugins.
-  public: struct MinimumFeatureList : gz::physics::FeatureList<
-          gz::physics::FindFreeGroupFeature,
-          gz::physics::SetFreeGroupWorldPose,
-          gz::physics::FreeGroupFrameSemantics,
-          gz::physics::LinkFrameSemantics,
-          gz::physics::ForwardStep,
-          gz::physics::RemoveModelFromWorld,
-          gz::physics::sdf::ConstructSdfModel,
-          gz::physics::sdf::ConstructSdfWorld,
-          gz::physics::GetLinkFromModel,
-          gz::physics::GetShapeFromLink
+  public: struct MinimumFeatureList : physics::FeatureList<
+          physics::FindFreeGroupFeature,
+          physics::SetFreeGroupWorldPose,
+          physics::FreeGroupFrameSemantics,
+          physics::LinkFrameSemantics,
+          physics::ForwardStep,
+          physics::RemoveModelFromWorld,
+          physics::sdf::ConstructSdfModel,
+          physics::sdf::ConstructSdfWorld,
+          physics::GetLinkFromModel,
+          physics::GetShapeFromLink
           >{};
 
   /// \brief Engine type with just the minimum features.
-  public: using EnginePtrType = gz::physics::EnginePtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using EnginePtrType = physics::EnginePtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief World type with just the minimum features.
-  public: using WorldPtrType = gz::physics::WorldPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using WorldPtrType = physics::WorldPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Model type with just the minimum features.
-  public: using ModelPtrType = gz::physics::ModelPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using ModelPtrType = physics::ModelPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Link type with just the minimum features.
-  public: using LinkPtrType = gz::physics::LinkPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using LinkPtrType = physics::LinkPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Free group type with just the minimum features.
-  public: using FreeGroupPtrType = gz::physics::FreeGroupPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using FreeGroupPtrType = physics::FreeGroupPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -319,7 +319,7 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] _from An ancestor of the _to entity.
   /// \param[in] _to A descendant of the _from entity.
   /// \return Pose transform between the two entities
-  public: gz::math::Pose3d RelativePose(const Entity &_from,
+  public: math::Pose3d RelativePose(const Entity &_from,
       const Entity &_to, const EntityComponentManager &_ecm) const;
 
   /// \brief Enable contact surface customization for the given world.
@@ -458,18 +458,18 @@ class gz::sim::systems::PhysicsPrivate
   public: struct FrictionPyramidSlipComplianceFeatureList
       : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetShapeFrictionPyramidSlipCompliance,
-            gz::physics::SetShapeFrictionPyramidSlipCompliance>{};
+            physics::GetShapeFrictionPyramidSlipCompliance,
+            physics::SetShapeFrictionPyramidSlipCompliance>{};
   //////////////////////////////////////////////////
   // Joints
 
   /// \brief Feature list to handle joints.
-  public: struct JointFeatureList : gz::physics::FeatureList<
+  public: struct JointFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetJointFromModel,
-            gz::physics::GetBasicJointProperties,
-            gz::physics::GetBasicJointState,
-            gz::physics::SetBasicJointState>{};
+            physics::GetJointFromModel,
+            physics::GetBasicJointProperties,
+            physics::GetBasicJointState,
+            physics::SetBasicJointState>{};
 
   /// \brief Feature list to construct joints
   public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<
@@ -496,50 +496,50 @@ class gz::sim::systems::PhysicsPrivate
   // Collisions
 
   /// \brief Feature list to handle collisions.
-  public: struct CollisionFeatureList : gz::physics::FeatureList<
+  public: struct CollisionFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::sdf::ConstructSdfCollision>{};
+            physics::sdf::ConstructSdfCollision>{};
 
   /// \brief Feature list to handle contacts information.
-  public: struct ContactFeatureList : gz::physics::FeatureList<
+  public: struct ContactFeatureList : physics::FeatureList<
             CollisionFeatureList,
-            gz::physics::GetContactsFromLastStepFeature>{};
+            physics::GetContactsFromLastStepFeature>{};
 
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
-            gz::physics::FeatureList<
+            physics::FeatureList<
               ContactFeatureList,
-              gz::physics::SetContactPropertiesCallbackFeature>{};
+              physics::SetContactPropertiesCallbackFeature>{};
 
   /// \brief Collision type with collision features.
-  public: using ShapePtrType = gz::physics::ShapePtr<
-            gz::physics::FeaturePolicy3d, CollisionFeatureList>;
+  public: using ShapePtrType = physics::ShapePtr<
+            physics::FeaturePolicy3d, CollisionFeatureList>;
 
   /// \brief World type with just the minimum features. Non-pointer.
-  public: using WorldShapeType = gz::physics::World<
-            gz::physics::FeaturePolicy3d, ContactFeatureList>;
+  public: using WorldShapeType = physics::World<
+            physics::FeaturePolicy3d, ContactFeatureList>;
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
-  public: struct CollisionMaskFeatureList : gz::physics::FeatureList<
+  public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          gz::physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
   /// \brief Feature list for applying forces to links.
-  public: struct LinkForceFeatureList : gz::physics::FeatureList<
-            gz::physics::AddLinkExternalForceTorque>{};
+  public: struct LinkForceFeatureList : physics::FeatureList<
+            physics::AddLinkExternalForceTorque>{};
 
 
   //////////////////////////////////////////////////
   // Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : gz::physics::FeatureList<
+  public: struct BoundingBoxFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetModelBoundingBox>{};
+            physics::GetModelBoundingBox>{};
 
 
   //////////////////////////////////////////////////
@@ -573,8 +573,8 @@ class gz::sim::systems::PhysicsPrivate
   //////////////////////////////////////////////////
   // World velocity command
   public: struct WorldVelocityCommandFeatureList :
-            gz::physics::FeatureList<
-              gz::physics::SetFreeGroupWorldVelocity>{};
+            physics::FeatureList<
+              physics::SetFreeGroupWorldVelocity>{};
 
 
   //////////////////////////////////////////////////
@@ -618,9 +618,9 @@ class gz::sim::systems::PhysicsPrivate
   // Nested Models
 
   /// \brief Feature list to construct nested models
-  public: struct NestedModelFeatureList : gz::physics::FeatureList<
+  public: struct NestedModelFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::sdf::ConstructSdfNestedModel>{};
+            physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
@@ -830,7 +830,7 @@ void Physics::Configure(const Entity &_entity,
   }
 
   // Load engine plugin
-  gz::plugin::Loader pluginLoader;
+  plugin::Loader pluginLoader;
   auto plugins = pluginLoader.LoadLib(pathToLib);
   if (plugins.empty())
   {
@@ -860,8 +860,8 @@ void Physics::Configure(const Entity &_entity,
       continue;
     }
 
-    this->dataPtr->engine = gz::physics::RequestEngine<
-      gz::physics::FeaturePolicy3d,
+    this->dataPtr->engine = physics::RequestEngine<
+      physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
     if (nullptr != this->dataPtr->engine)
@@ -871,8 +871,8 @@ void Physics::Configure(const Entity &_entity,
       break;
     }
 
-    auto missingFeatures = gz::physics::RequestEngine<
-        gz::physics::FeaturePolicy3d,
+    auto missingFeatures = physics::RequestEngine<
+        physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
 
     std::stringstream msg;
@@ -1388,7 +1388,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          auto &meshManager = *gz::common::MeshManager::Instance();
+          auto &meshManager = *common::MeshManager::Instance();
           auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
           auto *mesh = meshManager.Load(fullPath);
           if (nullptr == mesh)
@@ -2767,9 +2767,9 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
-  gz::physics::ForwardStep::Input input;
-  gz::physics::ForwardStep::State state;
-  gz::physics::ForwardStep::Output output;
+  physics::ForwardStep::Input input;
+  physics::ForwardStep::State state;
+  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
@@ -2782,7 +2782,7 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
 }
 
 //////////////////////////////////////////////////
-gz::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
+math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
   const Entity &_to, const EntityComponentManager &_ecm) const
 {
   math::Pose3d transform;
@@ -3343,7 +3343,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          gz::math::Vector3d entityWorldAngularVel =
+          math::Vector3d entityWorldAngularVel =
               math::eigen3::convert(entityFrameData.angularVelocity);
 
           auto entityBodyAngularVel =
@@ -3368,7 +3368,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          gz::math::Vector3d entityWorldLinearAcc =
+          math::Vector3d entityWorldLinearAcc =
               math::eigen3::convert(entityFrameData.linearAcceleration);
 
           auto entityBodyLinearAcc =
@@ -3798,7 +3798,7 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 }
 
 GZ_ADD_PLUGIN(Physics,
-                    gz::sim::System,
+                    System,
                     Physics::ISystemConfigure,
                     Physics::ISystemReset,
                     Physics::ISystemUpdate)
