@@ -69,7 +69,7 @@ namespace ignition::gazebo
     /// \brief Move gui camera to model service name
     public: std::string moveToModelService;
 
-    /// \brief New move to movel message
+    /// \brief New move to model message
     public: bool newMoveToModel = false;
 
     /// \brief Distance of the camera to the model
@@ -163,7 +163,7 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   // Move to pose service
   this->dataPtr->moveToPoseService = "/gui/move_to/pose";
 
-  // Move to pose service
+  // Move to model service
   this->dataPtr->moveToModelService = "/gui/move_to/model";
   this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
       &ViewAngle::OnMoveToModelService, this);
@@ -345,6 +345,8 @@ bool ViewAngle::OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
   Entity entityId = kNullEntity;
   try
   {
+    // TODO(ahcorde): When forward porting this to Garder change var type to
+    // unsigned int
     entityId = std::get<int>(visualToMove->UserData("gazebo-entity"));
   }
   catch(std::bad_variant_access &_e)
