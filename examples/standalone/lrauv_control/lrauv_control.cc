@@ -19,7 +19,8 @@
  * Check README for detailed instructions.
  * Usage:
  *   $ gz sim -r worlds/lrauv_control_demo.sdf
- *   $ ./lrauv_control
+ *   $ # ./lrauv_control speed_m_s yaw_rad pitch_rad
+ *   $ ./lrauv_control 0.5 0.78 0.174
  */
 
 #include <atomic>
@@ -36,47 +37,80 @@
 
 using namespace gz;
 
+// Helper class for the PID controller for
+// linear speed, pitch and yaw angles.
 class Controller
 {
   public:
     // Desired state.
-    double targetSpeed = 0.5;
-    double targetYawAngle = PI / 4;
-    double targetPitchAngle = PI / 18;
+    double targetSpeed = 0;
+    double targetYawAngle =  0;
+    double targetPitchAngle = 0;
 
     // Errors
-    double errorSpeed;
-    double errorYawAngle;
-    double errorPitchAngle;
+    double errorSpeed = 0;
+    double errorSpeedIntegral = 0;
+    double errorYawAngle = 0;
+    double errorPitchAngle = 0;
 
     // States to be tracked and controlled.
     double speed;
     double yawAngle;
     double pitchAngle;
 
-    // PID gains.
+    // PID gains and error limits.
+    // PI for speed.
     double kSpeed = -30;
-    double kYawAngle = -1.0;
-    double kPitchAngle = 1.0;
+    double kISpeed = -0.5;
+    double errorSpeedIntegralMax = 10;
 
-    void updateErrors()
+    // P for yaw and pitch control.
+    double kYawAngle = -0.5;
+    double kPitchAngle = 0.6;
+
+    // Set the target states to be tracked,
+    // i.e. linear speed (m/s), pitch and yaw angles (rad).
+    void SetTargets(double _speed,
+        double _yaw, double _pitch)
+    {
+      if (_speed < 0.001 &&
+          (_yaw != 0 || _pitch != 0))
+      {
+        std::cout << "Speed needs to be non zero for non zero"
+          " pitch and yaw angles" << std::endl;
+        return;
+      }
+
+      targetSpeed = std::move(_speed);
+      targetYawAngle = std::move(_yaw);
+      targetPitchAngle = std::move(_pitch);
+    }
+
+    // Update the errors after an iteration of control loop.
+    void UpdateErrors()
     {
       errorSpeed = targetSpeed - speed;
+      errorSpeedIntegral =
+        std::min(errorSpeedIntegral + errorSpeed, errorSpeedIntegralMax);
+
       errorYawAngle = targetYawAngle - yawAngle;
       errorPitchAngle = targetPitchAngle - pitchAngle;
     }
 
-    double speedControl()
+    // Generate control input to be applied to the thruster.
+    double SpeedControl()
     {
-      return errorSpeed * kSpeed;
+      return errorSpeed * kSpeed + errorSpeedIntegral * kISpeed;
     }
 
-    double yawControl()
+    // Generate control input to be supplied to the yaw rudders.
+    double YawControl()
     {
       return errorYawAngle * kYawAngle;
     }
 
-    double pitchControl()
+    // Generate control input to be supplied to the pitch rudders.
+    double PitchControl()
     {
       return errorPitchAngle * kPitchAngle;
     }
@@ -85,6 +119,16 @@ class Controller
 int main(int argc, char** argv)
 {
   auto control = Controller();
+
+  if (argc == 4)
+  {
+    double targetSpeed = std::stod(argv[1]);
+    double targetYaw = std::stod(argv[2]);
+    double targetPitch = std::stod(argv[3]);
+
+    // Target state : speed (m/s), yaw angle, pitch angle (rad).
+    control.SetTargets(targetSpeed ,targetYaw ,targetPitch);
+  }
 
   transport::Node node;
 
@@ -141,21 +185,21 @@ int main(int argc, char** argv)
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // Update errors in the controller.
-    control.updateErrors();
+    control.UpdateErrors();
 
     // Publish propeller command for speed.
     msgs::Double propellerMsg;
-    propellerMsg.set_data(control.speedControl());
+    propellerMsg.set_data(control.SpeedControl());
     propellerPubTethys.Publish(propellerMsg);
 
     // Publish rudder command for yaw.
     msgs::Double rudderMsg;
-    rudderMsg.set_data(control.yawControl());
+    rudderMsg.set_data(control.YawControl());
     rudderPubTethys.Publish(rudderMsg);
 
     // Publish fin command for pitch.
     msgs::Double finMsg;
-    finMsg.set_data(control.pitchControl());
+    finMsg.set_data(control.PitchControl());
     finPubTethys.Publish(finMsg);
 
     // Print the states.
