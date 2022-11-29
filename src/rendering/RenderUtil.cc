@@ -1195,17 +1195,14 @@ void RenderUtil::Update()
 
       if (newLightRendering)
       {
-        // TODO(anyone) This needs to be updated for when sensors and GUI use
-        // the same scene
-        // create a new id for the light visual, if we're not loading sensors
-        if (!this->dataPtr->enableSensors)
-        {
-          rendering::VisualPtr lightVisual =
-            this->dataPtr->sceneManager.CreateLightVisual(
-              std::get<0>(light) + 1, std::get<1>(light), std::get<2>(light), std::get<0>(light));
-          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = std::get<0>(light) + 1;
-          break;
-        }
+        rendering::VisualPtr lightVisual =
+          this->dataPtr->sceneManager.CreateLightVisual(
+            std::get<0>(light) + 1,
+            std::get<1>(light),
+            std::get<2>(light),
+            std::get<0>(light));
+        this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
+          std::get<0>(light) + 1;
       }
       else
       {
