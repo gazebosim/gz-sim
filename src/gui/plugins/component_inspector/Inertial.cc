@@ -92,4 +92,3 @@ void Inertial::UpdateView(const EntityComponentManager &_ecm,
 
   _item->setData(dataList, ComponentsModel::RoleNames().key("data"));
 }
-
