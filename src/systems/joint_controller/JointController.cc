@@ -39,7 +39,7 @@ class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const gz::msgs::Double &_msg);
+  public: void OnCmdVel(const msgs::Double &_msg);
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class gz::sim::systems::JointControllerPrivate
   public: bool useForceCommands{false};
 
   /// \brief Velocity PID controller.
-  public: gz::math::PID velPid;
+  public: math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -173,8 +173,8 @@ void JointController::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void JointController::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void JointController::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("JointController::PreUpdate");
 
@@ -260,7 +260,7 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 }
 
 GZ_ADD_PLUGIN(JointController,
-                    gz::sim::System,
+                    System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 

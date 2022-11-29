@@ -251,5 +251,5 @@ void PlaybackScrubber::OnDrop(double _value)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::PlaybackScrubber,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(PlaybackScrubber,
+              gz::gui::Plugin)

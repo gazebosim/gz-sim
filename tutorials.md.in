@@ -33,9 +33,9 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 * \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
 * \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
-* \subpage model_and_optimize_meshes "Model and optimize meshes": Some recomendations when creating meshes in Blender for simulations.
 * \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
 * \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
+* \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
 * \subpage test_fixture "Test Fixture": Writing automated CI tests
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.

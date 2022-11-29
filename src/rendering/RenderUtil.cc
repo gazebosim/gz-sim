@@ -230,7 +230,7 @@ class gz::sim::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: gz::rendering::RenderEngine *engine{nullptr};
+  public: rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data

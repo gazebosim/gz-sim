@@ -120,6 +120,8 @@ TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
   auto sphere1Vels = this->TestWorld(world, "sphere1");
   auto sphere2Vels = this->TestWorld(world, "sphere2");
 
+  auto whenSphere1ExceedsSphere2Vel = 2000;
+
   for (unsigned int i = 0; i < 1000; ++i)
   {
     // Sanity check
@@ -128,19 +130,23 @@ TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].X());
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].Y());
 
-    // Wait a couple of iterations for the body to move
-    if(i > 4)
+    // Expect sphere1 to fall faster than sphere 2 as no hydro
+    // drag is applied to it.
+    EXPECT_LE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
+    if(sphere1Vels[i].Z() < sphere2Vels[i].Z()
+      &&  whenSphere1ExceedsSphere2Vel > 1000)
     {
-      EXPECT_LT(sphere1Vels[i].Z(), sphere2Vels[i].Z());
-
-      if (i > 900)
-      {
-        // Expect for the velocity to stabilize
-        EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
-        EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
-      }
+      // Mark this as the time when velocity of sphere1 exceeds sphere 2
+      whenSphere1ExceedsSphere2Vel = i;
+    }
+    if (i > 900)
+    {
+      // Expect for the velocity to stabilize
+      EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
+      EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
     }
   }
+  EXPECT_LT(whenSphere1ExceedsSphere2Vel, 500);
 }
 
 /////////////////////////////////////////////////

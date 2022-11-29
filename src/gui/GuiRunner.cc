@@ -259,7 +259,7 @@ void GuiRunner::RequestState()
     }
   }
 
-  gz::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // Subscribe to periodic updates.
