@@ -59,6 +59,9 @@ namespace gz::sim
     /// \brief View Control service name
     public: std::string viewControlService;
 
+    /// \brief View Control reference visual service name
+    public: std::string viewControlRefVisualService;
+
     /// \brief gui camera pose
     public: math::Pose3d camPose;
 
@@ -120,6 +123,9 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
 
   // view control requests
   this->dataPtr->viewControlService = "/gui/camera/view_control";
+
+  // view control reference visual requests
+  this->dataPtr->viewControlRefVisualService = "/gui/camera/reference_visual";
 
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
@@ -202,6 +208,23 @@ void ViewAngle::OnViewControl(const QString &_controller)
   }
 
   this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControlReferenceVisual(bool _enable)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller reference visual" << std::endl;
+  };
+
+  msgs::Boolean req;
+  req.set_data(_enable);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlRefVisualService, req, cb);
 }
 
 /////////////////////////////////////////////////

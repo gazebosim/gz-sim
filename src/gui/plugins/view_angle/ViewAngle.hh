@@ -78,6 +78,12 @@ namespace sim
     /// \param[in] _mode New camera view controller
     public slots: void OnViewControl(const QString &_controller);
 
+    /// \brief Callback in Qt thread when camera view reference visual state
+    /// changes.
+    /// \param[in] _enable True to enable camera view control reference visual,
+    /// false to hide it
+    public slots: void OnViewControlReferenceVisual(bool _enable);
+
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
 
