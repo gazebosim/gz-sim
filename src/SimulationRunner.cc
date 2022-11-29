@@ -126,6 +126,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
+  this->currentInfo.simTime = this->simTimeEpoch;
 
   // World control
   transport::NodeOptions opts;
