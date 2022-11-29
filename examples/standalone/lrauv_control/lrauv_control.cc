@@ -54,9 +54,9 @@ class Controller
     double errorPitchAngle = 0;
 
     // States to be tracked and controlled.
-    double speed;
-    double yawAngle;
-    double pitchAngle;
+    std::atomic<double> speed;
+    std::atomic<double> yawAngle;
+    std::atomic<double> pitchAngle;
 
     // PID gains and error limits.
     // PI for speed.
