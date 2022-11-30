@@ -31,12 +31,13 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Data structure to hold information about the parent and child links
+  /// \brief Data structure to hold the consumer power load
+  /// and the name of the battery it uses.
   struct BatteryPowerLoadInfo
   {
-    /// \brief Name of the battery to use
+    /// \brief Name of the battery to use.
     std::string batteryName;
-    /// \brief Battery power load to add to the battery
+    /// \brief Battery power load to add to the battery.
     double batteryPowerLoad;
   };
 
