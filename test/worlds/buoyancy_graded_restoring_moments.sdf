@@ -6,12 +6,12 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
       <graded_buoyancy>
         <default_density>1000</default_density>
         <density_change>

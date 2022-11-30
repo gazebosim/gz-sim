@@ -6,13 +6,13 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
-      <engine><filename>libignition-physics-tpe-plugin.so</filename></engine>
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+      <engine><filename>gz-physics-tpe-plugin</filename></engine>
     </plugin>
     <plugin
-      filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -61,8 +61,8 @@
         </link>
 
         <plugin
-           filename="ignition-gazebo-pose-publisher-system"
-           name="ignition::gazebo::systems::PosePublisher">
+           filename="gz-sim-pose-publisher-system"
+           name="gz::sim::systems::PosePublisher">
           <publish_link_pose>false</publish_link_pose>
           <publish_sensor_pose>false</publish_sensor_pose>
           <publish_collision_pose>false</publish_collision_pose>

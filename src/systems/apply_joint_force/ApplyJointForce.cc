@@ -19,25 +19,26 @@
 
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/msgs/double.pb.h>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyJointForcePrivate
+class gz::sim::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
   public: void OnCmdForce(const msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity
@@ -72,7 +73,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "ApplyJointForce plugin should be attached to a model entity. "
+    gzerr << "ApplyJointForce plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -88,7 +89,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName == "")
   {
-    ignerr << "ApplyJointForce found an empty jointName parameter. "
+    gzerr << "ApplyJointForce found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -99,14 +100,14 @@ void ApplyJointForce::Configure(const Entity &_entity,
       "/cmd_force");
   if (topic.empty())
   {
-    ignerr << "Failed to create valid topic for [" << this->dataPtr->jointName
+    gzerr << "Failed to create valid topic for [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
   this->dataPtr->node.Subscribe(topic, &ApplyJointForcePrivate::OnCmdForce,
                                 this->dataPtr.get());
 
-  ignmsg << "ApplyJointForce subscribing to Double messages on [" << topic
+  gzmsg << "ApplyJointForce subscribing to Double messages on [" << topic
          << "]" << std::endl;
 }
 
@@ -114,12 +115,12 @@ void ApplyJointForce::Configure(const Entity &_entity,
 void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ApplyJointForce::PreUpdate");
+  GZ_PROFILE("ApplyJointForce::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -163,10 +164,14 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
   this->jointForceCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(ApplyJointForce,
+GZ_ADD_PLUGIN(ApplyJointForce,
                     System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
+                          "gz::sim::systems::ApplyJointForce")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "ignition::gazebo::systems::ApplyJointForce")

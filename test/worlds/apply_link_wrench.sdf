@@ -4,12 +4,12 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-apply-link-wrench-system"
-      name="ignition::gazebo::systems::ApplyLinkWrench">
+      filename="gz-sim-apply-link-wrench-system"
+      name="gz::sim::systems::ApplyLinkWrench">
       <persistent>
         <entity_name>model1</entity_name>
         <entity_type>model</entity_type>

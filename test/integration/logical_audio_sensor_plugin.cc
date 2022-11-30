@@ -23,36 +23,38 @@
 #include <thread>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include "ignition/gazebo/components/LogicalAudio.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/Types.hh"
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+
+#include "gz/sim/components/LogicalAudio.hh"
+#include "gz/sim/components/Pose.hh"
+#include "test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/Types.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test LogicalAudio system plugin
 class LogicalAudioTest : public InternalFixture<::testing::Test>
 {
 };
 
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(LogicalAudioTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -192,7 +194,7 @@ TEST_F(LogicalAudioTest,
   // make sure close microphone detection occurred, and that the far microphone
   // didn't detect anything
   server.Run(true, 100, false);
-  // (wait on ignition-transport for close detection message to be received.
+  // (wait on gz-transport for close detection message to be received.
   // Don't exit when a close microphone detection is received because we want to
   // make sure a far microphone detection is never received)
   for (auto sleep = 0; sleep < 30; ++sleep)
@@ -209,7 +211,7 @@ TEST_F(LogicalAudioTest,
 
 // See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(LogicalAudioTest,
-       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

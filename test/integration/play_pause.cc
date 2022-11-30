@@ -19,15 +19,18 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "ignition/msgs.hh"
-#include "ignition/transport.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
+#include <gz/transport/Node.hh>
+#include "gz/sim/Server.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;

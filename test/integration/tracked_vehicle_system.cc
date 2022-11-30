@@ -16,35 +16,35 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/gazebo/components/Collision.hh>
-#include <ignition/gazebo/components/PoseCmd.hh>
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include <ignition/gazebo/Model.hh>
-#include <ignition/physics/ContactProperties.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/FeaturePolicy.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/PoseCmd.hh>
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include <gz/sim/Model.hh>
+#include <gz/physics/ContactProperties.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/FeaturePolicy.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \
@@ -82,8 +82,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Find physics plugin (copied from the Physics system with some
     // modifications)
     common::SystemPaths systemPaths;
-    systemPaths.SetPluginPathEnv("IGN_GAZEBO_PHYSICS_ENGINE_PATH");
-    systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+    systemPaths.SetPluginPathEnv("GZ_SIM_PHYSICS_ENGINE_PATH");
+    systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
 
     auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);
     ASSERT_FALSE(pathToLib.empty())
@@ -564,8 +564,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
@@ -575,7 +575,7 @@ TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
 {
   this->TestConveyor(
     std::string(PROJECT_SOURCE_PATH) +

@@ -19,18 +19,20 @@
 #include <chrono>
 #include <condition_variable>
 
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/msgs/world_control.pb.h"
-#include "ignition/msgs/world_stats.pb.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+#include <gz/transport/Node.hh>
+
+#include "gz/sim/Server.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;
@@ -68,8 +70,8 @@ class NetworkHandshake : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(NetworkHandshake, GZ_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
@@ -126,7 +128,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_WIN32(Handshake))
 
 /////////////////////////////////////////////////
 // See: https://github.com/gazebosim/gz-sim/issues/630
-TEST_F(NetworkHandshake, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
+TEST_F(NetworkHandshake, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
 {
   auto pluginElem = std::make_shared<sdf::Element>();
   pluginElem->SetName("plugin");
@@ -138,8 +140,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
   primaryPluginInfo.SetEntityName("default");
   primaryPluginInfo.SetEntityType("world");
   sdf::Plugin plugin;
-  plugin.SetFilename("libignition-gazebo-scene-broadcaster-system.so");
-  plugin.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  plugin.SetFilename("gz-sim-scene-broadcaster-system");
+  plugin.SetName("gz::sim::systems::SceneBroadcaster");
   plugin.InsertContent(pluginElem);
   primaryPluginInfo.SetPlugin(plugin);
 
@@ -161,8 +163,8 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
   sdf::Plugin secondPlugin;
-  secondPlugin.SetFilename("libignition-gazebo-physics-system.so");
-  secondPlugin.SetName("ignition::gazebo::systems::Physics");
+  secondPlugin.SetFilename("gz-sim-physics-system");
+  secondPlugin.SetName("gz::sim::systems::Physics");
   secondPlugin.InsertContent(pluginElem);
   secondaryPluginInfo.SetPlugin(secondPlugin);
 

@@ -25,43 +25,43 @@
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
 
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/common/Profiler.hh>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/LevelBuffer.hh"
-#include "ignition/gazebo/components/LevelEntityNames.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
-#include "ignition/gazebo/components/RenderEngineServerHeadless.hh"
-#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/LevelBuffer.hh"
+#include "gz/sim/components/LevelEntityNames.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/World.hh"
 
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
@@ -69,7 +69,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 {
   if (nullptr == _runner)
   {
-    ignerr << "Can't start level manager with null runner." << std::endl;
+    gzerr << "Can't start level manager with null runner." << std::endl;
     return;
   }
 
@@ -84,7 +84,7 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
       this->runner->sdfWorld->Name() + "/level/set_performer");
   if (service.empty())
   {
-    ignerr << "Failed to generate set_performer topic for world ["
+    gzerr << "Failed to generate set_performer topic for world ["
            << this->runner->sdfWorld->Name() << "]" << std::endl;
     return;
   }
@@ -197,10 +197,10 @@ void LevelManager::ReadLevelPerformerInfo()
 
   // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.
-  const std::string kPluginName{"ignition::gazebo"};
+  const std::string kPluginName{"gz::sim"};
 
   sdf::ElementPtr pluginElem;
-  // Get the ignition::gazebo plugin element
+  // Get the gz::sim plugin element
   for (auto plugin = worldElem->FindElement("plugin"); plugin;
        plugin = plugin->GetNextElement("plugin"))
   {
@@ -215,7 +215,7 @@ void LevelManager::ReadLevelPerformerInfo()
   {
     if (this->useLevels)
     {
-      ignerr << "Could not find a plugin tag with name " << kPluginName
+      gzerr << "Could not find a plugin tag with name " << kPluginName
              << ". Levels and distributed simulation will not work.\n";
     }
   }
@@ -231,9 +231,11 @@ void LevelManager::ReadLevelPerformerInfo()
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
       this->runner->sdfWorld->Plugins());
-  // Deprecate this in Garden
+
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
       this->runner->sdfWorld->Element());
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->runner->entityCompMgr.CreateComponent(
@@ -243,14 +245,14 @@ void LevelManager::ReadLevelPerformerInfo()
 /////////////////////////////////////////////////
 void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
 {
-  IGN_PROFILE("LevelManager::ReadPerformers");
+  GZ_PROFILE("LevelManager::ReadPerformers");
 
   if (_sdf == nullptr)
     return;
 
   if (_sdf->HasElement("performer"))
   {
-    igndbg << "Reading performer info\n";
+    gzdbg << "Reading performer info\n";
     for (auto performer = _sdf->GetElement("performer"); performer;
         performer = performer->GetNextElement("performer"))
     {
@@ -269,7 +271,7 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
           this->runner->entityCompMgr.Component<components::Name>(
               this->performerMap[ref]);
 
-        ignerr << "Found multiple performers (" << name << " and "
+        gzerr << "Found multiple performers (" << name << " and "
           << performer2->Data() << ") referring to the same entity\n";
       }
 
@@ -284,14 +286,14 @@ void LevelManager::ReadPerformers(const sdf::ElementPtr &_sdf)
       this->runner->entityCompMgr.CreateComponent(performerEntity,
           components::Geometry(geometry));
 
-      ignmsg << "Created performer [" << performerEntity << " / " << name << "]"
+      gzmsg << "Created performer [" << performerEntity << " / " << name << "]"
              << std::endl;
     }
   }
 
   if (this->useLevels && performerMap.empty())
   {
-    igndbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+    gzdbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
       << "the /world/<world_name>/level/set_performer service to specify "
       << "performers.\n";
   }
@@ -305,7 +307,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // the update cycle. This approach is thread-safe, but is unable to
   // provide the caller with feedback because
   // entityCompMgr.EntityByComponents() is not thread safe. It would better
-  // to have long running service calls in ign-transport so that this
+  // to have long running service calls in gz-transport so that this
   // function could get information out of the EntityComponent mangager
   // in a thread-safe manner and return information back to the caller.
   //
@@ -331,7 +333,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   }
   else
   {
-    ignerr << "Empty performer name. Performer will not be created\n";
+    gzerr << "Empty performer name. Performer will not be created\n";
   }
 
   return true;
@@ -346,7 +348,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   //     components::Name(name));
   // if (modelEntity == kNullEntity)
   // {
-  //   ignerr << "Unable to find model with name[" << name << "]. "
+  //   gzerr << "Unable to find model with name[" << name << "]. "
   //     << "Performer not created\n";
   //   return true;
   // }
@@ -367,7 +369,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // }
   // else
   // {
-  //   ignwarn << "Performer with name[" << name << "] "
+  //   gzwarn << "Performer with name[" << name << "] "
   //     << "has already been set.\n";
   // }
 
@@ -378,9 +380,9 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
 /////////////////////////////////////////////////
 void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 {
-  IGN_PROFILE("LevelManager::ReadLevels");
+  GZ_PROFILE("LevelManager::ReadLevels");
 
-  igndbg << "Reading levels info\n";
+  gzdbg << "Reading levels info\n";
 
   if (_sdf == nullptr)
     return;
@@ -395,7 +397,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 
     if (nullptr == geometry.BoxShape())
     {
-      ignerr << "Level [" << name << "]'s geometry is not a box, level won't "
+      gzerr << "Level [" << name << "]'s geometry is not a box, level won't "
              << "be created." << std::endl;
       continue;
     }
@@ -403,7 +405,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
     double buffer = level->Get<double>("buffer", 0.0).first;
     if (buffer < 0)
     {
-      ignwarn << "The buffer parameter for Level [" << name << "]cannot be a "
+      gzwarn << "The buffer parameter for Level [" << name << "]cannot be a "
               << " negative number. Setting to 0.0\n";
       buffer = 0.0;
     }
@@ -443,7 +445,7 @@ void LevelManager::ReadLevels(const sdf::ElementPtr &_sdf)
 /////////////////////////////////////////////////
 void LevelManager::ConfigureDefaultLevel()
 {
-  IGN_PROFILE("LevelManager::ConfigureDefaultLevel");
+  GZ_PROFILE("LevelManager::ConfigureDefaultLevel");
 
   // Create the default level. This level contains all entities not contained by
   // any other level.
@@ -520,11 +522,11 @@ void LevelManager::ConfigureDefaultLevel()
 /////////////////////////////////////////////////
 void LevelManager::CreatePerformers()
 {
-  IGN_PROFILE("LevelManager::CreatePerformers");
+  GZ_PROFILE("LevelManager::CreatePerformers");
 
   if (this->worldEntity == kNullEntity)
   {
-    ignerr << "Could not find the world entity while creating performers\n";
+    gzerr << "Could not find the world entity while creating performers\n";
     return;
   }
   // Models
@@ -567,7 +569,7 @@ void LevelManager::CreatePerformers()
 /////////////////////////////////////////////////
 void LevelManager::UpdateLevelsState()
 {
-  IGN_PROFILE("LevelManager::UpdateLevelsState");
+  GZ_PROFILE("LevelManager::UpdateLevelsState");
 
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
@@ -587,7 +589,7 @@ void LevelManager::UpdateLevelsState()
   }
 
   {
-    IGN_PROFILE("DefaultLevel");
+    GZ_PROFILE("DefaultLevel");
     // Handle default level
     this->runner->entityCompMgr.Each<components::DefaultLevel>(
         [&](const Entity &_entity, const components::DefaultLevel *) -> bool
@@ -615,7 +617,7 @@ void LevelManager::UpdateLevelsState()
             components::Geometry *_geometry,
             components::ParentEntity *_parent) -> bool
           {
-          IGN_PROFILE("EachPerformer");
+          GZ_PROFILE("EachPerformer");
 
           auto pose = this->runner->entityCompMgr.Component<components::Pose>(
               _parent->Data());
@@ -624,7 +626,7 @@ void LevelManager::UpdateLevelsState()
           auto perfBox = _geometry->Data().BoxShape();
           if (nullptr == perfBox)
           {
-          ignerr << "Internal error: geometry of performer [" << _perfEntity
+          gzerr << "Internal error: geometry of performer [" << _perfEntity
           << "] missing box." << std::endl;
           return true;
           }
@@ -646,13 +648,13 @@ void LevelManager::UpdateLevelsState()
                   const components::Geometry *_levelGeometry,
                   const components::LevelBuffer *_levelBuffer) -> bool
                 {
-                IGN_PROFILE("CheckPerformerAgainstLevel");
+                GZ_PROFILE("CheckPerformerAgainstLevel");
                 // Check if the performer is in this level
                 // assume a box for now
                 auto box = _levelGeometry->Data().BoxShape();
                 if (nullptr == box)
                 {
-                ignerr << "Level [" << _entity
+                gzerr << "Level [" << _entity
                 << "]'s geometry is not a box." << std::endl;
                 return true;
                 }
@@ -776,7 +778,7 @@ void LevelManager::UpdateLevelsState()
   {
     if (!this->IsLevelActive(level))
     {
-      ignmsg << "Loaded level [" << level << "]" << std::endl;
+      gzmsg << "Loaded level [" << level << "]" << std::endl;
       this->activeLevels.push_back(level);
     }
   }
@@ -784,7 +786,7 @@ void LevelManager::UpdateLevelsState()
   auto pendingEnd = this->activeLevels.end();
   for (const auto &toUnload : levelsToUnload)
   {
-    ignmsg << "Unloaded level [" << toUnload << "]" << std::endl;
+    gzmsg << "Unloaded level [" << toUnload << "]" << std::endl;
     pendingEnd = std::remove(this->activeLevels.begin(), pendingEnd, toUnload);
   }
   // Erase from vector
@@ -794,11 +796,11 @@ void LevelManager::UpdateLevelsState()
 /////////////////////////////////////////////////
 void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 {
-  IGN_PROFILE("LevelManager::LoadActiveEntities");
+  GZ_PROFILE("LevelManager::LoadActiveEntities");
 
   if (this->worldEntity == kNullEntity)
   {
-    ignerr << "Could not find the world entity while loading levels\n";
+    gzerr << "Could not find the world entity while loading levels\n";
     return;
   }
 
@@ -907,7 +909,7 @@ int LevelManager::CreatePerformerEntity(const std::string &_name,
       components::Name(_name));
   if (modelEntity == kNullEntity)
   {
-    ignwarn << "Attempting to set performer with name ["
+    gzwarn << "Attempting to set performer with name ["
       << _name << "] "
       << ", but the entity could not be found. Another attempt will be made "
       << "in the next iteration.\n";
@@ -917,7 +919,7 @@ int LevelManager::CreatePerformerEntity(const std::string &_name,
   if (!this->runner->entityCompMgr.ChildrenByComponents(modelEntity,
         components::Performer()).empty())
   {
-    ignwarn << "Attempting to set performer with name ["
+    gzwarn << "Attempting to set performer with name ["
       << _name << "], but the entity already has a performer.\n";
     return 1;
   }

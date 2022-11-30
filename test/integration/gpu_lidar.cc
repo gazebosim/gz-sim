@@ -17,23 +17,23 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define LASER_TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test GpuLidarTest system
 class GpuLidarTest : public InternalFixture<::testing::Test>
@@ -53,7 +53,7 @@ void laserCb(const msgs::LaserScan &_msg)
 
 /////////////////////////////////////////////////
 // The test checks the Gpu Lidar readings when it faces a box
-TEST_F(GpuLidarTest, IGN_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
+TEST_F(GpuLidarTest, GZ_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
 {
   const int horzSamples = 640;
 

@@ -21,31 +21,31 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Pose.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LiftDragPrivate
+class gz::sim::systems::LiftDragPrivate
 {
   // Initialize the system
   public: void Load(const EntityComponentManager &_ecm,
@@ -75,7 +75,7 @@ class ignition::gazebo::systems::LiftDragPrivate
   public: double cma = 0.01;
 
   /// \brief angle of attach when airfoil stalls
-  public: double alphaStall = IGN_PI_2;
+  public: double alphaStall = GZ_PI_2;
 
   /// \brief Cl-alpha rate after stall
   public: double claStall = 0.0;
@@ -106,7 +106,7 @@ class ignition::gazebo::systems::LiftDragPrivate
 
   /// \brief center of pressure in link local coordinates with respect to the
   /// link's center of mass
-  public: math::Vector3d cp = math::Vector3d::Zero;
+  public: gz::math::Vector3d cp = math::Vector3d::Zero;
 
   /// \brief Normally, this is taken as a direction parallel to the chord
   /// of the airfoil in zero angle of attack forward flight.
@@ -178,14 +178,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     if (entities.empty())
     {
-      ignerr << "Link with name[" << linkName << "] not found. "
+      gzerr << "Link with name[" << linkName << "] not found. "
              << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
       return;
     }
     else if (entities.size() > 1)
     {
-      ignwarn << "Multiple link entities with name[" << linkName << "] found. "
+      gzwarn << "Multiple link entities with name[" << linkName << "] found. "
              << "Using the first one.\n";
     }
 
@@ -194,14 +194,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Link::typeId))
     {
       this->linkEntity = kNullEntity;
-      ignerr << "Entity with name[" << linkName << "] is not a link\n";
+      gzerr << "Entity with name[" << linkName << "] is not a link\n";
       this->validConfig = false;
       return;
     }
   }
   else
   {
-    ignerr << "The LiftDrag system requires the 'link_name' parameter\n";
+    gzerr << "The LiftDrag system requires the 'link_name' parameter\n";
     this->validConfig = false;
     return;
   }
@@ -215,14 +215,14 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     if (entities.empty())
     {
-      ignerr << "Joint with name[" << controlJointName << "] not found. "
+      gzerr << "Joint with name[" << controlJointName << "] not found. "
              << "The LiftDrag will not generate forces\n";
       this->validConfig = false;
       return;
     }
     else if (entities.size() > 1)
     {
-      ignwarn << "Multiple joint entities with name[" << controlJointName
+      gzwarn << "Multiple joint entities with name[" << controlJointName
               << "] found. Using the first one.\n";
     }
 
@@ -231,7 +231,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Joint::typeId))
     {
       this->controlJointEntity = kNullEntity;
-      ignerr << "Entity with name[" << controlJointName << "] is not a joint\n";
+      gzerr << "Entity with name[" << controlJointName << "] is not a joint\n";
       this->validConfig = false;
       return;
     }
@@ -250,7 +250,7 @@ LiftDrag::LiftDrag()
 //////////////////////////////////////////////////
 void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LiftDragPrivate::Update");
+  GZ_PROFILE("LiftDragPrivate::Update");
   // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
@@ -308,9 +308,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
-  while (std::fabs(sweep) > 0.5 * IGN_PI)
+  while (std::fabs(sweep) > 0.5 * GZ_PI)
   {
-    sweep = sweep > 0 ? sweep - IGN_PI : sweep + IGN_PI;
+    sweep = sweep > 0 ? sweep - GZ_PI : sweep + GZ_PI;
   }
 
   // angle of attack is the angle between
@@ -351,9 +351,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     alpha = this->alpha0 + std::acos(cosAlpha);
 
   // normalize to within +/-90 deg
-  while (fabs(alpha) > 0.5 * IGN_PI)
+  while (fabs(alpha) > 0.5 * GZ_PI)
   {
-    alpha = alpha > 0 ? alpha - IGN_PI : alpha + IGN_PI;
+    alpha = alpha > 0 ? alpha - GZ_PI : alpha + GZ_PI;
   }
 
   // compute dynamic pressure
@@ -472,27 +472,27 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // Debug
   // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
-  // igndbg << "=============================\n";
-  // igndbg << "Link: [" << linkName << "] pose: [" << pose
+  // gzdbg << "=============================\n";
+  // gzdbg << "Link: [" << linkName << "] pose: [" << pose
   //        << "] dynamic pressure: [" << q << "]\n";
-  // igndbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
-  // igndbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
+  // gzdbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
+  // gzdbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
   //        << velInLDPlane << "]\n";
-  // igndbg << "forward (inertial): " << forwardI << "\n";
-  // igndbg << "upward (inertial): " << upwardI << "\n";
-  // igndbg << "q: " << q << "\n";
-  // igndbg << "cl: " << cl << "\n";
-  // igndbg << "lift dir (inertial): " << liftI << "\n";
-  // igndbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
-  // igndbg << "sweep: " << sweep << "\n";
-  // igndbg << "alpha: " << alpha << "\n";
-  // igndbg << "lift: " << lift << "\n";
-  // igndbg << "drag: " << drag << " cd: " << cd << " cda: "
+  // gzdbg << "forward (inertial): " << forwardI << "\n";
+  // gzdbg << "upward (inertial): " << upwardI << "\n";
+  // gzdbg << "q: " << q << "\n";
+  // gzdbg << "cl: " << cl << "\n";
+  // gzdbg << "lift dir (inertial): " << liftI << "\n";
+  // gzdbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
+  // gzdbg << "sweep: " << sweep << "\n";
+  // gzdbg << "alpha: " << alpha << "\n";
+  // gzdbg << "lift: " << lift << "\n";
+  // gzdbg << "drag: " << drag << " cd: " << cd << " cda: "
   //        << this->cda << "\n";
-  // igndbg << "moment: " << moment << "\n";
-  // igndbg << "force: " << force << "\n";
-  // igndbg << "torque: " << torque << "\n";
-  // igndbg << "totalTorque: " << totalTorque << "\n";
+  // gzdbg << "moment: " << moment << "\n";
+  // gzdbg << "force: " << force << "\n";
+  // gzdbg << "torque: " << torque << "\n";
+  // gzdbg << "totalTorque: " << totalTorque << "\n";
 }
 
 //////////////////////////////////////////////////
@@ -503,7 +503,7 @@ void LiftDrag::Configure(const Entity &_entity,
   this->dataPtr->model = Model(_entity);
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "The LiftDrag system should be attached to a model entity. "
+    gzerr << "The LiftDrag system should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -513,12 +513,12 @@ void LiftDrag::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LiftDrag::PreUpdate");
+  GZ_PROFILE("LiftDrag::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -557,9 +557,12 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(LiftDrag,
+GZ_ADD_PLUGIN(LiftDrag,
                     System,
                     LiftDrag::ISystemConfigure,
                     LiftDrag::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")
+GZ_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")

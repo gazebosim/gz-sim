@@ -160,7 +160,7 @@ Rectangle {
 
   Component {
     id: spinZeroMax
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
@@ -173,7 +173,7 @@ Rectangle {
   }
   Component {
     id: spinNoLimit
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: -100000

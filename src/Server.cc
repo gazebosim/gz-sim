@@ -17,21 +17,21 @@
 
 #include <numeric>
 
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
 
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
@@ -63,7 +63,7 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
-  // Configure SDF to fetch assets from ignition fuel.
+  // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
@@ -79,7 +79,7 @@ Server::Server(const ServerConfig &_config)
     case ServerConfig::SourceType::kSdfRoot:
     {
       this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-      ignmsg << "Loading SDF world from SDF DOM.\n";
+      gzmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
 
@@ -94,7 +94,7 @@ Server::Server(const ServerConfig &_config)
       {
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
-      ignmsg <<  msg;
+      gzmsg <<  msg;
       errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
       break;
     }
@@ -106,26 +106,46 @@ Server::Server(const ServerConfig &_config)
 
       if (filePath.empty())
       {
-        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
                << std::endl;
         return;
       }
 
-      ignmsg << "Loading SDF world file[" << filePath << "].\n";
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
+      sdf::Root sdfRoot;
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      errors = this->dataPtr->sdfRoot.Load(filePath);
+      errors = sdfRoot.Load(filePath);
+      if (errors.empty()) {
+        if (sdfRoot.Model() == nullptr) {
+          this->dataPtr->sdfRoot = std::move(sdfRoot);
+        }
+        else
+        {
+          // If the specified file only contains a model, load the default
+          // world and add the model to it.
+          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+          sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
+          if (world == nullptr) {
+            return;
+          }
+          world->AddModel(*sdfRoot.Model());
+          if (errors.empty()) {
+            errors = this->dataPtr->sdfRoot.UpdateGraphs();
+          }
+        }
+      }
       break;
     }
 
     case ServerConfig::SourceType::kNone:
     default:
     {
-      ignmsg << "Loading default world.\n";
+      gzmsg << "Loading default world.\n";
       // Load an empty world.
       /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
       errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
@@ -136,7 +156,7 @@ Server::Server(const ServerConfig &_config)
   if (!errors.empty())
   {
     for (auto &err : errors)
-      ignerr << err << "\n";
+      gzerr << err << "\n";
     return;
   }
 
@@ -175,14 +195,14 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
     if (!this->dataPtr->sigHandler.Initialized())
     {
-      ignerr << "Signal handlers were not created. The server won't run.\n";
+      gzerr << "Signal handlers were not created. The server won't run.\n";
       return false;
     }
 
     // Do not allow running more than once.
     if (this->dataPtr->running)
     {
-      ignwarn << "The server is already runnnng.\n";
+      gzwarn << "The server is already runnnng.\n";
       return false;
     }
   }
@@ -202,7 +222,7 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     // running variable gets updated before this function returns. With
     // a small number of iterations it is possible that the run thread
     // successfuly completes before this function returns.
-    cond.wait(lock);
+    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
     return true;
   }
 
@@ -299,7 +319,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
   // Do not allow running more than once.
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 
@@ -319,7 +339,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->running)
   {
-    ignerr << "Cannot add system while the server is runnnng.\n";
+    gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
   }
 

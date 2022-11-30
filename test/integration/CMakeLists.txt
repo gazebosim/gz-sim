@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   ackermann_steering_system.cc
+  acoustic_comms.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
@@ -18,6 +19,8 @@ set(tests
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
+  environment_preload_system.cc
+  environmental_sensor_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
@@ -49,7 +52,6 @@ set(tests
   network_handshake.cc
   odometry_publisher.cc
   particle_emitter.cc
-  particle_emitter2.cc
   perfect_comms.cc
   performer_detector.cc
   physics_system.cc
@@ -57,6 +59,8 @@ set(tests
   pose_publisher_system.cc
   rf_comms.cc
   recreate_entities.cc
+  reset.cc
+  reset_detachable_joint.cc
   save_world.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
@@ -89,14 +93,20 @@ set(tests_needing_display
   distortion_camera.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
+  reset_sensors.cc
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc
   shader_param_system.cc
   thermal_sensor_system.cc
   thermal_system.cc
-  triggered_camera.cc
+  wide_angle_camera.cc
 )
+
+# Disable tests that need CLI if gz-tools is not found
+if (MSVC OR NOT GZ_TOOLS_PROGRAM)
+  list(REMOVE_ITEM tests log_system.cc)
+endif()
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
@@ -123,7 +133,7 @@ endif()
 link_directories(${PROJECT_BINARY_DIR}/test)
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
-ign_build_tests(TYPE INTEGRATION
+gz_build_tests(TYPE INTEGRATION
   SOURCES
     ${tests}
   LIB_DEPS
@@ -138,35 +148,66 @@ cmake_policy(PUSH)
 if (POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
-ign_find_package(DART CONFIG)
+gz_find_package(DART CONFIG)
 cmake_policy(POP)
-if (DART_FOUND)
+if (DART_FOUND AND TARGET INTEGRATION_physics_system)
   # Only adding include directories, no need to link against DART to check version
   target_include_directories(INTEGRATION_physics_system SYSTEM PRIVATE ${DART_INCLUDE_DIRS})
   target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
+
+  target_link_libraries(INTEGRATION_physics_system
+    gz-math${GZ_MATH_VER}::eigen3
+  )
 endif()
 
-target_link_libraries(INTEGRATION_tracked_vehicle_system
-  ignition-physics${IGN_PHYSICS_VER}::core
-  ignition-plugin${IGN_PLUGIN_VER}::loader
-)
+if (TARGET INTEGRATION_tracked_vehicle_system)
+  target_link_libraries(INTEGRATION_tracked_vehicle_system
+    gz-physics${GZ_PHYSICS_VER}::core
+    gz-plugin${GZ_PLUGIN_VER}::loader
+  )
+endif()
 
-target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
-  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
-)
-target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
-  ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
-)
+if (TARGET INTEGRATION_model_photo_shoot_default_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
+
+if (TARGET INTEGRATION_model_photo_shoot_random_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
+
+if (TARGET INTEGRATION_log_system)
+  target_link_libraries(INTEGRATION_log_system
+    gz-transport${GZ_TRANSPORT_VER}::log
+  )
+endif()
+
+if (TARGET INTEGRATION_collada_world_exporter)
+  target_link_libraries(INTEGRATION_collada_world_exporter
+    gz-common${GZ_COMMON_VER}::graphics
+  )
+endif()
+
+if(TARGET INTEGRATION_reset_sensors)
+  target_link_libraries(INTEGRATION_reset_sensors
+    gz-common${GZ_COMMON_VER}::graphics
+  )
+endif()
 
 # The default timeout (240s) doesn't seem to be enough for this test.
-set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+if(TARGET INTEGRATION_tracked_vehicle_system )
+  set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+endif()
 
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
 endif()
 
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
-    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()

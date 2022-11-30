@@ -4,5 +4,3 @@ gz_add_gui_plugin(ViewAngle
   PRIVATE_LINK_LIBS
     ${PROJECT_LIBRARY_TARGET_NAME}-rendering
 )
-
-

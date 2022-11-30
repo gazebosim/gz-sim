@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <model name="Heightmap Bowl">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <heightmap>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/heightmap_bowl.png</uri>
+              <size>129 129 10</size>
+              <pos>0 0 0</pos>
+            </heightmap>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="above_heightmap">
+      <pose>0 0 7 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>1</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="far_from_heightmap">
+      <pose>1000 1000 7 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>1</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

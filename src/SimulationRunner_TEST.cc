@@ -18,10 +18,10 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
@@ -33,51 +33,51 @@
 #include <sdf/Sphere.hh>
 
 
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/config.hh"
+#include "test_config.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/config.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
 using DoubleComponent = Component<double, class DoubleComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DoubleComponent",
     DoubleComponent)
 }
 }
@@ -228,14 +228,14 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (modelCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
       else if (modelCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
@@ -300,7 +300,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("capsule_link", _name->Data());
         EXPECT_EQ(capModelEntity, _parent->Data());
@@ -308,7 +308,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (linkCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("ellipsoid_link", _name->Data());
         EXPECT_EQ(ellipModelEntity, _parent->Data());
@@ -436,7 +436,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("capsule_collision", _name->Data());
@@ -450,7 +450,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (collisionCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("ellipsoid_collision", _name->Data());
@@ -459,7 +459,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        EXPECT_EQ(math::Vector3d(0.4, 0.6, 1.6),
         _geometry->Data().EllipsoidShape()->Radii());
       }
       return true;
@@ -994,8 +994,8 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
     if (_checkAxis2)
       testAxis(_joint->Name(), _joint->Axis(1), _axis2);
 
-    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
-    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->ParentName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildName(), _childLinkName->Data());
     EXPECT_EQ(_joint->Name(), _name->Data());
   };
 
@@ -1185,7 +1185,7 @@ TEST_P(SimulationRunnerTest, Time)
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
+TEST_P(SimulationRunnerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 {
   // Load SDF file
   sdf::Root root;
@@ -1294,7 +1294,7 @@ TEST_P(SimulationRunnerTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadServerNoPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1317,7 +1317,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadServerConfigPlugins) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1418,7 +1418,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsDefault) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1428,7 +1428,7 @@ TEST_P(SimulationRunnerTest,
   // Load the default config, but not through the default code path.
   // The user may have modified their local config.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "server.config");
+    "include", "gz", "sim", "server.config");
   ASSERT_TRUE(common::setenv(kServerConfigPathEnv, config));
 
   // Create simulation runner
@@ -1440,7 +1440,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPluginsEvent) )
 {
   // Load SDF file without plugins
   sdf::Root rootWithout;
@@ -1534,7 +1534,7 @@ TEST_P(SimulationRunnerTest,
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadOnlyModelPlugin) )
 {
   sdf::Root rootWithout;
   rootWithout.Load(common::joinPaths(PROJECT_SOURCE_PATH,
@@ -1544,7 +1544,7 @@ TEST_P(SimulationRunnerTest,
   // ServerConfig will fall back to environment variable
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
-  ASSERT_EQ(true, common::setenv(gazebo::kServerConfigPathEnv, config));
+  ASSERT_EQ(true, common::setenv(kServerConfigPathEnv, config));
   ServerConfig serverConfig;
 
   // Create simulation runner
@@ -1585,7 +1585,7 @@ TEST_P(SimulationRunnerTest, GuiInfo)
   auto plugin = res.plugin(0);
   EXPECT_EQ("3D View", plugin.name());
   EXPECT_EQ("MinimalScene", plugin.filename());
-  EXPECT_NE(plugin.innerxml().find("<ignition-gui>"), std::string::npos);
+  EXPECT_NE(plugin.innerxml().find("<gz-gui>"), std::string::npos);
   EXPECT_NE(plugin.innerxml().find("<ambient_light>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<service>"), std::string::npos);
   EXPECT_EQ(plugin.innerxml().find("<pose_topic>"), std::string::npos);

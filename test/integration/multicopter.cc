@@ -20,32 +20,34 @@
 
 #include <optional>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class MulticopterTest : public InternalFixture<::testing::Test>
@@ -68,8 +70,8 @@ class MulticopterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 {
   // Start server
   auto server = this->StartServer("/test/worlds/quadcopter.sdf");
@@ -136,7 +138,7 @@ TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 
 /////////////////////////////////////////////////
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
 {
   // Start server
   auto server =
@@ -245,7 +247,7 @@ TEST_F(MulticopterTest,
 // Test the interactions between MulticopterVelocityControl and
 // MulticopterMotorModel
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
 {
   // Start server
   auto server =
@@ -321,7 +323,7 @@ TEST_F(MulticopterTest,
 
 /////////////////////////////////////////////////
 TEST_F(MulticopterTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
 {
   // test that the drone is able to take off when carrying a payload
   // (nexted model) with extra mass.
@@ -341,8 +343,8 @@ TEST_F(MulticopterTest,
   // get pose of drone in post update
   math::Pose3d x3Pose;
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &,
+          const EntityComponentManager &_ecm)
       {
           auto x3Ent = _ecm.EntityByComponents(
               components::Model(), components::Name("X3"));

@@ -20,15 +20,15 @@
 #include <csignal>
 #include <chrono>
 #include <exception>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/gui/Gui.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/gui/Gui.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 class GazeboDeathTest
@@ -41,10 +41,10 @@ class GazeboDeathTest
 /// \param[in] _fileName Full path to the SDFormat file to load.
 void startServer(const std::string &_fileName)
 {
-  gazebo::ServerConfig config;
+  sim::ServerConfig config;
   config.SetSdfFile(_fileName);
 
-  gazebo::Server server(config);
+  sim::Server server(config);
   EXPECT_TRUE(server.Run(true, 1, true));
 }
 
@@ -53,8 +53,8 @@ void startServer(const std::string &_fileName)
 void startGui()
 {
   int argc = 1;
-  char *argv = const_cast<char *>("ign-gazebo-gui");
-  EXPECT_EQ(0, gazebo::gui::runGui(argc, &argv, nullptr, nullptr, 0,
+  char *argv = const_cast<char *>("gz-sim-gui");
+  EXPECT_EQ(0, sim::gui::runGui(argc, &argv, nullptr, nullptr, 0,
       nullptr));
 }
 
@@ -77,7 +77,7 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-TEST_P(GazeboDeathTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
+TEST_P(GazeboDeathTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
 {
   std::string githubAction;
   // This test hangs when there is high CPU usage, so we skip it on Github

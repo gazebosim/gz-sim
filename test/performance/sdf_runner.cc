@@ -17,18 +17,20 @@
 
 #include <array>
 
-#include <ignition/msgs.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/world_stats.pb.h>
 
-#include "ignition/transport/Node.hh"
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/transport/Node.hh"
 
-using namespace ignition;
-using namespace gazebo;
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"  // NOLINT(build/include)
+
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
@@ -40,26 +42,26 @@ int main(int _argc, char** _argv)
   {
     sdfFile = _argv[1];
   }
-  igndbg << "SDF file: " << sdfFile << std::endl;
+  gzdbg << "SDF file: " << sdfFile << std::endl;
 
   unsigned int iterations{10000};
   if (_argc >= 3)
   {
     iterations = atoi(_argv[2]);
   }
-  igndbg << "Iterations: " << iterations << std::endl;
+  gzdbg << "Iterations: " << iterations << std::endl;
 
   double updateRate{-1};
   if (_argc >= 4)
   {
     updateRate = atoi(_argv[3]);
   }
-  igndbg << "Update rate: " << updateRate << std::endl;
+  gzdbg << "Update rate: " << updateRate << std::endl;
 
   ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
-    ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
+    gzerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
     return -1;
   }
 

@@ -17,38 +17,38 @@
 
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <optional>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/LevelBuffer.hh"
-#include "ignition/gazebo/components/LevelEntityNames.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/LevelBuffer.hh"
+#include "gz/sim/components/LevelEntityNames.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/components/Pose.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -207,8 +207,8 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
@@ -254,7 +254,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
 ///////////////////////////////////////////////
 /// Check a level is loaded when a performer is inside a level
 /// Check a level is unloaded when a performer is outside a level
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
@@ -304,7 +304,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 
 ///////////////////////////////////////////////
 /// Check behaviour of level buffers
-TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   this->server->AddSystem(perf1.systemPtr);
@@ -343,7 +343,7 @@ TEST_F(LevelManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffers))
 ///////////////////////////////////////////////
 /// Check that multiple performers can load/unload multiple levels independently
 TEST_F(LevelManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelsWithMultiplePerformers))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelsWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));
@@ -357,7 +357,7 @@ TEST_F(LevelManagerFixture,
 
   auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
   {
-    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+    gzdbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
            << _perf2.Id() << "]\n";
 
     // Reset positions
@@ -461,7 +461,7 @@ TEST_F(LevelManagerFixture,
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
 TEST_F(LevelManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));
@@ -475,7 +475,7 @@ TEST_F(LevelManagerFixture,
 
   auto testSequence = [&](ModelMover &_perf1, ModelMover &_perf2)
   {
-    igndbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
+    gzdbg << "Testing performer1 [" << _perf1.Id() << "] and performer2 ["
            << _perf2.Id() << "]\n";
     // Move performer1 into level1 and performer2 to level1's buffer
     _perf1.SetPose(level1Pose);

@@ -11,20 +11,20 @@
   <PREFIX>/source_<id>/stop service calls.
 
   To play the source attached to the blue box, run the following command:
-    ign service -s /model/blue_box/sensor/source_1/play
-      --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean
+    gz service -s /model/blue_box/sensor/source_1/play
+      --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean
       --timeout 1000 --req 'unused: false'
 
   To stop the source attached to the blue box, run the following command:
-    ign service -s /model/blue_box/sensor/source_1/stop
-      --reqtype ignition.msgs.Empty --reptype ignition.msgs.Boolean
+    gz service -s /model/blue_box/sensor/source_1/stop
+      --reqtype gz.msgs.Empty --reptype gz.msgs.Boolean
       --timeout 1000 --req 'unused: false'
 
   To observe microphone detections, use the <PREFIX>/mic_<id>/detection topic.
 
   The following command will display detections heard by the microphone attached
   to the green box:
-    ign topic -e -t /model/green_box/sensor/mic_1/detection
+    gz topic -e -t /model/green_box/sensor/mic_1/detection
 -->
 <sdf version="1.6">
   <world name="logical_audio_sensor">
@@ -33,16 +33,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -125,7 +125,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>.5 0 0 0 0 0</pose>
@@ -174,7 +174,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>0 0 0 0 0 0</pose>
@@ -223,7 +223,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <microphone>
           <id>1</id>
           <pose>0 .5 0 0 0 0</pose>
@@ -266,7 +266,7 @@
           </material>
         </visual>
       </link>
-      <plugin filename="ignition-gazebo-logicalaudiosensorplugin-system" name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+      <plugin filename="gz-sim-logicalaudiosensorplugin-system" name="gz::sim::systems::LogicalAudioSensorPlugin">
         <microphone>
           <id>1</id>
           <pose>0.5 0.5 0.5 0 0 0</pose>

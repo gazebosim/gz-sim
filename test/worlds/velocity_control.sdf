@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo velocity control plugin demo
+  Gazebo velocity control plugin demo
 
   Try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
 
-    ign topic -t "/model/vehicle_green/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+    gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
 
 -->
 <sdf version="1.6">
@@ -17,16 +17,16 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -239,8 +239,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
         <link_name>caster</link_name>
       </plugin>
 
@@ -415,8 +415,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-velocity-control-system"
-        name="ignition::gazebo::systems::VelocityControl">
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
         <initial_linear>0.3 0 0</initial_linear>
         <initial_angular>0 0 -0.1</initial_angular>
       </plugin>

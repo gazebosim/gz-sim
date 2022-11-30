@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo pose publisher plugin demo
+  Gazebo pose publisher plugin demo
 
   Try listening to topic:
 
-    ign topic -e -t "/model/double_pendulum_with_base/pose"
+    gz topic -e -t "/model/double_pendulum_with_base/pose"
 -->
 <sdf version="1.6">
   <world name="pose_publisher">
@@ -14,16 +14,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -266,8 +266,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-pose-publisher-system"
-        name="ignition::gazebo::systems::PosePublisher">
+        filename="gz-sim-pose-publisher-system"
+        name="gz::sim::systems::PosePublisher">
         <publish_link_pose>true</publish_link_pose>
         <publish_collision_pose>false</publish_collision_pose>
         <publish_visual_pose>false</publish_visual_pose>

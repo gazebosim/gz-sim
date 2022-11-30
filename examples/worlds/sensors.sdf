@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo sensor demo for sensors that do not require rendering.
+  Gazebo sensor demo for sensors that do not require rendering.
 
   Listen to sensor readings:
 
-    Altimeter: ign topic -e -t /altimeter
-    Imu: ign topic -e -t /imu
-    Magnetometer: ign topic -e -t /magnetometer
-    Air pressure: ign topic -e -t /air_pressure
+    Altimeter: gz topic -e -t /altimeter
+    Imu: gz topic -e -t /imu
+    Magnetometer: gz topic -e -t /magnetometer
+    Air pressure: gz topic -e -t /air_pressure
 -->
 <sdf version="1.6">
   <world name="sensors">
@@ -16,36 +16,36 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-air-pressure-system"
-      name="ignition::gazebo::systems::AirPressure">
+      filename="gz-sim-air-pressure-system"
+      name="gz::sim::systems::AirPressure">
     </plugin>
     <plugin
-      filename="ignition-gazebo-altimeter-system"
-      name="ignition::gazebo::systems::Altimeter">
+      filename="gz-sim-altimeter-system"
+      name="gz::sim::systems::Altimeter">
     </plugin>
     <plugin
-      filename="ignition-gazebo-imu-system"
-      name="ignition::gazebo::systems::Imu">
+      filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
     </plugin>
     <plugin
-      filename="ignition-gazebo-magnetometer-system"
-      name="ignition::gazebo::systems::Magnetometer">
+      filename="gz-sim-magnetometer-system"
+      name="gz::sim::systems::Magnetometer">
     </plugin>
     <plugin
-      filename="ignition-gazebo-forcetorque-system"
-      name="ignition::gazebo::systems::ForceTorque">
+      filename="gz-sim-forcetorque-system"
+      name="gz::sim::systems::ForceTorque">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">

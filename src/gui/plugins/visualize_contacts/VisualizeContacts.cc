@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <string>
 #include <vector>
@@ -24,35 +24,35 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 #include "VisualizeContacts.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   /// \brief Private data class for VisualizeContacts
   class VisualizeContactsPrivate
@@ -72,7 +72,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: bool checkboxPrevState{false};
 
     /// \brief Message for visualizing contact positions
-    public: ignition::msgs::Marker positionMarkerMsg;
+    public: gz::msgs::Marker positionMarkerMsg;
 
     /// \brief Radius of the visualized contact sphere
     public: double contactRadius{0.10};
@@ -98,8 +98,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VisualizeContacts::VisualizeContacts()
@@ -123,11 +123,11 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
   // Create the marker message
   this->dataPtr->positionMarkerMsg.set_ns("positions");
   this->dataPtr->positionMarkerMsg.set_action(
-    ignition::msgs::Marker::ADD_MODIFY);
+    gz::msgs::Marker::ADD_MODIFY);
   this->dataPtr->positionMarkerMsg.set_type(
-    ignition::msgs::Marker::SPHERE);
+    gz::msgs::Marker::SPHERE);
   this->dataPtr->positionMarkerMsg.set_visibility(
-    ignition::msgs::Marker::GUI);
+    gz::msgs::Marker::GUI);
   this->dataPtr->
     positionMarkerMsg.mutable_lifetime()->
       set_sec(0);
@@ -136,16 +136,16 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
       set_nsec(this->dataPtr->markerLifetime * 1000000);
 
   // Set material properties
-  ignition::msgs::Set(
+  gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient(),
-    ignition::math::Color(0, 0, 1, 1));
-  ignition::msgs::Set(
+    gz::math::Color(0, 0, 1, 1));
+  gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse(),
-    ignition::math::Color(0, 0, 1, 1));
+    gz::math::Color(0, 0, 1, 1));
 
   // Set contact position scale
-  ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->dataPtr->contactRadius,
+  gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
+    gz::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
 }
@@ -161,7 +161,7 @@ void VisualizeContacts::OnVisualize(bool _checked)
 void VisualizeContacts::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VisualizeContacts::Update");
+  GZ_PROFILE("VisualizeContacts::Update");
 
   if (!this->dataPtr->initialized)
   {
@@ -190,15 +190,15 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
     {
       // Remove the markers
       this->dataPtr->positionMarkerMsg.set_action(
-        ignition::msgs::Marker::DELETE_ALL);
+        gz::msgs::Marker::DELETE_ALL);
 
-      igndbg << "Removing markers..." << std::endl;
+      gzdbg << "Removing markers..." << std::endl;
       this->dataPtr->node.Request(
         "/marker", this->dataPtr->positionMarkerMsg);
 
       // Change action in case checkbox is checked again
       this->dataPtr->positionMarkerMsg.set_action(
-        ignition::msgs::Marker::ADD_MODIFY);
+        gz::msgs::Marker::ADD_MODIFY);
     }
 
     this->dataPtr->checkboxPrevState = this->dataPtr->checkboxState;
@@ -233,8 +233,8 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
         {
           // Set marker id, poses and request service
           this->dataPtr->positionMarkerMsg.set_id(markerID++);
-          ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
-            ignition::math::Pose3d(contact.position(i).x(),
+          gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
+            gz::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(), contact.position(i).z(),
               0, 0, 0));
 
@@ -264,7 +264,7 @@ void VisualizeContactsPrivate::CreateCollisionData(
 
       if (collisionHasContactSensor)
       {
-        igndbg << "ContactSensorData detected in collision [" << _entity << "]"
+        gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
           << std::endl;
         return true;
       }
@@ -292,8 +292,8 @@ void VisualizeContacts::UpdateRadius(double _radius)
   this->dataPtr->contactRadius = _radius;
 
   // Set scale
-  ignition::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
-    ignition::math::Vector3d(this->dataPtr->contactRadius,
+  gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
+    gz::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
 }
@@ -310,5 +310,5 @@ void VisualizeContacts::UpdatePeriod(double _period)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeContacts,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::VisualizeContacts,
+                    gz::gui::Plugin)

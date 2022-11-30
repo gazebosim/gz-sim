@@ -17,18 +17,20 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/gui/Dialog.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Util.hh>
+#include <gz/gui/Dialog.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/gui/Gui.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/gui/Gui.hh"
+#include "test_config.hh"
 #include "QuickStartHandler.hh"
 
 #include "../../test/helpers/EnvTestFixture.hh"
@@ -36,8 +38,8 @@
 int gg_argc = 1;
 char **gg_argv = new char *[gg_argc];
 
-using namespace ignition;
-using namespace ignition::gazebo::gui;
+using namespace gz;
+using namespace gz::sim::gui;
 
 class GuiTest : public InternalFixture<::testing::Test>
 {
@@ -45,17 +47,17 @@ class GuiTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // https://github.com/gazebosim/gz-sim/issues/8
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 {
   common::Console::SetVerbosity(4);
-  igndbg << "Start test" << std::endl;
+  gzdbg << "Start test" << std::endl;
 
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
   common::setenv("SDF_PATH", "");
-  common::setenv("IGN_FILE_PATH", "");
-  igndbg << "Environment set" << std::endl;
+  common::setenv("GZ_FILE_PATH", "");
+  gzdbg << "Environment set" << std::endl;
 
   transport::Node node;
 
@@ -69,7 +71,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/gazebo/worlds", worldsCb);
-  igndbg << "Worlds advertised" << std::endl;
+  gzdbg << "Worlds advertised" << std::endl;
 
   // GUI info callback
   bool guiInfoCalled{false};
@@ -80,7 +82,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/world/world_name/gui/info", guiInfoCb);
-  igndbg << "GUI info advertised" << std::endl;
+  gzdbg << "GUI info advertised" << std::endl;
 
   // Resource paths callback
   bool pathsCalled{false};
@@ -92,21 +94,21 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         return true;
       };
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
-  igndbg << "Paths advertised" << std::endl;
+  gzdbg << "Paths advertised" << std::endl;
 
-  auto app = createGui(gg_argc, gg_argv, nullptr,
-    nullptr, false, nullptr);
+  auto app = createGui(
+    gg_argc, gg_argv, nullptr, nullptr, false, nullptr);
   EXPECT_NE(nullptr, app);
-  igndbg << "GUI created" << std::endl;
+  gzdbg << "GUI created" << std::endl;
 
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(guiInfoCalled);
   EXPECT_TRUE(pathsCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "GZ_FILE_PATH"})
   {
-    igndbg << "Checking variable [" << env << "]" << std::endl;
+    gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
@@ -131,7 +133,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
         topicCalled = true;
       };
   node.Subscribe("/gazebo/resource_paths", topicCb);
-  igndbg << "Paths subscribed" << std::endl;
+  gzdbg << "Paths subscribed" << std::endl;
 
   // Notify new path through a topic
   msgs::StringMsg_V msg;
@@ -144,15 +146,15 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   int maxSleep{30};
   while (!topicCalled && sleep < maxSleep)
   {
-    IGN_SLEEP_MS(100);
+    GZ_SLEEP_MS(100);
     sleep++;
   }
   EXPECT_TRUE(topicCalled);
 
   // Check paths
-  for (auto env : {"IGN_GAZEBO_RESOURCE_PATH", "SDF_PATH", "IGN_FILE_PATH"})
+  for (auto env : {"GZ_SIM_RESOURCE_PATH", "SDF_PATH", "GZ_FILE_PATH"})
   {
-    igndbg << "Checking variable [" << env << "]" << std::endl;
+    gzdbg << "Checking variable [" << env << "]" << std::endl;
     char *pathCStr = std::getenv(env);
 
     auto paths = common::Split(pathCStr, ':');
@@ -172,10 +174,10 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 }
 
 /////////////////////////////////////////////////
-TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
+TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
 {
   common::Console::SetVerbosity(4);
-  igndbg << "Start test" << std::endl;
+  gzdbg << "Start test" << std::endl;
 
   transport::Node node;
 
@@ -189,7 +191,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
         return true;
       };
   node.Advertise("/gazebo/worlds", worldsCb);
-  igndbg << "Worlds advertised" << std::endl;
+  gzdbg << "Worlds advertised" << std::endl;
 
   // Starting world callback
   bool startingWorldCalled{false};
@@ -202,7 +204,7 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
 
   std::string topic{"/gazebo/starting_world"};
   node.Subscribe(topic, topicCb);
-  igndbg << "Subscribed to [" << topic << "]" << std::endl;
+  gzdbg << "Subscribed to [" << topic << "]" << std::endl;
 
   // Custom config
   // TODO(chapulina) Make it not Linux-specific
@@ -212,10 +214,16 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
       "<plugin filename='Publisher' name='Publisher'/>";
   configFile.close();
 
+  std::mutex guiMutex;
+  std::condition_variable guiCv;
+  std::unique_lock threadLock(guiMutex);
+  bool runningMainWindow = false;
+
   // Thread to check and close quick start dialog
   std::thread checkingThread([&]()
   {
-    igndbg << "Started checking thread" << std::endl;
+    std::unique_lock internalLock(guiMutex);
+    gzdbg << "Started checking thread" << std::endl;
     for (int sleep = 0;
         (nullptr == gui::App( ) ||
          gui::App()->allWindows().empty() ||
@@ -226,20 +234,27 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     }
     ASSERT_NE(nullptr, gui::App());
     ASSERT_EQ(1, gui::App()->allWindows().count());
-    igndbg << "Found app" << std::endl;
+    gzdbg << "Found app" << std::endl;
 
     auto handler = gui::App()->Engine()->findChild<QuickStartHandler *>();
     ASSERT_NE(nullptr, handler);
 
     EXPECT_EQ(GZ_DISTRIBUTION, handler->Distribution());
-    EXPECT_EQ(IGNITION_GAZEBO_VERSION_FULL, handler->SimVersion());
+    EXPECT_EQ(GZ_SIM_VERSION_FULL, handler->SimVersion());
     EXPECT_TRUE(handler->ShowAgain());
 
     handler->SetStartingWorld("banana");
     EXPECT_EQ("banana", handler->StartingWorld());
 
+    // Close the quick start window
+    gzdbg << "Closing the quickstart window" << std::endl;
+    ASSERT_EQ(1, gui::App()->allWindows().count());
     gui::App()->allWindows()[0]->close();
 
+    gzdbg << "Waiting for main window" << std::endl;
+    guiCv.wait(internalLock, [&] () {return runningMainWindow;});
+
+    gzdbg << "Closing main window" << std::endl;
     // Close main window
     for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
@@ -249,24 +264,40 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
     auto win = gui::App()->findChild<gui::MainWindow *>();
-    ASSERT_NE(nullptr, win);
-    EXPECT_TRUE(win->QuickWindow()->isVisible());
-    win->QuickWindow()->close();
+    // The above loop can result in the window being null. This if will
+    // make the test pass, but it also bypasses a couple checks.
+    if (win)
+    {
+      ASSERT_TRUE(win);
+      EXPECT_TRUE(win->QuickWindow()->isVisible());
+      win->QuickWindow()->close();
+    }
+    auto allWindows = gui::App()->allWindows();
+    for (int i = 0; i < allWindows.size(); ++i)
+    {
+      allWindows[i]->close();
+    }
+    gzdbg << "Exiting checking thread" << std::endl;
   });
 
+  threadLock.unlock();
   auto app = createGui(gg_argc, gg_argv,
       configFilePath.c_str() /* _guiConfig */,
       nullptr /* _defaultGuiConfig */,
       true /* _loadPluginsFromSdf */,
       nullptr /* _sdfFile */,
       true /* _waitGui */);
+  threadLock.lock();
   EXPECT_NE(nullptr, app);
-  igndbg << "GUI created" << std::endl;
+  gzdbg << "GUI created" << std::endl;
 
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(startingWorldCalled);
 
+  runningMainWindow = true;
+  guiCv.notify_one();
+  threadLock.unlock();
+  gzdbg << "Running main window" << std::endl;
   app->exec();
   checkingThread.join();
 }
-

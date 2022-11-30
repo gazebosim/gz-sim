@@ -17,8 +17,8 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/empty.pb.h>
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <optional>
 #include <regex>
@@ -26,25 +26,25 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Model.hh"
+#include "test_config.hh"
 
 #include "helpers/Relay.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class BreadcrumbsTest : public InternalFixture<::testing::Test>
 {
@@ -76,11 +76,11 @@ void remainingCb(const msgs::Int32 &_msg)
 
 /////////////////////////////////////////////////
 // This test checks the .../deploy/remaining topic
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
   kRemaining = 0;
 
   test::Relay testSystem;
@@ -135,10 +135,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
 
 /////////////////////////////////////////////////
 // The test checks breadcrumbs are deployed at the correct pose
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -200,10 +200,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployAtOffset))
 
 /////////////////////////////////////////////////
 // The test checks max deployments
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -256,10 +256,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MaxDeployments))
 /////////////////////////////////////////////////
 // The test checks that including models from fuel works. Also checks custom
 // topic
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -309,10 +309,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(FuelDeploy))
 
 /////////////////////////////////////////////////
 // The test checks that breadcrumbs can be performers
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -370,7 +370,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
             return true;
           });
       ASSERT_TRUE(initialPose.has_value());
-      igndbg << "Init: " << initialPose->Pos() << " Final: "
+      gzdbg << "Init: " << initialPose->Pos() << " Final: "
                 << finalPose.Pos() << std::endl;
       EXPECT_NEAR(initialPose->Pos().Z(), finalPose.Pos().Z(), 1e-3);
     }
@@ -383,10 +383,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Performer))
 /////////////////////////////////////////////////
 // Test that the volume of the performer is set when deploying a performer
 // breadcrumb
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf", true);
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"), true);
 
   test::Relay testSystem;
   transport::Node node;
@@ -396,9 +396,8 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
   const std::size_t iterTestStart = 1000;
   const std::size_t nIters = iterTestStart + 2000;
 
-  std::optional<math::Pose3d> initialPose;
   testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                             const EntityComponentManager &_ecm)
+                              const EntityComponentManager &_ecm)
   {
     // Deploy a performer breadcrumb on a tile that's on the default a level,
     // and check that it causes tile_1 to be loaded since the performer's volume
@@ -438,10 +437,10 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerformerSetVolume))
 
 /////////////////////////////////////////////////
 // The test verifies breadcrumbs physics is disabled using disable_physics_time
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
 
   test::Relay testSystem;
   transport::Node node;
@@ -516,7 +515,7 @@ TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeployDisablePhysics))
 /////////////////////////////////////////////////
 // The test verifies that if allow_renaming is true, the Breadcrumb system
 // renames spawned models if a model with the same name exists.
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(AllowRenaming))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AllowRenaming))
 {
   // Start server
   this->LoadWorld("test/worlds/breadcrumbs.sdf");
@@ -570,10 +569,11 @@ std::vector<Entity> ModelsByNameRegex(
 
 // The test checks that models containing Breadcrumbs can be unloaded and loaded
 // safely
-TEST_F(BreadcrumbsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 {
   // Start server
-  this->LoadWorld("test/worlds/breadcrumbs_levels.sdf", true);
+  this->LoadWorld(
+      common::joinPaths("test", "worlds", "breadcrumbs_levels.sdf"), true);
 
   test::Relay testSystem;
   transport::Node node;

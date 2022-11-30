@@ -17,25 +17,25 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <thread>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test OpticalTactilePlugin system
 class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
@@ -52,12 +52,12 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*server->Running(0));
   }
 
-  public: ignition::math::Vector3f MapPointCloudData(
+  public: gz::math::Vector3f MapPointCloudData(
     const uint64_t &_i,
     const uint64_t &_j)
   {
     // Initialize return variable
-    ignition::math::Vector3f measuredPoint(0, 0, 0);
+    gz::math::Vector3f measuredPoint(0, 0, 0);
 
     std::string data = this->normalForces.data();
     char *msgBuffer = data.data();
@@ -67,14 +67,14 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
     uint32_t msgBufferIndex =
       _j * this->normalForces.step() + _i * 3 * sizeof(float);
 
-    measuredPoint.X() = static_cast<float>(
-      msgBuffer[msgBufferIndex]);
+    measuredPoint.X() = *reinterpret_cast<float*>(
+        &msgBuffer[msgBufferIndex]);
 
-    measuredPoint.Y() = static_cast<float>(
-      msgBuffer[msgBufferIndex + sizeof(float)]);
+    measuredPoint.Y() = *reinterpret_cast<float*>(
+        &msgBuffer[msgBufferIndex + sizeof(float)]);
 
-    measuredPoint.Z() = static_cast<float>(
-      msgBuffer[msgBufferIndex + 2*sizeof(float)]);
+    measuredPoint.Z() = *reinterpret_cast<float*>(
+      &msgBuffer[msgBufferIndex + 2*sizeof(float)]);
 
     return measuredPoint;
   }
@@ -88,7 +88,7 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
 // The test checks the normal forces on the corners of the box-shaped sensor
 // Fails to load Ogre plugin on macOS
 TEST_F(OpticalTactilePluginTest,
-    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ForcesOnPlane))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ForcesOnPlane))
 {
   // World with moving entities
   const auto sdfPath = common::joinPaths(

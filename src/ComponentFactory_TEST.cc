@@ -16,16 +16,16 @@
 */
 
 #include <gtest/gtest.h>
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "test_config.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class ComponentFactoryTest : public InternalFixture<::testing::Test>
@@ -34,7 +34,7 @@ class ComponentFactoryTest : public InternalFixture<::testing::Test>
   protected: void SetUp() override
   {
     InternalFixture::SetUp();
-    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
+    common::setenv("GZ_DEBUG_COMPONENT_FACTORY", "true");
   }
 };
 
@@ -54,13 +54,13 @@ TEST_F(ComponentFactoryTest, Register)
   // Store number of registered component types
   auto registeredCount = factory->TypeIds().size();
 
-  factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
+  factory->Register<MyCustom>("gz_sim_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
 
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
-  EXPECT_EQ("ign_gazebo_components.MyCustom", MyCustom::typeName);
-  EXPECT_EQ("ign_gazebo_components.MyCustom",
+  EXPECT_EQ("gz_sim_components.MyCustom", MyCustom::typeName);
+  EXPECT_EQ("gz_sim_components.MyCustom",
       factory->Name(MyCustom::typeId));
 
   // Check factory knows id
@@ -69,7 +69,7 @@ TEST_F(ComponentFactoryTest, Register)
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
 
   // Fail to register same component twice
-  factory->Register<MyCustom>("ign_gazebo_components.MyCustom",
+  factory->Register<MyCustom>("gz_sim_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
@@ -77,7 +77,7 @@ TEST_F(ComponentFactoryTest, Register)
   // Fail to register 2 components with same name
   using Duplicate = components::Component<components::NoData,
       class DuplicateTag>;
-  factory->Register<Duplicate>("ign_gazebo_components.MyCustom",
+  factory->Register<Duplicate>("gz_sim_components.MyCustom",
       new components::ComponentDescriptor<Duplicate>());
 
   EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
@@ -123,7 +123,7 @@ TEST_F(ComponentFactoryTest, New)
     // Test constructing a component with pre-defined data
 
     // Test a valid pre-defined component
-    ignition::math::Pose3d pose(1, 2, 3, 4, 5, 6);
+    gz::math::Pose3d pose(1, 2, 3, 4, 5, 6);
     components::Pose poseComp(pose);
     auto comp = factory->New(components::Pose::typeId, &poseComp);
     ASSERT_NE(nullptr, comp);
@@ -141,4 +141,3 @@ TEST_F(ComponentFactoryTest, New)
     ASSERT_EQ(nullptr, comp);
   }
 }
-

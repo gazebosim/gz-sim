@@ -16,15 +16,15 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/dataframe.pb.h>
+#include <gz/msgs/dataframe.pb.h>
 
 #include <unordered_map>
 
-#include "ignition/gazebo/comms/MsgManager.hh"
+#include "gz/sim/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for MsgManager class
 class MsgManagerTest : public InternalFixture<::testing::Test>

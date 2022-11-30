@@ -14,35 +14,35 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMMANAGER_HH_
-#define IGNITION_GAZEBO_SYSTEMMANAGER_HH_
+#ifndef GZ_SIM_SYSTEMMANAGER_HH_
+#define GZ_SIM_SYSTEMMANAGER_HH_
 
-#include <ignition/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include <sdf/Plugin.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "SystemInternal.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
-    class IGNITION_GAZEBO_VISIBLE SystemManager
+    class GZ_SIM_VISIBLE SystemManager
     {
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins
@@ -104,9 +104,27 @@ namespace ignition
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
-      /// \brief Get an vector of all active systems implementing "Configure"
-      /// \return Vector of systems's configure interfaces.
+      /// \brief Perform a reset on all systems
+      ///
+      /// If a system implements the ISystemReset interface, it will be called.
+      //
+      /// Otherwise, if a system does not have the ISystemReset interface
+      /// implemented, and was created via loading a plugin,
+      /// that plugin will be reloaded.
+      ///
+      /// Otherwise, if a system is created from in-memory rather than a plugin,
+      /// that system will remain unaffected.
+      /// \param[in] _info Update info corresponding to the update time
+      /// \param[in] _ecm Version of the ECM reset to an initial state
+      public: void Reset(const UpdateInfo &_info, EntityComponentManager &_ecm);
+
+      /// \brief Get a vector of all systems implementing "Configure"
+      /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
+
+      /// \brief Get an vector of all active systems implementing "Reset"
+      /// \return Vector of systems' reset interfaces.
+      public: const std::vector<ISystemReset *>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
@@ -162,6 +180,9 @@ namespace ignition
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;
 
+      /// \brief Systems implementing Reset
+      private: std::vector<ISystemReset *> systemsReset;
+
       /// \brief Systems implementing PreUpdate
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
@@ -193,6 +214,6 @@ namespace ignition
       private: std::unique_ptr<transport::Node> node{nullptr};
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_SYSTEMINTERNAL_HH_

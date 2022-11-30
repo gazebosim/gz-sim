@@ -80,7 +80,7 @@ Rectangle {
       type: "world"
     }
 
-    // Actions provided by Ignition GUI, with custom titles
+    // Actions provided by Gazebo GUI, with custom titles
     ListElement {
       title: "Load client configuration"
       actionElement: "loadConfig"
@@ -133,7 +133,7 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.sdf)" ]
+    nameFilters: [ "SDF files (*.sdf)" ]
     selectMultiple: false
     selectExisting: false
     onAccepted: {
@@ -146,7 +146,7 @@ Rectangle {
    */
   Dialog {
     id: aboutDialog
-    title: "Ignition Gazebo"
+    title: "Gazebo Sim"
 
     modal: true
     focus: true

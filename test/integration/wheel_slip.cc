@@ -17,43 +17,43 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <sdf/Sphere.hh>
 #include <sdf/Cylinder.hh>
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/SlipComplianceCmd.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/SlipComplianceCmd.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test DiffDrive system
 class WheelSlipTest : public InternalFixture<::testing::Test>
@@ -104,8 +104,8 @@ class WheelSlipTest : public InternalFixture<::testing::Test>
   };
 };
 
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
 {
   const double metersPerMile = 1609.34;
   const double secondsPerHour = 3600.0;
@@ -303,7 +303,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   {
     WheelSlipState state = state0;
     state.description = "Zero slip";
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = 0.0;
     states.push_back(state);
@@ -311,7 +311,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   {
     WheelSlipState state = state0;
     state.description = "Lateral slip: low";
-    state.steer.Degree(3.0);
+    state.steer.SetDegree(3.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = -state.suspForce *
         sin(state.steer.Radian()) / state.wheelSlipComplianceLateral;
@@ -321,7 +321,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   {
     WheelSlipState state = state0;
     state.description = "Lateral slip: high";
-    state.steer.Degree(10);
+    state.steer.SetDegree(10);
     state.wheelSpeed *= cos(state.steer.Radian());
     state.axelForceLateral = -state.suspForce;
     state.axelForceLongitudinal = 0.0;
@@ -332,7 +332,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
     state.description = "Longitudinal torque control: low";
     state.wheelSpeed = -1.055 * state.drumSpeed * drumRadius / wheelRadius;
     state.wheelTorque = 0.25 * state.suspForce * wheelRadius;
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = -250.0;
@@ -343,7 +343,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
     state.description = "Longitudinal torque control: moderate";
     state.wheelSpeed = -1.12 * state.drumSpeed * drumRadius / wheelRadius;
     state.wheelTorque = 0.5 * state.suspForce * wheelRadius;
-    state.steer.Degree(0.0);
+    state.steer.SetDegree(0.0);
     state.wheelSlipComplianceLateral = 0.1;
     state.axelForceLateral = 0.0;
     state.axelForceLongitudinal = -600.0;
@@ -368,7 +368,7 @@ TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   server.Run(true, 250, false);
 }
 
-TEST_F(WheelSlipTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
+TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

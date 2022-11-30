@@ -24,27 +24,28 @@
 #include <vector>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/ShaderParams.hh>
-#include <ignition/rendering/Visual.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/ShaderParams.hh>
+#include <gz/rendering/Visual.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ShaderParamPrivate
+class gz::sim::systems::ShaderParamPrivate
 {
   /// \brief Data structure for storing shader param info
   public: class ShaderParamValue
@@ -86,7 +87,7 @@ class ignition::gazebo::systems::ShaderParamPrivate
   public: std::mutex mutex;
 
   /// \brief Connection to pre-render event callback
-  public: ignition::common::ConnectionPtr connection{nullptr};
+  public: gz::common::ConnectionPtr connection{nullptr};
 
   /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
@@ -136,7 +137,7 @@ void ShaderParam::Configure(const Entity &_entity,
                EntityComponentManager &_ecm,
                EventManager &_eventMgr)
 {
-  IGN_PROFILE("ShaderParam::Configure");
+  GZ_PROFILE("ShaderParam::Configure");
   // Ugly, but needed because the sdf::Element::GetElement is not a const
   // function and _sdf is a const shared pointer to a const sdf::Element.
   auto sdf = const_cast<sdf::Element *>(_sdf.get());
@@ -150,7 +151,7 @@ void ShaderParam::Configure(const Entity &_entity,
       if (!paramElem->HasElement("shader") ||
           !paramElem->HasElement("name"))
       {
-        ignerr << "<param> must have <shader> and <name> sdf elements"
+        gzerr << "<param> must have <shader> and <name> sdf elements"
                << std::endl;
         paramElem = paramElem->GetNextElement("param");
         continue;
@@ -192,7 +193,7 @@ void ShaderParam::Configure(const Entity &_entity,
   // parse path to shaders
   if (!sdf->HasElement("shader"))
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
@@ -203,7 +204,7 @@ void ShaderParam::Configure(const Entity &_entity,
     if (!shaderElem->HasElement("vertex") ||
         !shaderElem->HasElement("fragment"))
     {
-      ignerr << "<shader> must have <vertex> and <fragment> sdf elements"
+      gzerr << "<shader> must have <vertex> and <fragment> sdf elements"
              << std::endl;
     }
     else
@@ -230,7 +231,7 @@ void ShaderParam::Configure(const Entity &_entity,
   }
   if (this->dataPtr->shaders.empty())
   {
-    ignerr << "Unable to load shader param system. "
+    gzerr << "Unable to load shader param system. "
            << "No valid shaders." << std::endl;
     return;
   }
@@ -243,16 +244,16 @@ void ShaderParam::Configure(const Entity &_entity,
   // the callback is executed in the rendering thread so do all
   // rendering operations in that thread
   this->dataPtr->connection =
-      _eventMgr.Connect<ignition::gazebo::events::SceneUpdate>(
+      _eventMgr.Connect<gz::sim::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
 void ShaderParam::PreUpdate(
-  const ignition::gazebo::UpdateInfo &_info,
-  ignition::gazebo::EntityComponentManager &)
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &)
 {
-  IGN_PROFILE("ShaderParam::PreUpdate");
+  GZ_PROFILE("ShaderParam::PreUpdate");
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime = _info.simTime;
 }
@@ -284,11 +285,9 @@ void ShaderParamPrivate::OnUpdate()
       nodes.pop_front();
       if (n && n->HasUserData("gazebo-entity"))
       {
-        // RenderUti stores gazebo-entity user data as int
-        // \todo(anyone) Change this to uint64_t in Ignition H?
         auto variant = n->UserData("gazebo-entity");
-        const int *value = std::get_if<int>(&variant);
-        if (value && *value == static_cast<int>(this->entity))
+        const uint64_t *value = std::get_if<uint64_t>(&variant);
+        if (value && *value == this->entity)
         {
           this->visual = std::dynamic_pointer_cast<rendering::Visual>(n);
           break;
@@ -307,29 +306,30 @@ void ShaderParamPrivate::OnUpdate()
   {
     auto mat = scene->CreateMaterial();
 
-    // default to glsl
-    auto it = this->shaders.find("glsl");
-    if (it != this->shaders.end())
+    if (scene->Engine() && scene->Engine()->GraphicsAPI() ==
+        rendering::GraphicsAPI::METAL)
     {
-      mat->SetVertexShader(it->second.vertexShaderUri);
-      mat->SetFragmentShader(it->second.fragmentShaderUri);
+      // metal
+      auto metalIt = this->shaders.find("metal");
+      if (metalIt != this->shaders.end())
+      {
+        mat->SetVertexShader(metalIt->second.vertexShaderUri);
+        mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
+        gzmsg << "Using metal shaders. " << std::endl;
+      }
     }
-    // prefer metal over glsl on macOS
-    // \todo(anyone) instead of using ifdef to check for macOS,
-    // expose add an accessor function to get the GraphicsApi
-    // from rendering::RenderEngine
-#ifdef __APPLE__
-    auto metalIt = this->shaders.find("metal");
-    if (metalIt != this->shaders.end())
+    else
     {
-      mat->SetVertexShader(metalIt->second.vertexShaderUri);
-      mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
-      // if both glsl and metal are specified, print a msg to inform that
-      // metal is used instead of glsl
+      //  try glsl for all others
+      auto it = this->shaders.find("glsl");
       if (it != this->shaders.end())
-        ignmsg << "Using metal shaders. " << std::endl;
+      {
+        mat->SetVertexShader(it->second.vertexShaderUri);
+        mat->SetFragmentShader(it->second.fragmentShaderUri);
+        gzmsg << "Using glsl shaders. " << std::endl;
+      }
     }
-#endif
+
     this->visual->SetMaterial(mat);
     scene->DestroyMaterial(mat);
     this->material = this->visual->Material();
@@ -362,7 +362,7 @@ void ShaderParamPrivate::OnUpdate()
     // if no <value> is specified, this could be a constant
     if (spv.value.empty())
     {
-      // \todo handle args for constants in ign-rendering
+      // \todo handle args for constants in gz-rendering
       (*params)[spv.name] = 1;
       continue;
     }
@@ -441,7 +441,7 @@ void ShaderParamPrivate::OnUpdate()
         if (!spv.type.empty() && spv.type == "int_array")
         {
           for (const auto &v : values)
-            floatArrayValue.push_back(std::stoi(v));
+            floatArrayValue.push_back(std::stof(v));
           paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
         }
         // treat everything else as float_array
@@ -487,10 +487,14 @@ void ShaderParamPrivate::OnUpdate()
   }
 }
 
-IGNITION_ADD_PLUGIN(ShaderParam,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(ShaderParam,
+                    gz::sim::System,
                     ShaderParam::ISystemConfigure,
                     ShaderParam::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
+GZ_ADD_PLUGIN_ALIAS(ShaderParam,
+  "gz::sim::systems::ShaderParam")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(ShaderParam,
   "ignition::gazebo::systems::ShaderParam")

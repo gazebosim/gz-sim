@@ -5,16 +5,16 @@
 <sdf version="1.6">
   <world name="shapes">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -116,18 +116,18 @@
             <heightmap>
               <use_terrain_paging>false</use_terrain_paging>
               <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/dirt_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/dirt_diffusespecular.png</diffuse>
+                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/grass_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/grass_diffusespecular.png</diffuse>
+                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <texture>
-                <diffuse>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fungus_diffusespecular.png</diffuse>
-                <normal>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
+                <diffuse>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fungus_diffusespecular.png</diffuse>
+                <normal>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/flat_normal.png</normal>
                 <size>10</size>
               </texture>
               <blend>
@@ -138,7 +138,7 @@
                 <min_height>35</min_height>
                 <fade_dist>18</fade_dist>
               </blend>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
               <size>257 257 50</size>
               <pos>0 0 -28</pos>
             </heightmap>
@@ -147,7 +147,7 @@
         <collision name="collision">
           <geometry>
             <heightmap>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress heightmap/tip/files/materials/textures/fortress_heightmap.png</uri>
               <size>257 257 50</size>
               <pos>0 0 -28</pos>
             </heightmap>

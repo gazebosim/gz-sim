@@ -21,36 +21,44 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/marker_v.pb.h>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/common/Console.hh"
-#include "ignition/rendering/Marker.hh"
-#include "ignition/rendering/RenderingIface.hh"
-#include "ignition/rendering/Scene.hh"
+#include <gz/math/Color.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Rand.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/common/Console.hh"
+#include "gz/rendering/Marker.hh"
+#include "gz/rendering/RenderingIface.hh"
+#include "gz/rendering/Scene.hh"
 
-using namespace ignition;
-using namespace gazebo;
+#include "gz/sim/rendering/MarkerManager.hh"
+
+using namespace gz;
+using namespace sim;
 
 /// Private data for the MarkerManager class
-class ignition::gazebo::MarkerManagerPrivate
+class gz::sim::MarkerManagerPrivate
 {
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.
   /// \return True if the marker was processed successfully.
   public: bool ProcessMarkerMsg(const msgs::Marker &_msg);
 
-  /// \brief Converts an ignition msg render type to ignition rendering
+  /// \brief Converts a Gazebo msg render type to Gazebo Sim Rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
   public: rendering::MarkerType MsgToType(
                     const msgs::Marker &_msg);
 
-  /// \brief Converts an ignition msg material to ignition rendering
+  /// \brief Converts a Gazebo msg material to Gazebo Sim Rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.
@@ -108,7 +116,7 @@ class ignition::gazebo::MarkerManagerPrivate
   /// \brief Pointer to the scene
   public: rendering::ScenePtr scene;
 
-  /// \brief Ignition node
+  /// \brief Gazebo node
   public: transport::Node node;
 
   /// \brief Sim time according to UpdateInfo in RenderUtil
@@ -153,7 +161,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
 {
   if (!_scene)
   {
-    ignerr << "Scene pointer is invalid\n";
+    gzerr << "Scene pointer is invalid\n";
     return false;
   }
 
@@ -161,7 +169,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
 
   if (this->dataPtr->topicName.empty())
   {
-    ignerr << "Unable to advertise marker service. Topic name empty.\n";
+    gzerr << "Unable to advertise marker service. Topic name empty.\n";
     return false;
   }
 
@@ -169,7 +177,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "/list",
       &MarkerManagerPrivate::OnList, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << "/list service.\n";
   }
 
@@ -177,7 +185,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName,
         &MarkerManagerPrivate::OnMarkerMsg, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << " service.\n";
   }
 
@@ -185,7 +193,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
   if (!this->dataPtr->node.Advertise(this->dataPtr->topicName + "_array",
         &MarkerManagerPrivate::OnMarkerMsgArray, this->dataPtr.get()))
   {
-    ignerr << "Unable to advertise to the " << this->dataPtr->topicName
+    gzerr << "Unable to advertise to the " << this->dataPtr->topicName
            << "_array service.\n";
   }
 
@@ -294,7 +302,7 @@ void MarkerManagerPrivate::SetVisual(const msgs::Marker &_msg,
     }
     else
     {
-      ignerr << "No visual with the name[" << _msg.parent() << "]\n";
+      gzerr << "No visual with the name[" << _msg.parent() << "]\n";
     }
   }
 
@@ -391,7 +399,7 @@ rendering::MarkerType MarkerManagerPrivate::MsgToType(
     case msgs::Marker::TRIANGLE_STRIP:
       return rendering::MarkerType::MT_TRIANGLE_STRIP;
     default:
-      ignerr << "Unable to create marker of type[" << _msg.type() << "]\n";
+      gzerr << "Unable to create marker of type[" << _msg.type() << "]\n";
       break;
   }
   return rendering::MarkerType::MT_NONE;
@@ -499,7 +507,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const msgs::Marker &_msg)
     else
     {
       // Create the name for the marker
-      std::string name = "__IGN_MARKER_VISUAL_" + ns + "_" +
+      std::string name = "__GZ_MARKER_VISUAL_" + ns + "_" +
                          std::to_string(id);
 
       // Create the new marker
@@ -543,7 +551,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const msgs::Marker &_msg)
     }
     else
     {
-      ignwarn << "Unable to delete marker with id[" << id << "] "
+      gzwarn << "Unable to delete marker with id[" << id << "] "
         << "in namespace[" << ns << "]" << std::endl;
       return false;
     }
@@ -554,7 +562,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const msgs::Marker &_msg)
     // If given namespace doesn't exist
     if (!ns.empty() && nsIter == this->visuals.end())
     {
-      ignwarn << "Unable to delete all markers in namespace[" << ns <<
+      gzwarn << "Unable to delete all markers in namespace[" << ns <<
           "], namespace can't be found." << std::endl;
       return false;
     }
@@ -584,7 +592,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const msgs::Marker &_msg)
   }
   else
   {
-    ignerr << "Unknown marker action[" << _msg.action() << "]\n";
+    gzerr << "Unknown marker action[" << _msg.action() << "]\n";
     return false;
   }
 

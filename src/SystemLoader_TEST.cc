@@ -20,32 +20,31 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/SystemPaths.hh>
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include <gz/common/Filesystem.hh>
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemLoader.hh"
 
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
-  gazebo::SystemLoader sm;
+  sim::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
-  auto testBuildPath = common::joinPaths(
+  auto testBuildPath = gz::common::joinPaths(
       std::string(PROJECT_BINARY_PATH), "lib");
   sm.AddSystemPluginPath(testBuildPath);
 
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='ignition::gazebo::systems::Physics'></plugin>"
+      "<plugin filename='libgz-sim") +
+      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
+      "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();
@@ -62,12 +61,16 @@ TEST(SystemLoader, Constructor)
   }
 }
 
+/////////////////////////////////////////////////
 TEST(SystemLoader, EmptyNames)
 {
-  gazebo::SystemLoader sm;
+  sim::SystemLoader sm;
   sdf::Plugin plugin;
+  ::testing::internal::CaptureStderr();
   auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());
+  auto output = ::testing::internal::GetCapturedStderr();
+  EXPECT_NE(std::string::npos, output.find("empty argument"));
 }
 
 /////////////////////////////////////////////////
@@ -82,7 +85,7 @@ TEST(SystemLoader, PluginPaths)
 
   // Add test path and verify that the loader now contains this path
   auto testBuildPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "lib");
+      std::string(PROJECT_BINARY_PATH), "lib/");
   sm.AddSystemPluginPath(testBuildPath);
   paths = sm.PluginPaths();
 
@@ -94,13 +97,84 @@ TEST(SystemLoader, PluginPaths)
   for (const auto &s : paths)
   {
     // the returned path string may not be exact match due to extra '/'
-    // appended at the end of the string. So use NormalizeDirectoryPath
-    if (common::SystemPaths::NormalizeDirectoryPath(s) ==
-        common::SystemPaths::NormalizeDirectoryPath(testBuildPath))
+    // appended at the end of the string. So use absPath to generate
+    // a path string that matches the format returned by joinPaths
+    if (common::absPath(s) == testBuildPath)
     {
       hasPath = true;
       break;
     }
   }
-  EXPECT_TRUE(hasPath) << testBuildPath;
+  EXPECT_TRUE(hasPath);
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, BadLibraryPath)
+{
+  sim::SystemLoader sm;
+
+  // Add test plugin to path (referenced in config)
+  auto testBuildPath = gz::common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib");
+  sm.AddSystemPluginPath(testBuildPath);
+
+  sdf::Root root;
+  root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename='foo.so'"
+      "name='gz::sim::systems::Physics'></plugin>"
+      "</world></sdf>"));
+
+  auto worldElem = root.WorldByIndex(0)->Element();
+  if (worldElem->HasElement("plugin")) {
+    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+    while (pluginElem)
+    {
+      ::testing::internal::CaptureStderr();
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
+      ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("Could not find shared library")) << output.c_str();
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, BadPluginName)
+{
+  sim::SystemLoader sm;
+
+  // Add test plugin to path (referenced in config)
+  auto testBuildPath = gz::common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib");
+  sm.AddSystemPluginPath(testBuildPath);
+
+  sdf::Root root;
+  root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename='libgz-sim") +
+      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
+      "name='gz::sim::systems::Foo'></plugin>"
+      "</world></sdf>");
+
+  auto worldElem = root.WorldByIndex(0)->Element();
+  if (worldElem->HasElement("plugin")) {
+    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+    while (pluginElem)
+    {
+      ::testing::internal::CaptureStderr();
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
+      ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("library does not contain")) << output.c_str();
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
 }

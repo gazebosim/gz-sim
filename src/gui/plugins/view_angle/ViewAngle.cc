@@ -17,28 +17,30 @@
 
 #include "ViewAngle.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/MoveToHelper.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/MoveToHelper.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class ViewAnglePrivate
   {
@@ -48,20 +50,17 @@ namespace ignition::gazebo
     /// \brief Callback when an animation is complete
     private: void OnComplete();
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Mutex to protect angle mode
     public: std::mutex mutex;
 
-    /// \brief View Angle service name
-    public: std::string viewAngleService;
-
     /// \brief View Control service name
     public: std::string viewControlService;
 
-    /// \brief Move gui camera to pose service name
-    public: std::string moveToPoseService;
+    /// \brief View Control reference visual service name
+    public: std::string viewControlRefVisualService;
 
     /// \brief gui camera pose
     public: math::Pose3d camPose;
@@ -101,19 +100,15 @@ namespace ignition::gazebo
 
     /// \brief The pose set from the move to pose service.
     public: std::optional<math::Pose3d> moveToPoseValue;
-
-    /// \brief Enable legacy features for plugin to work with GzScene3D.
-    /// Disable them to work with the new MinimalScene plugin.
-    public: bool legacy{false};
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
+  : gz::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
 {
 }
 
@@ -121,41 +116,30 @@ ViewAngle::ViewAngle()
 ViewAngle::~ViewAngle() = default;
 
 /////////////////////////////////////////////////
-void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
     this->title = "View Angle";
 
-  if (_pluginElem)
-  {
-    if (auto elem = _pluginElem->FirstChildElement("legacy"))
-    {
-      elem->QueryBoolText(&this->dataPtr->legacy);
-    }
-  }
-
-  // For view angle requests
-  this->dataPtr->viewAngleService = "/gui/view_angle";
-
   // view control requests
   this->dataPtr->viewControlService = "/gui/camera/view_control";
+
+  // view control reference visual requests
+  this->dataPtr->viewControlRefVisualService = "/gui/camera/reference_visual";
 
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
     topic, &ViewAngle::CamPoseCb, this);
 
-  // Move to pose service
-  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
-
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
 
@@ -166,10 +150,10 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::EntitiesSelected::kType)
+           gz::sim::gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gazebo::gui::events::EntitiesSelected *>(
+        reinterpret_cast<sim::gui::events::EntitiesSelected *>(
         _event);
 
     if (selectedEvent && !selectedEvent->Data().empty())
@@ -185,7 +169,7 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           ignition::gazebo::gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
@@ -197,29 +181,8 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 /////////////////////////////////////////////////
 void ViewAngle::OnAngleMode(int _x, int _y, int _z)
 {
-  // Legacy mode: request view angle from GzScene3d
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const msgs::Boolean &, const bool)> cb =
-        [](const msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        ignerr << "Error setting view angle mode" << std::endl;
-    };
-
-    msgs::Vector3d req;
-    req.set_x(_x);
-    req.set_y(_y);
-    req.set_z(_z);
-
-    this->dataPtr->node.Request(this->dataPtr->viewAngleService, req, cb);
-  }
-  // New behaviour: handle camera movement here
-  else
-  {
-    this->dataPtr->viewingAngle = true;
-    this->dataPtr->viewAngleDirection = math::Vector3d(_x, _y, _z);
-  }
+  this->dataPtr->viewingAngle = true;
+  this->dataPtr->viewAngleDirection = math::Vector3d(_x, _y, _z);
 }
 
 /////////////////////////////////////////////////
@@ -229,7 +192,7 @@ void ViewAngle::OnViewControl(const QString &_controller)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller" << std::endl;
+      gzerr << "Error setting view controller" << std::endl;
   };
 
   msgs::StringMsg req;
@@ -240,11 +203,28 @@ void ViewAngle::OnViewControl(const QString &_controller)
     req.set_data("ortho");
   else
   {
-    ignerr << "Unknown view controller selected: " << str << std::endl;
+    gzerr << "Unknown view controller selected: " << str << std::endl;
     return;
   }
 
   this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControlReferenceVisual(bool _enable)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller reference visual" << std::endl;
+  };
+
+  msgs::Boolean req;
+  req.set_data(_enable);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlRefVisualService, req, cb);
 }
 
 /////////////////////////////////////////////////
@@ -265,27 +245,7 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
                            double _roll, double _pitch, double _yaw)
 {
   this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
-
-  // Legacy mode: request view angle from GzScene3d
-  if (this->dataPtr->legacy)
-  {
-    std::function<void(const msgs::Boolean &, const bool)> cb =
-        [](const msgs::Boolean &/*_rep*/, const bool _result)
-    {
-      if (!_result)
-        ignerr << "Error sending move camera to pose request" << std::endl;
-    };
-
-    msgs::GUICamera req;
-    msgs::Set(req.mutable_pose(), this->dataPtr->camPose);
-
-    this->dataPtr->node.Request(this->dataPtr->moveToPoseService, req, cb);
-  }
-  // New behaviour: handle camera movement here
-  else
-  {
-    this->dataPtr->moveToPoseValue = {_x, _y, _z, _roll, _pitch, _yaw};
-  }
+  this->dataPtr->moveToPoseValue = {_x, _y, _z, _roll, _pitch, _yaw};
 }
 
 /////////////////////////////////////////////////
@@ -343,7 +303,7 @@ void ViewAnglePrivate::OnRender()
         {
           this->camera = cam;
           this->moveToHelper.SetInitCameraPose(this->camera->WorldPose());
-          igndbg << "ViewAngle plugin is moving camera ["
+          gzdbg << "ViewAngle plugin is moving camera ["
                  << this->camera->Name() << "]" << std::endl;
           break;
         }
@@ -352,7 +312,7 @@ void ViewAnglePrivate::OnRender()
 
     if (!this->camera)
     {
-      ignerr << "ViewAngle camera is not available" << std::endl;
+      gzerr << "ViewAngle camera is not available" << std::endl;
       return;
     }
   }
@@ -377,8 +337,7 @@ void ViewAnglePrivate::OnRender()
 
             try
             {
-              if (std::get<int>(vis->UserData("gazebo-entity")) !=
-                  static_cast<int>(entity))
+              if (std::get<uint64_t>(vis->UserData("gazebo-entity")) != entity)
               {
                 continue;
               }
@@ -463,5 +422,5 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ViewAngle,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(ViewAngle,
+              gz::gui::Plugin)

@@ -16,30 +16,30 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 0.005
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test OdometryPublisher system
@@ -63,8 +63,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -118,8 +118,8 @@ class OdometryPublisherTest
     math::Vector3d linVelCmd(1, 0.5, 0.0);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &_ecm)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &_ecm)
         {
           auto en = _ecm.EntityByComponents(
             components::Model(),
@@ -231,8 +231,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -309,8 +309,8 @@ class OdometryPublisherTest
     math::Vector3d linVelCmd(0.5, 0.3, 1.5);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &/*_ecm*/)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &/*_ecm*/)
         {
           msgs::Twist msg;
           msgs::Set(msg.mutable_linear(), linVelCmd);
@@ -539,13 +539,13 @@ class OdometryPublisherTest
     }
 
     // Check that the mean values are close to zero.
-    EXPECT_NEAR(linVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.5);
 
-    EXPECT_NEAR(angVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.5);
 
     // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
@@ -562,13 +562,13 @@ class OdometryPublisherTest
     }
 
     // Verify the variance values.
-    EXPECT_NEAR(linVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(linVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.5);
 
-    EXPECT_NEAR(angVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(angVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.5);
 
     // Check the covariance matrix.
     EXPECT_EQ(odomTwistCovariance.size(), 36);
@@ -587,8 +587,8 @@ class OdometryPublisherTest
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -597,7 +597,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) +
@@ -606,16 +606,16 @@ TEST_P(OdometryPublisherTest,
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
-      ignition::common::joinPaths(PROJECT_SOURCE_PATH,
+      gz::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
       "/model/X3/odometry", "/model/X3/pose", "X3/odom", "X3/base_footprint");
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -626,7 +626,7 @@ TEST_P(OdometryPublisherTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +
@@ -638,7 +638,7 @@ TEST_P(OdometryPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
 {
   TestOffsetTags(
       std::string(PROJECT_SOURCE_PATH) +
@@ -648,7 +648,7 @@ TEST_P(OdometryPublisherTest,
 
 /////////////////////////////////////////////////
 TEST_P(OdometryPublisherTest,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
 {
   TestGaussianNoise(
       std::string(PROJECT_SOURCE_PATH) +

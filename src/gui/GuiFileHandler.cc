@@ -15,25 +15,29 @@
  *
  */
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <fstream>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include "GuiFileHandler.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
                                  QObject *_config)
 {
-  IGN_PROFILE("GuiFileHandler::SaveWorldAs");
+  GZ_PROFILE("GuiFileHandler::SaveWorldAs");
   QUrl url(_fileUrl);
 
   bool status = false;
@@ -74,7 +78,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
         this->node.Request(sdfGenService, req, timeout, genWorldSdf, result);
     if (serviceCall && result && !genWorldSdf.data().empty())
     {
-      igndbg << "Saving world: " << worldName << " to: " << localPath << "\n";
+      gzdbg << "Saving world: " << worldName << " to: " << localPath << "\n";
       std::ofstream fs(localPath, std::ios::out);
       if (fs.is_open())
       {
@@ -96,18 +100,17 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
         statusMsg << "Service call for generating world SDFormat timed out\n";
       }
       statusMsg << "Unknown error occured when saving the world. Please check "
-                << "the console output of ign-gazebo\n";
+                << "the console output of gz-sim\n";
     }
   }
 
   if (!status)
   {
-    ignerr << statusMsg.str();
+    gzerr << statusMsg.str();
   }
   else
   {
-    ignmsg << statusMsg.str();
+    gzmsg << statusMsg.str();
   }
   emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }
-

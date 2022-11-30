@@ -14,7 +14,7 @@ if (MSVC)
   set_source_files_properties(${tests} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-ign_build_tests(TYPE REGRESSION
+gz_build_tests(TYPE REGRESSION
   SOURCES
     ${tests}
   LIB_DEPS

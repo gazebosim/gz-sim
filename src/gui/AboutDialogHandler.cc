@@ -17,19 +17,19 @@
 
 #include "AboutDialogHandler.hh"
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 AboutDialogHandler::AboutDialogHandler()
 {
   aboutText += "<b>Gazebo " + std::string(GZ_DISTRIBUTION) + "</b><br>";
-  aboutText += std::string(IGNITION_GAZEBO_VERSION_HEADER);
+  aboutText += std::string(GZ_SIM_VERSION_HEADER);
   aboutText += "<table class='nostyle'>"
                  "<tr>"
                    "<td style='padding-right: 10px;'>Documentation:"

@@ -7,16 +7,16 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -48,6 +48,11 @@
               <ode>
                 <mu>50</mu>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -144,6 +149,11 @@
                 <mu2>1.0</mu2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>0.5</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -189,6 +199,11 @@
                 <mu2>1.0</mu2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>0.5</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -234,6 +249,11 @@
                 <mu2>1.0</mu2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>0.5</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -279,6 +299,11 @@
                 <mu2>1.0</mu2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>0.5</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -412,8 +437,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-ackermann-steering-system"
-        name="ignition::gazebo::systems::AckermannSteering">
+        filename="gz-sim-ackermann-steering-system"
+        name="gz::sim::systems::AckermannSteering">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
         <right_joint>front_right_wheel_joint</right_joint>

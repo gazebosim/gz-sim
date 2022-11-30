@@ -36,10 +36,10 @@ Rectangle {
   property double minValue: 0
 
   // max value
-  property double maxValue: 1 
+  property double maxValue: 1
 
-  // value of the spin number value 
-  property double numberValue: 0.0 
+  // value of the spin number value
+  property double numberValue: 0.0
 
   signal onChange(double _value)
 
@@ -54,7 +54,7 @@ Rectangle {
    */
   Component {
     id: writableNumber
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: minValue

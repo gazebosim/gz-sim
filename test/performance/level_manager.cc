@@ -19,26 +19,26 @@
 #include <gtest/gtest.h>
 #include <array>
 
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
 {
   using namespace std::chrono;
 
   common::Console::SetVerbosity(4);
 
-  common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH",
+  common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
   ServerConfig serverConfig;
@@ -83,7 +83,7 @@ TEST(LevelManagerPerfrormance, IGN_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   }
   const auto nolevelsDuration = watch.ElapsedRunTime();
 
-  igndbg << "\nUsing levels = "
+  gzdbg << "\nUsing levels = "
          << duration_cast<milliseconds>(levelsDuration).count() << " ms\n"
          << "Without levels = "
          << duration_cast<milliseconds>(nolevelsDuration).count() << " ms\n";

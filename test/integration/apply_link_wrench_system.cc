@@ -17,30 +17,30 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/entity.pb.h>
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/TestFixture.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test fixture for ApplyLinkWrench system
@@ -49,7 +49,7 @@ class ApplyLinkWrenchTestFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ApplyLinkWrenchTestFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FromSdf))
+TEST_F(ApplyLinkWrenchTestFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FromSdf))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
@@ -108,7 +108,7 @@ TEST_F(ApplyLinkWrenchTestFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FromSdf))
 
 /////////////////////////////////////////////////
 TEST_F(ApplyLinkWrenchTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(PersistentFromTopic))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(PersistentFromTopic))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
@@ -243,7 +243,7 @@ TEST_F(ApplyLinkWrenchTestFixture,
 
 /////////////////////////////////////////////////
 TEST_F(ApplyLinkWrenchTestFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(InstantaneousFromTopic))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(InstantaneousFromTopic))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "apply_link_wrench.sdf"));
@@ -344,4 +344,3 @@ TEST_F(ApplyLinkWrenchTestFixture,
   EXPECT_EQ(targetIterations, iterations);
   EXPECT_EQ(1u, impulseIterations);
 }
-

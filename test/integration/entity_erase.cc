@@ -19,14 +19,14 @@
 
 #include <optional>
 
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public InternalFixture<::testing::Test>
@@ -34,9 +34,9 @@ class PhysicsSystemFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CreatePhysicsWorld))
 {
   ServerConfig serverConfig;
 

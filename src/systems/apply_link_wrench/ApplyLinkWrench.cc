@@ -14,34 +14,34 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <mutex>
 #include <string>
 #include <queue>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/Util.hh"
 
 #include "ApplyLinkWrench.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::ApplyLinkWrenchPrivate
+class gz::sim::systems::ApplyLinkWrenchPrivate
 {
   /// \brief Callback for wrench subscription
   /// \param[in] _msg Wrench message
@@ -88,7 +88,7 @@ Link decomposeMessage(const EntityComponentManager &_ecm,
 {
   if (_msg.wrench().has_force_offset())
   {
-    ignwarn << "Force offset currently not supported, it will be ignored."
+    gzwarn << "Force offset currently not supported, it will be ignored."
             << std::endl;
   }
 
@@ -120,7 +120,7 @@ Link decomposeMessage(const EntityComponentManager &_ecm,
     return Link(model.CanonicalLink(_ecm));
   }
 
-  ignerr << "Wrench can only be applied to a link or a model. Entity ["
+  gzerr << "Wrench can only be applied to a link or a model. Entity ["
          << entity << "] isn't either of them." << std::endl;
   return Link();
 }
@@ -140,7 +140,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   auto world = World(_entity);
   if (!world.Valid(_ecm))
   {
-    ignerr << "ApplyLinkWrench system should be attached to a world."
+    gzerr << "ApplyLinkWrench system should be attached to a world."
            << std::endl;
     return;
   }
@@ -156,7 +156,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
     msgs::EntityWrench msg;
     if (!elem->HasElement("entity_name") || !elem->HasElement("entity_type"))
     {
-      ignerr << "Skipping <persistent> element missing entity name or type."
+      gzerr << "Skipping <persistent> element missing entity name or type."
              << std::endl;
       continue;
     }
@@ -174,7 +174,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
     }
     else
     {
-      ignerr << "Skipping <persistent> element, entity type [" << typeStr
+      gzerr << "Skipping <persistent> element, entity type [" << typeStr
              << "] not supported." << std::endl;
       continue;
     }
@@ -201,7 +201,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic, &ApplyLinkWrenchPrivate::OnWrench,
       this->dataPtr.get());
 
-  ignmsg << "Listening to instantaneous wrench commands in [" << topic << "]"
+  gzmsg << "Listening to instantaneous wrench commands in [" << topic << "]"
          << std::endl;
 
   // Topic to apply wrench continuously
@@ -212,7 +212,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic,
       &ApplyLinkWrenchPrivate::OnWrenchPersistent, this->dataPtr.get());
 
-  ignmsg << "Listening to persistent wrench commands in [" << topic << "]"
+  gzmsg << "Listening to persistent wrench commands in [" << topic << "]"
          << std::endl;
 
   // Topic to clear persistent wrenches
@@ -223,7 +223,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(topic,
       &ApplyLinkWrenchPrivate::OnWrenchClear, this->dataPtr.get());
 
-  ignmsg << "Listening to wrench clear commands in [" << topic << "]"
+  gzmsg << "Listening to wrench clear commands in [" << topic << "]"
          << std::endl;
 }
 
@@ -231,7 +231,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
 void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ApplyLinkWrench::PreUpdate");
+  GZ_PROFILE("ApplyLinkWrench::PreUpdate");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
@@ -251,7 +251,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
 
         if (this->dataPtr->verbose)
         {
-          igndbg << "Clearing persistent wrench for entity [" << clearEntity
+          gzdbg << "Clearing persistent wrench for entity [" << clearEntity
                  << "]" << std::endl;
         }
       }
@@ -274,7 +274,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     auto link = decomposeMessage(_ecm, msg, force, torque);
     if (!link.Valid(_ecm))
     {
-      ignerr << "Entity not found." << std::endl
+      gzerr << "Entity not found." << std::endl
              << msg.DebugString() << std::endl;
       this->dataPtr->newWrenches.pop();
       continue;
@@ -284,7 +284,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
 
     if (this->dataPtr->verbose)
     {
-      igndbg << "Applying wrench [" << force << " " << torque << "] to entity ["
+      gzdbg << "Applying wrench [" << force << " " << torque << "] to entity ["
              << link.Entity() << "] for 1 time step." << std::endl;
     }
 
@@ -314,7 +314,7 @@ void ApplyLinkWrenchPrivate::OnWrench(const msgs::EntityWrench &_msg)
 
   if (!_msg.has_entity() || !_msg.has_wrench())
   {
-    ignerr << "Missing entity or wrench in message: " << std::endl
+    gzerr << "Missing entity or wrench in message: " << std::endl
            << _msg.DebugString() << std::endl;
     return;
   }
@@ -329,14 +329,14 @@ void ApplyLinkWrenchPrivate::OnWrenchPersistent(const msgs::EntityWrench &_msg)
 
   if (!_msg.has_entity() || !_msg.has_wrench())
   {
-    ignerr << "Missing entity or wrench in message: " << std::endl
+    gzerr << "Missing entity or wrench in message: " << std::endl
            << _msg.DebugString() << std::endl;
     return;
   }
 
   if (this->verbose)
   {
-    igndbg << "Queueing persistent wrench:" << std::endl
+    gzdbg << "Queueing persistent wrench:" << std::endl
            << _msg.DebugString() << std::endl;
   }
 
@@ -351,10 +351,14 @@ void ApplyLinkWrenchPrivate::OnWrenchClear(const msgs::Entity &_msg)
   this->clearWrenches.push(_msg);
 }
 
-IGNITION_ADD_PLUGIN(ApplyLinkWrench,
+GZ_ADD_PLUGIN(ApplyLinkWrench,
                     System,
                     ApplyLinkWrench::ISystemConfigure,
                     ApplyLinkWrench::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
-                          "ignition::gazebo::systems::ApplyLinkWrench")
+GZ_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
+                    "gz::sim::systems::ApplyLinkWrench")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
+                    "ignition::gazebo::systems::ApplyLinkWrench")

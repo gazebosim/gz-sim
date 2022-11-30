@@ -18,14 +18,14 @@
 #include <list>
 #include <set>
 
-#include <ignition/common/StringUtils.hh>
+#include <gz/common/StringUtils.hh>
 
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/Conversions.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
@@ -42,7 +42,7 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
   std::string entitySystemAddService{"entity/system/add"};
   this->node->Advertise(entitySystemAddService,
       &SystemManager::EntitySystemAddService, this);
-  ignmsg << "Serving entity system service on ["
+  gzmsg << "Serving entity system service on ["
          << "/" << entitySystemAddService << "]" << std::endl;
 
   std::string entitySystemInfoService{"system/info"};
@@ -125,6 +125,9 @@ size_t SystemManager::ActivatePendingSystems()
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
 
+    if (system.reset)
+      this->systemsReset.push_back(system.reset);
+
     if (system.preupdate)
       this->systemsPreupdate.push_back(system.preupdate);
 
@@ -137,6 +140,85 @@ size_t SystemManager::ActivatePendingSystems()
 
   this->pendingSystems.clear();
   return count;
+}
+
+//////////////////////////////////////////////////
+/// \brief Structure to temporarily store plugin information for reset
+struct PluginInfo {
+  /// \brief Entity plugin is attached to
+  Entity entity;
+  /// \brief Filename of the plugin library
+  std::string fname;
+  /// \brief Name of the plugin
+  std::string name;
+  /// \brief SDF element (content of the plugin tag)
+  sdf::ElementPtr sdf;
+};
+
+//////////////////////////////////////////////////
+void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+    this->pendingSystems.clear();
+  }
+
+  // Clear all iterable collections of systems
+  this->systemsConfigure.clear();
+  this->systemsReset.clear();
+  this->systemsPreupdate.clear();
+  this->systemsUpdate.clear();
+  this->systemsPostupdate.clear();
+
+  std::vector<PluginInfo> pluginsToBeLoaded;
+
+  for (auto &system : this->systems)
+  {
+    if (nullptr != system.reset)
+    {
+      // If implemented, call reset and add to pending systems.
+      system.reset->Reset(_info, _ecm);
+
+      {
+        std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
+        this->pendingSystems.push_back(system);
+      }
+    }
+    else
+    {
+      // Cannot reset systems that were created in memory rather than
+      // from a plugin, because there isn't access to the constructor.
+      if (nullptr != system.systemShared)
+      {
+        gzwarn << "In-memory without ISystemReset detected: ["
+          << system.name << "]\n"
+          << "Systems created without plugins that do not implement Reset"
+          << " will not be reloaded. Reset may not work correctly\n";
+        continue;
+      }
+
+      sdf::ElementPtr elem = system.configureSdf ?
+          system.configureSdf->Clone() : nullptr;
+      PluginInfo info = {system.parentEntity, system.fname, system.name, elem};
+
+      pluginsToBeLoaded.push_back(info);
+    }
+  }
+
+  this->systems.clear();
+
+  // Load plugins which do not implement reset after clearing this->systems
+  // to ensure the previous instance is destroyed before the new one is created
+  // and configured.
+  for (const auto &pluginInfo : pluginsToBeLoaded)
+  {
+    sdf::Plugin plugin;
+    plugin.Load(pluginInfo.sdf);
+    plugin.SetFilename(pluginInfo.fname);
+    plugin.SetName(pluginInfo.name);
+    this->LoadPlugin(pluginInfo.entity, plugin);
+  }
+  this->ActivatePendingSystems();
 }
 
 //////////////////////////////////////////////////
@@ -203,6 +285,12 @@ void SystemManager::AddSystemImpl(
 const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
+}
+
+//////////////////////////////////////////////////
+const std::vector<ISystemReset *> &SystemManager::SystemsReset()
+{
+  return this->systemsReset;
 }
 
 //////////////////////////////////////////////////
@@ -304,8 +392,8 @@ void SystemManager::ProcessPendingEntitySystems()
 
     if (req.plugins().empty())
     {
-      ignwarn << "Unable to add plugins to Entity: '" << entity
-              << "'. No plugins specified." << std::endl;
+      gzwarn << "Unable to add plugins to Entity: '" << entity
+             << "'. No plugins specified." << std::endl;
        continue;
     }
 

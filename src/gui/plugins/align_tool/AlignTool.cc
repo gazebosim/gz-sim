@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -25,34 +25,34 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderTypes.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/WireBox.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 #include "AlignTool.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class AlignToolPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief The service call string for requesting a new pose for an entity.
@@ -97,8 +97,8 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 AlignTool::AlignTool()
@@ -106,8 +106,8 @@ AlignTool::AlignTool()
 {
   // Deselect all entities upon loading plugin
   gui::events::DeselectAllEntities deselectEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &deselectEvent);
 }
 
@@ -121,8 +121,8 @@ void AlignTool::LoadConfig(const tinyxml2::XMLElement *)
     this->title = "Align tool";
 
   // For align tool requests
-  ignition::gui::App()->findChild
-      <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+      <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -166,11 +166,11 @@ void AlignTool::OnAlignConfig(const QString &_config)
   }
   else
   {
-    ignwarn << "Invalid align axis config: " << newConfig << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - min\n";
-    ignwarn << " - mid\n";
-    ignwarn << " - max\n";
+    gzwarn << "Invalid align axis config: " << newConfig << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - min\n";
+    gzwarn << " - mid\n";
+    gzwarn << " - max\n";
   }
 }
 
@@ -201,11 +201,11 @@ void AlignTool::OnAlignAxis(const QString &_axis)
   }
   else
   {
-    ignwarn << "Invalid align axis string: " << newAxis << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - X\n";
-    ignwarn << " - Y\n";
-    ignwarn << " - Z\n";
+    gzwarn << "Invalid align axis string: " << newAxis << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - X\n";
+    gzwarn << " - Y\n";
+    gzwarn << " - Z\n";
   }
 }
 
@@ -227,10 +227,10 @@ void AlignTool::OnAlignTarget(const QString &_target)
   }
   else
   {
-    ignwarn << "Invalid align target string: " << newTarget << "\n";
-    ignwarn << "The valid options are:\n";
-    ignwarn << " - first\n";
-    ignwarn << " - last\n";
+    gzwarn << "Invalid align target string: " << newTarget << "\n";
+    gzwarn << "The valid options are:\n";
+    gzwarn << " - first\n";
+    gzwarn << " - last\n";
   }
 }
 
@@ -365,8 +365,7 @@ void AlignTool::Align()
         continue;
 
       if (vis->HasUserData("gazebo-entity") &&
-          std::get<int>(vis->UserData("gazebo-entity")) ==
-          static_cast<int>(entityId))
+          std::get<uint64_t>(vis->UserData("gazebo-entity")) == entityId)
       {
         // Check here to see if visual is top level or not, continue if not
         auto topLevelVis = this->TopLevelVisual(this->dataPtr->scene, vis);
@@ -388,12 +387,12 @@ void AlignTool::Align()
     (relativeVisual = selectedList.front()) :
     (relativeVisual = selectedList.back());
 
-  // Callback function for ignition node request
+  // Callback function for Gazebo node request
   std::function<void(const msgs::Boolean &, const bool)> cb =
       [](const msgs::Boolean &/* _rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting pose" << std::endl;
+      gzerr << "Error setting pose" << std::endl;
   };
 
   // Set service topic
@@ -406,9 +405,9 @@ void AlignTool::Align()
   int axisIndex = static_cast<int>(this->dataPtr->axis);
   msgs::Pose req;
 
-  ignition::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
-  ignition::math::Vector3d targetMin = targetBox.Min();
-  ignition::math::Vector3d targetMax = targetBox.Max();
+  gz::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
+  gz::math::Vector3d targetMin = targetBox.Min();
+  gz::math::Vector3d targetMax = targetBox.Max();
 
   // Index math to avoid iterating through the selected node
   for (unsigned int i = this->dataPtr->first;
@@ -418,9 +417,9 @@ void AlignTool::Align()
     if (!vis)
       continue;
 
-    ignition::math::AxisAlignedBox box = vis->BoundingBox();
-    ignition::math::Vector3d min = box.Min();
-    ignition::math::Vector3d max = box.Max();
+    gz::math::AxisAlignedBox box = vis->BoundingBox();
+    gz::math::Vector3d min = box.Min();
+    gz::math::Vector3d max = box.Max();
 
     // Check here to see if visual is top level or not, continue if not
     rendering::VisualPtr topLevelVis = this->TopLevelVisual(
@@ -551,9 +550,9 @@ rendering::NodePtr AlignTool::TopLevelNode(rendering::ScenePtr &_scene,
 /////////////////////////////////////////////////
 bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -569,7 +568,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
            gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<ignition::gazebo::gui::events::EntitiesSelected *>(
+        reinterpret_cast<sim::gui::events::EntitiesSelected *>(
         _event);
 
     // Only update if a valid cast, the data isn't empty, and
@@ -597,5 +596,5 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(AlignTool,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(AlignTool,
+              gz::gui::Plugin)

@@ -17,24 +17,24 @@
 
 #include <gtest/gtest.h>
 #include <sdf/sdf.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+#include "gz/sim/Server.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class SdfInclude : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(SdfInclude, IGN_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(SdfInclude, GZ_UTILS_TEST_DISABLED_ON_WIN32(DownloadFromFuel))
 {
   std::string path = common::cwd() + "/test_cache";
 

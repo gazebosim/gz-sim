@@ -24,17 +24,17 @@
  */
 
 
-#include <ignition/msgs/twist.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/twist.pb.h>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
 
 #include <unistd.h>  // read()
 
-#define KEYCODE_ARR_R 0x43 
+#define KEYCODE_ARR_R 0x43
 #define KEYCODE_ARR_L 0x44
 #define KEYCODE_ARR_U 0x41
 #define KEYCODE_ARR_D 0x42
@@ -47,12 +47,12 @@
 #define KEYCODE_W 0x77
 
 
-ignition::transport::Node::Publisher cmdVelPub;
-ignition::transport::Node::Publisher cmdVelPub2;
+gz::transport::Node::Publisher cmdVelPub;
+gz::transport::Node::Publisher cmdVelPub2;
 
-ignition::math::Vector3d scaleLinear;
+gz::math::Vector3d scaleLinear;
 
-ignition::math::Vector3d scaleAngular;
+gz::math::Vector3d scaleAngular;
 
 
 class KeyboardTeleop
@@ -101,11 +101,11 @@ void KeyboardTeleop::KeyLoop()
   bool dirty = false, dirty2 = false;
 
 
-  // get the console in raw mode                                                              
+  // get the console in raw mode
   tcgetattr(kfd, &cooked);
   memcpy(&raw, &cooked, sizeof(struct termios));
   raw.c_lflag &=~ (ICANON | ECHO);
-  // Setting a new line, then end of file                         
+  // Setting a new line, then end of file
   raw.c_cc[VEOL] = 1;
   raw.c_cc[VEOF] = 2;
   tcsetattr(kfd, TCSANOW, &raw);
@@ -117,7 +117,7 @@ void KeyboardTeleop::KeyLoop()
 
   for (;;)
   {
-    // get the next event from the keyboard  
+    // get the next event from the keyboard
     if (read(kfd, &c, 1) < 0)
     {
       perror("read():");
@@ -127,7 +127,7 @@ void KeyboardTeleop::KeyLoop()
     double linear = 0, linear2 = 0;
     double angular = 0, angular2 = 0;
     fprintf (stderr, "value: 0x%02X\n", c);
-  
+
     switch (c)
     {
       // robot 1
@@ -173,12 +173,12 @@ void KeyboardTeleop::KeyLoop()
         dirty2 = true;
         break;
     }
-   
-    ignition::msgs::Twist cmdVelMsg;
+
+    gz::msgs::Twist cmdVelMsg;
     cmdVelMsg.mutable_linear()->set_x(lScale * linear);
     cmdVelMsg.mutable_angular()->set_z(aScale * angular);
 
-    ignition::msgs::Twist cmdVelMsg2;
+    gz::msgs::Twist cmdVelMsg2;
     cmdVelMsg2.mutable_linear()->set_x(lScale * linear2);
     cmdVelMsg2.mutable_angular()->set_z(aScale * angular2);
 
@@ -220,19 +220,19 @@ int main(int argc, char** argv)
   auto plugin = sdf->Root()->GetElement("world")->GetElement("plugin");
 
   // Set up transport
-  ignition::transport::Node node;
+  gz::transport::Node node;
 
   auto twistTopic = plugin->Get<std::string>("twist_arrows", "/cmd_vel").first;
-  cmdVelPub = node.Advertise<ignition::msgs::Twist>(twistTopic);
+  cmdVelPub = node.Advertise<gz::msgs::Twist>(twistTopic);
 
   auto twistTopic2 = plugin->Get<std::string>("twist_wasd", "/cmd_vel").first;
-  cmdVelPub2 = node.Advertise<ignition::msgs::Twist>(twistTopic2);
+  cmdVelPub2 = node.Advertise<gz::msgs::Twist>(twistTopic2);
 
-  scaleLinear = plugin->Get<ignition::math::Vector3d>("scale_linear",
-      ignition::math::Vector3d(0.5, 0, 0)).first;
+  scaleLinear = plugin->Get<gz::math::Vector3d>("scale_linear",
+      gz::math::Vector3d(0.5, 0, 0)).first;
 
-  scaleAngular = plugin->Get<ignition::math::Vector3d>("scale_angular",
-      ignition::math::Vector3d(0, 0, 0.5)).first;
+  scaleAngular = plugin->Get<gz::math::Vector3d>("scale_angular",
+      gz::math::Vector3d(0, 0, 0.5)).first;
 
 
   // Only linear X and angular Z are used
@@ -240,6 +240,6 @@ int main(int argc, char** argv)
     scaleAngular.Z());
   signal(SIGINT, Quit);
   teleop_turtle.KeyLoop();
-  
+
   return(0);
 }

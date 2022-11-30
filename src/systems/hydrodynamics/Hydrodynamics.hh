@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_HYDRODYNAMICS_HH_
+#ifndef GZ_SIM_SYSTEMS_HYDRODYNAMICS_HH_
+#define GZ_SIM_SYSTEMS_HYDRODYNAMICS_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   class HydrodynamicsPrivateData;
@@ -44,6 +44,7 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.
+  /// ### Diagonal terms:
   ///   * <xDotU> - Added mass in x direction [kg]
   ///   * <yDotV> - Added mass in y direction [kg]
   ///   * <zDotW> - Added mass in z direction [kg]
@@ -62,9 +63,21 @@ namespace systems
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
   ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
+  /// ### Cross terms
+  /// In general we support cross terms as well. These are terms which act on
+  /// non-diagonal sides. We use the SNAMe convention of naming search terms.
+  /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
+  /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
+  /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
+  /// and yaw axis respectively.
+  ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
+  ///       Units are either kg or kgm^2 depending on the choice of terms.
+  ///   * Quadratic Damping:  <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
+  ///       e.g. <xRQ>
+  ///       Units are either kg/m or kg/m^2.
+  ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
+  ///       Units are either kg or kg or kg/m.
   /// Additionally the system also supports the following parameters:
-  ///   * <waterDensity> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
   ///   * <water_density> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3]
   ///   * <link_name> - The link of the model that is being subject to
@@ -87,17 +100,17 @@ namespace systems
   /// thruster plugin to propel the craft and the buoyancy plugin for buoyant
   /// force. To run the example run.
   /// ```
-  /// ign gazebo auv_controls.sdf
+  /// gz sim auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following
   /// ```
-  /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
-  ///    -m ignition.msgs.Double -p 'data: -0.17'
+  /// gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
+  ///    -m gz.msgs.Double -p 'data: -0.17'
   /// ```
   /// To apply a thrust you may run the following command
   /// ```
-  /// ign topic -t /model/tethys/joint/propeller_joint/cmd_pos
-  /// -m ignition.msgs.Double -p 'data: -31'
+  /// gz topic -t /model/tethys/joint/propeller_joint/cmd_pos
+  /// -m gz.msgs.Double -p 'data: -31'
   /// ```
   /// The vehicle should move in a circle.
   ///
@@ -106,7 +119,7 @@ namespace systems
   /// hydrodynamics plugin allows simulation of such currents. We can add
   /// a current simply by publishing the following:
   /// ```
-  /// ign topic -t /ocean_current -m ignition.msgs.Vector3d -p 'x: 1, y:0, z:0'
+  /// gz topic -t /ocean_current -m gz.msgs.Vector3d -p 'x: 1, y:0, z:0'
   /// ```
   /// You should observe your vehicle slowly drift to the side.
   ///
@@ -114,9 +127,9 @@ namespace systems
   /// [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
   ///    United Kingdom: Wiley, 1994.
   class Hydrodynamics:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public gz::sim::System,
+    public gz::sim::ISystemConfigure,
+    public gz::sim::ISystemPreUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -126,15 +139,15 @@ namespace systems
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const gz::sim::Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        gz::sim::EntityComponentManager &_ecm,
+        gz::sim::EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
-        const ignition::gazebo::UpdateInfo &_info,
-        ignition::gazebo::EntityComponentManager &_ecm) override;
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

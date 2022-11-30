@@ -5,20 +5,20 @@
 <sdf version="1.6">
   <world name="boundingbox_sensor">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
 
@@ -26,11 +26,11 @@
 
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
-        <ignition-gui>
+        <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
-        </ignition-gui>
+        </gz-gui>
 
         <engine>ogre2</engine>
         <scene>scene</scene>
@@ -41,43 +41,43 @@
 
       <!-- Plugins that add functionality to the scene -->
       <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <ignition-gui>
+        <gz-gui>
           <property key="state" type="string">floating</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="GzSceneManager" name="Scene Manager">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <plugin filename="CameraTracking" name="Camera Tracking">
-        <ignition-gui>
+        <gz-gui>
           <property key="resizable" type="bool">false</property>
           <property key="width" type="double">5</property>
           <property key="height" type="double">5</property>
           <property key="state" type="string">floating</property>
           <property key="showTitleBar" type="bool">false</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
-        <ignition-gui>
+        <gz-gui>
           <title>World control</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -90,7 +90,7 @@
             <line own="left" target="left"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <play_pause>true</play_pause>
         <step>true</step>
@@ -101,7 +101,7 @@
 
       <!-- World statistics -->
       <plugin filename="WorldStats" name="World stats">
-        <ignition-gui>
+        <gz-gui>
           <title>World stats</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
@@ -114,7 +114,7 @@
             <line own="right" target="right"/>
             <line own="bottom" target="bottom"/>
           </anchors>
-        </ignition-gui>
+        </gz-gui>
 
         <sim_time>true</sim_time>
         <real_time>true</real_time>
@@ -124,32 +124,32 @@
 
       <plugin filename="ImageDisplay" name="Full 2D">
         <topic>boxes_full_2d_image</topic>
-        <ignition-gui>
+        <gz-gui>
           <title>Full 2D</title>
           <property key="state" type="string">docked</property>
           <property type="double" key="height">400</property>
           <property type="double" key="width">600</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Visible 2D">
         <topic>boxes_visible_2d_image</topic>
-        <ignition-gui>
+        <gz-gui>
           <title>Visible 2D</title>
           <property key="state" type="string">docked</property>
           <property type="double" key="height">400</property>
           <property type="double" key="width">600</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
       <plugin filename="ImageDisplay" name="3D">
         <topic>boxes_3d_image</topic>
-        <ignition-gui>
+        <gz-gui>
           <title>3D</title>
           <property key="state" type="string">docked</property>
           <property type="double" key="height">400</property>
           <property type="double" key="width">600</property>
-        </ignition-gui>
+        </gz-gui>
       </plugin>
 
     </gui>
@@ -228,7 +228,7 @@
             <diffuse>0 0 1 1</diffuse>
             <specular>0 0 0.3 1</specular>
           </material>
-          <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+          <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
             <label>10</label>
           </plugin>
         </visual>
@@ -236,7 +236,7 @@
     </model>
 
     <model name="box2">
-      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
         <label>10</label>
       </plugin>
       <pose>0 1 0.5 0 0 0</pose>
@@ -300,7 +300,7 @@
           <cast_shadows>false</cast_shadows>
         </visual>
       </link>
-      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
         <label>20</label>
       </plugin>
     </model>
@@ -403,13 +403,12 @@
     <include>
       <pose>-1 0 3 0.0 0.0 1.57</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
-      <plugin filename="ignition-gazebo-label-system" name="ignition::gazebo::systems::Label">
+      <plugin filename="gz-sim-label-system" name="gz::sim::systems::Label">
         <label>30</label>
       </plugin>
     </include>
 
   </world>
 </sdf>
-

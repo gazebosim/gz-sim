@@ -17,29 +17,29 @@
 
 #include "AckermannSteering.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <mutex>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -54,7 +54,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::AckermannSteeringPrivate
+class gz::sim::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -74,7 +74,7 @@ class ignition::gazebo::systems::AckermannSteeringPrivate
   public: void UpdateVelocity(const UpdateInfo &_info,
     const EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Entity of the left joint
@@ -205,7 +205,7 @@ void AckermannSteering::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "AckermannSteering plugin should be attached to a model entity. "
+    gzerr << "AckermannSteering plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -320,7 +320,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto topic = validTopic(topics);
   if (topic.empty())
   {
-    ignerr << "AckermannSteering plugin received invalid model name "
+    gzerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -338,7 +338,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto odomTopic = validTopic(odomTopics);
   if (topic.empty())
   {
-    ignerr << "AckermannSteering plugin received invalid model name "
+    gzerr << "AckermannSteering plugin received invalid model name "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -356,7 +356,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto tfTopic = validTopic(tfTopics);
   if (tfTopic.empty())
   {
-    ignerr << "AckermannSteering plugin invalid tf topic name "
+    gzerr << "AckermannSteering plugin invalid tf topic name "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -370,7 +370,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "AckermannSteering subscribing to twist messages on [" <<
+  gzmsg << "AckermannSteering subscribing to twist messages on [" <<
       topic << "]" << std::endl;
 }
 
@@ -378,12 +378,12 @@ void AckermannSteering::Configure(const Entity &_entity,
 void AckermannSteering::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::PreUpdate");
+  GZ_PROFILE("AckermannSteering::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -404,7 +404,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
         this->dataPtr->leftJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left joint [" << name << "] for model ["
+        gzwarn << "Failed to find left joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -417,7 +417,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
         this->dataPtr->rightJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right joint [" << name << "] for model ["
+        gzwarn << "Failed to find right joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -429,7 +429,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
         this->dataPtr->leftSteeringJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left steering joint ["
+        gzwarn << "Failed to find left steering joint ["
                 << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
@@ -443,7 +443,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
         this->dataPtr->rightSteeringJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right steering joint [" <<
+        gzwarn << "Failed to find right steering joint [" <<
             name << "] for model [" << modelName << "]" << std::endl;
         warned = true;
       }
@@ -461,7 +461,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found joints for model [" << modelName
+    gzmsg << "Found joints for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }
@@ -576,7 +576,7 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
 void AckermannSteering::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::PostUpdate");
+  GZ_PROFILE("AckermannSteering::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -590,7 +590,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::UpdateOdometry");
+  GZ_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
 
   if (this->leftJoints.empty() || this->rightJoints.empty() ||
@@ -705,7 +705,7 @@ void AckermannSteeringPrivate::UpdateVelocity(
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AckermannSteering::UpdateVelocity");
+  GZ_PROFILE("AckermannSteering::UpdateVelocity");
 
   double linVel;
   double angVel;
@@ -787,11 +787,15 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
   this->targetVel = _msg;
 }
 
-IGNITION_ADD_PLUGIN(AckermannSteering,
+GZ_ADD_PLUGIN(AckermannSteering,
                     System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
+                    "gz::sim::systems::AckermannSteering")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "ignition::gazebo::systems::AckermannSteering")

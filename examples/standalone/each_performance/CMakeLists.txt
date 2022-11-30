@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
-project(ign-gazebo-each-performance)
+project(gz-sim-each-performance)
 
-find_package(ignition-gazebo6 QUIET REQUIRED)
+find_package(gz-sim7 QUIET REQUIRED)
 
 add_executable(each each.cc)
 target_link_libraries(each
-  ignition-gazebo6::core)
-
+  gz-sim7::core)

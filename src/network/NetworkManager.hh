@@ -14,39 +14,39 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
+#ifndef GZ_SIM_NETWORK_NETWORKMANAGER_HH_
+#define GZ_SIM_NETWORK_NETWORKMANAGER_HH_
 
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#include <ignition/transport/NodeOptions.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/EventManager.hh>
+#include <gz/transport/NodeOptions.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/EventManager.hh>
 
 #include "NetworkConfig.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations
     class NetworkManagerPrivate;
 
     /// \class NetworkManager NetworkManager.hh
-    ///   ignition/gazebo/NetworkManager.hh
+    ///   gz/sim/NetworkManager.hh
     /// \brief The NetworkManager provides a common interface to derived
     /// objects that control the flow of information in the distributed
     /// simulation environment.
-    class IGNITION_GAZEBO_VISIBLE NetworkManager
+    class GZ_SIM_VISIBLE NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Create a class derived from NetworkManager based on
       /// a given configuration
@@ -57,7 +57,7 @@ namespace ignition
       /// NetworkManager
       /// \param[in] _config configuration object to use. If not given,
       ///   configuration will be populated from environment variables.
-      /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _options Advanced options for underlying gz-transport
       /// \return A pointer to a network manager, or null if the network
       /// manager could not be created.
       public: static std::unique_ptr<NetworkManager> Create(
@@ -73,7 +73,7 @@ namespace ignition
       /// \param[in] _eventMgr EventManager to associate with this
       /// NetworkManager
       /// \param[in] _config configuration object to use.
-      /// \param[in] _options Advanced options for underlying ign-transport
+      /// \param[in] _options Advanced options for underlying gz-transport
       protected: explicit NetworkManager(
           const std::function<void(const UpdateInfo &_info)> &_stepFunction,
           EntityComponentManager &_ecm, EventManager *_eventMgr,
@@ -122,7 +122,7 @@ namespace ignition
       protected: std::unique_ptr<NetworkManagerPrivate> dataPtr;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
+  }  // namespace sim
+}  // namespace gz
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGER_HH_
+#endif  // GZ_SIM_NETWORKMANAGER_HH_

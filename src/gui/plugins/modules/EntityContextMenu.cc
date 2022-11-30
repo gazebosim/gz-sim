@@ -18,24 +18,24 @@
 #include "../../GuiRunner.hh"
 #include "EntityContextMenu.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
-#include <ignition/msgs/entity.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/entity.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/gui/Application.hh>
+#include <gz/transport/Node.hh>
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Move to service name
@@ -79,11 +79,11 @@ namespace ignition::gazebo
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
-void IgnGazeboPlugin::registerTypes(const char *_uri)
+void GzSimPlugin::registerTypes(const char *_uri)
 {
   // Register our 'EntityContextMenuItem' in qml engine
   qmlRegisterType<EntityContextMenu>(_uri, 1, 0,
@@ -143,7 +143,7 @@ void EntityContextMenu::OnRemove(
     auto runners = gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
-      ignerr << "Internal error: no GuiRunner found." << std::endl;
+      gzerr << "Internal error: no GuiRunner found." << std::endl;
       return;
     }
 
@@ -151,7 +151,7 @@ void EntityContextMenu::OnRemove(
     auto worldNameVariant = runners[0]->property("worldName");
     if (!worldNameVariant.isValid())
     {
-      ignwarn << "GuiRunner's worldName not set, using["
+      gzwarn << "GuiRunner's worldName not set, using["
               << this->dataPtr->worldName << "]" << std::endl;
     }
     else
@@ -167,7 +167,7 @@ void EntityContextMenu::OnRemove(
       [](const msgs::Boolean &_rep, const bool _result)
   {
     if (!_result || !_rep.data())
-      ignerr << "Error sending remove request" << std::endl;
+      gzerr << "Error sending remove request" << std::endl;
   };
 
   msgs::Entity req;
@@ -184,7 +184,7 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error sending move to request" << std::endl;
+      gzerr << "Error sending move to request" << std::endl;
   };
 
   std::string request = _request.toStdString();
@@ -202,31 +202,31 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "view_transparent")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
   }
   else if (request == "view_com")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
   }
   else if (request == "view_inertia")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_joints")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewJointsService, req, cb);
   }
   else if (request == "view_wireframes")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
   }
@@ -238,23 +238,23 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "view_frames")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewFramesService, req, cb);
   }
   else if (request == "copy")
   {
-    ignition::msgs::StringMsg req;
+    gz::msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
   }
   else if (request == "paste")
   {
-    ignition::msgs::Empty req;
+    gz::msgs::Empty req;
     this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else
   {
-    ignwarn << "Unknown request [" << request << "]" << std::endl;
+    gzwarn << "Unknown request [" << request << "]" << std::endl;
   }
 }

@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
@@ -27,36 +27,36 @@
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "test_config.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visibility.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class EntityCompMgrTest : public EntityComponentManager
@@ -188,14 +188,14 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (modelCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
       else if (modelCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
@@ -269,7 +269,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (linkCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("capsule_link", _name->Data());
 
@@ -280,7 +280,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (linkCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("ellipsoid_link", _name->Data());
 
@@ -414,7 +414,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (collisionCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("capsule_collision", _name->Data());
@@ -429,7 +429,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         }
       else if (collisionCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("ellipsoid_collision", _name->Data());
@@ -439,7 +439,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        EXPECT_EQ(gz::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
       }
       return true;
@@ -562,7 +562,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (visualCount == 4)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("capsule_visual", _name->Data());
@@ -588,7 +588,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (visualCount == 5)
       {
-        EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
+        EXPECT_EQ(gz::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("ellipsoid_visual", _name->Data());
@@ -602,7 +602,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+        EXPECT_EQ(gz::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
 
         EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
@@ -1031,8 +1031,8 @@ TEST_F(SdfEntityCreatorTest, CreateJointEntities)
     if (_checkAxis2)
       testAxis(_joint->Name(), _joint->Axis(1), _axis2);
 
-    EXPECT_EQ(_joint->ParentLinkName(), _parentLinkName->Data());
-    EXPECT_EQ(_joint->ChildLinkName(), _childLinkName->Data());
+    EXPECT_EQ(_joint->ParentName(), _parentLinkName->Data());
+    EXPECT_EQ(_joint->ChildName(), _childLinkName->Data());
     EXPECT_EQ(_joint->Name(), _name->Data());
   };
 

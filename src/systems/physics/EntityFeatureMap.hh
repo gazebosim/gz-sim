@@ -15,23 +15,23 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#ifndef GZ_SIM_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#define GZ_SIM_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
 
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 
-#include <ignition/physics/Entity.hh>
-#include <ignition/physics/FindFeatures.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/RequestFeatures.hh>
+#include <gz/physics/Entity.hh>
+#include <gz/physics/FindFeatures.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/RequestFeatures.hh>
 
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/Entity.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems::physics_system
 {
   // \brief Helper class that associates Gazebo entities with Physics entities
@@ -44,7 +44,7 @@ namespace systems::physics_system
   // and the memory associated with the physics entities can be freed.
   //
   // DEV WARNING: There is an implicit conversion between physics EntityPtr and
-  // std::size_t in ign-physics. This seems also implicitly convert between
+  // std::size_t in gz-physics. This seems also implicitly convert between
   // EntityPtr and gazebo Entity. Therefore, any member function that takes a
   // gazebo Entity can accidentally take an EntityPtr. To prevent this, for
   // every function that takes a gazebo Entity, we should always have an
@@ -94,7 +94,7 @@ namespace systems::physics_system
     /// requested feature.
     public: template <typename ToFeatureList>
             PhysicsEntityPtr<ToFeatureList>
-            EntityCast(gazebo::Entity _entity) const
+            EntityCast(sim::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError

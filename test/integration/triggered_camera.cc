@@ -20,24 +20,24 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
-#include <ignition/msgs/image.pb.h>
+#include <gz/msgs/image.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include "gz/sim/Server.hh"
+#include "test_config.hh"
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test TriggeredCameraTest system
@@ -67,7 +67,7 @@ void imageCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 // The test checks the Triggered Camera readings
 TEST_F(TriggeredCameraTest,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(TriggeredCameraBox))
 {
   // Start server
   ServerConfig serverConfig;
@@ -86,12 +86,12 @@ TEST_F(TriggeredCameraTest,
   transport::Node node;
   node.Subscribe("/camera", &imageCb);
 
-  ignition::transport::Node triggerNode;
+  transport::Node triggerNode;
   std::string triggerTopic =
       "/camera/trigger";
 
-  auto pub = triggerNode.Advertise<ignition::msgs::Boolean>(triggerTopic);
-  ignition::msgs::Boolean msg;
+  auto pub = triggerNode.Advertise<msgs::Boolean>(triggerTopic);
+  msgs::Boolean msg;
   msg.set_data(true);
 
   int sleep{0};

@@ -24,10 +24,10 @@
 #ifdef HAVE_DART
 #include <dart/config.hpp>
 #endif
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Geometry.hh>
@@ -37,46 +37,46 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Util.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
-#include "ignition/gazebo/components/AxisAlignedBox.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointTransmittedWrench.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
-#include "ignition/gazebo/components/JointPositionReset.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
-#include "ignition/gazebo/components/JointVelocityReset.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/AxisAlignedBox.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointEffortLimitsCmd.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointTransmittedWrench.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointPositionLimitsCmd.hh"
+#include "gz/sim/components/JointPositionReset.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointVelocityLimitsCmd.hh"
+#include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 class PhysicsSystemFixture : public InternalFixture<::testing::Test>
@@ -119,8 +119,8 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 }
 
 ////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
   ServerConfig serverConfig;
 
@@ -189,7 +189,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 // This tests whether links with fixed joints keep their relative transforms
 // after physics. For that to work properly, the canonical link implementation
 // must be correct.
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
   ServerConfig serverConfig;
 
@@ -261,7 +261,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 /////////////////////////////////////////////////
 // Same as the CanonicalLink test, but with a non-default canonical link
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
   ServerConfig serverConfig;
 
@@ -316,7 +316,7 @@ TEST_F(PhysicsSystemFixture,
 
 /////////////////////////////////////////////////
 // Test physics integration with revolute joints
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
   ServerConfig serverConfig;
 
@@ -395,7 +395,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
   ServerConfig serverConfig;
   Server server(serverConfig);
@@ -479,7 +479,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
   ServerConfig serverConfig;
 
@@ -565,7 +565,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test that joint position reported by the physics system include all axes
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
   ServerConfig serverConfig;
 
@@ -645,7 +645,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test joint position reset component
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
   ServerConfig serverConfig;
 
@@ -745,7 +745,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 /// Test joint veocity reset component
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
   ServerConfig serverConfig;
 
@@ -1217,7 +1217,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
   ServerConfig serverConfig;
 
@@ -1288,7 +1288,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
   ServerConfig serverConfig;
 
@@ -1394,18 +1394,18 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelDartsim))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-dartsim-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";
   serverConfig.SetSdfFile(sdfFile);
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1417,15 +1417,15 @@ TEST_F(PhysicsSystemFixture,
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, gz::math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, gz::math::Pose3d> postUpLinkPoses;
   std::unordered_map<std::string, std::string> parents;
   testSystem.OnPostUpdate(
-    [&postUpModelPoses, &postUpLinkPoses, &parents](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        [&](const gz::sim::Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           // store model pose
@@ -1444,7 +1444,7 @@ TEST_F(PhysicsSystemFixture,
 
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const ignition::gazebo::Entity &, const components::Link *,
+        [&](const gz::sim::Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -1537,18 +1537,18 @@ TEST_F(PhysicsSystemFixture,
 
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(IncludeNestedModelTPE))
 {
   std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
-  ignition::common::setenv("IGN_GAZEBO_RESOURCE_PATH", path.c_str());
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetResourceCache(path);
-  serverConfig.SetPhysicsEngine("libignition-physics-tpe-plugin.so");
+  serverConfig.SetPhysicsEngine("gz-physics-tpe-plugin");
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/include_nested_models.sdf";
   serverConfig.SetSdfFile(sdfFile);
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   sdf::Root root;
   root.Load(sdfFile);
@@ -1560,15 +1560,15 @@ TEST_F(PhysicsSystemFixture,
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, gz::math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, gz::math::Pose3d> postUpLinkPoses;
   std::unordered_map<std::string, std::string> parents;
   testSystem.OnPostUpdate(
-    [&postUpModelPoses, &postUpLinkPoses, &parents](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &_entity, const components::Model *,
+        [&](const gz::sim::Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           // store model pose
@@ -1587,7 +1587,7 @@ TEST_F(PhysicsSystemFixture,
 
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const ignition::gazebo::Entity &, const components::Link *,
+        [&](const gz::sim::Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -1680,9 +1680,9 @@ TEST_F(PhysicsSystemFixture,
 
 // This tests whether the poses of nested models are updated correctly
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelIndividualCanonicalLinks))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/nested_model_canonical_link.sdf";
@@ -1694,7 +1694,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -1703,17 +1703,17 @@ TEST_F(PhysicsSystemFixture,
 
   // Store a pointer to the ECM used in testSystem so that it can be used to
   // help verify poses at the end of this test
-  const gazebo::EntityComponentManager *ecm;
+  const sim::EntityComponentManager *ecm;
 
-  std::unordered_map<std::string, ignition::math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, gz::math::Pose3d> postUpModelPoses;
   testSystem.OnPostUpdate(
-    [&postUpModelPoses, &ecm](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&postUpModelPoses, &ecm](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const gz::sim::Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           // store model pose
@@ -1767,12 +1767,12 @@ TEST_F(PhysicsSystemFixture,
   const auto model11Entity =
     ecm->EntityByComponents(components::Name(model11It->first));
   ASSERT_NE(kNullEntity, model11Entity);
-  const auto model11WorldPose = gazebo::worldPose(model11Entity, *ecm);
+  const auto model11WorldPose = sim::worldPose(model11Entity, *ecm);
   EXPECT_NEAR(zExpected, model11WorldPose.Z(), 1e-2);
   const auto model12Entity =
     ecm->EntityByComponents(components::Name(model12It->first));
   ASSERT_NE(kNullEntity, model12Entity);
-  const auto model12WorldPose = gazebo::worldPose(model12Entity, *ecm);
+  const auto model12WorldPose = sim::worldPose(model12Entity, *ecm);
   EXPECT_NEAR(zExpected, model12WorldPose.Z(), 1e-2);
   EXPECT_DOUBLE_EQ(model11WorldPose.Z(), model12WorldPose.Z());
   // zExpected is also the z component of the world pose for model_10
@@ -1782,21 +1782,21 @@ TEST_F(PhysicsSystemFixture,
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPhysicsOptions))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   bool checked{false};
 
   // Create a system to check components
   test::Relay testSystem;
   testSystem.OnPostUpdate(
-    [&checked](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&checked](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::World, components::PhysicsCollisionDetector,
                 components::PhysicsSolver>(
-        [&](const ignition::gazebo::Entity &, const components::World *,
+        [&](const gz::sim::Entity &, const components::World *,
             const components::PhysicsCollisionDetector *_collisionDetector,
             const components::PhysicsSolver *_solver)->bool
         {
@@ -1815,7 +1815,7 @@ TEST_F(PhysicsSystemFixture,
         });
     });
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
 
@@ -1825,7 +1825,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, PhysicsOptions)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "physics_options.sdf"));
 
@@ -1834,12 +1834,12 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
   // Create a system to check components
   test::Relay testSystem;
   testSystem.OnPostUpdate(
-    [&checked](const gazebo::UpdateInfo &,
-    const gazebo::EntityComponentManager &_ecm)
+    [&checked](const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::World, components::PhysicsCollisionDetector,
                 components::PhysicsSolver>(
-        [&](const ignition::gazebo::Entity &, const components::World *,
+        [&](const gz::sim::Entity &, const components::World *,
             const components::PhysicsCollisionDetector *_collisionDetector,
             const components::PhysicsSolver *_solver)->bool
         {
@@ -1858,7 +1858,7 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
         });
     });
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
 
@@ -1869,9 +1869,9 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
 // This tests whether pose updates are correct for a model whose canonical link
 // changes, but other links do not
 TEST_F(PhysicsSystemFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MovingCanonicalLinkOnly))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
     "only_canonical_link_moves.sdf");
@@ -1883,7 +1883,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -1901,11 +1901,11 @@ TEST_F(PhysicsSystemFixture,
 
   size_t currIter = 0;
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &, const gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
     {
       currIter++;
       _ecm.Each<components::Link, components::Name>(
-          [&](const ignition::gazebo::Entity &_entity,
+          [&](const gz::sim::Entity &_entity,
           const components::Link *, const components::Name *_name)->bool
           {
             // ignore the link for the ground plane
@@ -1919,57 +1919,57 @@ TEST_F(PhysicsSystemFixture,
               {
                 // link "base_link" falls due to gravity, starting from rest
                 EXPECT_NEAR(zExpected,
-                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                    gz::sim::worldPose(_entity, _ecm).Z(), 1e-2);
                 numBaseLinkChecks++;
               }
               else if (_name->Data() == "link0_outer")
               {
                 // link "link0_outer" is resting on the ground and does not
                 // move, so it should always have a pose of (1 0 0 0 0 0)
-                EXPECT_EQ(ignition::math::Pose3d(1, 0, 0, 0, 0, 0),
-                    ignition::gazebo::worldPose(_entity, _ecm));
+                EXPECT_EQ(gz::math::Pose3d(1, 0, 0, 0, 0, 0),
+                    gz::sim::worldPose(_entity, _ecm));
                 numOuterLinkChecks++;
               }
               else if (_name->Data() == "base_link_custom")
               {
                 // same as link "base_link"
                 EXPECT_NEAR(zExpected,
-                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                    gz::sim::worldPose(_entity, _ecm).Z(), 1e-2);
                 numBaseLinkCustomChecks++;
               }
               else if (_name->Data() == "link0_outer_custom")
               {
                 // same as "link0_outer", but with an offset pose
-                EXPECT_EQ(ignition::math::Pose3d(1, 2, 0, 0, 0, 0),
-                    ignition::gazebo::worldPose(_entity, _ecm));
+                EXPECT_EQ(gz::math::Pose3d(1, 2, 0, 0, 0, 0),
+                    gz::sim::worldPose(_entity, _ecm));
                 numOuterLinkCustomChecks++;
               }
               else if (_name->Data() == "base_link_parent")
               {
                 // same as link "base_link"
                 EXPECT_NEAR(zExpected,
-                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                    gz::sim::worldPose(_entity, _ecm).Z(), 1e-2);
                 numBaseLinkParentChecks++;
               }
               else if (_name->Data() == "nested_model_link")
               {
                 // same as "link0_outer", but with an offset pose
-                EXPECT_EQ(ignition::math::Pose3d(1, -2, 0, 0, 0, 0),
-                    ignition::gazebo::worldPose(_entity, _ecm));
+                EXPECT_EQ(gz::math::Pose3d(1, -2, 0, 0, 0, 0),
+                    gz::sim::worldPose(_entity, _ecm));
                 numNestedModelLinkChecks++;
               }
               else if (_name->Data() == "parent_model_link")
               {
                 // same as "link0_outer", but with an offset pose
-                EXPECT_EQ(ignition::math::Pose3d(1, -4, 0, 0, 0, 0),
-                    ignition::gazebo::worldPose(_entity, _ecm));
+                EXPECT_EQ(gz::math::Pose3d(1, -4, 0, 0, 0, 0),
+                    gz::sim::worldPose(_entity, _ecm));
                 numParentModelLinkChecks++;
               }
               else if (_name->Data() == "base_link_child")
               {
                 // same as link "base_link"
                 EXPECT_NEAR(zExpected,
-                    ignition::gazebo::worldPose(_entity, _ecm).Z(), 1e-2);
+                    gz::sim::worldPose(_entity, _ecm).Z(), 1e-2);
                 numBaseLinkChildChecks++;
               }
             }
@@ -1996,12 +1996,12 @@ TEST_F(PhysicsSystemFixture,
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/heightmap.sdf";
+  const auto sdfFile = common::joinPaths(PROJECT_BINARY_PATH,
+    "test", "worlds", "heightmap.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
@@ -2012,8 +2012,8 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 
   test::Relay testSystem;
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &_info,
-    const gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &_info,
+    const sim::EntityComponentManager &_ecm)
     {
       double aboveHeight;
       double farHeight;
@@ -2022,7 +2022,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
       bool checkedHeightmap{false};
 
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const ignition::gazebo::Entity &, const components::Model *,
+        [&](const gz::sim::Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == "above_heightmap")
@@ -2067,7 +2067,7 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
       return true;
     });
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1000, false);
 
@@ -2078,17 +2078,17 @@ TEST_F(PhysicsSystemFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 /////////////////////////////////////////////////
 // Joint force
 TEST_F(PhysicsSystemFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTransmittedWrench))
 {
   common::Console::SetVerbosity(4);
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/joint_transmitted_wrench.sdf";
 
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -2096,12 +2096,12 @@ TEST_F(PhysicsSystemFixture,
   test::Relay testSystem;
 
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &_info, sim::EntityComponentManager &_ecm)
       {
         if (_info.iterations == 1)
         {
           _ecm.Each<components::Joint>(
-              [&](const ignition::gazebo::Entity &_entity,
+              [&](const gz::sim::Entity &_entity,
                   const components::Joint *) -> bool
               {
                 _ecm.CreateComponent(_entity,
@@ -2116,8 +2116,8 @@ TEST_F(PhysicsSystemFixture,
   wrenches.reserve(totalIters);
   // Simply collect joint wrenches. We check the values later.
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &,
+          const sim::EntityComponentManager &_ecm)
       {
         const auto sensorJointEntity = _ecm.EntityByComponents(
             components::Joint(), components::Name("sensor_joint"));
@@ -2167,7 +2167,7 @@ TEST_F(PhysicsSystemFixture,
 
   // Move the weight off center so it generates torque
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
       {
         const auto weightEntity = _ecm.EntityByComponents(
             components::Model(), components::Name("weight"));
@@ -2200,7 +2200,7 @@ TEST_F(PhysicsSystemFixture,
 /////////////////////////////////////////////////
 // Test that joint velocity limit is applied
 TEST_F(PhysicsSystemFixtureWithDart6_10,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityLimitTest))
 {
   // Start server
   ServerConfig serverConfig;
@@ -2218,7 +2218,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
 
   const std::size_t nIters{600};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if they don't exist on the first iteration
         if (_info.iterations == 1)
@@ -2234,8 +2234,8 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
       });
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info,
+          const EntityComponentManager &_ecm)
       {
         // At nIters iterations, check angular velocity of each of the joints
         if (_info.iterations == nIters)

@@ -16,15 +16,15 @@
 */
 #include <sdf/Magnetometer.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/components/Magnetometer.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/components/Magnetometer.hh>
 
 #include "ComponentInspectorEditor.hh"
 #include "Magnetometer.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Magnetometer::Magnetometer(ComponentInspectorEditor *_inspector)
@@ -95,11 +95,11 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerXNoise(
         mag->SetXNoise(noise);
       }
       else
-        ignerr << "Unable to get the magnetometer data.\n";
+        gzerr << "Unable to get the magnetometer data.\n";
     }
     else
     {
-      ignerr << "Unable to get the magnetometer component.\n";
+      gzerr << "Unable to get the magnetometer component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -129,11 +129,11 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerYNoise(
         mag->SetYNoise(noise);
       }
       else
-        ignerr << "Unable to get the magnetometer data.\n";
+        gzerr << "Unable to get the magnetometer data.\n";
     }
     else
     {
-      ignerr << "Unable to get the magnetometer component.\n";
+      gzerr << "Unable to get the magnetometer component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -163,11 +163,11 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerZNoise(
         mag->SetZNoise(noise);
       }
       else
-        ignerr << "Unable to get the magnetometer data.\n";
+        gzerr << "Unable to get the magnetometer data.\n";
     }
     else
     {
-      ignerr << "Unable to get the magnetometer component.\n";
+      gzerr << "Unable to get the magnetometer component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

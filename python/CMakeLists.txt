@@ -21,72 +21,75 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
   endif()
 
   if(USE_DIST_PACKAGES_FOR_PYTHON)
-    string(REPLACE "site-packages" "dist-packages" IGN_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
+    string(REPLACE "site-packages" "dist-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
   endif()
 else()
   # If not a system installation, respect local paths
-  set(IGN_PYTHON_INSTALL_PATH ${IGN_LIB_INSTALL_DIR}/python)
+  set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
+
+set(GZ_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 
 # Set the build location and install location for a CPython extension
 function(configure_build_install_location _library_name)
   # Install library for actual use
   install(TARGETS ${_library_name}
-    DESTINATION "${IGN_PYTHON_INSTALL_PATH}/ignition"
+    DESTINATION "${GZ_PYTHON_INSTALL_PATH}"
   )
 endfunction()
 
-pybind11_add_module(gazebo SHARED
-  src/ignition/gazebo/_ignition_gazebo_pybind11.cc
-  src/ignition/gazebo/EntityComponentManager.cc
-  src/ignition/gazebo/EventManager.cc
-  src/ignition/gazebo/TestFixture.cc
-  src/ignition/gazebo/Server.cc
-  src/ignition/gazebo/ServerConfig.cc
-  src/ignition/gazebo/UpdateInfo.cc
-  src/ignition/gazebo/Util.cc
-  src/ignition/gazebo/World.cc
+set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
+pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
+  src/gz/sim/_gz_sim_pybind11.cc
+  src/gz/sim/EntityComponentManager.cc
+  src/gz/sim/EventManager.cc
+  src/gz/sim/TestFixture.cc
+  src/gz/sim/Server.cc
+  src/gz/sim/ServerConfig.cc
+  src/gz/sim/UpdateInfo.cc
+  src/gz/sim/Util.cc
+  src/gz/sim/World.cc
 )
 
-target_link_libraries(gazebo PRIVATE
+target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
-  sdformat${SDF_VER}::sdformat${SDF_VER}
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-# TODO(ahcorde): Move this module to ign-common
-pybind11_add_module(common SHARED
-  src/ignition/common/_ignition_common_pybind11.cc
-  src/ignition/common/Console.cc
+target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
+  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
+
+# TODO(ahcorde): Move this module to gz-common
+pybind11_add_module(common MODULE
+  src/gz/common/_gz_common_pybind11.cc
+  src/gz/common/Console.cc
 )
 
 target_link_libraries(common PRIVATE
-  ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-# TODO(ahcorde): Move this module to sdformat
-pybind11_add_module(sdformat SHARED
-  src/ignition/sdformat/_sdformat_pybind11.cc
-  src/ignition/sdformat/Element.cc
-)
-
-target_link_libraries(sdformat PRIVATE
-	sdformat${SDF_VER}::sdformat${SDF_VER}
-)
-
-install(TARGETS sdformat
-	DESTINATION "${IGN_PYTHON_INSTALL_PATH}"
-)
-
-configure_build_install_location(gazebo)
+configure_build_install_location(${BINDINGS_MODULE_NAME})
 configure_build_install_location(common)
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # Workaround for Clang and pybind11 on Focal
+  # https://github.com/pybind/pybind11/issues/1604
+  # Resolved by newer versions of pybind11
+  if(${pybind11_VERSION} VERSION_LESS "2.4.4")
+    target_compile_options(common PRIVATE -fsized-deallocation)
+    target_compile_options(sim PRIVATE -fsized-deallocation)
+  endif()
+endif()
+
 
 if (BUILD_TESTING)
   set(python_tests
     testFixture_TEST
   )
 
-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -m pytest --version
+  execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
     ERROR_VARIABLE  PYTEST_error
     RESULT_VARIABLE PYTEST_result)
@@ -99,17 +102,17 @@ if (BUILD_TESTING)
 
   foreach (test ${python_tests})
     if (pytest_FOUND)
-      add_test(NAME ${test}.py COMMAND
-        "${PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
+      add_test(NAME ${test} COMMAND
+        "${GZ_PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
     else()
-      add_test(NAME ${test}.py COMMAND
-        "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+      add_test(NAME ${test} COMMAND
+        "${GZ_PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
 
     set(_env_vars)
     list(APPEND _env_vars "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
     list(APPEND _env_vars "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
-    set_tests_properties(${test}.py PROPERTIES
+    set_tests_properties(${test} PROPERTIES
       ENVIRONMENT "${_env_vars}")
   endforeach()
 endif()

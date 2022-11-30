@@ -14,33 +14,34 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
-#define IGNITION_GAZEBO_SCENEBROADCASTER_SYSTEM_HH_
+#ifndef GZ_SIM_SCENEBROADCASTER_SYSTEM_HH_
+#define GZ_SIM_SCENEBROADCASTER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   class SceneBroadcasterPrivate;
 
   /** \class SceneBroadcaster SceneBroadcaster.hh \
-   * ignition/gazebo/systems/SceneBroadcaster.hh
+   * gz/sim/systems/SceneBroadcaster.hh
   **/
-  /// \brief System which periodically publishes an ignition::msgs::Scene
+  /// \brief System which periodically publishes a gz::msgs::Scene
   /// message with updated information.
-  class SceneBroadcaster:
+  class SceneBroadcaster final:
     public System,
     public ISystemConfigure,
-    public ISystemPostUpdate
+    public ISystemPostUpdate,
+    public ISystemReset
   {
     /// \brief Constructor
     public: SceneBroadcaster();
@@ -58,6 +59,10 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
+    // Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
+
     /// \brief Private data pointer
     private: std::unique_ptr<SceneBroadcasterPrivate> dataPtr;
   };
@@ -66,4 +71,3 @@ namespace systems
 }
 }
 #endif
-

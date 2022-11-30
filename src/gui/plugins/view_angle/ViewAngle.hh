@@ -15,18 +15,18 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
-#define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
+#ifndef GZ_SIM_GUI_VIEWANGLE_HH_
+#define GZ_SIM_GUI_VIEWANGLE_HH_
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ViewAnglePrivate;
 
@@ -34,9 +34,8 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive view angle requests.
-  /// \<legacy\> : Set to true to use with GzScene3D, false to use with
   /// MinimalScene. Defaults to true.
-  class ViewAngle : public ignition::gui::Plugin
+  class ViewAngle : public gz::gui::Plugin
   {
     Q_OBJECT
 
@@ -78,6 +77,12 @@ namespace gazebo
     /// \brief Callback in Qt thread when camera view controller changes.
     /// \param[in] _mode New camera view controller
     public slots: void OnViewControl(const QString &_controller);
+
+    /// \brief Callback in Qt thread when camera view reference visual state
+    /// changes.
+    /// \param[in] _enable True to enable camera view control reference visual,
+    /// false to hide it
+    public slots: void OnViewControlReferenceVisual(bool _enable);
 
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;

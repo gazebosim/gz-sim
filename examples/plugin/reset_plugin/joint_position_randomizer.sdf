@@ -1,0 +1,44 @@
+<sdf version="1.8">
+  <!-- This example uses the JointPositionRandomizer system to randomize the joint positions of a robot arm at every reset.
+
+    To reset the world, run:
+
+    gz service -s /world/default/control \-\-reqtype gz.msgs.WorldControl \-\-reptype gz.msgs.Boolean \-\-timeout 3000 \-\-req 'reset: {all: true}'
+  -->
+
+  <world name="default">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"></plugin>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"></plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"></plugin>
+    <light name="sun" type="directional"/>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Simple Arm</uri>
+      <plugin filename="build/libJointPositionRandomizer.so" name="reset_plugin::JointPositionRandomizer"/>
+    </include>
+  </world>
+</sdf>

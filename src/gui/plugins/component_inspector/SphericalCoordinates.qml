@@ -157,7 +157,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: latSpin
           Layout.fillWidth: true
           height: 40
@@ -192,7 +192,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: lonSpin
           Layout.fillWidth: true
           height: 40
@@ -227,7 +227,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: elevationSpin
           Layout.fillWidth: true
           height: 40
@@ -262,7 +262,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: headingSpin
           Layout.fillWidth: true
           height: 40

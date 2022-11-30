@@ -41,7 +41,7 @@ Rectangle {
       // Set the 'expandingHeaderText' value to override the default header
       // values, which is based on the model.
       expandingHeaderText: "Altimeter"
-      expandingHeaderToolTip: "Altimeter sensor properties" 
+      expandingHeaderToolTip: "Altimeter sensor properties"
     }
 
     // This is the content that will be expanded/contracted using the

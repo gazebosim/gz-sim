@@ -16,16 +16,16 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/dataframe.pb.h>
-#include <ignition/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
-#include "ignition/gazebo/comms/Broker.hh"
-#include "ignition/gazebo/comms/MsgManager.hh"
+#include "gz/sim/comms/Broker.hh"
+#include "gz/sim/comms/MsgManager.hh"
 #include "helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Tests for Broker class
 class BrokerTest : public InternalFixture<::testing::Test>
@@ -48,7 +48,7 @@ TEST_F(BrokerTest, Broker)
   msgs::StringMsg_V wrongReqBind;
   wrongReqBind.add_data("addr1");
   wrongReqBind.add_data("model1");
-  ignition::msgs::Boolean unused;
+  gz::msgs::Boolean unused;
   EXPECT_FALSE(broker.OnBind(wrongReqBind, unused));
   allData = broker.DataManager().Data();
   EXPECT_EQ(0u, allData.size());

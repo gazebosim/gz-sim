@@ -17,26 +17,26 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class HydrodynamicsFlagsTest : public InternalFixture<::testing::Test>
 {
@@ -59,7 +59,7 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
   std::vector<math::Vector3d> &_angularVel)
 {
   // Maximum verbosity for debugging
-  ignition::common::Console::SetVerbosity(4);
+  common::Console::SetVerbosity(4);
 
   // Start server
   ServerConfig serverConfig;

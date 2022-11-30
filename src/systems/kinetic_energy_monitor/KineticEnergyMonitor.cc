@@ -26,35 +26,35 @@
 #pragma warning(pop)
 #endif
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 
-#include <ignition/gazebo/components/AngularVelocity.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/LinearVelocity.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/gazebo/components/Inertial.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Link.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include "KineticEnergyMonitor.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private data class
-class ignition::gazebo::systems::KineticEnergyMonitorPrivate
+class gz::sim::systems::KineticEnergyMonitorPrivate
 {
   /// \brief Link of the model.
   public: Entity linkEntity;
@@ -68,7 +68,7 @@ class ignition::gazebo::systems::KineticEnergyMonitorPrivate
   /// \brief Kinetic energy threshold.
   public: double keThreshold {7.0};
 
-  /// \brief Ignition communication publisher.
+  /// \brief Gazebo communication publisher.
   public: transport::Node::Publisher pub;
 
   /// \brief The model this plugin is attached to.
@@ -94,7 +94,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "KineticEnergyMonitor should be attached to a model "
+    gzerr << "KineticEnergyMonitor should be attached to a model "
       << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -110,7 +110,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (linkName.empty())
   {
-    ignerr << "found an empty <link_name> parameter. Failed to initialize."
+    gzerr << "found an empty <link_name> parameter. Failed to initialize."
       << std::endl;
     return;
   }
@@ -120,7 +120,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 
   if (this->dataPtr->linkEntity == kNullEntity)
   {
-    ignerr << "Link " << linkName
+    gzerr << "Link " << linkName
       << " could not be found. Failed to initialize.\n";
     return;
   }
@@ -132,7 +132,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
     "/kinetic_energy"};
   std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
 
-  ignmsg << "KineticEnergyMonitor publishing messages on "
+  gzmsg << "KineticEnergyMonitor publishing messages on "
     << "[" << topic << "]" << std::endl;
 
   transport::Node node;
@@ -149,7 +149,7 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
 void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("KineticEnergyMonitor::PostUpdate");
+  GZ_PROFILE("KineticEnergyMonitor::PostUpdate");
   // Nothing left to do if paused or the publisher wasn't created.
   if (_info.paused || !this->dataPtr->pub)
     return;
@@ -167,7 +167,7 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
 
       if (deltaKE > this->dataPtr->keThreshold)
       {
-        ignmsg << this->dataPtr->modelName
+        gzmsg << this->dataPtr->modelName
           << " Change in kinetic energy above threshold - deltaKE: "
           << deltaKE << std::endl;
         msgs::Double msg;
@@ -178,10 +178,14 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
   }
 }
 
-IGNITION_ADD_PLUGIN(KineticEnergyMonitor,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(KineticEnergyMonitor,
+                    gz::sim::System,
                     KineticEnergyMonitor::ISystemConfigure,
                     KineticEnergyMonitor::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
+  "gz::sim::systems::KineticEnergyMonitor")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "ignition::gazebo::systems::KineticEnergyMonitor")

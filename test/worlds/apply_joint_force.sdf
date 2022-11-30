@@ -6,8 +6,8 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="ground_plane">
@@ -107,8 +107,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-apply-joint-force-system"
-        name="ignition::gazebo::systems::ApplyJointForce">
+        filename="gz-sim-apply-joint-force-system"
+        name="gz::sim::systems::ApplyJointForce">
         <joint_name>j1</joint_name>
       </plugin>
     </model>

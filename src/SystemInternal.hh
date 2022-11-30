@@ -14,25 +14,26 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
-#define IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
+#ifndef GZ_SIM_SYSTEMINTERNAL_HH_
+#define GZ_SIM_SYSTEMINTERNAL_HH_
 
 #include <chrono>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 #include <sdf/Plugin.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemPluginPtr.hh"
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Class to hold systems internally. It supports systems loaded
     /// from plugins, as well as systems created at runtime.
@@ -46,6 +47,7 @@ namespace ignition
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 configure(systemPlugin->QueryInterface<ISystemConfigure>()),
+                reset(systemPlugin->QueryInterface<ISystemReset>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
                 postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>()),
@@ -61,6 +63,7 @@ namespace ignition
               : systemShared(_system),
                 system(_system.get()),
                 configure(dynamic_cast<ISystemConfigure *>(_system.get())),
+                reset(dynamic_cast<ISystemReset *>(_system.get())),
                 preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
                 update(dynamic_cast<ISystemUpdate *>(_system.get())),
                 postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get())),
@@ -118,6 +121,10 @@ namespace ignition
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemConfigure *configure = nullptr;
 
+      /// \brief Access this system via the ISystemReset interface
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemReset *reset = nullptr;
+
       /// \brief Access this system via the ISystemPreUpdate interface
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemPreUpdate *preupdate = nullptr;
@@ -134,7 +141,15 @@ namespace ignition
       /// system during the `Configure` call.
       public: Entity parentEntity = {kNullEntity};
 
-      /// \brief Cached sdf plugin that was used to call `Configure` on the
+      /// \brief Cached filename of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string fname = "";
+
+      /// \brief Cached plugin name of the plugin used when system was loaded.
+      /// Used for reloading a system at runtime.
+      public: std::string name = "";
+
+      /// \brief Cached sdf plugin that was used to call `Configure` on the 
       /// system.
       /// Useful for if a system needs to be reconfigured at runtime
       public: std::optional<sdf::Plugin> sdfPlugin{std::nullopt};
@@ -143,7 +158,6 @@ namespace ignition
       public: std::vector<EntityQueryCallback> updates;
     };
     }
-  }  // namespace gazebo
-}  // namespace ignition
-#endif  // IGNITION_GAZEBO_SYSTEMINTERNAL_HH_
-
+  }  // namespace sim
+}  // namespace gz
+#endif  // GZ_SIM_SYSTEMINTERNAL_HH_
