@@ -40,18 +40,53 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/WrenchDebug.hh"
 #include "gz/sim/Util.hh"
 
 #include "gz/sim/Link.hh"
+
+using namespace gz;
+using namespace sim;
 
 class gz::sim::LinkPrivate
 {
   /// \brief Id of link entity.
   public: Entity id{kNullEntity};
-};
 
-using namespace gz;
-using namespace sim;
+  public: void AddDebugForceInfo(
+    EntityComponentManager &_ecm,
+    const math::Vector3d &_force,
+    const math::Vector3d &_torque,
+    const math::Vector3d &_position,
+    const std::string &_label)
+  {
+    if (_ecm.HasComponentType(components::WrenchDebugEnable::typeId))
+    {
+      auto linkDebugComponent =
+        _ecm.Component<components::WrenchDebugList>(this->id);
+
+      components::WrenchDebugData moment {
+        _label,
+        _force,
+        _torque,
+        _position
+      };
+
+      if (!linkDebugComponent)
+      {
+        std::vector<components::WrenchDebugData> moments{moment};
+        auto data = components::WrenchDebugListData::make_shared(moments);
+        components::WrenchDebugList list = components::WrenchDebugList{
+          std::move(data)};
+        _ecm.CreateComponent(this->id, list);
+      }
+      else
+      {
+        linkDebugComponent->Data()->moments.push_back(moment);
+      }
+    }
+  }
+};
 
 //////////////////////////////////////////////////
 Link::Link(sim::Entity _entity)
@@ -431,4 +466,36 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
               msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
   }
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldForce(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const std::string &_label) const
+{
+  this->dataPtr->AddDebugForceInfo(_ecm, _force, math::Vector3d(0, 0, 0),
+    math::Vector3d(0, 0, 0), _label);
+  this->AddWorldForce(_ecm, _force);
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldForce(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const math::Vector3d &_position,
+                         const std::string &_label) const
+{
+  this->dataPtr->AddDebugForceInfo(_ecm, _force, math::Vector3d(0, 0, 0),
+    _position, _label);
+  this->AddWorldForce(_ecm, _force, _position);
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldWrench(EntityComponentManager &_ecm,
+                         const math::Vector3d &_force,
+                         const math::Vector3d &_torque,
+                         const std::string &_label) const
+{
+  this->dataPtr->AddDebugForceInfo(_ecm, _force, _torque,
+    math::Vector3d(0, 0, 0), _label);
+  this->AddWorldWrench(_ecm, _force, _torque);
 }

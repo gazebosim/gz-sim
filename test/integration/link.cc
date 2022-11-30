@@ -42,6 +42,7 @@
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Visual.hh>
+#include <gz/sim/components/WrenchDebug.hh>
 
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/SdfEntityCreator.hh>
@@ -612,4 +613,22 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
       wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
       wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // Debugging not required as not enabled
+  link.AddWorldForce(ecm, force, "my force");
+  auto wrenchDebugComp = ecm.Component<components::WrenchDebugList>(eLink);
+  EXPECT_EQ(nullptr, wrenchDebugComp);
+
+  // Enable debugging
+  components::WrenchDebugEnable enableDebug;
+  ecm.CreateComponent(eLink, enableDebug);
+  link.AddWorldForce(ecm, force, "my force");
+  wrenchDebugComp = ecm.Component<components::WrenchDebugList>(eLink);
+  EXPECT_NE(nullptr, wrenchDebugComp);
+  EXPECT_EQ(wrenchDebugComp->Data()->moments.size(), 1u);
+
+  link.AddWorldForce(ecm, force, "my force 2");
+  wrenchDebugComp = ecm.Component<components::WrenchDebugList>(eLink);
+  EXPECT_NE(nullptr, wrenchDebugComp);
+  EXPECT_EQ(wrenchDebugComp->Data()->moments.size(), 2u);
 }

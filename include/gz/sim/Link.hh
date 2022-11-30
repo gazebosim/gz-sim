@@ -306,6 +306,40 @@ namespace gz
                                  const math::Vector3d &_force,
                                  const math::Vector3d &_torque) const;
 
+
+      /// \brief Add a force expressed in world coordinates and applied at the
+      /// center of mass of the link.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _label name of force to be applied
+      public: void AddWorldForce(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const std::string &_label) const;
+
+      /// \brief Add a force expressed in world coordinates and applied at
+      /// an offset from the center of mass of the link.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _position The point of application of the force expressed
+      /// in the link-fixed frame.
+      /// \param[in] _label name of force to be applied
+      public: void AddWorldForce(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_position,
+                                 const std::string &_label) const;
+
+      /// \brief Add a wrench expressed in world coordinates and applied to
+      /// the link at the link's origin. This wrench is applied for one
+      /// simulation step.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _torque Torque to be applied expressed in world coordinates
+      /// \param[in] _label name of force to be applied
+      public: void AddWorldWrench(EntityComponentManager &_ecm,
+                                 const math::Vector3d &_force,
+                                 const math::Vector3d &_torque,
+                                 const std::string &_label) const;
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;
     };

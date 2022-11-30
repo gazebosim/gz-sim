@@ -34,6 +34,7 @@ set(comms_sources
 
 set(component_sources
   components/Environment.cc
+  components/WrenchDebug.cc
 )
 
 set(gui_sources
