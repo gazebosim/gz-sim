@@ -291,22 +291,23 @@ void SimulationRunner::UpdateCurrentInfo()
   }
 
   // Seek
-  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  if (this->requestedSeek && this->requestedSeek.value() >= this->simTimeEpoch)
   {
     gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
-        this->requestedSeek).count() << "s." << std::endl;
+        this->requestedSeek.value()).count() << "s." << std::endl;
 
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
-    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.dt = this->requestedSeek.value() -
+      this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek.value();
     this->currentInfo.iterations = 0;
 
     this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
 
-    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+    this->requestedSeek = {};
 
     return;
   }
@@ -850,12 +851,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  if (!this->Paused() &&
-       this->requestedRunToSimTime > this->simTimeEpoch &&
-       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  if (!this->Paused() && this->requestedRunToSimTime &&
+       this->requestedRunToSimTime.value() > this->simTimeEpoch &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime.value())
   {
     this->SetPaused(true);
-    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+    this->requestedRunToSimTime = {};
   }
 
   if (!this->Paused() && this->pendingSimIterations > 0)
@@ -1115,7 +1116,7 @@ void SimulationRunner::SetRunToSimTime(
   }
   else
   {
-    this->requestedRunToSimTime = std::chrono::seconds(-1);
+    this->requestedRunToSimTime = {};
   }
 }
 
@@ -1257,7 +1258,7 @@ void SimulationRunner::ProcessWorldControl()
     this->requestedRewind = control.rewind;
 
     // Seek
-    if (control.seek >= std::chrono::steady_clock::duration::zero())
+    if (control.seek >= this->simTimeEpoch)
     {
       this->requestedSeek = control.seek;
     }

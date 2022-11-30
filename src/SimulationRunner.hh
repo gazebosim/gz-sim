@@ -221,8 +221,8 @@ namespace gz
 
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
-      /// pause. A negative number or a time less than the current simulation
-      /// time disables the run-to feature.
+      /// pause. A time prior than the current simulation time disables the
+      /// run-to feature.
       public: void SetRunToSimTime(
                   const std::chrono::steady_clock::duration &_time);
 
@@ -492,12 +492,12 @@ namespace gz
       private: bool requestedRewind{false};
 
       /// \brief If user asks to seek to a specific sim time, this holds the
-      /// time.s A negative value means there's no request from the user.
-      private: std::chrono::steady_clock::duration requestedSeek{-1};
+      /// time.
+      private: std::optional<std::chrono::steady_clock::duration> requestedSeek;
 
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
+      /// \brief A simulation time past the epoch to run to and then pause.
+      private: std::optional<std::chrono::steady_clock::duration>
+        requestedRunToSimTime;
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
