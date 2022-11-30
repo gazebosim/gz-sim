@@ -8,10 +8,7 @@
     <plugin filename="ignition-gazebo-physics-system"
             name="ignition::gazebo::systems::Physics">
     </plugin>
-    <plugin filename="ignition-gazebo-buoyancy-system"
-            name="ignition::gazebo::systems::Buoyancy">
-      <uniform_fluid_density>1000</uniform_fluid_density>
-    </plugin>
+    <gravity>0 0 0</gravity>
     <model name="tethys">
       <pose>0 0 1 0 0 1.57</pose>
       <link name="base_link">
