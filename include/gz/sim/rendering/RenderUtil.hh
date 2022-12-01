@@ -222,6 +222,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \param[in] _mgr Event manager to set to.
     public: void SetEventManager(EventManager *_mgr);
 
+    public: void Destroy();
+
     /// \brief Private data pointer.
     private: std::unique_ptr<RenderUtilPrivate> dataPtr;
   };

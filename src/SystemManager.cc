@@ -86,6 +86,10 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
+    SystemInternal ss(system.value(), _entity);
+    ss.fname = _plugin.Filename();
+    ss.name = _plugin.Name();
+    ss.configureSdf = _plugin.ToElement();
     this->AddSystemImpl(SystemInternal(system.value(), _entity, _plugin));
     igndbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
@@ -199,6 +203,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 
       sdf::ElementPtr elem = system.configureSdf ?
           system.configureSdf->Clone() : nullptr;
+
       PluginInfo info = {system.parentEntity, system.fname, system.name, elem};
 
       pluginsToBeLoaded.push_back(info);

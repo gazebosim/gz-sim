@@ -668,13 +668,13 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 // Tests `ign model -s` command with a gpu lidar sensor.
 TEST(ModelCommandAPI, GpuLidarSensor2)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "gpu_lidar.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
@@ -682,7 +682,7 @@ TEST(ModelCommandAPI, GpuLidarSensor2)
 
   // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m gpu_lidar -l gpu_lidar_link -s gpu_lidar";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);

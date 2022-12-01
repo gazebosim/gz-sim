@@ -149,7 +149,11 @@ namespace gz
       /// Used for reloading a system at runtime.
       public: std::string name = "";
 
-      /// \brief Cached sdf plugin that was used to call `Configure` on the 
+      /// \brief Cached sdf that was used to call `Configure` on the system
+      /// Useful for if a system needs to be reconfigured at runtime
+      public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
+
+      /// \brief Cached sdf plugin that was used to call `Configure` on the
       /// system.
       /// Useful for if a system needs to be reconfigured at runtime
       public: std::optional<sdf::Plugin> sdfPlugin{std::nullopt};
