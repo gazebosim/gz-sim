@@ -778,7 +778,7 @@ void IgnRenderer::Render()
 
   if (ignition::gui::App())
   {
-    gui::events::Render event;
+    ignition::gui::events::Render event;
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
         &event);
