@@ -278,11 +278,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->batteryName = _sdf->Get<std::string>("battery_name");
     auto initVoltage = _sdf->Get<double>("voltage");
 
-    // Create battery entity and component
+    // Create battery entity and some components
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
-    // Initialize with initial voltage
-    _ecm.CreateComponent(this->dataPtr->batteryEntity,
-      components::BatterySoC(this->dataPtr->soc));
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
       this->dataPtr->batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
@@ -409,6 +406,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
          << std::endl;
 
   this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
+  // Initialize battery with initial calculated state of charge
+  _ecm.CreateComponent(this->dataPtr->batteryEntity,
+      components::BatterySoC(this->dataPtr->soc));
 
   // Setup battery state topic
   std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
