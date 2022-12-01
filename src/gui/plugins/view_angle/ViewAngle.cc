@@ -90,6 +90,14 @@ namespace ignition::gazebo
     /// \return True if there is a new clipping distance from gui camera
     public: bool UpdateQtCamClipDist();
 
+    /// \brief View Control type
+    public: rendering::CameraProjectionType viewControlType =
+              rendering::CameraProjectionType::CPT_PERSPECTIVE;
+
+    /// \brief Checks if there is a new view controller, used to update qml side
+    /// \return True if there is a new view controller from gui camera
+    public: bool UpdateQtViewControl();
+
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
 
@@ -185,6 +193,11 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    if (this->dataPtr->UpdateQtViewControl())
+    {
+      this->ViewControlIndexChanged();
     }
   }
   else if (_event->type() ==
@@ -606,6 +619,31 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
     updated = true;
   }
   return updated;
+}
+
+/////////////////////////////////////////////////
+int ViewAngle::ViewControlIndex() const
+{
+  if (this->dataPtr->viewControlType ==
+        rendering::CameraProjectionType::CPT_PERSPECTIVE)
+    return 0;
+
+  return 1;
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtViewControl()
+{
+  if (!this->camera)
+    return false;
+
+  if (this->camera->ProjectionType() != this->viewControlType)
+  {
+    this->viewControlType = this->camera->ProjectionType();
+    return true;
+  }
+
+  return false;
 }
 
 // Register this plugin
