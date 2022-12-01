@@ -220,7 +220,7 @@ TEST_F(BatteryPluginTest,
     "linear_battery"));
   EXPECT_NE(kNullEntity, batEntity);
 
-  // Find the battery component
+  // Find the battery component.
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
     components::BatterySoC::typeId));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
@@ -232,7 +232,7 @@ TEST_F(BatteryPluginTest,
 
   // Add Enbtity with a battery power load component
   Entity consumerEntity =  ecm->CreateEntity();
-  components::BatteryPowerLoadInfo batteryPowerLoadInfo{"linear_battery", 500 };
+  components::BatteryPowerLoadInfo batteryPowerLoadInfo{batEntity, 500};
   ecm->CreateComponent(consumerEntity,
       components::BatteryPowerLoad(batteryPowerLoadInfo));
 

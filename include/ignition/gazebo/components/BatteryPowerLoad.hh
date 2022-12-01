@@ -36,7 +36,7 @@ namespace components
   struct BatteryPowerLoadInfo
   {
     /// \brief Name of the battery to use.
-    std::string batteryName;
+    Entity batteryId;
     /// \brief Battery power load to add to the battery.
     double batteryPowerLoad;
   };

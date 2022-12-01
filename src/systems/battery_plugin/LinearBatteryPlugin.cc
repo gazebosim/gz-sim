@@ -486,8 +486,8 @@ void LinearBatteryPlugin::PreUpdate(
     [&](const Entity & /*_entity*/,
         const components::BatteryPowerLoad *_batteryPowerLoadInfo)->bool
     {
-      if (_batteryPowerLoadInfo->Data().batteryName ==
-          this->dataPtr->batteryName)
+      if (_batteryPowerLoadInfo->Data().batteryId ==
+          this->dataPtr->batteryEntity)
       {
         total_power_load = total_power_load +
             _batteryPowerLoadInfo->Data().batteryPowerLoad;
