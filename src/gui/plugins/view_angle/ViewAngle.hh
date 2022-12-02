@@ -56,6 +56,13 @@ namespace gazebo
       NOTIFY CamClipDistChanged
     )
 
+    /// \brief view controller index for qml side (0: orbit; 1: ortho)
+    Q_PROPERTY(
+      int viewControlIndex
+      READ ViewControlIndex
+      NOTIFY ViewControlIndexChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -119,6 +126,12 @@ namespace gazebo
     /// \param[in] _near Near clipping plane distance
     /// \param[in] _far Far clipping plane distance
     public slots: void SetCamClipDist(double _near, double _far);
+
+    /// \brief Get the current index for view controller (on qml side)
+    public: int ViewControlIndex() const;
+
+    /// \brief Notify that the camera's view controller has changed
+    signals: void ViewControlIndexChanged();
 
     /// \internal
     /// \brief Pointer to private data.
