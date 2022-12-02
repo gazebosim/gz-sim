@@ -40,6 +40,7 @@
 #include "ignition/gazebo/components/Link.hh"
 #include "ignition/gazebo/components/Model.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -230,7 +231,7 @@ TEST_F(BatteryPluginTest,
 
   auto batLoad = batComp->Data();
 
-  // Add Enbtity with a battery power load component
+  // Add Entity with a battery power load component
   Entity consumerEntity =  ecm->CreateEntity();
   components::BatteryPowerLoadInfo batteryPowerLoadInfo{batEntity, 500};
   ecm->CreateComponent(consumerEntity,
@@ -244,30 +245,90 @@ TEST_F(BatteryPluginTest,
   // Battery consumed this time should be lower than before due to
   // the extra consumer
   EXPECT_LT(batComp->Data(), batLoad);
+}
 
-  // Check there is a single battery matching exactly the one specified
-  int linearBatCount = 0;
-  int totalBatCount = 0;
-  ecm->Each<components::BatterySoC, components::Name>(
-      [&](const Entity &_batEntity, components::BatterySoC *_batComp,
-          components::Name *_nameComp) -> bool
-      {
-        totalBatCount++;
-        if (_nameComp->Data() == "linear_battery")
-        {
-          linearBatCount++;
+/////////////////////////////////////////////////
+// Two models with its own battery, one with one extra consumer.
+TEST_F(BatteryPluginTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteriesDifferentConsumers))
+{
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "battery_thruster_consumer.sdf");
+  sdf::Root root;
+  EXPECT_EQ(root.Load(sdfPath).size(), 0lu);
+  EXPECT_GT(root.WorldCount(), 0lu);
 
-          EXPECT_NE(kNullEntity, _batEntity);
-          EXPECT_EQ(_nameComp->Data(), "linear_battery");
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfPath);
 
-          // Check battery component state of charge data is lower than initial
-          EXPECT_LT(_batComp->Data(), 1);
-        }
+  // A pointer to the ecm. This will be valid once we run the mock system
+  gazebo::EntityComponentManager *ecm = nullptr;
+  this->mockSystem->preUpdateCallback =
+    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
 
-        return true;
-      });
-  EXPECT_EQ(linearBatCount, 1);
-  EXPECT_EQ(totalBatCount, 2);
+      // Check a battery exists
+      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+
+      // Find the battery entities
+      Entity batEntity = ecm->EntityByComponents(components::Name(
+        "linear_battery"));
+      EXPECT_NE(kNullEntity, batEntity);
+      Entity batEntity2 = ecm->EntityByComponents(components::Name(
+        "linear_battery2"));
+      EXPECT_NE(kNullEntity, batEntity2);
+
+      // Find the battery components
+      EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+        components::BatterySoC::typeId));
+      auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+      EXPECT_TRUE(ecm->EntityHasComponentType(batEntity2,
+        components::BatterySoC::typeId));
+      auto batComp2 = ecm->Component<components::BatterySoC>(batEntity2);
+
+      // Check state of charge is never zero.
+      // This check is here to guarantee that components::BatterySoC in
+      // the LinearBatteryPlugin is not zero when created. If
+      // components::BatterySoC is zero on start, then the Physics plugin
+      // can disable a joint. This in turn can prevent the joint from
+      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      EXPECT_GT(batComp->Data(), 0);
+      EXPECT_GT(batComp2->Data(), 0);
+    };
+
+  // Start server
+  Server server(serverConfig);
+  server.AddSystem(this->systemPtr);
+  server.Run(true, 100, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Check a battery exists
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+
+  // Find the battery entities
+  Entity batEntity = ecm->EntityByComponents(components::Name(
+    "linear_battery"));
+  EXPECT_NE(kNullEntity, batEntity);
+  Entity batEntity2 = ecm->EntityByComponents(components::Name(
+    "linear_battery2"));
+  EXPECT_NE(kNullEntity, batEntity2);
+
+  // Find the batteries components.
+  EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+    components::BatterySoC::typeId));
+  auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+  EXPECT_TRUE(ecm->EntityHasComponentType(batEntity2,
+    components::BatterySoC::typeId));
+  auto batComp2 = ecm->Component<components::BatterySoC>(batEntity2);
+
+  // Check state of charge after consumption is lower than initial one
+  EXPECT_LT(batComp->Data(), 1);
+  EXPECT_LT(batComp2->Data(), 1);
+
+  // Check state of charge of the battery with an extra consumer is lower
+  // than the one without it.
+  EXPECT_LT(batComp2->Data(), batComp->Data());
 }
 
 /////////////////////////////////////////////////
