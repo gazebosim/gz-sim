@@ -19,6 +19,8 @@
 #define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
 
 #include <ignition/msgs/pose.pb.h>
+#include <ignition/msgs/boolean.pb.h>
+#include <ignition/msgs/gui_camera.pb.h>
 
 #include <memory>
 
@@ -100,6 +102,12 @@ namespace gazebo
     /// \brief Callback for retrieving gui camera pose
     /// \param[in] _msg Pose message
     public: void CamPoseCb(const msgs::Pose &_msg);
+
+    /// \brief Move to model service received
+    /// \param[in] _msg GUI camera message
+    /// \param[in] _res Response
+    public: bool OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
+      ignition::msgs::Boolean &_res);
 
     /// \brief Get the current gui camera's near and far clipping distances
     public: Q_INVOKABLE QList<double> CamClipDist() const;

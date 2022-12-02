@@ -1198,6 +1198,13 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
 
+  if (this->HasEntity(_id))
+  {
+    ignerr << "Light with Id: [" << _id << "] can not be create there is "
+              "another entity with the same entity number" << std::endl;
+    return nullptr;
+  }
+
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
     ignerr << "Light with Id: [" << _id << "] already exists in the scene"
