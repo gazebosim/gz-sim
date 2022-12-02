@@ -59,7 +59,7 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
   std::vector<math::Vector3d> &_angularVel)
 {
   // Maximum verbosity for debugging
-  ignition::common::Console::SetVerbosity(4);
+  common::Console::SetVerbosity(4);
 
   // Start server
   ServerConfig serverConfig;
@@ -71,11 +71,10 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
   Link body;
   std::vector<math::Vector3d> bodyVels;
   fixture.
-  OnConfigure(
-    [&](const Entity &_worldEntity,
-      const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      EntityComponentManager &_ecm,
-      EventManager &/*eventMgr*/)
+  OnConfigure([&](const Entity &_worldEntity,
+              const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+              EntityComponentManager &_ecm,
+              EventManager &/*eventMgr*/)
     {
       World world(_worldEntity);
 
@@ -97,7 +96,7 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
 
     }).
   OnPostUpdate([&](const UpdateInfo &/*_info*/,
-                            const EntityComponentManager &_ecm)
+                   const EntityComponentManager &_ecm)
     {
       auto bodyVel = body.WorldLinearVelocity(_ecm);
       ASSERT_TRUE(bodyVel);
@@ -125,7 +124,7 @@ TEST_F(HydrodynamicsFlagsTest, AddedMassCoriolisFlags)
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics_flags.sdf");
 
-  unsigned int numsteps = 1000;
+  unsigned int numsteps = 2000;
 
   std::vector<math::Vector3d> angularVels, angularCoriolisVels,
       angularAddedMassVels;
@@ -138,8 +137,20 @@ TEST_F(HydrodynamicsFlagsTest, AddedMassCoriolisFlags)
   this->TestWorld(world, "daphne", numsteps, linearAddedMassVels,
                   angularAddedMassVels);
 
-  // Wait a couple of iterations for the body to move
-  for (unsigned int i = 4; i < numsteps; ++i)
+  // Find out when body is moving and coriolis appears
+  unsigned int starts_moving = 0;
+  for (starts_moving = 0; starts_moving < numsteps; ++starts_moving)
+  {
+    if (linearCoriolisVels[starts_moving].Z() < linearVels[starts_moving].Z())
+    {
+      break;
+    }
+  }
+
+  // Check the body moved
+  EXPECT_LT(starts_moving, numsteps-1);
+
+  for (unsigned int i = starts_moving; i < numsteps; ++i)
   {
     // Angular and linear velocity should be lower
     // with the produced coriolis and added mass
