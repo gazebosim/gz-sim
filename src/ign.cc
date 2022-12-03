@@ -429,3 +429,8 @@ extern "C" IGNITION_GAZEBO_VISIBLE int runGui(
   return gazebo::gui::runGui(
     argc, &argv, _guiConfig, _file, _waitGui);
 }
+
+int main(int argc, char* argv[])
+{
+  return gazebo::gui::runGui(argc, argv, nullptr);
+}

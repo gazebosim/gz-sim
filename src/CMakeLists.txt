@@ -37,12 +37,14 @@ ign_add_component(ign
     cmd/ModelCommandAPI.cc
   GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
-  PRIVATE
+  PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
 )
+add_executable(runGui ign.cc)
+target_link_libraries(runGui PRIVATE ${ign_lib_target})
 
 set (sources
   Barrier.cc
