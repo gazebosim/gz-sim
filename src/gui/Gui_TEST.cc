@@ -36,7 +36,10 @@
 #include "../../test/helpers/EnvTestFixture.hh"
 
 int gg_argc = 1;
-char **gg_argv = new char *[gg_argc];
+char* gg_argv[] =
+{
+  reinterpret_cast<char*>(const_cast<char*>("./gui_test")),
+};
 
 using namespace gz;
 using namespace gz::sim::gui;

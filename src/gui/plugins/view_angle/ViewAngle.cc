@@ -249,6 +249,84 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
 }
 
 /////////////////////////////////////////////////
+bool ViewAngle::OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
+  ignition::msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  auto scene = this->dataPtr->camera->Scene();
+
+  auto visualToMove = scene->VisualByName(_msg.name());
+  if (nullptr == visualToMove)
+  {
+    ignerr << "Failed to get visual with ID ["
+           << _msg.name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+  Entity entityId = kNullEntity;
+  try
+  {
+    // TODO(ahcorde): When forward porting this to Garder change var type to
+    // unsigned int
+    entityId = std::get<int>(visualToMove->UserData("gazebo-entity"));
+  }
+  catch(std::bad_variant_access &_e)
+  {
+    ignerr << "Failed to get gazebo-entity user data ["
+           << visualToMove->Name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  math::Quaterniond q(
+    _msg.pose().orientation().w(),
+    _msg.pose().orientation().x(),
+    _msg.pose().orientation().y(),
+    _msg.pose().orientation().z());
+
+  ignition::math::Vector3d axis;
+  double angle;
+  q.ToAxis(axis, angle);
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller" << std::endl;
+  };
+
+  msgs::StringMsg req;
+  std::string str = _msg.projection_type();
+  if (str.find("Orbit") != std::string::npos ||
+      str.find("orbit") != std::string::npos)
+  {
+    req.set_data("orbit");
+  }
+  else if (str.find("Ortho") != std::string::npos ||
+           str.find("ortho") != std::string::npos )
+  {
+    req.set_data("ortho");
+  }
+  else
+  {
+    ignerr << "Unknown view controller selected: " << str << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+
+  this->dataPtr->viewingAngle = true;
+  this->dataPtr->newMoveToModel = true;
+  this->dataPtr->viewAngleDirection = axis;
+  this->dataPtr->distanceMoveToModel = _msg.pose().position().z();
+  this->dataPtr->selectedEntities.push_back(entityId);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -401,6 +479,35 @@ void ViewAnglePrivate::OnComplete()
 {
   this->viewingAngle = false;
   this->moveToPoseValue.reset();
+  if (this->newMoveToModel)
+  {
+    this->selectedEntities.pop_back();
+    this->newMoveToModel = false;
+
+    auto cameraPose = this->camera->WorldPose();
+    auto distance = -(this->viewAngleDirection * this->distanceMoveToModel);
+
+    if (!math::equal(this->viewAngleDirection.X(), 0.0))
+    {
+      cameraPose.Pos().X(distance.X());
+    }
+    if (!math::equal(this->viewAngleDirection.Y(), 0.0))
+    {
+      cameraPose.Pos().Y(distance.Y());
+    }
+    if (!math::equal(this->viewAngleDirection.Z(), 0.0))
+    {
+      cameraPose.Pos().Z(distance.Z());
+    }
+
+    this->moveToPoseValue = {
+      cameraPose.Pos().X(),
+      cameraPose.Pos().Y(),
+      cameraPose.Pos().Z(),
+      cameraPose.Rot().Roll(),
+      cameraPose.Rot().Pitch(),
+      cameraPose.Rot().Yaw()};
+  }
 }
 
 /////////////////////////////////////////////////

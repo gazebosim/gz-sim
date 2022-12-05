@@ -100,6 +100,12 @@ namespace sim
     /// \param[in] _msg Pose message
     public: void CamPoseCb(const msgs::Pose &_msg);
 
+    /// \brief Move to model service received
+    /// \param[in] _msg GUI camera message
+    /// \param[in] _res Response
+    public: bool OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
+      ignition::msgs::Boolean &_res);
+
     /// \brief Get the current gui camera's near and far clipping distances
     public: Q_INVOKABLE QList<double> CamClipDist() const;
 
