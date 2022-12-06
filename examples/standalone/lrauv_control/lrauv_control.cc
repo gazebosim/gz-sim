@@ -135,7 +135,7 @@ int main(int argc, char** argv)
   // Propeller command publisher.
   auto propellerTopicTethys =
     gz::transport::TopicUtils::AsValidTopic(
-      "/model/tethys/joint/propeller_joint/cmd_pos");
+      "/model/tethys/joint/propeller_joint/cmd_thrust");
   auto propellerPubTethys =
     node.Advertise<gz::msgs::Double>(propellerTopicTethys);
 

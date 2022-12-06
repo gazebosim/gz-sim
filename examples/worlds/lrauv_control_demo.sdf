@@ -85,6 +85,7 @@
         filename="gz-sim-thruster-system"
         name="gz::sim::systems::Thruster">
         <namespace>tethys</namespace>
+        <use_angvel_cmd>0</use_angvel_cmd>
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.004422</thrust_coefficient>
         <fluid_density>1000</fluid_density>
