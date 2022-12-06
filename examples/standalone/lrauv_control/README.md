@@ -53,4 +53,3 @@ Pitch angle (deg) : 9.96947 6.39717 3.57229
 
 ## Note
 This is only meant to be an example, and the controller might not behave correctly at high speeds or sudden change in desired angles.
-
