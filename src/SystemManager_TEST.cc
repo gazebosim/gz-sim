@@ -40,7 +40,7 @@ class SystemWithConfigure:
                 const std::shared_ptr<const sdf::Element> &,
                 EntityComponentManager &,
                 EventManager &) override { configured++; };
-  
+
   public: void ConfigureParameters(
                 ignition::transport::parameters::ParametersRegistry &,
                 EntityComponentManager &) override { configuredParameters++; }
