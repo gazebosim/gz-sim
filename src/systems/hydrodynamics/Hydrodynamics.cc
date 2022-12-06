@@ -21,6 +21,7 @@
 #include <gz/plugin/Register.hh>
 
 #include "gz/msgs/vector3d.pb.h"
+#include "gz/msgs/Utility.hh"
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/LinearVelocity.hh"

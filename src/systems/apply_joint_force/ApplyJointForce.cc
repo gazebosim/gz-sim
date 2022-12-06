@@ -17,6 +17,8 @@
 
 #include "ApplyJointForce.hh"
 
+#include <gz/msgs/double.pb.h>
+
 #include <string>
 
 #include <gz/common/Profiler.hh>

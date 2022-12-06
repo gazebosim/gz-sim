@@ -16,6 +16,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>

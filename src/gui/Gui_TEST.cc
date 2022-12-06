@@ -17,7 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/gui.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/StringUtils.hh>
@@ -269,4 +271,3 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   app->exec();
   checkingThread.join();
 }
-

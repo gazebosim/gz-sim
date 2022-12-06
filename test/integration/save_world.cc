@@ -16,7 +16,10 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <sstream>
 #include <tinyxml2.h>
 

@@ -14,6 +14,11 @@
  * limitations under the License.
  *
  */
+
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <QScreen>
 
 #include <gz/common/Console.hh>

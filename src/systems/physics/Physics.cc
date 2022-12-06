@@ -3531,8 +3531,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
-  auto allContacts =
-      std::move(worldCollisionFeature->GetContactsFromLastStep());
+  auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
 
   for (const auto &contactComposite : allContacts)
   {

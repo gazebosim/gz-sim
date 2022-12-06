@@ -17,6 +17,7 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/msgs/time.pb.h>
 
 #include <memory>
