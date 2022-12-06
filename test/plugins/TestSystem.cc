@@ -32,6 +32,6 @@ TestSystem::TestSystem()
 TestSystem::~TestSystem() = default;
 
 // Register this plugin
-GZ_ADD_PLUGIN(TestSystem, gz::sim::System)
+GZ_ADD_PLUGIN(TestSystem, System)
 
 GZ_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")

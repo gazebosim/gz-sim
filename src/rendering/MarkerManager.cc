@@ -50,50 +50,50 @@ class gz::sim::MarkerManagerPrivate
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.
   /// \return True if the marker was processed successfully.
-  public: bool ProcessMarkerMsg(const gz::msgs::Marker &_msg);
+  public: bool ProcessMarkerMsg(const msgs::Marker &_msg);
 
   /// \brief Converts a Gazebo msg render type to Gazebo Sim Rendering
   /// \param[in] _msg The message data
   /// \return Converted rendering type, if any.
-  public: gz::rendering::MarkerType MsgToType(
-                    const gz::msgs::Marker &_msg);
+  public: rendering::MarkerType MsgToType(
+                    const msgs::Marker &_msg);
 
   /// \brief Converts a Gazebo msg material to Gazebo Sim Rendering
   //         material.
   //  \param[in] _msg The message data.
   //  \return Converted rendering material, if any.
   public: rendering::MaterialPtr MsgToMaterial(
-                    const gz::msgs::Marker &_msg);
+                    const msgs::Marker &_msg);
 
   /// \brief Updates the markers.
   public: void Update();
 
   /// \brief Callback that receives marker messages.
   /// \param[in] _req The marker message.
-  public: void OnMarkerMsg(const gz::msgs::Marker &_req);
+  public: void OnMarkerMsg(const msgs::Marker &_req);
 
   /// \brief Callback that receives multiple marker messages.
   /// \param[in] _req The vector of marker messages
   /// \param[in] _res Response data
   /// \return True if the request is received
-  public: bool OnMarkerMsgArray(const gz::msgs::Marker_V &_req,
-              gz::msgs::Boolean &_res);
+  public: bool OnMarkerMsgArray(const msgs::Marker_V &_req,
+              msgs::Boolean &_res);
 
   /// \brief Services callback that returns a list of markers.
   /// \param[out] _rep Service reply
   /// \return True on success.
-  public: bool OnList(gz::msgs::Marker_V &_rep);
+  public: bool OnList(msgs::Marker_V &_rep);
 
   /// \brief Sets Marker from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _markerPtr The message pointer to set.
-  public: void SetMarker(const gz::msgs::Marker &_msg,
+  public: void SetMarker(const msgs::Marker &_msg,
                          const rendering::MarkerPtr &_markerPtr);
 
   /// \brief Sets Visual from marker message.
   /// \param[in] _msg The message data.
   /// \param[out] _visualPtr The visual pointer to set.
-  public: void SetVisual(const gz::msgs::Marker &_msg,
+  public: void SetVisual(const msgs::Marker &_msg,
                          const rendering::VisualPtr &_visualPtr);
 
   /// \brief Sets sim time from time.
@@ -108,22 +108,22 @@ class gz::sim::MarkerManagerPrivate
 
   /// \brief Map of visuals
   public: std::map<std::string,
-      std::map<uint64_t, gz::rendering::VisualPtr>> visuals;
+      std::map<uint64_t, rendering::VisualPtr>> visuals;
 
   /// \brief List of marker message to process.
-  public: std::list<gz::msgs::Marker> markerMsgs;
+  public: std::list<msgs::Marker> markerMsgs;
 
   /// \brief Pointer to the scene
   public: rendering::ScenePtr scene;
 
   /// \brief Gazebo node
-  public: gz::transport::Node node;
+  public: transport::Node node;
 
   /// \brief Sim time according to UpdateInfo in RenderUtil
   public: std::chrono::steady_clock::duration simTime;
 
   /// \brief The last marker message received
-  public: gz::msgs::Marker msg;
+  public: msgs::Marker msg;
 
   /// \brief Topic name for the marker service
   public: std::string topicName = "/marker";
@@ -157,7 +157,7 @@ void MarkerManager::Update()
 }
 
 /////////////////////////////////////////////////
-bool MarkerManager::Init(const gz::rendering::ScenePtr &_scene)
+bool MarkerManager::Init(const rendering::ScenePtr &_scene)
 {
   if (!_scene)
   {
@@ -237,8 +237,8 @@ void MarkerManagerPrivate::Update()
       if (it->second->GeometryCount() == 0u)
         continue;
 
-      gz::rendering::MarkerPtr markerPtr =
-            std::dynamic_pointer_cast<gz::rendering::Marker>
+      rendering::MarkerPtr markerPtr =
+            std::dynamic_pointer_cast<rendering::Marker>
             (it->second->GeometryByIndex(0u));
       if (markerPtr != nullptr)
       {
@@ -271,7 +271,7 @@ void MarkerManagerPrivate::SetSimTime(
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::SetVisual(const gz::msgs::Marker &_msg,
+void MarkerManagerPrivate::SetVisual(const msgs::Marker &_msg,
                            const rendering::VisualPtr &_visualPtr)
 {
   // Set Visual Scale
@@ -310,7 +310,7 @@ void MarkerManagerPrivate::SetVisual(const gz::msgs::Marker &_msg,
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::SetMarker(const gz::msgs::Marker &_msg,
+void MarkerManagerPrivate::SetMarker(const msgs::Marker &_msg,
                            const rendering::MarkerPtr &_markerPtr)
 {
   _markerPtr->SetLayer(_msg.layer());
@@ -327,7 +327,7 @@ void MarkerManagerPrivate::SetMarker(const gz::msgs::Marker &_msg,
     _markerPtr->SetLifetime(std::chrono::seconds(0));
   }
   // Set Marker Render Type
-  gz::rendering::MarkerType markerType = MsgToType(_msg);
+  rendering::MarkerType markerType = MsgToType(_msg);
   _markerPtr->SetType(markerType);
 
   // Set Marker Material
@@ -365,49 +365,49 @@ void MarkerManagerPrivate::SetMarker(const gz::msgs::Marker &_msg,
 }
 
 /////////////////////////////////////////////////
-gz::rendering::MarkerType MarkerManagerPrivate::MsgToType(
-                          const gz::msgs::Marker &_msg)
+rendering::MarkerType MarkerManagerPrivate::MsgToType(
+                          const msgs::Marker &_msg)
 {
-  gz::msgs::Marker_Type marker = this->msg.type();
-  if (marker != _msg.type() && _msg.type() != gz::msgs::Marker::NONE)
+  msgs::Marker_Type marker = this->msg.type();
+  if (marker != _msg.type() && _msg.type() != msgs::Marker::NONE)
   {
     marker = _msg.type();
     this->msg.set_type(_msg.type());
   }
   switch (marker)
   {
-    case gz::msgs::Marker::BOX:
-      return gz::rendering::MarkerType::MT_BOX;
-    case gz::msgs::Marker::CAPSULE:
-      return gz::rendering::MarkerType::MT_CAPSULE;
-    case gz::msgs::Marker::CYLINDER:
-      return gz::rendering::MarkerType::MT_CYLINDER;
-    case gz::msgs::Marker::LINE_STRIP:
-      return gz::rendering::MarkerType::MT_LINE_STRIP;
-    case gz::msgs::Marker::LINE_LIST:
-      return gz::rendering::MarkerType::MT_LINE_LIST;
-    case gz::msgs::Marker::POINTS:
-      return gz::rendering::MarkerType::MT_POINTS;
-    case gz::msgs::Marker::SPHERE:
-      return gz::rendering::MarkerType::MT_SPHERE;
-    case gz::msgs::Marker::TEXT:
-      return gz::rendering::MarkerType::MT_TEXT;
-    case gz::msgs::Marker::TRIANGLE_FAN:
-      return gz::rendering::MarkerType::MT_TRIANGLE_FAN;
-    case gz::msgs::Marker::TRIANGLE_LIST:
-      return gz::rendering::MarkerType::MT_TRIANGLE_LIST;
-    case gz::msgs::Marker::TRIANGLE_STRIP:
-      return gz::rendering::MarkerType::MT_TRIANGLE_STRIP;
+    case msgs::Marker::BOX:
+      return rendering::MarkerType::MT_BOX;
+    case msgs::Marker::CAPSULE:
+      return rendering::MarkerType::MT_CAPSULE;
+    case msgs::Marker::CYLINDER:
+      return rendering::MarkerType::MT_CYLINDER;
+    case msgs::Marker::LINE_STRIP:
+      return rendering::MarkerType::MT_LINE_STRIP;
+    case msgs::Marker::LINE_LIST:
+      return rendering::MarkerType::MT_LINE_LIST;
+    case msgs::Marker::POINTS:
+      return rendering::MarkerType::MT_POINTS;
+    case msgs::Marker::SPHERE:
+      return rendering::MarkerType::MT_SPHERE;
+    case msgs::Marker::TEXT:
+      return rendering::MarkerType::MT_TEXT;
+    case msgs::Marker::TRIANGLE_FAN:
+      return rendering::MarkerType::MT_TRIANGLE_FAN;
+    case msgs::Marker::TRIANGLE_LIST:
+      return rendering::MarkerType::MT_TRIANGLE_LIST;
+    case msgs::Marker::TRIANGLE_STRIP:
+      return rendering::MarkerType::MT_TRIANGLE_STRIP;
     default:
       gzerr << "Unable to create marker of type[" << _msg.type() << "]\n";
       break;
   }
-  return gz::rendering::MarkerType::MT_NONE;
+  return rendering::MarkerType::MT_NONE;
 }
 
 /////////////////////////////////////////////////
 rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
-                              const gz::msgs::Marker &_msg)
+                              const msgs::Marker &_msg)
 {
   rendering::MaterialPtr material = this->scene->CreateMaterial();
 
@@ -441,7 +441,7 @@ rendering::MaterialPtr MarkerManagerPrivate::MsgToMaterial(
 }
 
 //////////////////////////////////////////////////
-bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
+bool MarkerManagerPrivate::ProcessMarkerMsg(const msgs::Marker &_msg)
 {
   // Get the namespace, if it exists. Otherwise, use the global namespace
   std::string ns;
@@ -461,14 +461,14 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
   // Otherwise generate unique id
   else
   {
-    id = gz::math::Rand::IntUniform(0, gz::math::MAX_I32);
+    id = math::Rand::IntUniform(0, math::MAX_I32);
 
     // Make sure it's unique if namespace is given
     if (nsIter != this->visuals.end())
     {
       while (nsIter->second.find(id) != nsIter->second.end())
-        id = gz::math::Rand::IntUniform(gz::math::MIN_UI32,
-                                              gz::math::MAX_UI32);
+        id = math::Rand::IntUniform(math::MIN_UI32,
+                                              math::MAX_UI32);
     }
   }
 
@@ -478,7 +478,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     visualIter = nsIter->second.find(id);
 
   // Add/modify a marker
-  if (_msg.action() == gz::msgs::Marker::ADD_MODIFY)
+  if (_msg.action() == msgs::Marker::ADD_MODIFY)
   {
     // Modify an existing marker, identified by namespace and id
     if (nsIter != this->visuals.end() &&
@@ -488,8 +488,8 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
       {
         // TODO(anyone): Update so that multiple markers can
         //               be attached to one visual
-        gz::rendering::MarkerPtr markerPtr =
-              std::dynamic_pointer_cast<gz::rendering::Marker>
+        rendering::MarkerPtr markerPtr =
+              std::dynamic_pointer_cast<rendering::Marker>
               (visualIter->second->GeometryByIndex(0));
 
         visualIter->second->RemoveGeometryByIndex(0);
@@ -536,7 +536,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     }
   }
   // Remove a single marker
-  else if (_msg.action() == gz::msgs::Marker::DELETE_MARKER)
+  else if (_msg.action() == msgs::Marker::DELETE_MARKER)
   {
     // Remove the marker if it can be found.
     if (nsIter != this->visuals.end() &&
@@ -557,7 +557,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
     }
   }
   // Remove all markers, or all markers in a namespace
-  else if (_msg.action() == gz::msgs::Marker::DELETE_ALL)
+  else if (_msg.action() == msgs::Marker::DELETE_ALL)
   {
     // If given namespace doesn't exist
     if (!ns.empty() && nsIter == this->visuals.end())
@@ -601,7 +601,7 @@ bool MarkerManagerPrivate::ProcessMarkerMsg(const gz::msgs::Marker &_msg)
 
 
 /////////////////////////////////////////////////
-bool MarkerManagerPrivate::OnList(gz::msgs::Marker_V &_rep)
+bool MarkerManagerPrivate::OnList(msgs::Marker_V &_rep)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   _rep.clear_marker();
@@ -611,7 +611,7 @@ bool MarkerManagerPrivate::OnList(gz::msgs::Marker_V &_rep)
   {
     for (auto iter : mIter.second)
     {
-      gz::msgs::Marker *markerMsg = _rep.add_marker();
+      msgs::Marker *markerMsg = _rep.add_marker();
       markerMsg->set_ns(mIter.first);
       markerMsg->set_id(iter.first);
     }
@@ -621,7 +621,7 @@ bool MarkerManagerPrivate::OnList(gz::msgs::Marker_V &_rep)
 }
 
 /////////////////////////////////////////////////
-void MarkerManagerPrivate::OnMarkerMsg(const gz::msgs::Marker &_req)
+void MarkerManagerPrivate::OnMarkerMsg(const msgs::Marker &_req)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->markerMsgs.push_back(_req);
@@ -629,7 +629,7 @@ void MarkerManagerPrivate::OnMarkerMsg(const gz::msgs::Marker &_req)
 
 /////////////////////////////////////////////////
 bool MarkerManagerPrivate::OnMarkerMsgArray(
-    const gz::msgs::Marker_V&_req, gz::msgs::Boolean &_res)
+    const msgs::Marker_V&_req, msgs::Boolean &_res)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   std::copy(_req.marker().begin(), _req.marker().end(),

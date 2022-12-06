@@ -844,7 +844,7 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 }
 
 GZ_ADD_PLUGIN(TriggeredPublisher,
-                    gz::sim::System,
+                    System,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 

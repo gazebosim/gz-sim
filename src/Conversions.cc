@@ -685,7 +685,7 @@ msgs::Time gz::sim::convert(
 {
   msgs::Time out;
 
-  auto secNsec = gz::math::durationToSecNsec(_in);
+  auto secNsec = math::durationToSecNsec(_in);
 
   out.set_sec(secNsec.first);
   out.set_nsec(secNsec.second);
@@ -886,7 +886,7 @@ sdf::Atmosphere gz::sim::convert(const msgs::Atmosphere &_in)
 void gz::sim::set(msgs::Time *_msg,
     const std::chrono::steady_clock::duration &_in)
 {
-  auto secNsec = gz::math::durationToSecNsec(_in);
+  auto secNsec = math::durationToSecNsec(_in);
   _msg->set_sec(secNsec.first);
   _msg->set_nsec(secNsec.second);
 }
@@ -1041,17 +1041,17 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       msgs::MagnetometerSensor *sensor = out.mutable_magnetometer();
       if (_in.MagnetometerSensor()->XNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_x_noise(),
+        sim::set(sensor->mutable_x_noise(),
             _in.MagnetometerSensor()->XNoise());
       }
       if (_in.MagnetometerSensor()->YNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_y_noise(),
+        sim::set(sensor->mutable_y_noise(),
             _in.MagnetometerSensor()->YNoise());
       }
       if (_in.MagnetometerSensor()->ZNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_z_noise(),
+        sim::set(sensor->mutable_z_noise(),
             _in.MagnetometerSensor()->ZNoise());
       }
     }
@@ -1139,13 +1139,13 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       if (_in.AltimeterSensor()->VerticalPositionNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_vertical_position_noise(),
+        sim::set(sensor->mutable_vertical_position_noise(),
             _in.AltimeterSensor()->VerticalPositionNoise());
       }
       if (_in.AltimeterSensor()->VerticalVelocityNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_vertical_velocity_noise(),
+        sim::set(sensor->mutable_vertical_velocity_noise(),
             _in.AltimeterSensor()->VerticalVelocityNoise());
       }
     }
@@ -1164,7 +1164,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       if (_in.AirPressureSensor()->PressureNoise().Type()
           != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_pressure_noise(),
+        sim::set(sensor->mutable_pressure_noise(),
             _in.AirPressureSensor()->PressureNoise());
       }
       sensor->set_reference_altitude(
@@ -1185,38 +1185,38 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 
       if (sdfImu->LinearAccelerationXNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_linear_acceleration()->mutable_x_noise(),
             sdfImu->LinearAccelerationXNoise());
       }
       if (sdfImu->LinearAccelerationYNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_linear_acceleration()->mutable_y_noise(),
             sdfImu->LinearAccelerationYNoise());
       }
       if (sdfImu->LinearAccelerationZNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_linear_acceleration()->mutable_z_noise(),
             sdfImu->LinearAccelerationZNoise());
       }
 
       if (sdfImu->AngularVelocityXNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_angular_velocity()->mutable_x_noise(),
             sdfImu->AngularVelocityXNoise());
       }
       if (sdfImu->AngularVelocityYNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_angular_velocity()->mutable_y_noise(),
             sdfImu->AngularVelocityYNoise());
       }
       if (sdfImu->AngularVelocityZNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(
+        sim::set(
             sensor->mutable_angular_velocity()->mutable_z_noise(),
             sdfImu->AngularVelocityZNoise());
       }
@@ -1250,7 +1250,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
 
       if (sdfLidar->LidarNoise().Type() != sdf::NoiseType::NONE)
       {
-        gz::sim::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
+        sim::set(sensor->mutable_noise(), sdfLidar->LidarNoise());
       }
       sensor->set_horizontal_samples(sdfLidar->HorizontalScanSamples());
       sensor->set_horizontal_resolution(sdfLidar->HorizontalScanResolution());
@@ -1297,17 +1297,17 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     {
       if (_in.magnetometer().has_x_noise())
       {
-        sensor.SetXNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetXNoise(sim::convert<sdf::Noise>(
               _in.magnetometer().x_noise()));
       }
       if (_in.magnetometer().has_y_noise())
       {
-        sensor.SetYNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetYNoise(sim::convert<sdf::Noise>(
               _in.magnetometer().y_noise()));
       }
       if (_in.magnetometer().has_z_noise())
       {
-        sensor.SetZNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetZNoise(sim::convert<sdf::Noise>(
               _in.magnetometer().z_noise()));
       }
     }
@@ -1362,13 +1362,13 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     {
       if (_in.altimeter().has_vertical_position_noise())
       {
-        sensor.SetVerticalPositionNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetVerticalPositionNoise(sim::convert<sdf::Noise>(
               _in.altimeter().vertical_position_noise()));
       }
 
       if (_in.altimeter().has_vertical_velocity_noise())
       {
-        sensor.SetVerticalVelocityNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetVerticalVelocityNoise(sim::convert<sdf::Noise>(
               _in.altimeter().vertical_velocity_noise()));
       }
     }
@@ -1387,7 +1387,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     {
       if (_in.air_pressure().has_pressure_noise())
       {
-        sensor.SetPressureNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetPressureNoise(sim::convert<sdf::Noise>(
               _in.air_pressure().pressure_noise()));
       }
 
@@ -1411,19 +1411,19 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
         if (_in.imu().linear_acceleration().has_x_noise())
         {
           sensor.SetLinearAccelerationXNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().x_noise()));
         }
         if (_in.imu().linear_acceleration().has_y_noise())
         {
           sensor.SetLinearAccelerationYNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().y_noise()));
         }
         if (_in.imu().linear_acceleration().has_z_noise())
         {
           sensor.SetLinearAccelerationZNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().linear_acceleration().z_noise()));
         }
       }
@@ -1433,19 +1433,19 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
         if (_in.imu().angular_velocity().has_x_noise())
         {
           sensor.SetAngularVelocityXNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().x_noise()));
         }
         if (_in.imu().angular_velocity().has_y_noise())
         {
           sensor.SetAngularVelocityYNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().y_noise()));
         }
         if (_in.imu().angular_velocity().has_z_noise())
         {
           sensor.SetAngularVelocityZNoise(
-              gz::sim::convert<sdf::Noise>(
+              sim::convert<sdf::Noise>(
                 _in.imu().angular_velocity().z_noise()));
         }
       }
@@ -1502,7 +1502,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
       if (_in.lidar().has_noise())
       {
-        sensor.SetLidarNoise(gz::sim::convert<sdf::Noise>(
+        sensor.SetLidarNoise(sim::convert<sdf::Noise>(
               _in.lidar().noise()));
       }
     }

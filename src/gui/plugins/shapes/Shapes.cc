@@ -81,5 +81,5 @@ void Shapes::OnMode(const QString &_mode)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::Shapes,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(Shapes,
+              gz::gui::Plugin)

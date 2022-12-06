@@ -40,7 +40,7 @@ class ElevatorTestFixture : public ::testing::Test
   // Documentation inherited
   protected: void SetUp() override
   {
-    gz::common::Console::SetVerbosity(4);
+    common::Console::SetVerbosity(4);
     setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
            (std::string(PROJECT_BINARY_PATH) + "/lib").c_str(), 1);
   }

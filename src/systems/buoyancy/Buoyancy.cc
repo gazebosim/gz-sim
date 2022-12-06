@@ -520,8 +520,8 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void Buoyancy::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Buoyancy::PreUpdate");
   this->dataPtr->CheckForNewEntities(_ecm);
@@ -647,7 +647,7 @@ bool Buoyancy::IsEnabled(Entity _entity,
 }
 
 GZ_ADD_PLUGIN(Buoyancy,
-                    gz::sim::System,
+                    System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate,
                     Buoyancy::ISystemPostUpdate)

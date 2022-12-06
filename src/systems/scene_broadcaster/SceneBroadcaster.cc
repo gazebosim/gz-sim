@@ -89,21 +89,21 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(gz::msgs::Scene &_res);
+  public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(gz::msgs::StringMsg &_res);
+  public: bool SceneGraphService(msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(gz::msgs::SerializedStepMap &_res);
+  public: bool StateService(msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const gz::msgs::StringMsg &_req);
+  public: void StateAsyncService(const msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -628,7 +628,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<gz::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<msgs::Scene>(sceneTopic);
 
   gzmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
@@ -637,7 +637,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<gz::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<msgs::UInt32_V>(deletionTopic);
 
   gzmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
@@ -646,7 +646,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<gz::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<msgs::SerializedStepMap>(stateTopic);
 
   gzmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -675,7 +675,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -695,7 +695,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const gz::msgs::StringMsg &_req)
+    const msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -704,7 +704,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    gz::msgs::SerializedStepMap &_res)
+    msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -726,7 +726,7 @@ bool SceneBroadcasterPrivate::StateService(
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(gz::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -996,22 +996,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }

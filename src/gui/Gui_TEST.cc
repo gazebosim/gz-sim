@@ -36,7 +36,10 @@
 #include "../../test/helpers/EnvTestFixture.hh"
 
 int gg_argc = 1;
-char **gg_argv = new char *[gg_argc];
+char* gg_argv[] =
+{
+  reinterpret_cast<char*>(const_cast<char*>("./gui_test")),
+};
 
 using namespace gz;
 using namespace gz::sim::gui;
@@ -53,10 +56,10 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   common::Console::SetVerbosity(4);
   gzdbg << "Start test" << std::endl;
 
-  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
          "/from_env:/tmp/more_env");
-  gz::common::setenv("SDF_PATH", "");
-  gz::common::setenv("GZ_FILE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("GZ_FILE_PATH", "");
   gzdbg << "Environment set" << std::endl;
 
   transport::Node node;
@@ -96,7 +99,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
   node.Advertise("/gazebo/resource_paths/get", pathsCb);
   gzdbg << "Paths advertised" << std::endl;
 
-  auto app = gz::sim::gui::createGui(
+  auto app = createGui(
     gg_argc, gg_argv, nullptr, nullptr, false, nullptr);
   EXPECT_NE(nullptr, app);
   gzdbg << "GUI created" << std::endl;
