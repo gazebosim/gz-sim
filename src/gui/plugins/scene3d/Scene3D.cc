@@ -778,7 +778,7 @@ void IgnRenderer::Render()
 
   if (gz::gui::App())
   {
-    gui::events::Render event;
+    gz::gui::events::Render event;
     gz::gui::App()->sendEvent(
         gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
