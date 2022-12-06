@@ -193,7 +193,7 @@ ColumnLayout {
 
   // Projection
   ComboBox {
-    currentIndex: 0
+    currentIndex: ViewAngle.viewControlIndex
     model: ListModel {
         id: controller
         ListElement {text: "Orbit View Control"}
