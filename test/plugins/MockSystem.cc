@@ -1,10 +1,15 @@
 #include "MockSystem.hh"
 
 #include <gz/plugin/Register.hh>
+#include <gz/plugin/RegisterMore.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
-    gz::sim::MockSystem::ISystemConfigure,
-    gz::sim::MockSystem::ISystemPreUpdate,
-    gz::sim::MockSystem::ISystemUpdate,
-    gz::sim::MockSystem::ISystemPostUpdate)
+using namespace gz;
+using namespace gz::sim;
 
+IGNITION_ADD_PLUGIN(MockSystem, System,
+    MockSystem::ISystemConfigure,
+    MockSystem::ISystemPreUpdate,
+    MockSystem::ISystemUpdate,
+    MockSystem::ISystemPostUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(MockSystem, "gz::sim::MockSystem")

@@ -249,7 +249,7 @@ TEST_F(TouchPluginTest, SpawnedEntities)
         </link>
         <plugin
           filename="libignition-gazebo-touchplugin-system.so"
-          name="sim::systems::TouchPlugin">
+          name="gz::sim::systems::TouchPlugin">
           <target>green_box_for_white</target>
           <time>0.2</time>
           <namespace>white_touches_only_green</namespace>

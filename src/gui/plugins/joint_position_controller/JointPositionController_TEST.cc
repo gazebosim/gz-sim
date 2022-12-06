@@ -109,20 +109,24 @@ TEST_F(JointPositionControllerGui,
 
   auto modelEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelEntity, ignition::gazebo::components::Model());
-  ecm.CreateComponent(modelEntity, ignition::gazebo::components::Name("model_name"));
+  ecm.CreateComponent(modelEntity,
+      ignition::gazebo::components::Name("model_name"));
 
   auto jointEntity = ecm.CreateEntity();
   ecm.CreateComponent(jointEntity, ignition::gazebo::components::Joint());
-  ecm.CreateComponent(jointEntity, ignition::gazebo::components::Name("joint_name"));
+  ecm.CreateComponent(jointEntity,
+      ignition::gazebo::components::Name("joint_name"));
   ecm.CreateComponent(jointEntity, ignition::gazebo::components::ParentEntity(
       modelEntity));
-  ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointPosition({0.1}));
+  ecm.CreateComponent(jointEntity,
+      ignition::gazebo::components::JointPosition({0.1}));
   ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointType(
       sdf::JointType::REVOLUTE));
   sdf::JointAxis jointAxis;
   jointAxis.SetLower(-1.0);
   jointAxis.SetUpper(1.0);
-  ecm.CreateComponent(jointEntity, ignition::gazebo::components::JointAxis(jointAxis));
+  ecm.CreateComponent(jointEntity,
+      ignition::gazebo::components::JointAxis(jointAxis));
 
   // Populate state message
   msgs::SerializedStepMap stepMsg;

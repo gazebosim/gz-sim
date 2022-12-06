@@ -172,7 +172,7 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
   sdf->AddAttribute("name", "string",
-      "sim::TestModelSystem", true);
+      "gz::sim::TestModelSystem", true);
   sdf->AddAttribute("filename", "string", "libTestModelSystem.so", true);
 
   sdf::ElementPtr child(new sdf::Element);
@@ -181,7 +181,7 @@ TEST_P(ServerFixture, ServerConfigRealPlugin)
   child->AddValue("string", "987", "1");
 
   serverConfig.AddPlugin({"box", "model",
-      "libTestModelSystem.so", "sim::TestModelSystem", sdf});
+      "libTestModelSystem.so", "gz::sim::TestModelSystem", sdf});
 
   gz::sim::Server server(serverConfig);
 
@@ -222,12 +222,12 @@ TEST_P(ServerFixture, ServerConfigSensorPlugin)
   sdf::ElementPtr sdf(new sdf::Element);
   sdf->SetName("plugin");
   sdf->AddAttribute("name", "string",
-      "sim::TestSensorSystem", true);
+      "gz::sim::TestSensorSystem", true);
   sdf->AddAttribute("filename", "string", "libTestSensorSystem.so", true);
 
   serverConfig.AddPlugin({
       "air_pressure_sensor::air_pressure_model::link::air_pressure_sensor",
-      "sensor", "libTestSensorSystem.so", "sim::TestSensorSystem",
+      "sensor", "libTestSensorSystem.so", "gz::sim::TestSensorSystem",
       sdf});
 
   igndbg << "Create server" << std::endl;
@@ -494,7 +494,7 @@ TEST_P(ServerFixture, RunOnceUnpaused)
   // Load a system
   gz::sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "sim::MockSystem", nullptr);
+      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -541,7 +541,7 @@ TEST_P(ServerFixture, RunOncePaused)
   // Load a system
   gz::sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin(
-      "libMockSystem.so", "sim::MockSystem", nullptr);
+      "libMockSystem.so", "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   // Check that it was loaded
@@ -779,7 +779,7 @@ TEST_P(ServerFixture, AddSystemWhileRunning)
   // Add system from plugin
   gz::sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "sim::MockSystem", nullptr);
+      "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto result = server.AddSystem(mockSystemPlugin.value());
@@ -816,7 +816,7 @@ TEST_P(ServerFixture, AddSystemAfterLoad)
   // Add system from plugin
   gz::sim::SystemLoader systemLoader;
   auto mockSystemPlugin = systemLoader.LoadPlugin("libMockSystem.so",
-      "sim::MockSystem", nullptr);
+      "gz::sim::MockSystem", nullptr);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
   auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();

@@ -43,7 +43,7 @@ TEST(SystemLoader, Constructor)
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='sim::systems::Physics'></plugin>"
+      "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();

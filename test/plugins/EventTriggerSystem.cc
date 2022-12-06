@@ -1,9 +1,14 @@
 #include "EventTriggerSystem.hh"
 
 #include <gz/plugin/Register.hh>
+#include <gz/plugin/RegisterMore.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::EventTriggerSystem,
-    gz::sim::System,
-    gz::sim::EventTriggerSystem::ISystemConfigure,
-    gz::sim::EventTriggerSystem::ISystemUpdate)
+using namespace gz;
+using namespace gz::sim;
 
+IGNITION_ADD_PLUGIN(EventTriggerSystem,
+    System,
+    EventTriggerSystem::ISystemConfigure,
+    EventTriggerSystem::ISystemUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(EventTriggerSystem, "gz::sim::EventTriggerSystem")

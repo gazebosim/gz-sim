@@ -1272,7 +1272,7 @@ TEST_P(SimulationRunnerTest, LoadPluginsDefault)
   // Load the default config, but not through the default code path.
   // The user may have modified their local config.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "server.config");
+    "include", "gz", "sim", "server.config");
   ASSERT_TRUE(common::setenv(kServerConfigPathEnv, config));
 
   // Create simulation runner

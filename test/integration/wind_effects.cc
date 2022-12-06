@@ -70,7 +70,7 @@ class LinkComponentRecorder
       : linkName(std::move(_linkName))
   {
     auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "sim::MockSystem", nullptr);
+                                    "gz::sim::MockSystem", nullptr);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();

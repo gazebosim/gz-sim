@@ -61,7 +61,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "sim::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -78,7 +78,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "sim::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };

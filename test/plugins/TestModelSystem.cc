@@ -17,8 +17,13 @@
 #include "TestModelSystem.hh"
 
 #include <gz/plugin/Register.hh>
+#include <gz/plugin/RegisterMore.hh>
 
-IGNITION_ADD_PLUGIN(gz::sim::TestModelSystem,
-    gz::sim::System,
-    gz::sim::TestModelSystem::ISystemConfigure)
+using namespace gz;
+using namespace gz::sim;
 
+IGNITION_ADD_PLUGIN(TestModelSystem,
+    System,
+    TestModelSystem::ISystemConfigure)
+
+IGNITION_ADD_PLUGIN_ALIAS(TestModelSystem, "gz::sim::TestModelSystem")

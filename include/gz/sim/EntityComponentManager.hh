@@ -24,7 +24,6 @@
 #include <memory>
 #include <optional>
 #include <set>
-#include <optional>
 #include <string>
 #include <typeinfo>
 #include <type_traits>

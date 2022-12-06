@@ -130,8 +130,9 @@ namespace ignition
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Collision name.
       /// \return Collision entity.
-      public: gz::sim::Entity CollisionByName(const EntityComponentManager &_ecm,
-          const std::string &_name) const;
+      public: gz::sim::Entity CollisionByName(
+                  const EntityComponentManager &_ecm,
+                  const std::string &_name) const;
 
       /// \brief Get the ID of a visual entity which is an immediate child of
       /// this link.

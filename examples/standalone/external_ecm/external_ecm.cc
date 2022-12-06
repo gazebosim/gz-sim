@@ -68,18 +68,18 @@ int main(int argc, char **argv)
   ecm.SetState(res.state());
 
   // Print some information
-  ecm.Each<sim::components::Name>(
+  ecm.Each<gz::sim::components::Name>(
       [&](const gz::sim::Entity &_entity,
           const gz::sim::components::Name *_name) -> bool
   {
     auto parentComp =
-        ecm.Component<sim::components::ParentEntity>(_entity);
+        ecm.Component<gz::sim::components::ParentEntity>(_entity);
 
     std::string parentInfo;
     if (parentComp)
     {
       auto parentNameComp =
-          ecm.Component<sim::components::Name>(
+          ecm.Component<gz::sim::components::Name>(
           parentComp->Data());
 
       if (parentNameComp)
