@@ -240,7 +240,6 @@ TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
   // const double kp = surfaceContactOde->GetElement("kp")->Get<double>();
   // ASSERT_EQ(kp, 250e3);
 
-  // double modelMass = 0.0;
   for (const auto &linkName : linksToCheck)
   {
     Entity linkEntity = ecm->EntityByComponents(
@@ -251,8 +250,6 @@ TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TireDrum))
     auto inertialComp = ecm->Component<components::Inertial>(linkEntity);
 
     EXPECT_NE(nullptr, inertialComp);
-
-    // modelMass += inertialComp->Data().MassMatrix().Mass();
   }
 
   // Get axle wheel and steer joint of wheel model
