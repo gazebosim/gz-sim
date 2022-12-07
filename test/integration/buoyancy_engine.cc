@@ -201,4 +201,3 @@ TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestUpwardSurface))
   EXPECT_NEAR(poses.rbegin()->Pos().X(), poses.begin()->Pos().X(), 1e-3);
   EXPECT_NEAR(poses.rbegin()->Pos().Y(), poses.begin()->Pos().Y(), 1e-3);
 }
-

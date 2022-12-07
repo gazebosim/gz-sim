@@ -237,4 +237,3 @@ TEST_F(WorldIntegrationTest, ActorByName)
   EXPECT_EQ(eActor, world.ActorByName(ecm, "actor_name"));
   EXPECT_EQ(1u, world.ActorCount(ecm));
 }
-

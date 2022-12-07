@@ -15,6 +15,11 @@
  *
 */
 
+#include <list>
+#include <set>
+
+#include <gz/common/StringUtils.hh>
+
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
@@ -34,11 +39,15 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
   transport::NodeOptions opts;
   opts.SetNameSpace(_namespace);
   this->node = std::make_unique<transport::Node>(opts);
-  std::string entitySystemService{"entity/system/add"};
-  this->node->Advertise(entitySystemService,
+  std::string entitySystemAddService{"entity/system/add"};
+  this->node->Advertise(entitySystemAddService,
       &SystemManager::EntitySystemAddService, this);
   gzmsg << "Serving entity system service on ["
-         << "/" << entitySystemService << "]" << std::endl;
+         << "/" << entitySystemAddService << "]" << std::endl;
+
+  std::string entitySystemInfoService{"system/info"};
+  this->node->Advertise(entitySystemInfoService,
+      &SystemManager::EntitySystemInfoService, this);
 }
 
 //////////////////////////////////////////////////
@@ -54,7 +63,11 @@ void SystemManager::LoadPlugin(const Entity _entity,
   // System correctly loaded from library
   if (system)
   {
-    this->AddSystem(system.value(), _entity, _plugin.ToElement());
+    SystemInternal ss(system.value(), _entity);
+    ss.fname = _plugin.Filename();
+    ss.name = _plugin.Name();
+    ss.configureSdf = _plugin.ToElement();
+    this->AddSystemImpl(ss, ss.configureSdf);
     gzdbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
@@ -300,6 +313,51 @@ bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
   std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
   this->systemsToAdd.push_back(_req);
   _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemInfoService(const msgs::Empty &,
+                                            msgs::EntityPlugin_V &_res)
+{
+  // loop through all files in paths and populate the list of
+  // plugin libraries.
+  std::list<std::string> paths = this->systemLoader->PluginPaths();
+  std::set<std::string> filenames;
+  for (const auto &p : paths)
+  {
+    if (common::exists(p))
+    {
+      for (common::DirIter file(p);
+          file != common::DirIter(); ++file)
+      {
+        std::string current(*file);
+        std::string filename = common::basename(current);
+        if (common::isFile(current) &&
+            (common::EndsWith(filename, ".so") ||
+             common::EndsWith(filename, ".dll") ||
+             common::EndsWith(filename, ".dylib")))
+        {
+          // remove extension and lib prefix
+          size_t extensionIndex = filename.rfind(".");
+          std::string nameWithoutExtension =
+              filename.substr(0, extensionIndex);
+          if (common::StartsWith(nameWithoutExtension, "lib"))
+          {
+            nameWithoutExtension = nameWithoutExtension.substr(3);
+          }
+          filenames.insert(nameWithoutExtension);
+        }
+      }
+    }
+  }
+
+  for (const auto &fn : filenames)
+  {
+    auto plugin = _res.add_plugins();
+    plugin->set_filename(fn);
+  }
+
   return true;
 }
 

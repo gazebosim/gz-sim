@@ -27,6 +27,7 @@
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/Material.hh>
+#include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
 #include <gz/rendering/ShaderParams.hh>
@@ -305,29 +306,30 @@ void ShaderParamPrivate::OnUpdate()
   {
     auto mat = scene->CreateMaterial();
 
-    // default to glsl
-    auto it = this->shaders.find("glsl");
-    if (it != this->shaders.end())
+    if (scene->Engine() && scene->Engine()->GraphicsAPI() ==
+        rendering::GraphicsAPI::METAL)
     {
-      mat->SetVertexShader(it->second.vertexShaderUri);
-      mat->SetFragmentShader(it->second.fragmentShaderUri);
-    }
-    // prefer metal over glsl on macOS
-    // \todo(anyone) instead of using ifdef to check for macOS,
-    // expose add an accessor function to get the GraphicsApi
-    // from rendering::RenderEngine
-#ifdef __APPLE__
-    auto metalIt = this->shaders.find("metal");
-    if (metalIt != this->shaders.end())
-    {
-      mat->SetVertexShader(metalIt->second.vertexShaderUri);
-      mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
-      // if both glsl and metal are specified, print a msg to inform that
-      // metal is used instead of glsl
-      if (it != this->shaders.end())
+      // metal
+      auto metalIt = this->shaders.find("metal");
+      if (metalIt != this->shaders.end())
+      {
+        mat->SetVertexShader(metalIt->second.vertexShaderUri);
+        mat->SetFragmentShader(metalIt->second.fragmentShaderUri);
         gzmsg << "Using metal shaders. " << std::endl;
+      }
     }
-#endif
+    else
+    {
+      //  try glsl for all others
+      auto it = this->shaders.find("glsl");
+      if (it != this->shaders.end())
+      {
+        mat->SetVertexShader(it->second.vertexShaderUri);
+        mat->SetFragmentShader(it->second.fragmentShaderUri);
+        gzmsg << "Using glsl shaders. " << std::endl;
+      }
+    }
+
     this->visual->SetMaterial(mat);
     scene->DestroyMaterial(mat);
     this->material = this->visual->Material();
@@ -439,7 +441,7 @@ void ShaderParamPrivate::OnUpdate()
         if (!spv.type.empty() && spv.type == "int_array")
         {
           for (const auto &v : values)
-            floatArrayValue.push_back(std::stoi(v));
+            floatArrayValue.push_back(std::stof(v));
           paramType = rendering::ShaderParam::PARAM_INT_BUFFER;
         }
         // treat everything else as float_array

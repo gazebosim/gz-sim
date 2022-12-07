@@ -259,4 +259,3 @@ TEST(SystemManager, AddSystemWithInfo)
       });
   EXPECT_EQ(1, entityCount);
 }
-

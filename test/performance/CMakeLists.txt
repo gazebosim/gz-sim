@@ -39,4 +39,3 @@ target_link_libraries(
     gz-sim${PROJECT_VERSION_MAJOR}
     gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
-

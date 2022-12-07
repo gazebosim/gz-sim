@@ -43,4 +43,3 @@ Max RTF:    1.01867
 * `gz_perf.py data.csv --plot` Time series plot of RTF vs simualation time
 
 * `gz_perf.py data.csv --hist` Histogram of real time factors
-

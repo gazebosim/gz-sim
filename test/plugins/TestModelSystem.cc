@@ -21,4 +21,3 @@
 GZ_ADD_PLUGIN(gz::sim::TestModelSystem,
     gz::sim::System,
     gz::sim::TestModelSystem::ISystemConfigure)
-

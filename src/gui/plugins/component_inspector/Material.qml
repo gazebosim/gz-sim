@@ -40,50 +40,37 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property var rAmbientItem: {}
-  property var gAmbientItem: {}
-  property var bAmbientItem: {}
-  property var aAmbientItem: {}
+  property double rAmbientItem: model.data[0]
+  property double gAmbientItem: model.data[1]
+  property double bAmbientItem: model.data[2]
+  property double aAmbientItem: model.data[3]
 
   // Loaded items for diffuse red, green, blue, alpha
-  property var rDiffuseItem: {}
-  property var gDiffuseItem: {}
-  property var bDiffuseItem: {}
-  property var aDiffuseItem: {}
+  property double rDiffuseItem: model.data[4]
+  property double gDiffuseItem: model.data[5]
+  property double bDiffuseItem: model.data[6]
+  property double aDiffuseItem: model.data[7]
 
   // Loaded items for specular red, green, blue, alpha
-  property var rSpecularItem: {}
-  property var gSpecularItem: {}
-  property var bSpecularItem: {}
-  property var aSpecularItem: {}
+  property double rSpecularItem: model.data[8]
+  property double gSpecularItem: model.data[9]
+  property double bSpecularItem: model.data[10]
+  property double aSpecularItem: model.data[11]
 
   // Loaded items for emissive red, green, blue, alpha
-  property var rEmissiveItem: {}
-  property var gEmissiveItem: {}
-  property var bEmissiveItem: {}
-  property var aEmissiveItem: {}
+  property double rEmissiveItem: model.data[12]
+  property double gEmissiveItem: model.data[13]
+  property double bEmissiveItem: model.data[14]
+  property double aEmissiveItem: model.data[15]
 
   // send new material color data to C++
-  function sendMaterialColor(_type, _currColor) {
+  function sendMaterialColor() {
     componentInspector.onMaterialColor(
-      rAmbientItem.value,
-      gAmbientItem.value,
-      bAmbientItem.value,
-      aAmbientItem.value,
-      rDiffuseItem.value,
-      gDiffuseItem.value,
-      bDiffuseItem.value,
-      aDiffuseItem.value,
-      rSpecularItem.value,
-      gSpecularItem.value,
-      bSpecularItem.value,
-      aSpecularItem.value,
-      rEmissiveItem.value,
-      gEmissiveItem.value,
-      bEmissiveItem.value,
-      aEmissiveItem.value,
-      _type,
-      _currColor
+      rAmbientItem, gAmbientItem, bAmbientItem, aAmbientItem,
+      rDiffuseItem, gDiffuseItem, bDiffuseItem, aDiffuseItem,
+      rSpecularItem, gSpecularItem, bSpecularItem, aSpecularItem,
+      rEmissiveItem, gEmissiveItem, bEmissiveItem, aEmissiveItem,
+      "", Qt.rgba(0, 0, 0, 0)  // dummy placeholders (no longer needed)
     );
   }
 
@@ -114,19 +101,9 @@ Rectangle {
     font.family: "Roboto"
   }
 
-  // Used to create rgba spin boxes
   Component {
-    id: spinBoxMaterialColor
-    GzSpinBox {
-      id: writableSpin
-      value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: 0
-      maximumValue: 255
-      decimals: 0
-      onEditingFinished: {
-        // sending empty params to not open color dialog
-        sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
-      }
+    id: gzcolor
+    GzColor {
     }
   }
 
@@ -198,408 +175,257 @@ Rectangle {
         width: parent.width
         spacing: 20
 
-        GridLayout {
-          width: parent.width
-          columns: 6
 
-          // rgba headers
+        RowLayout {
+          // Color
           Text {
-            text: "Red    "
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 3
+            Layout.topMargin: 10
+            Layout.columnSpan: 6
+            text: "      Color"
+            color: "dimgrey"
+            font.bold: true
           }
-          Text {
-            text: "Green"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 4
-          }
-          Text {
-            text: "Blue  "
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 5
-          }
-          Text {
-            text: "Alpha"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            font.pointSize: 12
-            Layout.row: 1
-            Layout.column: 6
+        }
+
+        RowLayout {
+          // Ambient
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: ambientText.width + indentation*3
+
+            Text {
+              id : ambientText
+              Layout.columnSpan: 2
+              text: ' Ambient'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
+            }
           }
 
           // Ambient
-          Text {
-            text: " Ambient"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            Layout.row: 2
-            Layout.column: 1
-          }
-          // Ambient color dialog
-          Button {
-            id: ambientButton
-            Layout.row: 2
-            Layout.column: 2
-            ToolTip.text: "Open color dialog"
-            ToolTip.visible: hovered
-            ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            background: Rectangle {
-              implicitWidth: 40
-              implicitHeight: 40
-              radius: 5
-              border.color: getButtonColor(0, false)
-              border.width: 2
-              color: getButtonColor(0, true)
-            }
-            onClicked: {
-              sendMaterialColor("ambient", getButtonColor(0, true))
-            }
-          }
-          // Ambient red
           Item {
-            Layout.row: 2
-            Layout.column: 3
             Layout.fillWidth: true
+            Layout.bottomMargin: 10
             height: 40
             Loader {
-              id: rAmbientLoader
+              id: ambientLoader
               anchors.fill: parent
-              property double numberValue: model.data[0]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                rAmbientItem = rAmbientLoader.item
+              sourceComponent: gzcolor
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "r"
+              value: model.data[0]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "g"
+              value: model.data[1]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "b"
+              value: model.data[2]
+            }
+            Binding {
+              target: ambientLoader.item
+              property: "a"
+              value: model.data[3]
+            }
+            Connections {
+              target: ambientLoader.item
+              onGzColorSet: {
+                rAmbientItem = ambientLoader.item.r
+                gAmbientItem = ambientLoader.item.g
+                bAmbientItem = ambientLoader.item.b
+                aAmbientItem = ambientLoader.item.a
+                sendMaterialColor()
               }
             }
           }
-          // Ambient green
-          Item {
-            Layout.row: 2
-            Layout.column: 4
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[1]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                gAmbientItem = gAmbientLoader.item
-              }
-            }
-          }
-          // Ambient blue
-          Item {
-            Layout.row: 2
-            Layout.column: 5
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[2]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                bAmbientItem = bAmbientLoader.item
-              }
-            }
-          }
-          // Ambient alpha
-          Item {
-            Layout.row: 2
-            Layout.column: 6
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aAmbientLoader
-              anchors.fill: parent
-              property double numberValue: model.data[3]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                aAmbientItem = aAmbientLoader.item
-              }
-            }
-          } // end Ambient
 
           // Diffuse
-          Text {
-            text: " Diffuse"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            Layout.row: 3
-            Layout.column: 1
-          }
-          // Diffuse color dialog
-          Button {
-            id: diffuseButton
-            Layout.row: 3
-            Layout.column: 2
-            ToolTip.text: "Open color dialog"
-            ToolTip.visible: hovered
-            ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            background: Rectangle {
-              implicitWidth: 40
-              implicitHeight: 40
-              radius: 5
-              border.color: getButtonColor(4, false)
-              border.width: 2
-              color: getButtonColor(4, true)
-            }
-            onClicked: {
-              sendMaterialColor("diffuse", getButtonColor(4, true))
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: diffuseText.width + indentation*3
+
+            Text {
+              id : diffuseText
+              Layout.columnSpan: 2
+              text: ' Diffuse'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
             }
           }
-          // Diffuse red
+
+          // Diffuse
           Item {
-            Layout.row: 3
-            Layout.column: 3
             Layout.fillWidth: true
+            Layout.bottomMargin: 10
             height: 40
             Loader {
-              id: rDiffuseLoader
+              id: diffuseLoader
               anchors.fill: parent
-              property double numberValue: model.data[4]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                rDiffuseItem = rDiffuseLoader.item
+              sourceComponent: gzcolor
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "r"
+              value: model.data[4]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "g"
+              value: model.data[5]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "b"
+              value: model.data[6]
+            }
+            Binding {
+              target: diffuseLoader.item
+              property: "a"
+              value: model.data[7]
+            }
+            Connections {
+              target: diffuseLoader.item
+              onGzColorSet: {
+                rDiffuseItem = diffuseLoader.item.r
+                gDiffuseItem = diffuseLoader.item.g
+                bDiffuseItem = diffuseLoader.item.b
+                aDiffuseItem = diffuseLoader.item.a
+                sendMaterialColor()
               }
             }
           }
-          // Diffuse green
-          Item {
-            Layout.row: 3
-            Layout.column: 4
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[5]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                gDiffuseItem = gDiffuseLoader.item
-              }
+        }
+
+        RowLayout {
+          // Specular
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: specularText.width + indentation*3
+
+            Text {
+              id : specularText
+              Layout.columnSpan: 2
+              text: ' Specular'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
             }
           }
-          // Diffuse blue
-          Item {
-            Layout.row: 3
-            Layout.column: 5
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[6]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                bDiffuseItem = bDiffuseLoader.item
-              }
-            }
-          }
-          // Diffuse alpha
-          Item {
-            Layout.row: 3
-            Layout.column: 6
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aDiffuseLoader
-              anchors.fill: parent
-              property double numberValue: model.data[7]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                aDiffuseItem = aDiffuseLoader.item
-              }
-            }
-          } // end Diffuse
 
           // Specular
-          Text {
-            text: " Specular"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            Layout.row: 4
-            Layout.column: 1
-          }
-          // Specular color dialog
-          Button {
-            id: specularButton
-            Layout.row: 4
-            Layout.column: 2
-            ToolTip.text: "Open color dialog"
-            ToolTip.visible: hovered
-            ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            background: Rectangle {
-              implicitWidth: 40
-              implicitHeight: 40
-              radius: 5
-              border.color: getButtonColor(8, false)
-              border.width: 2
-              color: getButtonColor(8, true)
-            }
-            onClicked: {
-              sendMaterialColor("specular", getButtonColor(8, true))
-            }
-          }
-          // Specular red
           Item {
-            Layout.row: 4
-            Layout.column: 3
             Layout.fillWidth: true
+            Layout.bottomMargin: 10
             height: 40
             Loader {
-              id: rSpecularLoader
+              id: specularLoader
               anchors.fill: parent
-              property double numberValue: model.data[8]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                rSpecularItem = rSpecularLoader.item
+              sourceComponent: gzcolor
+            }
+            Binding {
+              target: specularLoader.item
+              property: "r"
+              value: model.data[8]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "g"
+              value: model.data[9]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "b"
+              value: model.data[10]
+            }
+            Binding {
+              target: specularLoader.item
+              property: "a"
+              value: model.data[11]
+            }
+            Connections {
+              target: specularLoader.item
+              onGzColorSet: {
+                rSpecularItem = specularLoader.item.r
+                gSpecularItem = specularLoader.item.g
+                bSpecularItem = specularLoader.item.b
+                aSpecularItem = specularLoader.item.a
+                sendMaterialColor()
               }
             }
           }
-          // Specular green
-          Item {
-            Layout.row: 4
-            Layout.column: 4
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[9]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                gSpecularItem = gSpecularLoader.item
-              }
-            }
-          }
-          // Specular blue
-          Item {
-            Layout.row: 4
-            Layout.column: 5
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[10]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                bSpecularItem = bSpecularLoader.item
-              }
-            }
-          }
-          // Specular alpha
-          Item {
-            Layout.row: 4
-            Layout.column: 6
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aSpecularLoader
-              anchors.fill: parent
-              property double numberValue: model.data[11]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                aSpecularItem = aSpecularLoader.item
-              }
-            }
-          } // end Specular
 
           // Emissive
-          Text {
-            text: " Emissive"
-            color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
-            Layout.row: 5
-            Layout.column: 1
-          }
-          // Emissive color dialog
-          Button {
-            id: emissiveButton
-            Layout.row: 5
-            Layout.column: 2
-            ToolTip.text: "Open color dialog"
-            ToolTip.visible: hovered
-            ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-            background: Rectangle {
-              implicitWidth: 40
-              implicitHeight: 40
-              radius: 5
-              border.color: getButtonColor(12, false)
-              border.width: 2
-              color: getButtonColor(12, true)
-            }
-            onClicked: {
-              sendMaterialColor("emissive", getButtonColor(12, true))
+          Rectangle {
+            color: "transparent"
+            height: 50
+            Layout.preferredWidth: emissiveText.width + indentation*3
+
+            Text {
+              id : emissiveText
+              Layout.columnSpan: 2
+              text: 'Emissive'
+              leftPadding: 5
+              color: Material.theme == Material.Light ? "#444444" : "#bbbbbb"
+              font.pointSize: 12
+              anchors.centerIn: parent
             }
           }
-          // Emissive red
+
+          // Emissive
           Item {
-            Layout.row: 5
-            Layout.column: 3
             Layout.fillWidth: true
+            Layout.bottomMargin: 10
             height: 40
             Loader {
-              id: rEmissiveLoader
+              id: emissiveLoader
               anchors.fill: parent
-              property double numberValue: model.data[12]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                rEmissiveItem = rEmissiveLoader.item
+              sourceComponent: gzcolor
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "r"
+              value: model.data[12]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "g"
+              value: model.data[13]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "b"
+              value: model.data[14]
+            }
+            Binding {
+              target: emissiveLoader.item
+              property: "a"
+              value: model.data[15]
+            }
+            Connections {
+              target: emissiveLoader.item
+              onGzColorSet: {
+                rEmissiveItem = emissiveLoader.item.r
+                gEmissiveItem = emissiveLoader.item.g
+                bEmissiveItem = emissiveLoader.item.b
+                aEmissiveItem = emissiveLoader.item.a
+                sendMaterialColor()
               }
             }
           }
-          // Emissive green
-          Item {
-            Layout.row: 5
-            Layout.column: 4
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: gEmissiveLoader
-              anchors.fill: parent
-              property double numberValue: model.data[13]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                gEmissiveItem = gEmissiveLoader.item
-              }
-            }
-          }
-          // Emissive blue
-          Item {
-            Layout.row: 5
-            Layout.column: 5
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: bEmissiveLoader
-              anchors.fill: parent
-              property double numberValue: model.data[14]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                bEmissiveItem = bEmissiveLoader.item
-              }
-            }
-          }
-          // Emissive alpha
-          Item {
-            Layout.row: 5
-            Layout.column: 6
-            Layout.fillWidth: true
-            height: 40
-            Loader {
-              id: aEmissiveLoader
-              anchors.fill: parent
-              property double numberValue: model.data[15]
-              sourceComponent: spinBoxMaterialColor
-              onLoaded: {
-                aEmissiveItem = aEmissiveLoader.item
-              }
-            }
-          } // end Emissive
-        } // end GridLayout
+        } // end RowLayout
       } // end ColumnLayout (id: grid)
     } // Rectangle (id: content)
   }

@@ -35,4 +35,3 @@ message SimulationStep
   /// affinity changes.
   repeated PerformerAffinity affinity = 2;
 }
-

@@ -21,7 +21,9 @@
 #include <functional>
 #include <mutex>
 
-#include <gz/msgs.hh>
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 #include "gz/sim/Server.hh"

@@ -18,9 +18,10 @@
 
 #include <Eigen/Eigen>
 
-#include <gz/plugin/Register.hh>
+#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/Utility.hh>
 
-#include "gz/msgs/vector3d.pb.h"
+#include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/LinearVelocity.hh"
@@ -42,66 +43,30 @@ using namespace systems;
 /// \brief Private Hydrodynamics data class.
 class gz::sim::systems::HydrodynamicsPrivateData
 {
-  /// \brief Values to set via Plugin Parameters.
-  /// Plugin Parameter: Added mass in surge, X_\dot{u}.
-  public: double paramXdotU;
+ /// \brief Contains the quadratic stability derivatives like $X_{uv}$,
+  /// Y_{vv}, Y_{wv} etc.
+  public: double stabilityQuadraticDerivative[216];
 
-  /// \brief Plugin Parameter: Added mass in sway, Y_\dot{v}.
-  public: double paramYdotV;
+  /// \brief Contains the quadratic stability derivatives like $X_{u|u|},
+  /// Y_{v|v|}, Y_{w|v|}$ etc.
+  public: double stabilityQuadraticAbsDerivative[216];
 
-  /// \brief Plugin Parameter: Added mass in heave, Z_\dot{w}.
-  public: double paramZdotW;
-
-  /// \brief Plugin Parameter: Added mass in roll, K_\dot{p}.
-  public: double paramKdotP;
-
-  /// \brief Plugin Parameter: Added mass in pitch, M_\dot{q}.
-  public: double paramMdotQ;
-
-  /// \brief Plugin Parameter: Added mass in yaw, N_\dot{r}.
-  public: double paramNdotR;
-
-  /// \brief Plugin Parameter: Linear drag in surge.
-  public: double paramXu;
-
-  /// \brief Plugin Parameter: Quadratic drag in surge.
-  public: double paramXuu;
-
-  /// \brief Plugin Parameter: Linear drag in sway.
-  public: double paramYv;
-
-  /// \brief Plugin Parameter: Quadratic drag in sway.
-  public: double paramYvv;
-
-  /// \brief Plugin Parameter: Linear drag in heave.
-  public: double paramZw;
-
-  /// \brief Plugin Parameter: Quadratic drag in heave.
-  public: double paramZww;
-
-  /// \brief Plugin Parameter: Linear drag in roll.
-  public: double paramKp;
-
-  /// \brief Plugin Parameter: Quadratic drag in roll.
-  public: double paramKpp;
-
-  /// \brief Plugin Parameter: Linear drag in pitch.
-  public: double paramMq;
-
-  /// \brief Plugin Parameter: Quadratic drag in pitch.
-  public: double paramMqq;
-
-  /// \brief Plugin Parameter: Linear drag in yaw.
-  public: double paramNr;
-
-  /// \brief Plugin Parameter: Quadratic drag in yaw.
-  public: double paramNrr;
+  /// \brief Contains the linear stability derivatives like $X_u, Y_v,$ etc.
+  public: double stabilityLinearTerms[36] = {0};
 
   /// \brief Water density [kg/m^3].
   public: double waterDensity;
 
   /// \brief The Gazebo Transport node
   public: transport::Node node;
+
+  /// \brief Plugin Parameter: Disable coriolis as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableCoriolis = false;
+
+  /// \brief Plugin Parameter: Disable added mass as part of equation. This is
+  /// occasionally useful for testing.
+  public: bool disableAddedMass = false;
 
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
@@ -113,7 +78,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
-  /// \brief Link entity
+  public: Eigen::VectorXd prevStateDot;
+
+  /// Link entity
   public: Entity linkEntity;
 
   /// \brief Ocean current callback
@@ -205,32 +172,57 @@ void Hydrodynamics::Configure(
 {
   if (_sdf->HasElement("waterDensity"))
   {
-    gzwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
+    ignwarn <<
+      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
       << "\tPlease update your SDF to use <water_density> instead.";
   }
 
-  this->dataPtr->waterDensity     = SdfParamDouble(_sdf, "waterDensity",
-                                      SdfParamDouble(_sdf, "water_density", 998)
-                                    );
-  this->dataPtr->paramXdotU       = SdfParamDouble(_sdf, "xDotU"       , 5);
-  this->dataPtr->paramYdotV       = SdfParamDouble(_sdf, "yDotV"       , 5);
-  this->dataPtr->paramZdotW       = SdfParamDouble(_sdf, "zDotW"       , 0.1);
-  this->dataPtr->paramKdotP       = SdfParamDouble(_sdf, "kDotP"       , 0.1);
-  this->dataPtr->paramMdotQ       = SdfParamDouble(_sdf, "mDotQ"       , 0.1);
-  this->dataPtr->paramNdotR       = SdfParamDouble(_sdf, "nDotR"       , 1);
-  this->dataPtr->paramXu          = SdfParamDouble(_sdf, "xU"          , 20);
-  this->dataPtr->paramXuu         = SdfParamDouble(_sdf, "xUU"         , 0);
-  this->dataPtr->paramYv          = SdfParamDouble(_sdf, "yV"          , 20);
-  this->dataPtr->paramYvv         = SdfParamDouble(_sdf, "yVV"         , 0);
-  this->dataPtr->paramZw          = SdfParamDouble(_sdf, "zW"          , 20);
-  this->dataPtr->paramZww         = SdfParamDouble(_sdf, "zWW"         , 0);
-  this->dataPtr->paramKp          = SdfParamDouble(_sdf, "kP"          , 20);
-  this->dataPtr->paramKpp         = SdfParamDouble(_sdf, "kPP"         , 0);
-  this->dataPtr->paramMq          = SdfParamDouble(_sdf, "mQ"          , 20);
-  this->dataPtr->paramMqq         = SdfParamDouble(_sdf, "mQQ"         , 0);
-  this->dataPtr->paramNr          = SdfParamDouble(_sdf, "nR"          , 20);
-  this->dataPtr->paramNrr         = SdfParamDouble(_sdf, "nRR"         , 0);
+  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "waterDensity",
+                                  SdfParamDouble(_sdf, "water_density", 998)
+                                );
+  // Load stability derivatives
+  // Use SNAME 1950 convention to load the coeffecients.
+  const auto snameConventionVel = "UVWPQR";
+  const auto snameConventionMoment = "xyzkmn";
+  for(auto i = 0; i < 6; i++)
+  {
+    for(auto j = 0; j < 6; j++)
+    {
+      std::string prefix = {snameConventionMoment[i]};
+      prefix += snameConventionVel[j];
+      this->dataPtr->stabilityLinearTerms[i*6 + j] =
+        SdfParamDouble(_sdf, prefix, 0);
+      for(auto k = 0; k < 6; k++)
+      {
+        this->dataPtr->stabilityQuadraticDerivative[i*36 + j*6 + k] =
+          SdfParamDouble(
+            _sdf,
+            prefix + snameConventionVel[k],
+            0);
+        this->dataPtr->stabilityQuadraticAbsDerivative[i*36 + j*6 + k] =
+          SdfParamDouble(
+            _sdf,
+            prefix + "abs" + snameConventionVel[k],
+            0);
+      }
+    }
+  }
+
+  // Added mass according to Fossen's equations (p 37)
+  this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
+  for(auto i = 0; i < 6; i++)
+  {
+    for(auto j = 0; j < 6; j++)
+    {
+      std::string prefix = {snameConventionMoment[i]};
+      prefix += "Dot";
+      prefix += snameConventionVel[j];
+      this->dataPtr->Ma(i, j) = SdfParamDouble(_sdf, prefix, 0);
+    }
+  }
+
+  _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
+  _sdf->Get<bool>("disable_added_mass", this->dataPtr->disableAddedMass, false);
 
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
@@ -273,17 +265,6 @@ void Hydrodynamics::Configure(
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
   AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
-
-
-  // Added mass according to Fossen's equations (p 37)
-  this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
-
-  this->dataPtr->Ma(0, 0) = this->dataPtr->paramXdotU;
-  this->dataPtr->Ma(1, 1) = this->dataPtr->paramYdotV;
-  this->dataPtr->Ma(2, 2) = this->dataPtr->paramZdotW;
-  this->dataPtr->Ma(3, 3) = this->dataPtr->paramKdotP;
-  this->dataPtr->Ma(4, 4) = this->dataPtr->paramMdotQ;
-  this->dataPtr->Ma(5, 5) = this->dataPtr->paramNdotR;
 }
 
 /////////////////////////////////////////////////
@@ -296,7 +277,7 @@ void Hydrodynamics::PreUpdate(
 
   // These variables follow Fossen's scheme in "Guidance and Control
   // of Ocean Vehicles." The `state` vector contains the ship's current velocity
-  // in the formate [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
+  // in the format [x_vel, y_vel, z_vel, roll_vel, pitch_vel, yaw_vel].
   // `stateDot` consists of the first derivative in time of the state vector.
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
@@ -327,7 +308,7 @@ void Hydrodynamics::PreUpdate(
   // Transform state to local frame
   auto pose = baseLink.WorldPose(_ecm);
   // Since we are transforming angular and linear velocity we only care about
-  // rotation
+  // rotation. Also this is where we apply the effects of current to the link
   auto localLinearVelocity = pose->Rot().Inverse() *
     (linearVelocity->Data() - currentVector);
   auto localRotationalVelocity = pose->Rot().Inverse() * *rotationalVelocity;
@@ -346,53 +327,73 @@ void Hydrodynamics::PreUpdate(
   this->dataPtr->prevState = state;
 
   // The added mass
-  const Eigen::VectorXd kAmassVec = this->dataPtr->Ma * stateDot;
+  // Negative sign signifies the behaviour change
+  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
-  // for the under water vehicle's additional DOF
-  Cmat(0, 4) = - this->dataPtr->paramZdotW * state(2);
-  Cmat(0, 5) = - this->dataPtr->paramYdotV * state(1);
-  Cmat(1, 3) =   this->dataPtr->paramZdotW * state(2);
-  Cmat(1, 5) = - this->dataPtr->paramXdotU * state(0);
-  Cmat(2, 3) = - this->dataPtr->paramYdotV * state(1);
-  Cmat(2, 4) =   this->dataPtr->paramXdotU * state(0);
-  Cmat(3, 1) = - this->dataPtr->paramZdotW * state(2);
-  Cmat(3, 2) =   this->dataPtr->paramYdotV * state(1);
-  Cmat(3, 4) = - this->dataPtr->paramNdotR * state(5);
-  Cmat(3, 5) =   this->dataPtr->paramMdotQ * state(4);
-  Cmat(4, 0) =   this->dataPtr->paramZdotW * state(2);
-  Cmat(4, 2) = - this->dataPtr->paramXdotU * state(0);
-  Cmat(4, 3) =   this->dataPtr->paramNdotR * state(5);
-  Cmat(4, 5) = - this->dataPtr->paramKdotP * state(3);
-  Cmat(5, 0) =   this->dataPtr->paramZdotW * state(2);
-  Cmat(5, 1) =   this->dataPtr->paramXdotU * state(0);
-  Cmat(5, 3) = - this->dataPtr->paramMdotQ * state(4);
-  Cmat(5, 4) =   this->dataPtr->paramKdotP * state(3);
+  // for the under water vehicle's additional DOF. We are just considering
+  // diagonal terms here. Have yet to add the cross terms here. Also note, since
+  // $M_a(0,0) = \dot X_u $ , $M_a(1,1) = \dot Y_v $ and so forth, we simply
+  // load the stability derivatives from $M_a$.
+  Cmat(0, 4) = - this->dataPtr->Ma(2, 2) * state(2);
+  Cmat(0, 5) = - this->dataPtr->Ma(1, 1) * state(1);
+  Cmat(1, 3) =   this->dataPtr->Ma(2, 2) * state(2);
+  Cmat(1, 5) = - this->dataPtr->Ma(0, 0) * state(0);
+  Cmat(2, 3) = - this->dataPtr->Ma(1, 1) * state(1);
+  Cmat(2, 4) =   this->dataPtr->Ma(0, 0) * state(0);
+  Cmat(3, 1) = - this->dataPtr->Ma(2, 2) * state(2);
+  Cmat(3, 2) =   this->dataPtr->Ma(1, 1) * state(1);
+  Cmat(3, 4) = - this->dataPtr->Ma(5, 5) * state(5);
+  Cmat(3, 5) =   this->dataPtr->Ma(4, 4) * state(4);
+  Cmat(4, 0) =   this->dataPtr->Ma(2, 2) * state(2);
+  Cmat(4, 2) = - this->dataPtr->Ma(0, 0) * state(0);
+  Cmat(4, 3) =   this->dataPtr->Ma(5, 5) * state(5);
+  Cmat(4, 5) = - this->dataPtr->Ma(3, 3) * state(3);
+  Cmat(5, 0) =   this->dataPtr->Ma(2, 2) * state(2);
+  Cmat(5, 1) =   this->dataPtr->Ma(0, 0) * state(0);
+  Cmat(5, 3) = - this->dataPtr->Ma(4, 4) * state(4);
+  Cmat(5, 4) =   this->dataPtr->Ma(3, 3) * state(3);
   const Eigen::VectorXd kCmatVec = - Cmat * state;
 
-  // Damping forces (Fossen P. 43)
-  Dmat(1, 1)
-    = - this->dataPtr->paramYv - this->dataPtr->paramYvv * abs(state(1));
-  Dmat(0, 0)
-    = - this->dataPtr->paramXu - this->dataPtr->paramXuu * abs(state(0));
-  Dmat(2, 2)
-    = - this->dataPtr->paramZw - this->dataPtr->paramZww * abs(state(2));
-  Dmat(3, 3)
-    = - this->dataPtr->paramKp - this->dataPtr->paramKpp * abs(state(3));
-  Dmat(4, 4)
-    = - this->dataPtr->paramMq - this->dataPtr->paramMqq * abs(state(4));
-  Dmat(5, 5)
-    = - this->dataPtr->paramNr - this->dataPtr->paramNrr * abs(state(5));
+  // Damping forces
+  for(int i = 0; i < 6; i++)
+  {
+    for(int j = 0; j < 6; j++)
+    {
+      auto coeff = - this->dataPtr->stabilityLinearTerms[i * 6 + j];
+      for(int k = 0; k < 6; k++)
+      {
+        auto index = i * 36 + j * 6 + k;
+        auto absCoeff =
+          this->dataPtr->stabilityQuadraticAbsDerivative[index] * abs(state(k));
+        coeff -= absCoeff;
+        auto velCoeff =
+          this->dataPtr->stabilityQuadraticDerivative[index] * state(k);
+        coeff -= velCoeff;
+      }
+
+      Dmat(i, j) = coeff;
+    }
+  }
 
   const Eigen::VectorXd kDvec = Dmat * state;
 
-  const Eigen::VectorXd kTotalWrench = kAmassVec + kDvec + kCmatVec;
+  Eigen::VectorXd kTotalWrench = kDvec;
 
-  gz::math::Vector3d
-    totalForce(-kTotalWrench(0), -kTotalWrench(1), -kTotalWrench(2));
-  gz::math::Vector3d
-    totalTorque(-kTotalWrench(3), -kTotalWrench(4), -kTotalWrench(5));
+  if (!this->dataPtr->disableAddedMass)
+  {
+    kTotalWrench += kAmassVec;
+  }
+  if (!this->dataPtr->disableCoriolis)
+  {
+    kTotalWrench += kCmatVec;
+  }
+
+  math::Vector3d totalForce(
+    -kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));
+  math::Vector3d totalTorque(
+    -kTotalWrench(3),  -kTotalWrench(4), -kTotalWrench(5));
 
   baseLink.AddWorldWrench(
     _ecm,

@@ -144,6 +144,23 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+                <spinning_friction>0.1</spinning_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -178,6 +195,23 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+                <spinning_friction>0.1</spinning_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -332,6 +366,23 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+                <spinning_friction>0.1</spinning_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -366,6 +417,23 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+                <spinning_friction>0.1</spinning_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 

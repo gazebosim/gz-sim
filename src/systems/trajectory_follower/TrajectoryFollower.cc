@@ -421,7 +421,7 @@ void TrajectoryFollower::PreUpdate(
       }
     }
 
-    int sign = std::abs(bearing.Degree()) / bearing.Degree();
+    int sign = static_cast<int>(std::abs(bearing.Degree()) / bearing.Degree());
     torqueWorld = (*comPose).Rot().RotateVector(
        gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
   }

@@ -41,6 +41,7 @@
 #include <gz/math/Inertial.hh>
 #include <gz/math/Matrix4.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/particle_emitter.pb.h>

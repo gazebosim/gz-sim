@@ -84,10 +84,9 @@ function(gz_add_system system_name)
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(WIN32)
     # symlinks on Windows require admin priviledges, fallback to copy
-    ADD_CUSTOM_COMMAND(TARGET ${system_target} POST_BUILD
-      COMMAND "${CMAKE_COMMAND}" -E copy
-        "$<TARGET_FILE:${system_target}>"
-        "$<TARGET_FILE_DIR:${system_target}>/${unversioned}")
+    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy
+      ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR}\/${versioned}
+      ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR}\/${unversioned})")
   else()
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
@@ -115,6 +114,8 @@ add_subdirectory(diff_drive)
 if (NOT WIN32)
 add_subdirectory(elevator)
 endif()
+add_subdirectory(environment_preload)
+add_subdirectory(environmental_sensor_system)
 add_subdirectory(follow_actor)
 add_subdirectory(force_torque)
 add_subdirectory(hydrodynamics)

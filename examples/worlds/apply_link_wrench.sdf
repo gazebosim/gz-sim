@@ -104,6 +104,15 @@
               <size>1 1 1</size>
             </box>
           </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>0.7</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.2</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
 
         <visual name="visual">
@@ -142,6 +151,15 @@
               <length>1.0</length>
             </cylinder>
           </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>0.7</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.2</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
 
         <visual name="visual">

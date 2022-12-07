@@ -113,7 +113,7 @@ class gz::sim::TestFixturePrivate
   public: void Init(const ServerConfig &_config);
 
   /// \brief Pointer to underlying server
-  public: std::shared_ptr<sim::Server> server{nullptr};
+  public: std::shared_ptr<Server> server{nullptr};
 
   /// \brief Pointer to underlying Helper interface
   public: std::shared_ptr<HelperSystem> helperSystem{nullptr};
@@ -149,7 +149,7 @@ TestFixture::~TestFixture()
 void TestFixturePrivate::Init(const ServerConfig &_config)
 {
   this->helperSystem = std::make_shared<HelperSystem>();
-  this->server = std::make_shared<sim::Server>(_config);
+  this->server = std::make_shared<Server>(_config);
 }
 
 //////////////////////////////////////////////////
@@ -208,8 +208,7 @@ TestFixture &TestFixture::OnPostUpdate(std::function<void(
 }
 
 //////////////////////////////////////////////////
-std::shared_ptr<sim::Server> TestFixture::Server() const
+std::shared_ptr<Server> TestFixture::Server() const
 {
   return this->dataPtr->server;
 }
-

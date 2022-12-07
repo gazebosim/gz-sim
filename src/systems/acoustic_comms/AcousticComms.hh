@@ -23,8 +23,12 @@
 #define GZ_SIM_SYSTEMS_ACOUSTICCOMMS_HH_
 
 #include <memory>
+#include <string>
+#include <tuple>
+#include <unordered_map>
 
 #include <sdf/sdf.hh>
+#include <gz/math/Rand.hh>
 #include "gz/sim/comms/ICommsModel.hh"
 #include <gz/sim/System.hh>
 #include <gz/sim/Entity.hh>
@@ -49,13 +53,45 @@ namespace systems
   ///                   happen beyond this range. Default is 1000.
   ///    * <speed_of_sound>: Speed of sound in the medium (meters/sec).
   ///                         Default is 343.0
+  ///    * <collision_time_per_byte> : If a subscriber receives a message
+  ///                         'b' bytes long at time 't0', it won't receive
+  ///                         and other message till time :
+  ///                         't0 + b * collision_time_per_byte'.
+  ///                         Defaults to zero.
+  ///    * <collision_time_packet_drop> : If a packet is dropped at time
+  ///                         `t0`, the next packet won't be received until
+  ///                         time `t0 + collision_time_packet_drop`.
+  ///                         Defaults to zero.
+  ///    * <propagation_model> : Enables the use of propagation model.
+  ///                            Disabled by default.
+  ///       * <source_power> : Source power at the transmitter in Watts.
+  ///                          Defaults to 2 kW.
+  ///       * <noise_level> : Ratio of the noise intensity at the
+  ///                         receiver to the same reference intensity used
+  ///                         for source level. Defaults to 1.
+  ///       * <spectral_efficiency> : Information rate that can be transmitted
+  ///                                 over a given bandwidth in a specific
+  ///                                 communication system, in (bits/sec)/Hz.
+  ///                                 Defaults to 7 bits/sec/Hz.
+  ///       * <seed> : Seed value to be used for random sampling.
   ///
   /// Here's an example:
   ///  <plugin
   ///    filename="gz-sim-acoustic-comms-system"
   ///    name="gz::sim::systems::AcousticComms">
-  ///    <max_range>6</max_range>
+  ///
+  ///    <max_range>500</max_range>
   ///    <speed_of_sound>1400</speed_of_sound>
+  ///
+  ///    <collision_time_per_byte>0.001</collision_time_per_byte>
+  ///    <collision_time_packet_drop>0.001</collision_time_packet_drop>
+  ///
+  ///    <propagation_model>
+  ///      <source_power>2000</source_power>
+  ///      <noise_level>1</noise_level>
+  ///      <spectral_efficiency>7</spectral_efficiency>
+  ///    </propagation_model>
+  ///
   ///  </plugin>
 
   class AcousticComms:

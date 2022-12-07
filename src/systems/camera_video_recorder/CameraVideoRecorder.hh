@@ -51,7 +51,7 @@ namespace systems
   ///
   ///   <bitrate> Video recorder bitrate (bps). The default value is
   ///             2070000 bps, and the supported type is unsigned int.
-  class CameraVideoRecorder:
+  class CameraVideoRecorder final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

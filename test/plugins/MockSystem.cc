@@ -8,4 +8,3 @@ GZ_ADD_PLUGIN(gz::sim::MockSystem, gz::sim::System,
     gz::sim::MockSystem::ISystemPreUpdate,
     gz::sim::MockSystem::ISystemUpdate,
     gz::sim::MockSystem::ISystemPostUpdate)
-
