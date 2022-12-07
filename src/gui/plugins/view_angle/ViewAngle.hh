@@ -94,6 +94,10 @@ namespace gazebo
     /// false to hide it
     public slots: void OnViewControlReferenceVisual(bool _enable);
 
+    /// \brief Callback in Qt thread when camera view controller changes.
+    /// \param[in] _sensitivity View control sensitivity vlaue
+    public slots: void OnViewControlSensitivity(double _sensitivity);
+
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
 
