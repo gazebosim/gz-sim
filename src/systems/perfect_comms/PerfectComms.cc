@@ -111,5 +111,5 @@ GZ_ADD_PLUGIN(PerfectComms,
               comms::ICommsModel::ISystemConfigure,
               comms::ICommsModel::ISystemPreUpdate)
 
-GZ_ADD_PLUGIN_ALIAS(PerfectComms, 
+GZ_ADD_PLUGIN_ALIAS(PerfectComms,
                     "gz::sim::systems::PerfectComms")
