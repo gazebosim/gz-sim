@@ -88,7 +88,7 @@ class gz::sim::SystemLoaderPrivate
       if (_sdfPlugin.Name() != "gz::sim")
       {
         gzerr << "Failed to load system plugin [" << filename <<
-                  "] : couldn't find shared library." << std::endl;
+                  "] : Could not find shared library." << std::endl;
       }
       return false;
     }
@@ -122,6 +122,17 @@ class gz::sim::SystemLoaderPrivate
     // use the first plugin name in the library if not specified
     std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
         pluginName : _sdfPlugin.Name();
+
+    std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
+    pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
+    if (pos != std::string::npos)
+    {
+      auto origPluginName = pluginToInstantiate;
+      pluginToInstantiate.replace(pos, deprecatedPluginNamePrefix.size(),
+          "gz::sim");
+      gzwarn << "Trying to load deprecated plugin name [" << origPluginName
+             << "]. Using [" << pluginToInstantiate << "] instead." << std::endl;
+    }
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
     if (!_gzPlugin)
