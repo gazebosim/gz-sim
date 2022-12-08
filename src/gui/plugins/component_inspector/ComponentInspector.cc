@@ -921,10 +921,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   // Remove components in list
   for (auto typeId : itemsToRemove)
   {
-    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-        "RemoveComponentType",
-        Qt::QueuedConnection,
-        Q_ARG(sim::ComponentTypeId, typeId));
+    this->dataPtr->componentsModel.RemoveComponentType(typeId);
   }
 }
 
