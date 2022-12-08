@@ -33,7 +33,6 @@
 #include <gz/msgs.hh>
 #include <gz/transport.hh>
 
-#define PI 3.14159265359
 
 using namespace gz;
 
@@ -73,7 +72,7 @@ class Controller
     void SetTargets(double _speed,
         double _yaw, double _pitch)
     {
-      if (_speed < 0.001 &&
+      if (_speed == 0 &&
           (_yaw != 0 || _pitch != 0))
       {
         std::cout << "Speed needs to be non zero for non zero"
@@ -81,9 +80,9 @@ class Controller
         return;
       }
 
-      targetSpeed = std::move(_speed);
-      targetYawAngle = std::move(_yaw);
-      targetPitchAngle = std::move(_pitch);
+      targetSpeed = _speed;
+      targetYawAngle = _yaw;
+      targetPitchAngle = _pitch;
     }
 
     // Update the errors after an iteration of control loop.
@@ -210,10 +209,10 @@ int main(int argc, char** argv)
     std::cout << "Speed (m/s)       : " << control.targetSpeed << " " << control.speed << " "
       << control.errorSpeed << std::endl;
 
-    std::cout << "Yaw angle (deg)   : " << control.targetYawAngle * 180/PI << " "
-      << control.yawAngle * 180/PI << " " << control.errorYawAngle * 180/PI<< std::endl;
+    std::cout << "Yaw angle (deg)   : " << control.targetYawAngle * 180/GZ_PI << " "
+      << control.yawAngle * 180/GZ_PI << " " << control.errorYawAngle * 180/GZ_PI<< std::endl;
 
-    std::cout << "Pitch angle (deg) : "<< control.targetPitchAngle * 180/PI << " "
-      << control.pitchAngle * 180/PI << " " << control.errorPitchAngle * 180/PI<< std::endl;
+    std::cout << "Pitch angle (deg) : "<< control.targetPitchAngle * 180/GZ_PI << " "
+      << control.pitchAngle * 180/GZ_PI << " " << control.errorPitchAngle * 180/GZ_PI<< std::endl;
   }
 }

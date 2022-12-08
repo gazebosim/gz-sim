@@ -20,7 +20,7 @@ gz sim -r lrauv_control_demo.sdf
 
 This should open up a new gazebo window with the LRAUV at rest at the origin.
 
-Step 2 : Open a new terminal source your gazebo workspace, and navigate to this example.
+Step 2 : Open a new terminal, source your gazebo workspace, and navigate to this example.
 
 ```
 cd ~/gazebo_ws/src/gz-sim/examples/standalone/lrauv_control
