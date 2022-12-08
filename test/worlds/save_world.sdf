@@ -34,7 +34,7 @@
       <pose>1 2 3 0.1 0.2 0.3</pose>
     </include>
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/2</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3</uri>
       <name>backpack3</name>
       <pose>2 0 0 0.1 0.2 0.3</pose>
     </include>
