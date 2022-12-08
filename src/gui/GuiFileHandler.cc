@@ -26,10 +26,6 @@
 #include <gz/gui/Application.hh>
 #include <gz/msgs/Utility.hh>
 
-#include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/stringmsg_v.pb.h>
-#include <gz/msgs/Utility.hh>
-
 #include "GuiFileHandler.hh"
 
 using namespace gz;

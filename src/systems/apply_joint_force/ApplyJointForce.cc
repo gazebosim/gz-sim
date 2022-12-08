@@ -22,7 +22,6 @@
 #include <string>
 
 #include <gz/common/Profiler.hh>
-#include <gz/msgs/double.pb.h>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 

@@ -20,7 +20,6 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>

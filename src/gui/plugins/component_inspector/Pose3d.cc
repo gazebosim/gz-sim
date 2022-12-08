@@ -21,7 +21,6 @@
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/Utility.hh>
 
-#include <gz/msgs/Utility.hh>
 #include "Pose3d.hh"
 
 using namespace gz;
