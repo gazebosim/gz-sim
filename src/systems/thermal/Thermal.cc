@@ -136,6 +136,3 @@ GZ_ADD_PLUGIN(Thermal, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Thermal, "ignition::gazebo::systems::Thermal")

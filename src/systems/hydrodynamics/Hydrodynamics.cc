@@ -21,6 +21,7 @@
 #include <gz/plugin/Register.hh>
 
 #include "gz/msgs/vector3d.pb.h"
+#include "gz/msgs/Utility.hh"
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/LinearVelocity.hh"
@@ -409,8 +410,3 @@ GZ_ADD_PLUGIN(
 GZ_ADD_PLUGIN_ALIAS(
   Hydrodynamics,
   "gz::sim::systems::Hydrodynamics")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(
-  Hydrodynamics,
-  "ignition::gazebo::systems::Hydrodynamics")

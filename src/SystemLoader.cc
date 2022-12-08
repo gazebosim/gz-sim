@@ -65,37 +65,18 @@ class gz::sim::SystemLoaderPrivate
     gz::common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
 
-    // TODO(CH3): Deprecated. Remove on tock.
-    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
-
     systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
 
     auto pathToLib = systemPaths.FindSharedLibrary(filename);
     if (pathToLib.empty())
     {
-      // Try deprecated environment variable
-      // TODO(CH3): Deprecated. Remove on tock.
-      common::SystemPaths systemPathsDep;
-      systemPathsDep.SetPluginPathEnv(pluginPathEnvDeprecated);
-      pathToLib = systemPathsDep.FindSharedLibrary(filename);
-
-      if (pathToLib.empty())
+      // We assume gz::sim corresponds to the levels feature
+      if (_sdfPlugin.Name() != "gz::sim")
       {
-        // We assume gz::sim corresponds to the levels feature
-        if (_sdfPlugin.Name() != "gz::sim")
-        {
-          gzerr << "Failed to load system plugin [" << filename <<
-                    "] : couldn't find shared library." << std::endl;
-        }
-        return false;
+        gzerr << "Failed to load system plugin [" << filename <<
+                  "] : couldn't find shared library." << std::endl;
       }
-      else
-      {
-        gzwarn << "Found plugin [" << filename
-               << "] using deprecated environment variable ["
-               << pluginPathEnvDeprecated << "]. Please use ["
-               << pluginPathEnv << "] instead." << std::endl;
-      }
+      return false;
     }
 
     auto pluginNames = this->loader.LoadLib(pathToLib);

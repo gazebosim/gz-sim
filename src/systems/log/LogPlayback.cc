@@ -636,7 +636,3 @@ GZ_ADD_PLUGIN(gz::sim::systems::LogPlayback,
 
 GZ_ADD_PLUGIN_ALIAS(LogPlayback,
                           "gz::sim::systems::LogPlayback")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogPlayback,
-                          "ignition::gazebo::systems::LogPlayback")

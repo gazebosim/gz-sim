@@ -776,7 +776,3 @@ GZ_ADD_PLUGIN(TrackedVehicle,
 
 GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "gz::sim::systems::TrackedVehicle")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "ignition::gazebo::systems::TrackedVehicle")

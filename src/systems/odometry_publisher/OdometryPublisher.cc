@@ -526,7 +526,3 @@ GZ_ADD_PLUGIN(OdometryPublisher,
 
 GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "gz::sim::systems::OdometryPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
-                          "ignition::gazebo::systems::OdometryPublisher")

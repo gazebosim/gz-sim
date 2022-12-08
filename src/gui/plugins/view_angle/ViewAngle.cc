@@ -19,6 +19,7 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 
 #include <iostream>
@@ -29,6 +30,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RenderingIface.hh>

@@ -21,6 +21,7 @@
 
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/msgs/pose_v.pb.h"
 #include "gz/msgs/world_control.pb.h"
 #include "gz/msgs/world_stats.pb.h"
 #include "gz/transport/Node.hh"

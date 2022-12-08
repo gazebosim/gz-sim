@@ -795,7 +795,3 @@ GZ_ADD_PLUGIN(AckermannSteering,
 
 GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "gz::sim::systems::AckermannSteering")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::systems::AckermannSteering")

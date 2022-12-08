@@ -266,7 +266,3 @@ GZ_ADD_PLUGIN(PerformerDetector,
 
 GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
                           "gz::sim::systems::PerformerDetector")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "ignition::gazebo::systems::PerformerDetector")

@@ -17,6 +17,8 @@
 
 #include "ApplyJointForce.hh"
 
+#include <gz/msgs/double.pb.h>
+
 #include <string>
 
 #include <gz/common/Profiler.hh>
@@ -170,7 +172,3 @@ GZ_ADD_PLUGIN(ApplyJointForce,
 
 GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "gz::sim::systems::ApplyJointForce")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "ignition::gazebo::systems::ApplyJointForce")

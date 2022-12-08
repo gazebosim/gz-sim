@@ -191,7 +191,3 @@ GZ_ADD_PLUGIN(CommsEndpoint,
 
 GZ_ADD_PLUGIN_ALIAS(CommsEndpoint,
                           "gz::sim::systems::CommsEndpoint")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(CommsEndpoint,
-                          "ignition::gazebo::systems::CommsEndpoint")

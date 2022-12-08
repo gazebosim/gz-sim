@@ -37,16 +37,3 @@ PYBIND11_MODULE(sim, m) {
   gz::sim::python::defineSimWorld(m);
   gz::sim::python::defineSimUtil(m);
 }
-
-PYBIND11_MODULE(gazebo, m) {  // TODO(CH3): Deprecated. Remove on tock.
-  m.doc() = "Gazebo Sim Python Library.";
-
-  gz::sim::python::defineSimEntityComponentManager(m);
-  gz::sim::python::defineSimEventManager(m);
-  gz::sim::python::defineSimServer(m);
-  gz::sim::python::defineSimServerConfig(m);
-  gz::sim::python::defineSimTestFixture(m);
-  gz::sim::python::defineSimUpdateInfo(m);
-  gz::sim::python::defineSimWorld(m);
-  gz::sim::python::defineSimUtil(m);
-}

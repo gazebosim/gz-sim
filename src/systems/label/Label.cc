@@ -104,6 +104,3 @@ void Label::Configure(const Entity &_entity,
 
 GZ_ADD_PLUGIN(Label, System, Label::ISystemConfigure)
 GZ_ADD_PLUGIN_ALIAS(Label, "gz::sim::systems::Label")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Label, "ignition::gazebo::systems::Label")

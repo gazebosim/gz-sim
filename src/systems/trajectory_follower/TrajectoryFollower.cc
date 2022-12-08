@@ -437,7 +437,3 @@ GZ_ADD_PLUGIN(TrajectoryFollower,
 
 GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
                           "gz::sim::systems::TrajectoryFollower")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
-                          "ignition::gazebo::systems::TrajectoryFollower")

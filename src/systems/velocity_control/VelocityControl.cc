@@ -15,6 +15,8 @@
  *
  */
 
+#include <gz/msgs/twist.pb.h>
+
 #include <map>
 #include <mutex>
 #include <string>
@@ -23,6 +25,7 @@
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
@@ -382,7 +385,3 @@ GZ_ADD_PLUGIN(VelocityControl,
 
 GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "gz::sim::systems::VelocityControl")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(VelocityControl,
-                          "ignition::gazebo::systems::VelocityControl")
