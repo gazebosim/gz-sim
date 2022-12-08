@@ -131,7 +131,8 @@ class gz::sim::SystemLoaderPrivate
       pluginToInstantiate.replace(pos, deprecatedPluginNamePrefix.size(),
           "gz::sim");
       gzwarn << "Trying to load deprecated plugin name [" << origPluginName
-             << "]. Using [" << pluginToInstantiate << "] instead." << std::endl;
+             << "]. Using [" << pluginToInstantiate << "] instead."
+             << std::endl;
     }
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
