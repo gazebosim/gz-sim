@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <map>
 #include <memory>
 #include <string>
@@ -114,6 +115,9 @@ namespace components
   class Factory
       : public ignition::common::SingletonT<Factory>
   {
+    /// \brief Get an instance of the singleton
+    public: static Factory *Instance();
+
     /// \brief Register a component so that the factory can create instances
     /// of the component and its storage based on an ID.
     /// \param[in] _type Type of component to register.
@@ -139,13 +143,6 @@ namespace components
     public: template<typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc)
     {
-      // Every time a plugin which uses a component type is loaded, it attempts
-      // to register it again, so we skip it.
-      if (ComponentTypeT::typeId != 0)
-      {
-        return;
-      }
-
       auto typeHash = ignition::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
@@ -169,8 +166,8 @@ namespace components
             << runtimeNameIt->second << "] and type [" << runtimeName
             << "] with name [" << _type << "]. Second type will not work."
             << std::endl;
+          return;
         }
-        return;
       }
 
       // This happens at static initialization time, so we can't use common
@@ -184,7 +181,7 @@ namespace components
       }
 
       // Keep track of all types
-      this->compsById[ComponentTypeT::typeId] = _compDesc;
+      this->compsById[ComponentTypeT::typeId].push_front(_compDesc);
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
@@ -193,11 +190,9 @@ namespace components
     /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
     public: template<typename ComponentTypeT>
-    void Unregister()
+    void Unregister(ComponentDescriptorBase *_compDesc = nullptr)
     {
-      this->Unregister(ComponentTypeT::typeId);
-
-      ComponentTypeT::typeId = 0;
+      this->Unregister(ComponentTypeT::typeId, _compDesc);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -206,7 +201,8 @@ namespace components
     /// within the component type itself. Prefer using the templated
     /// `Unregister` function when possible.
     /// \param[in] _typeId Type of component to unregister.
-    public: void Unregister(ComponentTypeId _typeId)
+    public: void Unregister(ComponentTypeId _typeId,
+                            ComponentDescriptorBase *_compDesc = nullptr)
     {
       // Not registered
       if (_typeId == 0)
@@ -216,26 +212,30 @@ namespace components
 
       {
         auto it = this->compsById.find(_typeId);
-        if (it != this->compsById.end())
+        if (it != this->compsById.end() && !it->second.empty())
         {
-          delete it->second;
+          if (nullptr == _compDesc)
+          {
+            ComponentDescriptorBase *compDesc = it->second.back();
+            it->second.pop_back();
+            delete compDesc;
+          }
+          else
+          {
+            auto compIt =
+              std::find(it->second.begin(), it->second.end(), _compDesc);
+            if (compIt != it->second.end())
+            {
+              ComponentDescriptorBase* compDesc = *compIt;
+              it->second.erase(compIt);
+              delete compDesc;
+            }
+          }
+        }
+        // Check again since we may have updated the list
+        if (it->second.empty())
+        {
           this->compsById.erase(it);
-        }
-      }
-
-      {
-        auto it = namesById.find(_typeId);
-        if (it != namesById.end())
-        {
-          namesById.erase(it);
-        }
-      }
-
-      {
-        auto it = runtimeNamesById.find(_typeId);
-        if (it != runtimeNamesById.end())
-        {
-          runtimeNamesById.erase(it);
         }
       }
     }
@@ -261,9 +261,15 @@ namespace components
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsById.find(_type);
-      if (it != this->compsById.end() && nullptr != it->second)
-        comp = it->second->Create();
-
+      if (it != this->compsById.end() && !it->second.empty()){
+        comp = it->second.front()->Create();
+      }
+        else
+        {
+          ignerr << "New(no data) Error: (it, empty)"
+                 << (it != this->compsById.end()) << " "
+                 << (it->second.size()) << std::endl;
+        }
       return comp;
     }
 
@@ -291,8 +297,16 @@ namespace components
       else
       {
         auto it = this->compsById.find(_type);
-        if (it != this->compsById.end() && nullptr != it->second)
-          comp = it->second->Create(_data);
+        if (it != this->compsById.end() && !it->second.empty())
+        {
+          comp = it->second.front()->Create(_data);
+        }
+        else
+        {
+          ignerr << "New(data) Error: (it, empty)"
+                 << (it != this->compsById.end()) << " "
+                 << (it->second.size()) << std::endl;
+        }
       }
 
       return comp;
@@ -339,19 +353,8 @@ namespace components
     }
 
     /// \brief A list of registered components where the key is its id.
-    ///
-    /// Note about compsByName and compsById. The maps store pointers as the
-    /// values, but never cleans them up, which may (at first glance) seem like
-    /// incorrect behavior. This is not a mistake. Since ComponentDescriptors
-    /// are created at the point in the code where components are defined, this
-    /// generally ends up in a shared library that will be loaded at runtime.
-    ///
-    /// Because this and the plugin loader both use static variables, and the
-    /// order of static initialization and destruction are not guaranteed, this
-    /// can lead to a scenario where the shared library is unloaded (with the
-    /// ComponentDescriptor), but the Factory still exists. For this reason,
-    /// we just keep a pointer, which will dangle until the program is shutdown.
-    private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
+    private: std::map<ComponentTypeId, std::deque<ComponentDescriptorBase *>>
+          compsById;
 
     /// \brief A list of IDs and their equivalent names.
     public: std::map<ComponentTypeId, std::string> namesById;
@@ -375,13 +378,19 @@ namespace components
   { \
     public: IgnGazeboComponents##_classname() \
     { \
-      if (_classname::typeId != 0) \
-        return; \
-      using namespace ignition;\
-      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
+      using namespace ignition; \
+      this->desc = new Desc(); \
       gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc());\
+        _compType, this->desc);\
     } \
+    public: ~IgnGazeboComponents##_classname() \
+    { \
+      using namespace ignition; \
+      using namespace gazebo; \
+      components::Factory::Instance()->Unregister<_classname>(this->desc); \
+    } \
+    using Desc = ignition::gazebo::components::ComponentDescriptor<_classname>;\
+    private: Desc *desc;  \
   }; \
   static IgnGazeboComponents##_classname\
     IgnitionGazeboComponentsInitializer##_classname;
