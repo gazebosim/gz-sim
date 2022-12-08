@@ -410,8 +410,3 @@ GZ_ADD_PLUGIN(
 GZ_ADD_PLUGIN_ALIAS(
   Hydrodynamics,
   "gz::sim::systems::Hydrodynamics")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(
-  Hydrodynamics,
-  "ignition::gazebo::systems::Hydrodynamics")

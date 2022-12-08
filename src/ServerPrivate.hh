@@ -17,6 +17,8 @@
 #ifndef GZ_SIM_SERVERPRIVATE_HH_
 #define GZ_SIM_SERVERPRIVATE_HH_
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <atomic>

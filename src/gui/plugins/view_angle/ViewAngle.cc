@@ -31,6 +31,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RenderingIface.hh>

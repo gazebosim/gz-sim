@@ -312,7 +312,3 @@ GZ_ADD_PLUGIN(ModelPhotoShoot, gz::sim::System,
 
 GZ_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
                           "gz::sim::systems::ModelPhotoShoot")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ModelPhotoShoot,
-                          "ignition::gazebo::systems::ModelPhotoShoot")

@@ -272,13 +272,3 @@ endif()
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
-
-# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
-# TODO(CH3): Deprecated. Remove on tock
-configure_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  COPYONLY)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

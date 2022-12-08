@@ -804,29 +804,14 @@ void Physics::Configure(const Entity &_entity,
   systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
+
   if (pathToLib.empty())
   {
-    // Try deprecated environment variable
-    // TODO(CH3): Deprecated. Remove on tock.
-    common::SystemPaths systemPathsDep;
-    systemPathsDep.SetPluginPathEnv(this->dataPtr->pluginPathEnvDeprecated);
-    pathToLib = systemPathsDep.FindSharedLibrary(pluginLib);
+    gzerr << "Failed to find plugin [" << pluginLib
+    << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+    << " environment variable?" << std::endl;
 
-    if (pathToLib.empty())
-    {
-      gzerr << "Failed to find plugin [" << pluginLib
-      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-      << " environment variable?" << std::endl;
-
-      return;
-    }
-    else
-    {
-      gzwarn << "Found plugin [" << pluginLib
-             << "] using deprecated environment variable ["
-             << this->dataPtr->pluginPathEnvDeprecated << "]. Please use ["
-             << this->dataPtr->pluginPathEnv << "] instead." << std::endl;
-    }
+    return;
   }
 
   // Load engine plugin
@@ -3624,8 +3609,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
-  auto allContacts =
-      std::move(worldCollisionFeature->GetContactsFromLastStep());
+  auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
 
   for (const auto &contactComposite : allContacts)
   {
@@ -3804,6 +3788,3 @@ GZ_ADD_PLUGIN(Physics,
                     Physics::ISystemUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

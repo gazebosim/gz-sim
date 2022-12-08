@@ -415,6 +415,3 @@ GZ_ADD_PLUGIN(TouchPlugin,
                     TouchPlugin::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

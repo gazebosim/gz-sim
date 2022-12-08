@@ -1306,7 +1306,3 @@ GZ_ADD_PLUGIN(SceneBroadcaster,
 // namespace
 GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "gz::sim::systems::SceneBroadcaster")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "ignition::gazebo::systems::SceneBroadcaster")

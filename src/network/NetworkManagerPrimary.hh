@@ -17,6 +17,8 @@
 #ifndef GZ_SIM_NETWORK_NETWORKMANAGERPRIMARY_HH_
 #define GZ_SIM_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
+#include <gz/msgs/serialized_map.pb.h>
+
 #include <atomic>
 #include <future>
 #include <map>
