@@ -85,15 +85,21 @@ class Controller
       targetPitchAngle = _pitch;
     }
 
-    // Update the errors after an iteration of control loop.
-    void UpdateErrors()
+    // Update the state of the vehicle.
+    void UpdateState(double _speed,
+        double _yaw, double _pitch)
     {
+      speed = _speed;
+      yawAngle = _yaw;
+      pitchAngle = _pitch;
+
       errorSpeed = targetSpeed - speed;
       errorSpeedIntegral =
         std::min(errorSpeedIntegral + errorSpeed, errorSpeedIntegralMax);
 
       errorYawAngle = targetYawAngle - yawAngle;
       errorPitchAngle = targetPitchAngle - pitchAngle;
+
     }
 
     // Generate control input to be applied to the thruster.
@@ -150,17 +156,16 @@ int main(int argc, char** argv)
         orientation.y(),
         orientation.z());
 
-    // Update yaw and pitch angles.
+    // Get the yaw and pitch angles.
     auto rpy = q.Euler();
-    control.yawAngle = rpy[2];
-    control.pitchAngle = rpy[1];
 
+    // Get the velocity of the vehicle.
     gz::math::Vector3d velocity(
         _msg.twist().linear().x(),
         _msg.twist().linear().y(),
         _msg.twist().linear().z());
 
-    control.speed = velocity.Length();
+    control.UpdateState(velocity.Length(), rpy[2], rpy[1]);
   };
 
   node.Subscribe("/model/tethys/odometry", cbPos);
@@ -182,9 +187,6 @@ int main(int argc, char** argv)
   while (true)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    // Update errors in the controller.
-    control.UpdateErrors();
 
     // Publish propeller command for speed.
     msgs::Double propellerMsg;
