@@ -5,5 +5,3 @@ gz_add_gui_plugin(TransformControl
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
 )
-
-

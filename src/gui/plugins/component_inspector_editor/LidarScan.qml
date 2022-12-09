@@ -64,7 +64,7 @@ Rectangle {
     width: parent.width
     columns: 4
 
-    // Padding 
+    // Padding
     Rectangle {
       Layout.columnSpan: 4
       height: 4
@@ -112,7 +112,7 @@ Rectangle {
       }
     }
     // End of samples
-    
+
     // Resolution
     Rectangle {
       color: "transparent"
@@ -154,7 +154,7 @@ Rectangle {
         resolutionSpin.onChange.connect(onResolution)
       }
     }
-    // End of resolution 
+    // End of resolution
 
     // Min angle
     Rectangle {
@@ -189,8 +189,8 @@ Rectangle {
       Layout.fillWidth: true
       height: 40
       numberValue: minAngleValue
-      minValue: -3.1415 
-      maxValue: 3.1415 
+      minValue: -3.1415
+      maxValue: 3.1415
       stepValue: 0.1
       // Send the change signal
       Component.onCompleted: {
@@ -232,8 +232,8 @@ Rectangle {
       Layout.fillWidth: true
       height: 40
       numberValue: maxAngleValue
-      minValue: -3.1415 
-      maxValue: 3.1415 
+      minValue: -3.1415
+      maxValue: 3.1415
       stepValue: 0.1
       // Connect to the onLidarUpdate signal in Noise.qml
       Component.onCompleted: {

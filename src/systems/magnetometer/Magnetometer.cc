@@ -52,7 +52,7 @@ class gz::sim::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<gz::sensors::MagnetometerSensor>> entitySensorMap;
+      std::unique_ptr<sensors::MagnetometerSensor>> entitySensorMap;
 
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;

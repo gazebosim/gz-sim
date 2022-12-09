@@ -409,7 +409,7 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(TouchPlugin,
-                    gz::sim::System,
+                    System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)

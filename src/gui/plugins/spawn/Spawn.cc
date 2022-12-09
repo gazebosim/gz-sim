@@ -582,7 +582,8 @@ void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
       QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
-        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
+        "\nOnly Fuel URLs or mesh file types DAE, FBX, GLTF, OBJ, and STL are "
+        + "supported.");
       this->SetErrorPopupText(errTxt);
       return;
     }

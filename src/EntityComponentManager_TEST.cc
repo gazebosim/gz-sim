@@ -22,7 +22,6 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
-#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -53,27 +52,27 @@ using IntComponent = components::Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
-using UIntComponent = components::Component<int, class IntComponentTag>;
+using UIntComponent = Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.UIntComponent",
     UIntComponent)
 
-using DoubleComponent = components::Component<double, class DoubleComponentTag>;
+using DoubleComponent = Component<double, class DoubleComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
-    components::Component<std::string, class StringComponentTag>;
+    Component<std::string, class StringComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.StringComponent",
     StringComponent)
 
-using BoolComponent = components::Component<bool, class BoolComponentTag>;
+using BoolComponent = Component<bool, class BoolComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BoolComponent",
     BoolComponent)
 
-using Even = components::Component<components::NoData, class EvenTag>;
+using Even = Component<NoData, class EvenTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Even", Even)
 
-using Odd = components::Component<components::NoData, class OddTag>;
+using Odd = Component<NoData, class OddTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Odd", Odd)
 
 struct Custom
@@ -81,7 +80,7 @@ struct Custom
   int dummy{123};
 };
 
-using CustomComponent = components::Component<Custom, class CustomTag>;
+using CustomComponent = Component<Custom, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomComponent",
     CustomComponent)
 }
@@ -407,19 +406,19 @@ TEST_P(EntityComponentManagerFixture,
   }
 
   {
-    const auto *value = manager.Component<components::Pose>(ePose);
+    const auto *value = manager.Component<Pose>(ePose);
     ASSERT_NE(nullptr, value);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), value->Data());
 
-    auto data = manager.ComponentData<components::Pose>(ePose);
+    auto data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), data);
 
-    EXPECT_TRUE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_TRUE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
-    data = manager.ComponentData<components::Pose>(ePose);
+    data = manager.ComponentData<Pose>(ePose);
     EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 0), data);
 
-    EXPECT_FALSE(manager.SetComponentData<components::Pose>(ePose,
+    EXPECT_FALSE(manager.SetComponentData<Pose>(ePose,
         {4, 5, 6, 0, 0, 0}));
   }
 
@@ -1546,11 +1545,11 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.SetParentEntity(e6, e2));
   EXPECT_TRUE(manager.SetParentEntity(e7, e2));
 
-  EXPECT_FALSE(manager.SetParentEntity(e1, sim::Entity(1000)));
-  EXPECT_FALSE(manager.SetParentEntity(sim::Entity(1000), e1));
+  EXPECT_FALSE(manager.SetParentEntity(e1, Entity(1000)));
+  EXPECT_FALSE(manager.SetParentEntity(Entity(1000), e1));
 
   // Check their parents
-  EXPECT_EQ(sim::kNullEntity, manager.ParentEntity(e1));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e1));
   EXPECT_EQ(e1, manager.ParentEntity(e2));
   EXPECT_EQ(e1, manager.ParentEntity(e3));
   EXPECT_EQ(e2, manager.ParentEntity(e4));
@@ -1559,8 +1558,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(e2, manager.ParentEntity(e7));
 
   // Detach from graph
-  EXPECT_TRUE(manager.SetParentEntity(e7, sim::kNullEntity));
-  EXPECT_EQ(sim::kNullEntity, manager.ParentEntity(e7));
+  EXPECT_TRUE(manager.SetParentEntity(e7, kNullEntity));
+  EXPECT_EQ(kNullEntity, manager.ParentEntity(e7));
 
   // Reparent
   EXPECT_TRUE(manager.SetParentEntity(e5, e3));
@@ -2233,6 +2232,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, c2);
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::OneTimeChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2245,6 +2245,7 @@ TEST_P(EntityComponentManagerFixture,
   // updated
   manager.RunSetAllComponentsUnchanged();
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2259,6 +2260,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(0, manager.ChangedState().entities_size());
 
@@ -2286,6 +2288,7 @@ TEST_P(EntityComponentManagerFixture,
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
   // Expect a single component type to be marked as PeriodicChange
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
   ASSERT_EQ(1u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(IntComponent().TypeId(),
       *manager.ComponentTypesWithPeriodicChanges().begin());
@@ -2298,6 +2301,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.RemoveComponent(e1, c1->TypeId()));
 
   EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
   EXPECT_EQ(0u, manager.ComponentTypesWithPeriodicChanges().size());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
@@ -2943,82 +2947,6 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(18u, manager.EntityCount());
 }
 
-/////////////////////////////////////////////////
-// Check that some widely used deprecated APIs still work
-TEST_P(EntityComponentManagerFixture,
-    GZ_UTILS_TEST_DISABLED_ON_WIN32(Deprecated))
-{
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-
-  // Fail to create component for inexistent entity
-  EXPECT_EQ(nullptr, manager.CreateComponent<IntComponent>(789,
-      IntComponent(123)));
-
-  // Create some entities
-  auto eInt = manager.CreateEntity();
-  auto eDouble = manager.CreateEntity();
-  auto eIntDouble = manager.CreateEntity();
-  EXPECT_EQ(3u, manager.EntityCount());
-
-  // Add components and keep their unique ComponentKeys
-  EXPECT_NE(nullptr, manager.CreateComponent<IntComponent>(eInt,
-      IntComponent(123)));
-  ComponentKey cIntEInt = {IntComponent::typeId, eInt};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<DoubleComponent>(eDouble,
-      DoubleComponent(0.123)));
-  ComponentKey cDoubleEDouble = {DoubleComponent::typeId, eDouble};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<IntComponent>(eIntDouble,
-      IntComponent(456)));
-  ComponentKey cIntEIntDouble = {IntComponent::typeId, eIntDouble};
-
-  EXPECT_NE(nullptr, manager.CreateComponent<DoubleComponent>(eIntDouble,
-      DoubleComponent(0.456)));
-  ComponentKey cDoubleEIntDouble = {DoubleComponent::typeId, eIntDouble};
-
-  // Check entities have the components
-  EXPECT_TRUE(manager.EntityHasComponent(eInt, cIntEInt));
-  EXPECT_EQ(1u, manager.ComponentTypes(eInt).size());
-  EXPECT_EQ(IntComponent::typeId, *manager.ComponentTypes(eInt).begin());
-
-  EXPECT_TRUE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
-  EXPECT_EQ(1u, manager.ComponentTypes(eDouble).size());
-  EXPECT_EQ(DoubleComponent::typeId, *manager.ComponentTypes(eDouble).begin());
-
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(2u, manager.ComponentTypes(eIntDouble).size());
-  auto types = manager.ComponentTypes(eIntDouble);
-  EXPECT_NE(types.end(), types.find(IntComponent::typeId));
-  EXPECT_NE(types.end(), types.find(DoubleComponent::typeId));
-
-  // Remove component by key
-  EXPECT_TRUE(manager.RemoveComponent(eInt, cIntEInt));
-  EXPECT_FALSE(manager.EntityHasComponent(eInt, cIntEInt));
-  EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
-
-  // Remove component by type id
-  auto typeDouble = DoubleComponent::typeId;
-
-  EXPECT_TRUE(manager.RemoveComponent(eDouble, typeDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eDouble, cDoubleEDouble));
-  EXPECT_TRUE(manager.ComponentTypes(eDouble).empty());
-
-  // Remove component by type
-  EXPECT_TRUE(manager.RemoveComponent<IntComponent>(eIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_TRUE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(1u, manager.ComponentTypes(eIntDouble).size());
-
-  EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(eIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cIntEIntDouble));
-  EXPECT_FALSE(manager.EntityHasComponent(eIntDouble, cDoubleEIntDouble));
-  EXPECT_EQ(0u, manager.ComponentTypes(eIntDouble).size());
-
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-}
-
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, PinnedEntity)
 {
@@ -3090,11 +3018,11 @@ TEST_P(EntityComponentManagerFixture,
 
   // create an entity and component
   auto entity = originalECMStateMap.CreateEntity();
-  originalECMStateMap.CreateComponent(entity, components::IntComponent(1));
+  originalECMStateMap.CreateComponent(entity, IntComponent(1));
 
   int foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -3106,8 +3034,8 @@ TEST_P(EntityComponentManagerFixture,
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -3117,12 +3045,12 @@ TEST_P(EntityComponentManagerFixture,
 
   // modify a component and then share the update with the other ECM
   stateMapMsg.Clear();
-  originalECMStateMap.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMStateMap.SetComponentData<IntComponent>(entity, 2);
   originalECMStateMap.State(stateMapMsg);
   otherECMStateMap.SetState(stateMapMsg);
   foundEntities = 0;
-  otherECMStateMap.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMStateMap.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());
@@ -3136,8 +3064,8 @@ TEST_P(EntityComponentManagerFixture,
   EntityComponentManager otherECMState;
 
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *)
       {
         foundEntities++;
         return true;
@@ -3145,13 +3073,13 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(0, foundEntities);
 
   entity = originalECMState.CreateEntity();
-  originalECMState.CreateComponent(entity, components::IntComponent(1));
+  originalECMState.CreateComponent(entity, IntComponent(1));
 
   auto stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(1, _intComp->Data());
@@ -3160,12 +3088,12 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 
   stateMsg.Clear();
-  originalECMState.SetComponentData<components::IntComponent>(entity, 2);
+  originalECMState.SetComponentData<IntComponent>(entity, 2);
   stateMsg = originalECMState.State();
   otherECMState.SetState(stateMsg);
   foundEntities = 0;
-  otherECMState.Each<components::IntComponent>(
-      [&](const Entity &, const components::IntComponent *_intComp)
+  otherECMState.Each<IntComponent>(
+      [&](const Entity &, const IntComponent *_intComp)
       {
         foundEntities++;
         EXPECT_EQ(2, _intComp->Data());
@@ -3301,18 +3229,18 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
 {
   Entity entity1 = manager.CreateEntity();
   math::Pose3d testPose{1, 2, 3, 0.1, 0.2, 0.3};
-  manager.CreateComponent(entity1, components::Pose{testPose});
-  manager.CreateComponent(entity1, components::Name{"entity1"});
+  manager.CreateComponent(entity1, Pose{testPose});
+  manager.CreateComponent(entity1, Name{"entity1"});
 
   Entity entity2 = manager.CreateEntity();
-  manager.CreateComponent(entity2, components::Name{"entity2"});
+  manager.CreateComponent(entity2, Name{"entity2"});
 
   EntityCompMgrTest managerCopy;
   managerCopy.CopyFrom(manager);
 
   // Add entity3 after a copy has been made.
   Entity entity3 = manager.CreateEntity();
-  manager.CreateComponent(entity3, components::Name{"entity3"});
+  manager.CreateComponent(entity3, Name{"entity3"});
 
   // Emulate a step so that entity1 can be actually removed.
   manager.RunClearNewlyCreatedEntities();
@@ -3328,8 +3256,8 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
 
   {
     std::vector<Entity> removedEntities;
-    manager.EachRemoved<components::Name>(
-        [&](const Entity &_entity, const components::Name *)
+    manager.EachRemoved<Name>(
+        [&](const Entity &_entity, const Name *)
         {
           removedEntities.push_back(_entity);
           return true;

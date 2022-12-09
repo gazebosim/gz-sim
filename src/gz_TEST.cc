@@ -37,6 +37,10 @@ static const std::string kGzModelCommand(
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
 {
+  // Augment the system plugin path.
+  gz::common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
+      gz::common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib").c_str());
+
   _cmd += " 2>&1";
   FILE *pipe = popen(_cmd.c_str(), "r");
 
@@ -59,8 +63,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
+TEST(CmdLine, Server)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -75,6 +78,9 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
         << output;
   }
 
+// Disable on WIN32 as on Windows it is not support to prepend
+// a command with the env variable to set
+#ifndef _WIN32
   // Use GZ_SIM_RESOURCE_PATH instead of specifying the complete path
   cmd = std::string("GZ_SIM_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kGzCommand +
@@ -89,15 +95,16 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+#endif
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
+TEST(CmdLine, CachedFuelWorld)
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/openroboticstest/worlds/test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);
@@ -117,7 +124,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(RandomSeedValue))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
+TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -134,7 +141,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
+TEST(CmdLine, Gazebo)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";

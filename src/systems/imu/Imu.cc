@@ -53,7 +53,7 @@ class gz::sim::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<gz::sensors::ImuSensor>> entitySensorMap;
+      std::unique_ptr<sensors::ImuSensor>> entitySensorMap;
 
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;

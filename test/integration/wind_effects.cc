@@ -85,7 +85,7 @@ class LinkComponentRecorder
     if (_createComp)
     {
       this->mockSystem->preUpdateCallback =
-        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &, EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -101,8 +101,8 @@ class LinkComponentRecorder
     }
 
     this->mockSystem->postUpdateCallback =
-        [this](const sim::UpdateInfo &,
-              const sim::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &,
+              const EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));

@@ -372,8 +372,8 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Rewind()
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error sending rewind request" << std::endl;
@@ -399,14 +399,14 @@ void LogVideoRecorderPrivate::Play()
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Follow(const std::string &_entity)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error sending follow request" << std::endl;
   };
 
-  gz::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(_entity);
   if (this->node.Request(this->followService, req, cb))
   {
@@ -417,14 +417,14 @@ void LogVideoRecorderPrivate::Follow(const std::string &_entity)
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Record(bool _record)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error sending record request" << std::endl;
   };
 
-  gz::msgs::VideoRecord req;
+  msgs::VideoRecord req;
 
   if (_record)
   {
@@ -445,7 +445,7 @@ void LogVideoRecorderPrivate::Record(bool _record)
 }
 
 GZ_ADD_PLUGIN(LogVideoRecorder,
-                    gz::sim::System,
+                    System,
                     LogVideoRecorder::ISystemConfigure,
                     LogVideoRecorder::ISystemPostUpdate)
 

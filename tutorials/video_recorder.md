@@ -44,30 +44,26 @@ launched Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in
 `$HOME/.gz/sim/<#>/gui.config`.
 
-Recall that videos are recorded from the 3D scene, we will to set the video
-configurations in the 3D scene plugin. Here is an example of the
-Scene 3D plugin with custom video recorder settings:
+Here is an example of the video recorder plugin's settings:
 
 ```xml
-<plugin filename="GzScene3D" name="3D View">
+<plugin filename="VideoRecorder" name="VideoRecorder">
   <gz-gui>
-    <title>3D View</title>
-    <property type="bool" key="showTitleBar">false</property>
-    <property type="string" key="state">docked</property>
+    <property key="resizable" type="bool">false</property>
+    <property key="x" type="double">300</property>
+    <property key="y" type="double">50</property>
+    <property key="width" type="double">50</property>
+    <property key="height" type="double">50</property>
+    <property key="state" type="string">floating</property>
+    <property key="showTitleBar" type="bool">false</property>
+    <property key="cardBackground" type="string">#777777</property>
   </gz-gui>
-
-  <engine>ogre2</engine>
-  <scene>scene</scene>
-  <ambient_light>0.4 0.4 0.4</ambient_light>
-  <background_color>0.8 0.8 0.8</background_color>
-  <camera_pose>6 0 6 0 0.5 3.14</camera_pose>
 
   <record_video>
     <use_sim_time>true</use_sim_time>
     <lockstep>true</lockstep>
     <bitrate>4000000</bitrate>
   </record_video>
-
 </plugin>
 ```
 

@@ -16,6 +16,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
@@ -118,7 +119,7 @@ TEST_F(SdfGeneratorFixture,
   // This has to be different from the backpack in order to test SDFormat
   // generation for a Fuel URI that was not known when simulation started.
   const std::string groundPlaneUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane";
+      "https://fuel.gazebosim.org/1.0/openrobotics/models/ground plane";
 
   transport::Node node;
   {
@@ -422,7 +423,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
   EXPECT_EQ(
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can/2",
+    "https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/2",
      std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
@@ -906,7 +907,7 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   EXPECT_EQ(gz::math::Vector3d::UnitZ, axis->Xyz());
   EXPECT_EQ(gz::math::Vector3d::UnitY, axis2->Xyz());
 
-  EXPECT_EQ("__model__", axis->XyzExpressedIn());
+  EXPECT_EQ("", axis->XyzExpressedIn());
   EXPECT_TRUE(axis2->XyzExpressedIn().empty());
 
   EXPECT_DOUBLE_EQ(-0.5, axis->Lower());

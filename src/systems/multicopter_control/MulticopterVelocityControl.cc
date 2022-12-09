@@ -335,8 +335,8 @@ math::Inertiald MulticopterVelocityControl::VehicleInertial(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PreUpdate(
-    const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("MulticopterVelocityControl::PreUpdate");
 
@@ -427,7 +427,7 @@ void MulticopterVelocityControl::OnEnable(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PublishRotorVelocities(
-    gz::sim::EntityComponentManager &_ecm,
+    EntityComponentManager &_ecm,
     const Eigen::VectorXd &_vels)
 {
   if (_vels.size() != this->rotorVelocitiesMsg.velocity_size())
@@ -464,7 +464,7 @@ void MulticopterVelocityControl::PublishRotorVelocities(
 }
 
 GZ_ADD_PLUGIN(MulticopterVelocityControl,
-                    gz::sim::System,
+                    System,
                     MulticopterVelocityControl::ISystemConfigure,
                     MulticopterVelocityControl::ISystemPreUpdate)
 

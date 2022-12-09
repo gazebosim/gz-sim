@@ -1220,6 +1220,7 @@ bool CreateCommand::Execute()
   // Spherical coordinates
   if (createMsg->has_spherical_coordinates())
   {
+    gzerr << "HasSphericalCoordinates" << std::endl;
     auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
         this->iface->worldEntity);
     if (nullptr == scComp)

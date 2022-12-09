@@ -386,7 +386,7 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 GZ_ADD_PLUGIN(WheelSlip,
-                    gz::sim::System,
+                    System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 

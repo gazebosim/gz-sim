@@ -19,6 +19,16 @@
 
 #include <algorithm>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
 #include <sdf/Root.hh>
 
 #include "gz/common/Profiler.hh"
@@ -201,7 +211,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = gz::sim::loadPluginInfo(isPlayback);
+    auto plugins = sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 
@@ -407,14 +417,14 @@ void SimulationRunner::PublishStats()
   GZ_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  gz::msgs::WorldStatistics msg;
+  msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.realTime);
+    math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.simTime);
+    math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -443,7 +453,7 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  gz::msgs::Clock clockMsg;
+  msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
@@ -492,7 +502,8 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
@@ -533,7 +544,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // a gz::common::WorkerPool. There is overhead associated with
+  // a common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
@@ -655,14 +666,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // https://github.com/gazebosim/gz-gui/pull/306 and
     // https://github.com/gazebosim/gz-sim/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
@@ -689,13 +700,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<gz::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
@@ -715,7 +726,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       gzmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<msgs::Clock>(
           "/clock");
     }
   }
@@ -1435,7 +1446,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(gz::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(msgs::GUI &_res)
 {
   _res.Clear();
 

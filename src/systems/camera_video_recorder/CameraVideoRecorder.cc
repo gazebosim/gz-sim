@@ -70,7 +70,7 @@ class gz::sim::systems::CameraVideoRecorderPrivate
   public: std::mutex updateMutex;
 
   /// \brief Connection to the post-render event.
-  public: gz::common::ConnectionPtr postRenderConn;
+  public: common::ConnectionPtr postRenderConn;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventMgr = nullptr;
@@ -355,7 +355,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         std::chrono::steady_clock::duration dt;
         dt = t - this->recordStartTime;
         int64_t sec, nsec;
-        std::tie(sec, nsec) = gz::math::durationToSecNsec(dt);
+        std::tie(sec, nsec) = math::durationToSecNsec(dt);
         msgs::Time msg;
         msg.set_sec(sec);
         msg.set_nsec(nsec);
@@ -460,7 +460,7 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(CameraVideoRecorder,
-                    gz::sim::System,
+                    System,
                     CameraVideoRecorder::ISystemConfigure,
                     CameraVideoRecorder::ISystemPostUpdate)
 

@@ -68,4 +68,3 @@ void SystemPluginInfo::UpdateView(const EntityComponentManager &_ecm,
   _item->setData(pluginList,
       ComponentsModel::RoleNames().key("data"));
 }
-

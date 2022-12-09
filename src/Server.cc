@@ -113,12 +113,32 @@ Server::Server(const ServerConfig &_config)
 
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
+      sdf::Root sdfRoot;
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      errors = this->dataPtr->sdfRoot.Load(filePath);
+      errors = sdfRoot.Load(filePath);
+      if (errors.empty()) {
+        if (sdfRoot.Model() == nullptr) {
+          this->dataPtr->sdfRoot = std::move(sdfRoot);
+        }
+        else
+        {
+          // If the specified file only contains a model, load the default
+          // world and add the model to it.
+          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+          sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
+          if (world == nullptr) {
+            return;
+          }
+          world->AddModel(*sdfRoot.Model());
+          if (errors.empty()) {
+            errors = this->dataPtr->sdfRoot.UpdateGraphs();
+          }
+        }
+      }
       break;
     }
 
@@ -202,7 +222,7 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     // running variable gets updated before this function returns. With
     // a small number of iterations it is possible that the run thread
     // successfuly completes before this function returns.
-    cond.wait(lock);
+    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
     return true;
   }
 

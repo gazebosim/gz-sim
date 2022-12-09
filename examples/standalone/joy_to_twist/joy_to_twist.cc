@@ -19,6 +19,9 @@
  * Adapted from https://github.com/ros-teleop/teleop_twist_joy
  */
 
+#include <gz/msgs/joy.pb.h>
+#include <gz/msgs/twist.pb.h>
+
 #include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
 
@@ -147,4 +150,3 @@ int main(int argc, char **argv)
   {
   }
 }
-

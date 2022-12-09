@@ -539,13 +539,13 @@ class OdometryPublisherTest
     }
 
     // Check that the mean values are close to zero.
-    EXPECT_NEAR(linVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.5);
 
-    EXPECT_NEAR(angVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.5);
 
     // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
@@ -562,13 +562,13 @@ class OdometryPublisherTest
     }
 
     // Verify the variance values.
-    EXPECT_NEAR(linVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(linVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.5);
 
-    EXPECT_NEAR(angVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(angVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.5);
 
     // Check the covariance matrix.
     EXPECT_EQ(odomTwistCovariance.size(), 36);

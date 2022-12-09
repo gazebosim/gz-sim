@@ -129,6 +129,16 @@ class gz::sim::SceneManagerPrivate
   public: AnimationUpdateData ActorTrajectoryAt(
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
 
+  /// \brief Load Actor trajectories
+  /// \param[in] _actor Actor
+  /// \param[in] _mapAnimNameId  Animation name to id map
+  /// \param[in] _skel Mesh skeleton
+  /// \return Trajectory vector
+  public: std::vector<common::TrajectoryInfo>
+      LoadTrajectories(const sdf::Actor &_actor,
+      std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
+      common::SkeletonPtr _skel);
+
   /// \brief Holds the spherical coordinates from the world.
   public: math::SphericalCoordinates sphericalCoordinates;
 };
@@ -700,8 +710,8 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    gz::common::MeshManager *meshManager =
-        gz::common::MeshManager::Instance();
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -1035,90 +1045,8 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     return nullptr;
 
   this->dataPtr->actorSkeletons[_id] = meshSkel;
-
-  std::vector<common::TrajectoryInfo> trajectories;
-  if (_actor.TrajectoryCount() != 0)
-  {
-    // Load all trajectories specified in sdf
-    for (unsigned i = 0; i < _actor.TrajectoryCount(); i++)
-    {
-      const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
-      if (nullptr == trajSdf)
-      {
-        gzerr << "Null trajectory SDF for [" << _actor.Name() << "]"
-               << std::endl;
-        continue;
-      }
-
-      common::TrajectoryInfo trajInfo;
-      trajInfo.SetId(trajSdf->Id());
-      trajInfo.SetAnimIndex(mapAnimNameId[trajSdf->Type()]);
-
-      if (trajSdf->WaypointCount() != 0)
-      {
-        std::map<TP, math::Pose3d> waypoints;
-        for (unsigned j = 0; j < trajSdf->WaypointCount(); j++)
-        {
-          auto point = trajSdf->WaypointByIndex(j);
-          TP pointTp(std::chrono::milliseconds(
-                    static_cast<int>(point->Time()*1000)));
-          waypoints[pointTp] = point->Pose();
-        }
-        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
-        // Animations are offset by 1 because index 0 is taken by the mesh name
-        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
-
-        if (animation && animation->InterpolateX())
-        {
-          // warn if no x displacement can be interpolated
-          // warn only once per mesh
-          static std::unordered_set<std::string> animInterpolateCheck;
-          if (animInterpolateCheck.count(animation->Filename()) == 0)
-          {
-            std::string rootNodeName = meshSkel->RootNode()->Name();
-            common::SkeletonAnimation *skelAnim =
-                meshSkel->Animation(trajInfo.AnimIndex());
-            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
-                rootNodeName);
-            math::Matrix4d lastPos = rootNode->KeyFrame(
-                rootNode->FrameCount() - 1).second;
-            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
-            if (!math::equal(firstPos.Translation().X(),
-                lastPos.Translation().X()))
-            {
-              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
-            }
-            else
-            {
-              gzwarn << "Animation has no x displacement. "
-                      << "Ignoring <interpolate_x> for the animation in '"
-                      << animation->Filename() << "'." << std::endl;
-            }
-            animInterpolateCheck.insert(animation->Filename());
-          }
-        }
-      }
-      else
-      {
-        trajInfo.SetTranslated(false);
-      }
-      trajectories.push_back(trajInfo);
-    }
-  }
-  // if there are no trajectories, but there are animations, add a trajectory
-  else
-  {
-    auto skel = this->dataPtr->actorSkeletons[_id];
-    common::TrajectoryInfo trajInfo;
-    trajInfo.SetId(0);
-    trajInfo.SetAnimIndex(0);
-    trajInfo.SetStartTime(TP(0ms));
-    auto timepoint = std::chrono::milliseconds(
-                  static_cast<int>(skel->Animation(0)->Length() * 1000));
-    trajInfo.SetEndTime(TP(timepoint));
-    trajInfo.SetTranslated(false);
-    trajectories.push_back(trajInfo);
-  }
+  auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId,
+                      meshSkel);
 
   // sequencing all trajectories
   auto delayStartTime = std::chrono::milliseconds(
@@ -1245,6 +1173,13 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
+
+  if (this->HasEntity(_id))
+  {
+    ignerr << "Light with Id: [" << _id << "] can not be create there is "
+              "another entity with the same entity number" << std::endl;
+    return nullptr;
+  }
 
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
@@ -1998,6 +1933,28 @@ void SceneManager::RemoveEntity(Entity _id)
     return;
 
   {
+    auto it = this->dataPtr->actors.find(_id);
+    if (it != this->dataPtr->actors.end())
+    {
+      this->dataPtr->actors.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorTrajectories.find(_id);
+    if (it != this->dataPtr->actorTrajectories.end())
+    {
+      this->dataPtr->actorTrajectories.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorSkeletons.find(_id);
+    if (it != this->dataPtr->actorSkeletons.end())
+    {
+      this->dataPtr->actorSkeletons.erase(it);
+    }
+  }
+
+  {
     auto it = this->dataPtr->visuals.find(_id);
     if (it != this->dataPtr->visuals.end())
     {
@@ -2325,7 +2282,14 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         }
       }
       if (addAnim)
-        meshSkel->AddBvhAnimation(animFilename, animScale);
+      {
+        if (!meshSkel->AddBvhAnimation(animFilename, animScale))
+        {
+          ignerr << "Bvh animation in file " << animFilename
+                 << " failed to load during actor creation" << std::endl;
+          continue;
+        }
+      }
       mapAnimNameId[animName] = numAnims++;
     }
     else if (extension == "dae")
@@ -2401,4 +2365,95 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
     }
   }
   return mapAnimNameId;
+}
+
+/////////////////////////////////////////////////
+std::vector<common::TrajectoryInfo>
+SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
+  std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
+  common::SkeletonPtr _meshSkel)
+{
+  std::vector<common::TrajectoryInfo> trajectories;
+  if (_actor.TrajectoryCount() != 0)
+  {
+    // Load all trajectories specified in sdf
+    for (unsigned i = 0; i < _actor.TrajectoryCount(); ++i)
+    {
+      const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
+      if (nullptr == trajSdf)
+      {
+        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
+               << std::endl;
+        continue;
+      }
+      common::TrajectoryInfo trajInfo;
+      trajInfo.SetId(trajSdf->Id());
+      trajInfo.SetAnimIndex(_mapAnimNameId[trajSdf->Type()]);
+
+      if (trajSdf->WaypointCount() != 0)
+      {
+        std::map<TP, math::Pose3d> waypoints;
+        for (unsigned j = 0; j < trajSdf->WaypointCount(); ++j)
+        {
+          auto point = trajSdf->WaypointByIndex(j);
+          TP pointTp(std::chrono::milliseconds(
+                    static_cast<int>(point->Time() * 1000)));
+          waypoints[pointTp] = point->Pose();
+        }
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
+        // Animations are offset by 1 because index 0 is taken by the mesh name
+        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex() - 1);
+
+        if (animation && animation->InterpolateX())
+        {
+          // warn if no x displacement can be interpolated
+          // warn only once per mesh
+          static std::unordered_set<std::string> animInterpolateCheck;
+          if (animInterpolateCheck.count(animation->Filename()) == 0)
+          {
+            std::string rootNodeName = _meshSkel->RootNode()->Name();
+            common::SkeletonAnimation *skelAnim =
+                _meshSkel->Animation(trajInfo.AnimIndex());
+            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
+                rootNodeName);
+            math::Matrix4d lastPos = rootNode->KeyFrame(
+                rootNode->FrameCount() - 1).second;
+            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+            if (!math::equal(firstPos.Translation().X(),
+                lastPos.Translation().X()))
+            {
+              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
+            }
+            else
+            {
+              ignwarn << "Animation has no x displacement. "
+                      << "Ignoring <interpolate_x> for the animation in '"
+                      << animation->Filename() << "'." << std::endl;
+            }
+            animInterpolateCheck.insert(animation->Filename());
+          }
+        }
+      }
+      else
+      {
+        trajInfo.SetTranslated(false);
+      }
+      trajectories.push_back(trajInfo);
+    }
+  }
+  // if there are no trajectories, but there are animations, add a trajectory
+  else
+  {
+    common::TrajectoryInfo trajInfo;
+    trajInfo.SetId(0);
+    trajInfo.SetAnimIndex(0);
+    trajInfo.SetStartTime(TP(0ms));
+
+    auto timepoint = std::chrono::milliseconds(
+                  static_cast<int>(_meshSkel->Animation(0)->Length() * 1000));
+    trajInfo.SetEndTime(TP(timepoint));
+    trajInfo.SetTranslated(false);
+    trajectories.push_back(trajInfo);
+  }
+  return trajectories;
 }

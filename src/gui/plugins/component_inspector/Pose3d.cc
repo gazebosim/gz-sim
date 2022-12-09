@@ -19,8 +19,8 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
-
 #include <gz/msgs/Utility.hh>
+
 #include "Pose3d.hh"
 
 using namespace gz;

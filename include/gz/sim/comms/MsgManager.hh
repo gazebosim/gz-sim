@@ -19,6 +19,7 @@
 #define GZ_SIM_MSGMANAGER_HH_
 
 #include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <deque>
 #include <memory>

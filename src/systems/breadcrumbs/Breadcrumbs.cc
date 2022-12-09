@@ -172,8 +172,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void Breadcrumbs::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Breadcrumbs::PreUpdate");
 
@@ -434,7 +434,7 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
 }
 
 GZ_ADD_PLUGIN(Breadcrumbs,
-                    gz::sim::System,
+                    System,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 

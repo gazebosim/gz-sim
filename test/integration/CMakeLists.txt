@@ -19,12 +19,16 @@ set(tests
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
+  environment_preload_system.cc
+  environmental_sensor_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
   force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
+  hydrodynamics.cc
+  hydrodynamics_flags.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc

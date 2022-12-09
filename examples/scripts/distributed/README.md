@@ -31,4 +31,3 @@ the GUI.
 You can run the same world in a standalone process as follows:
 
     ./standalone.sh
-

@@ -6,4 +6,3 @@ gz_add_system(wind-effects
     # Include gz-sensors for noise models
     gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
 )
-

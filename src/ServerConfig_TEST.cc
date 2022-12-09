@@ -179,11 +179,11 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
 TEST(LoadPluginInfo, FromEmptyEnv)
 {
   // Set environment to something that doesn't exist
-  ASSERT_TRUE(common::setenv(sim::kServerConfigPathEnv, "foo"));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, "foo"));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
-  EXPECT_TRUE(common::unsetenv(sim::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
@@ -192,7 +192,7 @@ TEST(LoadPluginInfo, FromValidEnv)
   auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
 
-  ASSERT_TRUE(common::setenv(sim::kServerConfigPathEnv, validPath));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
@@ -211,7 +211,7 @@ TEST(LoadPluginInfo, FromValidEnv)
   EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
   EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
-  EXPECT_TRUE(common::unsetenv(sim::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
@@ -221,6 +221,11 @@ TEST(ServerConfig, GenerateRecordPlugin)
   config.SetUseLogRecord(true);
   config.SetLogRecordPath("foo/bar");
   config.SetLogRecordResources(true);
+  auto period =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    std::chrono::duration<double>(0.04));
+  config.SetLogRecordPeriod(period);
+  EXPECT_EQ(period, config.LogRecordPeriod());
 
   auto plugin = config.LogRecordPlugin();
   EXPECT_EQ(plugin.EntityName(), "*");

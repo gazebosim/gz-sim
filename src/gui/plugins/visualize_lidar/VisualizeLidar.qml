@@ -30,6 +30,9 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
+  property int tooltipDelay: 500
+  property int tooltipTimeout: 1000
+
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     id: displayVisual

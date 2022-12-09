@@ -19,13 +19,17 @@
 #include <utility>
 #include <vector>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
-#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 // Include all components so they have first-class support
@@ -255,7 +259,7 @@ void GuiRunner::RequestState()
     }
   }
 
-  gz::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // Subscribe to periodic updates.
@@ -264,13 +268,6 @@ void GuiRunner::RequestState()
 
   // send async state request
   this->dataPtr->node.Request(this->dataPtr->stateTopic + "_async", req);
-}
-
-/////////////////////////////////////////////////
-void GuiRunner::OnPluginAdded(const QString &)
-{
-  // This function used to call Update on the plugin, but that's no longer
-  // necessary. The function is left here for ABI compatibility.
 }
 
 /////////////////////////////////////////////////

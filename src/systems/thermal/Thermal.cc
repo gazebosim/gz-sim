@@ -52,8 +52,8 @@ Thermal::~Thermal() = default;
 //////////////////////////////////////////////////
 void Thermal::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    sim::EntityComponentManager &_ecm,
-    sim::EventManager & /*_eventMgr*/)
+    EntityComponentManager &_ecm,
+    EventManager & /*_eventMgr*/)
 {
   const std::string temperatureTag = "temperature";
   const std::string heatSignatureTag = "heat_signature";

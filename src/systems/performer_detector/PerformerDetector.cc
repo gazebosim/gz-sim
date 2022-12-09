@@ -130,8 +130,8 @@ void PerformerDetector::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void PerformerDetector::PostUpdate(
-  const gz::sim::UpdateInfo &_info,
-  const gz::sim::EntityComponentManager &_ecm)
+  const UpdateInfo &_info,
+  const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PerformerDetector::PostUpdate");
 
@@ -260,7 +260,7 @@ void PerformerDetector::Publish(
 }
 
 GZ_ADD_PLUGIN(PerformerDetector,
-                    gz::sim::System,
+                    System,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 

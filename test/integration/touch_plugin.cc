@@ -16,6 +16,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 

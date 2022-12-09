@@ -76,4 +76,3 @@ NetworkConfig NetworkConfig::FromValues(const std::string &_role,
 
   return config;
 }
-

@@ -42,12 +42,97 @@ class AcousticComms::Implementation
   /// \brief Default speed of sound in air in metres/sec.
   public: double speedOfSound = 343.0;
 
+  /// \brief Default collision time interval per byte in sec.
+  public: double collisionTimePerByte = 0;
+
+  /// \brief Default collision time when packet is dropped
+  /// in sec.
+  public: double collisionTimePacketDrop = 0;
+
   /// \brief Position of the transmitter at the time the message was
   /// sent, or first processed.
   public: std::unordered_map
           <std::shared_ptr<msgs::Dataframe>, math::Vector3d>
           poseSrcAtMsgTimestamp;
+
+  /// \brief Map that holds data of the address of a receiver,
+  /// the timestamp, length of the last message recevied by it.
+  public: std::unordered_map
+          <std::string,
+           std::tuple<std::chrono::duration<double>,
+            std::chrono::duration<double>>>
+          lastMsgReceivedInfo;
+
+  /// \brief This method simulates the propagation model,
+  /// and returns false if the packet was dropped, otherwise true.
+  public: bool propagationModel(double _distToSource,
+                                int _numBytes);
+
+  /// \brief Source power in Watts.
+  /// \ref https://www.sciencedirect.com/topics/
+  /// computer-science/underwater-acoustic-signal
+  public: double sourcePower = 2000;
+
+  /// \brief Ratio of the noise intensity at the
+  /// receiver to the same reference intensity used for source level.
+  public: double noiseLevel = 1;
+
+  /// \brief Information rate that can be transmitted over a given
+  /// bandwidth in a specific communication system, in (bits/sec)/Hz.
+  /// \ref: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5514747/
+  public: double spectralEfficiency = 7.0;
+
+  /// \brief Flag to store if the propagation model should be used.
+  public: bool usePropagationModel = false;
+
+  /// \brief Seed value for random sampling.
+  public: unsigned int seed = 0;
 };
+
+//////////////////////////////////////////////////
+bool AcousticComms::Implementation::propagationModel(
+  double _distToSource,
+  int _numBytes
+)
+{
+  // From https://www.mathworks.com/help/phased/ug/sonar-equation.html
+  // SNR = SL - TL - (NL - DI)
+  // SNR : Signal to noise ratio.
+  // SL : Source level. Ratio of the transmitted intensity from
+  //      the source to a reference intensity (1 m from source),
+  //      converted to dB.
+  // TL : Transmission loss (dB)
+  // NL : Noise level.
+
+  // The constant 170.8 comes from reference intensity measured
+  // 1m from the source.
+  double sl = 170.8 + 10 * std::log10(this->sourcePower);
+  double tl = 20 * std::log10(_distToSource);
+
+  // Calculate SNR.
+  auto snr = sl - tl - this->noiseLevel;
+
+  // References : https://www.montana.edu/aolson/ee447/EB%20and%20NO.pdf
+  // https://en.wikipedia.org/wiki/Eb/N0
+  auto EbByN0 = snr / this->spectralEfficiency;
+
+  // Bit error rate calculation using BPSK.
+  // Reference : https://www.gaussianwaves.com/2012/07/
+  // intuitive-derivation-of-performance-of-an-optimum-
+  // bpsk-receiver-in-awgn-channel/
+  // Reference : https://unetstack.net/handbook/unet-handbook_modems
+  // _and_channel_models.html
+  auto ber = 0.5 * std::erfc(EbByN0);
+
+  // Calculate if the packet was dropped.
+  double packetDropProb =
+    1.0 - std::exp(static_cast<double>(_numBytes) *
+                   std::log(1 - ber));
+
+  gz::math::Rand::Seed(this->seed);
+  double randDraw = gz::math::Rand::DblUniform();
+  return randDraw > packetDropProb;
+}
 
 //////////////////////////////////////////////////
 AcousticComms::AcousticComms()
@@ -69,6 +154,23 @@ void AcousticComms::Load(
   if (_sdf->HasElement("speed_of_sound"))
   {
     this->dataPtr->speedOfSound = _sdf->Get<double>("speed_of_sound");
+  }
+  if (_sdf->HasElement("collision_time_per_byte"))
+  {
+    this->dataPtr->collisionTimePerByte =
+      _sdf->Get<double>("collision_time_per_byte");
+  }
+
+  if (_sdf->HasElement("propagation_model"))
+  {
+    this->dataPtr->usePropagationModel = true;
+    sdf::ElementPtr propElement = _sdf->Clone()->
+                                   GetElement("propagation_model");
+    this->dataPtr->sourcePower = propElement->Get<double>("source_power");
+    this->dataPtr->noiseLevel = propElement->Get<double>("noise_level");
+    this->dataPtr->spectralEfficiency =
+      propElement->Get<double>("spectral_efficiency");
+    this->dataPtr->seed = propElement->Get<int>("seed");
   }
 
   gzmsg << "AcousticComms configured with max range : " <<
@@ -175,8 +277,70 @@ void AcousticComms::Step(
         {
           if (distanceCoveredByMessage >= distanceToTransmitter)
           {
+            // This message has effectively reached the destination.
+            bool receivedSuccessfully = false;
+
+            // Check for time collision
+            if (this->dataPtr->lastMsgReceivedInfo.count(
+                  msg->dst_address()) == 0)
+            {
+              // This is the first message received by this address.
+              receivedSuccessfully = true;
+            }
+            else
+            {
+              // A previous msg was already received at this address.
+              // time gap = current time - time at which last msg was received.
+              std::chrono::duration<double> timeGap = currTimestamp -
+                std::get<0>(this->dataPtr->lastMsgReceivedInfo[
+                            msg->dst_address()]);
+
+              // drop interval = collision time interval per byte *
+              //                 length of last msg received.
+              auto dropInterval = std::chrono::duration<double>(
+                  std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                              msg->dst_address()]));
+
+              if (timeGap >= dropInterval)
+                receivedSuccessfully = true;
+            }
+
+            // Packet has survived collisions, check if the propagation model
+            // should be run on this packet.
+            if (this->dataPtr->usePropagationModel)
+            {
+              receivedSuccessfully = receivedSuccessfully &&
+                this->dataPtr->propagationModel(distanceCoveredByMessage,
+                                                msg->data().length());
+            }
+
             // This message needs to be processed.
-            _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+            // Push the msg to inbound of the destination if
+            // receivedSuccessfully is true, else it is dropped.
+            if (receivedSuccessfully)
+            {
+              _newRegistry[msg->dst_address()].inboundMsgs.push_back(msg);
+              // Update the (receive time, length of msg) tuple
+              // for the last msg for this address.
+              auto blockingTime = std::chrono::duration<double>(
+                this->dataPtr->collisionTimePerByte *
+                msg->data().length());
+
+              this->dataPtr->lastMsgReceivedInfo[msg->dst_address()] =
+                std::make_tuple(currTimestamp, blockingTime);
+            }
+            else
+            {
+              // Packet was dropped due to collision.
+              auto blockingTime = std::chrono::duration<double>(
+                  this->dataPtr->collisionTimePacketDrop
+                );
+
+              std::get<1>(this->dataPtr->lastMsgReceivedInfo[
+                          msg->dst_address()]) += blockingTime;
+            }
+
+            // Stop keeping track of the position of its source.
             this->dataPtr->poseSrcAtMsgTimestamp.erase(msg);
           }
           else

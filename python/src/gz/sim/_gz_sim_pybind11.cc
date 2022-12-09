@@ -25,7 +25,7 @@
 #include "Util.hh"
 #include "World.hh"
 
-PYBIND11_MODULE(sim, m) {
+PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
 
   gz::sim::python::defineSimEntityComponentManager(m);

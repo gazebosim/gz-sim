@@ -132,10 +132,10 @@ class gz::sim::systems::SensorsPrivate
   public: std::condition_variable renderCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
-  public: gz::common::ConnectionPtr stopConn;
+  public: common::ConnectionPtr stopConn;
 
   /// \brief Connection to events::ForceRender event, used to force rendering
-  public: gz::common::ConnectionPtr forceRenderConn;
+  public: common::ConnectionPtr forceRenderConn;
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
@@ -248,7 +248,12 @@ void SensorsPrivate::WaitForInit()
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
         this->renderUtil.SetAmbientLight(*this->ambientLight);
+#ifndef __APPLE__
       this->renderUtil.Init();
+#else
+      // On macOS the render engine must be initialised on the main thread.
+      // See Sensors::Update.
+#endif
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
       this->initialized = true;
@@ -599,6 +604,24 @@ void Sensors::Update(const UpdateInfo &_info,
 {
   GZ_PROFILE("Sensors::Update");
   std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+
+#ifdef __APPLE__
+  // On macOS the render engine must be initialised on the main thread.
+  if (!this->dataPtr->initialized &&
+      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
+       _ecm.HasComponentType(components::Camera::typeId) ||
+       _ecm.HasComponentType(components::DepthCamera::typeId) ||
+       _ecm.HasComponentType(components::GpuLidar::typeId) ||
+       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
+       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
+       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
+       _ecm.HasComponentType(components::WideAngleCamera::typeId)))
+  {
+    igndbg << "Initialization needed" << std::endl;
+    this->dataPtr->renderUtil.Init();
+  }
+#endif
+
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);

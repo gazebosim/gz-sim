@@ -24,7 +24,7 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
-#include <gz/transport.hh>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/gui/GuiEvents.hh"

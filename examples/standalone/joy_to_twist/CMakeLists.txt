@@ -13,4 +13,3 @@ target_link_libraries(joy_to_twist
   gz-transport${GZ_TRANSPORT_VER}::core
   sdformat${SDF_VER}::sdformat${SDF_VER}
 )
-
