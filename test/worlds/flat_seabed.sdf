@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<!--
+  Development of this module has been funded by the Monterey Bay Aquarium
+  Research Institute (MBARI) and the David and Lucile Packard Foundation
+-->
+<sdf version="1.6">
+  <world name="flat_seabed">
+    <scene>
+      <!-- For turquoise ambient to match particle effect -->
+      <ambient>0.0 1.0 1.0</ambient>
+      <!-- For default gray ambient -->
+      <background>0.0 0.7 0.8</background>
+
+      <grid>false</grid>
+    </scene>
+
+    <physics name="1ms" type="dart">
+      <max_step_size>0.02</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+    </plugin>
+    <plugin
+      filename="gz-sim-dvl-system"
+      name="gz::sim::systems::DopplerVelocityLogSystem">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- This invisible plane helps with orbiting the camera, especially at large scales -->
+    <model name="horizontal_plane">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <!-- 300 km x 300 km -->
+              <size>300000 300000</size>
+            </plane>
+          </geometry>
+          <transparency>1.0</transparency>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sea_bottom">
+      <static>true</static>
+      <pose>0 0 -100 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <!-- 300 km x 300 km -->
+              <size>300000 300000</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <material>
+            <ambient>0.5 0.5 0.5</ambient>
+            <diffuse>0.5 0.5 0.5</diffuse>
+          </material>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <!-- 300 km x 300 km -->
+              <size>300000 300000</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <pose>0 0 -80 0 0 1.57</pose>
+      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+
+      <experimental:params>
+        <sensor
+            element_id="base_link" action="add"
+            name="teledyne_pathfinder_dvl"
+            type="custom" gz:type="dvl">
+          <pose degrees="true">-0.60 0 -0.16 0 0 180</pose>
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+          <topic>/dvl/velocity</topic>
+          <gz:dvl>
+            <type>phased_array</type>
+            <arrangement degrees="true">
+              <beam id="1">
+                <aperture>2</aperture>
+                <rotation>45</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam>
+                <aperture>2</aperture>
+                <rotation>135</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam>
+                <aperture>2</aperture>
+                <rotation>-45</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam>
+                <aperture>2</aperture>
+                <rotation>-135</rotation>
+                <tilt>30</tilt>
+              </beam>
+            </arrangement>
+            <tracking>
+              <bottom_mode>
+                <when>best</when>
+                <noise type="gaussian">
+                  <!-- +/- 0.4 cm/s precision at 10 m/s within 2 stddevs -->
+                  <stddev>0.002</stddev>
+                </noise>
+                <visualize>false</visualize>
+              </bottom_mode>
+            </tracking>
+            <!-- Roughly 1 m resolution at a 100m -->
+            <resolution>0.01</resolution>
+            <maximum_range>100.</maximum_range>
+            <minimum_range>0.1</minimum_range>
+            <!-- ENU to SFM -->
+            <reference_frame>0 0 0 0 0 -1.570796</reference_frame>
+          </gz:dvl>
+        </sensor>
+      </experimental:params>
+    </include>
+  </world>
+</sdf>

@@ -91,6 +91,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc
+  dvl_system.cc
   gpu_lidar.cc
   optical_tactile_plugin.cc
   reset_sensors.cc

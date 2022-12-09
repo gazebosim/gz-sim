@@ -656,7 +656,7 @@ GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
 )
 
 GZ_ADD_PLUGIN_ALIAS(DopplerVelocityLogSystem,
-  "gz::sim:systems::DopplerVelocityLogSystem"
+  "gz::sim::systems::DopplerVelocityLogSystem"
 )
 
 }  // namespace systems
