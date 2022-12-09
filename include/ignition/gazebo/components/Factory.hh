@@ -204,34 +204,26 @@ namespace components
     public: void Unregister(ComponentTypeId _typeId,
                             ComponentDescriptorBase *_compDesc = nullptr)
     {
-      // Not registered
-      if (_typeId == 0)
+      auto it = this->compsById.find(_typeId);
+      if (it != this->compsById.end())
       {
-        return;
-      }
-
-      {
-        auto it = this->compsById.find(_typeId);
-        if (it != this->compsById.end() && !it->second.empty())
+        if (!it->second.empty())
         {
-          if (nullptr == _compDesc)
+          auto compIt = std::prev(it->second.end());
+          if (nullptr != _compDesc)
           {
-            ComponentDescriptorBase *compDesc = it->second.back();
-            it->second.pop_back();
+            compIt =
+              std::find(it->second.begin(), it->second.end(), _compDesc);
+          }
+
+          if (compIt != it->second.end())
+          {
+            ComponentDescriptorBase *compDesc = *compIt;
+            it->second.erase(compIt);
             delete compDesc;
           }
-          else
-          {
-            auto compIt =
-              std::find(it->second.begin(), it->second.end(), _compDesc);
-            if (compIt != it->second.end())
-            {
-              ComponentDescriptorBase* compDesc = *compIt;
-              it->second.erase(compIt);
-              delete compDesc;
-            }
-          }
         }
+
         // Check again since we may have updated the list
         if (it->second.empty())
         {
