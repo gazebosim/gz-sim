@@ -23,9 +23,9 @@
  *   $ ./lrauv_control 0.5 0.78 0.174
  */
 
-#include <atomic>
 #include <chrono>
 #include <cmath>
+#include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
@@ -41,6 +41,9 @@ using namespace gz;
 class Controller
 {
   public:
+    // Mutex to synchronize internal variables.
+    std::mutex controllerMutex;
+
     // Desired state.
     double targetSpeed = 0;
     double targetYawAngle =  0;
@@ -53,9 +56,9 @@ class Controller
     double errorPitchAngle = 0;
 
     // States to be tracked and controlled.
-    std::atomic<double> speed;
-    std::atomic<double> yawAngle;
-    std::atomic<double> pitchAngle;
+    double speed;
+    double yawAngle;
+    double pitchAngle;
 
     // PID gains and error limits.
     // PI for speed.
@@ -72,6 +75,7 @@ class Controller
     void SetTargets(double _speed,
         double _yaw, double _pitch)
     {
+      std::lock_guard<std::mutex> lock(controllerMutex);
       if (_speed == 0 &&
           (_yaw != 0 || _pitch != 0))
       {
@@ -89,6 +93,7 @@ class Controller
     void UpdateState(double _speed,
         double _yaw, double _pitch)
     {
+      std::lock_guard<std::mutex> lock(controllerMutex);
       speed = _speed;
       yawAngle = _yaw;
       pitchAngle = _pitch;
@@ -96,10 +101,8 @@ class Controller
       errorSpeed = targetSpeed - speed;
       errorSpeedIntegral =
         std::min(errorSpeedIntegral + errorSpeed, errorSpeedIntegralMax);
-
       errorYawAngle = targetYawAngle - yawAngle;
       errorPitchAngle = targetPitchAngle - pitchAngle;
-
     }
 
     // Generate control input to be applied to the thruster.
@@ -188,6 +191,7 @@ int main(int argc, char** argv)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
+    std::lock_guard<std::mutex> lock(control.controllerMutex);
     // Publish propeller command for speed.
     msgs::Double propellerMsg;
     propellerMsg.set_data(control.SpeedControl());
