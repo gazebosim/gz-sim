@@ -93,14 +93,20 @@ void EnvironmentPreload::PreUpdate(
       return;
     }
 
+    components::EnvironmentalData::ReferenceUnits unit{
+      components::EnvironmentalData::ReferenceUnits::RADIANS};
     std::string timeColumnName{"t"};
+    bool ignoreTime = false;
     std::array<std::string, 3> spatialColumnNames{"x", "y", "z"};
     auto spatialReference = math::SphericalCoordinates::GLOBAL;
-
     sdf::ElementConstPtr elem =
         this->dataPtr->sdf->FindElement("dimensions");
     if (elem)
     {
+      if (elem->HasElement("ignore_time"))
+      {
+        ignoreTime = elem->Get<bool>("ignore_time");
+      }
       if (elem->HasElement("time"))
       {
         timeColumnName = elem->Get<std::string>("time");
@@ -119,6 +125,18 @@ void EnvironmentPreload::PreUpdate(
           else if (referenceName == "spherical")
           {
             spatialReference = math::SphericalCoordinates::SPHERICAL;
+            if (elem->HasAttribute("units"))
+            {
+              std::string unitName = elem->Get<std::string>("units");
+              if (unitName == "degrees")
+              {
+                unit = components::EnvironmentalData::ReferenceUnits::DEGREES;
+              }
+              else if (unitName != "radians")
+              {
+                ignerr << "Unrecognized unit " << unitName << "\n";
+              }
+            }
           }
           else if (referenceName == "ecef")
           {
@@ -144,13 +162,14 @@ void EnvironmentPreload::PreUpdate(
 
     try
     {
+      gzmsg << "Loading Environment Data\n";
       using ComponentDataT = components::EnvironmentalData;
       auto data = ComponentDataT::MakeShared(
           common::IO<ComponentDataT::FrameT>::ReadFrom(
               common::CSVIStreamIterator(dataFile),
               common::CSVIStreamIterator(),
               timeColumnName, spatialColumnNames),
-          spatialReference);
+          spatialReference, unit, ignoreTime);
 
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};

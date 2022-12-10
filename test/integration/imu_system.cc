@@ -136,15 +136,15 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   std::vector<math::Pose3d> poses;
   std::vector<math::Vector3d> accelerations;
   std::vector<math::Vector3d> angularVelocities;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
-                              const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Imu,
                   components::Name,
                   components::WorldPose,
                   components::AngularVelocity,
                   components::LinearAcceleration>(
-            [&](const gz::sim::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::Imu *,
                 const components::Name *_name,
                 const components::WorldPose *_worldPose,
@@ -175,7 +175,7 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
             });
 
         _ecm.Each<components::Gravity>(
-            [&](const gz::sim::Entity &,
+            [&](const Entity &,
                 const components::Gravity *_gravity) -> bool
             {
               // gtest is having a hard time with ASSERTs inside nested lambdas

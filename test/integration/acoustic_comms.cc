@@ -161,6 +161,10 @@ INSTANTIATE_TEST_SUITE_P(
     // Message packets will be dropped as they are sent too fast
     // compared to "collision_time_interval".
     AcousticCommsTestDefinition(
-      "acoustic_comms_packet_collision.sdf", "addr2", "addr1", 3, 1)
+      "acoustic_comms_packet_collision.sdf", "addr2", "addr1", 3, 1),
+    // Source power is decreased and noise bumped up to make the packets
+    // drop.
+    AcousticCommsTestDefinition(
+      "acoustic_comms_propagation.sdf", "addr2", "addr1", 3, 0)
     )
 );

@@ -208,7 +208,7 @@ void gz::sim::setData(QStandardItem *_item, const msgs::Light &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -225,7 +225,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const std::string &_data)
+void sim::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -238,7 +238,7 @@ void gz::sim::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -252,7 +252,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const bool &_data)
+void sim::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -264,7 +264,7 @@ void gz::sim::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const int &_data)
+void sim::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -276,14 +276,14 @@ void gz::sim::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const Entity &_data)
+void sim::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const double &_data)
+void sim::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -295,7 +295,7 @@ void gz::sim::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const sdf::Physics &_data)
+void sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -310,7 +310,7 @@ void gz::sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const sdf::Material &_data)
 {
   if (nullptr == _item)
@@ -343,7 +343,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const math::SphericalCoordinates &_data)
 {
   if (nullptr == _item)
@@ -362,7 +362,7 @@ void gz::sim::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
-void gz::sim::setUnit(QStandardItem *_item, const std::string &_unit)
+void sim::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -391,7 +391,7 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 QStandardItem *ComponentsModel::AddComponentType(
-    gz::sim::ComponentTypeId _typeId)
+    sim::ComponentTypeId _typeId)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("ComponentsModel::AddComponentType");
@@ -422,7 +422,7 @@ QStandardItem *ComponentsModel::AddComponentType(
 
 /////////////////////////////////////////////////
 void ComponentsModel::RemoveComponentType(
-      gz::sim::ComponentTypeId _typeId)
+      sim::ComponentTypeId _typeId)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("ComponentsModel::RemoveComponentType");
@@ -459,7 +459,7 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  qRegisterMetaType<gz::sim::ComponentTypeId>();
+  qRegisterMetaType<sim::ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
@@ -903,7 +903,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   }
 
   // Remove components no longer present - list items to remove
-  std::list<gz::sim::ComponentTypeId> itemsToRemove;
+  std::list<sim::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
@@ -916,10 +916,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   // Remove components in list
   for (auto typeId : itemsToRemove)
   {
-    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-        "RemoveComponentType",
-        Qt::QueuedConnection,
-        Q_ARG(gz::sim::ComponentTypeId, typeId));
+    this->dataPtr->componentsModel.RemoveComponentType(typeId);
   }
 }
 
@@ -935,7 +932,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
+    if (_event->type() == gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -944,7 +941,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -1086,14 +1083,14 @@ void ComponentInspector::OnLight(
 /////////////////////////////////////////////////
 void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
         gzerr << "Error setting physics parameters" << std::endl;
   };
 
-  gz::msgs::Physics req;
+  msgs::Physics req;
   req.set_max_step_size(_stepSize);
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
@@ -1303,5 +1300,5 @@ void ComponentInspector::OnAddSystem(const QString &_name,
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::ComponentInspector,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(ComponentInspector,
+              gz::gui::Plugin)

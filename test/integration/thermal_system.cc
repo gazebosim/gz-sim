@@ -67,11 +67,11 @@ TEST_F(ThermalTest, GZ_UTILS_TEST_DISABLED_ON_MAC(TemperatureComponent))
   std::map<std::string, components::TemperatureRangeInfo>
     entityTempRange;
   std::map<std::string, std::string> heatSignatures;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Temperature, components::Name>(
-          [&](const gz::sim::Entity &_id,
+          [&](const Entity &_id,
               const components::Temperature *_temp,
               const components::Name *_name) -> bool
           {

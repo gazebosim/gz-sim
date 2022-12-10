@@ -93,11 +93,11 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 
   // Create a system that checks sensor topics
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
-                              const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::LogicalCamera, components::Name>(
-            [&](const gz::sim::Entity &_entity,
+            [&](const Entity &_entity,
                 const components::LogicalCamera *,
                 const components::Name *_name) -> bool
             {
@@ -177,22 +177,22 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   math::Pose3d boxPose(1, 0, 0.5, 0, 0, 0);
   math::Pose3d sensor1Pose(0.05, 0.05, 0.55, 0, 0, 0);
   mutex.lock();
-  gz::msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
-  EXPECT_EQ(sensor1Pose, gz::msgs::Convert(img1.pose()));
+  msgs::LogicalCameraImage img1 = logicalCamera1Msgs.back();
+  EXPECT_EQ(sensor1Pose, msgs::Convert(img1.pose()));
   EXPECT_EQ(1, img1.model().size());
   EXPECT_EQ(boxName, img1.model(0).name());
-  gz::math::Pose3d boxPoseCamera1Frame = sensor1Pose.Inverse() * boxPose;
-  EXPECT_EQ(boxPoseCamera1Frame, gz::msgs::Convert(img1.model(0).pose()));
+  math::Pose3d boxPoseCamera1Frame = sensor1Pose.Inverse() * boxPose;
+  EXPECT_EQ(boxPoseCamera1Frame, msgs::Convert(img1.model(0).pose()));
   mutex.unlock();
 
   // Sensor 2 should see box too - note different sensor pose.
   math::Pose3d sensor2Pose(0.05, -0.45, 0.55, 0, 0, 0);
   mutex.lock();
-  gz::msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
-  EXPECT_EQ(sensor2Pose, gz::msgs::Convert(img2.pose()));
+  msgs::LogicalCameraImage img2 = logicalCamera2Msgs.back();
+  EXPECT_EQ(sensor2Pose, msgs::Convert(img2.pose()));
   EXPECT_EQ(1, img2.model().size());
   EXPECT_EQ(boxName, img2.model(0).name());
-  gz::math::Pose3d boxPoseCamera2Frame = sensor2Pose.Inverse() * boxPose;
-  EXPECT_EQ(boxPoseCamera2Frame, gz::msgs::Convert(img2.model(0).pose()));
+  math::Pose3d boxPoseCamera2Frame = sensor2Pose.Inverse() * boxPose;
+  EXPECT_EQ(boxPoseCamera2Frame, msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
 }

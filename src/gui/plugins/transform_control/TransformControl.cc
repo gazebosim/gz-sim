@@ -934,5 +934,5 @@ void TransformControlPrivate::SnapPoint(
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::TransformControl,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(TransformControl,
+              gz::gui::Plugin)
