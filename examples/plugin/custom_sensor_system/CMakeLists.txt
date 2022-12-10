@@ -10,8 +10,8 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 gz_find_package(gz-sim8 REQUIRED)
 set(GZ_SIM_VER ${gz-sim8_VERSION_MAJOR})
 
-find_package(gz-sensors7 REQUIRED)
-set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
+find_package(gz-sensors8 REQUIRED)
+set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
 
 # Fetch the custom sensor example from gz-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part
@@ -20,7 +20,7 @@ include(FetchContent)
 FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
-  GIT_TAG gz-sensors7
+  GIT_TAG main
 )
 FetchContent_Populate(sensors_clone)
 add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})
