@@ -209,6 +209,9 @@ class gz::sim::RenderUtilPrivate
   /// \brief Name of rendering engine
   public: std::string engineName = "ogre2";
 
+  /// \brief Name of API backend
+  public: std::string apiBackend = "";
+
   /// \brief Name of scene
   public: std::string sceneName = "scene";
 
@@ -2581,16 +2584,20 @@ void RenderUtil::Init()
   this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
-#ifdef __APPLE__
-  // TODO(srmainwaring): implement facility for overriding the default
-  //    graphics API in macOS, in which case there are restrictions on
-  //    the version of OpenGL used.
-  params["metal"] = "1";
-#else
-  if (this->dataPtr->useCurrentGLContext)
+  if (this->dataPtr->useCurrentGLContext &&
+      this->dataPtr->apiBackend != "vulkan" &&
+      this->dataPtr->apiBackend != "metal")
+  {
     params["useCurrentGLContext"] = "1";
-#endif
-
+  }
+  if (this->dataPtr->apiBackend == "vulkan")
+  {
+    params["vulkan"] = "1";
+  }
+  else if (this->dataPtr->apiBackend == "metal")
+  {
+    params["metal"] = "1";
+  }
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
   params["winID"] = this->dataPtr->winID;
@@ -2700,6 +2707,18 @@ void RenderUtil::SetEngineName(const std::string &_name)
 std::string RenderUtil::EngineName() const
 {
   return this->dataPtr->engineName;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetApiBackend(const std::string &_apiBackend)
+{
+  this->dataPtr->apiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+std::string RenderUtil::ApiBackend() const
+{
+  return this->dataPtr->apiBackend;
 }
 
 /////////////////////////////////////////////////

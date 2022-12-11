@@ -258,7 +258,9 @@ class gz::sim::ServerConfigPrivate
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
             renderEngineServer(_cfg->renderEngineServer),
+            renderEngineServerApiBackend(_cfg->renderEngineServerApiBackend),
             renderEngineGui(_cfg->renderEngineGui),
+            renderEngineGuiApiBackend(_cfg->renderEngineGuiApiBackend),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -307,9 +309,17 @@ class gz::sim::ServerConfigPrivate
   /// will be used.
   public: std::string renderEngineServer = "";
 
+  /// \brief String on which API to select.
+  /// See --render-engine-server-api-backend for possible options
+  public: std::string renderEngineServerApiBackend = "";
+
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
+
+  /// \brief String on which API to select.
+  /// See --render-engine-gui-api-backend for possible options
+  public: std::string renderEngineGuiApiBackend = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -593,6 +603,19 @@ void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 }
 
 /////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineServerApiBackend(
+  const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineServerApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineServerApiBackend() const
+{
+  return this->dataPtr->renderEngineServerApiBackend;
+}
+
+/////////////////////////////////////////////////
 void ServerConfig::SetHeadlessRendering(const bool _headless)
 {
   this->dataPtr->isHeadlessRendering = _headless;
@@ -624,6 +647,18 @@ void ServerConfig::SetRenderEngineGui(const std::string &_engine)
            << "] for the GUI. Use [" << engine << "] instead." << std::endl;
   }
   this->dataPtr->renderEngineGui = engine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineGuiApiBackend(const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineGuiApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineGuiApiBackend() const
+{
+  return this->dataPtr->renderEngineGuiApiBackend;
 }
 
 /////////////////////////////////////////////////
