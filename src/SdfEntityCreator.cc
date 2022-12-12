@@ -663,6 +663,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
     bool _resolved)
 {
+  std::cout << "sdf ec : dbg 1, creating joint entity from SDF" << std::endl;
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
@@ -686,6 +687,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
 
   if (_joint->Axis(0))
   {
+    std::cout << "Creating jt axis 0 component" << std::endl;
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
     if (!resolvedAxis)
     {
@@ -700,6 +702,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
 
   if (_joint->Axis(1))
   {
+    std::cout << "Creating jt axis 1 component" << std::endl;
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
     if (!resolvedAxis)
     {
