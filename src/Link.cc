@@ -75,14 +75,15 @@ class gz::sim::LinkPrivate
       if (!linkDebugComponent)
       {
         std::vector<components::WrenchDebugData> moments{moment};
-        auto data = components::WrenchDebugListData::make_shared(moments);
         components::WrenchDebugList list = components::WrenchDebugList{
-          std::move(data)};
+          components::WrenchDebugListData{
+          std::move(moments)}};
         _ecm.CreateComponent(this->id, list);
       }
       else
       {
-        linkDebugComponent->Data()->moments.push_back(moment);
+        gzerr << "Adding " << linkDebugComponent->Data().moments.size() << "\n";
+        linkDebugComponent->Data().moments.push_back(moment);
       }
     }
   }

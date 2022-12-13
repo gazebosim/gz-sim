@@ -625,10 +625,10 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
   link.AddWorldForce(ecm, force, "my force");
   wrenchDebugComp = ecm.Component<components::WrenchDebugList>(eLink);
   EXPECT_NE(nullptr, wrenchDebugComp);
-  EXPECT_EQ(wrenchDebugComp->Data()->moments.size(), 1u);
+  EXPECT_EQ(wrenchDebugComp->Data().moments.size(), 1u);
 
   link.AddWorldForce(ecm, force, "my force 2");
   wrenchDebugComp = ecm.Component<components::WrenchDebugList>(eLink);
   EXPECT_NE(nullptr, wrenchDebugComp);
-  EXPECT_EQ(wrenchDebugComp->Data()->moments.size(), 2u);
+  EXPECT_EQ(wrenchDebugComp->Data().moments.size(), 2u);
 }

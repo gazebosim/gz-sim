@@ -54,7 +54,7 @@ namespace components
   };
 
   using WrenchDebugList =
-    Component<std::shared_ptr<WrenchDebugListData>,
+    Component<WrenchDebugListData,
       class WrenchDebugListDataTag>;
 
   using WrenchDebugEnable =

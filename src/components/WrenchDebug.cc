@@ -26,6 +26,6 @@ std::shared_ptr<WrenchDebugListData> WrenchDebugListData::make_shared(
     const std::vector<WrenchDebugData>& moments)
 {
     auto wrenchDebug = std::make_shared<WrenchDebugListData>();
-    wrenchDebug->moments = moments;
+    wrenchDebug->moments = std::move(moments);
     return wrenchDebug;
 }

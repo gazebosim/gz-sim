@@ -410,8 +410,9 @@ void Hydrodynamics::PreUpdate(
 
   baseLink.AddWorldWrench(
     _ecm,
-    pose->Rot()*(totalForce),
-    pose->Rot()*totalTorque);
+    pose->Rot()*totalForce,
+    pose->Rot()*totalTorque,
+    "Hydrodynamics");
 }
 
 GZ_ADD_PLUGIN(

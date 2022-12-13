@@ -572,7 +572,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
 
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        link.AddWorldWrench(_ecm, buoyancy, torque);
+        link.AddWorldWrench(_ecm, buoyancy, torque, "Buoyancy");
       }
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
@@ -624,7 +624,7 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
         auto [force, torque] = this->dataPtr->ResolveForces(linkWorldPose);
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
-        link.AddWorldWrench(_ecm, force, torque);
+        link.AddWorldWrench(_ecm, force, torque, "Buoyancy");
       }
 
       return true;

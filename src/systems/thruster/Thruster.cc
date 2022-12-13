@@ -599,7 +599,8 @@ void Thruster::PreUpdate(
   link.AddWorldWrench(
     _ecm,
     unitVector * desiredThrust,
-    unitVector * torque);
+    unitVector * torque,
+    "Thruster");
 
   // Update the LinearVelocity of the vehicle
   this->dataPtr->linearVelocity =
