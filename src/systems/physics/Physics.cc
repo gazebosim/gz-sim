@@ -1125,7 +1125,6 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               nestedModelFeature->ConstructNestedModel(*root.Model());
             if (modelPtrPhys)
             {
-              std::cout << "modelPtrPhys constructed from SDF using ConstructNestedModel !" << std::endl;
               this->entityModelMap.AddEntity(_entity, modelPtrPhys);
               this->topLevelModelMap.insert(std::make_pair(_entity,
                   topLevelModel(_entity, _ecm)));
@@ -1133,7 +1132,6 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           }
           else
           {
-            std::cout << "modelPtrPhys constructed from SDF using ConstructModel !" << std::endl;
             auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
             if (modelPtrPhys)
             {
@@ -1620,8 +1618,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
                components::Pose, components::ThreadPitch,
                components::ParentEntity, components::ParentLinkName,
                components::ChildLinkName>(
-               /* components::JointAxis, */
-               /* components::JointAxis2>( */
       [&](const Entity &_entity,
           const components::Joint * /* _joint */,
           const components::Name *_name,
@@ -1631,10 +1627,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::ParentEntity *_parentModel,
           const components::ParentLinkName *_parentLinkName,
           const components::ChildLinkName *_childLinkName) -> bool
-          /* const components::JointAxis *_jointAxis, */
-          /* const components::JointAxis2 *_jointAxis2) -> bool */
       {
-        std::cout << "DBG 1" << std::endl;
         // If the parent model is scheduled for recreation, then do not
         // try to create a new joint. This situation can occur when a joint
         // is added to a model from the GUI model editor.
@@ -1644,7 +1637,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           // Add this entity to the set of newly added joints to existing
           // models.
           this->jointAddedToModel.insert(_entity);
-          std::cout << "DBG 2" << std::endl;
           return true;
         }
 
@@ -1657,7 +1649,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
                     << "] marked as new, but it's already on the map."
                     << std::endl;
           }
-          std::cout << "DBG 3" << std::endl;
           return true;
         }
 
@@ -1666,7 +1657,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           gzerr << "Joint's parent model entity [" << _parentModel->Data()
                   << "] not found on model map." << std::endl;
-          std::cout << "DBG 4" << std::endl;
           return true;
         }
 
@@ -1685,7 +1675,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           }
 
           // Skip all other attempts to create joints
-          std::cout << "DBG 5" << std::endl;
           return false;
         }
 
@@ -1694,7 +1683,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           // No need to create this joint because it was already created when
           // parsing the model.
-          std::cout << "Add to entity joint map" << std::endl;
+
           // Check if mimic joint constraint should be applied to this joint.
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -1731,11 +1720,9 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           gzerr << "Attempting to create a new joint [" << _name->Data()
                 << "], but the physics engine doesn't support constructing "
                 << "joints at runtime." << std::endl;
-          std::cout << "DBG 7" << std::endl;
           return true;
         }
 
-        std::cout << "DBG 8 : Physics.cc making joint component out of sdf" << std::endl;
         sdf::Joint joint;
         joint.SetName(_name->Data());
         joint.SetType(_jointType->Data());
@@ -1763,7 +1750,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           // Some joints may not be supported, so only add them to the map if
           // the physics entity is valid
-          std::cout << "DBG 12" << std::endl;
           this->entityJointMap.AddEntity(_entity, jointPtrPhys);
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
@@ -1851,7 +1837,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
 
           gzdbg << "Creating detachable joint [" << _entity << "]"
                  << std::endl;
-          std::cout << "DBG 10" << std::endl;
           this->entityJointMap.AddEntity(_entity, jointPtrPhys);
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
