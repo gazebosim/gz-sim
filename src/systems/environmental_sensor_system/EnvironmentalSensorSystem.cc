@@ -80,26 +80,22 @@ class EnvironmentalSensor : public gz::sensors::Sensor
 
     // Handle the field type
     if (_sdf.Element() != nullptr &&
-      _sdf.Element()->HasElement("field_type"))
+      _sdf.Element()->HasElement("output_format"))
     {
-      auto dataType = _sdf.Element()->Get<std::string>("field_type");
-      if (dataType == "scalar")
+      std::string format = _sdf.Element()->Get<std::string>("output_format");
+      if (format == "scalar")
       {
         this->numberOfFields = 1;
       }
-      else if (dataType == "vector2")
-      {
-        this->numberOfFields = 2;
-      }
-      else if (dataType == "vector3")
+      else if (format == "vector3")
       {
         this->numberOfFields = 3;
       }
       else
       {
-        gzerr << "Invalid data type of " << dataType << " given."
-          << "valid options are scalar, vector2 or vector3. "
-          << "Defaulting to scalar" << std::endl;
+        gzerr << "Invalid output format " << format << "given."
+          << "valid options are scalar or vector3. "
+          << "Defaulting to 1." << std::endl;
       }
     }
 
@@ -127,9 +123,6 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       case 1:
         this->pub = this->node.Advertise<gz::msgs::Double>(this->Topic());
         break;
-      case 2:
-        this->pub = this->node.Advertise<gz::msgs::Vector2d>(this->Topic());
-        break;
       case 3:
         this->pub = this->node.Advertise<gz::msgs::Vector3d>(this->Topic());
         break;
@@ -147,41 +140,22 @@ class EnvironmentalSensor : public gz::sensors::Sensor
         _sdf.Element()->Get<std::string>("environment_variable");
     }
     else if (_sdf.Element() != nullptr &&
-      this->numberOfFields == 2)
-    {
-      if (
-        _sdf.Element()->HasElement("x_variable") &&
-        _sdf.Element()->HasElement("y_variable"))
-      {
-        this->fieldName[0] =
-          _sdf.Element()->Get<std::string>("x_variable");
-        this->fieldName[1] =
-          _sdf.Element()->Get<std::string>("y_variable");
-      }
-      else
-      {
-        gzerr << "Please Specify x_variable AND y_variable" << "\n";
-      }
-    }
-    else if (_sdf.Element() != nullptr &&
       this->numberOfFields == 3)
     {
-      if (
-        _sdf.Element()->HasElement("x_variable") &&
-        _sdf.Element()->HasElement("y_variable") &&
-        _sdf.Element()->HasElement("z_variable"))
+      if (_sdf.Element()->HasElement("x_variable"))
       {
         this->fieldName[0] =
           _sdf.Element()->Get<std::string>("x_variable");
+      }
+      if (_sdf.Element()->HasElement("y_variable"))
+      {
         this->fieldName[1] =
           _sdf.Element()->Get<std::string>("y_variable");
+      }
+      if (_sdf.Element()->HasElement("z_variable"))
+      {
         this->fieldName[2] =
           _sdf.Element()->Get<std::string>("z_variable");
-      }
-      else
-      {
-        gzerr <<
-          "Please Specify x_variable AND y_variable AND z_variable" << "\n";
       }
     }
     else
@@ -215,6 +189,13 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     std::optional<double> dataPoints[3];
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
+      if (this->fieldName[i] == "")
+      {
+        // Empty field name means the column should default to zero.
+        dataPoints[i] = 0;
+        continue;
+      }
+
       if (!this->session[i].has_value()) return false;
 
       // Step time if its not static
@@ -245,29 +226,6 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       // TODO(anyone) Add sensor noise.
       this->pub.Publish(msg);
     }
-    else if (this->numberOfFields == 2)
-    {
-      gz::msgs::Vector2d msg;
-      *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
-      auto frame = msg.mutable_header()->add_data();
-      frame->set_key("frame_id");
-      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
-
-      if (!dataPoints[0].has_value() || !dataPoints[1].has_value())
-      {
-        gzwarn << "Failed to acquire value perhaps out of field?\n";
-        return false;
-      }
-
-      math::Vector3d vector(dataPoints[0].value(), dataPoints[1].value(), 0);
-      auto transformed = transformFrame(this->transformType, this->objectPose,
-        this->velocity, vector);
-
-      msg.set_x(transformed.X());
-      msg.set_y(transformed.Y());
-
-      this->pub.Publish(msg);
-    }
     else if (this->numberOfFields == 3)
     {
       gz::msgs::Vector3d msg;
@@ -276,7 +234,8 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       frame->set_key("frame_id");
       frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
 
-      if (!dataPoints[0].has_value() || !dataPoints[1].has_value())
+      if (!dataPoints[0].has_value() || !dataPoints[1].has_value()
+        || !dataPoints[2].has_value())
       {
         gzwarn << "Failed to acquire value perhaps out of field?\n";
         return false;
@@ -307,10 +266,13 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     auto data = _data->Data();
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
-      if(!data->frame.Has(this->fieldName[i]))
+      // If field name is empty it was intentionally left out so the column
+      // should default to zero. Otherwise if wrong name throw an error and
+      // disable output.
+      if (this->fieldName[i] != "" && !data->frame.Has(this->fieldName[i]))
       {
         gzwarn << "Environmental sensor could not find field "
-          << this->fieldName[0] << "\n";
+          << this->fieldName[i] << "\n";
         this->ready = false;
         return;
       }
@@ -319,6 +281,9 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     this->gridField = data;
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
+      if (this->fieldName[i] == "")
+        continue;
+
       this->session[i] =
         this->gridField->frame[this->fieldName[i]].CreateSession();
       if (!this->gridField->staticTime)
@@ -327,13 +292,14 @@ class EnvironmentalSensor : public gz::sensors::Sensor
           *this->session[i],
           std::chrono::duration<double>(_curr_time).count());
       }
-      this->ready = true;
 
       if(!this->session[i].has_value())
       {
         gzerr << "Exceeded time stamp." << std::endl;
       }
     }
+
+    this->ready = true;
   }
 
   ////////////////////////////////////////////////////////////////

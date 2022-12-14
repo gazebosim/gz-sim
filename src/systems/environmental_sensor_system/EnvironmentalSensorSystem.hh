@@ -40,26 +40,28 @@ class EnvironmentalSensorSystemPrivate;
 /// currents.
 ///
 /// Tags:
-///  <field_type> - One of "scalar", "vector2" or "vector3" depending on type
-///    of data. For instance temperature would be a scalar but wind velocity
-///    could be vector2 or vector3.
+///  <output_format> - Either "scalar" or "vector3" depending on type
+///    of output data desired.
 ///  <environment_variable> - Only for scalar type. The name of the column of
 ///    the CSV file to be used.
 ///  <x_variable> - The name of the field to be used as the x value in global
-///    frame for vector2 and vector3 fields.
+///    frame for vector3 fields. Note: If this is left out and
+///    vector3 is set, then the x value defaults to zero.
 ///  <y_variable> - The name of the field to be used as the y value in global
-///    frame for vector2 and vector3 fields.
+///    frame for vector3 fields. Note: If this is left out and
+///    vector3 is set, then the y value defaults to zero.
 ///  <z_variable> - The name of the field to be used as the z value in global
-///    frame vector3 fields.
+///    frame vector3 fields. Note: If this is left out and
+///    vector3 is set, then the z value defaults to zero.
 ///  <transform_type> - When handling vector2 or vector3 types it may be in our
 ///    interest to transform them to local coordinate frames. For instance
 ///    measurements of ocean currents or wind depend on the orientation and
-///    velocity of the robot. This field can have 4 values:
+///    velocity of the sensor. This field can have 4 values:
 ///      * GLOBAL - Don't transform the vectors to a local frame.
 ///      * LOCAL - Transform the vector to a local frame.
 ///      * ADD_VELOCITY_GLOBAL - Don't transform to local frame but account for
 ///          velocity change.
-///      * ADD_VELOCITY_LOCAL - Transform to local frame and account for robot's
+///      * ADD_VELOCITY_LOCAL - Transform to local frame and account for sensor
 ///          velocity. If you're working with wind or ocean currents, this is
 ///          probably the option you want.
 class EnvironmentalSensorSystem:

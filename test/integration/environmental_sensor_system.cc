@@ -63,10 +63,11 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
   }
 
   /////////////////////////////////////////////////
-  public: void OnWind2d(const gz::msgs::Vector2d& _msg)
+  public: void OnWind2d(const gz::msgs::Vector3d& _msg)
   {
     EXPECT_NEAR(_msg.x(), 1, 1e-6);
     EXPECT_NEAR(_msg.y(), 0, 1e-6);
+    EXPECT_NEAR(_msg.z(), 0, 1e-6);
     this->receivedWind2dData = true;
   }
 
