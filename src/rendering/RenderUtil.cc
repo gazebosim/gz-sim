@@ -46,10 +46,12 @@
 
 #include <gz/msgs/Utility.hh>
 
-#include <gz/rendering.hh>
+#include <gz/rendering/Grid.hh>
 #include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
+#include <gz/rendering/ThermalCamera.hh>
+#include <gz/rendering/WireBox.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/BoundingBoxCamera.hh"
@@ -93,9 +95,9 @@
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/rendering/SceneManager.hh"
-#include "gz/sim/rendering/MarkerManager.hh"
 
 #include "gz/sim/Util.hh"
 
