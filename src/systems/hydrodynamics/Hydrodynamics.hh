@@ -44,6 +44,7 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.
+  ///
   /// ### Diagonal terms:
   ///   * <xDotU> - Added mass in x direction [kg]
   ///   * <yDotV> - Added mass in y direction [kg]
@@ -63,6 +64,7 @@ namespace systems
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
   ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
+  ///
   /// ### Cross terms
   /// In general we support cross terms as well. These are terms which act on
   /// non-diagonal sides. We use the SNAMe convention of naming search terms.
@@ -93,6 +95,15 @@ namespace systems
   ///   * <disable_coriolis> - Disable Coriolis force [Boolean, Default: false]
   ///   * <disable_added_mass> - Disable Added Mass [Boolean, Default: false].
   ///     To be deprecated in Garden.
+  ///
+  /// ### Loading external currents
+  /// One can use the EnvironmentPreload system to preload currents into the
+  /// plugin using data files. To use the data you may give CSV column names by
+  /// using `lookup_current_*` tags listed below:
+  ///   * <lookup_current_x> - X axis to use for lookup current
+  ///   * <lookup_current_y> - Y axis to use for lookup current
+  ///   * <lookup_current_z> - Z axis to use for lookup current
+  /// This would provide
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -129,7 +140,8 @@ namespace systems
   class Hydrodynamics:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -148,6 +160,11 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(
+        const gz::sim::UpdateInfo &_info,
+        const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

@@ -24,6 +24,7 @@
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
@@ -78,14 +79,120 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
+  /// \brief Prefious derivative of the state
   public: Eigen::VectorXd prevStateDot;
 
-  /// Link entity
+  /// \brief Use current table if true
+  public: bool useCurrentTable {false};
+
+  /// \brief Current table xComponent
+  public: std::string axisComponents[3];
+
+  public: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
+    gridField[3];
+
+  public: std::optional<gz::math::InMemorySession<double, double>> session[3];
+
+  /// \brief Link entity
   public: Entity linkEntity;
+
+  /// \brief has dat been loaded
+  public: bool ready{false};
 
   /// \brief Ocean current callback
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
+  /// \brief Set the current table
+  public: void SetCurrentTable(
+    const EntityComponentManager &_ecm,
+    const std::chrono::steady_clock::duration &_currTime)
+  {
+    _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
+    const components::Environment *_environmental_data)->bool
+    {
+      for (std::size_t i = 0; i < 3; i++)
+      {
+        if (this->axisComponents[i] != "")
+        {
+          auto data = _environmental_data->Data();
+          if (!data->frame.Has(this->axisComponents[i]))
+          {
+            gzwarn << "Environmental sensor could not find field "
+              << this->axisComponents[i] << "\n";
+            continue;
+          }
+
+          this->gridField[i] = data;
+          this->session[i] =
+            this->gridField[i]->frame[this->axisComponents[i]].CreateSession();
+          if (!this->gridField[i]->staticTime)
+          {
+            this->session[i] =
+              this->gridField[i]->frame[this->axisComponents[i]].StepTo(
+                *this->session[i],
+                std::chrono::duration<double>(_currTime).count());
+          }
+          this->ready = true;
+
+          if(!this->session[i].has_value())
+          {
+            gzerr << "Exceeded time stamp." << std::endl;
+          }
+        }
+      }
+      return true;
+    });
+  }
+
+  /// Retrieve the currernt from the data table
+  public: math::Vector3d GetCurrentFromEnvironment(
+    const EntityComponentManager &_ecm,
+    const std::chrono::steady_clock::duration &_currTime,
+    math::Vector3d _position)
+  {
+    math::Vector3d current(0,0,0);
+
+    if (!this->ready)
+    {
+      return current;
+    }
+
+    for (std::size_t i = 0; i < 3; i++)
+    {
+      if (this->axisComponents[i] != "")
+      {
+        this->session[i] =
+          this->gridField[i]->frame[this->axisComponents[i]].StepTo(
+            *this->session[i],
+            std::chrono::duration<double>(_currTime).count());
+
+        auto position = getGridFieldCoordinates(
+          _ecm, _position, this->gridField[i]);
+
+        if (!position.has_value())
+        {
+          gzerr << "Coordinate conversion failed" << std::endl;
+          continue;
+        }
+        //gzerr << position.value();
+        auto data = this->gridField[i]->frame[this->axisComponents[i]].LookUp(
+        this->session[i].value(), position.value());
+        if (!data.has_value())
+        {
+          auto bounds =
+            this->gridField[i]->frame[this->axisComponents[i]].Bounds(
+              this->session[i].value());
+          gzwarn << "Failed to acquire value perhaps out of field?\n"
+            << bounds.first << ", " << bounds.second << std::endl;
+          continue;
+        }
+
+        current[i] = data.value();
+      }
+    }
+
+    return current;
+  }
   /// \brief Mutex
   public: std::mutex mtx;
 };
@@ -262,6 +369,28 @@ void Hydrodynamics::Configure(
 
   this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
 
+  if(_sdf->HasElement("lookup_current_x"))
+  {
+    this->dataPtr->useCurrentTable = true;
+    this->dataPtr->axisComponents[0] =
+      _sdf->Get<std::string>("lookup_current_x");
+  }
+
+  if(_sdf->HasElement("lookup_current_y"))
+  {
+    this->dataPtr->useCurrentTable = true;
+    this->dataPtr->axisComponents[1] =
+      _sdf->Get<std::string>("lookup_current_y");
+  }
+
+  if(_sdf->HasElement("lookup_current_z"))
+  {
+    this->dataPtr->useCurrentTable = true;
+    this->dataPtr->axisComponents[2] =
+      _sdf->Get<std::string>("lookup_current_z");
+  }
+
+
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
   AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
@@ -272,6 +401,11 @@ void Hydrodynamics::PreUpdate(
       const gz::sim::UpdateInfo &_info,
       gz::sim::EntityComponentManager &_ecm)
 {
+  if (this->dataPtr->useCurrentTable)
+  {
+    this->dataPtr->SetCurrentTable(_ecm, _info.simTime);
+  }
+
   if (_info.paused)
     return;
 
@@ -300,8 +434,18 @@ void Hydrodynamics::PreUpdate(
   }
 
   // Get current vector
-  math::Vector3d currentVector;
+  math::Vector3d currentVector(0, 0, 0);
+
+  if (this->dataPtr->useCurrentTable)
   {
+    auto position = baseLink.WorldInertialPose(_ecm);
+    if (position.has_value())
+    {
+      currentVector = this->dataPtr->GetCurrentFromEnvironment(
+        _ecm, _info.simTime, position.value().Pos());
+    }
+  }
+  else {
     std::lock_guard lock(this->dataPtr->mtx);
     currentVector = this->dataPtr->currentVector;
   }
@@ -401,10 +545,22 @@ void Hydrodynamics::PreUpdate(
     pose->Rot()*totalTorque);
 }
 
+/////////////////////////////////////////////////
+void Hydrodynamics::PostUpdate(
+      const gz::sim::UpdateInfo &_info,
+      const gz::sim::EntityComponentManager &_ecm)
+{
+  if (this->dataPtr->useCurrentTable)
+  {
+    this->dataPtr->SetCurrentTable(_ecm, _info.simTime);
+  }
+}
+
 GZ_ADD_PLUGIN(
   Hydrodynamics, System,
   Hydrodynamics::ISystemConfigure,
-  Hydrodynamics::ISystemPreUpdate
+  Hydrodynamics::ISystemPreUpdate,
+  Hydrodynamics::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(
