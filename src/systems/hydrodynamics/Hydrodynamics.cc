@@ -150,7 +150,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
     const std::chrono::steady_clock::duration &_currTime,
     math::Vector3d _position)
   {
-    math::Vector3d current(0,0,0);
+    math::Vector3d current(0, 0, 0);
 
     if (!this->ready)
     {
@@ -174,7 +174,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
           gzerr << "Coordinate conversion failed" << std::endl;
           continue;
         }
-        //gzerr << position.value();
+
         auto data = this->gridField[i]->frame[this->axisComponents[i]].LookUp(
         this->session[i].value(), position.value());
         if (!data.has_value())
@@ -183,7 +183,8 @@ class gz::sim::systems::HydrodynamicsPrivateData
             this->gridField[i]->frame[this->axisComponents[i]].Bounds(
               this->session[i].value());
           gzwarn << "Failed to acquire value perhaps out of field?\n"
-            << bounds.first << ", " << bounds.second << std::endl;
+            << "Bounds are " << bounds.first << ", "
+            << bounds.second << std::endl;
           continue;
         }
 
@@ -445,7 +446,8 @@ void Hydrodynamics::PreUpdate(
         _ecm, _info.simTime, position.value().Pos());
     }
   }
-  else {
+  else
+  {
     std::lock_guard lock(this->dataPtr->mtx);
     currentVector = this->dataPtr->currentVector;
   }
