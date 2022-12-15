@@ -103,7 +103,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Set the current table
   /// \param[in] _ecm - The Entity Component Manager
   /// \param[in] _currTime - The current time
-  public: void SetCurrentTable(
+  public: void SetWaterCurrentTable(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime)
   {
@@ -149,7 +149,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \param[in] _currTime - The current time
   /// \param[in] _position - Position of the vehicle in world coordinates.
   /// \return The current vector to be applied at this position and time.
-  public: math::Vector3d GetCurrentFromEnvironment(
+  public: math::Vector3d GetWaterCurrentFromEnvironment(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime,
     math::Vector3d _position)
@@ -419,7 +419,7 @@ void Hydrodynamics::PreUpdate(
 {
   if (this->dataPtr->useCurrentTable)
   {
-    this->dataPtr->SetCurrentTable(_ecm, _info.simTime);
+    this->dataPtr->SetWaterCurrentTable(_ecm, _info.simTime);
   }
 
   if (_info.paused)
@@ -457,7 +457,7 @@ void Hydrodynamics::PreUpdate(
     auto position = baseLink.WorldInertialPose(_ecm);
     if (position.has_value())
     {
-      currentVector = this->dataPtr->GetCurrentFromEnvironment(
+      currentVector = this->dataPtr->GetWaterCurrentFromEnvironment(
         _ecm, _info.simTime, position.value().Pos());
     }
   }
@@ -569,7 +569,7 @@ void Hydrodynamics::PostUpdate(
 {
   if (this->dataPtr->useCurrentTable)
   {
-    this->dataPtr->SetCurrentTable(_ecm, _info.simTime);
+    this->dataPtr->SetWaterCurrentTable(_ecm, _info.simTime);
   }
 }
 
