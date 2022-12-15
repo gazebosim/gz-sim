@@ -17,17 +17,9 @@
 
 #include "ignition/gazebo/components/Factory.hh"
 
+using Factory = ignition::gazebo::components::Factory;
 
-namespace ignition
-{
-namespace gazebo
-{
-namespace components
-{
-Factory * Factory::Instance()
+Factory *Factory::Instance()
 {
   return common::SingletonT<Factory>::Instance();
-}
-}
-}
 }
