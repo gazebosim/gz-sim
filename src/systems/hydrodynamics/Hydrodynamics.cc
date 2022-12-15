@@ -110,15 +110,13 @@ class gz::sim::systems::HydrodynamicsPrivateData
     _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
       const components::Environment *_environment) -> bool
     {
-      auto data = _environment->Data();
-      this->gridField = data;
+      this->gridField = _environment->Data();
 
       for (std::size_t i = 0; i < 3; i++)
       {
-        if (this->axisComponents[i] != "")
+        if (!this->axisComponents[i].empty())
         {
-
-          if (!data->frame.Has(this->axisComponents[i]))
+          if (!this->gridField->frame.Has(this->axisComponents[i]))
           {
             gzwarn << "Environmental sensor could not find field "
               << this->axisComponents[i] << "\n";
@@ -146,7 +144,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
   }
 
   /////////////////////////////////////////////////
-  /// \brief Retrieve the currernt from the data table
+  /// \brief Retrieve water current data from the environment
   /// \param[in] _ecm - The Entity Component Manager
   /// \param[in] _currTime - The current time
   /// \param[in] _position - Position of the vehicle in world coordinates.
@@ -159,15 +157,15 @@ class gz::sim::systems::HydrodynamicsPrivateData
     math::Vector3d current(0, 0, 0);
 
     if (!this->gridField ||
-      !(this->session[0].has_value() ||
-        this->session[1].has_value() || this->session[1].has_value()))
+        !(this->session[0].has_value() ||
+          this->session[1].has_value() || this->session[2].has_value()))
     {
       return current;
     }
 
     for (std::size_t i = 0; i < 3; i++)
     {
-      if (this->axisComponents[i] != "")
+      if (!this->axisComponents[i].empty())
       {
         if (!this->gridField->staticTime)
         {
@@ -177,18 +175,18 @@ class gz::sim::systems::HydrodynamicsPrivateData
               std::chrono::duration<double>(_currTime).count());
         }
 
+        if (!this->session[i].has_value())
+        {
+          gzerr << "Time exceeded" << std::endl;
+          continue;
+        }
+
         auto position = getGridFieldCoordinates(
           _ecm, _position, this->gridField);
 
         if (!position.has_value())
         {
           gzerr << "Coordinate conversion failed" << std::endl;
-          continue;
-        }
-
-        if (!this->session[i].has_value())
-        {
-          gzerr << "Time exceeded" << std::endl;
           continue;
         }
 
