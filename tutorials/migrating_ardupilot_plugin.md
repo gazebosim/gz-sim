@@ -735,7 +735,7 @@ find_package(gz-sim8-all REQUIRED)
 find_package(gz-math7-all REQUIRED)
 find_package(gz-msgs9-all REQUIRED)
 find_package(gz-physics6-all REQUIRED)
-find_package(gz-sensors7-all REQUIRED)
+find_package(gz-sensors8-all REQUIRED)
 find_package(gz-transport12-all REQUIRED)
 ```
 

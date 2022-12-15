@@ -106,8 +106,8 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui7 REQUIRED)
-set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package(gz-gui8 REQUIRED)
+set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -129,7 +129,7 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors8 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -155,12 +155,12 @@ gz_find_package(gz-sensors7 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering7 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
+gz_find_package(gz-rendering8 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-math

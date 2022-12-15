@@ -7,14 +7,14 @@ endif()
 project(RenderingPlugins)
 
 # Common to both plugins
-find_package(gz-rendering7 REQUIRED)
+find_package(gz-rendering8 REQUIRED)
 
 # GUI plugin
 set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gui7 REQUIRED)
+find_package(gz-gui8 REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
@@ -24,8 +24,8 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    gz-gui7::gz-gui7
-    gz-rendering7::gz-rendering7
+    gz-gui8::gz-gui8
+    gz-rendering8::gz-rendering8
 )
 
 # Server plugin
@@ -40,5 +40,5 @@ target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
     gz-plugin2::gz-plugin2
     gz-sim8::gz-sim8
-    gz-rendering7::gz-rendering7
+    gz-rendering8::gz-rendering8
 )
