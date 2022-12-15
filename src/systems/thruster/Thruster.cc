@@ -378,7 +378,7 @@ void Thruster::Configure(
     igndbg << "Using velocity control for propeller joint." << std::endl;
   }
 
-  // Get joint name
+  // Get power load and battery name info
   if (_sdf->HasElement("power_load"))
   {
     if (!_sdf->HasElement("battery_name"))
@@ -505,7 +505,7 @@ void Thruster::PreUpdate(
     {
       ignerr << "More than one battery found with name: ["
              << this->dataPtr->batteryName << "]. Please make"
-             "sure batterie names are unique within the system."
+             "sure battery names are unique within the system."
              << std::endl;
       return;
     }
