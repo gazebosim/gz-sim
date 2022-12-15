@@ -14,7 +14,7 @@ set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gui8)
+find_package(gz-gui8 REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
