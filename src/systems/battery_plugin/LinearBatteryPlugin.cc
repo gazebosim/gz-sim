@@ -480,7 +480,7 @@ void LinearBatteryPlugin::PreUpdate(
 {
   IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
 
-  // Recaculate the toal power load among consumers
+  // Recalculate the total power load among consumers
   double total_power_load = this->dataPtr->initialPowerLoad;
   _ecm.Each<components::BatteryPowerLoad>(
     [&](const Entity & /*_entity*/,

@@ -137,7 +137,7 @@ class ignition::gazebo::systems::ThrusterPrivateData
   /// \brief Battery power load of the thruster.
   public: double powerLoad = 0.0;
 
-  ///
+  /// \brief Has the battery consumption being initialized.
   public: bool batteryInitialized = false;
 
   /// \brief Callback for handling thrust update
