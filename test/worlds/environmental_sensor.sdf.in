@@ -113,8 +113,8 @@
           <visualize>true</visualize>
           <output_format>vector3</output_format>
           <topic>wind_speed2d</topic>
-          <x_variable>wind_speed_x</x_variable>
-          <y_variable>wind_speed_y</y_variable>
+          <environment_variable_x>wind_speed_x</environment_variable_x>
+          <environment_variable_y>wind_speed_y</environment_variable_y>
         </sensor>
 
         <!-- Here's another sensor for wind speed -->
@@ -125,9 +125,9 @@
           <output_format>vector3</output_format>
           <topic>wind_speed3d</topic>
           <transform_type>LOCAL</transform_type>
-          <x_variable>wind_speed_x</x_variable>
-          <y_variable>wind_speed_y</y_variable>
-          <z_variable>wind_speed_z</z_variable>
+          <environment_variable_x>wind_speed_x</environment_variable_x>
+          <environment_variable_y>wind_speed_y</environment_variable_y>
+          <environment_variable_z>wind_speed_z</environment_variable_z>
         </sensor>
       </link>
     </model>

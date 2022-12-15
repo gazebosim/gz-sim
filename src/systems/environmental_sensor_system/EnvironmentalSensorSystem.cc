@@ -99,7 +99,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       }
     }
 
-    // Hansle the transform type
+    // Handle the transform type
     if (_sdf.Element() != nullptr &&
       _sdf.Element()->HasElement("transform_type"))
     {
@@ -142,20 +142,20 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     else if (_sdf.Element() != nullptr &&
       this->numberOfFields == 3)
     {
-      if (_sdf.Element()->HasElement("x_variable"))
+      if (_sdf.Element()->HasElement("environment_variable_x"))
       {
         this->fieldName[0] =
-          _sdf.Element()->Get<std::string>("x_variable");
+          _sdf.Element()->Get<std::string>("environment_variable_x");
       }
-      if (_sdf.Element()->HasElement("y_variable"))
+      if (_sdf.Element()->HasElement("environment_variable_y"))
       {
         this->fieldName[1] =
-          _sdf.Element()->Get<std::string>("y_variable");
+          _sdf.Element()->Get<std::string>("environment_variable_y");
       }
-      if (_sdf.Element()->HasElement("z_variable"))
+      if (_sdf.Element()->HasElement("environment_variable_z"))
       {
         this->fieldName[2] =
-          _sdf.Element()->Get<std::string>("z_variable");
+          _sdf.Element()->Get<std::string>("environment_variable_z");
       }
     }
     else
@@ -170,8 +170,18 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       this->frameId = _sdf.Element()->Get<std::string>("frame_id");
     }
 
-    gzdbg << "Loaded environmental sensor for " << this->fieldName[0]
-      << " publishing on " << this->Topic() << std::endl;
+    if (this->numberOfFields == 1)
+    {
+      gzdbg << "Loaded environmental sensor for " << this->fieldName[0]
+        << " publishing on " << this->Topic() << std::endl;
+    }
+    else
+    {
+      gzdbg << "Loaded environmental sensor for [" << this->fieldName[0] << ", "
+        << this->fieldName[1] << ", " << this->fieldName[2]
+        << "] publishing on " << this->Topic() << std::endl;
+    }
+
 
     return true;
   }
@@ -210,7 +220,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
         this->session[i].value(), this->position);
     }
 
-    if(this->numberOfFields == 1) {
+    if (this->numberOfFields == 1) {
       gz::msgs::Double msg;
       *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
       auto frame = msg.mutable_header()->add_data();
