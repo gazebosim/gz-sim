@@ -96,9 +96,6 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Link entity
   public: Entity linkEntity;
 
-  /// \brief has dat been loaded
-  public: bool ready{false};
-
   /// \brief Ocean current callback
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
@@ -111,9 +108,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
     const std::chrono::steady_clock::duration &_currTime)
   {
     _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
-      const components::Environment *_environmental_data) -> bool
+      const components::Environment *_environment) -> bool
     {
-      auto data = _environmental_data->Data();
+      auto data = _environment->Data();
       this->gridField = data;
 
       for (std::size_t i = 0; i < 3; i++)
@@ -137,7 +134,6 @@ class gz::sim::systems::HydrodynamicsPrivateData
                 *this->session[i],
                 std::chrono::duration<double>(_currTime).count());
           }
-          this->ready = true;
 
           if(!this->session[i].has_value())
           {
@@ -162,7 +158,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
   {
     math::Vector3d current(0, 0, 0);
 
-    if (!this->ready)
+    if (!this->gridField ||
+      !(this->session[0].has_value() ||
+        this->session[1].has_value() || this->session[1].has_value()))
     {
       return current;
     }

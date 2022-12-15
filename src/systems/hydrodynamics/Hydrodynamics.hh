@@ -103,7 +103,9 @@ namespace systems
   ///   * <lookup_current_x> - X axis to use for lookup current
   ///   * <lookup_current_y> - Y axis to use for lookup current
   ///   * <lookup_current_z> - Z axis to use for lookup current
-  /// This would provide
+  /// If any one of the fields is present, it is assumed current is to be loaded
+  /// by a data file and the topic will be ignored. If one or two fields are
+  /// present, the missing fields are assumed to default to zero.
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
