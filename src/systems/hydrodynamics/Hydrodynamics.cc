@@ -79,7 +79,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Previous state.
   public: Eigen::VectorXd prevState;
 
-  /// \brief Prefious derivative of the state
+  /// \brief Previous derivative of the state
   public: Eigen::VectorXd prevStateDot;
 
   /// \brief Use current table if true
@@ -88,8 +88,8 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Current table xComponent
   public: std::string axisComponents[3];
 
-  public: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
-    gridField[3];
+  public: std::shared_ptr<gz::sim::components::EnvironmentalData>
+    gridField;
 
   public: std::optional<gz::math::InMemorySession<double, double>> session[3];
 
@@ -102,19 +102,25 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Ocean current callback
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
+  /////////////////////////////////////////////////
   /// \brief Set the current table
+  /// \param[in] _ecm - The Entity Component Manager
+  /// \param[in] _currTime - The current time
   public: void SetCurrentTable(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime)
   {
     _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
-    const components::Environment *_environmental_data)->bool
+      const components::Environment *_environmental_data) -> bool
     {
+      auto data = _environmental_data->Data();
+      this->gridField = data;
+
       for (std::size_t i = 0; i < 3; i++)
       {
         if (this->axisComponents[i] != "")
         {
-          auto data = _environmental_data->Data();
+
           if (!data->frame.Has(this->axisComponents[i]))
           {
             gzwarn << "Environmental sensor could not find field "
@@ -122,13 +128,12 @@ class gz::sim::systems::HydrodynamicsPrivateData
             continue;
           }
 
-          this->gridField[i] = data;
           this->session[i] =
-            this->gridField[i]->frame[this->axisComponents[i]].CreateSession();
-          if (!this->gridField[i]->staticTime)
+            this->gridField->frame[this->axisComponents[i]].CreateSession();
+          if (!this->gridField->staticTime)
           {
             this->session[i] =
-              this->gridField[i]->frame[this->axisComponents[i]].StepTo(
+              this->gridField->frame[this->axisComponents[i]].StepTo(
                 *this->session[i],
                 std::chrono::duration<double>(_currTime).count());
           }
@@ -144,7 +149,12 @@ class gz::sim::systems::HydrodynamicsPrivateData
     });
   }
 
-  /// Retrieve the currernt from the data table
+  /////////////////////////////////////////////////
+  /// \brief Retrieve the currernt from the data table
+  /// \param[in] _ecm - The Entity Component Manager
+  /// \param[in] _currTime - The current time
+  /// \param[in] _position - Position of the vehicle in world coordinates.
+  /// \return The current vector to be applied at this position and time.
   public: math::Vector3d GetCurrentFromEnvironment(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime,
@@ -161,13 +171,16 @@ class gz::sim::systems::HydrodynamicsPrivateData
     {
       if (this->axisComponents[i] != "")
       {
-        this->session[i] =
-          this->gridField[i]->frame[this->axisComponents[i]].StepTo(
-            *this->session[i],
-            std::chrono::duration<double>(_currTime).count());
+        if (!this->gridField->staticTime)
+        {
+          this->session[i] =
+            this->gridField->frame[this->axisComponents[i]].StepTo(
+              *this->session[i],
+              std::chrono::duration<double>(_currTime).count());
+        }
 
         auto position = getGridFieldCoordinates(
-          _ecm, _position, this->gridField[i]);
+          _ecm, _position, this->gridField);
 
         if (!position.has_value())
         {
@@ -175,12 +188,18 @@ class gz::sim::systems::HydrodynamicsPrivateData
           continue;
         }
 
-        auto data = this->gridField[i]->frame[this->axisComponents[i]].LookUp(
-        this->session[i].value(), position.value());
+        if (!this->session[i].has_value())
+        {
+          gzerr << "Time exceeded" << std::endl;
+          continue;
+        }
+
+        auto data = this->gridField->frame[this->axisComponents[i]].LookUp(
+          this->session[i].value(), position.value());
         if (!data.has_value())
         {
           auto bounds =
-            this->gridField[i]->frame[this->axisComponents[i]].Bounds(
+            this->gridField->frame[this->axisComponents[i]].Bounds(
               this->session[i].value());
           gzwarn << "Failed to acquire value perhaps out of field?\n"
             << "Bounds are " << bounds.first << ", "

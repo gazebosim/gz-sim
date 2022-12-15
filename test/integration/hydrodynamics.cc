@@ -177,9 +177,10 @@ TEST_F(HydrodynamicsTest, TransformsTestinWater)
 }
 
 /////////////////////////////////////////////////
-/// This tests the current
+/// This tests the current. A current of (1, 0, 0) is loaded in via a csv file
 TEST_F(HydrodynamicsTest, TransformsTestIn)
 {
+  this->defaultForce = math::Vector3d(0, 0, 0);
   auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
@@ -188,13 +189,13 @@ TEST_F(HydrodynamicsTest, TransformsTestIn)
   for (unsigned int i = 990; i < 1000; ++i)
   {
     // Expect for the velocity to stabilize
-    EXPECT_NEAR(sphereVel[i-1].Z(), sphereVel[i].Z(), 1e-5);
-    EXPECT_NEAR(sphereVel[i-1].Y(), sphereVel[i].Y(), 1e-5);
+    EXPECT_NEAR(sphereVel[i-1].Z(), sphereVel[i].Z(), 1e-6);
+    EXPECT_NEAR(sphereVel[i-1].Y(), sphereVel[i].Y(), 1e-6);
     EXPECT_NEAR(sphereVel[i-1].X(), sphereVel[i].X(), 1e-3);
 
     // Given current of  (1,0,0), vehicle should move in similar direction.
-    EXPECT_NEAR(sphereVel[i-1].Z(), 0, 1e-2);
-    EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-2);
+    EXPECT_NEAR(sphereVel[i-1].Z(), 0, 1e-6);
+    EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
 }
