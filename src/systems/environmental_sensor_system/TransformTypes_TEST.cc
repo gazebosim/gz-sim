@@ -25,10 +25,10 @@ TEST(TransformationTypes, transformFrame)
   // Create a vehicle rotated 90 degrees in the yaw axis
   math::Pose3d pose(math::Vector3d(0, 0, 0), math::Quaterniond(0, 0, GZ_PI_2));
 
-  // Vehicle should moving at 1m/s along x-axis (In global frame)
+  // Vehicle should be moving at 1m/s along x-axis (In global frame)
   math::Vector3d velocity(1, 0, 0);
 
-  // Imagine a current moving against the vehicle
+  // Create a current moving against the vehicle
   math::Vector3d current(-3, 0, 0);
 
   // Test transforms
