@@ -129,8 +129,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
           {
             this->session[i] =
               this->gridField->frame[this->axisComponents[i]].StepTo(
-                *this->session[i],
-                std::chrono::duration<double>(_currTime).count());
+                *this->session[i], std::chrono::duration<double>(_currTime).count());
           }
 
           if(!this->session[i].has_value())
