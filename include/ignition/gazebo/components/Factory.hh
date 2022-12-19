@@ -224,9 +224,18 @@ namespace components
   };
 
   /// \brief A factory that generates a component based on a string type.
+  // TODO(azeey) Do not inherit from common::SingletonT in Harmonic
   class Factory
       : public ignition::common::SingletonT<Factory>
   {
+    // Deleted copy constructors to make the ABI checker happy
+    public: Factory(Factory &) = delete;
+    public: Factory(const Factory &) = delete;
+    // Since the copy constructors are deleted, we need to explicitly declare a
+    // default constructor.
+    // TODO(azeey) Make this private in Harmonic
+    public: Factory() = default;
+
     /// \brief Get an instance of the singleton
     public: IGNITION_GAZEBO_VISIBLE static Factory *Instance();
 
@@ -505,6 +514,10 @@ namespace components
       gazebo::components::Factory::Instance()->Register<_classname>(\
         _compType, new Desc(), gazebo::components::RegistrationObjectId(this));\
     } \
+    public: IgnGazeboComponents##_classname( \
+                const IgnGazeboComponents##_classname&) = delete; \
+    public: IgnGazeboComponents##_classname( \
+                IgnGazeboComponents##_classname&) = delete; \
     public: ~IgnGazeboComponents##_classname() \
     { \
       using namespace ignition; \
