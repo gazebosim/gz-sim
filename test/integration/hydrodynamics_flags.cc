@@ -119,7 +119,8 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
 /////////////////////////////////////////////////
 /// This test makes sure that the linear velocity is reuduced
 /// disbling the coriolis force and also when disabling the added mass.
-TEST_F(HydrodynamicsFlagsTest, AddedMassCoriolisFlags)
+TEST_F(HydrodynamicsFlagsTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(AddedMassCoriolisFlags))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics_flags.sdf");
