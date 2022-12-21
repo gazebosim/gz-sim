@@ -171,6 +171,9 @@ class gz::sim::systems::EnvironmentPreloadPrivate
         return components::EnvironmentalData::ReferenceUnits::DEGREES;
       case Units::DataLoadPathOptions_DataAngularUnits_RADIANS:
         return components::EnvironmentalData::ReferenceUnits::RADIANS;
+      default:
+        gzerr << "Invalid unit conversion" << std::endl;
+        return components::EnvironmentalData::ReferenceUnits::RADIANS;
     }
   }
 
