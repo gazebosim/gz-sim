@@ -15,7 +15,7 @@
  *
 */
 #ifndef IGNITION_GAZEBO_COMPONENTS_BATTERYPOWERLOAD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_BATTERYCONSUMPTION_HH_
+#define IGNITION_GAZEBO_COMPONENTS_BATTERYPOWERLOAD_HH_
 
 #include <ignition/gazebo/components/Factory.hh>
 #include <ignition/gazebo/components/Component.hh>
