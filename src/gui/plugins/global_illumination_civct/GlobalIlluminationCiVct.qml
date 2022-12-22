@@ -123,7 +123,7 @@ GridLayout {
     text: qsTr("BounceCount")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: bounceCount

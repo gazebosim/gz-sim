@@ -77,7 +77,7 @@ GridLayout {
     text: qsTr("Resolution")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -96,7 +96,7 @@ GridLayout {
       cascadePtr.resolutionX = value;
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -115,7 +115,7 @@ GridLayout {
       cascadePtr.resolutionY = value;
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -142,7 +142,7 @@ GridLayout {
     text: qsTr("OctantCount")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountX
@@ -154,7 +154,7 @@ GridLayout {
       cascadePtr.octantCountX = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountY
@@ -166,7 +166,7 @@ GridLayout {
       cascadePtr.octantCountY = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountZ
@@ -186,7 +186,7 @@ GridLayout {
     text: qsTr("ThinWallCounter")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: thinWallCounter
@@ -206,7 +206,7 @@ GridLayout {
     text: qsTr("AreaHalfSize")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: areaHalfSizeX
@@ -219,7 +219,7 @@ GridLayout {
       cascadePtr.areaHalfSizeX = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: areaHalfSizeY
@@ -232,7 +232,7 @@ GridLayout {
       cascadePtr.areaHalfSizeY = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: areaHalfSizeZ

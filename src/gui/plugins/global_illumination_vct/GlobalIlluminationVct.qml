@@ -84,7 +84,7 @@ GridLayout {
     text: qsTr("BounceCount")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: bounceCount
@@ -104,7 +104,7 @@ GridLayout {
     text: qsTr("Resolution")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -122,7 +122,7 @@ GridLayout {
       GlobalIlluminationVct.resolutionX = value;
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -140,7 +140,7 @@ GridLayout {
       GlobalIlluminationVct.resolutionY = value;
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     property int oldValue: -1
 
     Layout.columnSpan: 2
@@ -166,7 +166,7 @@ GridLayout {
     text: qsTr("OctantCount")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountX
@@ -178,7 +178,7 @@ GridLayout {
       GlobalIlluminationVct.octantCountX = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountY
@@ -190,7 +190,7 @@ GridLayout {
       GlobalIlluminationVct.octantCountY = value
     }
   }
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountZ
@@ -246,7 +246,7 @@ GridLayout {
     text: qsTr("ThinWallCounter")
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: thinWallCounter
