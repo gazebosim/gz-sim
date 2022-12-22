@@ -6,6 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +27,8 @@
 #include <mutex>
 #include <string>
 
+#include <gz/msgs/actuators.pb.h>
+
 #include <gz/common/Profiler.hh>
 
 #include <gz/plugin/Register.hh>
@@ -34,7 +37,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
-#include <gz/msgs.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
@@ -49,6 +52,7 @@
 #include "gz/sim/components/Wind.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -118,7 +122,7 @@ enum class MotorType {
 class gz::sim::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const gz::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -250,7 +254,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Please specify a robotNamespace.\n";
+    gzwarn << "No robotNamespace set using entity name.\n";
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
@@ -365,13 +370,17 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
            << "]" << std::endl;
     return;
   }
+  else
+  {
+    gzdbg << "Listening to topic: " << topic << std::endl;
+  }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("MulticopterMotorModel::PreUpdate");
 
@@ -469,7 +478,7 @@ void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const gz::msgs::Actuators &_msg)
+    const msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -559,8 +568,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = gz::math::Pose3d;
-      using Vector3 = gz::math::Vector3d;
+      using Pose = math::Pose3d;
+      using Vector3 = math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -672,13 +681,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 }
 
 GZ_ADD_PLUGIN(MulticopterMotorModel,
-                    gz::sim::System,
+                    System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "gz::sim::systems::MulticopterMotorModel")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "ignition::gazebo::systems::MulticopterMotorModel")

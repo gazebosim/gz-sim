@@ -59,6 +59,7 @@
 #include <gz/physics/FixedJoint.hh>
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/GetEntities.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
@@ -134,6 +135,7 @@
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/SelfCollide.hh"
 #include "gz/sim/components/SlipComplianceCmd.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/ThreadPitch.hh"
 #include "gz/sim/components/World.hh"
@@ -159,37 +161,38 @@ class gz::sim::systems::PhysicsPrivate
   /// implement to be supported by this system.
   /// New features can't be added to this list in minor / patch releases, in
   /// order to maintain backwards compatibility with downstream physics plugins.
-  public: struct MinimumFeatureList : gz::physics::FeatureList<
-          gz::physics::FindFreeGroupFeature,
-          gz::physics::SetFreeGroupWorldPose,
-          gz::physics::FreeGroupFrameSemantics,
-          gz::physics::LinkFrameSemantics,
-          gz::physics::ForwardStep,
-          gz::physics::RemoveModelFromWorld,
-          gz::physics::sdf::ConstructSdfLink,
-          gz::physics::sdf::ConstructSdfModel,
-          gz::physics::sdf::ConstructSdfWorld
+  public: struct MinimumFeatureList : physics::FeatureList<
+          physics::FindFreeGroupFeature,
+          physics::SetFreeGroupWorldPose,
+          physics::FreeGroupFrameSemantics,
+          physics::LinkFrameSemantics,
+          physics::ForwardStep,
+          physics::RemoveModelFromWorld,
+          physics::sdf::ConstructSdfModel,
+          physics::sdf::ConstructSdfWorld,
+          physics::GetLinkFromModel,
+          physics::GetShapeFromLink
           >{};
 
   /// \brief Engine type with just the minimum features.
-  public: using EnginePtrType = gz::physics::EnginePtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using EnginePtrType = physics::EnginePtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief World type with just the minimum features.
-  public: using WorldPtrType = gz::physics::WorldPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using WorldPtrType = physics::WorldPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Model type with just the minimum features.
-  public: using ModelPtrType = gz::physics::ModelPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using ModelPtrType = physics::ModelPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Link type with just the minimum features.
-  public: using LinkPtrType = gz::physics::LinkPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using LinkPtrType = physics::LinkPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Free group type with just the minimum features.
-  public: using FreeGroupPtrType = gz::physics::FreeGroupPtr<
-            gz::physics::FeaturePolicy3d, MinimumFeatureList>;
+  public: using FreeGroupPtrType = physics::FreeGroupPtr<
+            physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -316,7 +319,7 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] _from An ancestor of the _to entity.
   /// \param[in] _to A descendant of the _from entity.
   /// \return Pose transform between the two entities
-  public: gz::math::Pose3d RelativePose(const Entity &_from,
+  public: math::Pose3d RelativePose(const Entity &_from,
       const Entity &_to, const EntityComponentManager &_ecm) const;
 
   /// \brief Enable contact surface customization for the given world.
@@ -455,19 +458,23 @@ class gz::sim::systems::PhysicsPrivate
   public: struct FrictionPyramidSlipComplianceFeatureList
       : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetShapeFrictionPyramidSlipCompliance,
-            gz::physics::SetShapeFrictionPyramidSlipCompliance>{};
+            physics::GetShapeFrictionPyramidSlipCompliance,
+            physics::SetShapeFrictionPyramidSlipCompliance>{};
   //////////////////////////////////////////////////
   // Joints
 
   /// \brief Feature list to handle joints.
-  public: struct JointFeatureList : gz::physics::FeatureList<
+  public: struct JointFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetBasicJointProperties,
-            gz::physics::GetBasicJointState,
-            gz::physics::SetBasicJointState,
-            gz::physics::sdf::ConstructSdfJoint>{};
+            physics::GetJointFromModel,
+            physics::GetBasicJointProperties,
+            physics::GetBasicJointState,
+            physics::SetBasicJointState>{};
 
+  /// \brief Feature list to construct joints
+  public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<
+            JointFeatureList,
+            gz::physics::sdf::ConstructSdfJoint>{};
 
   //////////////////////////////////////////////////
   // Detachable joints
@@ -489,50 +496,50 @@ class gz::sim::systems::PhysicsPrivate
   // Collisions
 
   /// \brief Feature list to handle collisions.
-  public: struct CollisionFeatureList : gz::physics::FeatureList<
+  public: struct CollisionFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::sdf::ConstructSdfCollision>{};
+            physics::sdf::ConstructSdfCollision>{};
 
   /// \brief Feature list to handle contacts information.
-  public: struct ContactFeatureList : gz::physics::FeatureList<
+  public: struct ContactFeatureList : physics::FeatureList<
             CollisionFeatureList,
-            gz::physics::GetContactsFromLastStepFeature>{};
+            physics::GetContactsFromLastStepFeature>{};
 
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
-            gz::physics::FeatureList<
+            physics::FeatureList<
               ContactFeatureList,
-              gz::physics::SetContactPropertiesCallbackFeature>{};
+              physics::SetContactPropertiesCallbackFeature>{};
 
   /// \brief Collision type with collision features.
-  public: using ShapePtrType = gz::physics::ShapePtr<
-            gz::physics::FeaturePolicy3d, CollisionFeatureList>;
+  public: using ShapePtrType = physics::ShapePtr<
+            physics::FeaturePolicy3d, CollisionFeatureList>;
 
   /// \brief World type with just the minimum features. Non-pointer.
-  public: using WorldShapeType = gz::physics::World<
-            gz::physics::FeaturePolicy3d, ContactFeatureList>;
+  public: using WorldShapeType = physics::World<
+            physics::FeaturePolicy3d, ContactFeatureList>;
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
-  public: struct CollisionMaskFeatureList : gz::physics::FeatureList<
+  public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          gz::physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
   /// \brief Feature list for applying forces to links.
-  public: struct LinkForceFeatureList : gz::physics::FeatureList<
-            gz::physics::AddLinkExternalForceTorque>{};
+  public: struct LinkForceFeatureList : physics::FeatureList<
+            physics::AddLinkExternalForceTorque>{};
 
 
   //////////////////////////////////////////////////
   // Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : gz::physics::FeatureList<
+  public: struct BoundingBoxFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::GetModelBoundingBox>{};
+            physics::GetModelBoundingBox>{};
 
 
   //////////////////////////////////////////////////
@@ -566,13 +573,12 @@ class gz::sim::systems::PhysicsPrivate
   //////////////////////////////////////////////////
   // World velocity command
   public: struct WorldVelocityCommandFeatureList :
-            gz::physics::FeatureList<
-              gz::physics::SetFreeGroupWorldVelocity>{};
+            physics::FeatureList<
+              physics::SetFreeGroupWorldVelocity>{};
 
 
   //////////////////////////////////////////////////
   // Meshes
-
   /// \brief Feature list for meshes.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
@@ -581,8 +587,14 @@ class gz::sim::systems::PhysicsPrivate
             physics::mesh::AttachMeshShapeFeature>{};
 
   //////////////////////////////////////////////////
-  // Heightmap
+  // Construct Links
+  /// \brief Feature list for constructing links
+  public: struct ConstructSdfLinkFeatureList : gz::physics::FeatureList<
+            MinimumFeatureList,
+            gz::physics::sdf::ConstructSdfLink>{};
 
+  //////////////////////////////////////////////////
+  // Heightmap
   /// \brief Feature list for heightmaps.
   /// Include MinimumFeatureList so created collision can be automatically
   /// up-cast.
@@ -606,9 +618,9 @@ class gz::sim::systems::PhysicsPrivate
   // Nested Models
 
   /// \brief Feature list to construct nested models
-  public: struct NestedModelFeatureList : gz::physics::FeatureList<
+  public: struct NestedModelFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            gz::physics::sdf::ConstructSdfNestedModel>{};
+            physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
@@ -632,7 +644,9 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             JointFeatureList,
             BoundingBoxFeatureList,
-            NestedModelFeatureList>;
+            NestedModelFeatureList,
+            ConstructSdfLinkFeatureList,
+            ConstructSdfJointFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -790,33 +804,18 @@ void Physics::Configure(const Entity &_entity,
   systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
+
   if (pathToLib.empty())
   {
-    // Try deprecated environment variable
-    // TODO(CH3): Deprecated. Remove on tock.
-    common::SystemPaths systemPathsDep;
-    systemPathsDep.SetPluginPathEnv(this->dataPtr->pluginPathEnvDeprecated);
-    pathToLib = systemPathsDep.FindSharedLibrary(pluginLib);
+    gzerr << "Failed to find plugin [" << pluginLib
+    << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+    << " environment variable?" << std::endl;
 
-    if (pathToLib.empty())
-    {
-      gzerr << "Failed to find plugin [" << pluginLib
-      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-      << " environment variable?" << std::endl;
-
-      return;
-    }
-    else
-    {
-      gzwarn << "Found plugin [" << pluginLib
-             << "] using deprecated environment variable ["
-             << this->dataPtr->pluginPathEnvDeprecated << "]. Please use ["
-             << this->dataPtr->pluginPathEnv << "] instead." << std::endl;
-    }
+    return;
   }
 
   // Load engine plugin
-  gz::plugin::Loader pluginLoader;
+  plugin::Loader pluginLoader;
   auto plugins = pluginLoader.LoadLib(pathToLib);
   if (plugins.empty())
   {
@@ -846,8 +845,8 @@ void Physics::Configure(const Entity &_entity,
       continue;
     }
 
-    this->dataPtr->engine = gz::physics::RequestEngine<
-      gz::physics::FeaturePolicy3d,
+    this->dataPtr->engine = physics::RequestEngine<
+      physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
     if (nullptr != this->dataPtr->engine)
@@ -857,8 +856,8 @@ void Physics::Configure(const Entity &_entity,
       break;
     }
 
-    auto missingFeatures = gz::physics::RequestEngine<
-        gz::physics::FeaturePolicy3d,
+    auto missingFeatures = physics::RequestEngine<
+        physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
 
     std::stringstream msg;
@@ -1054,8 +1053,22 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
 
         // Check if parent world / model exists
         sdf::Model model;
+        if (const auto *modelSdfComp =
+            _ecm.Component<components::ModelSdf>(_entity))
+        {
+          model = modelSdfComp->Data();
+        }
+
+        // Component values should override whatever values were put into the
+        // ModelSdf component.
         model.SetName(_name->Data());
         model.SetRawPose(_pose->Data());
+        model.SetPoseRelativeTo("");
+
+        sdf::Root root;
+        root.SetModel(model);
+        root.UpdateGraphs();
+
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
@@ -1092,17 +1105,24 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               }
               return true;
             }
-            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
-            this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-            this->topLevelModelMap.insert(std::make_pair(_entity,
-                topLevelModel(_entity, _ecm)));
+            auto modelPtrPhys =
+              nestedModelFeature->ConstructNestedModel(*root.Model());
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+              this->topLevelModelMap.insert(std::make_pair(_entity,
+                  topLevelModel(_entity, _ecm)));
+            }
           }
           else
           {
-            auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
-            this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-            this->topLevelModelMap.insert(std::make_pair(_entity,
-                topLevelModel(_entity, _ecm)));
+            auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
+            if (modelPtrPhys)
+            {
+              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+              this->topLevelModelMap.insert(std::make_pair(_entity,
+                  topLevelModel(_entity, _ecm)));
+            }
           }
         }
         // check if parent is a model (nested model)
@@ -1208,12 +1228,35 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
                   << "] not found on model map." << std::endl;
           return true;
         }
+        auto basicModelPtrPhys = this->entityModelMap.Get(_parent->Data());
+
+        if (const auto existingLink = basicModelPtrPhys->GetLink(_name->Data()))
+        {
+          // No need to create this link because it was already created when
+          // parsing the model (links in models are required to have unique
+          // names). Instead we will register its existence and move along.
+          this->entityLinkMap.AddEntity(_entity, existingLink);
+          this->topLevelModelMap.insert(
+            std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          return true;
+        }
+
         auto modelPtrPhys =
-            this->entityModelMap.Get(_parent->Data());
+            this->entityModelMap
+              .EntityCast<ConstructSdfLinkFeatureList>(_parent->Data());
+
+        if (!modelPtrPhys)
+        {
+          gzwarn << "Cannot create a new link [" << _name->Data() << "] "
+                 << "because the physics engine plugin does not support "
+                 << "link construction during runtime" << std::endl;
+          return true;
+        }
 
         sdf::Link link;
         link.SetName(_name->Data());
         link.SetRawPose(_pose->Data());
+        link.SetPoseRelativeTo("");
 
         if (this->staticEntities.find(_parent->Data()) !=
             this->staticEntities.end())
@@ -1228,7 +1271,24 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetInertial(inertial->Data());
         }
 
-        auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
+        auto constructLinkFeature =
+          this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
+            _parent->Data());
+
+        if (!constructLinkFeature)
+        {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to construct sdf link, but the "
+                     << "physics engine doesn't support feature "
+                     << "[ConstructSdfLinkFeature]." << std::endl;
+              informed = true;
+            }
+            return true;
+        }
+
+        auto linkPtrPhys = constructLinkFeature->ConstructLink(link);
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
@@ -1280,6 +1340,20 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
         }
         auto linkPtrPhys = this->entityLinkMap.Get(_parent->Data());
 
+        if (const auto existingShape = linkPtrPhys->GetShape(_name->Data()))
+        {
+          // No need to create this collision shape because it was already
+          // created when parsing the model.
+          auto linkCollisionFeature =
+              this->entityLinkMap.EntityCast<CollisionFeatureList>(
+                  _parent->Data());
+          this->entityCollisionMap.AddEntity(
+            _entity, linkCollisionFeature->GetShape(_name->Data()));
+          this->topLevelModelMap.insert(
+            std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          return true;
+        }
+
         // Make a copy of the collision DOM so we can set its pose which has
         // been resolved and is now expressed w.r.t the parent link of the
         // collision.
@@ -1299,7 +1373,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          auto &meshManager = *gz::common::MeshManager::Instance();
+          auto &meshManager = *common::MeshManager::Instance();
           auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
           auto *mesh = meshManager.Load(fullPath);
           if (nullptr == mesh)
@@ -1384,7 +1458,17 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           // DEM
           else
           {
+            auto worldEntity = _ecm.EntityByComponents(components::World());
+            auto sphericalCoordinatesComponent =
+              _ecm.Component<components::SphericalCoordinates>(
+                worldEntity);
+
             auto dem = std::make_shared<common::Dem>();
+            if (sphericalCoordinatesComponent)
+            {
+              dem->SetSphericalCoordinates(
+                  sphericalCoordinatesComponent->Data());
+            }
             if (dem->Load(fullPath) < 0)
             {
               gzerr << "Failed to load heightmap dem data from ["
@@ -1529,12 +1613,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::ChildLinkName *_childLinkName) -> bool
       {
         // If the parent model is scheduled for recreation, then do not
-        // try to create a new link. This situation can occur when a link
+        // try to create a new joint. This situation can occur when a joint
         // is added to a model from the GUI model editor.
         if (_ecm.EntityHasComponentType(_parentModel->Data(),
               components::Recreate::typeId))
         {
-          // Add this entity to the set of newly added links to existing
+          // Add this entity to the set of newly added joints to existing
           // models.
           this->jointAddedToModel.insert(_entity);
           return true;
@@ -1555,28 +1639,49 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         // Check if parent model exists
         if (!this->entityModelMap.HasEntity(_parentModel->Data()))
         {
-          gzwarn << "Joint's parent entity [" << _parentModel->Data()
+          gzerr << "Joint's parent model entity [" << _parentModel->Data()
                   << "] not found on model map." << std::endl;
           return true;
         }
-        auto modelPtrPhys = this->entityModelMap.Get(_parentModel->Data());
 
-        auto modelJointFeature =
-            this->entityModelMap.EntityCast<JointFeatureList>(
-                _parentModel->Data());
-        if (!modelJointFeature)
+        auto basicModelPtrPhys = this->entityModelMap
+            .EntityCast<JointFeatureList>(_parentModel->Data());
+        if (!basicModelPtrPhys)
         {
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to process joints, but the physics "
-                   << "engine doesn't support joint features. "
-                   << "Joints will be ignored." << std::endl;
+            gzerr << "Attempting to create a new joint [" <<_name->Data()
+                  << "] but the chosen physics engine does not support the "
+                  << "minimal joint features, so no joints will be created."
+                  << std::endl;
             informed = true;
           }
 
-          // Break Each call since no joints can be processed
+          // Skip all other attempts to create joints
           return false;
+        }
+
+        if (const auto existingJoint =
+            basicModelPtrPhys->GetJoint(_name->Data()))
+        {
+          // No need to create this joint because it was already created when
+          // parsing the model.
+          this->entityJointMap.AddEntity(_entity, existingJoint);
+          this->topLevelModelMap.insert(
+            std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          return true;
+        }
+
+        auto modelPtrPhys =
+            this->entityModelMap.EntityCast<ConstructSdfJointFeatureList>(
+                _parentModel->Data());
+        if (!modelPtrPhys)
+        {
+          gzerr << "Attempting to create a new joint [" << _name->Data()
+                << "], but the physics engine doesn't support constructing "
+                << "joints at runtime." << std::endl;
+          return true;
         }
 
         sdf::Joint joint;
@@ -1600,7 +1705,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           joint.SetAxis(1, jointAxis2->Data());
 
         // Use the parent link's parent model as the model of this joint
-        auto jointPtrPhys = modelJointFeature->ConstructJoint(joint);
+        auto jointPtrPhys = modelPtrPhys->ConstructJoint(joint);
 
         if (jointPtrPhys.Valid())
         {
@@ -1641,9 +1746,9 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             this->entityLinkMap.Get(_jointInfo->Data().parentLink);
         if (!parentLinkPhys)
         {
-          gzwarn << "DetachableJoint's parent link entity ["
-                  << _jointInfo->Data().parentLink << "] not found in link map."
-                  << std::endl;
+          gzerr << "DetachableJoint's parent link entity ["
+                << _jointInfo->Data().parentLink << "] not found in link map."
+                << std::endl;
           return true;
         }
 
@@ -1653,8 +1758,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         auto childLinkPhys = this->entityLinkMap.Get(childLinkEntity);
         if (!childLinkPhys)
         {
-          gzwarn << "Failed to find joint's child link [" << childLinkEntity
-                  << "]." << std::endl;
+          gzerr << "Failed to find joint's child link [" << childLinkEntity
+                << "]." << std::endl;
           return true;
         }
 
@@ -1666,7 +1771,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to create a detachable joint, but the physics"
+            gzerr << "Attempting to create a detachable joint, but the physics"
                    << " engine doesn't support feature "
                    << "[AttachFixedJointFeature]. Detachable joints will be "
                    << "ignored." << std::endl;
@@ -1699,7 +1804,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         }
         else
         {
-          gzwarn << "DetachableJoint could not be created." << std::endl;
+          gzerr << "DetachableJoint could not be created." << std::endl;
         }
         return true;
       });
@@ -2647,9 +2752,9 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
-  gz::physics::ForwardStep::Input input;
-  gz::physics::ForwardStep::State state;
-  gz::physics::ForwardStep::Output output;
+  physics::ForwardStep::Input input;
+  physics::ForwardStep::State state;
+  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
@@ -2662,7 +2767,7 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
 }
 
 //////////////////////////////////////////////////
-gz::math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
+math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
   const Entity &_to, const EntityComponentManager &_ecm) const
 {
   math::Pose3d transform;
@@ -3223,7 +3328,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          gz::math::Vector3d entityWorldAngularVel =
+          math::Vector3d entityWorldAngularVel =
               math::eigen3::convert(entityFrameData.angularVelocity);
 
           auto entityBodyAngularVel =
@@ -3248,7 +3353,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
 
           auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-          gz::math::Vector3d entityWorldLinearAcc =
+          math::Vector3d entityWorldLinearAcc =
               math::eigen3::convert(entityFrameData.linearAcceleration);
 
           auto entityBodyLinearAcc =
@@ -3504,8 +3609,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
-  auto allContacts =
-      std::move(worldCollisionFeature->GetContactsFromLastStep());
+  auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
 
   for (const auto &contactComposite : allContacts)
   {
@@ -3678,12 +3782,9 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 }
 
 GZ_ADD_PLUGIN(Physics,
-                    gz::sim::System,
+                    System,
                     Physics::ISystemConfigure,
                     Physics::ISystemReset,
                     Physics::ISystemUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Physics, "ignition::gazebo::systems::Physics")

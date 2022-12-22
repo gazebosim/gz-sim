@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="EnvironmentLoader">
+  <file>EnvironmentLoader.qml</file>
+</qresource>
+</RCC>

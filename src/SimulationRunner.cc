@@ -19,6 +19,16 @@
 
 #include <algorithm>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
 #include <sdf/Root.hh>
 
 #include "gz/common/Profiler.hh"
@@ -112,9 +122,28 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // World control
+  transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
+  if (this->networkMgr)
+  {
+    ns = this->networkMgr->Namespace() + ns;
+  }
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
+  {
+    gzerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
+  }
+  opts.SetNameSpace(validNs);
+
+  this->node = std::make_unique<transport::Node>(opts);
+
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr);
+      &this->entityCompMgr, &this->eventMgr, validNs);
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -122,7 +151,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
-  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
@@ -182,30 +211,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = gz::sim::loadPluginInfo(isPlayback);
+    auto plugins = sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
-
-  // World control
-  transport::NodeOptions opts;
-  std::string ns{"/world/" + this->worldName};
-  if (this->networkMgr)
-  {
-    ns = this->networkMgr->Namespace() + ns;
-  }
-
-  auto validNs = transport::TopicUtils::AsValidTopic(ns);
-  if (validNs.empty())
-  {
-    gzerr << "Invalid namespace [" << ns
-           << "], not initializing runner transport." << std::endl;
-    return;
-  }
-  opts.SetNameSpace(validNs);
-
-  this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -407,14 +417,14 @@ void SimulationRunner::PublishStats()
   GZ_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  gz::msgs::WorldStatistics msg;
+  msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.realTime);
+    math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.simTime);
+    math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -428,8 +438,11 @@ void SimulationRunner::PublishStats()
 
   if (this->Stepping())
   {
+    // (deprecated) Remove this header in Gazebo H
     auto headerData = msg.mutable_header()->add_data();
     headerData->set_key("step");
+
+    msg.set_stepping(true);
   }
 
   // Publish the stats message. The stats message is throttled.
@@ -440,7 +453,7 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  gz::msgs::Clock clockMsg;
+  msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
@@ -489,7 +502,8 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
@@ -530,7 +544,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // a gz::common::WorkerPool. There is overhead associated with
+  // a common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
@@ -652,14 +666,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // https://github.com/gazebosim/gz-gui/pull/306 and
     // https://github.com/gazebosim/gz-sim/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
@@ -686,13 +700,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<gz::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
@@ -712,7 +726,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       gzmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<msgs::Clock>(
           "/clock");
     }
   }
@@ -824,6 +838,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // so that we can recreate entities with the same name.
   this->ProcessRecreateEntitiesRemove();
 
+  // handle systems that need to be added
+  this->systemMgr->ProcessPendingEntitySystems();
+
   // Update all the systems.
   this->UpdateSystems();
 
@@ -873,11 +890,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
+                                  const sdf::Plugin &_plugin)
 {
-  this->systemMgr->LoadPlugin(_entity, _fname, _name, _sdf);
+  this->systemMgr->LoadPlugin(_entity, _plugin);
 }
 
 //////////////////////////////////////////////////
@@ -957,7 +972,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+      this->LoadPlugin(entity, plugin.Plugin());
     }
   }
 }
@@ -989,23 +1004,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+    const sdf::Plugins &_plugins)
 {
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
+  for (const sdf::Plugin &plugin : _plugins)
   {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
+      this->LoadPlugin(_entity, plugin);
     }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 
@@ -1436,7 +1446,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(gz::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(msgs::GUI &_res)
 {
   _res.Clear();
 

@@ -17,6 +17,8 @@
 
 #include "ApplyJointForce.hh"
 
+#include <gz/msgs/double.pb.h>
+
 #include <string>
 
 #include <gz/common/Profiler.hh>
@@ -35,7 +37,7 @@ class gz::sim::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const gz::msgs::Double &_msg);
+  public: void OnCmdForce(const msgs::Double &_msg);
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -111,8 +113,8 @@ void ApplyJointForce::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ApplyJointForce::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("ApplyJointForce::PreUpdate");
 
@@ -164,13 +166,9 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 GZ_ADD_PLUGIN(ApplyJointForce,
-                    gz::sim::System,
+                    System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "gz::sim::systems::ApplyJointForce")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ApplyJointForce,
-                          "ignition::gazebo::systems::ApplyJointForce")

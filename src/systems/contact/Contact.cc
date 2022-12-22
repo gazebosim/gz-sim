@@ -123,7 +123,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
   }
 
   gzmsg << "Contact system publishing on " << this->topic << std::endl;
-  this->pub = this->node.Advertise<gz::msgs::Contacts>(this->topic);
+  this->pub = this->node.Advertise<msgs::Contacts>(this->topic);
 }
 
 //////////////////////////////////////////////////
@@ -300,6 +300,3 @@ GZ_ADD_PLUGIN(Contact, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")

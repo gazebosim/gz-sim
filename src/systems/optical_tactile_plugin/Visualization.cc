@@ -32,14 +32,12 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
   gz::math::Vector3d &_sensorSize,
   double &_forceLength,
   float &_cameraUpdateRate,
-  gz::math::Pose3f &_depthCameraOffset,
-  int &_visualizationResolution) :
+  gz::math::Pose3f &_depthCameraOffset) :
   modelName(_modelName),
   sensorSize(_sensorSize),
   forceLength(_forceLength),
   cameraUpdateRate(_cameraUpdateRate),
-  depthCameraOffset(_depthCameraOffset),
-  visualizationResolution(_visualizationResolution)
+  depthCameraOffset(_depthCameraOffset)
 {
 }
 

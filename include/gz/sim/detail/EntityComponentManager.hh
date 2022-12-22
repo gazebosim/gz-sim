@@ -52,11 +52,14 @@ namespace traits
   template<typename T>
   struct HasEqualityOperator
   {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
     enum
     {
       // False positive codecheck "Using C-style cast"
       value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
     };
+#pragma GCC diagnostic pop
   };
 }
 
@@ -129,23 +132,6 @@ ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
-const ComponentTypeT *EntityComponentManager::Component(
-    const ComponentKey &_key) const
-{
-  return static_cast<const ComponentTypeT *>(
-      this->ComponentImplementation(_key.second, _key.first));
-}
-
-//////////////////////////////////////////////////
-template<typename ComponentTypeT>
-ComponentTypeT *EntityComponentManager::Component(const ComponentKey &_key)
-{
-  return static_cast<ComponentTypeT *>(
-      this->ComponentImplementation(_key.second, _key.first));
-}
-
-//////////////////////////////////////////////////
-template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
     const typename ComponentTypeT::Type &_default)
 {
@@ -184,24 +170,6 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
   }
 
   return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
-}
-
-//////////////////////////////////////////////////
-template<typename ComponentTypeT>
-const ComponentTypeT *EntityComponentManager::First() const
-{
-  gzwarn << "EntityComponentManager::First is now deprecated and will always "
-    << "return nullptr.\n";
-  return nullptr;
-}
-
-//////////////////////////////////////////////////
-template<typename ComponentTypeT>
-ComponentTypeT *EntityComponentManager::First()
-{
-  gzwarn << "EntityComponentManager::First is now deprecated and will always "
-    << "return nullptr.\n";
-  return nullptr;
 }
 
 //////////////////////////////////////////////////

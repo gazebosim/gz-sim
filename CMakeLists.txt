@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.0.0)
+project(gz-sim8 VERSION 8.0.0)
+# TODO(chapulina) Update name when it's chosen and the version bumped
+set (GZ_DISTRIBUTION "?")
 
 #============================================================================
 # Find gz-cmake
@@ -40,13 +42,18 @@ endif()
 include(test/find_dri.cmake)
 FindDRI()
 
-option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
-      "Install python modules in standard system paths in the system"
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
       OFF)
 
-option(USE_DIST_PACKAGES_FOR_PYTHON
+include(CMakeDependentOption)
+cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
+      "Install python modules in standard system paths in the system"
+      OFF "NOT SKIP_PYBIND11" OFF)
+
+cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      OFF)
+      OFF "NOT SKIP_PYBIND11" OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -87,6 +94,7 @@ gz_find_package(gz-common5
     profiler
     events
     av
+    io
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
@@ -98,8 +106,8 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui7 REQUIRED)
-set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package(gz-gui8 REQUIRED)
+set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -121,7 +129,7 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors8 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -140,18 +148,19 @@ gz_find_package(gz-sensors7 REQUIRED
 
     # cameras
     camera
+    boundingbox_camera
     segmentation_camera
     depth_camera
     rgbd_camera
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering7 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
+gz_find_package(gz-rendering8 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-math
@@ -166,6 +175,9 @@ if (GZ_TOOLS_PROGRAM)
 else()
   message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
 endif()
+# Note that CLI files are installed regardless of whether the dependency is
+# available during build time
+set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
@@ -184,24 +196,27 @@ set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
-include(GzPython)
-find_package(PythonLibs QUIET)
-if (NOT PYTHONLIBS_FOUND)
-  GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
-  message (STATUS "Searching for Python - not found.")
+if (SKIP_PYBIND11)
+  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+  find_package(PythonLibs QUIET)
+  if (NOT PYTHONLIBS_FOUND)
+    GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for Python - not found.")
+  else()
+    message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
+    set(PYBIND11_PYTHON_VERSION 3)
+    find_package(Python3 QUIET COMPONENTS Interpreter Development)
+    find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+    if (pybind11_FOUND)
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_INSTALL_DIR
@@ -257,13 +272,3 @@ endif()
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
-
-# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
-# TODO(CH3): Deprecated. Remove on tock
-configure_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  COPYONLY)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

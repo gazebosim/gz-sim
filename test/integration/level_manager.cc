@@ -73,15 +73,15 @@ class ModelMover: public test::Relay
     poseCmd = std::move(_pose);
   }
 
-  public: sim::Entity Id() const
+  public: Entity Id() const
   {
     return entity;
   }
 
   /// \brief Sets the pose component of the entity to the commanded pose. This
   /// function meant to be called in the preupdate phase
-  private: void MoveModel(const sim::UpdateInfo &,
-                          sim::EntityComponentManager &_ecm)
+  private: void MoveModel(const UpdateInfo &,
+                          EntityComponentManager &_ecm)
   {
     if (this->poseCmd)
     {
@@ -93,7 +93,7 @@ class ModelMover: public test::Relay
 
 
   /// \brief Entity to move
-  private: sim::Entity entity;
+  private: Entity entity;
   /// \brief Pose command
   private: std::optional<math::Pose3d> poseCmd;
 };
@@ -106,7 +106,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    gz::sim::ServerConfig serverConfig;
+    sim::ServerConfig serverConfig;
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,
@@ -179,8 +179,9 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 /// Check default level includes entities not included by other levels
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(LevelManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultLevel))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LevelManagerFixture, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DefaultLevel))
 {
   std::vector<std::set<std::string>> levelEntityNamesList;
 
@@ -432,8 +433,9 @@ TEST_F(LevelManagerFixture,
 
 ///////////////////////////////////////////////
 /// Check that buffers work properly with multiple performers
+// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_F(LevelManagerFixture,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelBuffersWithMultiplePerformers))
+     GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LevelBuffersWithMultiplePerformers))
 {
   ModelMover perf1(*this->server->EntityByName("sphere"));
   ModelMover perf2(*this->server->EntityByName("box"));

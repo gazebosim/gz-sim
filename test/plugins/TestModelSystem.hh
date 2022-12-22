@@ -17,12 +17,16 @@
 #ifndef GZ_SIM_TEST_TESTMODELSYSTEM_HH_
 #define GZ_SIM_TEST_TESTMODELSYSTEM_HH_
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/System.hh>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/sim/config.hh>
+
 
 namespace gz
 {

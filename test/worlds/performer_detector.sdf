@@ -119,6 +119,11 @@
                 <slip2>0</slip2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -164,6 +169,11 @@
                 <slip2>0</slip2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -209,6 +219,11 @@
                 <slip2>0</slip2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -254,6 +269,11 @@
                 <slip2>0</slip2>
                 <fdir1>0 0 1</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>

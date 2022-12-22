@@ -65,9 +65,10 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
   {
     InternalFixture::SetUp();
 
-    auto plugin = sm.LoadPlugin("libMockSystem.so",
-                                "gz::sim::MockSystem",
-                                nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    sdfPlugin.SetFilename("MockSystem");
+    auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
     this->mockSystem = static_cast<sim::MockSystem *>(
@@ -192,8 +193,8 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(SensorsBatteryState))
   // verify image count
   {
     std::lock_guard<std::mutex> lock(mutex);
-    EXPECT_EQ(expectedImgCount, imgCount);
-    EXPECT_EQ(expectedImgCount, depthImgCount);
+    EXPECT_NEAR(expectedImgCount, imgCount, 1);
+    EXPECT_NEAR(expectedImgCount, depthImgCount, 1);
     imgCount = 0u;
     depthImgCount = 0u;
   }

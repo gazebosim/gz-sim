@@ -16,6 +16,10 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>
@@ -51,7 +55,7 @@ TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   // Run server
   server.Run(true, 1, false);
 
-  gz::transport::Node node;
+  transport::Node node;
   std::vector<std::string> services;
   bool hasService = false;
 
@@ -75,8 +79,8 @@ TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   }
   EXPECT_TRUE(hasService);
 
-  gz::msgs::VideoRecord videoRecordMsg;
-  gz::msgs::Boolean res;
+  msgs::VideoRecord videoRecordMsg;
+  msgs::Boolean res;
   bool result = false;
   unsigned int timeout = 5000;
 

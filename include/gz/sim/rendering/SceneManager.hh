@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -40,6 +41,7 @@
 #include <gz/math/Inertial.hh>
 #include <gz/math/Matrix4.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/particle_emitter.pb.h>
@@ -117,6 +119,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Get the world's ID.
     /// \return World ID
     public: Entity WorldId() const;
+
+    /// \brief Set the spherical coordinates from world.
+    /// \param[in] _sphericalCoordinates SphericalCoordinates
+    /// from the world.
+    public: void SetSphericalCoordinates(
+        const math::SphericalCoordinates &_sphericalCoordinates);
 
     /// \brief Create a model
     /// \param[in] _id Unique model id
@@ -205,6 +213,19 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \return Pointer to requested visual
     public: rendering::VisualPtr VisualById(Entity _id);
 
+    /// \brief Load Actor animations
+    /// \param[in] _actor Actor
+    /// \return Animation name to ID map
+    public: std::unordered_map<std::string, unsigned int>
+        LoadAnimations(const sdf::Actor &_actor);
+
+    /// \brief Sequences Trajectories
+    /// \param[in] _trajectories Actor trajectories
+    /// \param[in] _time Actor trajectory delay start time (miliseconds)
+    public: void SequenceTrajectories(
+        std::vector<common::TrajectoryInfo>& _trajectories,
+        std::chrono::steady_clock::time_point _time);
+
     /// \brief Create an actor
     /// \param[in] _id Unique actor id
     /// \param[in] _actor Actor sdf dom
@@ -251,11 +272,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Gazebo Sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.
-    /// \param[in] _gazeboId Entity in Gazebo
+    /// \param[in] _simId Entity in Sim
     /// \param[in] _sensorName Name of sensor node in Gazebo Rendering.
     /// \param[in] _parentGazeboId Parent Id on Gazebo.
     /// \return True if sensor is successfully handled
-    public: bool AddSensor(Entity _gazeboId, const std::string &_sensorName,
+    public: bool AddSensor(Entity _simId, const std::string &_sensorName,
         Entity _parentGazeboId = 0);
 
     /// \brief Check if entity exists

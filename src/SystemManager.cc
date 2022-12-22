@@ -15,6 +15,11 @@
  *
 */
 
+#include <list>
+#include <set>
+
+#include <gz/common/StringUtils.hh>
+
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
@@ -25,34 +30,45 @@ using namespace sim;
 //////////////////////////////////////////////////
 SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
                              EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr)
+                             EventManager *_eventMgr,
+                             const std::string &_namespace)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
     eventMgr(_eventMgr)
 {
+  transport::NodeOptions opts;
+  opts.SetNameSpace(_namespace);
+  this->node = std::make_unique<transport::Node>(opts);
+  std::string entitySystemAddService{"entity/system/add"};
+  this->node->Advertise(entitySystemAddService,
+      &SystemManager::EntitySystemAddService, this);
+  gzmsg << "Serving entity system service on ["
+         << "/" << entitySystemAddService << "]" << std::endl;
+
+  std::string entitySystemInfoService{"system/info"};
+  this->node->Advertise(entitySystemInfoService,
+      &SystemManager::EntitySystemInfoService, this);
 }
 
 //////////////////////////////////////////////////
 void SystemManager::LoadPlugin(const Entity _entity,
-                               const std::string &_fname,
-                               const std::string &_name,
-                               const sdf::ElementPtr &_sdf)
+                               const sdf::Plugin &_plugin)
 {
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
+    system = this->systemLoader->LoadPlugin(_plugin);
   }
 
   // System correctly loaded from library
   if (system)
   {
     SystemInternal ss(system.value(), _entity);
-    ss.fname = _fname;
-    ss.name = _name;
-    ss.configureSdf = _sdf;
+    ss.fname = _plugin.Filename();
+    ss.name = _plugin.Name();
+    ss.configureSdf = _plugin.ToElement();
     this->AddSystemImpl(ss, ss.configureSdf);
-    gzdbg << "Loaded system [" << _name
+    gzdbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
   }
 }
@@ -155,16 +171,16 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
       // from a plugin, because there isn't access to the constructor.
       if (nullptr != system.systemShared)
       {
-        ignwarn << "In-memory without ISystemReset detected: ["
+        gzwarn << "In-memory without ISystemReset detected: ["
           << system.name << "]\n"
           << "Systems created without plugins that do not implement Reset"
           << " will not be reloaded. Reset may not work correctly\n";
         continue;
       }
-      PluginInfo info = {
-        system.parentEntity, system.fname, system.name,
-        system.configureSdf->Clone()
-      };
+
+      sdf::ElementPtr elem = system.configureSdf ?
+          system.configureSdf->Clone() : nullptr;
+      PluginInfo info = {system.parentEntity, system.fname, system.name, elem};
 
       pluginsToBeLoaded.push_back(info);
     }
@@ -177,8 +193,11 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   // and configured.
   for (const auto &pluginInfo : pluginsToBeLoaded)
   {
-    this->LoadPlugin(pluginInfo.entity, pluginInfo.fname, pluginInfo.name,
-        pluginInfo.sdf);
+    sdf::Plugin plugin;
+    plugin.Load(pluginInfo.sdf);
+    plugin.SetFilename(pluginInfo.fname);
+    plugin.SetName(pluginInfo.name);
+    this->LoadPlugin(pluginInfo.entity, plugin);
   }
   this->ActivatePendingSystems();
 }
@@ -248,7 +267,7 @@ const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemReset *>& SystemManager::SystemsReset()
+const std::vector<ISystemReset *> &SystemManager::SystemsReset()
 {
   return this->systemsReset;
 }
@@ -285,4 +304,86 @@ std::vector<SystemInternal> SystemManager::TotalByEntity(Entity _entity)
   std::copy_if(this->pendingSystems.begin(), this->pendingSystems.end(),
       std::back_inserter(result), checkEntity);
   return result;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
+                                           msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  this->systemsToAdd.push_back(_req);
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::EntitySystemInfoService(const msgs::Empty &,
+                                            msgs::EntityPlugin_V &_res)
+{
+  // loop through all files in paths and populate the list of
+  // plugin libraries.
+  std::list<std::string> paths = this->systemLoader->PluginPaths();
+  std::set<std::string> filenames;
+  for (const auto &p : paths)
+  {
+    if (common::exists(p))
+    {
+      for (common::DirIter file(p);
+          file != common::DirIter(); ++file)
+      {
+        std::string current(*file);
+        std::string filename = common::basename(current);
+        if (common::isFile(current) &&
+            (common::EndsWith(filename, ".so") ||
+             common::EndsWith(filename, ".dll") ||
+             common::EndsWith(filename, ".dylib")))
+        {
+          // remove extension and lib prefix
+          size_t extensionIndex = filename.rfind(".");
+          std::string nameWithoutExtension =
+              filename.substr(0, extensionIndex);
+          if (common::StartsWith(nameWithoutExtension, "lib"))
+          {
+            nameWithoutExtension = nameWithoutExtension.substr(3);
+          }
+          filenames.insert(nameWithoutExtension);
+        }
+      }
+    }
+  }
+
+  for (const auto &fn : filenames)
+  {
+    auto plugin = _res.add_plugins();
+    plugin->set_filename(fn);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
+void SystemManager::ProcessPendingEntitySystems()
+{
+  std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
+  for (auto &req : this->systemsToAdd)
+  {
+    Entity entity = req.entity().id();
+
+    if (req.plugins().empty())
+    {
+      gzwarn << "Unable to add plugins to Entity: '" << entity
+             << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    for (auto &pluginMsg : req.plugins())
+    {
+      std::string fname = pluginMsg.filename();
+      std::string name = pluginMsg.name();
+      std::string innerxml = pluginMsg.innerxml();
+      sdf::Plugin pluginSDF(fname, name, innerxml);
+      this->LoadPlugin(entity, pluginSDF);
+    }
+  }
+  this->systemsToAdd.clear();
 }

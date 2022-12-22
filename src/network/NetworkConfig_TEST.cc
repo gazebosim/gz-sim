@@ -60,4 +60,3 @@ TEST(NetworkManager, ValueConstructor)
     assert(config.role == NetworkRole::None);
   }
 }
-

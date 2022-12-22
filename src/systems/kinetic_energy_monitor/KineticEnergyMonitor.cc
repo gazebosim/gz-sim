@@ -15,7 +15,17 @@
  *
  */
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <gz/msgs/double.pb.h>
 
 #include <string>
@@ -175,7 +185,3 @@ GZ_ADD_PLUGIN(KineticEnergyMonitor,
 
 GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "gz::sim::systems::KineticEnergyMonitor")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-  "ignition::gazebo::systems::KineticEnergyMonitor")

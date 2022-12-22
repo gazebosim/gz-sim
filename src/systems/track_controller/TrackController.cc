@@ -91,8 +91,8 @@ class gz::sim::systems::TrackControllerPrivate
   /// \param[in] _frictionDirection First friction direction (in world coords).
   /// \return The computed contact surface speed.
   public: double ComputeSurfaceMotion(
-    double _beltSpeed, const gz::math::Vector3d &_beltDirection,
-    const gz::math::Vector3d &_frictionDirection);
+    double _beltSpeed, const math::Vector3d &_beltDirection,
+    const math::Vector3d &_frictionDirection);
 
   /// \brief Compute the first friction direction of the contact surface.
   /// \param[in] _centerOfRotation The point around which the track circles (
@@ -100,11 +100,11 @@ class gz::sim::systems::TrackControllerPrivate
   /// \param[in] _contactWorldPosition Position of the contact point.
   /// \param[in] _contactNormal Normal of the contact surface (in world coords).
   /// \param[in] _beltDirection Direction of the belt (in world coords).
-  public: gz::math::Vector3d ComputeFrictionDirection(
-    const gz::math::Vector3d &_centerOfRotation,
-    const gz::math::Vector3d &_contactWorldPosition,
-    const gz::math::Vector3d &_contactNormal,
-    const gz::math::Vector3d &_beltDirection);
+  public: math::Vector3d ComputeFrictionDirection(
+    const math::Vector3d &_centerOfRotation,
+    const math::Vector3d &_contactWorldPosition,
+    const math::Vector3d &_contactNormal,
+    const math::Vector3d &_beltDirection);
 
   /// \brief Name of the link to which the track is attached.
   public: std::string linkName;
@@ -342,24 +342,24 @@ void TrackController::Configure(const Entity &_entity,
   if (this->dataPtr->debug)
   {
     this->dataPtr->debugMarker.set_ns(this->dataPtr->linkName + "/friction");
-    this->dataPtr->debugMarker.set_action(gz::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->debugMarker.set_type(gz::msgs::Marker::BOX);
-    this->dataPtr->debugMarker.set_visibility(gz::msgs::Marker::GUI);
+    this->dataPtr->debugMarker.set_action(msgs::Marker::ADD_MODIFY);
+    this->dataPtr->debugMarker.set_type(msgs::Marker::BOX);
+    this->dataPtr->debugMarker.set_visibility(msgs::Marker::GUI);
     this->dataPtr->debugMarker.mutable_lifetime()->set_sec(0);
     this->dataPtr->debugMarker.mutable_lifetime()->set_nsec(4000000);
 
     // Set material properties
-    gz::msgs::Set(
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_ambient(),
-      gz::math::Color(0, 0, 1, 1));
-    gz::msgs::Set(
+      math::Color(0, 0, 1, 1));
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_diffuse(),
-      gz::math::Color(0, 0, 1, 1));
+      math::Color(0, 0, 1, 1));
 
     // Set marker scale
-    gz::msgs::Set(
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_scale(),
-      gz::math::Vector3d(0.3, 0.03, 0.03));
+      math::Vector3d(0.3, 0.03, 0.03));
   }
 }
 
@@ -530,10 +530,10 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
     p += rot.RotateVector(
       math::Vector3d::UnitX * this->debugMarker.scale().x() / 2);
 
-    gz::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
+    msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
       p.X(), p.Y(), p.Z(), rot.Roll(), rot.Pitch(), rot.Yaw()));
     this->debugMarker.mutable_material()->mutable_diffuse()->set_r(
-      surfaceMotion >= 0 ? 0 : 1);
+      surfaceMotion >= 0 ? 0.0f : 1.0f);
 
     this->node.Request("/marker", this->debugMarker);
   }
@@ -541,8 +541,8 @@ void TrackControllerPrivate::ComputeSurfaceProperties(
 
 //////////////////////////////////////////////////
 double TrackControllerPrivate::ComputeSurfaceMotion(
-  const double _beltSpeed, const gz::math::Vector3d &_beltDirection,
-  const gz::math::Vector3d &_frictionDirection)
+  const double _beltSpeed, const math::Vector3d &_beltDirection,
+  const math::Vector3d &_frictionDirection)
 {
   // the dot product <beltDirection,fdir1> is the cosine of the angle they
   // form (because both are unit vectors)
@@ -553,11 +553,11 @@ double TrackControllerPrivate::ComputeSurfaceMotion(
 }
 
 //////////////////////////////////////////////////
-gz::math::Vector3d TrackControllerPrivate::ComputeFrictionDirection(
-  const gz::math::Vector3d &_centerOfRotation,
-  const gz::math::Vector3d &_contactWorldPosition,
-  const gz::math::Vector3d &_contactNormal,
-  const gz::math::Vector3d &_beltDirection)
+math::Vector3d TrackControllerPrivate::ComputeFrictionDirection(
+  const math::Vector3d &_centerOfRotation,
+  const math::Vector3d &_contactWorldPosition,
+  const math::Vector3d &_contactNormal,
+  const math::Vector3d &_beltDirection)
 {
   if (_centerOfRotation.IsFinite())
   {
@@ -614,13 +614,9 @@ void TrackControllerPrivate::OnCenterOfRotation(const msgs::Vector3d& _msg)
 }
 
 GZ_ADD_PLUGIN(TrackController,
-                    gz::sim::System,
+                    System,
                     TrackController::ISystemConfigure,
                     TrackController::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TrackController,
                           "gz::sim::systems::TrackController")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrackController,
-                          "ignition::gazebo::systems::TrackController")

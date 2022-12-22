@@ -16,6 +16,7 @@
 */
 
 #include <optional>
+#include <sstream>
 #include <string>
 #include <unordered_set>
 
@@ -41,98 +42,153 @@ class gz::sim::SystemLoaderPrivate
   public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
-  public: bool InstantiateSystemPlugin(const std::string &_filename,
-              const std::string &_name,
-              const sdf::ElementPtr &/*_sdf*/,
-              gz::plugin::PluginPtr &_plugin)
+  public: std::list<std::string> PluginPaths() const
+  {
+    common::SystemPaths systemPaths;
+    systemPaths.SetPluginPathEnv(pluginPathEnv);
+
+    for (const std::string &path : this->systemPluginPaths)
+      systemPaths.AddPluginPaths(path);
+
+    std::string homePath;
+    common::env(GZ_HOMEDIR, homePath);
+    systemPaths.AddPluginPaths(common::joinPaths(
+        homePath, ".gz", "sim", "plugins"));
+    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
+
+    return systemPaths.PluginPaths();
+  }
+
+  //////////////////////////////////////////////////
+  public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
+              gz::plugin::PluginPtr &_gzPlugin)
   {
     // Deprecated: accept ignition-gazebo-prefixed systems
     std::string deprecatedPrefix{"ignition-gazebo"};
-    auto filename = _filename;
+    auto filename = _sdfPlugin.Filename();
     auto pos = filename.find(deprecatedPrefix);
     if (pos != std::string::npos)
     {
       filename.replace(pos, deprecatedPrefix.size(), "gz-sim");
-      gzwarn << "Trying to load deprecated plugin [" << _filename
+      gzwarn << "Trying to load deprecated plugin [" << _sdfPlugin.Filename()
              << "]. Using [" << filename << "] instead." << std::endl;
     }
 
-    gz::common::SystemPaths systemPaths;
-    systemPaths.SetPluginPathEnv(pluginPathEnv);
-
-    for (const auto &path : this->systemPluginPaths)
-      systemPaths.AddPluginPaths(path);
-
-    std::string homePath;
-    gz::common::env(GZ_HOMEDIR, homePath);
-    systemPaths.AddPluginPaths(homePath + "/.gz/sim/plugins");
-
-    // TODO(CH3): Deprecated. Remove on tock.
-    systemPaths.AddPluginPaths(homePath + "/.ignition/gazebo/plugins");
-
-    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
+    std::list<std::string> paths = this->PluginPaths();
+    common::SystemPaths systemPaths;
+    for (const auto &p : paths)
+    {
+      systemPaths.AddPluginPaths(p);
+    }
 
     auto pathToLib = systemPaths.FindSharedLibrary(filename);
     if (pathToLib.empty())
     {
-      // Try deprecated environment variable
-      // TODO(CH3): Deprecated. Remove on tock.
-      common::SystemPaths systemPathsDep;
-      systemPathsDep.SetPluginPathEnv(pluginPathEnvDeprecated);
-      pathToLib = systemPathsDep.FindSharedLibrary(filename);
-
-      if (pathToLib.empty())
+      // We assume gz::sim corresponds to the levels feature
+      if (_sdfPlugin.Name() != "gz::sim")
       {
-        // We assume gz::sim corresponds to the levels feature
-        if (_name != "gz::sim")
-        {
-          gzerr << "Failed to load system plugin [" << filename <<
-                    "] : couldn't find shared library." << std::endl;
-        }
-        return false;
+        gzerr << "Failed to load system plugin [" << filename <<
+                  "] : Could not find shared library." << std::endl;
       }
-      else
-      {
-        gzwarn << "Found plugin [" << filename
-               << "] using deprecated environment variable ["
-               << pluginPathEnvDeprecated << "]. Please use ["
-               << pluginPathEnv << "] instead." << std::endl;
-      }
+      return false;
     }
 
-    auto pluginNames = this->loader.LoadLib(pathToLib);
+    auto pluginNames = this->loader.LoadLib(pathToLib, true);
     if (pluginNames.empty())
     {
-      gzerr << "Failed to load system plugin [" << filename <<
-                "] : couldn't load library on path [" << pathToLib <<
-                "]." << std::endl;
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: No plugins detected in library)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n";
+      gzerr << ss.str();
       return false;
     }
 
     auto pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
-      gzerr << "Failed to load system plugin [" << filename <<
-                "] : couldn't load library on path [" << pathToLib <<
-                "]." << std::endl;
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: No plugins detected in library)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n";
+      gzerr << ss.str();
       return false;
     }
 
-    _plugin = this->loader.Instantiate(_name);
-    if (!_plugin)
+    // use the first plugin name in the library if not specified
+    std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
+        pluginName : _sdfPlugin.Name();
+
+    std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
+    pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
+    if (pos != std::string::npos)
     {
-      gzerr << "Failed to load system plugin [" << _name <<
-                "] : could not instantiate from library [" << filename <<
-                "] from path [" << pathToLib << "]." << std::endl;
+      auto origPluginName = pluginToInstantiate;
+      pluginToInstantiate.replace(pos, deprecatedPluginNamePrefix.size(),
+          "gz::sim");
+      gzwarn << "Trying to load deprecated plugin name [" << origPluginName
+             << "]. Using [" << pluginToInstantiate << "] instead."
+             << std::endl;
+    }
+
+    _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
+    if (!_gzPlugin)
+    {
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: library does not contain requested plugin)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n"
+         << "- Detected Plugins:\n";
+      for (const auto &pluginIt : pluginNames)
+      {
+        ss << "  - " << pluginIt << "\n";
+        auto aliases = this->loader.AliasesOfPlugin(pluginIt);
+        if (!aliases.empty())
+        {
+          ss << "\n    aliases:\n";
+          for (const auto& alias : aliases)
+          {
+            ss << "      " << alias << "\n";
+          }
+        }
+      }
+      gzerr << ss.str();
       return false;
     }
 
-    if (!_plugin->HasInterface<System>())
+    if (!_gzPlugin->HasInterface<System>())
     {
-      gzerr << "Failed to load system plugin [" << _name <<
-        "] : system not found in library  [" << filename <<
-        "] from path [" << pathToLib << "]." << std::endl;
-
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: plugin does not implement System interface)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Resolved library path: [" << pathToLib << "]\n"
+         << "- Detected Plugins:\n";
+      for (const auto &pluginIt : pluginNames)
+      {
+        ss << "  - " << pluginIt << "\n";
+        auto aliases = this->loader.AliasesOfPlugin(pluginIt);
+        if (!aliases.empty())
+        {
+          ss << "\n    aliases:\n";
+          for (const auto& alias : aliases)
+          {
+            ss << "      " << alias << "\n";
+          }
+        }
+      }
+      ss << "- Plugin Interfaces Implemented:\n";
+      for (const auto &interfaceIt : this->loader.InterfacesImplemented())
+      {
+        ss << "  - " << interfaceIt << "\n";
+      }
       return false;
     }
 
@@ -148,8 +204,6 @@ class gz::sim::SystemLoaderPrivate
 
   /// \brief Paths to search for system plugins.
   public: std::unordered_set<std::string> systemPluginPaths;
-
-  /// \brief System plugins that have instances loaded via the manager.
 };
 
 //////////////////////////////////////////////////
@@ -160,6 +214,12 @@ SystemLoader::SystemLoader()
 
 //////////////////////////////////////////////////
 SystemLoader::~SystemLoader() = default;
+
+//////////////////////////////////////////////////
+std::list<std::string> SystemLoader::PluginPaths() const
+{
+  return this->dataPtr->PluginPaths();
+}
 
 //////////////////////////////////////////////////
 void SystemLoader::AddSystemPluginPath(const std::string &_path)
@@ -173,25 +233,18 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   const std::string &_name,
   const sdf::ElementPtr &_sdf)
 {
-  gz::plugin::PluginPtr plugin;
-
-  if (_filename == "" || _name == "")
+  if (_filename == "")
   {
     gzerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _filename << "] " <<
-              "[(name): " << _name << "]." << std::endl;
+              "[(filename): " << _filename << "] " << std::endl;
     return {};
   }
 
-  auto ret = this->dataPtr->InstantiateSystemPlugin(_filename,
-                                                    _name,
-                                                    _sdf, plugin);
-  if (ret && plugin)
-  {
-    return plugin;
-  }
-
-  return {};
+  sdf::Plugin plugin;
+  plugin.Load(_sdf);
+  plugin.SetFilename(_filename);
+  plugin.SetName(_name);
+  return LoadPlugin(plugin);
 }
 
 //////////////////////////////////////////////////
@@ -202,9 +255,28 @@ std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
   {
     return {};
   }
-  auto filename = _sdf->Get<std::string>("filename");
-  auto pluginName = _sdf->Get<std::string>("name");
-  return LoadPlugin(filename, pluginName, _sdf);
+  sdf::Plugin plugin;
+  plugin.Load(_sdf);
+  return LoadPlugin(plugin);
+}
+
+//////////////////////////////////////////////////
+std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
+    const sdf::Plugin &_plugin)
+{
+  if (_plugin.Filename() == "")
+  {
+    gzerr << "Failed to instantiate system plugin: empty argument "
+             "[(filename): " << _plugin.Filename() << "] " << std::endl;
+    return {};
+  }
+
+  gz::plugin::PluginPtr plugin;
+  auto ret = this->dataPtr->InstantiateSystemPlugin(_plugin, plugin);
+  if (ret && plugin)
+    return plugin;
+
+  return {};
 }
 
 //////////////////////////////////////////////////

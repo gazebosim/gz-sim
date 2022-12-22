@@ -223,7 +223,7 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -379,7 +379,6 @@ void VisualizeLidar::UpdateSize(int _size)
 //////////////////////////////////////////////////
 void VisualizeLidar::OnTopic(const QString &_topicName)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
   if (!this->dataPtr->topicName.empty() &&
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
@@ -388,6 +387,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   }
   this->dataPtr->topicName = _topicName.toStdString();
 
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   // Reset visualization
   this->dataPtr->resetVisual = true;
 
@@ -406,14 +406,14 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
 //////////////////////////////////////////////////
 void VisualizeLidar::UpdateNonHitting(bool _value)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetDisplayNonHitting(_value);
 }
 
 //////////////////////////////////////////////////
 void VisualizeLidar::DisplayVisual(bool _value)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetVisible(_value);
   gzmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
          << std::endl;
@@ -422,7 +422,6 @@ void VisualizeLidar::DisplayVisual(bool _value)
 /////////////////////////////////////////////////
 void VisualizeLidar::OnRefresh()
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
   gzmsg << "Refreshing topic list for LaserScan messages." << std::endl;
 
   // Clear
@@ -468,7 +467,7 @@ void VisualizeLidar::SetTopicList(const QStringList &_topicList)
 //////////////////////////////////////////////////
 void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->initialized)
   {
     this->dataPtr->msg = std::move(_msg);

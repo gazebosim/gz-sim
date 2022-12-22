@@ -352,14 +352,14 @@ void AlignTool::Align()
     this->dataPtr->scene = rendering::sceneFromFirstRenderEngine();
 
   // Get current list of selected entities
-  std::vector<gz::rendering::VisualPtr> selectedList;
-  gz::rendering::VisualPtr relativeVisual;
+  std::vector<rendering::VisualPtr> selectedList;
+  rendering::VisualPtr relativeVisual;
 
   for (const auto &entityId : this->dataPtr->selectedEntities)
   {
     for (auto i = 0u; i < this->dataPtr->scene->VisualCount(); ++i)
     {
-      gz::rendering::VisualPtr vis =
+      rendering::VisualPtr vis =
         this->dataPtr->scene->VisualByIndex(i);
       if (!vis)
         continue;
@@ -388,8 +388,8 @@ void AlignTool::Align()
     (relativeVisual = selectedList.back());
 
   // Callback function for Gazebo node request
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/* _rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/* _rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error setting pose" << std::endl;
@@ -403,7 +403,7 @@ void AlignTool::Align()
   }
 
   int axisIndex = static_cast<int>(this->dataPtr->axis);
-  gz::msgs::Pose req;
+  msgs::Pose req;
 
   gz::math::AxisAlignedBox targetBox = relativeVisual->BoundingBox();
   gz::math::Vector3d targetMin = targetBox.Min();
@@ -552,7 +552,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -565,10 +565,10 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           gz::sim::gui::events::EntitiesSelected::kType)
+           gui::events::EntitiesSelected::kType)
   {
     auto selectedEvent =
-        reinterpret_cast<gz::sim::gui::events::EntitiesSelected *>(
+        reinterpret_cast<sim::gui::events::EntitiesSelected *>(
         _event);
 
     // Only update if a valid cast, the data isn't empty, and
@@ -588,7 +588,7 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           gz::sim::gui::events::DeselectAllEntities::kType)
+           gui::events::DeselectAllEntities::kType)
   {
     this->dataPtr->selectedEntities.clear();
   }
@@ -596,5 +596,5 @@ bool AlignTool::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::AlignTool,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(AlignTool,
+              gz::gui::Plugin)

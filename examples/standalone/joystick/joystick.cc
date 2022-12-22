@@ -19,6 +19,7 @@
 #include <linux/joystick.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <gz/msgs/joy.pb.h>
 #include <gz/math/Helpers.hh>
 #include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
@@ -283,4 +284,3 @@ int main(int argc, char **argv)
   // Close the joystick
   close(joyFd);
 }
-

@@ -2,9 +2,11 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   ackermann_steering_system.cc
+  acoustic_comms.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
+  apply_link_wrench_system.cc
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
@@ -16,12 +18,17 @@ set(tests
   diff_drive_system.cc
   each_new_removed.cc
   entity_erase.cc
+  entity_system.cc
+  environment_preload_system.cc
+  environmental_sensor_system.cc
   events.cc
   examples_build.cc
   follow_actor_system.cc
   force_torque_system.cc
   fuel_cached_server.cc
   halt_motion.cc
+  hydrodynamics.cc
+  hydrodynamics_flags.cc
   imu_system.cc
   joint_controller_system.cc
   joint_position_controller_system.cc

@@ -21,18 +21,24 @@
 #include <string>
 #include <vector>
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include <gz/fuel_tools/FuelClient.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/Result.hh>
 #include <gz/fuel_tools/WorldIdentifier.hh>
+#include <gz/transport/Node.hh>
+#include <sdf/Console.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
 #include "gz/sim/gui/Gui.hh"
+
+using namespace gz;
 
 //////////////////////////////////////////////////
 extern "C" char *gzSimVersion()
@@ -50,7 +56,15 @@ extern "C" char *simVersionHeader()
 extern "C" void cmdVerbosity(
     const char *_verbosity)
 {
-  gz::common::Console::SetVerbosity(std::atoi(_verbosity));
+  int verbosity = std::atoi(_verbosity);
+  common::Console::SetVerbosity(verbosity);
+
+  // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
+  // console output with zero verbosity.
+  if (verbosity == 0)
+  {
+    sdf::Console::Instance()->SetQuiet(true);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -65,17 +79,17 @@ extern "C" const char *findFuelResource(
 {
   std::string path;
   std::string worldPath;
-  gz::fuel_tools::FuelClient fuelClient;
+  fuel_tools::FuelClient fuelClient;
 
   // Attempt to find cached copy, and then attempt download
-  if (fuelClient.CachedWorld(gz::common::URI(_pathToResource), path))
+  if (fuelClient.CachedWorld(common::URI(_pathToResource), path))
   {
     gzmsg << "Cached world found." << std::endl;
     worldPath = path;
   }
   // cppcheck-suppress syntaxError
-  else if (gz::fuel_tools::Result result =
-    fuelClient.DownloadWorld(gz::common::URI(_pathToResource), path);
+  else if (fuel_tools::Result result =
+    fuelClient.DownloadWorld(common::URI(_pathToResource), path);
     result)
   {
     gzmsg << "Successfully downloaded world from fuel." << std::endl;
@@ -88,20 +102,20 @@ extern "C" const char *findFuelResource(
     return "";
   }
 
-  if (!gz::common::exists(worldPath))
+  if (!common::exists(worldPath))
     return "";
 
 
   // Find the first sdf file in the world path for now, the later intention is
   // to load an optional world config file first and if that does not exist,
   // continue to load the first sdf file found as done below
-  for (gz::common::DirIter file(worldPath);
-       file != gz::common::DirIter(); ++file)
+  for (common::DirIter file(worldPath);
+       file != common::DirIter(); ++file)
   {
     std::string current(*file);
-    if (gz::common::isFile(current))
+    if (common::isFile(current))
     {
-      std::string fileName = gz::common::basename(current);
+      std::string fileName = common::basename(current);
       std::string::size_type fileExtensionIndex = fileName.rfind(".");
       std::string fileExtension = fileName.substr(fileExtensionIndex + 1);
 
@@ -121,17 +135,46 @@ extern "C" int runServer(const char *_sdfString,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
-    const char *_file, const char *_recordTopics,
-    int _headless)
+    const char *_file, const char *_recordTopics, int _waitGui,
+    int _headless, float _recordPeriod, int _seed)
 {
-  gz::sim::ServerConfig serverConfig;
+  std::string startingWorldPath{""};
+  sim::ServerConfig serverConfig;
+
+  // Lock until the starting world is received from Gui
+  if (_waitGui == 1)
+  {
+    transport::Node node;
+    std::condition_variable condition;
+    std::mutex mutex;
+
+    // Create a subscriber just so we can check when the message has propagated
+    std::function<void(const msgs::StringMsg &)> topicCb =
+        [&startingWorldPath, &mutex, &condition](const auto &_msg)
+        {
+          std::unique_lock<std::mutex> lock(mutex);
+          startingWorldPath = _msg.data();
+          condition.notify_all();
+        };
+
+    std::string topic{"/gazebo/starting_world"};
+    std::unique_lock<std::mutex> lock(mutex);
+    gzdbg << "Subscribing to [" << topic << "]." << std::endl;
+    node.Subscribe(topic, topicCb);
+    gzdbg << "Waiting for a world to be set from the GUI..." << std::endl;
+    condition.wait(lock);
+    gzmsg << "Received world [" << startingWorldPath << "] from the GUI."
+          << std::endl;
+    gzdbg << "Unsubscribing from [" << topic << "]." << std::endl;
+    node.Unsubscribe(topic);
+  }
 
   // Path for logs
   std::string recordPathMod = serverConfig.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
-  if (!std::string(1, cmpPath.back()).compare(gz::common::separator("")))
+  if (!std::string(1, cmpPath.back()).compare(common::separator("")))
   {
     // Remove the separator at end of path
     cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
@@ -140,7 +183,7 @@ extern "C" int runServer(const char *_sdfString,
 
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
-    _record > 0 || _recordResources > 0 ||
+    _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
     (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -151,6 +194,12 @@ extern "C" int runServer(const char *_sdfString,
 
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordResources(_recordResources);
+    if (_recordPeriod >= 0)
+    {
+      serverConfig.SetLogRecordPeriod(
+           std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+           std::chrono::duration<double>(_recordPeriod)));
+    }
 
     // If a record path is specified
     if (_recordPath != nullptr && std::strlen(_recordPath) > 0)
@@ -159,7 +208,7 @@ extern "C" int runServer(const char *_sdfString,
 
       // Update compressed file path to name of recording directory path
       cmpPath = std::string(recordPathMod);
-      if (!std::string(1, cmpPath.back()).compare(gz::common::separator(
+      if (!std::string(1, cmpPath.back()).compare(common::separator(
         "")))
       {
         // Remove the separator at end of path
@@ -168,8 +217,8 @@ extern "C" int runServer(const char *_sdfString,
       cmpPath += ".zip";
 
       // Check if path or compressed file with same prefix exists
-      if (gz::common::exists(recordPathMod) ||
-        gz::common::exists(cmpPath))
+      if (common::exists(recordPathMod) ||
+        common::exists(cmpPath))
       {
         // Overwrite if flag specified
         if (_logOverwrite > 0)
@@ -177,15 +226,15 @@ extern "C" int runServer(const char *_sdfString,
           bool recordMsg = false;
           bool cmpMsg = false;
           // Remove files before initializing console log files on top of them
-          if (gz::common::exists(recordPathMod))
+          if (common::exists(recordPathMod))
           {
             recordMsg = true;
-            gz::common::removeAll(recordPathMod);
+            common::removeAll(recordPathMod);
           }
-          if (gz::common::exists(cmpPath))
+          if (common::exists(cmpPath))
           {
             cmpMsg = true;
-            gz::common::removeFile(cmpPath);
+            common::removeFile(cmpPath);
           }
 
           // Create log file before printing any messages so they can be logged
@@ -212,7 +261,7 @@ extern "C" int runServer(const char *_sdfString,
         {
           // Remove the separator at end of path
           if (!std::string(1, recordPathMod.back()).compare(
-            gz::common::separator("")))
+            common::separator("")))
           {
             recordPathMod = recordPathMod.substr(0, recordPathMod.length()
               - 1);
@@ -223,8 +272,8 @@ extern "C" int runServer(const char *_sdfString,
 
           // Keep renaming until path does not exist for both directory and
           // compressed file
-          while (gz::common::exists(recordPathMod) ||
-            gz::common::exists(cmpPath))
+          while (common::exists(recordPathMod) ||
+            common::exists(cmpPath))
           {
             recordPathMod = recordOrigPrefix +  "(" + std::to_string(count++) +
               ")";
@@ -232,7 +281,7 @@ extern "C" int runServer(const char *_sdfString,
             cmpPath = std::string(recordPathMod);
             // Remove the separator at end of path
             if (!std::string(1, cmpPath.back()).compare(
-              gz::common::separator("")))
+              common::separator("")))
             {
               cmpPath = cmpPath.substr(0, cmpPath.length() - 1);
             }
@@ -264,7 +313,7 @@ extern "C" int runServer(const char *_sdfString,
     }
     serverConfig.SetLogRecordPath(recordPathMod);
 
-    std::vector<std::string> topics = gz::common::split(
+    std::vector<std::string> topics = common::split(
         _recordTopics, ":");
     for (const std::string &topic : topics)
     {
@@ -293,7 +342,13 @@ extern "C" int runServer(const char *_sdfString,
       return -1;
     }
   }
-  serverConfig.SetSdfFile(_file);
+
+  // This ensures if the server was run stand alone with a world from
+  // command line, the correct world would be loaded.
+  if(_waitGui == 1)
+    serverConfig.SetSdfFile(startingWorldPath);
+  else
+    serverConfig.SetSdfFile(_file);
 
   // Set the update rate.
   if (_hz > 0.0)
@@ -325,7 +380,7 @@ extern "C" int runServer(const char *_sdfString,
     else
     {
       gzmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(gz::common::absPath(
+      serverConfig.SetLogPlaybackPath(common::absPath(
         std::string(_playback)));
     }
   }
@@ -347,8 +402,14 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
 
+  if (_seed != 0)
+  {
+    serverConfig.SetSeed(_seed);
+    gzmsg << "Setting seed value: " << _seed << "\n";
+  }
+
   // Create the Gazebo server
-  gz::sim::Server server(serverConfig);
+  sim::Server server(serverConfig);
 
   // Run the server
   server.Run(true, _iterations, _run == 0);
@@ -358,7 +419,8 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
+extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+  const char *_renderEngine)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -387,5 +449,6 @@ extern "C" int runGui(const char *_guiConfig, const char *_renderEngine)
   };
   int argc = sizeof(argv) / sizeof(argv[0]);
 
-  return gz::sim::gui::runGui(argc, argv, _guiConfig, _renderEngine);
+  return gz::sim::gui::runGui(
+    argc, argv, _guiConfig, _file, _waitGui, _renderEngine);
 }

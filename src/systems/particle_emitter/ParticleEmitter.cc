@@ -253,7 +253,3 @@ GZ_ADD_PLUGIN(ParticleEmitter,
 
 GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "gz::sim::systems::ParticleEmitter")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
-                          "ignition::gazebo::systems::ParticleEmitter")

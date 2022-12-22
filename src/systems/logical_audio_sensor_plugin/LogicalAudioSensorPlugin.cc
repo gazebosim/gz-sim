@@ -25,14 +25,16 @@
 #include <unordered_set>
 #include <utility>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/double.pb.h>
+
 #include <gz/sim/components/LogicalAudio.hh>
 #include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/World.hh>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/transport/Node.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SdfEntityCreator.hh>
 #include <gz/sim/Util.hh>
@@ -78,7 +80,7 @@ class gz::sim::systems::LogicalAudioSensorPluginPrivate
                const logical_audio::SourcePlayInfo &_sourcePlayInfo);
 
   /// \brief Node used to create publishers and services
-  public: gz::transport::Node node;
+  public: transport::Node node;
 
   /// \brief A flag used to initialize a source's playing information
   /// before starting simulation.
@@ -97,7 +99,7 @@ class gz::sim::systems::LogicalAudioSensorPluginPrivate
   /// (an entity can have multiple microphones attached to it).
   /// The value is the microphone's detection publisher.
   public: std::unordered_map<Entity,
-            gz::transport::Node::Publisher> micEntities;
+            transport::Node::Publisher> micEntities;
 
   /// \brief A mutex used to ensure that the play source service call does
   /// not interfere with the source's state in the PreUpdate step.
@@ -240,7 +242,7 @@ void LogicalAudioSensorPlugin::PostUpdate(const UpdateInfo &_info,
           // publish the source that the microphone heard, along with the
           // volume level the microphone detected. The detected source's
           // ID is embedded in the message's header
-          gz::msgs::Double msg;
+          msgs::Double msg;
           auto header = msg.mutable_header();
           auto timeStamp = header->mutable_stamp();
           timeStamp->set_sec(simSeconds.count());
@@ -284,7 +286,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   }
   _ids.insert(id);
 
-  gz::math::Pose3d pose;
+  math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
     gzwarn << "Audio source is missing a pose. "
@@ -293,7 +295,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
   }
   else
   {
-    pose = _elem->Get<gz::math::Pose3d>("pose");
+    pose = _elem->Get<math::Pose3d>("pose");
   }
 
   if (!_elem->HasElement("attenuation_function"))
@@ -385,16 +387,16 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
       components::LogicalAudioSourcePlayInfo(playInfo));
 
   // create service callbacks that allow this source to be played/stopped
-  std::function<bool(gz::msgs::Boolean &)> playSrvCb =
-    [this, entity](gz::msgs::Boolean &_resp)
+  std::function<bool(msgs::Boolean &)> playSrvCb =
+    [this, entity](msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->playSourceMutex);
       this->sourceEntities[entity].first = true;
       _resp.set_data(true);
       return true;
     };
-  std::function<bool(gz::msgs::Boolean &)> stopSrvCb =
-    [this, entity](gz::msgs::Boolean &_resp)
+  std::function<bool(msgs::Boolean &)> stopSrvCb =
+    [this, entity](msgs::Boolean &_resp)
     {
       std::lock_guard<std::mutex> lock(this->stopSourceMutex);
       this->sourceEntities[entity].second = true;
@@ -454,7 +456,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   }
   _ids.insert(id);
 
-  gz::math::Pose3d pose;
+  math::Pose3d pose;
   if (!_elem->HasElement("pose"))
   {
     gzwarn << "Microphone is missing a pose. "
@@ -463,7 +465,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
   }
   else
   {
-    pose = _elem->Get<gz::math::Pose3d>("pose");
+    pose = _elem->Get<math::Pose3d>("pose");
   }
 
   double volumeDetectionThreshold;
@@ -501,7 +503,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
       components::Pose(pose));
 
   // create the detection publisher for this microphone
-  auto pub = this->node.Advertise<gz::msgs::Double>(
+  auto pub = this->node.Advertise<msgs::Double>(
       scopedName(entity, _ecm) + "/detection");
   if (!pub)
   {
@@ -526,14 +528,10 @@ bool LogicalAudioSensorPluginPrivate::DurationExceeded(
 }
 
 GZ_ADD_PLUGIN(LogicalAudioSensorPlugin,
-                    gz::sim::System,
+                    System,
                     LogicalAudioSensorPlugin::ISystemConfigure,
                     LogicalAudioSensorPlugin::ISystemPreUpdate,
                     LogicalAudioSensorPlugin::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "gz::sim::systems::LogicalAudioSensorPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-  "ignition::gazebo::systems::LogicalAudioSensorPlugin")

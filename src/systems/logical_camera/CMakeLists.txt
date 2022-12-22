@@ -6,4 +6,3 @@ gz_add_system(logical-camera
     gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
     gz-sensors${GZ_SENSORS_VER}::logical_camera
 )
-

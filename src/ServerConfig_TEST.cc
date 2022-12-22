@@ -62,22 +62,22 @@ TEST(ParsePluginsFromString, Valid)
 
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
-  EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
-  EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("TestSensorSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Plugin().Name());
 }
 
 //////////////////////////////////////////////////
@@ -114,22 +114,22 @@ TEST(ParsePluginsFromFile, Valid)
 
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
-  EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
-  EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("TestSensorSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Plugin().Name());
 }
 
 //////////////////////////////////////////////////
@@ -179,11 +179,11 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
 TEST(LoadPluginInfo, FromEmptyEnv)
 {
   // Set environment to something that doesn't exist
-  ASSERT_TRUE(common::setenv(sim::kServerConfigPathEnv, "foo"));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, "foo"));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
-  EXPECT_TRUE(common::unsetenv(sim::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
@@ -192,7 +192,7 @@ TEST(LoadPluginInfo, FromValidEnv)
   auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
     "test", "worlds", "server_valid2.config");
 
-  ASSERT_TRUE(common::setenv(sim::kServerConfigPathEnv, validPath));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
 
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
@@ -201,17 +201,17 @@ TEST(LoadPluginInfo, FromValidEnv)
 
   EXPECT_EQ("*", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
-  EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
-  EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
-  EXPECT_TRUE(common::unsetenv(sim::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
 //////////////////////////////////////////////////
@@ -221,11 +221,16 @@ TEST(ServerConfig, GenerateRecordPlugin)
   config.SetUseLogRecord(true);
   config.SetLogRecordPath("foo/bar");
   config.SetLogRecordResources(true);
+  auto period =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    std::chrono::duration<double>(0.04));
+  config.SetLogRecordPeriod(period);
+  EXPECT_EQ(period, config.LogRecordPeriod());
 
   auto plugin = config.LogRecordPlugin();
   EXPECT_EQ(plugin.EntityName(), "*");
   EXPECT_EQ(plugin.EntityType(), "world");
-  EXPECT_EQ(plugin.Name(), "gz::sim::systems::LogRecord");
+  EXPECT_EQ(plugin.Plugin().Name(), "gz::sim::systems::LogRecord");
 }
 
 //////////////////////////////////////////////////

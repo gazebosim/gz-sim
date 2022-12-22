@@ -172,8 +172,8 @@ void Breadcrumbs::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Breadcrumbs::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void Breadcrumbs::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Breadcrumbs::PreUpdate");
 
@@ -434,11 +434,8 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
 }
 
 GZ_ADD_PLUGIN(Breadcrumbs,
-                    gz::sim::System,
+                    System,
                     Breadcrumbs::ISystemConfigure,
                     Breadcrumbs::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "gz::sim::systems::Breadcrumbs")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Breadcrumbs, "ignition::gazebo::systems::Breadcrumbs")

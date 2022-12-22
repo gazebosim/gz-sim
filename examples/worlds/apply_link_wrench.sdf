@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<!--
+
+  Demostrates the ApplyLinkWrench plugin.
+
+  When simulation starts, the box model starts moving due to the persistent force defined in this file.
+
+  Wrenches can also be applied through transport.
+  For example, apply a force to the cylinder model (i.e. its canonical link) with:
+
+    gz topic -t "/world/apply_link_wrench/wrench" -m gz.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {y: 1000, z: 10000}}"
+
+  Apply a wrench to the cylinder link with:
+
+    gz topic -t "/world/apply_link_wrench/wrench" -m gz.msgs.EntityWrench  -p "entity: {name: 'cylinder::link', type: LINK}, wrench: {force: {y: -1000, z: 10000}, torque: {x: -1000}}"
+
+  Apply a persistent force to the cylinder with:
+
+    gz topic -t "/world/apply_link_wrench/wrench/persistent" -m gz.msgs.EntityWrench  -p "entity: {name: 'cylinder', type: MODEL}, wrench: {force: {x: -20}}"
+
+  Clear the persistent force from the box with:
+
+    gz topic -t "/world/apply_link_wrench/wrench/clear" -m gz.msgs.Entity  -p "name: 'box', type: MODEL"
+
+-->
+<sdf version="1.6">
+  <world name="apply_link_wrench">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-apply-link-wrench-system"
+      name="gz::sim::systems::ApplyLinkWrench">
+      <persistent>
+        <entity_name>box</entity_name>
+        <entity_type>model</entity_type>
+        <force>-10 0 0</force>
+        <torque>0 0 0.1</torque>
+      </persistent>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box">
+      <pose>0 -2 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>0.7</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.2</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cylinder">
+      <pose>0 2 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>0.7</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.2</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

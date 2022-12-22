@@ -70,8 +70,10 @@ class LinkComponentRecorder
   public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
       : linkName(std::move(_linkName))
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "gz::sim::MockSystem", nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    sdfPlugin.SetFilename("libMockSystem.so");
+    auto plugin = loader.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();
@@ -83,7 +85,7 @@ class LinkComponentRecorder
     if (_createComp)
     {
       this->mockSystem->preUpdateCallback =
-        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &, EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -99,8 +101,8 @@ class LinkComponentRecorder
     }
 
     this->mockSystem->postUpdateCallback =
-        [this](const sim::UpdateInfo &,
-              const sim::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &,
+              const EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));

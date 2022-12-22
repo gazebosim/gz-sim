@@ -285,6 +285,9 @@ namespace gz
                                       bool _recursive = true,
                                       const unsigned int _worldIndex = 0);
 
+      /// \brief Stop the server. This will stop all running simulations.
+      public: void Stop();
+
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };

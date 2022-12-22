@@ -58,8 +58,8 @@ class VelocityControlTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
-      const sim::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -145,8 +145,8 @@ class VelocityControlTest
     std::vector<math::Pose3d> modelPoses;
     std::vector<math::Pose3d> linkPoses;
     testSystem.OnPostUpdate([&linkPoses, &modelPoses](
-      const sim::UpdateInfo &,
-      const sim::EntityComponentManager &_ecm)
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         auto modelId = _ecm.EntityByComponents(
           components::Model(),
@@ -231,8 +231,9 @@ class VelocityControlTest
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(VelocityControlTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",

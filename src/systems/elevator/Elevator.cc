@@ -55,8 +55,7 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace GZ_SIM_VERSION_NAMESPACE
-{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 class ElevatorPrivate : public ElevatorCommonPrivate
@@ -445,10 +444,6 @@ GZ_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
-
 }  // namespace systems
 }  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim

@@ -17,11 +17,13 @@
 #ifndef GZ_SIM_SYSTEMLOADER_HH_
 #define GZ_SIM_SYSTEMLOADER_HH_
 
+#include <list>
 #include <memory>
 #include <optional>
 #include <string>
 
 #include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include <gz/sim/Export.hh>
 #include <gz/sim/System.hh>
@@ -53,7 +55,8 @@ namespace gz
       /// \brief Load and instantiate system plugin from an SDF element.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      public: std::optional<SystemPluginPtr> LoadPlugin(
+      /// \deprecated Use `sdf::Plugin` interface.
+      public: std::optional<SystemPluginPtr> GZ_DEPRECATED(7) LoadPlugin(
                   const sdf::ElementPtr &_sdf);
 
       /// \brief Load and instantiate system plugin from name/filename.
@@ -61,14 +64,25 @@ namespace gz
       /// \param[in] _name Class name to be instantiated.
       /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
       /// \returns Shared pointer to system instance or nullptr.
-      public: std::optional<SystemPluginPtr> LoadPlugin(
+      /// \deprecated Use `sdf::Plugin` interface.
+      public: std::optional<SystemPluginPtr> GZ_DEPRECATED(7) LoadPlugin(
                   const std::string &_filename,
                   const std::string &_name,
                   const sdf::ElementPtr &_sdf);
 
+      /// \brief Load and instantiate system plugin from name/filename.
+      /// \param[in] _plugin SDF Plugin to be loaded.
+      /// \returns Shared pointer to system instance or nullptr.
+      public: std::optional<SystemPluginPtr> LoadPlugin(
+                  const sdf::Plugin &_plugin);
+
       /// \brief Makes a printable string with info about systems
       /// \returns A pretty string
       public: std::string PrettyStr() const;
+
+      /// \brief Get the plugin search paths used for loading system plugins
+      /// \return Paths to search for plugins
+      public: std::list<std::string> PluginPaths() const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SystemLoaderPrivate> dataPtr;
@@ -78,4 +92,3 @@ namespace gz
   }
 }
 #endif  // GZ_SIM_SYSTEMLOADER_HH_
-

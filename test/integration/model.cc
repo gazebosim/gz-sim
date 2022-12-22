@@ -23,6 +23,7 @@
 
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/components/CanonicalLink.hh>
 #include <gz/sim/components/Joint.hh>
 #include <gz/sim/components/Link.hh>
 #include <gz/sim/components/Model.hh>
@@ -232,3 +233,31 @@ TEST_F(ModelIntegrationTest, SetWorldPoseCmd)
   EXPECT_TRUE(ecm.HasOneTimeComponentChanges());
 }
 
+//////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, CanonicalLink)
+{
+  EntityComponentManager ecm;
+
+  // Model
+  auto eModel = ecm.CreateEntity();
+  Model model(eModel);
+  EXPECT_EQ(eModel, model.Entity());
+  EXPECT_EQ(0u, model.LinkCount(ecm));
+
+  // Links
+  auto canonicalLink = ecm.CreateEntity();
+  ecm.CreateComponent(canonicalLink, components::Link());
+  ecm.CreateComponent(canonicalLink, components::CanonicalLink());
+  ecm.CreateComponent(canonicalLink,
+      components::ParentEntity(eModel));
+  ecm.CreateComponent(canonicalLink, components::Name("canonical"));
+
+  auto anotherLink = ecm.CreateEntity();
+  ecm.CreateComponent(anotherLink, components::Link());
+  ecm.CreateComponent(anotherLink, components::ParentEntity(eModel));
+  ecm.CreateComponent(anotherLink, components::Name("another"));
+
+  // Check model
+  EXPECT_EQ(canonicalLink, model.CanonicalLink(ecm));
+  EXPECT_EQ(2u, model.LinkCount(ecm));
+}

@@ -165,7 +165,7 @@ void Plot3D::ClearPlot()
   // Clear previous plot
   if (this->dataPtr->markerMsg.point().size() > 0)
   {
-    this->dataPtr->markerMsg.set_action(gz::msgs::Marker::DELETE_MARKER);
+    this->dataPtr->markerMsg.set_action(msgs::Marker::DELETE_MARKER);
     this->dataPtr->node.Request("/marker", this->dataPtr->markerMsg);
   }
 }
@@ -245,7 +245,7 @@ void Plot3D::Update(const UpdateInfo &, EntityComponentManager &_ecm)
     return;
 
   this->dataPtr->prevPos = point;
-  gz::msgs::Set(this->dataPtr->markerMsg.add_point(), point);
+  msgs::Set(this->dataPtr->markerMsg.add_point(), point);
 
   // Reduce message array
   if (this->dataPtr->markerMsg.point_size() > this->dataPtr->maxPoints)
@@ -401,5 +401,5 @@ void Plot3D::SetMaxPoints(int _maxPoints)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::gui::Plot3D,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(Plot3D,
+              gz::gui::Plugin)

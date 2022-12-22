@@ -20,6 +20,7 @@
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -29,10 +30,12 @@
 
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/VisualCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Model.hh"
@@ -72,8 +75,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -216,7 +219,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   auto light = ecm->EntityByComponents(components::Name("spawned_light"));
@@ -235,7 +238,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   light = ecm->EntityByComponents(components::Name("light_test"));
@@ -289,7 +292,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check only the 1st was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(
@@ -351,8 +354,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -366,8 +369,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
-  // collision + 5 x visual + 1 x light
-  EXPECT_EQ(24u, ecm->EntityCount());
+  // collision + 5 x visual + 1 x light (light + visual)
+  EXPECT_EQ(25u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -390,7 +393,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(20u, ecm->EntityCount());
+  EXPECT_EQ(21u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -413,7 +416,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -432,7 +435,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -453,7 +456,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -472,7 +475,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -486,7 +489,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -499,7 +502,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -535,8 +538,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -709,8 +712,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -1054,8 +1057,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -1215,4 +1218,91 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
   // Run two iterations, in the first one the WheelSlipCmd component is created
   // and processed.
   // The second one is just to check everything went fine.
-  server.Run(true, 3, false);}
+  server.Run(true, 3, false);
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Visual))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  ASSERT_NE(nullptr, ecm);
+
+  msgs::Visual req;
+  msgs::Boolean res;
+  transport::Node node;
+  bool result;
+  unsigned int timeout = 100;
+  std::string service{"/world/default/visual_config"};
+
+  auto boxVisualEntity =
+    ecm->EntityByComponents(components::Name("box_visual"));
+  ASSERT_NE(kNullEntity, boxVisualEntity);
+
+  // check box visual's initial values
+  auto boxVisualComp = ecm->Component<components::Material>(boxVisualEntity);
+  ASSERT_NE(nullptr, boxVisualComp);
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            boxVisualComp->Data().Diffuse());
+
+  msgs::Set(req.mutable_material()->mutable_diffuse(),
+            math::Color(0.0f, 1.0f, 0.0f, 1.0f));
+
+  // This will fail to find the entity in VisualCommand::Execute()
+  // since no id was provided
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  server.Run(true, 1, false);
+  // check that the VisualCmd component was not created
+  auto boxVisCmdComp = ecm->Component<components::VisualCmd>(boxVisualEntity);
+  EXPECT_EQ(nullptr, boxVisCmdComp);
+
+  // add id to msg and resend request
+  req.set_id(boxVisualEntity);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  server.Run(true, 1, false);
+  // check the VisualCmd was created and check the values
+  boxVisCmdComp = ecm->Component<components::VisualCmd>(boxVisualEntity);
+  ASSERT_NE(nullptr, boxVisualComp);
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().r());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().g());
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().b());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().a());
+
+  // update component using visual name and parent name
+  req.Clear();
+  req.set_name("box_visual");
+  req.set_parent_name("box_link");
+  msgs::Set(req.mutable_material()->mutable_diffuse(),
+            math::Color(0.0f, 0.0f, 1.0f, 1.0f));
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  server.Run(true, 1, false);
+  // check the values
+  boxVisCmdComp = ecm->Component<components::VisualCmd>(boxVisualEntity);
+  ASSERT_NE(nullptr, boxVisualComp);
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().r());
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().g());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().b());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().a());
+}

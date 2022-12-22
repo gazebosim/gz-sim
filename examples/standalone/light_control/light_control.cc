@@ -19,10 +19,14 @@
 #include <iostream>
 #include <random>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/light.pb.h>
+
 #include <gz/sim/components/Light.hh>
 #include <gz/sim/components/LightCmd.hh>
-#include <gz/msgs.hh>
-#include <gz/transport.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
 
 using namespace std::chrono_literals;
 

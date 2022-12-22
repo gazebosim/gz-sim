@@ -61,8 +61,10 @@ class PerformerDetectorTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(PerformerDetectorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MovingPerformer))
+// See: https://github.com/gazebosim/gz-sim/issues/1175
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(PerformerDetectorTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MovingPerformer))
 {
   auto server = this->StartServer("/test/worlds/performer_detector.sdf");
 
@@ -199,8 +201,8 @@ TEST_F(PerformerDetectorTest,
   auto server = this->StartServer("/test/worlds/performer_detector.sdf", true);
 
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &_info,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &_info,
+                             EntityComponentManager &_ecm)
   {
     Entity vehicle = _ecm.EntityByComponents(
         components::Model(), components::Name("vehicle_blue"));

@@ -54,7 +54,8 @@ void startGui()
 {
   int argc = 1;
   char *argv = const_cast<char *>("gz-sim-gui");
-  EXPECT_EQ(0, sim::gui::runGui(argc, &argv, "", ""));
+  EXPECT_EQ(0, sim::gui::runGui(argc, &argv, nullptr, nullptr, 0,
+      nullptr));
 }
 
 /////////////////////////////////////////////////
@@ -76,9 +77,7 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-/// TODO (azeey) Temporarliy disabled until
-/// https://github.com/gazebosim/gz-sim/issues/1443 is resolved
-TEST_P(GazeboDeathTest, DISABLED_CleanExit)
+TEST_P(GazeboDeathTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
 {
   std::string githubAction;
   // This test hangs when there is high CPU usage, so we skip it on Github

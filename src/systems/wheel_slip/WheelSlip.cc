@@ -386,13 +386,9 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 GZ_ADD_PLUGIN(WheelSlip,
-                    gz::sim::System,
+                    System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(WheelSlip,
                           "gz::sim::systems::WheelSlip")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(WheelSlip,
-                          "ignition::gazebo::systems::WheelSlip")

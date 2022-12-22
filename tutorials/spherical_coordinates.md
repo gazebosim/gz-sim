@@ -3,11 +3,13 @@
 Gazebo supports the use of real world latitude and longitude coordinates in its
 simulations using the
 [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version)
-geodetic system.
+geodetic system for the Earth, and
+[MOON_SCS](https://en.wikipedia.org/wiki/Selenographic_coordinate_system)
+for the Moon.
 
 Gazebo Sim's simulation is always performed in Cartesian coordinates (good old XYZ).
 Therefore, in order to use spherical coordinates, it's necessary to project
-coordinates expressed in the `WGS84` frame to Cartesian and back.
+coordinates expressed in the `WGS84` frame (for Earth) to Cartesian and back.
 
 This tutorial will go over how to:
 
@@ -53,8 +55,12 @@ For example:
 </spherical_coordinates>
 ```
 
-At the moment, the only surface model supported is WGS84 and the only world
-frame orientation is ENU.
+Currently, the supported surface models are WGS84 for the Earth,
+MOON_SCS for the Moon, and CUSTOM_SURFACE for other celestial bodies.
+CUSTOM_SURFACE requires the equatorial and polar axes to be specified
+in meters.
+
+The only world frame currently supported is ENU.
 
 Try out an example world that ships with Gazebo and has the coordinates above
 as follows:
@@ -67,6 +73,32 @@ On the component inspector, expand the `Spherical Coordinates` component to see
 that the coordinates were set correctly:
 
 @image html files/spherical_coordinates/inspector.png
+
+For loading lunar DEMs, use the `MOON_SCS` surface tag:
+
+```.xml
+<spherical_coordinates>
+  <surface_model>MOON_SCS</surface_model>
+</spherical_coordinates>
+```
+
+Try the Gazebo moon example:
+
+```
+gz sim dem_moon.sdf
+```
+
+Similarly, ``CUSTOM_SURFACE`` is also accepted as a surface model.
+So equivalently, one can have the following instead of
+the ``MOON_SCS`` tag :
+
+```.xml
+<spherical_coordinates>
+  <surface_model>CUSTOM_SURFACE</surface_model>
+  <surface_axis_equatorial>1738100.0</surface_axis_equatorial>
+  <surface_axis_polar>1736000.0</surface_axis_polar>
+</spherical_coordinates>
+```
 
 ### GUI
 
@@ -147,4 +179,3 @@ gz service -s /world/spherical_coordinates/set_spherical_coordinates \
 When writing plugins, developers can use the
 `gz::sim::sphericalCoordinates` helper function to query the current
 coordinates for any entity that has a pose.
-

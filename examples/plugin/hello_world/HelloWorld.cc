@@ -51,6 +51,3 @@ void HelloWorld::PostUpdate(const gz::sim::UpdateInfo &_info,
   // higher (i.e. gz sim -v 3)
   gzmsg << msg << std::endl;
 }
-
-
-

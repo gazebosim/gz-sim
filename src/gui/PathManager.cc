@@ -18,6 +18,8 @@
 #include "PathManager.hh"
 
 #include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <string>
 #include <vector>
@@ -70,4 +72,3 @@ PathManager::PathManager()
   // Get path updates through this topic
   this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);
 }
-

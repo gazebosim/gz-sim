@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (C) 2021 Open Source Robotics Foundation
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +17,8 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz.sim import TestFixture, World, world_entity
-from gz.math import Vector3d
+from gz.sim8 import TestFixture, World, world_entity
+from gz.math7 import Vector3d
 
 post_iterations = 0
 iterations = 0

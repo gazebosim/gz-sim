@@ -158,7 +158,7 @@ void ParticleEmitter2::PreUpdate(const gz::sim::UpdateInfo &_info,
           // hack to avoid breaking the particle_emitter.proto message.
           if (_emitter->Data().has_header())
           {
-            for (const auto & data : _emitter->Data().header().data())
+            for (const auto &data : _emitter->Data().header().data())
             {
               if (data.key() == "topic" && !data.value().empty())
               {
@@ -218,7 +218,7 @@ void ParticleEmitter2::PreUpdate(const gz::sim::UpdateInfo &_info,
     return;
 
   // Process each command
-  for (const auto & cmd : this->dataPtr->userCmd)
+  for (const auto &cmd : this->dataPtr->userCmd)
   {
     // Create component.
     auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
@@ -253,7 +253,3 @@ GZ_ADD_PLUGIN(ParticleEmitter2,
 
 GZ_ADD_PLUGIN_ALIAS(ParticleEmitter2,
                           "gz::sim::systems::ParticleEmitter2")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ParticleEmitter2,
-                          "ignition::gazebo::systems::ParticleEmitter2")

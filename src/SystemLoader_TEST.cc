@@ -27,6 +27,7 @@
 #include "test_config.hh"  // NOLINT(build/include)
 
 using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
@@ -51,17 +52,129 @@ TEST(SystemLoader, Constructor)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
-      auto system = sm.LoadPlugin(pluginElem);
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
       ASSERT_TRUE(system.has_value());
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
 }
 
+/////////////////////////////////////////////////
 TEST(SystemLoader, EmptyNames)
 {
   sim::SystemLoader sm;
-  sdf::ElementPtr element;
-  auto system = sm.LoadPlugin("", "", element);
+  sdf::Plugin plugin;
+  ::testing::internal::CaptureStderr();
+  auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());
+  auto output = ::testing::internal::GetCapturedStderr();
+  EXPECT_NE(std::string::npos, output.find("empty argument"));
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, PluginPaths)
+{
+  SystemLoader sm;
+
+  // verify that there should exist some default paths
+  std::list<std::string> paths = sm.PluginPaths();
+  unsigned int pathCount = paths.size();
+  EXPECT_LT(0u, pathCount);
+
+  // Add test path and verify that the loader now contains this path
+  auto testBuildPath = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib/");
+  sm.AddSystemPluginPath(testBuildPath);
+  paths = sm.PluginPaths();
+
+  // Number of paths should increase by 1
+  EXPECT_EQ(pathCount + 1, paths.size());
+
+  // verify newly added paths exists
+  bool hasPath = false;
+  for (const auto &s : paths)
+  {
+    // the returned path string may not be exact match due to extra '/'
+    // appended at the end of the string. So use absPath to generate
+    // a path string that matches the format returned by joinPaths
+    if (common::absPath(s) == testBuildPath)
+    {
+      hasPath = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasPath);
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, BadLibraryPath)
+{
+  sim::SystemLoader sm;
+
+  // Add test plugin to path (referenced in config)
+  auto testBuildPath = gz::common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib");
+  sm.AddSystemPluginPath(testBuildPath);
+
+  sdf::Root root;
+  root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename='foo.so'"
+      "name='gz::sim::systems::Physics'></plugin>"
+      "</world></sdf>"));
+
+  auto worldElem = root.WorldByIndex(0)->Element();
+  if (worldElem->HasElement("plugin")) {
+    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+    while (pluginElem)
+    {
+      ::testing::internal::CaptureStderr();
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
+      ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("Could not find shared library")) << output.c_str();
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, BadPluginName)
+{
+  sim::SystemLoader sm;
+
+  // Add test plugin to path (referenced in config)
+  auto testBuildPath = gz::common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib");
+  sm.AddSystemPluginPath(testBuildPath);
+
+  sdf::Root root;
+  root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "<plugin filename='libgz-sim") +
+      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
+      "name='gz::sim::systems::Foo'></plugin>"
+      "</world></sdf>");
+
+  auto worldElem = root.WorldByIndex(0)->Element();
+  if (worldElem->HasElement("plugin")) {
+    sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
+    while (pluginElem)
+    {
+      ::testing::internal::CaptureStderr();
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      auto system = sm.LoadPlugin(plugin);
+      ASSERT_FALSE(system.has_value());
+      auto output = ::testing::internal::GetCapturedStderr();
+      EXPECT_NE(std::string::npos,
+          output.find("library does not contain")) << output.c_str();
+      pluginElem = pluginElem->GetNextElement("plugin");
+    }
+  }
 }

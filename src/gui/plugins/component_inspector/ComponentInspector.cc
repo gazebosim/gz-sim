@@ -18,6 +18,7 @@
 #include <iostream>
 #include <list>
 #include <regex>
+#include <unordered_map>
 #include <QColorDialog>
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
@@ -72,6 +73,7 @@
 #include "gz/sim/components/Volume.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
@@ -122,7 +124,33 @@ namespace gz::sim
 
     /// \brief Handles all system info components.
     public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
+
+    /// \brief A list of system plugin human readable names.
+    public: QStringList systemNameList;
+
+    /// \brief Maps plugin display names to their filenames.
+    public: std::unordered_map<std::string, std::string> systemMap;
   };
+}
+
+// Helper to remove a prefix from a string if present
+void removePrefix(const std::string &_prefix, std::string &_s)
+{
+  auto id = _s.find(_prefix);
+  if (id != std::string::npos)
+  {
+    _s = _s.substr(_prefix.length());
+  }
+}
+
+// Helper to remove a suffix from a string if present
+void removeSuffix(const std::string &_suffix, std::string &_s)
+{
+  auto id = _s.find(_suffix);
+  if (id != std::string::npos && id + _suffix.length() == _s.length())
+  {
+    _s.erase(id, _suffix.length());
+  }
 }
 
 using namespace gz;
@@ -180,7 +208,7 @@ void gz::sim::setData(QStandardItem *_item, const msgs::Light &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)
@@ -197,7 +225,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const std::string &_data)
+void sim::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -210,7 +238,7 @@ void gz::sim::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -224,7 +252,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const bool &_data)
+void sim::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -236,7 +264,7 @@ void gz::sim::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const int &_data)
+void sim::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -248,14 +276,14 @@ void gz::sim::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const Entity &_data)
+void sim::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const double &_data)
+void sim::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -267,7 +295,7 @@ void gz::sim::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item, const sdf::Physics &_data)
+void sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -282,7 +310,7 @@ void gz::sim::setData(QStandardItem *_item, const sdf::Physics &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const sdf::Material &_data)
 {
   if (nullptr == _item)
@@ -291,22 +319,22 @@ void gz::sim::setData(QStandardItem *_item,
   _item->setData(QString("Material"),
       ComponentsModel::RoleNames().key("dataType"));
   _item->setData(QList({
-    QVariant(_data.Ambient().R() * 255),
-    QVariant(_data.Ambient().G() * 255),
-    QVariant(_data.Ambient().B() * 255),
-    QVariant(_data.Ambient().A() * 255),
-    QVariant(_data.Diffuse().R() * 255),
-    QVariant(_data.Diffuse().G() * 255),
-    QVariant(_data.Diffuse().B() * 255),
-    QVariant(_data.Diffuse().A() * 255),
-    QVariant(_data.Specular().R() * 255),
-    QVariant(_data.Specular().G() * 255),
-    QVariant(_data.Specular().B() * 255),
-    QVariant(_data.Specular().A() * 255),
-    QVariant(_data.Emissive().R() * 255),
-    QVariant(_data.Emissive().G() * 255),
-    QVariant(_data.Emissive().B() * 255),
-    QVariant(_data.Emissive().A() * 255)
+    QVariant(_data.Ambient().R()),
+    QVariant(_data.Ambient().G()),
+    QVariant(_data.Ambient().B()),
+    QVariant(_data.Ambient().A()),
+    QVariant(_data.Diffuse().R()),
+    QVariant(_data.Diffuse().G()),
+    QVariant(_data.Diffuse().B()),
+    QVariant(_data.Diffuse().A()),
+    QVariant(_data.Specular().R()),
+    QVariant(_data.Specular().G()),
+    QVariant(_data.Specular().B()),
+    QVariant(_data.Specular().A()),
+    QVariant(_data.Emissive().R()),
+    QVariant(_data.Emissive().G()),
+    QVariant(_data.Emissive().B()),
+    QVariant(_data.Emissive().A())
   }), ComponentsModel::RoleNames().key("data"));
 
   // TODO(anyone) Only shows colors of material,
@@ -315,7 +343,7 @@ void gz::sim::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gz::sim::setData(QStandardItem *_item,
+void sim::setData(QStandardItem *_item,
     const math::SphericalCoordinates &_data)
 {
   if (nullptr == _item)
@@ -334,7 +362,7 @@ void gz::sim::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
-void gz::sim::setUnit(QStandardItem *_item, const std::string &_unit)
+void sim::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -363,7 +391,7 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 QStandardItem *ComponentsModel::AddComponentType(
-    gz::sim::ComponentTypeId _typeId)
+    sim::ComponentTypeId _typeId)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("ComponentsModel::AddComponentType");
@@ -394,7 +422,7 @@ QStandardItem *ComponentsModel::AddComponentType(
 
 /////////////////////////////////////////////////
 void ComponentsModel::RemoveComponentType(
-      gz::sim::ComponentTypeId _typeId)
+      sim::ComponentTypeId _typeId)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("ComponentsModel::RemoveComponentType");
@@ -431,7 +459,7 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  qRegisterMetaType<gz::sim::ComponentTypeId>();
+  qRegisterMetaType<sim::ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
@@ -869,14 +897,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
       if (comp)
       {
-        this->SetType("material");
         setData(item, comp->Data());
       }
     }
   }
 
   // Remove components no longer present - list items to remove
-  std::list<gz::sim::ComponentTypeId> itemsToRemove;
+  std::list<sim::ComponentTypeId> itemsToRemove;
   for (auto itemIt : this->dataPtr->componentsModel.items)
   {
     auto typeId = itemIt.first;
@@ -889,10 +916,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   // Remove components in list
   for (auto typeId : itemsToRemove)
   {
-    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-        "RemoveComponentType",
-        Qt::QueuedConnection,
-        Q_ARG(gz::sim::ComponentTypeId, typeId));
+    this->dataPtr->componentsModel.RemoveComponentType(typeId);
   }
 }
 
@@ -908,7 +932,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == sim::gui::events::EntitiesSelected::kType)
+    if (_event->type() == gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -917,7 +941,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == sim::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -1059,14 +1083,14 @@ void ComponentInspector::OnLight(
 /////////////////////////////////////////////////
 void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
         gzerr << "Error setting physics parameters" << std::endl;
   };
 
-  gz::msgs::Physics req;
+  msgs::Physics req;
   req.set_max_step_size(_stepSize);
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
@@ -1086,57 +1110,10 @@ void ComponentInspector::OnMaterialColor(
   double _rDiffuse, double _gDiffuse, double _bDiffuse, double _aDiffuse,
   double _rSpecular, double _gSpecular, double _bSpecular, double _aSpecular,
   double _rEmissive, double _gEmissive, double _bEmissive, double _aEmissive,
-  QString _type, QColor _currColor)
+  QString /*_type*/, QColor /*_currColor*/)
 {
-  // when type is not empty, open qt color dialog
-  std::string type = _type.toStdString();
-  if (!type.empty())
-  {
-    QColor newColor = QColorDialog::getColor(
-        _currColor, nullptr, "Pick a color",
-        {QColorDialog::DontUseNativeDialog, QColorDialog::ShowAlphaChannel});
-
-    // returns if the user hits cancel
-    if (!newColor.isValid())
-      return;
-
-    if (type == "ambient")
-    {
-      _rAmbient = newColor.red();
-      _gAmbient = newColor.green();
-      _bAmbient = newColor.blue();
-      _aAmbient = newColor.alpha();
-    }
-    else if (type == "diffuse")
-    {
-      _rDiffuse = newColor.red();
-      _gDiffuse = newColor.green();
-      _bDiffuse = newColor.blue();
-      _aDiffuse = newColor.alpha();
-    }
-    else if (type == "specular")
-    {
-      _rSpecular = newColor.red();
-      _gSpecular = newColor.green();
-      _bSpecular = newColor.blue();
-      _aSpecular = newColor.alpha();
-    }
-    else if (type == "emissive")
-    {
-      _rEmissive = newColor.red();
-      _gEmissive = newColor.green();
-      _bEmissive = newColor.blue();
-      _aEmissive = newColor.alpha();
-    }
-    else
-    {
-      gzerr << "Invalid material type: " << type << std::endl;
-      return;
-    }
-  }
-
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error setting material color configuration"
@@ -1147,17 +1124,13 @@ void ComponentInspector::OnMaterialColor(
   req.set_id(this->dataPtr->entity);
 
   msgs::Set(req.mutable_material()->mutable_ambient(),
-    math::Color(_rAmbient / 255.0, _gAmbient / 255.0,
-      _bAmbient / 255.0, _aAmbient / 255.0));
+    math::Color(_rAmbient, _gAmbient, _bAmbient, _aAmbient));
   msgs::Set(req.mutable_material()->mutable_diffuse(),
-    math::Color(_rDiffuse / 255.0, _gDiffuse / 255.0,
-      _bDiffuse / 255.0, _aDiffuse / 255.0));
+    math::Color(_rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse));
   msgs::Set(req.mutable_material()->mutable_specular(),
-    math::Color(_rSpecular / 255.0, _gSpecular / 255.0,
-      _bSpecular / 255.0, _aSpecular / 255.0));
+    math::Color(_rSpecular, _gSpecular, _bSpecular, _aSpecular));
   msgs::Set(req.mutable_material()->mutable_emissive(),
-    math::Color(_rEmissive / 255.0, _gEmissive / 255.0,
-      _bEmissive / 255.0, _aEmissive / 255.0));
+    math::Color(_rEmissive, _gEmissive, _bEmissive, _aEmissive));
 
   auto materialCmdService = "/world/" + this->dataPtr->worldName
       + "/visual_config";
@@ -1226,6 +1199,106 @@ transport::Node &ComponentInspector::TransportNode()
   return this->dataPtr->node;
 }
 
+/////////////////////////////////////////////////
+void ComponentInspector::QuerySystems()
+{
+  msgs::Empty req;
+  msgs::EntityPlugin_V res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/system/info"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Unable to query available systems." << std::endl;
+    return;
+  }
+
+  this->dataPtr->systemNameList.clear();
+  this->dataPtr->systemMap.clear();
+  for (const auto &plugin : res.plugins())
+  {
+    if (plugin.filename().empty())
+    {
+      ignerr << "Received empty plugin name. This shouldn't happen."
+             << std::endl;
+      continue;
+    }
+
+    // Remove common prefixes and suffixes
+    auto humanReadable = plugin.filename();
+    removePrefix("ignition-gazebo-", humanReadable);
+    removePrefix("ignition-gazebo" +
+        std::string(GZ_SIM_MAJOR_VERSION_STR) + "-", humanReadable);
+    removeSuffix("-system", humanReadable);
+    removeSuffix("system", humanReadable);
+    removeSuffix("-plugin", humanReadable);
+    removeSuffix("plugin", humanReadable);
+
+    // Replace - with space, capitalize
+    std::replace(humanReadable.begin(), humanReadable.end(), '-', ' ');
+    humanReadable[0] = std::toupper(humanReadable[0]);
+
+    this->dataPtr->systemMap[humanReadable] = plugin.filename();
+    this->dataPtr->systemNameList.push_back(
+        QString::fromStdString(humanReadable));
+  }
+  this->dataPtr->systemNameList.sort();
+  this->dataPtr->systemNameList.removeDuplicates();
+  this->SystemNameListChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspector::SystemNameList() const
+{
+  return this->dataPtr->systemNameList;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSystemNameList(const QStringList &_list)
+{
+  this->dataPtr->systemNameList = _list;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddSystem(const QString &_name,
+    const QString &_filename, const QString &_innerxml)
+{
+  auto filenameStr = _filename.toStdString();
+  auto it = this->dataPtr->systemMap.find(filenameStr);
+  if (it == this->dataPtr->systemMap.end())
+  {
+    ignerr << "Internal error: failed to find [" << filenameStr
+           << "] in system map." << std::endl;
+    return;
+  }
+
+  msgs::EntityPlugin_V req;
+  auto ent = req.mutable_entity();
+  ent->set_id(this->dataPtr->entity);
+  auto plugin = req.add_plugins();
+  std::string name = _name.toStdString();
+  std::string filename = this->dataPtr->systemMap[filenameStr];
+  std::string innerxml = _innerxml.toStdString();
+  plugin->set_name(name);
+  plugin->set_filename(filename);
+  plugin->set_innerxml(innerxml);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/entity/system/add"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Error adding new system to entity: "
+           << this->dataPtr->entity << "\n"
+           << "Name: " << name << "\n"
+           << "Filename: " << filename << "\n"
+           << "Inner XML: " << innerxml << std::endl;
+  }
+}
+
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::ComponentInspector,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(ComponentInspector,
+              gz::gui::Plugin)

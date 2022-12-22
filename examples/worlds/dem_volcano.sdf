@@ -8,6 +8,7 @@
   <world name="dem_heightmap">
     <physics name="1ms" type="ignored">
       <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
         <collision_detector>bullet</collision_detector>
       </dart>
     </physics>
@@ -174,7 +175,7 @@
 
     <include>
       <uri>
-        https://fuel.ignitionrobotics.org/1.0/jennuine/models/Volcano
+        https://fuel.gazebosim.org/1.0/jennuine/models/Volcano
       </uri>
     </include>
   </world>

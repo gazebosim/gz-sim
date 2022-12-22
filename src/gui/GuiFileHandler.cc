@@ -16,12 +16,15 @@
  */
 
 #include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <fstream>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
+#include <gz/msgs/Utility.hh>
 
 #include "GuiFileHandler.hh"
 
@@ -45,7 +48,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
   std::string service{"/gazebo/worlds"};
-  gz::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   bool result{false};
   unsigned int timeout{5000};
@@ -110,4 +113,3 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
   }
   emit newSaveWorldStatus(status, QString::fromStdString(statusMsg.str()));
 }
-

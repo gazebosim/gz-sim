@@ -85,7 +85,7 @@ class gz::sim::systems::ColladaWorldExporterPrivate
             components::Name,
             components::Geometry,
             components::Transparency>(
-    [&](const gz::sim::Entity &_entity,
+    [&](const Entity &_entity,
         const components::Visual *,
         const components::Name *_name,
         const components::Geometry *_geom,
@@ -107,12 +107,12 @@ class gz::sim::systems::ColladaWorldExporterPrivate
       }
       mat->SetTransparency(_transparency->Data());
 
-      const gz::common::Mesh *mesh;
-      std::weak_ptr<gz::common::SubMesh> subm;
+      const common::Mesh *mesh;
+      std::weak_ptr<common::SubMesh> subm;
       math::Vector3d scale;
       math::Matrix4d matrix(worldPose);
-      gz::common::MeshManager *meshManager =
-          gz::common::MeshManager::Instance();
+      common::MeshManager *meshManager =
+          common::MeshManager::Instance();
 
       auto addSubmeshFunc = [&](int _matIndex)
       {
@@ -329,7 +329,3 @@ GZ_ADD_PLUGIN(ColladaWorldExporter,
 
 GZ_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
                           "gz::sim::systems::ColladaWorldExporter")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "ignition::gazebo::systems::ColladaWorldExporter")

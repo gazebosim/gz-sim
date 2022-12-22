@@ -421,7 +421,7 @@ void TrajectoryFollower::PreUpdate(
       }
     }
 
-    int sign = std::abs(bearing.Degree()) / bearing.Degree();
+    int sign = static_cast<int>(std::abs(bearing.Degree()) / bearing.Degree());
     torqueWorld = (*comPose).Rot().RotateVector(
        gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
   }
@@ -437,7 +437,3 @@ GZ_ADD_PLUGIN(TrajectoryFollower,
 
 GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
                           "gz::sim::systems::TrajectoryFollower")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrajectoryFollower,
-                          "ignition::gazebo::systems::TrajectoryFollower")

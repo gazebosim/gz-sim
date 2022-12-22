@@ -5,6 +5,7 @@ set (gui_sources
   GuiFileHandler.cc
   GuiRunner.cc
   PathManager.cc
+  QuickStartHandler.cc
 )
 
 set (gtest_sources

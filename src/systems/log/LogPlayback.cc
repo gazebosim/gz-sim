@@ -628,15 +628,11 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-GZ_ADD_PLUGIN(gz::sim::systems::LogPlayback,
-                    gz::sim::System,
-                    LogPlayback::ISystemConfigure,
-                    LogPlayback::ISystemReset,
-                    LogPlayback::ISystemUpdate)
+GZ_ADD_PLUGIN(LogPlayback,
+              System,
+              LogPlayback::ISystemConfigure,
+              LogPlayback::ISystemReset,
+              LogPlayback::ISystemUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LogPlayback,
                           "gz::sim::systems::LogPlayback")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogPlayback,
-                          "ignition::gazebo::systems::LogPlayback")

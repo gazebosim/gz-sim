@@ -27,7 +27,6 @@
 #include <gz/common/SingletonT.hh>
 #include <gz/common/Util.hh>
 #include <gz/sim/components/Component.hh>
-#include <gz/sim/detail/ComponentStorageBase.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
@@ -78,58 +77,10 @@ namespace components
     }
   };
 
-  /// \brief A base class for an object responsible for creating storages.
-  class StorageDescriptorBase
-  {
-    /// \brief Constructor
-    public: GZ_DEPRECATED(6) StorageDescriptorBase() = default;
-
-    /// \brief Destructor
-    public: virtual ~StorageDescriptorBase() = default;
-
-    /// \brief Create an instance of a storage.
-    /// \return Pointer to a storage.
-    public: virtual std::unique_ptr<ComponentStorageBase> Create() const  = 0;
-  };
-
-  /// \brief A class for an object responsible for creating storages.
-  /// \tparam ComponentTypeT type of component that the storage will hold.
-  template <typename ComponentTypeT>
-  class StorageDescriptor
-    : public StorageDescriptorBase
-  {
-    /// \brief Constructor
-    public: GZ_DEPRECATED(6) StorageDescriptor() = default;
-
-    /// \brief Create an instance of a storage that holds ComponentTypeT
-    /// components.
-    /// \return Pointer to a component.
-    public: std::unique_ptr<ComponentStorageBase> Create() const override
-    {
-      return std::make_unique<ComponentStorage<ComponentTypeT>>();
-    }
-  };
-
   /// \brief A factory that generates a component based on a string type.
   class Factory
       : public gz::common::SingletonT<Factory>
   {
-    /// \brief Register a component so that the factory can create instances
-    /// of the component and its storage based on an ID.
-    /// \param[in] _type Type of component to register.
-    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
-    ///  objects.
-    /// \param[in] _storageDesc Ignored.
-    /// \tparam ComponentTypeT Type of component to register.
-    /// \deprecated See function that doesn't accept a storage
-    public: template<typename ComponentTypeT>
-    void GZ_DEPRECATED(6) Register(const std::string &_type,
-        ComponentDescriptorBase *_compDesc,
-        StorageDescriptorBase * /*_storageDesc*/)
-    {
-      this->Register<ComponentTypeT>(_type, _compDesc);
-    }
-
     /// \brief Register a component so that the factory can create instances
     /// of the component based on an ID.
     /// \param[in] _type Type of component to register.
@@ -308,16 +259,6 @@ namespace components
       }
 
       return comp;
-    }
-
-    /// \brief Create a new instance of a component storage.
-    /// \param[in] _typeId Type of component which the storage will hold.
-    /// \return Always returns nullptr.
-    /// \deprecated Storages aren't necessary anymore.
-    public: std::unique_ptr<ComponentStorageBase> GZ_DEPRECATED(6) NewStorage(
-        const ComponentTypeId & /*_typeId*/)
-    {
-      return nullptr;
     }
 
     /// \brief Get all the registered component types by ID.

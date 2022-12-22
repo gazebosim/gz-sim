@@ -24,8 +24,8 @@
 
 #include <gz/transport/Node.hh>
 
-#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {

@@ -21,4 +21,3 @@
 GZ_ADD_PLUGIN(gz::sim::TestSensorSystem,
     gz::sim::System,
     gz::sim::TestSensorSystem::ISystemConfigure)
-

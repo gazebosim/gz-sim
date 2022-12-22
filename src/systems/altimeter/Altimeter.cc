@@ -261,7 +261,6 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Vector3d linearVel;
           math::Pose3d worldPose = _worldPose->Data();
           it->second->SetPosition(worldPose.Pos().Z());
           it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
@@ -305,6 +304,3 @@ GZ_ADD_PLUGIN(Altimeter, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

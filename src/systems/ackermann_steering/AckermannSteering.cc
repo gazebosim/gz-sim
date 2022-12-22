@@ -58,21 +58,21 @@ class gz::sim::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const gz::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -143,6 +143,9 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief Ackermann steering odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
+  /// \brief Ackermann tf message publisher.
+  public: transport::Node::Publisher tfPub;
+
   /// \brief Odometry X value
   public: double odomX{0.0};
 
@@ -162,10 +165,10 @@ class gz::sim::systems::AckermannSteeringPrivate
   public: std::chrono::steady_clock::duration lastOdomTime{0};
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<gz::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<gz::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -257,8 +260,8 @@ void AckermannSteering::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<gz::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -343,6 +346,24 @@ void AckermannSteering::Configure(const Entity &_entity,
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
+  std::vector<std::string> tfTopics;
+  if (_sdf->HasElement("tf_topic"))
+  {
+    tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+  }
+  tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+    "/tf");
+  auto tfTopic = validTopic(tfTopics);
+  if (tfTopic.empty())
+  {
+    gzerr << "AckermannSteering plugin invalid tf topic name "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
+
+  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+      tfTopic);
+
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
 
@@ -354,8 +375,8 @@ void AckermannSteering::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void AckermannSteering::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::PreUpdate");
 
@@ -566,8 +587,8 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateOdometry(
-    const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -667,14 +688,22 @@ void AckermannSteeringPrivate::UpdateOdometry(
     childFrame->add_value(this->sdfChildFrameId);
   }
 
+  // Construct the Pose_V/tf message and publish it.
+  msgs::Pose_V tfMsg;
+  msgs::Pose *tfMsgPose = tfMsg.add_pose();
+  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
+  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
+  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+
   // Publish the message
   this->odomPub.Publish(msg);
+  this->tfPub.Publish(tfMsg);
 }
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateVelocity(
-    const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::UpdateVelocity");
 
@@ -759,14 +788,10 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
 }
 
 GZ_ADD_PLUGIN(AckermannSteering,
-                    gz::sim::System,
+                    System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "gz::sim::systems::AckermannSteering")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::systems::AckermannSteering")
+                    "gz::sim::systems::AckermannSteering")
