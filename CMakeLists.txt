@@ -133,6 +133,7 @@ gz_find_package(gz-sensors7 REQUIRED
   COMPONENTS
     # non-rendering
     air_pressure
+    air_speed
     altimeter
     imu
     force_torque

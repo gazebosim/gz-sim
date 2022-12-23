@@ -46,6 +46,7 @@
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/AirPressure.hh>
+#include <sdf/AirSpeed.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
@@ -1197,6 +1198,27 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  else if (_in.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    if (_in.AirSpeedSensor())
+    {
+      msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
+
+      if (_in.AirSpeedSensor()->SpeedNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_speed_noise(),
+            _in.AirSpeedSensor()->SpeedNoise());
+      }
+      // sensor->set_reference_altitude(
+      //     _in.AirSpeedSensor()->ReferenceAltitude());
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed SDF sensor, but the "
+        << "sensor pointer is null.\n";
+    }
+  }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -1421,6 +1443,27 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     }
 
     out.SetAirPressureSensor(sensor);
+  }
+  else if (out.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    sdf::AirSpeed sensor;
+    if (_in.has_air_speed())
+    {
+      if (_in.air_speed().has_speed_noise())
+      {
+        sensor.SetSpeedNoise(sim::convert<sdf::Noise>(
+              _in.air_speed().speed_noise()));
+      }
+
+      // sensor.SetReferenceAltitude(_in.air_pressure().reference_altitude());
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed sensor message, but the "
+        << "message does not have an air speed nested message.\n";
+    }
+
+    out.SetAirSpeedSensor(sensor);
   }
   else if (out.Type() == sdf::SensorType::IMU)
   {
