@@ -111,42 +111,27 @@ math::Vector3d relativeVel(const Entity &_entity,
   }
 
   auto worldLinVel = _ecm.Component<components::WorldLinearVelocity>(_entity);
-  const auto worldAngVel =
-      _ecm.Component<components::WorldAngularVelocity>(_entity);
   if (nullptr == worldLinVel)
   {
     gzwarn << "Trying to get world velocity from entity [" << _entity
             << "], which doesn't have a velocity component" << std::endl;
     return math::Vector3d();
   }
-  if (nullptr == worldAngVel)
-  {
-    gzwarn << "Trying to get world angular velocity from entity [" << _entity
-            << "], which doesn't have an angular velocity component" << std::endl;
-    return math::Vector3d();
-  }
 
-  const auto cpWorld = pose.Rot().RotateVector(gz::math::Vector3d());
-  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld);
-
-  std::cerr << "worldLinVel->Data() " << worldLinVel->Data() << '\n';
-
-  // math::Vector3d vel = worldVelComp->Data();
-  // auto v = _ecm.Component<components::ParentEntity>(_entity);
-  // // while (v)
-  // // {
-  // //   // get pose of parent entity
-  // //   auto parentVel = _ecm.Component<components::Pose>(p->Data());
-  // //   if (!parentVel)
-  // //     break;
-  // //   // transform pose
-  // //   vel = parentVel->Data() * vel;
-  // //   // keep going up the tree
-  // //   v = _ecm.Component<components::ParentEntity>(v->Data());
-  // // }
-  //
-  // return pose.Rot().RotateVectorReverse(vel);
-  return vel;
+  math::Vector3d vel = worldLinVel->Data();
+  auto v = _ecm.Component<components::ParentEntity>(_entity);
+  // while (v)
+  // {
+  //   // get pose of parent entity
+  //   auto parentVel = _ecm.Component<components::Pose>(p->Data());
+  //   if (!parentVel)
+  //     break;
+  //   // transform pose
+  //   vel = parentVel->Data() * vel;
+  //   // keep going up the tree
+  //   v = _ecm.Component<components::ParentEntity>(v->Data());
+  // }
+  return pose.Rot().RotateVectorReverse(vel);
 }
 
 //////////////////////////////////////////////////

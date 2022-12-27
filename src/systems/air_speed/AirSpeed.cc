@@ -255,7 +255,6 @@ void AirSpeedPrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirSpeedPrivate::UpdateAirSpeeds(const EntityComponentManager &_ecm)
 {
-  std::cerr << "UpdateAirSpeeds" << '\n';
   GZ_PROFILE("AirSpeedPrivate::UpdateAirSpeeds");
   _ecm.Each<components::AirSpeedSensor, components::WorldPose>(
     [&](const Entity &_entity,
@@ -269,7 +268,6 @@ void AirSpeedPrivate::UpdateAirSpeeds(const EntityComponentManager &_ecm)
           it->second->SetPose(worldPose);
 
           math::Vector3d sensorRelativeVel = relativeVel(_entity, _ecm);
-          // gzerr << "sensorRelativeVel update " << sensorRelativeVel << '\n';
           it->second->SetVelocity(sensorRelativeVel);
         }
         else
