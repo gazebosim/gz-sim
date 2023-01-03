@@ -505,7 +505,7 @@ void Sensors::Configure(const Entity &/*_id*/,
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
 
-  const std::string apiBackend =
+  std::string apiBackend =
     _sdf->Get<std::string>("render_engine_api_backend", "").first;
 
   // get whether or not to disable sensor when model battery is drained
@@ -522,6 +522,10 @@ void Sensors::Configure(const Entity &/*_id*/,
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
+#ifdef __APPLE__
+  if (apiBackend.empty())
+    apiBackend = "metal";
+#endif
   this->dataPtr->renderUtil.SetApiBackend(apiBackend);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,

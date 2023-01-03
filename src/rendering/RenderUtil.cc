@@ -2598,6 +2598,7 @@ void RenderUtil::Init()
   {
     params["metal"] = "1";
   }
+
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
   params["winID"] = this->dataPtr->winID;
