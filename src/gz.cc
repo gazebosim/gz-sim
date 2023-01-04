@@ -403,6 +403,11 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
   }
 
+  if (_renderEngineGuiApiBackend != nullptr)
+  {
+    serverConfig.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
+  }
+
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
     serverConfig.SetRenderEngineGui(_renderEngineGui);
