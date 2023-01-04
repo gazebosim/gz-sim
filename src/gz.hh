@@ -82,7 +82,8 @@ extern "C" GZ_SIM_VISIBLE int runServer(const char *_sdfString,
 /// \param[in] _renderEngine --render-engine-gui option
 /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend option
 /// \return 0 if successful, 1 if not.
-extern "C" int GZ_SIM_VISIBLE runGui(const char *_guiConfig, const char *_file, int _waitGui,
+extern "C" int GZ_SIM_VISIBLE runGui(const char *_guiConfig, const char *_file,
+                                     int _waitGui,
                                      const char *_renderEngine,
                                      const char *_renderEngineGuiApiBackend);
 
