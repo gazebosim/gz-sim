@@ -54,6 +54,9 @@ namespace ignition::gazebo
     /// \brief Perform transformations in the render thread.
     public: void HandleTransform();
 
+    /// \brief Handle mouse events
+    public: void HandleMouseEvents();
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
@@ -575,9 +578,22 @@ void TransformControlPrivate::HandleTransform()
   // update gizmo visual
   this->transformControl.Update();
 
+  this->HandleMouseEvents();
+
+  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &blockOrbitEvent);
+}
+
+
+/////////////////////////////////////////////////
+void TransformControlPrivate::HandleMouseEvents()
+{
   // check for mouse events
   if (!this->mouseDirty)
     return;
+  this->mouseDirty = false;
 
   // handle mouse movements
   if (this->mouseEvent.Button() == ignition::common::MouseEvent::LEFT)
@@ -615,7 +631,6 @@ void TransformControlPrivate::HandleTransform()
               // It's ok to get here
             }
           }
-          this->mouseDirty = false;
         }
         else
         {
@@ -682,7 +697,6 @@ void TransformControlPrivate::HandleTransform()
         }
 
         this->transformControl.Stop();
-        this->mouseDirty = false;
       }
       // Select entity
       else if (!this->mouseEvent.Dragging())
@@ -753,7 +767,6 @@ void TransformControlPrivate::HandleTransform()
               }
             }
 
-            this->mouseDirty = false;
             return;
           }
         }
@@ -912,13 +925,7 @@ void TransformControlPrivate::HandleTransform()
       }
       this->transformControl.Scale(scale);
     }
-    this->mouseDirty = false;
   }
-
-  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &blockOrbitEvent);
 }
 
 /////////////////////////////////////////////////
