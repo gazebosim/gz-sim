@@ -586,7 +586,6 @@ void TransformControlPrivate::HandleTransform()
       &blockOrbitEvent);
 }
 
-
 /////////////////////////////////////////////////
 void TransformControlPrivate::HandleMouseEvents()
 {
