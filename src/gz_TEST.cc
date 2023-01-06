@@ -134,7 +134,7 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, SimtimeArgument)
 {
-  std::string cmd = kGzCommand + " -r -v 4 --iterations 100 --initial-sim-time 1000.0 " +
+  std::string cmd = kGzCommand + " -r -v 4 --iterations 100 --initial-sim-time 1000.5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -143,7 +143,8 @@ TEST(CmdLine, SimtimeArgument)
   gz::transport::Node node;
   auto cb = [&](const gz::msgs::Clock &_msg) -> void
   {
-    EXPECT_GE(_msg.sim().sec(), 1000);
+    EXPECT_GE(_msg.sim().sec() + _msg.sim().nsec()/1000000000.0,
+        1000.5);
     msgCount++;
   };
 
