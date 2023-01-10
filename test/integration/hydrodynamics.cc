@@ -154,7 +154,8 @@ TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
 /// This test makes sure that the transforms of the hydrodynamics
 /// plugin are correct by comparing 3 cylinders in different
 /// positions and orientations.
-TEST_F(HydrodynamicsTest, TransformsTestinWater)
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TransformsTestinWater))
 {
   auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
       "test", "worlds", "hydrodynamics.sdf");

@@ -729,14 +729,23 @@ void AckermannSteeringPrivate::UpdateVelocity(
   // Convert the target velocities to joint velocities and angles
   double turningRadius = linVel / angVel;
   double minimumTurningRadius = this->wheelBase / sin(this->steeringLimit);
-  if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+  if (fabs(linVel) > 0.0)
   {
-    turningRadius = minimumTurningRadius;
+    if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+    {
+      turningRadius = minimumTurningRadius;
+    }
+    if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+    {
+      turningRadius = -minimumTurningRadius;
+    }
   }
-  if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+  // special case for angVel not zero and linVel zero
+  else if (fabs(angVel) >= 0.001)
   {
-    turningRadius = -minimumTurningRadius;
+    turningRadius = (angVel / fabs(angVel)) * minimumTurningRadius;
   }
+
   // special case for angVel of zero
   if (fabs(angVel) < 0.001)
   {
