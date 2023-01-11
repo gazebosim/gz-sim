@@ -77,7 +77,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 REQUIRED COMPONENTS log parameters)
+gz_find_package(gz-transport12 12.1 REQUIRED COMPONENTS log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------
