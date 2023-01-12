@@ -623,4 +623,4 @@ GZ_ADD_PLUGIN(
 GZ_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")
 
 // TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")
+GZ_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")
