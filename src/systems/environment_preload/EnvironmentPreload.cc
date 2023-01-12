@@ -15,6 +15,7 @@
  *
  */
 #include "EnvironmentPreload.hh"
+#include "VisualizationTool.hh"
 
 #include <array>
 #include <string>
@@ -56,11 +57,26 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: std::atomic<bool> needsReload{false};
 
+  public: std::unique_ptr<EnvironmentVisualizationTool> visualizationPtr;
+
+  public: std::atomic<bool> visualize{false};
+
+  public: std::atomic<math::Vector3d> samples;
+
+  public: EnvironmentPreloadPrivate() :
+    visualizationPtr(new EnvironmentVisualizationTool) {};
+
   public: void OnLoadCommand(const msgs::DataLoadPathOptions &_msg)
   {
     std::lock_guard<std::mutex> lock(this->mtx);
     this->dataDescription = _msg;
     this->needsReload = true;
+  }
+
+  public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
+  {
+    this->visualize = true;
+    this->samples = msgs::Convert(_resChanged);
   }
 
   public: void ReadSdf(EntityComponentManager &_ecm)
@@ -243,7 +259,7 @@ void EnvironmentPreload::Configure(
 
 //////////////////////////////////////////////////
 void EnvironmentPreload::PreUpdate(
-  const gz::sim::UpdateInfo &,
+  const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
   if (!std::exchange(this->dataPtr->loaded, true))
@@ -254,14 +270,25 @@ void EnvironmentPreload::PreUpdate(
     this->dataPtr->node.Subscribe(
       common::joinPaths(scopedName(world, _ecm),"environment"),
       &EnvironmentPreloadPrivate::OnLoadCommand, this->dataPtr.get());
-      msgs::DataLoadPathOptions loadOptions;
+    this->dataPtr->node.Subscribe(
+      common::joinPaths(scopedName(world, _ecm),"environment/visualize/res"),
+      &EnvironmentPreloadPrivate::OnVisualResChanged, this->dataPtr.get());
+
+    this->dataPtr->visualizationPtr->resample = true;
 
     this->dataPtr->ReadSdf(_ecm);
   }
 
-  if (this->dataPtr->needsReload.load())
+  if (this->dataPtr->needsReload)
   {
     this->dataPtr->LoadEnvironment(_ecm);
+  }
+
+  if (this->dataPtr->visualize)
+  {
+    auto samples = this->dataPtr->samples.load();
+    this->dataPtr->visualizationPtr->Step(_info, _ecm,
+      samples.X(), samples.Y(), samples.Z());
   }
 }
 

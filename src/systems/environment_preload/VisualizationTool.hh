@@ -13,16 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-
-#include "EnvironmentVisualization.hh"
-
-#include <gz/gui/Application.hh>
-#include <gz/gui/MainWindow.hh>
-#include <gz/sim/components/Environment.hh>
-#include <gz/sim/Util.hh>
-
-#include <gz/plugin/Register.hh>
+ */
+#ifndef GZ_SIM_SYSTEMS_ENVIRONMENTPRELOAD_VIZTOOL_HH_
+#define GZ_SIM_SYSTEMS_ENVIRONMENTPRELOAD_VIZTOOL_HH_
 
 #include <atomic>
 #include <mutex>
@@ -41,6 +34,9 @@
 #include <gz/msgs/PointCloudPackedUtils.hh>
 #include <gz/msgs/Utility.hh>
 
+#include "gz/sim/components/Environment.hh"
+#include "gz/sim/Util.hh"
+
 using namespace gz;
 using namespace sim;
 
@@ -50,7 +46,6 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-/// \brief Private data class for EnvironmentVisualization
 class EnvironmentVisualizationTool
 {
   public: EnvironmentVisualizationTool()
@@ -83,12 +78,29 @@ class EnvironmentVisualizationTool
   /////////////////////////////////////////////////
   public: void Step(
     const UpdateInfo &_info,
-    std::shared_ptr<components::EnvironmentalData> &data,
     const EntityComponentManager& _ecm,
     double xSamples, double ySamples, double zSamples)
   {
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt(now - this->lastTick);
+
+    std::shared_ptr<components::EnvironmentalData> data;
+
+    bool proceed{false};
+
+    _ecm.Each<components::Environment>([&](
+      const Entity &_e,
+      const components::Environment *_env
+    ) -> bool {
+      if (_env)
+      {
+        data = _env->Data();
+        proceed = true;
+      }
+    });
+
+    if (!proceed)
+      return;
 
     if (this->resample)
     {
@@ -250,64 +262,4 @@ class EnvironmentVisualizationTool
 }
 }
 }
-
-/////////////////////////////////////////////////
-EnvironmentVisualization::EnvironmentVisualization()
-  : GuiSystem(), dataPtr(new EnvironmentVisualizationTool)
-{
-  gui::App()->Engine()->rootContext()->setContextProperty(
-      "EnvironmentVisualization", this);
-}
-
-/////////////////////////////////////////////////
-EnvironmentVisualization::~EnvironmentVisualization()
-{
-}
-
-/////////////////////////////////////////////////
-void EnvironmentVisualization::LoadConfig(const tinyxml2::XMLElement *)
-{
-  if (this->title.empty())
-    this->title = "Environment Visualization Resolution";
-
-  gui::App()->findChild<gui::MainWindow *>()->installEventFilter(this);
-}
-
-/////////////////////////////////////////////////
-void EnvironmentVisualization::Update(const UpdateInfo &_info,
-                               EntityComponentManager &_ecm)
-{
-  _ecm.EachNew<components::Environment>(
-    [this](
-      const Entity &/*_entity*/,
-      const components::Environment* /*environment*/
-    ) {
-      this->dataPtr->resample = true;
-      return true;
-    }
-  );
-
-  auto environData =
-    _ecm.Component<components::Environment>(
-      worldEntity(_ecm));
-
-  if (environData == nullptr)
-  {
-    return;
-  }
-
-  this->dataPtr->Step(
-    _info, environData->Data(), _ecm,
-    this->xSamples, this->ySamples, this->zSamples
-  );
-}
-
-/////////////////////////////////////////////////
-void EnvironmentVisualization::ResamplePointcloud()
-{
-  this->dataPtr->resample = true;
-}
-
-
-// Register this plugin
-GZ_ADD_PLUGIN(gz::sim::EnvironmentVisualization, gz::gui::Plugin)
+#endif
