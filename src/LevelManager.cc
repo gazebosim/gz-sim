@@ -51,6 +51,7 @@
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/Scene.hh"
@@ -149,6 +150,10 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerPlugin(
       this->runner->serverConfig.RenderEngineServer()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineServerApiBackend(
+      this->runner->serverConfig.RenderEngineServerApiBackend()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerHeadless(

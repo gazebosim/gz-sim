@@ -409,9 +409,27 @@ namespace gz
       public: void SetRenderEngineServer(
                   const std::string &_renderEngineServer);
 
+      /// \brief Set the render engine server API backend.
+      /// \param[in] _apiBackend See --render-engine-server-api-backend for
+      /// possible options
+      public: void SetRenderEngineServerApiBackend(
+                  const std::string &_apiBackend);
+
+      /// \return Api backend for server. See SetRenderEngineServerApiBackend()
+      const std::string &RenderEngineServerApiBackend() const;
+
       /// \brief Set the render engine gui plugin library.
       /// \param[in] _renderEngineGui File containing render engine library.
       public: void SetRenderEngineGui(const std::string &_renderEngineGui);
+
+      /// \brief Set the render engine gui API backend.
+      /// \param[in] _apiBackend See --render-engine-gui-api-backend for
+      /// possible options
+      public: void SetRenderEngineGuiApiBackend(
+                  const std::string &_apiBackend);
+
+      /// \return Api backend for gui. See SetRenderEngineGuiApiBackend()
+      const std::string &RenderEngineGuiApiBackend() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

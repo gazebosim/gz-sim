@@ -134,7 +134,8 @@ extern "C" int runServer(const char *_sdfString,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
-    const char *_renderEngineServer, const char *_renderEngineGui,
+    const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
+    const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, const char *_recordTopics, int _waitGui,
     int _headless, float _recordPeriod, int _seed)
 {
@@ -397,6 +398,16 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetRenderEngineServer(_renderEngineServer);
   }
 
+  if (_renderEngineServerApiBackend != nullptr)
+  {
+    serverConfig.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
+  }
+
+  if (_renderEngineGuiApiBackend != nullptr)
+  {
+    serverConfig.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
+  }
+
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
     serverConfig.SetRenderEngineGui(_renderEngineGui);
@@ -420,7 +431,8 @@ extern "C" int runServer(const char *_sdfString,
 
 //////////////////////////////////////////////////
 extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
-  const char *_renderEngine)
+                      const char *_renderEngine,
+                      const char *_renderEngineGuiApiBackend)
 {
   // argc and argv are going to be passed to a QApplication. The Qt
   // documentation has a warning about these:
@@ -449,6 +461,6 @@ extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
   };
   int argc = sizeof(argv) / sizeof(argv[0]);
 
-  return gz::sim::gui::runGui(
-    argc, argv, _guiConfig, _file, _waitGui, _renderEngine);
+  return gz::sim::gui::runGui(argc, argv, _guiConfig, _file, _waitGui,
+                              _renderEngine, _renderEngineGuiApiBackend);
 }
