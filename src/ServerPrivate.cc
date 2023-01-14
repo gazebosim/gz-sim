@@ -248,7 +248,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       recordPluginElem->Get<std::string>("compress_path", "");
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)
     {
@@ -258,9 +257,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       {
         auto topic = recordTopicElem->Get<std::string>();
         sdfRecordTopics.push_back(topic);
+        recordTopicElem = recordTopicElem->GetNextElement();
       }
-
-      recordTopicElem = recordTopicElem->GetNextElement();
     }
 
     // Remove from SDF
