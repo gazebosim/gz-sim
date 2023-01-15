@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +37,11 @@ namespace systems
   /// with any number of left and right wheels.
   ///
   /// # System Parameters
+  ///
+  /// `<steering_only>`: Boolean used to only control the steering angle
+  /// only. Calculates the angles of wheels from steering_limit,  wheel_base,
+  /// and wheel_separation. Uses gz::msg::Double on default topic name
+  /// `/model/{name_of_model}/steer_angle`
   ///
   /// `<left_joint>`: Name of a joint that controls a left wheel. This
   /// element can appear multiple times, and must appear at least once.
@@ -83,8 +89,9 @@ namespace systems
   /// `<max_jerk Maximum>`: jerk [m/s^3], usually >= 0.
   ///
   /// `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
-  /// default value is `/model/{name_of_model}/cmd_vel`.
+  /// receive command messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/cmd_vel` or when steering_only
+  /// is true `/model/{name_of_model}/steer_angle`.
   ///
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
