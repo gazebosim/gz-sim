@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@
 
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/PID.hh>
@@ -46,10 +48,10 @@ class gz::sim::systems::JointPositionControllerPrivate
   public: transport::Node node;
 
   /// \brief Joint Entity
-  public: Entity jointEntity{kNullEntity};
+  public: std::vector<Entity> jointEntities;
 
   /// \brief Joint name
-  public: std::string jointName;
+  public: std::vector<std::string> jointNames;
 
   /// \brief Commanded joint position
   public: double jointPosCmd{0.0};
@@ -101,14 +103,16 @@ void JointPositionController::Configure(const Entity &_entity,
     return;
   }
 
-  // Get params from SDF
-  this->dataPtr->jointName = _sdf->Get<std::string>("joint_name");
+  // Ugly, but needed because the sdf::Element::GetElement is not a const
+  // function and _sdf is a const shared pointer to a const sdf::Element.
+  auto ptr = const_cast<sdf::Element *>(_sdf.get());
 
-  if (this->dataPtr->jointName == "")
+  // Get params from SDF
+  sdf::ElementPtr sdfElem = ptr->GetElement("joint_name");
+  while (sdfElem)
   {
-    gzerr << "JointPositionController found an empty jointName parameter. "
-           << "Failed to initialize.";
-    return;
+    this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("joint_name");
   }
 
   if (_sdf->HasElement("joint_index"))
@@ -177,14 +181,36 @@ void JointPositionController::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
-      "/" + std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
-  if (topic.empty())
+  std::string topic;
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic")))
   {
-    gzerr << "Failed to create topic for joint [" << this->dataPtr->jointName
-           << "]" << std::endl;
-    return;
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+        this->dataPtr->model.Name(_ecm) + "/joint/" +
+        this->dataPtr->jointNames[0] + "/" +
+        std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if (_sdf->HasElement("sub_topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/" +
+        _sdf->Get<std::string>("sub_topic"));
+
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic from sub_topic [/model/"
+             << this->dataPtr->model.Name(_ecm) << "/"
+             << _sdf->Get<std::string>("sub_topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
+             << "]" << std::endl;
+      return;
+    }
   }
   if (_sdf->HasElement("topic"))
   {
@@ -194,7 +220,7 @@ void JointPositionController::Configure(const Entity &_entity,
     if (topic.empty())
     {
       gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << this->dataPtr->jointName
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
              << "]" << std::endl;
       return;
     }
@@ -231,37 +257,40 @@ void JointPositionController::PreUpdate(
         << "s]. System may not work properly." << std::endl;
   }
 
-  // If the joint hasn't been identified yet, look for it
-  if (this->dataPtr->jointEntity == kNullEntity)
+  // If the joints haven't been identified yet, look for them
+  if (this->dataPtr->jointEntities.empty())
   {
-    this->dataPtr->jointEntity =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
+    bool warned{false};
+    for (const std::string &name : this->dataPtr->jointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+      {
+        this->dataPtr->jointEntities.push_back(joint);
+      }
+      else if (!warned)
+      {
+        gzwarn << "Failed to find joint [" << name << "]" << std::endl;
+        warned = true;
+      }
+    }
   }
-
-  // If the joint is still not found then warn the user, they may have entered
-  // the wrong joint name.
-  if (this->dataPtr->jointEntity == kNullEntity)
-  {
-    static bool warned = false;
-    if(!warned)
-      gzerr << "Could not find joint with name ["
-        << this->dataPtr->jointName <<"]\n";
-    warned = true;
+  if (this->dataPtr->jointEntities.empty())
     return;
-  }
 
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
   // Create joint position component if one doesn't exist
-  auto jointPosComp =
-      _ecm.Component<components::JointPosition>(this->dataPtr->jointEntity);
-  if (jointPosComp == nullptr)
+  auto jointPosComp = _ecm.Component<components::JointPosition>(
+      this->dataPtr->jointEntities[0]);
+  if (!jointPosComp)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity, components::JointPosition());
+    _ecm.CreateComponent(this->dataPtr->jointEntities[0],
+        components::JointPosition());
   }
+
   // We just created the joint position component, give one iteration for the
   // physics system to update its size
   if (jointPosComp == nullptr || jointPosComp->Data().empty())
@@ -271,15 +300,15 @@ void JointPositionController::PreUpdate(
   if (this->dataPtr->jointIndex >= jointPosComp->Data().size())
   {
     static std::unordered_set<Entity> reported;
-    if (reported.find(this->dataPtr->jointEntity) == reported.end())
+    if (reported.find(this->dataPtr->jointEntities[0]) == reported.end())
     {
       gzerr << "[JointPositionController]: Detected an invalid <joint_index> "
              << "parameter. The index specified is ["
              << this->dataPtr->jointIndex << "] but joint ["
-             << this->dataPtr->jointName << "] only has ["
+             << this->dataPtr->jointNames[0] << "] only has ["
              << jointPosComp->Data().size() << "] index[es]. "
              << "This controller will be ignored" << std::endl;
-      reported.insert(this->dataPtr->jointEntity);
+      reported.insert(this->dataPtr->jointEntities[0]);
     }
     return;
   }
@@ -315,37 +344,40 @@ void JointPositionController::PreUpdate(
     {
       targetVel = -error;
     }
-
-    // Set velocity and return
-    auto vel =
-      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
-
-    if (vel == nullptr)
+    for (Entity joint : this->dataPtr->jointEntities)
     {
-      _ecm.CreateComponent(
-          this->dataPtr->jointEntity,
-          components::JointVelocityCmd({targetVel}));
-    }
-    else if (!vel->Data().empty())
-    {
-      vel->Data()[0] = targetVel;
+      // Update velocity command.
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(
+            joint, components::JointVelocityCmd({targetVel}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({targetVel});
+      }
     }
     return;
   }
 
-  // Update force command.
-  double force = this->dataPtr->posPid.Update(error, _info.dt);
+  for (Entity joint : this->dataPtr->jointEntities)
+  {
+    // Update force command.
+    double force = this->dataPtr->posPid.Update(error, _info.dt);
 
-  auto forceComp =
-      _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
-  if (forceComp == nullptr)
-  {
-    _ecm.CreateComponent(this->dataPtr->jointEntity,
-                         components::JointForceCmd({force}));
-  }
-  else
-  {
-    forceComp->Data()[this->dataPtr->jointIndex] = force;
+    auto forceComp =
+        _ecm.Component<components::JointForceCmd>(joint);
+    if (forceComp == nullptr)
+    {
+      _ecm.CreateComponent(joint,
+                          components::JointForceCmd({force}));
+    }
+    else
+    {
+      *forceComp = components::JointForceCmd({force});
+    }
   }
 }
 
