@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +21,7 @@
 #include <gz/msgs/double.pb.h>
 
 #include <string>
+#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/PID.hh>
@@ -45,10 +47,13 @@ class gz::sim::systems::JointControllerPrivate
   public: transport::Node node;
 
   /// \brief Joint Entity
-  public: Entity jointEntity;
+  public: std::vector<Entity> jointEntities;
+
+  /// \brief Joint name
+  public: std::vector<std::string> jointNames;
 
   /// \brief Commanded joint velocity
-  public: double jointVelCmd;
+  public: double jointVelCmd{0.0};
 
   /// \brief mutex to protect jointVelCmd
   public: std::mutex jointVelCmdMutex;
@@ -85,23 +90,19 @@ void JointController::Configure(const Entity &_entity,
     return;
   }
 
+  // Ugly, but needed because the sdf::Element::GetElement is not a const
+  // function and _sdf is a const shared pointer to a const sdf::Element.
+  auto ptr = const_cast<sdf::Element *>(_sdf.get());
+
   // Get params from SDF
-  auto jointName = _sdf->Get<std::string>("joint_name");
-  if (jointName.empty())
+  sdf::ElementPtr sdfElem = ptr->GetElement("joint_name");
+  while (sdfElem)
   {
-    gzerr << "JointController found an empty jointName parameter. "
-           << "Failed to initialize.";
-    return;
+    this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    sdfElem = sdfElem->GetNextElement("joint_name");
   }
 
-  this->dataPtr->jointEntity = this->dataPtr->model.JointByName(_ecm,
-      jointName);
-  if (this->dataPtr->jointEntity == kNullEntity)
-  {
-    gzerr << "Joint with name[" << jointName << "] not found. "
-    << "The JointController may not control this joint.\n";
-    return;
-  }
+
 
   if (_sdf->HasElement("initial_velocity"))
   {
@@ -143,14 +144,35 @@ void JointController::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + jointName +
-      "/cmd_vel");
-  if (topic.empty())
+  std::string topic;
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic")))
   {
-    gzerr << "Failed to create topic for joint [" << jointName
-           << "]" << std::endl;
-    return;
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+        this->dataPtr->model.Name(_ecm) + "/joint/" +
+        this->dataPtr->jointNames[0] + "/cmd_vel");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if (_sdf->HasElement("sub_topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/" +
+        _sdf->Get<std::string>("sub_topic"));
+
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic from sub_topic [/model/"
+             << this->dataPtr->model.Name(_ecm) << "/"
+             << _sdf->Get<std::string>("sub_topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
+             << "]" << std::endl;
+      return;
+    }
   }
   if (_sdf->HasElement("topic"))
   {
@@ -160,7 +182,7 @@ void JointController::Configure(const Entity &_entity,
     if (topic.empty())
     {
       gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << jointName
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
              << "]" << std::endl;
       return;
     }
@@ -178,10 +200,6 @@ void JointController::PreUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("JointController::PreUpdate");
 
-  // If the joint hasn't been identified yet, the plugin is disabled
-  if (this->dataPtr->jointEntity == kNullEntity)
-    return;
-
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -190,19 +208,43 @@ void JointController::PreUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
+  // If the joints haven't been identified yet, look for them
+  if (this->dataPtr->jointEntities.empty())
+  {
+    bool warned{false};
+    for (const std::string &name : this->dataPtr->jointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+      {
+        this->dataPtr->jointEntities.push_back(joint);
+      }
+      else if (!warned)
+      {
+        gzwarn << "Failed to find joint [" << name << "]" << std::endl;
+        warned = true;
+      }
+    }
+  }
+  if (this->dataPtr->jointEntities.empty())
+    return;
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
   // Create joint velocity component if one doesn't exist
-  auto jointVelComp =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity);
-  if (jointVelComp == nullptr)
+  auto jointVelComp = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->jointEntities[0]);
+  if (!jointVelComp)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity, components::JointVelocity());
+    _ecm.CreateComponent(this->dataPtr->jointEntities[0],
+        components::JointVelocity());
   }
-  if (jointVelComp == nullptr)
+
+  // We just created the joint velocity component, give one iteration for the
+  // physics system to update its size
+  if (jointVelComp == nullptr || jointVelComp->Data().empty())
     return;
 
   double targetVel;
@@ -211,43 +253,47 @@ void JointController::PreUpdate(const UpdateInfo &_info,
     targetVel = this->dataPtr->jointVelCmd;
   }
 
+  double error = jointVelComp->Data().at(0) - targetVel;
+
   // Force mode.
-  if (this->dataPtr->useForceCommands)
+  if ((this->dataPtr->useForceCommands) &&
+      (!jointVelComp->Data().empty()))
   {
-    if (!jointVelComp->Data().empty())
+    for (Entity joint : this->dataPtr->jointEntities)
     {
-      double error = jointVelComp->Data().at(0) - targetVel;
+      // Update force command.
       double force = this->dataPtr->velPid.Update(error, _info.dt);
 
       auto forceComp =
-          _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
+          _ecm.Component<components::JointForceCmd>(joint);
       if (forceComp == nullptr)
       {
-        _ecm.CreateComponent(this->dataPtr->jointEntity,
-                             components::JointForceCmd({force}));
+        _ecm.CreateComponent(joint,
+                            components::JointForceCmd({force}));
       }
       else
       {
-        forceComp->Data()[0] = force;
+        *forceComp = components::JointForceCmd({force});
       }
     }
   }
   // Velocity mode.
-  else
+  else if (!this->dataPtr->useForceCommands)
   {
     // Update joint velocity
-    auto vel =
-      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
+    for (Entity joint : this->dataPtr->jointEntities)
+    {
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->jointEntity,
-          components::JointVelocityCmd({targetVel}));
-    }
-    else if (!vel->Data().empty())
-    {
-      vel->Data()[0] = targetVel;
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(
+            joint, components::JointVelocityCmd({targetVel}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({targetVel});
+      }
     }
   }
 }
