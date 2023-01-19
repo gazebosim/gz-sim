@@ -342,18 +342,25 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
   // Subscribe to commands
   std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+
+  if (_sdf->HasElement("sub_topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      _sdf->Get<std::string>("sub_topic"));
   }
-  if (this->dataPtr->steeringOnly)
+  else if (this->dataPtr->steeringOnly)
   {
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/steer_angle");
   }
-  else
+  else if (!this->dataPtr->steeringOnly)
   {
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  }
+
+  if (_sdf->HasElement("topic"))
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
   }
 
   auto topic = validTopic(topics);

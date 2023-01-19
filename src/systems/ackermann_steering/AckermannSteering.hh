@@ -93,6 +93,10 @@ namespace systems
   /// default value is `/model/{name_of_model}/cmd_vel` or when steering_only
   /// is true `/model/{name_of_model}/steer_angle`.
   ///
+  /// `<sub_topic>`: Custom sub_topic that this system will subscribe to in
+  /// order to receive command messages. This element is optional, and
+  /// creates a topic `/model/{name_of_model}/{sub_topic}`
+  ///
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
