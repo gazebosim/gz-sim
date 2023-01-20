@@ -145,6 +145,39 @@ TEST_F(JointControllerTestFixture,
 }
 
 /////////////////////////////////////////////////
+// Tests that the JointController accepts joint velocity commands
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(JointControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
+        JointVelocityMultipleJointsSubTopicCommand))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/joint_controller.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint velocity is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_controller_test/joints");
+
+  const double testAngVel{10.0};
+  msgs::Double msg;
+  msg.set_data(testAngVel);
+
+  pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
 // Tests the JointController using joint force commands
 TEST_F(JointControllerTestFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
@@ -163,7 +196,7 @@ TEST_F(JointControllerTestFixture,
 
   server.SetUpdatePeriod(0ns);
 
-  const std::string linkName = "rotor2";
+  const std::string linkName = "rotor3";
 
   test::Relay testSystem;
   math::Vector3d angularVelocity;
