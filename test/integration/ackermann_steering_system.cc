@@ -48,6 +48,7 @@ using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
 
+/// \brief Test AckermannSteeringOnly system
 class AckermannSteeringOnlyTest
   : public InternalFixture<::testing::Test>
 {
@@ -180,7 +181,7 @@ class AckermannSteeringTest
     EXPECT_NEAR(poses[0].Pos().Z(), poses[3999].Pos().Z(), tol);
     EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
     EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
-    // EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+    EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
 
     // The value from odometry will be close, but not exactly the ground truth
     // pose of the robot model. This is partially due to throttling the
@@ -321,7 +322,7 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   EXPECT_NEAR(poses[0].Pos().Z(), poses[3999].Pos().Z(), tol);
   EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
   EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
-  // EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+  EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
 }
 
 /////////////////////////////////////////////////
@@ -560,9 +561,8 @@ TEST_F(AckermannSteeringOnlyTest,
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering_only.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -580,8 +580,6 @@ TEST_F(AckermannSteeringOnlyTest,
   const double targetAngle{0.25};
   msg.set_data(targetAngle);
   pub.Publish(msg);
-
-  EXPECT_NEAR(0, 0, 0.1);
 }
 
 /////////////////////////////////////////////////
@@ -591,9 +589,8 @@ TEST_F(AckermannSteeringOnlyTest,
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/ackermann_steering_only_custom_sub_topics.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only_custom_sub_topics.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -611,8 +608,6 @@ TEST_F(AckermannSteeringOnlyTest,
   const double targetAngle{0.25};
   msg.set_data(targetAngle);
   pub.Publish(msg);
-
-  EXPECT_NEAR(0, 0, 0.1);
 }
 
 // Run multiple times
