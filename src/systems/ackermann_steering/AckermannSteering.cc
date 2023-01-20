@@ -234,41 +234,45 @@ void AckermannSteering::Configure(const Entity &_entity,
   if (!links.empty())
     this->dataPtr->canonicalLink = Link(links[0]);
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  this->dataPtr->steeringOnly = _sdf->Get<bool>("steering_only",
-      this->dataPtr->steeringOnly).first;
+  if (_sdf->HasElement("steering_only"))
+  {
+    this->dataPtr->steeringOnly = _sdf->Get<bool>("steering_only");
+    gzmsg << "Using steering only mode: " << this->dataPtr->steeringOnly
+            << std::endl;
+  }
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_steering_joint");
-  while (sdfElem)
+  auto sdfLeftSteerElem = _sdf->FindElement("left_steering_joint");
+  while (sdfLeftSteerElem)
   {
     this->dataPtr->leftSteeringJointNames.push_back(
-                          sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("left_steering_joint");
+                          sdfLeftSteerElem->Get<std::string>());
+    sdfLeftSteerElem = sdfLeftSteerElem->GetNextElement(
+      "left_steering_joint");
   }
-  sdfElem = ptr->GetElement("right_steering_joint");
-  while (sdfElem)
+  auto sdfRightSteerElem = _sdf->FindElement("right_steering_joint");
+  while (sdfRightSteerElem)
   {
     this->dataPtr->rightSteeringJointNames.push_back(
-                           sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("right_steering_joint");
+                           sdfRightSteerElem->Get<std::string>());
+    sdfRightSteerElem = sdfRightSteerElem->GetNextElement(
+      "right_steering_joint");
   }
   if (!this->dataPtr->steeringOnly)
   {
-    sdfElem = ptr->GetElement("left_joint");
-    while (sdfElem)
+    auto sdfLeftElem = _sdf->FindElement("left_joint");
+    while (sdfLeftElem)
     {
-      this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
-      sdfElem = sdfElem->GetNextElement("left_joint");
+      this->dataPtr->leftJointNames.push_back(
+        sdfLeftElem->Get<std::string>());
+      sdfLeftElem = sdfLeftElem->GetNextElement("left_joint");
     }
-    sdfElem = ptr->GetElement("right_joint");
-    while (sdfElem)
+    auto sdfRightElem = _sdf->FindElement("right_joint");
+    while (sdfRightElem)
     {
-      this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
-      sdfElem = sdfElem->GetNextElement("right_joint");
+      this->dataPtr->rightJointNames.push_back(
+        sdfRightElem->Get<std::string>());
+      sdfRightElem = sdfRightElem->GetNextElement("right_joint");
     }
   }
   if (!this->dataPtr->steeringOnly)
@@ -343,10 +347,15 @@ void AckermannSteering::Configure(const Entity &_entity,
   // Subscribe to commands
   std::vector<std::string> topics;
 
-  if (_sdf->HasElement("sub_topic"))
+
+  if (_sdf->HasElement("topic"))
+  {
+    topics.push_back(_sdf->Get<std::string>("topic"));
+  }
+  else if (_sdf->HasElement("sub_topic"))
   {
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      _sdf->Get<std::string>("sub_topic"));
+      "/" + _sdf->Get<std::string>("sub_topic"));
   }
   else if (this->dataPtr->steeringOnly)
   {
@@ -356,11 +365,6 @@ void AckermannSteering::Configure(const Entity &_entity,
   else if (!this->dataPtr->steeringOnly)
   {
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  }
-
-  if (_sdf->HasElement("topic"))
-  {
-    topics.push_back(_sdf->Get<std::string>("topic"));
   }
 
   auto topic = validTopic(topics);
