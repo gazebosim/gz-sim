@@ -103,16 +103,24 @@ void JointPositionController::Configure(const Entity &_entity,
     return;
   }
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("joint_name");
+  auto sdfElem = _sdf->FindElement("joint_name");
   while (sdfElem)
   {
-    this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    if (!sdfElem->Get<std::string>().empty())
+    {
+      this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    }
+    else
+    {
+      gzerr << "<joint_name> provided but is empty." << std::endl;
+    }
     sdfElem = sdfElem->GetNextElement("joint_name");
+  }
+  if (this->dataPtr->jointNames.empty())
+  {
+    gzerr << "Failed to get any <joint_name>." << std::endl;
+    return;
   }
 
   if (_sdf->HasElement("joint_index"))
