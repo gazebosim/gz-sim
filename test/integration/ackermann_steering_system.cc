@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +19,19 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Angle.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Quaternion.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Pose.hh"
@@ -40,6 +47,12 @@
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+/// \brief Test AckermannSteeringOnly system
+class AckermannSteeringOnlyTest
+  : public InternalFixture<::testing::Test>
+{
+};
 
 /// \brief Test AckermannSteering system
 class AckermannSteeringTest
@@ -541,6 +554,60 @@ TEST_P(AckermannSteeringTest,
   ASSERT_NE(maxSleep, sleep);
 
   EXPECT_EQ(5u, odomPosesCount);
+}
+
+TEST_F(AckermannSteeringOnlyTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(SteerPublishCmd))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+          "/model/vehicle/steer_angle"
+          );
+
+  msgs::Double msg;
+  const double targetAngle{0.25};
+  msg.set_data(targetAngle);
+  pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+TEST_F(AckermannSteeringOnlyTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(
+      PublishCmdCustomSubTopicsSteer))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only_custom_sub_topics.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+          "/model/vehicle/steerangle"
+          );
+
+  msgs::Double msg;
+  const double targetAngle{0.25};
+  msg.set_data(targetAngle);
+  pub.Publish(msg);
 }
 
 // Run multiple times
