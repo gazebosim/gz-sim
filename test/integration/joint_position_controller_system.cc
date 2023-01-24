@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +57,9 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -133,9 +134,9 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller_velocity.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller_velocity.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -217,9 +218,9 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller_multiple_joints_subtopic.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller_multiple_joints_subtopic.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

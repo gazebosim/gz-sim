@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +56,9 @@ TEST_F(JointControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -155,9 +156,9 @@ TEST_F(JointControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -186,9 +187,10 @@ TEST_F(JointControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
+
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -263,9 +265,9 @@ TEST_F(JointControllerTestFixture, InexistentJoint)
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "joint_controller_invalid.sdf");
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller_invalid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
