@@ -25,6 +25,8 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 
+#include <gz/transport/parameters/Registry.hh>
+
 #include <sdf/Element.hh>
 
 namespace gz
@@ -99,6 +101,20 @@ namespace gz
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;
     };
+
+    /// \class ISystemConfigureParameters ISystem.hh ignition/gazebo/System.hh
+    /// \brief Interface for a system that declares parameters.
+    ///
+    /// ISystemConfigureParameters::ConfigureParameters is called after
+    /// ISystemConfigure::Configure.
+    class ISystemConfigureParameters {
+      /// \brief Configure the parameters of the system.
+      /// \param[in] _registry The parameter registry.
+      public: virtual void ConfigureParameters(
+                  gz::transport::parameters::ParametersRegistry &_registry,
+                  EntityComponentManager &_ecm) = 0;
+    };
+
 
     class ISystemReset {
       public: virtual void Reset(const UpdateInfo &_info,

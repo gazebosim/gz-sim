@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.1.0)
+project(gz-sim7 VERSION 7.2.0)
 set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
@@ -77,7 +77,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 REQUIRED COMPONENTS log)
+gz_find_package(gz-transport12 12.1 REQUIRED COMPONENTS log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------

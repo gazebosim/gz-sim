@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,9 +57,9 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -133,9 +134,9 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller_velocity.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller_velocity.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -193,6 +194,83 @@ TEST_F(JointPositionControllerTestFixture,
   transport::Node node;
   auto pub = node.Advertise<msgs::Double>(
       "/model/joint_position_controller_test/joint/j1/0/cmd_pos");
+
+  const double targetPosition{2.0};
+  msgs::Double msg;
+  msg.set_data(targetPosition);
+
+  pub.Publish(msg);
+  // Wait for the message to be published
+  std::this_thread::sleep_for(100ms);
+
+  const std::size_t testIters = 1000;
+  server.Run(true, testIters , false);
+
+  EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);
+}
+// Tests that the JointPositionController accepts joint position
+// sub_topic commands
+TEST_F(JointPositionControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
+        JointPositonMultipleJointsSubTopicCommand))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller_multiple_joints_subtopic.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string jointName = "j1";
+
+  test::Relay testSystem;
+  std::vector<double> currentPosition;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(components::Joint(),
+                                             components::Name(jointName));
+        // Create a JointPosition component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::JointPosition>(joint))
+        {
+          _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Joint, components::Name,
+                  components::JointPosition>(
+            [&](const Entity &,
+                const components::Joint *,
+                const components::Name *_name,
+                const components::JointPosition *_position) -> bool
+            {
+              EXPECT_EQ(_name->Data(), jointName);
+              currentPosition = _position->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  const std::size_t initIters = 10;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, currentPosition.at(0), TOL);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_position_controller_test/joints");
 
   const double targetPosition{2.0};
   msgs::Double msg;
