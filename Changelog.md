@@ -1,6 +1,66 @@
 ## Gazebo Sim 7.x
 
-### Gazebo Sim 7.X.X (20XX-XX-XX)
+### Gazebo Sim 7.2.0 (2023-01-25)
+
+1. Enable the JointController and JointPositionController to use sub_topics and control multiple joints.
+    * [Pull request #1861](https://github.com/gazebosim/gz-sim/pull/1861)
+
+1. Ackermann steering with steering angle and sub_topic.
+    * [Pull request #1860](https://github.com/gazebosim/gz-sim/pull/1860)
+
+1. port: 6 to 7 (10-JAN-2023)
+    * [Pull request #1857](https://github.com/gazebosim/gz-sim/pull/1857)
+
+1. Add ignition alias back
+    * [Pull request #1858](https://github.com/gazebosim/gz-sim/pull/1858)
+
+1. fix SdfGenerator unit test
+    * [Pull request #1853](https://github.com/gazebosim/gz-sim/pull/1853)
+
+1. Allow using a CSV file to define currents for hydrodynamic system
+    * [Pull request #1839](https://github.com/gazebosim/gz-sim/pull/1839)
+
+1. Add multichannel lookup for environment sensors.
+    * [Pull request #1814](https://github.com/gazebosim/gz-sim/pull/1814)
+
+1. Example controller for LRAUV
+    * [Pull request #1822](https://github.com/gazebosim/gz-sim/pull/1822)
+
+1. Fix component removal in component inspector
+    * [Pull request #1833](https://github.com/gazebosim/gz-sim/pull/1833)
+
+1. port: 6 to 7 (06-DEC-2023)
+    * [Pull request #1832](https://github.com/gazebosim/gz-sim/pull/1832)
+
+1. port: 6 to 7 (29-NOV-2023)
+    * [Pull request #1821](https://github.com/gazebosim/gz-sim/pull/1821)
+
+1. Fix #1812.
+    * [Pull request #1813](https://github.com/gazebosim/gz-sim/pull/1813)
+
+1. Removed unused attributes
+    * [Pull request #1809](https://github.com/gazebosim/gz-sim/pull/1809)
+
+1. Fixes buoyancy flakiness when spawning entities
+    * [Pull request #1808](https://github.com/gazebosim/gz-sim/pull/1808)
+
+1. Remove fixed width from world control
+    * [Pull request #1805](https://github.com/gazebosim/gz-sim/pull/1805)
+
+1. Backport #1748: Adds a tool for environment data visualization and custom environmental sensors
+    * [Pull request #1798](https://github.com/gazebosim/gz-sim/pull/1798)
+
+1. Acoustic comms : Propagation model
+    * [Pull request #1793](https://github.com/gazebosim/gz-sim/pull/1793)
+
+1. Add pre-commit hooks configuration
+    * [Pull request #1792](https://github.com/gazebosim/gz-sim/pull/1792)
+
+1. Add checkbox in view angle plugin for toggling view control reference visual
+    * [Pull request #1788](https://github.com/gazebosim/gz-sim/pull/1788)
+
+1. Add EnvironmentalData component
+    * [Pull request #1616](https://github.com/gazebosim/gz-sim/pull/1616)
 
 ### Gazebo Sim 7.1.0 (2022-11-10)
 
