@@ -364,6 +364,7 @@
         <left_steering_joint>front_left_wheel_steering_joint</left_steering_joint>
         <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
         <steering_only>true</steering_only>
+        <steer_p_gain>10.0</steer_p_gain>
         <steering_limit>0.5</steering_limit>
         <wheel_base>1.0</wheel_base>
         <wheel_separation>1.25</wheel_separation>
