@@ -1032,7 +1032,8 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
   EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f),
       msgs::Convert(emitterMsg.color_start()));
-  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f), 
+      msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
 
   auto header = emitterMsg.header().data(0);
