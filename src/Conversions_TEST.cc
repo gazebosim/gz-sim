@@ -999,8 +999,8 @@ TEST(Conversions, ParticleEmitter)
   emitter.SetMaxVelocity(0.2);
   emitter.SetSize(math::Vector3d(1, 2, 3));
   emitter.SetParticleSize(math::Vector3d(4, 5, 6));
-  emitter.SetColorStart(math::Color(0.1, 0.2, 0.3));
-  emitter.SetColorEnd(math::Color(0.4, 0.5, 0.6));
+  emitter.SetColorStart(math::Color(0.1f, 0.2f, 0.3f));
+  emitter.SetColorEnd(math::Color(0.4f, 0.5f, 0.6f));
   emitter.SetColorRangeImage("range_image");
   emitter.SetTopic("my_topic");
   emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
@@ -1030,9 +1030,9 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_NEAR(0.2, emitterMsg.max_velocity().data(), 1e-3);
   EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(emitterMsg.size()));
   EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
-  EXPECT_EQ(math::Color(0.1, 0.2, 0.3),
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f),
       msgs::Convert(emitterMsg.color_start()));
-  EXPECT_EQ(math::Color(0.4, 0.5, 0.6), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f), msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
 
   auto header = emitterMsg.header().data(0);
