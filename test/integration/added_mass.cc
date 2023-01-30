@@ -308,11 +308,11 @@ TEST_F(EmptyTestFixture, MotionTest) {
       EXPECT_LE(
         (axis - kExpectedStates.at(model_name).axis).Length(),
         kTols.axis
-      );
+      ) << kExpectedStates.at(model_name).axis;
       EXPECT_LE(
         std::abs(angle - kExpectedStates.at(model_name).angle),
         kTols.angle
-      );
+      ) << kExpectedStates.at(model_name).angle;
     }
 
     // Check velocities.
@@ -324,7 +324,7 @@ TEST_F(EmptyTestFixture, MotionTest) {
       EXPECT_LE(
         (lin_vel - kExpectedStates.at(model_name).lin_vel).Length(),
         kTols.lin_vel
-      );
+      ) << kExpectedStates.at(model_name).lin_vel;
     }
 
     std::optional<gz::math::Vector3d> maybe_ang_vel =
@@ -335,7 +335,7 @@ TEST_F(EmptyTestFixture, MotionTest) {
       EXPECT_LE(
         (ang_vel - kExpectedStates.at(model_name).ang_vel).Length(),
         kTols.ang_vel
-      );
+      ) << kExpectedStates.at(model_name).ang_vel;
     }
   }
 }
