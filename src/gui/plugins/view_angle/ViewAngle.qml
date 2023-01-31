@@ -24,7 +24,7 @@ import "qrc:/qml"
 
 ColumnLayout {
   Layout.minimumWidth: 320
-  Layout.minimumHeight: 530
+  Layout.minimumHeight: 650
   anchors.fill: parent
 
   ToolBar {
@@ -217,7 +217,7 @@ ColumnLayout {
       id: viewControlSensitivityLabel
       text: "View control sensitivity"
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: viewControlSensitivitySpinBox
       Layout.fillWidth: true
       value: 1.0

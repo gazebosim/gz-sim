@@ -167,7 +167,7 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->moveToModelService = "/gui/move_to/model";
   this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
       &ViewAngle::OnMoveToModelService, this);
-  ignmsg << "Move to model service on ["
+  gzmsg << "Move to model service on ["
          << this->dataPtr->moveToModelService << "]" << std::endl;
 
   gz::gui::App()->findChild<
@@ -260,7 +260,7 @@ void ViewAngle::OnViewControlReferenceVisual(bool _enable)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller reference visual" << std::endl;
+      gzerr << "Error setting view controller reference visual" << std::endl;
   };
 
   msgs::Boolean req;
@@ -277,12 +277,12 @@ void ViewAngle::OnViewControlSensitivity(double _sensitivity)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller sensitivity" << std::endl;
+      gzerr << "Error setting view controller sensitivity" << std::endl;
   };
 
   if (_sensitivity <= 0.0)
   {
-    ignerr << "View controller sensitivity must be greater than 0" << std::endl;
+    gzerr << "View controller sensitivity must be greater than 0" << std::endl;
     return;
   }
 
@@ -324,7 +324,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   auto visualToMove = scene->VisualByName(_msg.name());
   if (nullptr == visualToMove)
   {
-    ignerr << "Failed to get visual with ID ["
+    gzerr << "Failed to get visual with ID ["
            << _msg.name() << "]" << std::endl;
     _res.set_data(false);
     return false;
@@ -338,7 +338,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   }
   catch(std::bad_variant_access &_e)
   {
-    ignerr << "Failed to get gazebo-entity user data ["
+    gzerr << "Failed to get gazebo-entity user data ["
            << visualToMove->Name() << "]" << std::endl;
     _res.set_data(false);
     return false;
@@ -358,7 +358,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller" << std::endl;
+      gzerr << "Error setting view controller" << std::endl;
   };
 
   msgs::StringMsg req;
@@ -375,7 +375,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   }
   else
   {
-    ignerr << "Unknown view controller selected: " << str << std::endl;
+    gzerr << "Unknown view controller selected: " << str << std::endl;
     _res.set_data(false);
     return false;
   }
