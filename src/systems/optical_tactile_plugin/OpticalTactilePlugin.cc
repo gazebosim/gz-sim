@@ -807,9 +807,9 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
       std::memcpy(&normalForcesBuffer.get()[bufferIndex],
                  &normalForce.X(), sizeof(float));
-      std::memcpy(&normalForcesBuffer.get()[bufferIndex] + sizeof(float),
+      std::memcpy(&normalForcesBuffer.get()[bufferIndex + sizeof(float)],
                  &normalForce.Y(), sizeof(float));
-      std::memcpy(&normalForcesBuffer.get()[bufferIndex] + 2 * sizeof(float),
+      std::memcpy(&normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)],
                  &normalForce.Z(), sizeof(float));
 
       if (!_visualizeForces)
