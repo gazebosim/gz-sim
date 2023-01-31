@@ -805,12 +805,12 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // Forces buffer is composed of XYZ coordinates, while _msg buffer is
       // made up of XYZRGB values
       bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
-      std::memcpy(&normalForcesBuffer.get()[bufferIndex], &normalForce.X(), sizeof(float));
-        static_cast<char>(normalForce.X());
-      normalForcesBuffer.get()[bufferIndex + sizeof(float)] =
-        static_cast<char>(normalForce.Y());
-      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] =
-        static_cast<char>(normalForce.Z());
+      std::memcpy(&normalForcesBuffer.get()[bufferIndex],
+                 &normalForce.X(), sizeof(float));
+      std::memcpy(&normalForcesBuffer.get()[bufferIndex] + sizeof(float),
+                 &normalForce.Y(), sizeof(float));
+      std::memcpy(&normalForcesBuffer.get()[bufferIndex] + 2 * sizeof(float),
+                 &normalForce.Z(), sizeof(float));
 
       if (!_visualizeForces)
         continue;
