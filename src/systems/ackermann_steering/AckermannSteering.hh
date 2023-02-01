@@ -43,6 +43,9 @@ namespace systems
   /// and wheel_separation. Uses gz::msg::Double on default topic name
   /// `/model/{name_of_model}/steer_angle`
   ///
+  /// `<steer_p_gain>`: Float used to control the steering angle P gain.
+  /// Only used for when in steering_only mode.
+  ///
   /// `<left_joint>`: Name of a joint that controls a left wheel. This
   /// element can appear multiple times, and must appear at least once.
   ///

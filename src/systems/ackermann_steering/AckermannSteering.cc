@@ -197,6 +197,9 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief Last target angle requested.
   public: msgs::Double targetAng;
 
+  /// \brief P gain for angular position.
+  public: double gainPAng{1.0};
+
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
 
@@ -290,6 +293,11 @@ void AckermannSteering::Configure(const Entity &_entity,
   this->dataPtr->steeringLimit = _sdf->Get<double>("steering_limit",
       this->dataPtr->steeringLimit).first;
 
+  // Get proportional gain for steering angle.
+  if (_sdf->HasElement("steer_p_gain"))
+  {
+    this->dataPtr->gainPAng = _sdf->Get<double>("steer_p_gain");
+  }
 
   // Instantiate the speed limiters.
   this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
@@ -927,11 +935,10 @@ void AckermannSteeringPrivate::UpdateAngle(
   double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
   double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
 
-  // Simple proportional control with a gain of 1
+  // Simple proportional control with settable gain.
   // Adding programmable PID values might be a future feature.
-  // Works as is for tested cases
-  this->leftSteeringJointSpeed = leftDelta;
-  this->rightSteeringJointSpeed = rightDelta;
+  this->leftSteeringJointSpeed = this->gainPAng * leftDelta;
+  this->rightSteeringJointSpeed = this->gainPAng * rightDelta;
 }
 
 //////////////////////////////////////////////////
