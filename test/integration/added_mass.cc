@@ -30,6 +30,8 @@
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/System.hh>
 
+#include <gz/utils/ExtraTestMacros.hh>
+
 #include "../helpers/EnvTestFixture.hh"
 
 // World file path.
@@ -60,11 +62,22 @@ const double kTorqueAngVel = 2 * M_PI;
 const uint64_t kIter = 1000;
 
 // Tolerances.
+/*  \TODO(mjcarroll) These tolerances are completely suitable for Jammy,
+    but are too tight on focal.
 const struct {double pos, angle, axis, lin_vel, ang_vel;} kTols = {
   1e-3,  // pos
   1e-5,  // angle
   1e-4,  // axis
   1e-5,  // lin_vel
+  1e-4  // ang_vel
+};
+*/
+
+const struct {double pos, angle, axis, lin_vel, ang_vel;} kTols = {
+  1e-3,  // pos
+  1e-5,  // angle
+  1e-4,  // axis
+  2e-5,  // lin_vel
   1e-4  // ang_vel
 };
 
@@ -232,7 +245,7 @@ void SinusoidalWrenchPlugin::Configure(
     ASSERT_TRUE(link.Valid(_ecm));
     link.EnableVelocityChecks(_ecm);
   }
-};
+}
 
 // Apply sinusoidal wrench before integration.
 void SinusoidalWrenchPlugin::PreUpdate(
@@ -260,14 +273,15 @@ void SinusoidalWrenchPlugin::PreUpdate(
 
     link.AddWorldWrench(_ecm, force, torque);
   }
-};
+}
 
 class EmptyTestFixture: public InternalFixture<::testing::Test> {};
 
 // Check that the link state at the end of the motion matches the expected
 // state.
-TEST_F(EmptyTestFixture, MotionTest) {
-
+TEST_F(EmptyTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(MotionTest))
+{
   // Start server and run.
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(

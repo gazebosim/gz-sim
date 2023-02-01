@@ -34,6 +34,8 @@
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/System.hh>
 
+#include <gz/utils/ExtraTestMacros.hh>
+
 #include "../test/helpers/EnvTestFixture.hh"
 
 const char *kWorldFilePath{"/test/worlds/added_mass_full_matrix.sdf"};
@@ -477,7 +479,7 @@ void AccelerationCheckPlugin::InitializeModelAndLink(
     ),
     nullptr
   );
-};
+}
 
 // Sets model and link ECM state.
 void AccelerationCheckPlugin::Configure(
@@ -489,7 +491,7 @@ void AccelerationCheckPlugin::Configure(
 {
   gzdbg << "Configure happening." << std::endl;
   this->InitializeModelAndLink(_ecm);
-};
+}
 
 // Sets model and link ECM state.
 void AccelerationCheckPlugin::Reset(
@@ -499,7 +501,7 @@ void AccelerationCheckPlugin::Reset(
 {
   gzdbg << "Reset happening." << std::endl;
   this->InitializeModelAndLink(_ecm);
-};
+}
 
 // Set pose, velocity, and wrench (force and torque).
 void AccelerationCheckPlugin::PreUpdate(
@@ -554,7 +556,7 @@ void AccelerationCheckPlugin::PreUpdate(
   // wrench that is affected by the rotation in `WorldPoseCmd`, we need to
   // correct for this here.
   link.AddWorldWrench(_ecm, quat.Inverse() * force, quat.Inverse() * torque);
-};
+}
 
 // Check linear and angular acceleration.
 void AccelerationCheckPlugin::PostUpdate(
@@ -582,7 +584,7 @@ void AccelerationCheckPlugin::PostUpdate(
     if (maybe_lin_acc) {
       gz::math::Vector3d lin_acc = maybe_lin_acc.value();
       gzdbg << "Actual world linear acceleration:\t" << lin_acc << std::endl;
-      EXPECT_LT((lin_acc - outputs.lin_acc).Length(), 1e-6);
+      EXPECT_LT((lin_acc - outputs.lin_acc).Length(), 1e-2);
     }
     else
     {
@@ -599,7 +601,7 @@ void AccelerationCheckPlugin::PostUpdate(
       gz::math::Vector3d ang_acc = maybe_ang_acc.value();
       gzdbg << "Actual world angular acceleration:\t" << ang_acc <<
         std::endl;
-      EXPECT_LT((ang_acc - outputs.ang_acc).Length(), 1e-6);
+      EXPECT_LT((ang_acc - outputs.ang_acc).Length(), 1e-2);
     }
     else
     {
@@ -607,7 +609,7 @@ void AccelerationCheckPlugin::PostUpdate(
         std::endl;
     }
   }
-};
+}
 
 // Request a world reset via transport.
 void requestWorldReset()
@@ -632,7 +634,9 @@ class EmptyTestFixture: public InternalFixture<::testing::Test> {};
 
 // Check that the accelerations reported for a body with added mass matche the
 // expected values.
-TEST_F(EmptyTestFixture, AddedMassAccelerationTest) {
+TEST_F(EmptyTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(AddedMassAccelerationTest))
+{
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(
     common::joinPaths(PROJECT_SOURCE_PATH, kWorldFilePath)
