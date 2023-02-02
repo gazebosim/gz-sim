@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.1.0)
-set (GZ_DISTRIBUTION "Garden")
+project(gz-sim8 VERSION 8.0.0)
+# TODO(chapulina) Update name when it's chosen and the version bumped
+set (GZ_DISTRIBUTION "?")
 
 #============================================================================
 # Find gz-cmake
@@ -18,7 +19,7 @@ find_package(gz-cmake3 REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -105,8 +106,8 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui7 REQUIRED)
-set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package(gz-gui8 REQUIRED)
+set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -128,7 +129,7 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors8 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -155,12 +156,12 @@ gz_find_package(gz-sensors7 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering7 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
+gz_find_package(gz-rendering8 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-math
@@ -272,13 +273,3 @@ endif()
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
-
-# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
-# TODO(CH3): Deprecated. Remove on tock
-configure_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  COPYONLY)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

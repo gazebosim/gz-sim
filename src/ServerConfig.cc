@@ -258,7 +258,9 @@ class gz::sim::ServerConfigPrivate
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
             renderEngineServer(_cfg->renderEngineServer),
+            renderEngineServerApiBackend(_cfg->renderEngineServerApiBackend),
             renderEngineGui(_cfg->renderEngineGui),
+            renderEngineGuiApiBackend(_cfg->renderEngineGuiApiBackend),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
@@ -297,7 +299,7 @@ class gz::sim::ServerConfigPrivate
   public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
-  /// from fuel.ignitionrobotics.org, should be stored.
+  /// from fuel.gazebosim.org, should be stored.
   public: std::string resourceCache = "";
 
   /// \brief File containing physics engine plugin. If empty, DART will be used.
@@ -307,9 +309,17 @@ class gz::sim::ServerConfigPrivate
   /// will be used.
   public: std::string renderEngineServer = "";
 
+  /// \brief String on which API to select.
+  /// See --render-engine-server-api-backend for possible options
+  public: std::string renderEngineServerApiBackend = "";
+
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
+
+  /// \brief String on which API to select.
+  /// See --render-engine-gui-api-backend for possible options
+  public: std::string renderEngineGuiApiBackend = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -543,7 +553,7 @@ unsigned int ServerConfig::Seed() const
 void ServerConfig::SetSeed(unsigned int _seed)
 {
   this->dataPtr->seed = _seed;
-  gz::math::Rand::Seed(_seed);
+  math::Rand::Seed(_seed);
 }
 
 /////////////////////////////////////////////////
@@ -593,6 +603,19 @@ void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 }
 
 /////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineServerApiBackend(
+  const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineServerApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineServerApiBackend() const
+{
+  return this->dataPtr->renderEngineServerApiBackend;
+}
+
+/////////////////////////////////////////////////
 void ServerConfig::SetHeadlessRendering(const bool _headless)
 {
   this->dataPtr->isHeadlessRendering = _headless;
@@ -624,6 +647,18 @@ void ServerConfig::SetRenderEngineGui(const std::string &_engine)
            << "] for the GUI. Use [" << engine << "] instead." << std::endl;
   }
   this->dataPtr->renderEngineGui = engine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineGuiApiBackend(const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineGuiApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineGuiApiBackend() const
+{
+  return this->dataPtr->renderEngineGuiApiBackend;
 }
 
 /////////////////////////////////////////////////
@@ -904,7 +939,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::parsePluginsFromFile(const std::string &_fname)
+sim::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
@@ -913,7 +948,7 @@ gz::sim::parsePluginsFromFile(const std::string &_fname)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::parsePluginsFromString(const std::string &_str)
+sim::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
@@ -922,21 +957,21 @@ gz::sim::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::loadPluginInfo(bool _isPlayback)
+sim::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = gz::common::env(sim::kServerConfigPathEnv,
-                                   envConfig,
-                                   true);
+  bool configSet = common::env(sim::kServerConfigPathEnv,
+                               envConfig,
+                               true);
 
   if (!configSet)
   {
-    configSet = gz::common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
-                                envConfig,
-                                true);
+    configSet = common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
+                            envConfig,
+                            true);
     if (configSet)
     {
       gzwarn << "Config path found using deprecated environment variable "
@@ -947,16 +982,16 @@ gz::sim::loadPluginInfo(bool _isPlayback)
 
   if (configSet)
   {
-    if (gz::common::exists(envConfig))
+    if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = gz::sim::parsePluginsFromFile(envConfig);
+      ret = sim::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        gzwarn << sim::kServerConfigPathEnv
+        gzwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -969,7 +1004,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      gzwarn << sim::kServerConfigPathEnv
+      gzwarn << kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;
@@ -987,27 +1022,27 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  gz::common::env(GZ_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".gz",
+  common::env(GZ_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = common::joinPaths(defaultConfigDir, ".gz",
     "sim", GZ_SIM_MAJOR_VERSION_STR);
 
-  auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = common::joinPaths(defaultConfigDir,
       configFilename);
 
-  if (!gz::common::exists(defaultConfig))
+  if (!common::exists(defaultConfig))
   {
-    auto installedConfig = gz::common::joinPaths(
+    auto installedConfig = common::joinPaths(
         GZ_SIM_SERVER_CONFIG_PATH,
         configFilename);
 
-    if (!gz::common::createDirectories(defaultConfigDir))
+    if (!common::createDirectories(defaultConfigDir))
     {
       gzerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
       return ret;
     }
 
-    if (!gz::common::exists(installedConfig))
+    if (!common::exists(installedConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1015,7 +1050,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!gz::common::copyFile(installedConfig, defaultConfig))
+    else if (!common::copyFile(installedConfig, defaultConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1030,7 +1065,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = gz::sim::parsePluginsFromFile(defaultConfig);
+  ret = sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {

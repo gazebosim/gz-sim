@@ -53,7 +53,7 @@ class gz::sim::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<gz::sensors::ImuSensor>> entitySensorMap;
+      std::unique_ptr<sensors::ImuSensor>> entitySensorMap;
 
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -364,6 +364,3 @@ GZ_ADD_PLUGIN(Imu, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")

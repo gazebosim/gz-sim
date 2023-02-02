@@ -19,6 +19,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -88,6 +89,23 @@ class gz::sim::systems::BuoyancyPrivate
   void GradedFluidDensity(
     const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity);
 
+  /// \brief Check for new links to apply buoyancy forces to. Calculates the
+  /// volume and center of volume for every new link and stages them to be
+  /// commited when `CommitNewEntities` is called.
+  /// \param[in] _ecm The Entity Component Manager.
+  public: void CheckForNewEntities(const EntityComponentManager &_ecm);
+
+  /// \brief Commits the new entities to the ECM.
+  /// \param[in] _ecm The Entity Component Manager.
+  public: void CommitNewEntities(EntityComponentManager &_ecm);
+
+  /// \brief Check if an entity is enabled or not.
+  /// \param[in] _entity Target entity
+  /// \param[in] _ecm Entity component manager
+  /// \return True if buoyancy should be applied.
+  public: bool IsEnabled(Entity _entity,
+      const EntityComponentManager &_ecm) const;
+
   /// \brief Model interface
   public: Entity world{kNullEntity};
 
@@ -136,6 +154,12 @@ class gz::sim::systems::BuoyancyPrivate
   /// \brief Scoped names of entities that buoyancy should apply to. If empty,
   /// all links will receive buoyancy.
   public: std::unordered_set<std::string> enabled;
+
+  /// \brief Center of volumes to be added on the next Pre-update
+  public: std::unordered_map<Entity, math::Vector3d> centerOfVolumes;
+
+  /// \brief Volumes to be added on the next.
+  public: std::unordered_map<Entity, double> volumes;
 };
 
 //////////////////////////////////////////////////
@@ -246,110 +270,8 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
 }
 
 //////////////////////////////////////////////////
-Buoyancy::Buoyancy()
-  : dataPtr(std::make_unique<BuoyancyPrivate>())
+void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 {
-}
-
-//////////////////////////////////////////////////
-void Buoyancy::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &_ecm,
-    EventManager &/*_eventMgr*/)
-{
-  // Store the world.
-  this->dataPtr->world = _entity;
-
-  // Get the gravity (defined in world frame)
-  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
-      this->dataPtr->world);
-  if (!gravity)
-  {
-    gzerr << "Unable to get the gravity vector. Make sure this plugin is "
-      << "attached to a <world>, not a <model>." << std::endl;
-    return;
-  }
-
-  if (_sdf->HasElement("uniform_fluid_density"))
-  {
-    this->dataPtr->fluidDensity = _sdf->Get<double>("uniform_fluid_density");
-  }
-  else if (_sdf->HasElement("graded_buoyancy"))
-  {
-    this->dataPtr->buoyancyType =
-      BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
-
-    auto gradedElement = _sdf->GetFirstElement();
-    if (gradedElement == nullptr)
-    {
-      gzerr << "Unable to get element description" << std::endl;
-      return;
-    }
-
-    auto argument = gradedElement->GetFirstElement();
-    while (argument != nullptr)
-    {
-      if (argument->GetName() == "default_density")
-      {
-        argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
-        gzdbg << "Default density set to "
-          << this->dataPtr->fluidDensity << std::endl;
-      }
-      if (argument->GetName() == "density_change")
-      {
-        auto depth = argument->Get<double>("above_depth", 0.0);
-        auto density = argument->Get<double>("density", 0.0);
-        if (!depth.second)
-        {
-          gzwarn << "No <above_depth> tag was found as a "
-            << "child of <density_change>" << std::endl;
-        }
-        if (!density.second)
-        {
-          gzwarn << "No <density> tag was found as a "
-            << "child of <density_change>" << std::endl;
-        }
-        this->dataPtr->layers[depth.first] = density.first;
-        gzdbg << "Added layer at " << depth.first << ", "
-          <<  density.first << std::endl;
-      }
-      argument = argument->GetNextElement();
-    }
-  }
-  else
-  {
-    gzwarn <<
-      "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
-      << std::endl
-      << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
-      << std::endl;
-  }
-
-  if (_sdf->HasElement("enable"))
-  {
-    for (auto enableElem = _sdf->FindElement("enable");
-        enableElem != nullptr;
-        enableElem = enableElem->GetNextElement("enable"))
-    {
-      this->dataPtr->enabled.insert(enableElem->Get<std::string>());
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
-{
-  GZ_PROFILE("Buoyancy::PreUpdate");
-  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
-      this->dataPtr->world);
-  if (!gravity)
-  {
-    gzerr << "Unable to get the gravity vector. Has gravity been defined?"
-           << std::endl;
-    return;
-  }
-
   // Compute the volume and center of volume for each new link
   _ecm.EachNew<components::Link, components::Inertial>(
       [&](const Entity &_entity,
@@ -441,20 +363,181 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
 
     if (volumeSum > 0)
     {
-      // Store the center of volume expressed in the link frame
-      _ecm.CreateComponent(_entity, components::CenterOfVolume(
-            weightedPosInLinkSum / volumeSum));
-
-      // Store the volume
-      _ecm.CreateComponent(_entity, components::Volume(volumeSum));
+      // Stage calculation results for future commit. We do this because
+      // during PostUpdate the ECM is const, so we can't modify it,
+      this->centerOfVolumes[_entity] = weightedPosInLinkSum / volumeSum;
+      this->volumes[_entity] = volumeSum;
     }
 
     return true;
   });
+}
 
+//////////////////////////////////////////////////
+void BuoyancyPrivate::CommitNewEntities(EntityComponentManager &_ecm)
+{
+  for (const auto [_entity, _cov] : this->centerOfVolumes)
+  {
+    if (_ecm.HasEntity(_entity))
+    {
+      _ecm.CreateComponent(_entity, components::CenterOfVolume(_cov));
+    }
+  }
+
+  for (const auto [_entity, _vol] : this->volumes)
+  {
+    if (_ecm.HasEntity(_entity))
+    {
+      _ecm.CreateComponent(_entity, components::Volume(_vol));
+    }
+  }
+
+  this->centerOfVolumes.clear();
+  this->volumes.clear();
+}
+
+//////////////////////////////////////////////////
+bool BuoyancyPrivate::IsEnabled(Entity _entity,
+  const EntityComponentManager &_ecm) const
+{
+  // If there's nothing enabled, all entities are enabled
+  if (this->enabled.empty())
+    return true;
+
+  auto entity = _entity;
+  while (entity != kNullEntity)
+  {
+    // Fully scoped name
+    auto name = scopedName(entity, _ecm, "::", false);
+
+    // Remove world name
+    name = removeParentScope(name, "::");
+
+    if (this->enabled.find(name) != this->enabled.end())
+      return true;
+
+    // Check parent
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+
+    if (nullptr == parentComp)
+      return false;
+
+    entity = parentComp->Data();
+  }
+
+  return false;
+}
+
+//////////////////////////////////////////////////
+Buoyancy::Buoyancy()
+  : dataPtr(std::make_unique<BuoyancyPrivate>())
+{
+}
+
+//////////////////////////////////////////////////
+void Buoyancy::Configure(const Entity &_entity,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &_ecm,
+    EventManager &/*_eventMgr*/)
+{
+  // Store the world.
+  this->dataPtr->world = _entity;
+
+  // Get the gravity (defined in world frame)
+  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
+      this->dataPtr->world);
+  if (!gravity)
+  {
+    gzerr << "Unable to get the gravity vector. Make sure this plugin is "
+      << "attached to a <world>, not a <model>." << std::endl;
+    return;
+  }
+
+  if (_sdf->HasElement("uniform_fluid_density"))
+  {
+    this->dataPtr->fluidDensity = _sdf->Get<double>("uniform_fluid_density");
+  }
+  else if (_sdf->HasElement("graded_buoyancy"))
+  {
+    this->dataPtr->buoyancyType =
+      BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
+
+    auto gradedElement = _sdf->GetFirstElement();
+    if (gradedElement == nullptr)
+    {
+      gzerr << "Unable to get element description" << std::endl;
+      return;
+    }
+
+    auto argument = gradedElement->GetFirstElement();
+    while (argument != nullptr)
+    {
+      if (argument->GetName() == "default_density")
+      {
+        argument->GetValue()->Get<double>(this->dataPtr->fluidDensity);
+        gzdbg << "Default density set to "
+          << this->dataPtr->fluidDensity << std::endl;
+      }
+      if (argument->GetName() == "density_change")
+      {
+        auto depth = argument->Get<double>("above_depth", 0.0);
+        auto density = argument->Get<double>("density", 0.0);
+        if (!depth.second)
+        {
+          gzwarn << "No <above_depth> tag was found as a "
+            << "child of <density_change>" << std::endl;
+        }
+        if (!density.second)
+        {
+          gzwarn << "No <density> tag was found as a "
+            << "child of <density_change>" << std::endl;
+        }
+        this->dataPtr->layers[depth.first] = density.first;
+        gzdbg << "Added layer at " << depth.first << ", "
+          <<  density.first << std::endl;
+      }
+      argument = argument->GetNextElement();
+    }
+  }
+  else
+  {
+    gzwarn <<
+      "Neither <graded_buoyancy> nor <uniform_fluid_density> specified"
+      << std::endl
+      << "\tDefaulting to <uniform_fluid_density>1000</uniform_fluid_density>"
+      << std::endl;
+  }
+
+  if (_sdf->HasElement("enable"))
+  {
+    for (auto enableElem = _sdf->FindElement("enable");
+        enableElem != nullptr;
+        enableElem = enableElem->GetNextElement("enable"))
+    {
+      this->dataPtr->enabled.insert(enableElem->Get<std::string>());
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void Buoyancy::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("Buoyancy::PreUpdate");
+  this->dataPtr->CheckForNewEntities(_ecm);
+  this->dataPtr->CommitNewEntities(_ecm);
   // Only update if not paused.
   if (_info.paused)
     return;
+
+  const components::Gravity *gravity = _ecm.Component<components::Gravity>(
+      this->dataPtr->world);
+  if (!gravity)
+  {
+    gzerr << "Unable to get the gravity vector. Has gravity been defined?"
+           << std::endl;
+    return;
+  }
 
   _ecm.Each<components::Link,
             components::Volume,
@@ -549,45 +632,25 @@ void Buoyancy::PreUpdate(const gz::sim::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void Buoyancy::PostUpdate(
+                const UpdateInfo &/*_info*/,
+                const EntityComponentManager &_ecm)
+{
+  this->dataPtr->CheckForNewEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
 bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
-  // If there's nothing enabled, all entities are enabled
-  if (this->dataPtr->enabled.empty())
-    return true;
-
-  auto entity = _entity;
-  while (entity != kNullEntity)
-  {
-    // Fully scoped name
-    auto name = scopedName(entity, _ecm, "::", false);
-
-    // Remove world name
-    name = removeParentScope(name, "::");
-
-    if (this->dataPtr->enabled.find(name) != this->dataPtr->enabled.end())
-      return true;
-
-    // Check parent
-    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
-
-    if (nullptr == parentComp)
-      return false;
-
-    entity = parentComp->Data();
-  }
-
-  return false;
+  return this->IsEnabled(_entity, _ecm);
 }
 
 GZ_ADD_PLUGIN(Buoyancy,
-                    gz::sim::System,
+                    System,
                     Buoyancy::ISystemConfigure,
-                    Buoyancy::ISystemPreUpdate)
+                    Buoyancy::ISystemPreUpdate,
+                    Buoyancy::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Buoyancy,
-                          "ignition::gazebo::systems::Buoyancy")

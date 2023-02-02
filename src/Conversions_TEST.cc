@@ -58,8 +58,8 @@ TEST(Conversions, Light)
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetVisualize(true);
-  light.SetDiffuse(gz::math::Color(0.4f, 0.5f, 0.6f, 1.0));
-  light.SetSpecular(gz::math::Color(0.8f, 0.9f, 0.1f, 1.0));
+  light.SetDiffuse(math::Color(0.4f, 0.5f, 0.6f, 1.0));
+  light.SetSpecular(math::Color(0.8f, 0.9f, 0.1f, 1.0));
   light.SetAttenuationRange(3.2);
   light.SetConstantAttenuationFactor(0.5);
   light.SetLinearAttenuationFactor(0.1);
@@ -246,11 +246,11 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(gz::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetDiffuse(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetShininess(0.5);
-  material.SetEmissive(gz::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetEmissive(math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
@@ -344,7 +344,7 @@ TEST(Conversions, GeometryBox)
   geometry.SetType(sdf::GeometryType::BOX);
 
   sdf::Box boxShape;
-  boxShape.SetSize(gz::math::Vector3d(1, 2, 3));
+  boxShape.SetSize(math::Vector3d(1, 2, 3));
   geometry.SetBoxShape(boxShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -458,7 +458,7 @@ TEST(Conversions, GeometryMesh)
   geometry.SetType(sdf::GeometryType::MESH);
 
   sdf::Mesh meshShape;
-  meshShape.SetScale(gz::math::Vector3d(1, 2, 3));
+  meshShape.SetScale(math::Vector3d(1, 2, 3));
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
@@ -489,8 +489,8 @@ TEST(Conversions, GeometryPlane)
   geometry.SetType(sdf::GeometryType::PLANE);
 
   sdf::Plane planeShape;
-  planeShape.SetSize(gz::math::Vector2d(1, 2));
-  planeShape.SetNormal(gz::math::Vector3d::UnitY);
+  planeShape.SetSize(math::Vector2d(1, 2));
+  planeShape.SetNormal(math::Vector3d::UnitY);
   geometry.SetPlaneShape(planeShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -684,8 +684,8 @@ TEST(Conversions, JointAxis)
 TEST(Conversions, Scene)
 {
   sdf::Scene scene;
-  scene.SetAmbient(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  scene.SetBackground(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetAmbient(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   scene.SetShadows(true);
   scene.SetGrid(true);
   scene.SetOriginVisual(true);
@@ -777,7 +777,7 @@ TEST(Conversions, MagnetometerSensor)
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -817,7 +817,7 @@ TEST(Conversions, AltimeterSensor)
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);

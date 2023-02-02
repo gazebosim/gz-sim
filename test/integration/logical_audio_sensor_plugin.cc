@@ -67,10 +67,10 @@ TEST_F(LogicalAudioTest,
   EXPECT_FALSE(*server.Running(0));
 
   // helper variables for checking the validity of the ECM
-  const gz::math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
   const auto zeroSeconds = std::chrono::seconds(0);
-  const gz::math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
-  const gz::math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
+  const math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
   std::chrono::steady_clock::duration sourceStartTime;
   bool firstTime{true};
 

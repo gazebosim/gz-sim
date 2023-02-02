@@ -122,7 +122,7 @@ enum class MotorType {
 class gz::sim::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const gz::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -379,8 +379,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("MulticopterMotorModel::PreUpdate");
 
@@ -478,7 +478,7 @@ void MulticopterMotorModel::PreUpdate(const gz::sim::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const gz::msgs::Actuators &_msg)
+    const msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -568,8 +568,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = gz::math::Pose3d;
-      using Vector3 = gz::math::Vector3d;
+      using Pose = math::Pose3d;
+      using Vector3 = math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -681,13 +681,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 }
 
 GZ_ADD_PLUGIN(MulticopterMotorModel,
-                    gz::sim::System,
+                    System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "gz::sim::systems::MulticopterMotorModel")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "ignition::gazebo::systems::MulticopterMotorModel")

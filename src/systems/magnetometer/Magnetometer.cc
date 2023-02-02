@@ -52,7 +52,7 @@ class gz::sim::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,
-      std::unique_ptr<gz::sensors::MagnetometerSensor>> entitySensorMap;
+      std::unique_ptr<sensors::MagnetometerSensor>> entitySensorMap;
 
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
@@ -327,7 +327,3 @@ GZ_ADD_PLUGIN(Magnetometer, System,
 
 GZ_ADD_PLUGIN_ALIAS(Magnetometer,
                           "gz::sim::systems::Magnetometer")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "ignition::gazebo::systems::Magnetometer")

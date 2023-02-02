@@ -52,8 +52,8 @@ Thermal::~Thermal() = default;
 //////////////////////////////////////////////////
 void Thermal::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
-    sim::EntityComponentManager &_ecm,
-    sim::EventManager & /*_eventMgr*/)
+    EntityComponentManager &_ecm,
+    EventManager & /*_eventMgr*/)
 {
   const std::string temperatureTag = "temperature";
   const std::string heatSignatureTag = "heat_signature";
@@ -136,6 +136,3 @@ GZ_ADD_PLUGIN(Thermal, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Thermal, "ignition::gazebo::systems::Thermal")

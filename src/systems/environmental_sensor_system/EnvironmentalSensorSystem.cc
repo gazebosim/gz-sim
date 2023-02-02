@@ -210,7 +210,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
   private: std::string fieldName;
   private: std::string frameId;
   private: std::optional<gz::math::InMemorySession<double, double>> session;
-  private: std::shared_ptr<gz::sim::v7::components::EnvironmentalData>
+  private: std::shared_ptr<gz::sim::components::EnvironmentalData>
     gridField;
 };
 

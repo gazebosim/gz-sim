@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+
 #include <gz/msgs/model.pb.h>
 
 #include <gz/common/Console.hh>

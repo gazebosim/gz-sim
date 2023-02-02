@@ -66,6 +66,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/SelfCollide.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -821,6 +822,13 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
     else if (typeId == components::RenderEngineServerPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::RenderEngineServerApiBackend::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerApiBackend>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());

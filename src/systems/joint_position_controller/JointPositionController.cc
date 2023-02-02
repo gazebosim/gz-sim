@@ -40,7 +40,7 @@ class gz::sim::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
-  public: void OnCmdPos(const gz::msgs::Double &_msg);
+  public: void OnCmdPos(const msgs::Double &_msg);
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -61,7 +61,7 @@ class gz::sim::systems::JointPositionControllerPrivate
   public: Model model{kNullEntity};
 
   /// \brief Position PID controller.
-  public: gz::math::PID posPid;
+  public: math::PID posPid;
 
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
@@ -218,8 +218,8 @@ void JointPositionController::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void JointPositionController::PreUpdate(
-    const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("JointPositionController::PreUpdate");
 
@@ -357,13 +357,9 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 }
 
 GZ_ADD_PLUGIN(JointPositionController,
-                    gz::sim::System,
+                    System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(JointPositionController,
                           "gz::sim::systems::JointPositionController")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(JointPositionController,
-                          "ignition::gazebo::systems::JointPositionController")

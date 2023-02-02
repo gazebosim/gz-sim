@@ -59,6 +59,13 @@ message's header.
    + In the Hydrodynamics plugin, inverted the added mass contribution to make it
      act in the correct direction.
 
+
+## Gazebo Sim 6.11.X to 6.12.X
+
+ * **Modified**:
+   + In the Hydrodynamics plugin, inverted the added mass contribution to make it
+     act in the correct direction.
+
 ## Gazebo Sim 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now

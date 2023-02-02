@@ -444,10 +444,6 @@ GZ_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
-
 }  // namespace systems
 }  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim

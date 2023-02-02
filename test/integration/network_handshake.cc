@@ -47,8 +47,8 @@ uint64_t testPaused(bool _paused)
   bool paused = !_paused;
   uint64_t iterations = 0;
 
-  std::function<void(const gz::msgs::WorldStatistics &)> cb =
-      [&](const gz::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb =
+      [&](const msgs::WorldStatistics &_msg)
   {
     std::unique_lock<std::mutex> lock(mutex);
     paused = _msg.paused();
@@ -180,8 +180,8 @@ TEST_F(NetworkHandshake, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Updates))
   // Subscribe to pose updates, which should come from the primary
   transport::Node node;
   std::vector<double> zPos;
-  std::function<void(const gz::msgs::Pose_V &)> cb =
-      [&](const gz::msgs::Pose_V &_msg)
+  std::function<void(const msgs::Pose_V &)> cb =
+      [&](const msgs::Pose_V &_msg)
   {
     for (int i = 0; i < _msg.pose().size(); ++i)
     {

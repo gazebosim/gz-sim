@@ -130,8 +130,8 @@ void PerformerDetector::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void PerformerDetector::PostUpdate(
-  const gz::sim::UpdateInfo &_info,
-  const gz::sim::EntityComponentManager &_ecm)
+  const UpdateInfo &_info,
+  const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PerformerDetector::PostUpdate");
 
@@ -260,13 +260,9 @@ void PerformerDetector::Publish(
 }
 
 GZ_ADD_PLUGIN(PerformerDetector,
-                    gz::sim::System,
+                    System,
                     PerformerDetector::ISystemConfigure,
                     PerformerDetector::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
                           "gz::sim::systems::PerformerDetector")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(PerformerDetector,
-                          "ignition::gazebo::systems::PerformerDetector")

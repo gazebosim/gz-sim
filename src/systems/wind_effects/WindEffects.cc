@@ -549,7 +549,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
-  gz::math::Vector3d windVel;
+  math::Vector3d windVel;
   windVel.X(magnitude * std::cos(GZ_DTOR(direction)));
   windVel.Y(magnitude * std::sin(GZ_DTOR(direction)));
 
@@ -756,6 +756,3 @@ GZ_ADD_PLUGIN(WindEffects, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

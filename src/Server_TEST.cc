@@ -54,7 +54,7 @@ class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
   EXPECT_FALSE(serverConfig.UpdateRate());
@@ -112,7 +112,7 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
   sdfPlugin.SetName("interface");
   pluginInfo.SetPlugin(sdfPlugin);
 
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.AddPlugin(pluginInfo);
 
   const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
@@ -352,7 +352,7 @@ TEST_P(ServerFixture,
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -369,7 +369,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
@@ -412,7 +412,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
@@ -497,7 +497,7 @@ TEST_P(ServerFixture,
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, SdfStringServerConfig)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "shapes.sdf"));
@@ -716,7 +716,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOncePaused))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   sim::Server server(serverConfig);
 
@@ -817,7 +817,7 @@ TEST_P(ServerFixture, ServerControlStop)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "shapes.sdf"));
@@ -867,7 +867,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "shapes.sdf"));
@@ -932,18 +932,18 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, Seed)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   EXPECT_EQ(0u, serverConfig.Seed());
   unsigned int mySeed = 12345u;
   serverConfig.SetSeed(mySeed);
   EXPECT_EQ(mySeed, serverConfig.Seed());
-  EXPECT_EQ(mySeed, gz::math::Rand::Seed());
+  EXPECT_EQ(mySeed, math::Rand::Seed());
 }
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
-  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
       (common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds:") +
        common::joinPaths(PROJECT_SOURCE_PATH,
            "test", "worlds", "models")).c_str());
@@ -1003,7 +1003,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
       // Check physics system loaded meshes and got their BB correct
       eachCount = 0;
       _ecm.Each<components::AxisAlignedBox>(
-        [&](const gz::sim::Entity &,
+        [&](const Entity &,
             const components::AxisAlignedBox *_box)->bool
         {
           auto box = _box->Data();
@@ -1032,7 +1032,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GetResourcePaths)
 {
-  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
       std::string("/tmp/some/path") +
       common::SystemPaths::Delimiter() +
       std::string("/home/user/another_path"));
@@ -1064,12 +1064,12 @@ TEST_P(ServerFixture, GetResourcePaths)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, AddResourcePaths)
 {
-  gz::common::setenv("GZ_SIM_RESOURCE_PATH",
+  common::setenv("GZ_SIM_RESOURCE_PATH",
       std::string("/tmp/some/path") +
       common::SystemPaths::Delimiter() +
       std::string("/home/user/another_path"));
-  gz::common::setenv("SDF_PATH", "");
-  gz::common::setenv("GZ_FILE_PATH", "");
+  common::setenv("SDF_PATH", "");
+  common::setenv("GZ_FILE_PATH", "");
 
   ServerConfig serverConfig;
   sim::Server server(serverConfig);
@@ -1174,8 +1174,8 @@ TEST_P(ServerFixture, ResolveResourcePaths)
   // Make sure the resource path is clear
   common::setenv("GZ_SIM_RESOURCE_PATH", "");
 
-  // An absolute path should return the same absolute path
-  test(PROJECT_SOURCE_PATH, PROJECT_SOURCE_PATH, true);
+  // A valid path should be returned as an absolute path
+  test(PROJECT_SOURCE_PATH, common::absPath(PROJECT_SOURCE_PATH), true);
 
   // An absolute path, with the file:// prefix, should return the absolute path
   test(std::string("file://") +

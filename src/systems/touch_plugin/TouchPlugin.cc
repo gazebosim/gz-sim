@@ -409,12 +409,9 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(TouchPlugin,
-                    gz::sim::System,
+                    System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

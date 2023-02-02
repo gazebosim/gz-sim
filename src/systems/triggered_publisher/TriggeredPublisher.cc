@@ -844,13 +844,9 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
 }
 
 GZ_ADD_PLUGIN(TriggeredPublisher,
-                    gz::sim::System,
+                    System,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "gz::sim::systems::TriggeredPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
-                          "ignition::gazebo::systems::TriggeredPublisher")

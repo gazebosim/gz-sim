@@ -193,7 +193,7 @@ ColumnLayout {
 
   // Projection
   ComboBox {
-    currentIndex: 0
+    currentIndex: ViewAngle.viewControlIndex
     model: ListModel {
         id: controller
         ListElement {text: "Orbit View Control"}
@@ -204,6 +204,19 @@ ColumnLayout {
     Layout.margins: 10
     onCurrentIndexChanged: {
         ViewAngle.OnViewControl(controller.get(currentIndex).text)
+    }
+  }
+
+  // toggle view control reference visual
+  CheckBox {
+    Layout.alignment: Qt.AlignHCenter
+    id: displayVisual
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    text: qsTr("Display View Control Reference Visual")
+    checked: true
+    onClicked: {
+      ViewAngle.OnViewControlReferenceVisual(checked)
     }
   }
 

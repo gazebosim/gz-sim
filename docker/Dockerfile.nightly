@@ -17,12 +17,12 @@ RUN apt-get update \
     libgz-math7-eigen3-dev \
     libgz-plugin2-dev \
     libgz-physics6-dev \
-    libgz-rendering7-dev \
+    libgz-rendering8-dev \
     libgz-tools2-dev \
     libgz-transport12-dev \
-    libgz-gui7-dev \
+    libgz-gui8-dev \
     libgz-msgs9-dev \
-    libgz-sensors7-dev \
+    libgz-sensors8-dev \
     libsdformat13-dev
 
 COPY . gz-sim
