@@ -1,5 +1,16 @@
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.3.0 (2023-02-02)
+
+1. Fluid added mass
+    * [Pull request #1592](https://github.com/gazebosim/gz-sim/pull/1592)
+
+1. Add P gain value for Ackermann steering.
+    * [Pull request #1873](https://github.com/gazebosim/gz-sim/pull/1873)
+
+1. Add orientation to Odom with covariance.
+    * [Pull request #1876](https://github.com/gazebosim/gz-sim/pull/1876)
+
 ### Gazebo Sim 7.2.0 (2023-01-25)
 
 1. Enable the JointController and JointPositionController to use sub_topics and control multiple joints.
