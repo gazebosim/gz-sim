@@ -707,16 +707,7 @@ template<>
 GZ_SIM_VISIBLE
 msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 {
-  msgs::Inertial out;
-  msgs::Set(out.mutable_pose(), _in.Pose());
-  out.set_mass(_in.MassMatrix().Mass());
-  out.set_ixx(_in.MassMatrix().Ixx());
-  out.set_iyy(_in.MassMatrix().Iyy());
-  out.set_izz(_in.MassMatrix().Izz());
-  out.set_ixy(_in.MassMatrix().Ixy());
-  out.set_ixz(_in.MassMatrix().Ixz());
-  out.set_iyz(_in.MassMatrix().Iyz());
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
@@ -724,19 +715,7 @@ template<>
 GZ_SIM_VISIBLE
 math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 {
-  math::MassMatrix3d massMatrix;
-  massMatrix.SetMass(_in.mass());
-  massMatrix.SetIxx(_in.ixx());
-  massMatrix.SetIyy(_in.iyy());
-  massMatrix.SetIzz(_in.izz());
-  massMatrix.SetIxy(_in.ixy());
-  massMatrix.SetIxz(_in.ixz());
-  massMatrix.SetIyz(_in.iyz());
-
-  math::Inertiald out;
-  out.SetMassMatrix(massMatrix);
-  out.SetPose(msgs::Convert(_in.pose()));
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////

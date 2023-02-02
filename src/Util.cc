@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/entity.pb.h>
+
 #include <gz/common/Filesystem.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
