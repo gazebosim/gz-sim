@@ -20,15 +20,15 @@
 
 #include <memory>
 
-#include <gz/sim/System.hh>
+#include <gz/utils/ImplPtr.hh>
+#include "gz/sim/System.hh"
 
 namespace gz
 {
 namespace sim
 {
 // Inline bracket to help doxygen filtering
-inline namespace GZ_SIM_VERSION_NAMESPACE
-{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 
@@ -39,11 +39,13 @@ class GZ_SIM_VISIBLE DopplerVelocityLogSystem :
   public gz::sim::ISystemPreUpdate,
   public gz::sim::ISystemPostUpdate
 {
+  /// \brief Constructor
   public: DopplerVelocityLogSystem();
 
+  /// \brief Destructor
   public: ~DopplerVelocityLogSystem();
 
-  /// Inherits documentation from parent class
+  // Documentation inherited
   public: void Configure(
       const gz::sim::Entity &_entity,
       const std::shared_ptr<const sdf::Element> &_sdf,
@@ -51,19 +53,20 @@ class GZ_SIM_VISIBLE DopplerVelocityLogSystem :
       gz::sim::EventManager &_eventMgr
   ) override;
 
-  /// Inherits documentation from parent class
+  // Documentation inherited
   public: void PreUpdate(
       const gz::sim::UpdateInfo &_info,
       gz::sim::EntityComponentManager &_ecm) override;
 
-  /// Inherits documentation from parent class
+  // Documentation inherited
   public: void PostUpdate(
       const gz::sim::UpdateInfo &_info,
       const gz::sim::EntityComponentManager &_ecm) override;
 
-  private: class Implementation;
+  // private: class Implementation;
 
-  private: std::unique_ptr<Implementation> dataPtr;
+  /// \brief Pointer to private data
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 
 }  // namespace systems

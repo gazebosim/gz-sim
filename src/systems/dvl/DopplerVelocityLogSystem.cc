@@ -58,14 +58,8 @@ namespace gz
 {
 namespace sim
 {
-// Inline bracket to help doxygen filtering
-inline namespace GZ_SIM_VERSION_NAMESPACE {
-namespace systems
-{
-
 namespace requests
 {
-
 /// \brief A request for sensor creation.
 struct CreateSensor
 {
@@ -78,18 +72,21 @@ struct CreateSensor
 /// \brief A request for sensor destruction.
 struct DestroySensor
 {
+  /// \brief Entity to destroy
   gz::sim::Entity entity;
 };
 
 /// \brief A request for a world state update for sensors.
 struct SetWorldState
 {
+  /// \brief World state
   gz::sensors::WorldState worldState;
 };
 
 /// \brief A request for an environmental data update for sensors.
 struct SetEnvironmentalData
 {
+  /// \brief Environment data
   std::shared_ptr<gz::sensors::EnvironmentalData> environmentalData;
 };
 
@@ -99,9 +96,11 @@ using SomeRequest = std::variant<
   SetWorldState, SetEnvironmentalData>;
 
 }  // namespace requests
+}
+}
 
-// Private data class.
-class DopplerVelocityLogSystem::Implementation
+/// \brief Private data class.
+class gz::sim::systems::DopplerVelocityLogSystem::Implementation
 {
   /// \brief Callback invoked in the rendering thread before a rendering update
   public: void OnPreRender();
@@ -114,6 +113,12 @@ class DopplerVelocityLogSystem::Implementation
 
   /// \brief Callback invoked in the rendering thread before stopping
   public: void OnRenderTeardown();
+
+  /// \brief Find visual with given entity id
+  /// \param[in] _scene Pointer to Scene
+  /// \param[in] _entity Entity ID
+  public: gz::rendering::VisualPtr FindEntityVisual(
+    gz::rendering::ScenePtr _scene, gz::sim::Entity _entity);
 
   /// \brief Overload to handle sensor creation requests.
   public: void Handle(requests::CreateSensor _request);
@@ -209,6 +214,10 @@ class DopplerVelocityLogSystem::Implementation
   public: std::chrono::steady_clock::duration nextUpdateTime{
     std::chrono::steady_clock::duration::max()};
 };
+
+using namespace gz;
+using namespace sim;
+using namespace systems;
 
 //////////////////////////////////////////////////
 void DopplerVelocityLogSystem::Implementation::DoConfigure(
@@ -372,19 +381,18 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
   }
 }
 
-namespace
+//////////////////////////////////////////////////
+gz::rendering::VisualPtr
+    DopplerVelocityLogSystem::Implementation::FindEntityVisual(
+    gz::rendering::ScenePtr _scene, gz::sim::Entity _entity)
 {
-
-gz::rendering::VisualPtr findEntityVisual(
-    gz::rendering::ScenePtr scene, gz::sim::Entity entity)
-{
-  for (unsigned int i = 0; i < scene->VisualCount(); ++i)
+  for (unsigned int i = 0; i < _scene->VisualCount(); ++i)
   {
-    gz::rendering::VisualPtr visual = scene->VisualByIndex(i);
+    gz::rendering::VisualPtr visual = _scene->VisualByIndex(i);
     if (visual->HasUserData("gazebo-entity"))
     {
-      auto user_data = visual->UserData("gazebo-entity");
-      if (entity == std::get<uint64_t>(user_data))
+      auto userData = visual->UserData("gazebo-entity");
+      if (_entity == std::get<uint64_t>(userData))
       {
         return visual;
       }
@@ -392,8 +400,6 @@ gz::rendering::VisualPtr findEntityVisual(
   }
   return gz::rendering::VisualPtr();
 }
-
-}  // namespace
 
 //////////////////////////////////////////////////
 void DopplerVelocityLogSystem::Implementation::Handle(
@@ -428,7 +434,7 @@ void DopplerVelocityLogSystem::Implementation::Handle(
   }
 
   gz::rendering::VisualPtr parentVisual =
-      findEntityVisual(this->scene, _request.parent);
+      this->FindEntityVisual(this->scene, _request.parent);
   if (!parentVisual)
   {
     gzerr << "Failed to find parent visual for sensor "
@@ -608,8 +614,8 @@ void DopplerVelocityLogSystem::Implementation::OnRenderTeardown()
 }
 
 //////////////////////////////////////////////////
-DopplerVelocityLogSystem::DopplerVelocityLogSystem() :
-    dataPtr(new Implementation())
+DopplerVelocityLogSystem::DopplerVelocityLogSystem()
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -645,21 +651,15 @@ void DopplerVelocityLogSystem::PostUpdate(
 {
   GZ_PROFILE("DopplerVelocityLogSystem::PostUpdate");
   this->dataPtr->DoPostUpdate(_info, _ecm);
-
 }
 
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
   System,
-  ISystemConfigure,
-  ISystemPreUpdate,
-  ISystemPostUpdate
+  DopplerVelocityLogSystem::ISystemConfigure,
+  DopplerVelocityLogSystem::ISystemPreUpdate,
+  DopplerVelocityLogSystem::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(DopplerVelocityLogSystem,
   "gz::sim::systems::DopplerVelocityLogSystem"
 )
-
-}  // namespace systems
-}  // namespace GZ_SIM_VERSION_NAMESPACE
-}  // namespace sim
-}  // namespace gz
