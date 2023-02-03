@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_SIM_DOPPLERVELOCITYLOGSYSTEM_H_
-#define GZ_SIM_DOPPLERVELOCITYLOGSYSTEM_H_
+#ifndef GZ_SIM_SYSTEMS_DOPPLERVELOCITYLOGSYSTEM_HH_
+#define GZ_SIM_SYSTEMS_DOPPLERVELOCITYLOGSYSTEM_HH_
 
 #include <memory>
 
@@ -34,34 +34,34 @@ namespace systems
 
 /// \brief System that creates and updates DopplerVelocityLog (DVL) sensors.
 class GZ_SIM_VISIBLE DopplerVelocityLogSystem :
-  public gz::sim::System,
-  public gz::sim::ISystemConfigure,
-  public gz::sim::ISystemPreUpdate,
-  public gz::sim::ISystemPostUpdate
+  public System,
+  public ISystemConfigure,
+  public ISystemPreUpdate,
+  public ISystemPostUpdate
 {
   /// \brief Constructor
-  public: DopplerVelocityLogSystem();
+  public: explicit DopplerVelocityLogSystem();
 
   /// \brief Destructor
   public: ~DopplerVelocityLogSystem();
 
   // Documentation inherited
   public: void Configure(
-      const gz::sim::Entity &_entity,
+      const Entity &_entity,
       const std::shared_ptr<const sdf::Element> &_sdf,
-      gz::sim::EntityComponentManager &_ecm,
-      gz::sim::EventManager &_eventMgr
+      EntityComponentManager &_ecm,
+      EventManager &_eventMgr
   ) override;
 
   // Documentation inherited
   public: void PreUpdate(
-      const gz::sim::UpdateInfo &_info,
-      gz::sim::EntityComponentManager &_ecm) override;
+      const UpdateInfo &_info,
+      EntityComponentManager &_ecm) override;
 
   // Documentation inherited
   public: void PostUpdate(
-      const gz::sim::UpdateInfo &_info,
-      const gz::sim::EntityComponentManager &_ecm) override;
+      const UpdateInfo &_info,
+      const EntityComponentManager &_ecm) override;
 
   /// \brief Pointer to private data
   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
