@@ -168,7 +168,7 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
       &ViewAngle::OnMoveToModelService, this);
   gzmsg << "Move to model service on ["
-         << this->dataPtr->moveToModelService << "]" << std::endl;
+        << this->dataPtr->moveToModelService << "]" << std::endl;
 
   gz::gui::App()->findChild<
     gz::gui::MainWindow *>()->installEventFilter(this);
@@ -325,7 +325,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   if (nullptr == visualToMove)
   {
     gzerr << "Failed to get visual with ID ["
-           << _msg.name() << "]" << std::endl;
+          << _msg.name() << "]" << std::endl;
     _res.set_data(false);
     return false;
   }
@@ -339,7 +339,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   catch(std::bad_variant_access &_e)
   {
     gzerr << "Failed to get gazebo-entity user data ["
-           << visualToMove->Name() << "]" << std::endl;
+          << visualToMove->Name() << "]" << std::endl;
     _res.set_data(false);
     return false;
   }
