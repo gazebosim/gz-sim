@@ -63,8 +63,6 @@ class GZ_SIM_VISIBLE DopplerVelocityLogSystem :
       const gz::sim::UpdateInfo &_info,
       const gz::sim::EntityComponentManager &_ecm) override;
 
-  // private: class Implementation;
-
   /// \brief Pointer to private data
   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
