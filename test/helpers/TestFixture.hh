@@ -202,10 +202,11 @@ class TestFixtureWithModel : public TestFixture
   }
 
   protected: void OnPreUpdate(
-    const sim::UpdateInfo &,
+    const sim::UpdateInfo &_info,
     sim::EntityComponentManager &_ecm) override
   {
     this->manipulator.Update(_ecm);
+    this->observer.PreUpdate(_info, _ecm);
   }
 
   protected: void OnPostUpdate(

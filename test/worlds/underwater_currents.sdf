@@ -27,10 +27,6 @@
       name="gz::sim::systems::Sensors">
     </plugin>
     <plugin
-      filename="gz-sim-dvl-system"
-      name="gz::sim::systems::DopplerVelocityLogSystem">
-    </plugin>
-    <plugin
       filename="gz-sim-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
@@ -48,6 +44,11 @@
           <z>altitude_meter</z>
         </space>
       </dimensions>
+    </plugin>
+    <!-- dvl-system much be placed after environment-preload-system -->
+    <plugin
+      filename="gz-sim-dvl-system"
+      name="gz::sim::systems::DopplerVelocityLogSystem">
     </plugin>
 
     <light type="directional" name="sun">

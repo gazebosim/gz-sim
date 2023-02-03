@@ -58,6 +58,28 @@ class ModelObserver
   }
 
   /// Update internal state from simulation state.
+  /// \note To be called on world pre-update.
+  /// \param[in] _info Info for the current iteration.
+  /// \param[in] _ecm Mutable reference to Entity component manager
+  public: void PreUpdate(
+    const sim::UpdateInfo &,
+    sim::EntityComponentManager &_ecm)
+  {
+    sim::World world(sim::worldEntity(_ecm));
+
+    const sim::Entity modelEntity =
+        world.ModelByName(_ecm, this->modelName);
+    if (sim::kNullEntity != modelEntity)
+    {
+      sim::Model model(modelEntity);
+      const sim::Entity linkEntity =
+          model.LinkByName(_ecm, this->baseLinkName);
+      sim::Link link(linkEntity);
+      link.EnableVelocityChecks(_ecm, true);
+    }
+  }
+
+  /// Update internal state from simulation state.
   /// \note To be called on world post-update.
   /// \param[in] _info Info for the current iteration.
   /// \param[in] _ecm Entity component manager to be queried.
