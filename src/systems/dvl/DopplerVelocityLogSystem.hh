@@ -33,7 +33,7 @@ namespace systems
 {
 
 /// \brief System that creates and updates DopplerVelocityLog (DVL) sensors.
-class GZ_SIM_VISIBLE DopplerVelocityLogSystem :
+class DopplerVelocityLogSystem :
   public System,
   public ISystemConfigure,
   public ISystemPreUpdate,

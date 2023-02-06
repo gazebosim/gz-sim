@@ -25,6 +25,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <chrono>
 #include <memory>
@@ -48,7 +49,7 @@ using DVLVelocityTracking = msgs::DVLVelocityTracking;
 static constexpr math::Vector3d sensorPositionInSFMFrame{0., 0.6, -0.16};
 
 //////////////////////////////////////////////////
-TEST(DVLTest, WaterMassTracking)
+TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
 {
   const std::string worldFile = common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test",

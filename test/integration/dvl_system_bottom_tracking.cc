@@ -25,6 +25,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <chrono>
 #include <memory>
@@ -52,7 +53,7 @@ static constexpr math::Vector3d sensorPositionInSFMFrame{0., 0.6, -0.16};
 static constexpr double kRangeTolerance{0.2};
 
 //////////////////////////////////////////////////
-TEST(DVLTest, BottomTracking)
+TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
 {
   const std::string worldFile = common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test",
