@@ -17,7 +17,8 @@
 
 #include "Barrier.hh"
 
-class gz::sim::BarrierPrivate
+
+class ignition::gazebo::BarrierPrivate
 {
   /// \brief Mutex for syncronization
   public: std::mutex mutex;
@@ -38,7 +39,7 @@ class gz::sim::BarrierPrivate
   public: unsigned int generation{0};
 };
 
-using namespace gz::sim;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 Barrier::Barrier(unsigned int _threadCount)
