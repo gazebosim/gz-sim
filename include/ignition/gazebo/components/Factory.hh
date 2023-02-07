@@ -121,12 +121,14 @@ namespace components
         : id(reinterpret_cast<std::uintptr_t>(_ptr))
     {
     }
+
     /// \brief Construct object from a uintptr_t.
     /// \param[in] _ptr Arbitrary pointer address.
     explicit RegistrationObjectId(std::uintptr_t _ptrAddress)
         : id(_ptrAddress)
     {
     }
+
     /// \brief Equality comparison.
     /// \param[in] _other Other RegistrationObjectId object to compare against.
     bool operator==(const RegistrationObjectId &_other) const
@@ -147,7 +149,7 @@ namespace components
   ///  2. Plugin P1 gets unloaded.
   ///  3. Plugin P2 registers a component descriptor for component C1 and tries
   ///     to create an instance of C1.
-  /// When P1 gets unloaded, the desctructor of the static component
+  /// When P1 gets unloaded, the destructor of the static component
   /// registration object calls Factory::Unregister which removes the component
   /// descriptor from the queue. Without this step, P2 would attempt to use
   /// the component descriptor created by P1 in step 3 and likely segfault
