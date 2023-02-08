@@ -29,10 +29,12 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -271,14 +273,42 @@ void JointPositionController::PreUpdate(
     bool warned{false};
     for (const std::string &name : this->dataPtr->jointNames)
     {
-      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      // First try to resolve by scoped name.
+      Entity joint = kNullEntity;
+      auto entities = entitiesFromScopedName(
+          name, _ecm, this->dataPtr->model.Entity());
+
+      if (!entities.empty())
+      {
+        if (entities.size() > 1)
+        {
+          gzwarn << "Multiple joint entities with name ["
+                << name << "] found. "
+                << "Using the first one.\n";
+        }
+        joint = *entities.begin();
+
+        // Validate
+        if (!_ecm.EntityHasComponentType(joint, components::Joint::typeId))
+        {
+          gzerr << "Entity with name[" << name
+                << "] is not a joint\n";
+          joint = kNullEntity;
+        }
+        else
+        {
+          gzdbg << "Identified joint [" << name
+                << "] as Entity [" << joint << "]\n";
+        }
+      }
+
       if (joint != kNullEntity)
       {
         this->dataPtr->jointEntities.push_back(joint);
       }
       else if (!warned)
       {
-        gzwarn << "Failed to find joint [" << name << "]" << std::endl;
+        gzwarn << "Failed to find joint [" << name << "]\n";
         warned = true;
       }
     }
