@@ -256,8 +256,18 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
     {
       if (_entity == gz::sim::worldEntity(_ecm))
       {
+        // \todo(anyone) Create an EnvironmentalData DOM class
+        // in sdformat and make gz-sensors and gz-sim use this
+        // generic data structure? Currently the data structure is
+        // duplicated in the two libraries.
+        auto envData = sensors::EnvironmentalData::MakeShared(
+            _env->Data()->frame, _env->Data()->reference,
+            static_cast<gz::sensors::EnvironmentalData::ReferenceUnits>(
+                _env->Data()->units),
+            _env->Data()->staticTime);
+
         this->perStepRequests.push_back(
-          requests::SetEnvironmentalData{_env->Data()});
+          requests::SetEnvironmentalData{envData});
       }
       return true;
     });

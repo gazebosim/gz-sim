@@ -21,7 +21,10 @@
 #include <memory>
 #include <string>
 
-#include <gz/sensors/EnvironmentalData.hh>
+#include <gz/common/DataFrame.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/TimeVaryingVolumetricGrid.hh>
+
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 
@@ -33,7 +36,52 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  using EnvironmentalData = gz::sensors::EnvironmentalData;
+  /// \brief Environment data across time and space. This is useful to
+  /// introduce physical quantities that may be of interest even if not
+  /// modelled in simulation.
+  struct GZ_SIM_VISIBLE EnvironmentalData
+  {
+    using T = math::InMemoryTimeVaryingVolumetricGrid<double>;
+    using FrameT = common::DataFrame<std::string, T>;
+    using ReferenceT = math::SphericalCoordinates::CoordinateType;
+
+    /// \brief Reference units
+    enum class ReferenceUnits {
+      RADIANS = 0,
+      DEGREES
+    };
+
+    /// \brief Instantiate environmental data.
+    ///
+    /// An std::make_shared equivalent that ensures
+    /// dynamically loaded call sites use a template
+    /// instantiation that is guaranteed to outlive
+    /// them.
+    static std::shared_ptr<EnvironmentalData>
+    MakeShared(FrameT _frame, ReferenceT _reference,
+      ReferenceUnits _units = ReferenceUnits::RADIANS,
+      bool _ignoreTimeStep = false)
+    {
+      auto data = std::make_shared<EnvironmentalData>();
+      data->frame = std::move(_frame);
+      data->reference = _reference;
+      data->units = _units;
+      data->staticTime = _ignoreTimeStep;
+      return data;
+    }
+
+    /// \brief Environmental data frame.
+    FrameT frame;
+
+    /// \brief Spatial reference for data coordinates.
+    ReferenceT reference;
+
+    /// \brief The units to be used (only for spherical coordinates)
+    ReferenceUnits units;
+
+    /// \brief Use time axis or not.
+    bool staticTime;
+  };
 
   /// \brief A component type that contains a environment data.
   /// Ownership is shared to avoid data copies unless necessary.

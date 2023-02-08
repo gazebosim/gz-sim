@@ -157,7 +157,6 @@ gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   gz-math${GZ_MATH_VER}
-  gz-sensors${GZ_SENSORS_VER}
   gz-plugin${GZ_PLUGIN_VER}::core
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
   gz-common${GZ_COMMON_VER}::profiler
