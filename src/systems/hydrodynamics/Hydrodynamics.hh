@@ -72,7 +72,7 @@ namespace systems
   /// and yaw axis respectively.
   ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
   ///       Units are either kg or kgm^2 depending on the choice of terms.
-  ///   * Quadratic Damping With abs term (this is probably what you want): 
+  ///   * Quadratic Damping With abs term (this is probably what you want):
   ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>
   ///       e.g. <xRabsQ>
   ///       Units are either kg/m or kg/m^2.

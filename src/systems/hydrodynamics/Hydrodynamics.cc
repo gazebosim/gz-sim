@@ -195,16 +195,16 @@ void Hydrodynamics::Configure(
         SdfParamDouble(_sdf, prefix, 0);
       for(auto k = 0; k < 6; k++)
       {
-        // TODO(arjo): 
         auto fieldName = prefix + snameConventionVel[k];
         this->dataPtr->stabilityQuadraticDerivative[i*36 + j*6 + k] =
           SdfParamDouble(
             _sdf,
             fieldName,
             0);
+
         if (_sdf->HasElement(fieldName)) {
           warnBehaviourChange = true;
-        } 
+        }
 
         this->dataPtr->stabilityQuadraticAbsDerivative[i*36 + j*6 + k] =
           SdfParamDouble(
@@ -220,9 +220,9 @@ void Hydrodynamics::Configure(
   {
     ignwarn << "You are using parameters that may cause instabilities"
       << "in your simulation. If your simulation crashes we recommend"
-      << "renaming <xUU> -> <xUabsU> and likewise for other information"
+      << "renaming <xUU> -> <xUabsU> and likewise for other axis"
       << "for more information see:"
-      << "\t<INSERT LINK HERE>\n";
+      << "\thttps://github.com/gazebosim/gz-sim/pull/1888\n";
   }
 
   // Added mass according to Fossen's equations (p 37)
