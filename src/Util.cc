@@ -119,7 +119,7 @@ math::Vector3d relativeVel(const Entity &_entity,
   }
 
   math::Vector3d vel = worldLinVel->Data();
-  auto v = _ecm.Component<components::ParentEntity>(_entity);
+  // auto v = _ecm.Component<components::ParentEntity>(_entity);
   // while (v)
   // {
   //   // get pose of parent entity

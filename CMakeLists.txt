@@ -128,7 +128,7 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
   # component order is important
   COMPONENTS
     # non-rendering
