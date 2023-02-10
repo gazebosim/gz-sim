@@ -1455,7 +1455,6 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
   //             _in.air_speed().speed_noise()));
   //     }
   //
-  //     // sensor.SetReferenceAltitude(_in.air_pressure().reference_altitude());
   //   }
   //   else
   //   {
