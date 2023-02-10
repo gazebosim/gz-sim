@@ -121,10 +121,6 @@ void AirSpeed::PreUpdate(const UpdateInfo &/*_info*/,
     _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
   }
   this->dataPtr->newSensors.clear();
-
-  //
-  // math::Vector3d sensorRelativeVel = relativeVel(this->dataPtr->entity, _ecm);
-  // std::cerr << "sensorRelativeVel " << sensorRelativeVel << '\n';
 }
 
 //////////////////////////////////////////////////

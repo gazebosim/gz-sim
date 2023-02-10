@@ -1198,7 +1198,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
-  // TODO (ahcorde): Enable this code in Harmonic
+  // TODO(ahcorde): Enable this code in Harmonic
   // else if (_in.Type() == sdf::SensorType::AIR_SPEED)
   // {
   //   if (_in.AirSpeedSensor())
@@ -1443,7 +1443,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
     out.SetAirPressureSensor(sensor);
   }
-  // TODO (ahcorde): Enable this code in Harmonic
+  // TODO(ahcorde): Enable this code in Harmonic
   // else if (out.Type() == sdf::SensorType::AIR_SPEED)
   // {
   //   sdf::AirSpeed sensor;

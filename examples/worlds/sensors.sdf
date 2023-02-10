@@ -143,12 +143,12 @@
           <topic>air_pressure</topic>
           <enable_metrics>true</enable_metrics>
           <air_speed>
-            <airspeed>
+            <pressure>
               <noise type="gaussian">
                 <mean>0.2</mean>
                 <stddev>0.1</stddev>
               </noise>
-            </airspeed>
+            </pressure>
           </air_speed>
         </sensor>
 
