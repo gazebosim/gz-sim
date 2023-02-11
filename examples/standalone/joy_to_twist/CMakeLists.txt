@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 
 project(gz-sim-joy-to-twist)
 
-find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
+find_package(gz-transport13 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
 find_package(sdformat13 REQUIRED)
 set(SDF_VER ${sdformat13_VERSION_MAJOR})
