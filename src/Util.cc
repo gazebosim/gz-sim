@@ -31,6 +31,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 
 #include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/components/Joint.hh"
@@ -45,6 +46,7 @@
 #include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/LinearVelocity.hh"
 
 #include "gz/sim/Util.hh"
 
@@ -81,6 +83,45 @@ math::Pose3d worldPose(const Entity &_entity,
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
   return pose;
+}
+
+//////////////////////////////////////////////////
+math::Vector3d relativeVel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    gzwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Vector3d();
+  }
+
+  // work out pose in world frame
+  math::Pose3d pose = poseComp->Data();
+  auto p = _ecm.Component<components::ParentEntity>(_entity);
+  while (p)
+  {
+    // get pose of parent entity
+    auto parentPose = _ecm.Component<components::Pose>(p->Data());
+    if (!parentPose)
+      break;
+    // transform pose
+    pose = parentPose->Data() * pose;
+    // keep going up the tree
+    p = _ecm.Component<components::ParentEntity>(p->Data());
+  }
+
+  auto worldLinVel = _ecm.Component<components::WorldLinearVelocity>(_entity);
+  if (nullptr == worldLinVel)
+  {
+    gzwarn << "Trying to get world velocity from entity [" << _entity
+            << "], which doesn't have a velocity component" << std::endl;
+    return math::Vector3d();
+  }
+
+  math::Vector3d vel = worldLinVel->Data();
+  return pose.Rot().RotateVectorReverse(vel);
 }
 
 //////////////////////////////////////////////////
