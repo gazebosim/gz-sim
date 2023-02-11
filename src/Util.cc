@@ -119,18 +119,6 @@ math::Vector3d relativeVel(const Entity &_entity,
   }
 
   math::Vector3d vel = worldLinVel->Data();
-  // auto v = _ecm.Component<components::ParentEntity>(_entity);
-  // while (v)
-  // {
-  //   // get pose of parent entity
-  //   auto parentVel = _ecm.Component<components::Pose>(p->Data());
-  //   if (!parentVel)
-  //     break;
-  //   // transform pose
-  //   vel = parentVel->Data() * vel;
-  //   // keep going up the tree
-  //   v = _ecm.Component<components::ParentEntity>(v->Data());
-  // }
   return pose.Rot().RotateVectorReverse(vel);
 }
 
