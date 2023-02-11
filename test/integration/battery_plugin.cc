@@ -179,9 +179,9 @@ TEST_F(BatteryPluginTest,
   serverConfig.SetSdfFile(sdfPath);
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
 
@@ -203,7 +203,7 @@ TEST_F(BatteryPluginTest,
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-sim/issues/55
       EXPECT_GT(batComp->Data(), 0);
     };
 

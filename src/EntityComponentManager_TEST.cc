@@ -48,7 +48,7 @@ namespace gazebo
 inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace components
 {
-using IntComponent = components::Component<int, class IntComponentTag>;
+using IntComponent = Component<int, class IntComponentTag>;
 IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
@@ -325,8 +325,8 @@ TEST_P(EntityComponentManagerFixture,
   auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
       DoubleComponent(0.456));
   ASSERT_NE(nullptr, comp4);
-  auto comp5 = manager.CreateComponent<components::Pose>(ePose,
-      components::Pose({1, 2, 3, 0, 0, 0}));
+  auto comp5 = manager.CreateComponent<Pose>(ePose,
+      Pose({1, 2, 3, 0, 0, 0}));
   ASSERT_NE(nullptr, comp5);
   auto comp6 = manager.CreateComponent<CustomComponent>(eCustom,
       CustomComponent(Custom()));

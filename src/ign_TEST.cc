@@ -105,7 +105,7 @@ TEST(CmdLine, CachedFuelWorld)
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   ignition::common::setenv("IGN_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kIgnCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/openroboticstest/worlds/test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);

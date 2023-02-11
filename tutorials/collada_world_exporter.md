@@ -22,4 +22,4 @@ ign gazebo -v 4 -s -r --iterations 1 WORLD_FILE_NAME
 
 3. A subdirectory, named after the world, has been created in the current working directory. Within this subdirectory is the mesh and materials for the world.
 
-Refer to the [collada_world_exporter.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/collada_world_exporter.sdf) example.
+Refer to the [collada_world_exporter.sdf](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/collada_world_exporter.sdf) example.
