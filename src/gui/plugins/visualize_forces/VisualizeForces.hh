@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <vector>
 
 #include <gz/math/Color.hh>
-#include <gz/msgs/wrench_visual.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <gz/sim/gui/GuiSystem.hh>
 
@@ -39,78 +39,88 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-  class VisualizeForcesPrivate;
+class VisualizeForcesPrivate;
 
-  /// \brief Qt AbstactListModel for incoming arrows
-  class ForceListModel: public QAbstractListModel
-  {
-    Q_OBJECT
+/// \brief Qt AbstactListModel for incoming arrows
+class ForceListModel: public QAbstractListModel
+{
+  Q_OBJECT
 
-    public:
-      enum ArrowRoles {
-        LinkRole = Qt::UserRole + 1,
-        PluginRole,
-        ColorRole,
-        VisibleRole
-      };
+  public:
+    enum ForceRoles {
+      LinkRole = Qt::UserRole + 1,
+      PluginRole,
+      ColorRole,
+      VisibleRole
+    };
 
-      struct ForceArrow
-      {
-        std::string linkName;
-        std::string pluginName;
-        bool visible;
-      };
-      ForceListModel();
+    struct ForceInfo
+    {
+      std::string linkName;
+      std::string pluginName;
+      bool visible;
+    };
 
-      ~ForceListModel() override = default;
+    ForceListModel();
 
-      QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-      int rowCount(const QModelIndex &parent = QModelIndex()) const;
-      QHash<int, QByteArray> roleNames() const;
+    ~ForceListModel() override = default;
 
-      std::optional<math::Color> getRenderColor(msgs::WrenchVisual &_wrench);
+    QVariant data(const QModelIndex &index,
+      int role = Qt::DisplayRole) const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QHash<int, QByteArray> roleNames() const override;
 
-      Q_INVOKABLE void setVisibility(int index, bool visible);
-      Q_INVOKABLE void setColor(int index, QColor color);
+    std::optional<math::Color> getRenderColor(msgs::EntityWrench &_wrench);
 
-    private:
-      std::vector<ForceArrow> arrows;
-      std::unordered_map<std::string, math::Color> colors;
+    Q_INVOKABLE void setVisibility(int index, bool visible);
+    Q_INVOKABLE void setColor(int index, QColor color);
 
-      struct ArrowInfo
-      {
-        std::size_t index;
-      };
-      std::unordered_map<Entity, std::unordered_map<std::string, ArrowInfo>>
-        arrow_mapping;
+  private:
+    std::vector<ForceInfo> forceInfo;
+    std::unordered_map<std::string, math::Color> colors;
 
-      /// \brief Retrieve the color assigned to a plugin
-      /// \param[in] _pluginname - Name of plugin.
-      math::Color retrieveOrAssignColor(std::string _pluginname);
-  };
+    struct ForceIndex
+    {
+      std::size_t index;
+    };
 
-  /// \brief Visualize Force markers
-  class VisualizeForces : public gz::sim::GuiSystem
-  {
-    Q_OBJECT
+    /// \brief map between entities and a force map.
+    /// The force map is between a label identifying the origin of the
+    /// wtench (plugin label) and an index into the force information.
+    std::unordered_map<Entity, std::unordered_map<std::string, ForceIndex>>
+      force_mapping;
 
-    /// \brief Constructor
-    public: VisualizeForces();
+    /// \brief Retrieve the color assigned to a plugin
+    /// \param[in] _pluginname - Name of plugin.
+    math::Color retrieveOrAssignColor(std::string _pluginname);
+};
 
-    /// \brief Destructor
-    public: ~VisualizeForces() override;
+/// \brief Visualize Force markers
+class VisualizeForces : public gz::sim::GuiSystem
+{
+  Q_OBJECT
 
-    // Documentation inherited
-    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+  /// \brief Constructor
+  public: VisualizeForces();
 
-    // Documentation inherited
-    public: void Update(const UpdateInfo &_info,
-        EntityComponentManager &_ecm) override;
+  /// \brief Destructor
+  public: ~VisualizeForces() override;
 
-    /// \internal
-    /// \brief Pointer to private data
-    private: std::unique_ptr<VisualizeForcesPrivate> dataPtr;
-  };
+  // Documentation inherited
+  public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+
+  // Documentation inherited
+  public: void Update(const UpdateInfo &_info,
+      EntityComponentManager &_ecm) override;
+
+  // Documentation inherited
+  protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+  /// \internal
+  /// \brief Pointer to private data
+  private: std::unique_ptr<VisualizeForcesPrivate> dataPtr;
+};
+
 }
 }
 }

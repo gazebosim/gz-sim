@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,19 +54,18 @@ Rectangle {
     }
   }
 
-
   Component {
     id: forceDelegate
     RowLayout {
       spacing: 0
       Layout.alignment: Qt.AlignVCenter
-      Label { 
+      Label {
         Layout.fillHeight: true
         Layout.fillWidth: true
         Layout.preferredHeight: implicitHeight
         Layout.preferredWidth: 100
         text: link
-        verticalAlignment: VerticalAlignment.Center
+        verticalAlignment: Text.AlignVCenter
         background: Rectangle
         {
           color: (index % 2 == 0)? even : odd
@@ -77,14 +76,14 @@ Rectangle {
         Layout.fillWidth: true
         Layout.preferredHeight: implicitHeight
         Layout.preferredWidth: 200
-        verticalAlignment: VerticalAlignment.Center
+        verticalAlignment: Text.AlignVCenter
         text: plugin
         background: Rectangle
         {
           color: (index % 2 == 0)? even : odd
         }
       }
-      
+
       Rectangle {
         width: 20
         height: 20
@@ -96,7 +95,7 @@ Rectangle {
           propagateComposedEvents: true
           onClicked: {
             mouse.accepted = true
-            selectedIndex = index 
+            selectedIndex = index
             colorDialog.open()
           }
         }

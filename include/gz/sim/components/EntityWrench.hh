@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_SIM_COMPONENTS_WORLDWRENCHVISUALCMD_HH_
-#define GZ_SIM_COMPONENTS_WORLDWRENCHVISUALCMD_HH_
+#ifndef GZ_SIM_COMPONENTS_ENTITYWRENCH_HH_
+#define GZ_SIM_COMPONENTS_ENTITYWRENCH_HH_
 
-#include <gz/msgs/wrench_visual_v.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Serialization.hh>
@@ -31,21 +31,18 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains the external wrench to be applied on
-  /// an entity expressed in the world frame and represented by
-  /// ignition::msgs::Wrench.
-  /// Currently this is used for applying wrenches on links. Although the
-  /// msg::Wrench type has a force_offset member, the value is currently
-  /// ignored. Instead, the force is applied at the link origin.
+  /// \brief A component type that contains a wrench and an entity expressed
+  /// in the world frame to apply the wrench to. It is represented by
+  /// gz::msgs::EntityWrench.
   /// The wrench uses SI units (N for force and N⋅m for torque).
-  using WrenchVisual_V =
-      Component<msgs::WrenchVisual_V, class WrenchVisualVTag,
+  using EntityWrench =
+      Component<msgs::EntityWrench, class EntityWrenchTag,
         serializers::MsgSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WrenchVisual_V",
-                            WrenchVisual_V)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.EntityWrench",
+                            EntityWrench)
 }
 }
-}
-}
+}  // namespace sim
+}  // namespace gz
 
-#endif
+#endif  // GZ_SIM_COMPONENTS_ENTITYWRENCH_HH_
