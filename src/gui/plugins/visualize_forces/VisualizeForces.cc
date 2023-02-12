@@ -21,32 +21,32 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/wrench_visual.pb.h>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/wrench_visual.pb.h>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/WrenchVisual.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/components/WrenchVisual.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/World.hh"
 #include "VisualizeForces.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   /// \brief Private data class for VisualizeForces
   class VisualizeForcesPrivate
@@ -97,8 +97,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
         for(auto wrench: _visuals->Data().data())
         {
           this->queue.push(wrench);
-          igndbg << "Visualizing wrench for entity [" << wrench.entity().id()
-                 << "]" << "From [" << wrench.label() << "]" << std::endl;
+          gzdbg << "Visualizing wrench for entity [" << wrench.entity().id()
+                << "]" << "From [" << wrench.label() << "]" << std::endl;
         }
         entities.push_back(_entity);
         return true;
@@ -157,9 +157,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
         marker.set_visibility(msgs::Marker::GUI);
 
-        ignition::msgs::Set(marker.mutable_material()->mutable_ambient(),
+        gz::msgs::Set(marker.mutable_material()->mutable_ambient(),
           color.value());
-        ignition::msgs::Set(marker.mutable_material()->mutable_diffuse(),
+        gz::msgs::Set(marker.mutable_material()->mutable_diffuse(),
           color.value());
 
         if (std::abs(force.Length()) > 1e-5)
@@ -175,9 +175,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
           math::Pose3d rotation(math::Vector3d(0, 0, 0), qt);
           math::Pose3d arrowPose(
             msgs::Convert(wrenchMsg.pos()), math::Quaterniond());
-          ignition::msgs::Set(
+          gz::msgs::Set(
             marker.mutable_pose(), arrowPose * rotation * translateCylinder);
-          ignition::msgs::Set(
+          gz::msgs::Set(
             marker.mutable_scale(),
             math::Vector3d(0.1, 0.1, force.Length()));
 
@@ -264,12 +264,12 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 
     double r, g, b;
     color.getRgbF(&r, &g, &b);
-    auto ignColor = math::Color{
+    auto gzColor = math::Color{
       static_cast<float>(r),
       static_cast<float>(g),
       static_cast<float>(b)
     };
-    this->colors[plugin] = ignColor;
+    this->colors[plugin] = gzColor;
 
     auto start = createIndex(0, 0);
     auto end = createIndex(this->arrows.size() - 1, 0);
@@ -353,14 +353,14 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VisualizeForces::VisualizeForces()
   : GuiSystem(), dataPtr(new VisualizeForcesPrivate)
 {
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
     "ForceListModel", &this->dataPtr->model);
 }
 
@@ -384,5 +384,5 @@ void VisualizeForces::Update(const UpdateInfo &/*unused*/,
 
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeForces,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::VisualizeForces,
+              gz::gui::Plugin)

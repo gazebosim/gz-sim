@@ -42,6 +42,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/WrenchVisual.hh"
 #include "gz/sim/Util.hh"
 
 #include "gz/sim/Link.hh"
@@ -470,10 +471,10 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
       _ecm.CreateComponent<components::WrenchVisual_V>(
         this->dataPtr->id, visualV);
     }
-    ///igndbg << "publishing wrench visual for link ["
-    ///       << this->dataPtr->id << "] with force [" << _force
-    ///       << "] and torque [" << _torque << "]" << "from ["
-    ///       << this->dataPtr->visualizationLabel.value() << "]" << std::endl;
+    ///gzdbg << "publishing wrench visual for link ["
+    ///      << this->dataPtr->id << "] with force [" << _force
+    ///      << "] and torque [" << _torque << "]" << "from ["
+    ///      << this->dataPtr->visualizationLabel.value() << "]" << std::endl;
   }
 }
 

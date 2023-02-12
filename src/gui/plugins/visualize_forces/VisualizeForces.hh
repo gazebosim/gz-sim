@@ -15,29 +15,29 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VISUALIZECONTACTS_HH_
-#define IGNITION_GAZEBO_GUI_VISUALIZECONTACTS_HH_
+#ifndef GZ_SIM_GUI_VISUALIZECONTACTS_HH_
+#define GZ_SIM_GUI_VISUALIZECONTACTS_HH_
 
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <ignition/math/Color.hh>
-#include <ignition/msgs/wrench_visual.pb.h>
+#include <gz/math/Color.hh>
+#include <gz/msgs/wrench_visual.pb.h>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
 #include <QAbstractListModel>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class VisualizeForcesPrivate;
 
@@ -90,7 +90,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
   };
 
   /// \brief Visualize Force markers
-  class VisualizeForces : public ignition::gazebo::GuiSystem
+  class VisualizeForces : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

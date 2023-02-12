@@ -629,12 +629,6 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         link.SetVisualizationLabel("Buoyancy");
         link.AddWorldWrench(_ecm, force, torque);
       }
-      auto [force, torque] = this->dataPtr->ResolveForces(
-        link.WorldInertialPose(_ecm).value());
-      // Apply the wrench to the link. This wrench is applied in the
-      // Physics System.
-      link.AddAndVisualizeWorldWrench(
-        _ecm, force, torque, "BuoyancyPlugin");
       return true;
   });
 }

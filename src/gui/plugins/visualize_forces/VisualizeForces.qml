@@ -19,7 +19,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import QtQuick.Dialogs 1.3
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 Rectangle {
   id: entityTree

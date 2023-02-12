@@ -364,7 +364,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   // Subscribe to actuator command messages
   std::string topic = transport::TopicUtils::AsValidTopic(
       this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
-  igndbg << "Listening on " <<topic <<std::endl;
+  gzdbg << "Listening on " <<topic <<std::endl;
   if (topic.empty())
   {
     gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
