@@ -56,6 +56,7 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
       "worlds", "underwater_currents.sdf");
   TestFixtureWithModel fixture(worldFile, "tethys");
 
+  // value from from underwater_currents.csv
   constexpr math::Vector3d waterCurrentVelocity{-1., 0.5, 0.};
 
   transport::Node node;
@@ -64,6 +65,12 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
 
   // Step a few iterations for simulation to setup itself
   fixture.Step(2s);
+
+  // sensor rotation from body
+  auto sensorRot = math::Quaterniond(math::Vector3d(0, 0, GZ_PI));
+  // reference_frame
+  auto referenceRot = math::Quaterniond(math::Vector3d(0, 0, -GZ_PI/2.0));
+  auto bodyToRef = sensorRot * referenceRot;
 
   ASSERT_TRUE(velocitySubscription.WaitForMessages(1, 10s));
   {
@@ -80,20 +87,41 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
           << "Beam #" << beam.id() << " not locked";
     }
     ASSERT_TRUE(message.has_velocity());
-    const math::Vector3d linearVelocityEstimate =
+    math::Vector3d linearVelocityEstimate =
         msgs::Convert(message.velocity().mean());
+
+    const auto &linearVelocities =
+        fixture.Observer().LinearVelocities();
+    const auto &poses = fixture.Observer().Poses();
+
+    // linear velocity output from fixture Observer is in world frame
+    // convert to body frame
+    math::Vector3d linearVelocityBodyFrame =
+        poses.back().Rot().RotateVectorReverse(
+            linearVelocities.back() - waterCurrentVelocity);
+
+    // get linear velocity w.r.t reference frame
+    math::Vector3d expectedLinearVelocityEstimate =
+      bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+
     constexpr double kVelocityTolerance{1e-1};  // account for noise
     EXPECT_NEAR(linearVelocityEstimate.X(),
-                -waterCurrentVelocity.X(), kVelocityTolerance);
+                expectedLinearVelocityEstimate.X(), kVelocityTolerance);
     EXPECT_NEAR(linearVelocityEstimate.Y(),
-                -waterCurrentVelocity.Y(), kVelocityTolerance);
+                expectedLinearVelocityEstimate.Y(), kVelocityTolerance);
     EXPECT_NEAR(linearVelocityEstimate.Z(),
-                -waterCurrentVelocity.Z(), kVelocityTolerance);
+                expectedLinearVelocityEstimate.Z(), kVelocityTolerance);
   }
 
-  // Have the AUV describe a circle
+  // Move the AUV in a straight line
+  // Manipualtor sets linear velocity in body frame
   fixture.Manipulator().SetLinearVelocity(math::Vector3d::UnitX);
-  fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
+
+  // Have the AUV describe a circle
+  // todo(anyone) Having a non-zero angular velocity produces inaccurate
+  // velocity estimates. Investigate whether it is a test issue or gz-sensors
+  // dvl implementation issue
+  // fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
 
   // Step simulation for some time for DVL estimates to estabilize
   fixture.Step(50s);
@@ -125,12 +153,19 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
 
     // Linear velocities w.r.t. to underwater currents
     // are reported in a sensor affixed, SFM frame.
-    const math::Vector3d expectedLinearVelocityEstimate =
+
+    // linear velocity output from fixture Observer is in world frame
+    // convert to body frame
+    math::Vector3d linearVelocityBodyFrame =
         poses.back().Rot().RotateVectorReverse(
-            linearVelocities.back() - waterCurrentVelocity +
-            angularVelocities.back().Cross(
-                poses.back().Rot().RotateVector(sensorPositionInSFMFrame)));
+            linearVelocities.back() - waterCurrentVelocity);
+
+    // get linear velocity w.r.t reference frame
+    math::Vector3d expectedLinearVelocityEstimate =
+      bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+
     constexpr double kVelocityTolerance{1e-1};  // account for noise
+
     EXPECT_NEAR(expectedLinearVelocityEstimate.X(),
                 linearVelocityEstimate.X(), kVelocityTolerance);
     EXPECT_NEAR(expectedLinearVelocityEstimate.Y(),

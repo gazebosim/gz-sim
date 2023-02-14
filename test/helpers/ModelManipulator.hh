@@ -36,7 +36,7 @@
 
 using namespace gz;
 
-/// Helper class to manipulate a model in an Ignition Gazebo simulation.
+/// Helper class to manipulate a model in an Gazebo simulation.
 class ModelManipulator
 {
   /// Constructor.
@@ -55,38 +55,36 @@ class ModelManipulator
     {
       sim::World world(sim::worldEntity(_ecm));
       sim::Model model(world.ModelByName(_ecm, this->modelName));
-      using WorldLinearVelocityCmd = sim::components::WorldLinearVelocityCmd;
-      auto velocity = _ecm.Component<WorldLinearVelocityCmd>(model.Entity());
+      using LinearVelocityCmd = sim::components::LinearVelocityCmd;
+      auto velocity = _ecm.Component<LinearVelocityCmd>(model.Entity());
       if (!velocity)
       {
         _ecm.CreateComponent(
-          model.Entity(), WorldLinearVelocityCmd(
+          model.Entity(), LinearVelocityCmd(
             this->linearVelocityRequest.value()));
       }
       else
       {
         velocity->Data() = this->linearVelocityRequest.value();
       }
-      this->linearVelocityRequest.reset();
     }
 
     if (this->angularVelocityRequest.has_value())
     {
       sim::World world(sim::worldEntity(_ecm));
       sim::Model model(world.ModelByName(_ecm, this->modelName));
-      using WorldAngularVelocityCmd = sim::components::WorldAngularVelocityCmd;
-      auto velocity = _ecm.Component<WorldAngularVelocityCmd>(model.Entity());
+      using AngularVelocityCmd = sim::components::AngularVelocityCmd;
+      auto velocity = _ecm.Component<AngularVelocityCmd>(model.Entity());
       if (!velocity)
       {
         _ecm.CreateComponent(
-          model.Entity(), WorldAngularVelocityCmd(
+          model.Entity(), AngularVelocityCmd(
             this->angularVelocityRequest.value()));
       }
       else
       {
         velocity->Data() = this->angularVelocityRequest.value();
       }
-      this->angularVelocityRequest.reset();
     }
   }
 
