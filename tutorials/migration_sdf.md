@@ -33,7 +33,7 @@ Here are the recommended ways to use URIs from most recommended to least:
 ### Ignition Fuel URL
 
 It's possible to use URLs of resources on
-[Ignition Fuel](https://app.ignitionrobotics.org) within any of the tags
+[Ignition Fuel](https://app.gazebosim.org) within any of the tags
 above and both simulators will be able to load it.
 
 For example, this world can be loaded into both simulators:
@@ -43,12 +43,12 @@ For example, this world can be loaded into both simulators:
   <world name="demo">
     <!-- Included light -->
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <!-- Included model -->
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Ground Plane</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane</uri>
     </include>
 
     <model name="Radio">
@@ -59,7 +59,7 @@ For example, this world can be loaded into both simulators:
           <geometry>
             <!-- Collision mesh -->
             <mesh>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </collision>
@@ -67,7 +67,7 @@ For example, this world can be loaded into both simulators:
           <geometry>
             <!-- Visual mesh -->
             <mesh>
-              <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
+              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Radio/4/files/meshes/Radio.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -76,11 +76,11 @@ For example, this world can be loaded into both simulators:
 
     <actor name="actor_talking">
       <skin>
-        <filename>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </skin>
       <animation name="talk_b">
-        <filename>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
+        <filename>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>
       </animation>
       <script>
@@ -322,8 +322,8 @@ couple alternatives.
 If using mesh files, the texture can be embedded into it. The advantage is that
 this works for both simulators. Some examples:
 
-* [OBJ + MTL](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/DeskChair)
-* [COLLADA](https://app.ignitionrobotics.org/OpenRobotics/fuel/models/Lamp%20Post)
+* [OBJ + MTL](https://app.gazebosim.org/OpenRobotics/fuel/models/DeskChair)
+* [COLLADA](https://app.gazebosim.org/OpenRobotics/fuel/models/Lamp%20Post)
 
 For primitive shapes or even meshes, you can pass the texture as the albedo map. If you
 want the model to be compatible with both Classic and Ignition, you can specify both

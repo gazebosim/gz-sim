@@ -1055,8 +1055,8 @@ void ComponentInspector::OnLight(
   double _outerAngle, double _falloff, double _intensity, int _type,
   bool _isLightOn, bool _visualizeVisual)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting light configuration" << std::endl;

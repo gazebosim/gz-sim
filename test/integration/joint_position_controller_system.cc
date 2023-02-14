@@ -148,7 +148,7 @@ TEST_F(JointPositionControllerTestFixture,
   test::Relay testSystem;
   std::vector<double> currentPosition;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
@@ -160,12 +160,12 @@ TEST_F(JointPositionControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Joint, components::Name,
                   components::JointPosition>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const Entity &,
                 const components::Joint *,
                 const components::Name *_name,
                 const components::JointPosition *_position) -> bool
