@@ -78,5 +78,5 @@ gz_build_tests(TYPE UNIT
 )
 
 if(TARGET UNIT_Gui_clean_exit_TEST)
-  set_test_properties(UNIT_Gui_clean_exit_TEST PROPERTIES TIMEOUT 300)
+  set_tests_properties(UNIT_Gui_clean_exit_TEST PROPERTIES TIMEOUT 300)
 endif()
