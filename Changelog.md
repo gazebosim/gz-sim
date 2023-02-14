@@ -1,5 +1,22 @@
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.4.0 (2023-02-14)
+
+1. Added airspeed sensor
+    * [Pull request #1847](https://github.com/gazebosim/gz-sim/pull/1847)
+
+1. JointPosController: support nested joints
+    * [Pull request #1851](https://github.com/gazebosim/gz-sim/pull/1851)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix view angle plugin
+    * [Pull request #1877](https://github.com/gazebosim/gz-sim/pull/1877)
+
+1. Fix cmake unrecognized argument warning
+    * [Pull request #1882](https://github.com/gazebosim/gz-sim/pull/1882)
+
 ### Gazebo Sim 7.3.0 (2023-02-02)
 
 1. Fluid added mass
