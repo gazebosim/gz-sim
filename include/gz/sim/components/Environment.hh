@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <gz/common/DataFrame.hh>
 #include <gz/math/SphericalCoordinates.hh>
