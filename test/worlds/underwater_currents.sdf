@@ -18,7 +18,6 @@
       <max_step_size>0.02</max_step_size>
       <real_time_factor>0</real_time_factor>
     </physics>
-
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">

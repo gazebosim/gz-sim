@@ -147,8 +147,6 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
 
     const auto &linearVelocities =
         fixture.Observer().LinearVelocities();
-    const auto &angularVelocities =
-        fixture.Observer().AngularVelocities();
     const auto &poses = fixture.Observer().Poses();
 
     // Linear velocities w.r.t. to underwater currents
