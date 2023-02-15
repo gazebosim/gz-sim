@@ -106,7 +106,7 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
   // todo(anyone) Having a non-zero angular velocity produces inaccurate
   // velocity estimates. Investigate whether it is a test issue or gz-sensors
   // dvl implementation issue
-  // fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
+  fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
 
   // Step simulation for some time for DVL estimates to estabilize
   fixture.Step(50s);
@@ -134,6 +134,8 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
 
     const auto &linearVelocities =
         fixture.Observer().LinearVelocities();
+    const auto &angularVelocities =
+        fixture.Observer().AngularVelocities();
     const auto &poses = fixture.Observer().Poses();
 
     // Linear velocities w.r.t. to underwater currents
@@ -145,14 +147,27 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
         poses.back().Rot().RotateVectorReverse(
             linearVelocities.back());
 
-    // get linear velocity w.r.t reference frame
+    // first get linear velocity of body w.r.t reference frame
     // sensor rotation from body
     auto sensorRot = math::Quaterniond(math::Vector3d(0, 0, GZ_PI));
     // reference_frame
     auto referenceRot = math::Quaterniond(math::Vector3d(0, 0, -GZ_PI/2.0));
     auto bodyToRef = sensorRot * referenceRot;
-    math::Vector3d expectedLinearVelocityEstimate =
+    math::Vector3d linearVelocityRefFrame =
       bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+
+    // get linear velocity at sensor pos w.r.t reference frame
+    // sensor is at a pos offset from body. Compute tangential velocity
+    math::Vector3d angularVelocityBodyFrame =
+        poses.back().Rot().RotateVectorReverse(
+            angularVelocities.back());
+    math::Vector3d angularVelocityRefFrame =
+        bodyToRef.RotateVectorReverse(angularVelocityBodyFrame);
+    math::Vector3d tangentialVelocityRefFrame =
+        angularVelocityRefFrame.Cross(sensorPositionInSFMFrame);
+    // calculate the final linear velocity estimate in reference frame
+    math::Vector3d expectedLinearVelocityEstimate =
+        linearVelocityRefFrame + tangentialVelocityRefFrame;
 
     constexpr double kVelocityTolerance{1e-2};  // account for noise
     EXPECT_NEAR(expectedLinearVelocityEstimate.X(),

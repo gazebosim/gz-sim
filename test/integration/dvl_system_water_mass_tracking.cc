@@ -147,6 +147,8 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
 
     const auto &linearVelocities =
         fixture.Observer().LinearVelocities();
+    const auto &angularVelocities =
+        fixture.Observer().AngularVelocities();
     const auto &poses = fixture.Observer().Poses();
 
     // Linear velocities w.r.t. to underwater currents
@@ -158,9 +160,22 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
         poses.back().Rot().RotateVectorReverse(
             linearVelocities.back() - waterCurrentVelocity);
 
-    // get linear velocity w.r.t reference frame
-    math::Vector3d expectedLinearVelocityEstimate =
+    // first get linear velocity of body w.r.t reference frame
+    math::Vector3d linearVelocityRefFrame =
       bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+
+    // get linear velocity at sensor pos w.r.t reference frame
+    // sensor is at a pos offset from body. Compute tangential velocity
+    math::Vector3d angularVelocityBodyFrame =
+        poses.back().Rot().RotateVectorReverse(
+            angularVelocities.back());
+    math::Vector3d angularVelocityRefFrame =
+        bodyToRef.RotateVectorReverse(angularVelocityBodyFrame);
+    math::Vector3d tangentialVelocityRefFrame =
+        angularVelocityRefFrame.Cross(sensorPositionInSFMFrame);
+    // calculate the final linear velocity estimate in reference frame
+    math::Vector3d expectedLinearVelocityEstimate =
+        linearVelocityRefFrame + tangentialVelocityRefFrame;
 
     constexpr double kVelocityTolerance{1e-1};  // account for noise
 
