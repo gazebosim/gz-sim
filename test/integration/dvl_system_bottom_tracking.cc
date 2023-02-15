@@ -98,14 +98,9 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
     EXPECT_NEAR(0., linearVelocityEstimate.Z(), kVelocityTolerance);
   }
 
-  // Move the AUV in a straight line
+  // Have the AUV describe a circle
   // Manipualtor sets linear velocity in body frame
   fixture.Manipulator().SetLinearVelocity(math::Vector3d::UnitX);
-
-  // Have the AUV describe a circle
-  // todo(anyone) Having a non-zero angular velocity produces inaccurate
-  // velocity estimates. Investigate whether it is a test issue or gz-sensors
-  // dvl implementation issue
   fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
 
   // Step simulation for some time for DVL estimates to estabilize
