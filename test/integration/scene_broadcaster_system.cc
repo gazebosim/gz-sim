@@ -656,6 +656,7 @@ TEST_P(SceneBroadcasterTest,
       // remove a component from an entity
       if (_info.iterations == 2)
       {
+        std::vector<gazebo::Entity> entitiesToRemoveFrom;
         _ecm.Each<ignition::gazebo::components::Model,
                   ignition::gazebo::components::Name,
                   ignition::gazebo::components::Pose>(
@@ -666,10 +667,14 @@ TEST_P(SceneBroadcasterTest,
           {
             if (_name->Data() == "box")
             {
-              _ecm.RemoveComponent<ignition::gazebo::components::Pose>(_entity);
+              entitiesToRemoveFrom.push_back(_entity);
             }
             return true;
           });
+        for (const auto &entity : entitiesToRemoveFrom)
+        {
+          _ecm.RemoveComponent<gazebo::components::Pose>(entity);
+        }
       }
       // add a component to an entity
       else if (_info.iterations == 3)
