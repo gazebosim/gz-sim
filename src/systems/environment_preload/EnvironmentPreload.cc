@@ -63,6 +63,8 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: std::atomic<math::Vector3d> samples;
 
+  public: bool logError{true};
+
   public: EnvironmentPreloadPrivate() :
     visualizationPtr(new EnvironmentVisualizationTool) {};
 
@@ -71,6 +73,8 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::lock_guard<std::mutex> lock(this->mtx);
     this->dataDescription = _msg;
     this->needsReload = true;
+    this->logError = true;
+    gzdbg << "Loading file " << _msg.path() << "\n";
   }
 
   public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
@@ -210,8 +214,12 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       std::ifstream dataFile(this->dataDescription.path());
       if (!dataFile.is_open())
       {
-        gzerr << "No environmental data file was found at " <<
-          this->dataDescription.path();
+        if(logError)
+        {
+          gzerr << "No environmental data file was found at " <<
+            this->dataDescription.path() << std::endl;
+          logError = false;
+        }
         return;
       }
 
@@ -230,8 +238,12 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     }
     catch (const std::invalid_argument &exc)
     {
-      gzerr << "Failed to load environment data" << std::endl
-            << exc.what() << std::endl;
+      if(logError)
+      {
+        gzerr << "Failed to load environment data" << std::endl
+              << exc.what() << std::endl;
+        logError = false;
+      }
     }
 
     needsReload = false;

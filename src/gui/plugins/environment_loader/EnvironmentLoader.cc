@@ -163,6 +163,8 @@ void EnvironmentLoader::ScheduleLoad()
 
     data.set_coordinate_type(msgs::ConvertCoord(referenceFrame));
     data.set_units(this->dataPtr->unitMap[this->dataPtr->unit]);
+
+    this->dataPtr->pub->Publish(data);
   }
 }
 
