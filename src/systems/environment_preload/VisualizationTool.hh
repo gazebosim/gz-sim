@@ -64,14 +64,19 @@ class EnvironmentVisualizationTool
   /////////////////////////////////////////////////
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {
+    std::cout << __FILE__ << __LINE__ <<std::endl;
     this->pubs.clear();
     this->sessions.clear();
+    std::cout << __FILE__ << __LINE__ <<std::endl;
+
     for (auto key : data->frame.Keys())
     {
       this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
       gz::msgs::Float_V msg;
       this->floatFields.emplace(key, msg);
       this->sessions.emplace(key, data->frame[key].CreateSession());
+      std::cout << __FILE__ << __LINE__ <<std::endl;
+
     }
   }
 
@@ -85,13 +90,6 @@ class EnvironmentVisualizationTool
 
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt(now - this->lastTick);
-    ;
-
-    bool proceed{false};
-
-    if (!proceed)
-      return;
-
 
     if (this->resample)
     {
@@ -111,8 +109,6 @@ class EnvironmentVisualizationTool
         it.second = res.value();
       }
     }
-        std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
 
     // Publish at 2 hz for now. In future make reconfigureable.
     if (dt.count() > 0.5)
