@@ -84,6 +84,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::lock_guard<std::mutex> lock(this->mtx);
     this->visualize = true;
     this->samples = msgs::Convert(_resChanged);
+    this->visualizationPtr->resample = true;
   }
 
   public: void ReadSdf(EntityComponentManager &_ecm)
@@ -239,6 +240,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
       _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
+      this->visualizationPtr->resample = true;
     }
     catch (const std::invalid_argument &exc)
     {

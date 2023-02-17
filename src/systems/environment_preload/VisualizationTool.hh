@@ -64,10 +64,9 @@ class EnvironmentVisualizationTool
   /////////////////////////////////////////////////
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {
-    std::cout << __FILE__ << __LINE__ <<std::endl;
+    
     this->pubs.clear();
     this->sessions.clear();
-    std::cout << __FILE__ << __LINE__ <<std::endl;
 
     for (auto key : data->frame.Keys())
     {
@@ -75,8 +74,6 @@ class EnvironmentVisualizationTool
       gz::msgs::Float_V msg;
       this->floatFields.emplace(key, msg);
       this->sessions.emplace(key, data->frame[key].CreateSession());
-      std::cout << __FILE__ << __LINE__ <<std::endl;
-
     }
   }
 

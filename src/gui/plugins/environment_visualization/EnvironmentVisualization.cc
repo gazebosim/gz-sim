@@ -118,6 +118,7 @@ void EnvironmentVisualization::Update(const UpdateInfo &_info,
   {
     this->dataPtr->Initiallize(_ecm);
     this->dataPtr->first = false;
+    //this->ResamplePointcloud();
   }
 }
 
