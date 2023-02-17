@@ -64,21 +64,13 @@ class EnvironmentVisualizationTool
   /////////////////////////////////////////////////
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
     this->pubs.clear();
     this->sessions.clear();
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
     for (auto key : data->frame.Keys())
     {
-          std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
       this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
       gz::msgs::Float_V msg;
       this->floatFields.emplace(key, msg);
-          std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
       this->sessions.emplace(key, data->frame[key].CreateSession());
     }
   }
@@ -87,60 +79,27 @@ class EnvironmentVisualizationTool
   public: void Step(
     const UpdateInfo &_info,
     const EntityComponentManager& _ecm,
+    std::shared_ptr<components::EnvironmentalData> data,
     double xSamples, double ySamples, double zSamples)
   {
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
 
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> dt(now - this->lastTick);
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
-    std::shared_ptr<components::EnvironmentalData> data;
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
+    ;
 
     bool proceed{false};
-
-    _ecm.Each<components::Environment>([&](
-      const Entity &_e,
-      const components::Environment *_env
-    ) -> bool {
-      if (_env)
-      {
-    //std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
-        data = _env->Data();
-        proceed = true;
-    //std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
-      }
-    });
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
 
     if (!proceed)
       return;
 
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
 
     if (this->resample)
     {
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
       this->CreatePointCloudTopics(data);
-
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-
       this->ResizeCloud(data, _ecm, xSamples, ySamples, zSamples);
       this->resample = false;
-      this->lastTick = now;
-        std::cout << __FILE__ << ": " << __LINE__ << std::endl;
-  
+      this->lastTick = now;  
     }
-
-    std::cout << __FILE__ << ": " << __LINE__ << std::endl;
 
     for (auto &it : this->sessions)
     {

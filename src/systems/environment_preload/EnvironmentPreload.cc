@@ -65,6 +65,8 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: bool logError{true};
 
+  public: std::shared_ptr<components::EnvironmentalData> envData;
+
   public: EnvironmentPreloadPrivate() :
     visualizationPtr(new EnvironmentVisualizationTool) {};
 
@@ -232,6 +234,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
               common::CSVIStreamIterator(),
               this->dataDescription.time(), spatialColumnNames),
           spatialReference, units, this->dataDescription.static_time());
+      this->envData = data;
 
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
@@ -299,8 +302,9 @@ void EnvironmentPreload::PreUpdate(
 
   if (this->dataPtr->visualize)
   {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     auto samples = this->dataPtr->samples;
-    this->dataPtr->visualizationPtr->Step(_info, _ecm,
+    this->dataPtr->visualizationPtr->Step(_info, _ecm, this->dataPtr->envData,
       samples.X(), samples.Y(), samples.Z());
   }
 }
