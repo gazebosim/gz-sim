@@ -218,11 +218,11 @@ void Hydrodynamics::Configure(
 
   if (warnBehaviourChange)
   {
-    ignwarn << "You are using parameters that may cause instabilities"
-      << "in your simulation. If your simulation crashes we recommend"
-      << "renaming <xUU> -> <xUabsU> and likewise for other axis"
-      << "for more information see:"
-      << "\thttps://github.com/gazebosim/gz-sim/pull/1888\n";
+    ignwarn << "You are using parameters that may cause instabilities "
+      << "in your simulation. If your simulation crashes we recommend "
+      << "renaming <xUU> -> <xUabsU> and likewise for other axis "
+      << "for more information see:" << std::endl
+      << "\thttps://github.com/gazebosim/gz-sim/pull/1888" << std::endl;
   }
 
   // Added mass according to Fossen's equations (p 37)
