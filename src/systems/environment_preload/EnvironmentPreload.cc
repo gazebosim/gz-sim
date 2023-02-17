@@ -59,9 +59,9 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: std::unique_ptr<EnvironmentVisualizationTool> visualizationPtr;
 
-  public: std::atomic<bool> visualize{false};
+  public: bool visualize{false};
 
-  public: std::atomic<math::Vector3d> samples;
+  public: math::Vector3d samples;
 
   public: bool logError{true};
 
@@ -79,6 +79,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
   {
+    std::lock_guard<std::mutex> lock(this->mtx);
     this->visualize = true;
     this->samples = msgs::Convert(_resChanged);
   }
@@ -298,7 +299,7 @@ void EnvironmentPreload::PreUpdate(
 
   if (this->dataPtr->visualize)
   {
-    auto samples = this->dataPtr->samples.load();
+    auto samples = this->dataPtr->samples;
     this->dataPtr->visualizationPtr->Step(_info, _ecm,
       samples.X(), samples.Y(), samples.Z());
   }
