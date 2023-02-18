@@ -50,6 +50,7 @@ set (sources
   Barrier.cc
   BaseView.cc
   Conversions.cc
+  ComponentFactory.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
   LevelManager.cc
