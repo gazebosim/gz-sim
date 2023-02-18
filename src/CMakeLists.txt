@@ -46,6 +46,7 @@ set (sources
   Barrier.cc
   BaseView.cc
   Conversions.cc
+  ComponentFactory.cc
   EntityComponentManager.cc
   LevelManager.cc
   Link.cc
