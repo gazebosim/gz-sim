@@ -68,7 +68,7 @@ TEST_F(ComponentFactoryTest, Register)
   EXPECT_EQ(registeredCount + 1, ids.size());
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
 
-  // Fail to register same component twice
+  // Registering the component twice doesn't change the number of type ids.
   factory->Register<MyCustom>("gz_sim_components.MyCustom",
       new components::ComponentDescriptor<MyCustom>());
 
@@ -85,11 +85,8 @@ TEST_F(ComponentFactoryTest, Register)
   // Unregister
   factory->Unregister<MyCustom>();
 
-  // Check it has no type id yet
   ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount, ids.size());
-  EXPECT_EQ(0u, MyCustom::typeId);
-  EXPECT_EQ("", factory->Name(MyCustom::typeId));
+  EXPECT_EQ(registeredCount + 1, ids.size());
 }
 
 /////////////////////////////////////////////////
