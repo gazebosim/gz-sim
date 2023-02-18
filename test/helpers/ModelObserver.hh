@@ -35,10 +35,10 @@
 
 using namespace gz;
 
-/// Helper class to observe a model in a Gazebo simulation.
+/// \brief Helper class to observe a model in a Gazebo simulation.
 class ModelObserver
 {
-  /// Constructor.
+  /// \brief Constructor.
   /// \param[in] _modelName Name of the model to observe.
   /// \param[in] _baseLinkName Name of the model's base link
   /// (to be used to measure linear and angular velocity).
@@ -49,7 +49,7 @@ class ModelObserver
   {
   }
 
-  /// Limit buffers' window size.
+  /// \brief Limit buffers' window size.
   /// \param[in] _windowSize Maximum window size as a duration
   /// measured against the simulation clock.
   public: void LimitTo(std::chrono::steady_clock::duration _windowSize)
@@ -57,7 +57,7 @@ class ModelObserver
     this->windowSize = _windowSize;
   }
 
-  /// Update internal state from simulation state.
+  /// \brief Update internal state from simulation state.
   /// \note To be called on world pre-update.
   /// \param[in] _info Info for the current iteration.
   /// \param[in] _ecm Mutable reference to Entity component manager
@@ -79,7 +79,7 @@ class ModelObserver
     }
   }
 
-  /// Update internal state from simulation state.
+  /// \brief Update internal state from simulation state.
   /// \note To be called on world post-update.
   /// \param[in] _info Info for the current iteration.
   /// \param[in] _ecm Entity component manager to be queried.
@@ -124,25 +124,25 @@ class ModelObserver
     }
   }
 
-  /// Returns simulation times at which the model was observed.
+  /// \brief Returns simulation times at which the model was observed.
   public: const std::deque<std::chrono::steady_clock::duration> &Times() const
   {
     return this->times;
   }
 
-  /// Returns model world poses seen.
+  /// \brief Returns model world poses seen.
   public: const std::deque<math::Pose3d> &Poses() const
   {
     return this->poses;
   }
 
-  /// Returns model linear velocities seen.
+  /// \brief Returns model linear velocities seen.
   public: const std::deque<math::Vector3d> &LinearVelocities() const
   {
     return this->linearVelocities;
   }
 
-  /// Returns model angular velocities seen.
+  /// \brief Returns model angular velocities seen.
   public: const std::deque<math::Vector3d> &AngularVelocities() const
   {
     return this->angularVelocities;

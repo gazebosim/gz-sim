@@ -36,17 +36,17 @@
 
 using namespace gz;
 
-/// Helper class to manipulate a model in an Gazebo simulation.
+/// \brief Helper class to manipulate a model in an Gazebo simulation.
 class ModelManipulator
 {
-  /// Constructor.
+  /// \brief Constructor.
   /// \param[in] _modelName Name of the model to manipulate.
   public: ModelManipulator(const std::string &_modelName)
     : modelName(_modelName)
   {
   }
 
-  /// Update simulation state as necessary.
+  /// \brief Update simulation state as necessary.
   /// \note To be called on world pre-update.
   /// \param[in] _ecm Entity component manager to update.
   public: void Update(sim::EntityComponentManager &_ecm)
@@ -88,24 +88,27 @@ class ModelManipulator
     }
   }
 
-  /// Set model linear velocity in simulation.
+  /// \brief Set model linear velocity in simulation.
   /// \param[in] _linearVelocity Model linear velocity in the world frame.
   public: void SetLinearVelocity(const math::Vector3d &_linearVelocity)
   {
     this->linearVelocityRequest = _linearVelocity;
   }
 
-  /// Set model angular velocity in simulation.
+  /// \brief Set model angular velocity in simulation.
   /// \param[in] _angularVelocity Model angular velocity in the world frame.
   public: void SetAngularVelocity(const math::Vector3d &_angularVelocity)
   {
     this->angularVelocityRequest = _angularVelocity;
   }
 
+  /// \brief Name of model
   private: std::string modelName;
 
+  /// \brief Request to set linear velocity
   private: std::optional<math::Vector3d> linearVelocityRequest;
 
+  /// \brief Request to set angular velocity
   private: std::optional<math::Vector3d> angularVelocityRequest;
 };
 

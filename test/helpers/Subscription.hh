@@ -31,14 +31,14 @@
 
 using namespace gz;
 
-/// A stateful wrapper for Gazebo Transport subscriptions.
+/// \brief A stateful wrapper for Gazebo Transport subscriptions.
 template<typename MessageT>
 class Subscription
 {
-  /// Default constructor.
+  /// \brief Default constructor.
   public: Subscription() = default;
 
-  /// Subscribe to a topic.
+  /// \brief Subscribe to a topic.
   /// \param[in] _node Node to use to subscribe.
   /// \param[in] _topicName Name of the topic to subscribe.
   /// \param[in] _messageHistoryDepth Maximum size for
@@ -63,7 +63,7 @@ class Subscription
     this->subscribed = true;
   }
 
-  /// Wait for `_count` messages to arrive.
+  /// \brief Wait for `_count` messages to arrive.
   /// \param[in] _count Number of messages to wait for.
   /// \param[in] _timeout Maximum time to wait.
   /// \return true once `_count` messages have been
@@ -75,7 +75,7 @@ class Subscription
     return this->messageArrival.wait_for(lock, _timeout, predicate);
   }
 
-  /// Read all messages received so far.
+  /// \brief Read all messages received so far.
   /// \note This is a destructive operation.
   /// \return entire message history, up to its
   /// specified depth. May be empty.
@@ -85,16 +85,15 @@ class Subscription
     return std::move(this->messageHistory);
   }
 
-  /// Current number of messages stored.
-  /// \return number of messages stored in the
-  /// messageHistory container.
+  /// \brief Current number of messages stored.
+  /// \return number of messages stored in the messageHistory container.
   public: int MessageHistorySize()
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     return this->messageHistory.size();
   }
 
-  /// Read the message according to the index.
+  /// \brief Read the message according to the index.
   /// \return message in the messageHistory container
   /// based on its index.
   public: MessageT GetMessageByIndex(int _index)
@@ -103,7 +102,7 @@ class Subscription
     return this->messageHistory[_index];
   }
 
-  /// Reset the messageHistory container by clearing
+  /// \brief Reset the messageHistory container by clearing
   /// existing messages.
   public: void ResetMessageHistory()
   {
@@ -111,7 +110,7 @@ class Subscription
     this->messageHistory.clear();
   }
 
-  /// Read last message received.
+  /// \brief Read last message received.
   /// \note This is a destructive operation.
   /// \throws std::runtime_error if there is
   /// no message to be read.
@@ -127,6 +126,8 @@ class Subscription
     return message;
   }
 
+  /// \brief Callback when a message is received
+  /// \param[in] _message Message
   private: void OnMessage(const MessageT &_message)
   {
     {
@@ -144,16 +145,22 @@ class Subscription
     this->messageArrival.notify_all();
   }
 
+  /// \brief Flag to indicate if topic is subscribed or not
   private: bool subscribed{false};
 
+  /// \brief Number of messages
   private: size_t messageCount{0u};
 
+  /// \brief Number of messages to keep
   private: size_t messageHistoryDepth{0u};
 
+  /// \brief Queue of messages
   private: std::deque<MessageT> messageHistory;
 
+  /// \brief Condition for message arrival
   private: std::condition_variable messageArrival;
 
+  /// \brief Mutex to protect message queue
   private: std::mutex mutex;
 };
 
