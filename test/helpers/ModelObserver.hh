@@ -148,21 +148,93 @@ class ModelObserver
     return this->angularVelocities;
   }
 
+  /// \brief Returns index of element in the time dequeue
+  /// \param[in] _t Time
+  /// \return index of time element if found, otherwise -1
+  private: int IndexAtTime(const std::chrono::steady_clock::duration &_t) const
+  {
+    auto it = std::find(this->times.begin(), this->times.end(), _t);
+    if (it != this->times.end())
+    {
+      return std::distance(this->times.begin(), it);
+    }
+    return -1;
+  }
+
+  /// \brief Returns world pose of entity at time t
+  /// \param[in] _t Time
+  /// \param[out] _pose World pose at time t
+  /// \return true if pose is found, false otherwise
+  public: bool PoseByTime(
+      const std::chrono::steady_clock::duration &_t,
+      math::Pose3d &_pose) const
+  {
+    int index = this->IndexAtTime(_t);
+    if (index >= 0)
+    {
+      _pose = this->poses[index];
+      return true;
+    }
+    return false;
+  }
+
+  /// \brief Returns world linear velocity of entity at time t
+  /// \param[in] _t Time
+  /// \param[out] _linVel World linear velocity at time t
+  /// \return true if linear velocity is found, false otherwise
+  public: bool LinearVelocityByTime(
+      const std::chrono::steady_clock::duration &_t,
+      math::Vector3d &_linVel) const
+  {
+    int index = this->IndexAtTime(_t);
+    if (index >= 0)
+    {
+      _linVel = this->linearVelocities[index];
+      return true;
+    }
+    return false;
+  }
+
+  /// \brief Returns world angular velocity of entity at time t
+  /// \param[in] _t Time
+  /// \param[out] _angVel World angular velocity at time t
+  /// \return true if angular velocity is found, false otherwise
+  public: bool AngularVelocityByTime(
+      const std::chrono::steady_clock::duration &_t,
+      math::Vector3d &_angVel) const
+  {
+    int index = this->IndexAtTime(_t);
+    if (index >= 0)
+    {
+      _angVel = this->angularVelocities[index];
+      return true;
+    }
+    return false;
+  }
+
+  /// \brief Name of model
   private: std::string modelName;
 
+  /// \brief Base link name
   private: std::string baseLinkName;
 
+  /// \brief Window size to store entity property values
   private: std::chrono::steady_clock::duration windowSize{
       std::chrono::steady_clock::duration::zero()};
 
+  /// \brief A queue of sim times
   private: std::deque<std::chrono::steady_clock::duration> times;
 
+  /// \brief A queue of entity poses
   private: std::deque<math::Pose3d> poses;
 
+  /// \brief A queue of spherical coordinates
   private: std::deque<math::Vector3d> sphericalCoordinates;
 
+  /// \brief A queue of linear velocities
   private: std::deque<math::Vector3d> linearVelocities;
 
+  /// \brief A queue of angular velocities
   private: std::deque<math::Vector3d> angularVelocities;
 };
 

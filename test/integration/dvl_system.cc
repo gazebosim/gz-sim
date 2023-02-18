@@ -66,7 +66,7 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(NoTracking))
 
   fixture.Step(10s);
 
-  ASSERT_TRUE(velocitySubscription.WaitForMessages(10, 10s));
+  ASSERT_TRUE(velocitySubscription.WaitForMessages(9, 10s));
 
   const msgs::DVLVelocityTracking message =
       velocitySubscription.ReadLastMessage();

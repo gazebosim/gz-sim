@@ -161,7 +161,7 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   public: std::shared_ptr<
     gz::sensors::EnvironmentalData> latestEnvironmentalData;
 
-  /// \brief Connection to the post-render event.
+  /// \brief Connection to the pre-render event.
   public: gz::common::ConnectionPtr preRenderConn;
 
   /// \brief Connection to the render event.
@@ -198,14 +198,21 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   /// \brief Mutex to synchronize access to queued requests
   public: std::mutex requestsMutex;
 
-  /// \brief Requests queue, popped by the rendering thread.
+  /// \brief Create/Destroy sensor requests queue, popped by the rendering
+  /// thread.
   public: std::vector<requests::SomeRequest> queuedRequests;
+
+  /// \brief SetWorldState requests queue, popped by the rendering thread.
+  public: std::vector<requests::SomeRequest> queuedSetWorldRequests;
 
   /// \brief Flag for pending (ie. queued) requests.
   public: std::atomic<bool> pendingRequests{false};
 
+  /// \brief Flag for pending (ie. queued) set world state requests.
+  public: std::atomic<bool> pendingSetWorldRequests{false};
+
   /// \brief Flag for
-  public: bool needsUpdate;
+  public: bool needsUpdate{false};
 
   /// \brief Current simulation time.
   public: std::chrono::steady_clock::duration simTime{0};
@@ -344,13 +351,10 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
       return true;
     });
 
-  const auto [sec, nsec] =
-      gz::math::durationToSecNsec(_info.simTime);
-  this->simTime = gz::math::secNsecToDuration(sec, nsec);
-
   if (!this->perStepRequests.empty() || (
-        !_info.paused && this->nextUpdateTime <= this->simTime))
+        !_info.paused && this->nextUpdateTime <= _info.simTime))
   {
+    this->simTime = _info.simTime;
     requests::SetWorldState request;
     auto component = _ecm.Component<
       gz::sim::components::SphericalCoordinates
@@ -369,6 +373,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
           const gz::sim::components::WorldAngularVelocity *_angularVelocity)
       {
         auto & kinematicState = request.worldState.kinematics[_entity];
+
         kinematicState.pose = _pose->Data();
         kinematicState.linearVelocity = _linearVelocity->Data();
         kinematicState.angularVelocity = _angularVelocity->Data();
@@ -377,16 +382,25 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
 
     {
       std::lock_guard<std::mutex> lock(this->requestsMutex);
+
       this->queuedRequests.insert(
           this->queuedRequests.end(),
           std::make_move_iterator(this->perStepRequests.begin()),
           std::make_move_iterator(this->perStepRequests.end()));
-      this->queuedRequests.push_back(std::move(request));
       this->perStepRequests.clear();
+
+      // keep a queue size of 1 for set world state
+      // this avoids setting the world state in gz-sensors multiple times
+      // before render update takes place
+      this->queuedSetWorldRequests.clear();
+      this->queuedSetWorldRequests.push_back(std::move(request));
     }
 
     this->pendingRequests = true;
+    this->pendingSetWorldRequests = true;
 
+    // this is a non-blocking call that force render to occur in the next
+    // render iteration in the render thread
     this->eventMgr->Emit<gz::sim::events::ForceRender>();
   }
 }
@@ -527,6 +541,7 @@ void DopplerVelocityLogSystem::Implementation::Handle(
 void DopplerVelocityLogSystem::Implementation::OnPreRender()
 {
   GZ_PROFILE("DopplerVelocityLogSystem::Implementation::OnPreRender");
+
   if (!this->scene)
   {
     this->scene = gz::rendering::sceneFromFirstRenderEngine();
@@ -535,14 +550,27 @@ void DopplerVelocityLogSystem::Implementation::OnPreRender()
   if (this->pendingRequests.exchange(false))
   {
     std::vector<requests::SomeRequest> requests;
+    std::vector<requests::SomeRequest> setWorldRequests;
     {
       std::lock_guard<std::mutex> lock(this->requestsMutex);
       requests.insert(requests.end(),
         std::make_move_iterator(this->queuedRequests.begin()),
         std::make_move_iterator(this->queuedRequests.end()));
       this->queuedRequests.clear();
+      setWorldRequests.insert(setWorldRequests.end(),
+        std::make_move_iterator(this->queuedSetWorldRequests.begin()),
+        std::make_move_iterator(this->queuedSetWorldRequests.end()));
+      this->queuedSetWorldRequests.clear();
     }
+    // handle requests - create/destroy sensor
     for (auto &request : requests)
+    {
+      std::visit([this](auto & req) {
+        this->Handle(std::move(req));
+      }, request);
+    }
+    // handle set world state requests
+    for (auto &request : setWorldRequests)
     {
       std::visit([this](auto & req) {
         this->Handle(std::move(req));
@@ -563,6 +591,25 @@ void DopplerVelocityLogSystem::Implementation::OnRender()
 
   if (this->needsUpdate)
   {
+    if (this->pendingSetWorldRequests.exchange(false))
+    {
+      std::vector<requests::SomeRequest> setWorldRequests;
+      {
+        std::lock_guard<std::mutex> lock(this->requestsMutex);
+        setWorldRequests.insert(setWorldRequests.end(),
+          std::make_move_iterator(this->queuedSetWorldRequests.begin()),
+          std::make_move_iterator(this->queuedSetWorldRequests.end()));
+        this->queuedSetWorldRequests.clear();
+      }
+      // handle set world state requests
+      for (auto &request : setWorldRequests)
+      {
+        std::visit([this](auto & req) {
+          this->Handle(std::move(req));
+        }, request);
+      }
+    }
+
     auto closestUpdateTime = std::chrono::steady_clock::duration::max();
     for (const auto & [_, sensorId] : this->sensorIdPerEntity)
     {

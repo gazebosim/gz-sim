@@ -31,7 +31,6 @@
       name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
-
     <plugin
       filename="gz-sim-environment-preload-system"
       name="gz::sim::systems::EnvironmentPreload">

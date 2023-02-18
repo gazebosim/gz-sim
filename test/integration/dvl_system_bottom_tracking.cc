@@ -127,20 +127,21 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
     const math::Vector3d linearVelocityEstimate =
         msgs::Convert(message.velocity().mean());
 
-    const auto &linearVelocities =
-        fixture.Observer().LinearVelocities();
-    const auto &angularVelocities =
-        fixture.Observer().AngularVelocities();
-    const auto &poses = fixture.Observer().Poses();
+    // get model properties at time that corresponds to the msg timestamp
+    auto t = gz::math::secNsecToDuration(message.header().stamp().sec(),
+        message.header().stamp().nsec());
+    math::Pose3d poseAtT;
+    math::Vector3d linVelAtT;
+    math::Vector3d angVelAtT;
+    fixture.Observer().PoseByTime(t, poseAtT);
+    fixture.Observer().LinearVelocityByTime(t, linVelAtT);
+    fixture.Observer().AngularVelocityByTime(t, angVelAtT);
 
-    // Linear velocities w.r.t. to underwater currents
-    // are reported in a sensor affixed, SFM frame.
-
+    // Linear velocities are reported in a sensor affixed, SFM frame.
     // linear velocity output from fixture Observer is in world frame
     // convert to body frame
     math::Vector3d linearVelocityBodyFrame =
-        poses.back().Rot().RotateVectorReverse(
-            linearVelocities.back());
+        poseAtT.Rot().RotateVectorReverse(linVelAtT);
 
     // first get linear velocity of body w.r.t reference frame
     // sensor rotation from body
@@ -149,13 +150,13 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
     auto referenceRot = math::Quaterniond(math::Vector3d(0, 0, -GZ_PI/2.0));
     auto bodyToRef = sensorRot * referenceRot;
     math::Vector3d linearVelocityRefFrame =
-      bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+        bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
 
     // get linear velocity at sensor pos w.r.t reference frame
     // sensor is at a pos offset from body. Compute tangential velocity
     math::Vector3d angularVelocityBodyFrame =
-        poses.back().Rot().RotateVectorReverse(
-            angularVelocities.back());
+        poseAtT.Rot().RotateVectorReverse(
+            angVelAtT);
     math::Vector3d angularVelocityRefFrame =
         bodyToRef.RotateVectorReverse(angularVelocityBodyFrame);
     math::Vector3d tangentialVelocityRefFrame =

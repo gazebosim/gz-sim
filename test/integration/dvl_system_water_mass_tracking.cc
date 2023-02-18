@@ -90,15 +90,19 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
     math::Vector3d linearVelocityEstimate =
         msgs::Convert(message.velocity().mean());
 
-    const auto &linearVelocities =
-        fixture.Observer().LinearVelocities();
-    const auto &poses = fixture.Observer().Poses();
+    // get model properties at time that corresponds to the msg timestamp
+    auto t = gz::math::secNsecToDuration(message.header().stamp().sec(),
+        message.header().stamp().nsec());
+    math::Pose3d poseAtT;
+    math::Vector3d linVelAtT;
+    fixture.Observer().PoseByTime(t, poseAtT);
+    fixture.Observer().LinearVelocityByTime(t, linVelAtT);
 
     // linear velocity output from fixture Observer is in world frame
     // convert to body frame
     math::Vector3d linearVelocityBodyFrame =
-        poses.back().Rot().RotateVectorReverse(
-            linearVelocities.back() - waterCurrentVelocity);
+        poseAtT.Rot().RotateVectorReverse(
+            linVelAtT - waterCurrentVelocity);
 
     // get linear velocity w.r.t reference frame
     math::Vector3d expectedLinearVelocityEstimate =
@@ -121,7 +125,7 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
   // todo(anyone) Having a non-zero angular velocity produces inaccurate
   // velocity estimates. Investigate whether it is a test issue or gz-sensors
   // dvl implementation issue
-  // fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
+  fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
 
   // Step simulation for some time for DVL estimates to estabilize
   fixture.Step(50s);
@@ -145,11 +149,15 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
     const math::Vector3d linearVelocityEstimate =
         msgs::Convert(message.velocity().mean());
 
-    const auto &linearVelocities =
-        fixture.Observer().LinearVelocities();
-    const auto &angularVelocities =
-        fixture.Observer().AngularVelocities();
-    const auto &poses = fixture.Observer().Poses();
+    // get model properties at time that corresponds to the msg timestamp
+    auto t = gz::math::secNsecToDuration(message.header().stamp().sec(),
+        message.header().stamp().nsec());
+    math::Pose3d poseAtT;
+    math::Vector3d linVelAtT;
+    math::Vector3d angVelAtT;
+    fixture.Observer().PoseByTime(t, poseAtT);
+    fixture.Observer().LinearVelocityByTime(t, linVelAtT);
+    fixture.Observer().AngularVelocityByTime(t, angVelAtT);
 
     // Linear velocities w.r.t. to underwater currents
     // are reported in a sensor affixed, SFM frame.
@@ -157,18 +165,18 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(WaterMassTracking))
     // linear velocity output from fixture Observer is in world frame
     // convert to body frame
     math::Vector3d linearVelocityBodyFrame =
-        poses.back().Rot().RotateVectorReverse(
-            linearVelocities.back() - waterCurrentVelocity);
+        poseAtT.Rot().RotateVectorReverse(
+        linVelAtT - waterCurrentVelocity);
 
     // first get linear velocity of body w.r.t reference frame
     math::Vector3d linearVelocityRefFrame =
-      bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
+        bodyToRef.RotateVectorReverse(linearVelocityBodyFrame);
 
     // get linear velocity at sensor pos w.r.t reference frame
     // sensor is at a pos offset from body. Compute tangential velocity
     math::Vector3d angularVelocityBodyFrame =
-        poses.back().Rot().RotateVectorReverse(
-            angularVelocities.back());
+        poseAtT.Rot().RotateVectorReverse(angVelAtT);
+
     math::Vector3d angularVelocityRefFrame =
         bodyToRef.RotateVectorReverse(angularVelocityBodyFrame);
     math::Vector3d tangentialVelocityRefFrame =
