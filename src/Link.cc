@@ -21,7 +21,7 @@
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/Utility.hh>
-#include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
@@ -442,15 +442,13 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
   {
     // Enable required components.
     enableComponent<components::WorldPose>(_ecm, this->dataPtr->id, true);
-    enableComponent<components::EntityWrench>(_ecm, this->dataPtr->id, true);
+    enableComponent<components::EntityWrenches>(_ecm, this->dataPtr->id, true);
 
-    auto entityWrenchComp =
-        _ecm.Component<components::EntityWrench>(this->dataPtr->id);
-
-    /// \todo(srmainwaring) - show error once.
-    if (!entityWrenchComp)
+    auto entityWrenchesComp =
+        _ecm.Component<components::EntityWrenches>(this->dataPtr->id);
+    if (!entityWrenchesComp)
     {
-      gzerr << "Failed to create EntityWrench component for link ["
+      gzerr << "Failed to retrieve EntityWrenches component for link ["
             << this->dataPtr->id << "] from ["
             << this->dataPtr->visualizationLabel.value() << "]\n";
       return;
@@ -460,16 +458,21 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::EntityWrench msg;
 
     // Set label
-    auto label = msg.mutable_header()->add_data();
-    label->set_key("label");
-    label->add_value(this->dataPtr->visualizationLabel.value());
+    auto& label = this->dataPtr->visualizationLabel.value();
+    {
+      auto data = msg.mutable_header()->add_data();
+      data->set_key("label");
+      data->add_value(label);
+    }
 
     // Set name
-    auto name = msg.mutable_header()->add_data();
-    name->set_key("name");
-    if (this->Name(_ecm).has_value())
     {
-      name->add_value(this->Name(_ecm).value());
+      auto data = msg.mutable_header()->add_data();
+      data->set_key("name");
+      if (this->Name(_ecm).has_value())
+      {
+        data->add_value(this->Name(_ecm).value());
+      }
     }
 
     // Set entity
@@ -479,20 +482,28 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::Set(msg.mutable_wrench()->mutable_force(), _force);
     msgs::Set(msg.mutable_wrench()->mutable_torque(), _torque);
 
-    // Set component data
-    _ecm.SetComponentData<components::EntityWrench>(this->dataPtr->id, msg);
+    // Update map with wrench
+    auto& data = entityWrenchesComp->Data();
+    if (data.find(label) == data.end())
+    {
+      data.insert({label, msg});
+    }
+    else
+    {
+      data.at(label) = msg;
+    }
 
-    /// \todo(srmainwaring) implement entityWrenchEql comparision operator.
-    // Mark as changed
-    auto state = ComponentState::PeriodicChange;
-        // entityWrenchComp->SetData(msg, this->entityWrenchEql) ?
-        // ComponentState::PeriodicChange :
-        // ComponentState::NoChange;
-    _ecm.SetChanged(this->dataPtr->id, components::EntityWrench::typeId, state);
+    _ecm.SetChanged(this->dataPtr->id, components::EntityWrenches::typeId,
+        ComponentState::PeriodicChange);
 
-    // gzdbg << "Publishing entity wrench for link ["
-    //       << this->dataPtr->id << "]\n"
-    //       << msg.DebugString() << "\n";
+    // if (this->dataPtr->id == 12 /*label == "MooringForce"*/)
+    // {
+    //   gzdbg << "Publishing entity wrenches for link ["
+    //         << this->dataPtr->id << "]\n"
+    //         << "Size: " << entityWrenchesComp->Data().size() << "\n"
+    //         << "Label: " << label << "\n"
+    //         << msg.DebugString() << "\n";
+    // }
   }
 }
 

@@ -35,6 +35,7 @@
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
 #include <gz/plugin/Register.hh>
 
@@ -125,24 +126,34 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
   std::lock_guard<std::mutex> lock(mutex);
 
   {
-    // std::vector<Entity> entities;
-    _ecm.Each<components::WorldPose, components::EntityWrench>(
+    _ecm.Each<components::WorldPose, components::EntityWrenches>(
     [&](const Entity &_entity,
         components::WorldPose *_worldPose,
-        components::EntityWrench *_entityWrench) -> bool
+        components::EntityWrenches *_entityWrenches) -> bool
     {
-      // gzdbg << "Received EntityWrench for entity [" << _entity << "]\n"
-      //       << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
-      //       << _entityWrench->Data().DebugString() << "\n";
+      // Push all the wrenches for this entity to the queue.
+      for (auto& [key, value] : _entityWrenches->Data())
+      {
+        this->queue.push({_worldPose->Data(), value});
+      }
 
-      this->queue.push({_worldPose->Data(), _entityWrench->Data()});
-      // entities.push_back(_entity);
+      // debugging
+      // {
+      //   std::stringstream ss;
+      //   ss << "Received EntityWrenches for entity ["
+      //     << _entity << "]\n"
+      //     << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
+      //     << "Size " << _entityWrenches->Data().size() << "\n";
+      //   for (auto& [key, value] : _entityWrenches->Data())
+      //   {
+      //     ss << "Key: " << key << "\n"
+      //        << "Msg: " << value.DebugString() << "\n";
+      //   }
+      //   gzdbg << ss.str();
+      // }
+
       return true;
     });
-    // for (auto entity : entities)
-    // {
-    //   _ecm.RemoveComponent<components::EntityWrench>(entity);
-    // }
   }
 }
 
