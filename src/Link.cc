@@ -440,17 +440,20 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 
   if (this->dataPtr->visualizationLabel.has_value())
   {
+    // Enable required components.
+    enableComponent<components::WorldPose>(_ecm, this->dataPtr->id, true);
+    enableComponent<components::EntityWrench>(_ecm, this->dataPtr->id, true);
+
     auto entityWrenchComp =
         _ecm.Component<components::EntityWrench>(this->dataPtr->id);
+
+    /// \todo(srmainwaring) - show error once.
     if (!entityWrenchComp)
     {
-      components::EntityWrench entityWrench;
-      entityWrenchComp = _ecm.CreateComponent<components::EntityWrench>(
-        this->dataPtr->id, entityWrench);
-
-      gzdbg << "Create entity wrench for link ["
+      gzerr << "Failed to create EntityWrench component for link ["
             << this->dataPtr->id << "] from ["
             << this->dataPtr->visualizationLabel.value() << "]\n";
+      return;
     }
 
     // Populate data

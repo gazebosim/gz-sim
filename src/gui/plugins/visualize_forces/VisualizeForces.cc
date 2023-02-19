@@ -85,6 +85,9 @@ class VisualizeForcesPrivate
   /// \brief Set the scale. A scale of 1 => force of 1N has a marker length 1m.
   public: double scale{1.0};
 
+  /// \brief Destructor
+  public: ~VisualizeForcesPrivate();
+
   /// \brief Constructor
   public: VisualizeForcesPrivate();
 
@@ -98,12 +101,19 @@ class VisualizeForcesPrivate
   /// \brief Render force markers - runs on render thread.
   public: void PerformRenderingOperations();
 
-  public: void AddArrowVisual(const std::string &_ns,
+  public: void AddVisual(const std::string &_ns,
       const math::Color &_color);
 
-  public: void RemoveArrowVisual(const std::string &_ns);
+  public: void RemoveVisual(const std::string &_ns);
 
+  public: void ClearVisuals();
 };
+
+/////////////////////////////////////////////////
+VisualizeForcesPrivate::~VisualizeForcesPrivate()
+{
+  this->ClearVisuals();
+}
 
 /////////////////////////////////////////////////
 VisualizeForcesPrivate::VisualizeForcesPrivate() = default;
@@ -186,7 +196,7 @@ void VisualizeForcesPrivate::PerformRenderingOperations()
       if (this->onScreenMarkers.count(ns))
       {
         this->onScreenMarkers.erase(ns);
-        this->RemoveArrowVisual(ns);
+        this->RemoveVisual(ns);
       }
       continue;
     }
@@ -199,7 +209,7 @@ void VisualizeForcesPrivate::PerformRenderingOperations()
             << "Color   [" << color.value() << "]\n"
             << "Thread  [" << QThread::currentThread() << "]\n";
 
-      this->AddArrowVisual(ns, color.value());
+      this->AddVisual(ns, color.value());
     }
 
     if (std::abs(force.Length()) > 1.0E-5)
@@ -276,7 +286,7 @@ void VisualizeForcesPrivate::FindScene()
 }
 
 /////////////////////////////////////////////////
-void VisualizeForcesPrivate::AddArrowVisual(
+void VisualizeForcesPrivate::AddVisual(
     const std::string &_ns, const math::Color &_color)
 {
   auto rootVisual = this->scene->RootVisual();
@@ -305,9 +315,34 @@ void VisualizeForcesPrivate::AddArrowVisual(
 }
 
 /////////////////////////////////////////////////
-void VisualizeForcesPrivate::RemoveArrowVisual(const std::string &_ns)
+void VisualizeForcesPrivate::RemoveVisual(const std::string &_ns)
 {
-  /// \todo(srmainwaring) implement cleanup.
+  if (this->visuals.find(_ns) != this->visuals.end())
+  {
+    auto visual = this->visuals[_ns];
+    if (visual != nullptr && visual->HasParent())
+    {
+      visual->Parent()->RemoveChild(visual);
+      this->scene->DestroyVisual(visual, true);
+      visual.reset();
+    }
+    this->visuals.erase(_ns);
+  }
+}
+
+/////////////////////////////////////////////////
+void VisualizeForcesPrivate::ClearVisuals()
+{
+  for (auto&& item : this->visuals)
+  {
+    auto visual = item.second;
+    if (visual != nullptr && visual->HasParent())
+    {
+      visual->Parent()->RemoveChild(visual);
+      this->scene->DestroyVisual(visual, true);
+    }
+  }
+  this->visuals.clear();
 }
 
 /////////////////////////////////////////////////
