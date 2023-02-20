@@ -96,11 +96,8 @@ class VisualizeForcesPrivate
   /// \param[in] _ecm - the ecm.
   public: void RetrieveWrenchesFromEcm(EntityComponentManager &_ecm);
 
-  /// \brief Find the current render engine and scene.
-  public: void FindScene();
-
-  /// \brief Render force markers - runs on render thread.
-  public: void PerformRenderingOperations();
+  /// \brief Render force visuals - runs on render thread.
+  public: void OnRender();
 
   public: void AddVisual(const std::string &_ns,
       const math::Color &_color);
@@ -158,19 +155,20 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
 }
 
 /////////////////////////////////////////////////
-void VisualizeForcesPrivate::PerformRenderingOperations()
+void VisualizeForcesPrivate::OnRender()
 {
   // Apply lock as this is run on the render thread
   std::lock_guard<std::mutex> lock(mutex);
 
-  // Find the scene and check it is valid
   if (nullptr == this->scene)
   {
-    this->FindScene();
+    this->scene = rendering::sceneFromFirstRenderEngine();
+    if (nullptr == this->scene)
+    {
+      return;
+    }
+    // this->sceneManager.SetScene(this->scene);
   }
-
-  if (nullptr == this->scene)
-    return;
 
   while (true)
   {
@@ -241,59 +239,6 @@ void VisualizeForcesPrivate::PerformRenderingOperations()
 
     }
   }
-}
-
-/////////////////////////////////////////////////
-void VisualizeForcesPrivate::FindScene()
-{
-  auto loadedEngNames = gz::rendering::loadedEngines();
-  if (loadedEngNames.empty())
-  {
-    gzdbg << "No rendering engine is loaded yet" << std::endl;
-    return;
-  }
-
-  // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    gzdbg << "More than one engine is available. "
-      << "Using engine [" << engineName << "]" << std::endl;
-  }
-  auto engine = gz::rendering::engine(engineName);
-  if (!engine)
-  {
-    gzerr << "Internal error: failed to load engine [" << engineName
-      << "]. VisualizeForces plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-  {
-    gzdbg << "No scene has been created yet" << std::endl;
-    return;
-  }
-
-  // Get first scene
-  auto scenePtr = engine->SceneByIndex(0);
-  if (nullptr == scenePtr)
-  {
-    gzerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() > 1)
-  {
-    gzdbg << "More than one scene is available. "
-      << "Using scene [" << scenePtr->Name() << "]" << std::endl;
-  }
-
-  if (!scenePtr->IsInitialized() || nullptr == scenePtr->RootVisual())
-  {
-    return;
-  }
-
-  this->scene = scenePtr;
 }
 
 /////////////////////////////////////////////////
@@ -602,9 +547,7 @@ bool VisualizeForces::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in the render thread, so it's safe to make
-    // rendering calls here
-    this->dataPtr->PerformRenderingOperations();
+    this->dataPtr->OnRender();
   }
 
   // Standard event processing
