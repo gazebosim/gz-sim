@@ -61,6 +61,8 @@ class EnvironmentVisualizationTool
 
   public: std::atomic<bool> resample{true};
 
+  public: bool finishedTime{false};
+
   /////////////////////////////////////////////////
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {

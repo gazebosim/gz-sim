@@ -94,6 +94,10 @@ EnvironmentVisualization::EnvironmentVisualization()
 {
   gui::App()->Engine()->rootContext()->setContextProperty(
       "EnvironmentVisualization", this);
+  this->qtimer = new QTimer(this);
+  connect(qtimer, &QTimer::timeout,
+    this, &EnvironmentVisualization::ResamplePointcloud);
+  this->qtimer->start(1000);
 }
 
 /////////////////////////////////////////////////
@@ -118,7 +122,7 @@ void EnvironmentVisualization::Update(const UpdateInfo &_info,
   {
     this->dataPtr->Initiallize(_ecm);
     this->dataPtr->first = false;
-    //this->ResamplePointcloud();
+    this->ResamplePointcloud();
   }
 }
 

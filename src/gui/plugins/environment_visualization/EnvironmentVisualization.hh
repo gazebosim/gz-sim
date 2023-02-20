@@ -73,6 +73,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: unsigned int ySamples{10};
 
     public: unsigned int zSamples{10};
+
+    private: QTimer* qtimer;
   };
 }
 }

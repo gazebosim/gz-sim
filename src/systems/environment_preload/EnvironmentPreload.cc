@@ -63,6 +63,8 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   public: math::Vector3d samples;
 
+  public: bool fileLoaded{false};
+
   public: bool logError{true};
 
   public: std::shared_ptr<components::EnvironmentalData> envData;
@@ -82,9 +84,12 @@ class gz::sim::systems::EnvironmentPreloadPrivate
   public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
   {
     std::lock_guard<std::mutex> lock(this->mtx);
-    this->visualize = true;
     this->samples = msgs::Convert(_resChanged);
-    this->visualizationPtr->resample = true;
+    if (this->fileLoaded)
+    {
+      this->visualize = true;
+      this->visualizationPtr->resample = true;
+    }
   }
 
   public: void ReadSdf(EntityComponentManager &_ecm)
@@ -241,6 +246,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       auto component = ComponentT{std::move(data)};
       _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
       this->visualizationPtr->resample = true;
+      this->fileLoaded = true;
     }
     catch (const std::invalid_argument &exc)
     {
