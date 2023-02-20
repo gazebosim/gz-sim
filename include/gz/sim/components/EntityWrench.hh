@@ -51,6 +51,9 @@ namespace serializers
         _out << " " << key;
         _out << " " << str.size();
         _out  << str;
+
+        // debug info
+        // gzdbg << value.DebugString() << "\n";
       }
       return _out;
     }
@@ -81,6 +84,9 @@ namespace serializers
         msgs::EntityWrench msg;
         msg.ParseFromString(str);
         _data.insert({key, msg});
+
+        // debug info
+        // gzdbg << msg.DebugString() << "\n";
       }
       return _in;
     }

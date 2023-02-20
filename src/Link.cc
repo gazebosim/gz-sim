@@ -500,13 +500,12 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     _ecm.SetChanged(this->dataPtr->id, components::EntityWrenches::typeId,
         ComponentState::PeriodicChange);
 
-    // if (this->dataPtr->id == 12 /*label == "MooringForce"*/)
     // {
     //   gzdbg << "Publishing entity wrenches for link ["
     //         << this->dataPtr->id << "]\n"
     //         << "Size: " << entityWrenchesComp->Data().size() << "\n"
     //         << "Label: " << label << "\n"
-    //         << msg.DebugString() << "\n";
+    //         << entityWrenchesComp->Data()[label].DebugString() << "\n";
     // }
   }
 }

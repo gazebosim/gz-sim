@@ -17,6 +17,7 @@
 
 #include "VisualizeForces.hh"
 
+#include <chrono>
 #include <queue>
 #include <random>
 #include <string>
@@ -86,6 +87,13 @@ class VisualizeForcesPrivate
   /// \brief Set the scale. A scale of 1 => force of 1N has a marker length 1m.
   public: double scale{1.0};
 
+  /// \brief System update period calculated from <update_rate>
+  public: std::chrono::steady_clock::duration updatePeriod{0};
+
+  /// \brief Last system update simulation time
+  public: std::chrono::steady_clock::duration lastUpdateTime{0};
+
+
   /// \brief Destructor
   public: ~VisualizeForcesPrivate();
 
@@ -123,11 +131,11 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
   std::lock_guard<std::mutex> lock(mutex);
 
   {
-    _ecm.Each<components::WorldPose, components::EntityWrenches>(
-    [&](const Entity &_entity,
-        components::WorldPose *_worldPose,
-        components::EntityWrenches *_entityWrenches) -> bool
-    {
+    _ecm.EachNoCache<components::WorldPose, components::EntityWrenches>(
+      [&](const Entity &_entity,
+          components::WorldPose *_worldPose,
+          components::EntityWrenches *_entityWrenches) -> bool
+      {
       // Push all the wrenches for this entity to the queue.
       for (auto& [key, value] : _entityWrenches->Data())
       {
@@ -152,6 +160,24 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
       return true;
     });
   }
+
+  // more debugging
+  // {
+  //   msgs::SerializedStateMap state;
+  //   _ecm.ChangedState(state);
+  //   gzdbg << state.DebugString() << "\n";
+  // }
+  // {
+  //   auto comps = _ecm.ComponentTypesWithPeriodicChanges();
+  //   if (comps.find(components::EntityWrenches::typeId) != comps.end())
+  //   {
+  //     gzdbg << "components::EntityWrenches has PeriodicChanges\n";
+  //   }
+  //   else
+  //   {
+  //     gzwarn << "components::EntityWrenches missing PeriodicChanges\n";
+  //   }
+  // }
 }
 
 /////////////////////////////////////////////////
@@ -509,24 +535,15 @@ void VisualizeForces::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     }
 
     {
+      double rate(10.0);
       auto elem = _pluginElem->FirstChildElement("update_rate");
       if (nullptr != elem && nullptr != elem->GetText())
       {
-        double value(-1.0);
-        elem->QueryDoubleText(&value);
-        // this->SetUpdateRate(value);
+        elem->QueryDoubleText(&rate);
       }
-    }
-
-    {
-      auto elem = _pluginElem->FirstChildElement("color");
-      if (nullptr != elem && nullptr != elem->GetText())
-      {
-        std::stringstream ss(elem->GetText());
-        math::Color color;
-        ss >> color;
-        // this->SetColor(gz::gui::convert(color));
-      }
+      std::chrono::duration<double> period{rate > 0.0 ? 1.0 / rate : 0.0};
+      this->dataPtr->updatePeriod = std::chrono::duration_cast<
+          std::chrono::steady_clock::duration>(period);
     }
   }
 
@@ -536,9 +553,19 @@ void VisualizeForces::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 }
 
 /////////////////////////////////////////////////
-void VisualizeForces::Update(const UpdateInfo &/*unused*/,
+void VisualizeForces::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("VisualizeForces::Update");
+  if (_info.paused) return;
+
+  // Throttle update rate
+  auto elapsed = _info.simTime - this->dataPtr->lastUpdateTime;
+  if (elapsed > std::chrono::steady_clock::duration::zero() &&
+      elapsed < this->dataPtr->updatePeriod)
+    return;
+  this->dataPtr->lastUpdateTime = _info.simTime;
+
   this->dataPtr->RetrieveWrenchesFromEcm(_ecm);
 }
 
