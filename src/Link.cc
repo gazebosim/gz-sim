@@ -440,6 +440,8 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 
   if (this->dataPtr->visualizationLabel.has_value())
   {
+    auto& label = this->dataPtr->visualizationLabel.value();
+
     // Enable required components.
     enableComponent<components::WorldPose>(_ecm, this->dataPtr->id, true);
     enableComponent<components::EntityWrenches>(_ecm, this->dataPtr->id, true);
@@ -448,9 +450,12 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
         _ecm.Component<components::EntityWrenches>(this->dataPtr->id);
     if (!entityWrenchesComp)
     {
-      gzerr << "Failed to retrieve EntityWrenches component for link ["
-            << this->dataPtr->id << "] from ["
-            << this->dataPtr->visualizationLabel.value() << "]\n";
+      static bool informed{false};
+      if (!informed)
+      {
+        gzerr << "Failed to retrieve EntityWrenches component for link ["
+              << this->dataPtr->id << "] from [" << label << "]\n";
+      }
       return;
     }
 
@@ -458,7 +463,6 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::EntityWrench msg;
 
     // Set label
-    auto& label = this->dataPtr->visualizationLabel.value();
     {
       auto data = msg.mutable_header()->add_data();
       data->set_key("label");
