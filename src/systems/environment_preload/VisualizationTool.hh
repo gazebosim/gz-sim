@@ -80,6 +80,12 @@ class EnvironmentVisualizationTool
   }
 
   /////////////////////////////////////////////////
+  public: void FileReloaded()
+  {
+    this->finishedTime = false;
+  }
+
+  /////////////////////////////////////////////////
   public: void Step(
     const UpdateInfo &_info,
     const EntityComponentManager& _ecm,
@@ -107,10 +113,15 @@ class EnvironmentVisualizationTool
       {
         it.second = res.value();
       }
+      else 
+      {
+        this->finishedTime = true;
+        return;
+      }
     }
 
     // Publish at 2 hz for now. In future make reconfigureable.
-    if (dt.count() > 0.5)
+    if (dt.count() > 0.5 && !this->finishedTime)
     {
       this->Visualize(data, xSamples, ySamples, zSamples);
       this->Publish();

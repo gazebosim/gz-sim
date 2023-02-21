@@ -78,18 +78,29 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     this->dataDescription = _msg;
     this->needsReload = true;
     this->logError = true;
+    this->visualizationPtr->FileReloaded();
     gzdbg << "Loading file " << _msg.path() << "\n";
   }
 
   public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
   {
     std::lock_guard<std::mutex> lock(this->mtx);
-    this->samples = msgs::Convert(_resChanged);
-    if (this->fileLoaded)
+    if (!this->fileLoaded)
     {
-      this->visualize = true;
-      this->visualizationPtr->resample = true;
+      // Only visualize if a file exists
+      return;
     }
+    auto converted = msgs::Convert(_resChanged);
+    if (this->samples  == converted)
+    {
+      // If the sample has not changed return.
+      // This is because resampling is expensive.
+      return;
+    }
+    this->samples = converted;
+    this->visualize = true;
+    this->visualizationPtr->resample = true;
+  
   }
 
   public: void ReadSdf(EntityComponentManager &_ecm)
