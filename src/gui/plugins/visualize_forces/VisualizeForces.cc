@@ -130,8 +130,10 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
 {
   std::lock_guard<std::mutex> lock(mutex);
 
+#if 0
   {
-    _ecm.EachNoCache<components::WorldPose, components::EntityWrenches>(
+    // Read components::EntityWrenches
+    _ecm.Each<components::WorldPose, components::EntityWrenches>(
       [&](const Entity &_entity,
           components::WorldPose *_worldPose,
           components::EntityWrenches *_entityWrenches) -> bool
@@ -160,24 +162,33 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
       return true;
     });
   }
+#endif
 
-  // more debugging
-  // {
-  //   msgs::SerializedStateMap state;
-  //   _ecm.ChangedState(state);
-  //   gzdbg << state.DebugString() << "\n";
-  // }
-  // {
-  //   auto comps = _ecm.ComponentTypesWithPeriodicChanges();
-  //   if (comps.find(components::EntityWrenches::typeId) != comps.end())
-  //   {
-  //     gzdbg << "components::EntityWrenches has PeriodicChanges\n";
-  //   }
-  //   else
-  //   {
-  //     gzwarn << "components::EntityWrenches missing PeriodicChanges\n";
-  //   }
-  // }
+#if 1
+  {
+    /// \todo(srmainwaring) - for debugging - read components::EntityWrench
+    _ecm.Each<components::WorldPose, components::EntityWrench>(
+      [&](const Entity &_entity,
+          components::WorldPose *_worldPose,
+          components::EntityWrench *_entityWrench) -> bool
+      {
+      // Push the wrench for this entity to the queue.
+      this->queue.push({_worldPose->Data(), _entityWrench->Data()});
+
+      // debugging
+      // {
+      //   std::stringstream ss;
+      //   ss << "Received EntityWrench for entity ["
+      //     << _entity << "]\n"
+      //     << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
+      //     << "Msg: " << _entityWrench->Data().DebugString() << "\n";
+      //   gzdbg << ss.str();
+      // }
+
+      return true;
+    });
+  }
+#endif
 }
 
 /////////////////////////////////////////////////
