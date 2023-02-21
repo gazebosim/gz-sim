@@ -35,7 +35,6 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 
-#include <gz/msgs/entity_wrench.pb.h>
 #include <gz/msgs/entity_wrench_map.pb.h>
 
 #include <gz/plugin/Register.hh>
@@ -129,44 +128,7 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
     EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(mutex);
-
-#if 0
   {
-    // Read components::EntityWrenches
-    _ecm.Each<components::WorldPose, components::EntityWrenches>(
-      [&](const Entity &_entity,
-          components::WorldPose *_worldPose,
-          components::EntityWrenches *_entityWrenches) -> bool
-      {
-      // Push all the wrenches for this entity to the queue.
-      for (auto& [key, value] : _entityWrenches->Data())
-      {
-        this->queue.push({_worldPose->Data(), value});
-      }
-
-      // debugging
-      // {
-      //   std::stringstream ss;
-      //   ss << "Received EntityWrenches for entity ["
-      //     << _entity << "]\n"
-      //     << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
-      //     << "Size " << _entityWrenches->Data().size() << "\n";
-      //   for (auto& [key, value] : _entityWrenches->Data())
-      //   {
-      //     ss << "Key: " << key << "\n"
-      //        << "Msg: " << value.DebugString() << "\n";
-      //   }
-      //   gzdbg << ss.str();
-      // }
-
-      return true;
-    });
-  }
-#endif
-
-#if 1
-  {
-    // Read components::EntityWrenchMap
     _ecm.Each<components::WorldPose, components::EntityWrenchMap>(
       [&](const Entity &_entity,
           components::WorldPose *_worldPose,
@@ -196,33 +158,6 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
       return true;
     });
   }
-#endif
-
-#if 0
-  {
-    /// \todo(srmainwaring) - for debugging - read components::EntityWrench
-    _ecm.Each<components::WorldPose, components::EntityWrench>(
-      [&](const Entity &_entity,
-          components::WorldPose *_worldPose,
-          components::EntityWrench *_entityWrench) -> bool
-      {
-      // Push the wrench for this entity to the queue.
-      this->queue.push({_worldPose->Data(), _entityWrench->Data()});
-
-      // debugging
-      // {
-      //   std::stringstream ss;
-      //   ss << "Received EntityWrench for entity ["
-      //     << _entity << "]\n"
-      //     << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
-      //     << "Msg: " << _entityWrench->Data().DebugString() << "\n";
-      //   gzdbg << ss.str();
-      // }
-
-      return true;
-    });
-  }
-#endif
 }
 
 /////////////////////////////////////////////////
@@ -238,7 +173,6 @@ void VisualizeForcesPrivate::OnRender()
     {
       return;
     }
-    // this->sceneManager.SetScene(this->scene);
   }
 
   while (true)
@@ -257,7 +191,6 @@ void VisualizeForcesPrivate::OnRender()
     // Check if we should render the force based on user's settings.
     auto color = this->model.getRenderColor(wrenchMsg);
 
-    /// \todo(srmainwaring) is there a more efficient lookup method?
     std::string label;
     for (auto& values : wrenchMsg.header().data())
     {
@@ -307,7 +240,6 @@ void VisualizeForcesPrivate::OnRender()
       //       << wrenchMsg.entity().id() << "]\n"
       //       << "Force     [" << force << "]\n"
       //       << "Position  [" << forcePose.Pos() << "]\n";
-
     }
   }
 }
@@ -327,15 +259,12 @@ void VisualizeForcesPrivate::AddVisual(
   mat->SetCastShadows(false);
 
   auto visual = this->scene->CreateArrowVisual();
-  // updateArrow(visual);
   visual->SetMaterial(mat);
 
   visual->ShowArrowHead(false);
   visual->ShowArrowShaft(true);
   visual->ShowArrowRotation(false);
   visual->SetVisibilityFlags(GZ_VISIBILITY_GUI);
-  // visual->SetVisible(this->showForces);
-  // visual->SetVisible(true);
 
   this->visuals[_ns] = visual;
   rootVisual->AddChild(this->visuals[_ns]);
@@ -382,7 +311,6 @@ std::optional<math::Color> ForceListModel::getRenderColor(
 {
   auto pluginList = this->force_mapping.find(_wrench.entity().id());
 
-  /// \todo(srmainwaring) is there a more efficient lookup method?
   std::string label;
   for (auto& values : _wrench.header().data())
   {
