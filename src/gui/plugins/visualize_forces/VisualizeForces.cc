@@ -36,7 +36,7 @@
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/entity_wrench.pb.h>
-#include <gz/msgs/wrench.pb.h>
+#include <gz/msgs/entity_wrench_map.pb.h>
 
 #include <gz/plugin/Register.hh>
 
@@ -165,6 +165,40 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
 #endif
 
 #if 1
+  {
+    // Read components::EntityWrenchMap
+    _ecm.Each<components::WorldPose, components::EntityWrenchMap>(
+      [&](const Entity &_entity,
+          components::WorldPose *_worldPose,
+          components::EntityWrenchMap *_entityWrenchMap) -> bool
+      {
+      // Push all the wrenches for this entity to the queue.
+      for (auto& [key, value] : _entityWrenchMap->Data().wrenches())
+      {
+        this->queue.push({_worldPose->Data(), value});
+      }
+
+      // debugging
+      // {
+      //   std::stringstream ss;
+      //   ss << "Received EntityWrenchMap for entity ["
+      //     << _entity << "]\n"
+      //     << "WorldPose [" << _worldPose->Data().Pos() << "]\n"
+      //     << "Size " << _entityWrenchMap->Data().wrenches().size() << "\n";
+      //   for (auto& [key, value] : _entityWrenchMap->Data().wrenches())
+      //   {
+      //     ss << "Key: " << key << "\n"
+      //        << "Msg: " << value.DebugString() << "\n";
+      //   }
+      //   gzdbg << ss.str();
+      // }
+
+      return true;
+    });
+  }
+#endif
+
+#if 0
   {
     /// \todo(srmainwaring) - for debugging - read components::EntityWrench
     _ecm.Each<components::WorldPose, components::EntityWrench>(

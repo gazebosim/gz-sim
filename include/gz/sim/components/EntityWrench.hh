@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity_wrench_map.pb.h>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Serialization.hh>
@@ -104,6 +105,14 @@ namespace components
         serializers::MsgSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.EntityWrench",
                             EntityWrench)
+
+  /// \brief A component type that contains an map of wrenches
+  /// for an entity. The wrenches are represented by gz::msgs::EntityWrenchMap.
+  using EntityWrenchMap =
+      Component<msgs::EntityWrenchMap, class EntityWrenchMapTag,
+          serializers::MsgSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.EntityWrenchMap",
+                            EntityWrenchMap)
 
   /// \brief A component type that contains an unordered map of wrenches
   /// for an entity. The wrenches are represented by gz::msgs::EntityWrench.
