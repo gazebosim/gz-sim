@@ -57,7 +57,7 @@ class EnvironmentVisualizationTool
     const EntityComponentManager &_ecm)
   {
     auto world = worldEntity(_ecm);
-    auto topic = 
+    auto topic =
       common::joinPaths(
         scopedName(world, _ecm),"environment/visualize/res");
     std::lock_guard<std::mutex> lock(this->mutex);

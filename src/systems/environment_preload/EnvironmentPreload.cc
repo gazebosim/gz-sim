@@ -100,7 +100,6 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     this->samples = converted;
     this->visualize = true;
     this->visualizationPtr->resample = true;
-  
   }
 
   public: void ReadSdf(EntityComponentManager &_ecm)

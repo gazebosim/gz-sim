@@ -66,7 +66,7 @@ class EnvironmentVisualizationTool
   /////////////////////////////////////////////////
   public: void CreatePointCloudTopics(
     std::shared_ptr<components::EnvironmentalData> data) {
-    
+
     this->pubs.clear();
     this->sessions.clear();
 
@@ -101,7 +101,7 @@ class EnvironmentVisualizationTool
       this->CreatePointCloudTopics(data);
       this->ResizeCloud(data, _ecm, xSamples, ySamples, zSamples);
       this->resample = false;
-      this->lastTick = now;  
+      this->lastTick = now;
     }
 
     for (auto &it : this->sessions)
@@ -113,7 +113,7 @@ class EnvironmentVisualizationTool
       {
         it.second = res.value();
       }
-      else 
+      else
       {
         this->finishedTime = true;
         return;
