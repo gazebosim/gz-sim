@@ -46,217 +46,92 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+
+/// \brief This class helps 
 class EnvironmentVisualizationTool
 {
-  public: EnvironmentVisualizationTool()
-  {
-    this->pcPub =
-      this->node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
-  }
+  /// \brief Environment constructor
+  public: EnvironmentVisualizationTool();
+  
   /// \brief To synchronize member access.
-  public: std::mutex mutex;
+  private: std::mutex mutex;
 
-  /// \brief first load we need to scan for existing data sensor
-  public: bool first {true};
+  /// \brief First load we need to scan for existing data sensor
+  private: bool first {true};
 
+  /// \brief Enable resampling
   public: std::atomic<bool> resample{true};
 
-  public: bool finishedTime{false};
+  /// \brief Time has come to an end.
+  private: bool finishedTime{false};
 
-  /////////////////////////////////////////////////
-  public: void CreatePointCloudTopics(
-    std::shared_ptr<components::EnvironmentalData> data) {
+  /// \brief Create publisher structures whenever a new environment is made
+  /// available.
+  /// \param[in] _data Data to be visuallized
+  private: void CreatePointCloudTopics(
+    const std::shared_ptr<components::EnvironmentalData> _data);
 
-    this->pubs.clear();
-    this->sessions.clear();
+  /// \brief Invoke when new file is made available.
+  public: void FileReloaded();
 
-    for (auto key : data->frame.Keys())
-    {
-      this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
-      gz::msgs::Float_V msg;
-      this->floatFields.emplace(key, msg);
-      this->sessions.emplace(key, data->frame[key].CreateSession());
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void FileReloaded()
-  {
-    this->finishedTime = false;
-  }
-
-  /////////////////////////////////////////////////
+  /// \brief Step the visualizations
+  /// \param[in] _info The simulation info including timestep
+  /// \param[in] _ecm The Entity-Component-Manager
+  /// \param[in] _data The data to be visuallized
+  /// \param[in] _xSample Samples along x
+  /// \param[in] _ySample Samples along y
+  /// \param[in] _zSample Samples along z
   public: void Step(
     const UpdateInfo &_info,
     const EntityComponentManager& _ecm,
-    std::shared_ptr<components::EnvironmentalData> data,
-    double xSamples, double ySamples, double zSamples)
-  {
+    const std::shared_ptr<components::EnvironmentalData> _data,
+    double _xSamples, double _ySamples, double _zSamples);
 
-    auto now = std::chrono::steady_clock::now();
-    std::chrono::duration<double> dt(now - this->lastTick);
+  /// \brief Publishes a sample of the data
+  /// \param[in] _data The data to be visuallized
+  /// \param[in] _xSample Samples along x
+  /// \param[in] _ySample Samples along y
+  /// \param[in] _zSample Samples along z
+  private: void Visualize(
+    const std::shared_ptr<components::EnvironmentalData> data,
+    double _xSamples, double _ySamples, double _zSamples);
 
-    if (this->resample)
-    {
-      this->CreatePointCloudTopics(data);
-      this->ResizeCloud(data, _ecm, xSamples, ySamples, zSamples);
-      this->resample = false;
-      this->lastTick = now;
-    }
+  /// \brief Get the point cloud data.
+  private: void Publish();
 
-    for (auto &it : this->sessions)
-    {
-      auto res =
-        data->frame[it.first].StepTo(it.second,
-          std::chrono::duration<double>(_info.simTime).count());
-      if (res.has_value())
-      {
-        it.second = res.value();
-      }
-      else
-      {
-        this->finishedTime = true;
-        return;
-      }
-    }
-
-    // Publish at 2 hz for now. In future make reconfigureable.
-    if (dt.count() > 0.5 && !this->finishedTime)
-    {
-      this->Visualize(data, xSamples, ySamples, zSamples);
-      this->Publish();
-      lastTick = now;
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void Visualize(
-    std::shared_ptr<components::EnvironmentalData> data,
-    double xSamples, double ySamples, double zSamples) {
-
-    for (auto key : data->frame.Keys())
-    {
-      const auto session = this->sessions[key];
-      auto frame = data->frame[key];
-      auto [lower_bound, upper_bound] = frame.Bounds(session);
-      auto step = upper_bound - lower_bound;
-      auto dx = step.X() / xSamples;
-      auto dy = step.Y() / ySamples;
-      auto dz = step.Z() / zSamples;
-      std::size_t idx = 0;
-      for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
-      {
-        auto x = lower_bound.X() + x_steps * dx;
-        for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
-        {
-          auto y = lower_bound.Y() + y_steps * dy;
-          for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
-          {
-            auto z = lower_bound.Z() + z_steps * dz;
-            auto res = frame.LookUp(session, math::Vector3d(x, y, z));
-
-            if (res.has_value())
-            {
-              this->floatFields[key].mutable_data()->Set(idx,
-                static_cast<float>(res.value()));
-            }
-            else
-            {
-              this->floatFields[key].mutable_data()->Set(idx, std::nanf(""));
-            }
-            idx++;
-          }
-        }
-      }
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void Publish()
-  {
-    pcPub.Publish(this->pcMsg);
-    for(auto &[key, pub] : this->pubs)
-    {
-      pub.Publish(this->floatFields[key]);
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void ResizeCloud(
-    std::shared_ptr<components::EnvironmentalData> data,
+  /// \brief Resize the point cloud structure (used to reallocate
+  /// memory when resolution changes)
+  /// \param[in] _ecm The Entity-Component-Manager
+  /// \param[in] _data The data to be visuallized
+  /// \param[in] _xSample Samples along x
+  /// \param[in] _ySample Samples along y
+  /// \param[in] _zSample Samples along z
+  private: void ResizeCloud(
+    const std::shared_ptr<components::EnvironmentalData> _data,
     const EntityComponentManager& _ecm,
-    unsigned int xSamples, unsigned int ySamples, unsigned int zSamples)
-  {
-    assert (pubs.size() > 0);
+    unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples);
 
-    // Assume all data have same point cloud.
-    gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
-        {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
-    auto numberOfPoints = xSamples * ySamples * zSamples;
-    std::size_t dataSize{
-      static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
-    pcMsg.mutable_data()->resize(dataSize);
-    pcMsg.set_height(1);
-    pcMsg.set_width(numberOfPoints);
+  /// \brief Publisher for point clouds
+  private: transport::Node::Publisher pcPub;
 
-    auto session = this->sessions[this->pubs.begin()->first];
-    auto frame = data->frame[this->pubs.begin()->first];
-    auto [lower_bound, upper_bound] =
-      frame.Bounds(session);
+  /// \brief Publishers for data
+  private: std::unordered_map<std::string, transport::Node::Publisher> pubs;
+  
+  /// \brief Floating point message buffers
+  private: std::unordered_map<std::string, gz::msgs::Float_V> floatFields;
+  
+  /// \brief GZ buffers
+  private: transport::Node node;
 
-    auto step = upper_bound - lower_bound;
-    auto dx = step.X() / xSamples;
-    auto dy = step.Y() / ySamples;
-    auto dz = step.Z() / zSamples;
-
-    // Populate point cloud
-    gz::msgs::PointCloudPackedIterator<float> xIter(pcMsg, "x");
-    gz::msgs::PointCloudPackedIterator<float> yIter(pcMsg, "y");
-    gz::msgs::PointCloudPackedIterator<float> zIter(pcMsg, "z");
-
-    for (std::size_t x_steps = 0; x_steps < xSamples; x_steps++)
-    {
-      auto x = lower_bound.X() + x_steps * dx;
-      for (std::size_t y_steps = 0; y_steps < ySamples; y_steps++)
-      {
-        auto y = lower_bound.Y() + y_steps * dy;
-        for (std::size_t z_steps = 0; z_steps < zSamples; z_steps++)
-        {
-          auto z = lower_bound.Z() + z_steps * dz;
-          auto coords = getGridFieldCoordinates(
-            _ecm, math::Vector3d{x, y, z},
-            data);
-
-          if (!coords.has_value())
-          {
-            continue;
-          }
-
-          auto pos = coords.value();
-          *xIter = pos.X();
-          *yIter = pos.Y();
-          *zIter = pos.Z();
-          ++xIter;
-          ++yIter;
-          ++zIter;
-        }
-      }
-    }
-    for (auto key : data->frame.Keys())
-    {
-      this->floatFields[key].mutable_data()->Resize(
-        numberOfPoints, std::nanf(""));
-    }
-  }
-
-  public: transport::Node::Publisher pcPub;
-  public: std::unordered_map<std::string, transport::Node::Publisher> pubs;
-  public: std::unordered_map<std::string, gz::msgs::Float_V> floatFields;
-  public: transport::Node node;
-  public: gz::msgs::PointCloudPacked pcMsg;
-  public: std::unordered_map<std::string,
+  /// \brief Point cloud buffer
+  private: gz::msgs::PointCloudPacked pcMsg;
+  
+  /// \brief Session cursors
+  private: std::unordered_map<std::string,
     gz::math::InMemorySession<double, double>> sessions;
-  public:  std::chrono::time_point<std::chrono::steady_clock> lastTick;
+
+  /// \brief Duration from last update
+  private:  std::chrono::time_point<std::chrono::steady_clock> lastTick;
 };
 }
 }

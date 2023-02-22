@@ -45,43 +45,58 @@ using Units = msgs::DataLoadPathOptions_DataAngularUnits;
 //////////////////////////////////////////////////
 class gz::sim::systems::EnvironmentPreloadPrivate
 {
+  /// \brief Is the file loaded
   public: bool loaded{false};
 
+  /// \brief SDF Description
   public: std::shared_ptr<const sdf::Element> sdf;
 
+  /// \brief GzTransport node
   public: transport::Node node;
 
+  /// \brief Data descriptions
   public: msgs::DataLoadPathOptions dataDescription;
 
+  /// \brief mutex to protect the samples and data description
   public: std::mutex mtx;
 
+  /// \brief Do we need to reload the system.
   public: std::atomic<bool> needsReload{false};
 
+  /// \brief Visualization Helper
   public: std::unique_ptr<EnvironmentVisualizationTool> visualizationPtr;
 
+  /// \brief Are visualizations enabled
   public: bool visualize{false};
 
+  /// \brief Sample resolutions
   public: math::Vector3d samples;
 
+  /// \brief Is the file loaded
   public: bool fileLoaded{false};
 
-  public: bool logError{true};
+  /// \brief File loading error logger
+  public: bool logFileLoadError{true};
 
+  /// \brief Reference to data
   public: std::shared_ptr<components::EnvironmentalData> envData;
 
+  //////////////////////////////////////////////////
   public: EnvironmentPreloadPrivate() :
     visualizationPtr(new EnvironmentVisualizationTool) {};
 
+  //////////////////////////////////////////////////
   public: void OnLoadCommand(const msgs::DataLoadPathOptions &_msg)
   {
     std::lock_guard<std::mutex> lock(this->mtx);
     this->dataDescription = _msg;
     this->needsReload = true;
-    this->logError = true;
+    this->logFileLoadError = true;
     this->visualizationPtr->FileReloaded();
     gzdbg << "Loading file " << _msg.path() << "\n";
   }
 
+  //////////////////////////////////////////////////
   public: void OnVisualResChanged(const msgs::Vector3d &_resChanged)
   {
     std::lock_guard<std::mutex> lock(this->mtx);
@@ -102,6 +117,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     this->visualizationPtr->resample = true;
   }
 
+  //////////////////////////////////////////////////
   public: void ReadSdf(EntityComponentManager &_ecm)
   {
     if (!this->sdf->HasElement("data"))
@@ -202,6 +218,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     needsReload = true;
   }
 
+  //////////////////////////////////////////////////
   public: components::EnvironmentalData::ReferenceUnits ConvertUnits(
     const Units &_unit)
   {
@@ -216,6 +233,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     }
   }
 
+  //////////////////////////////////////////////////
   public: void LoadEnvironment(EntityComponentManager &_ecm)
   {
     try
@@ -233,11 +251,11 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       std::ifstream dataFile(this->dataDescription.path());
       if (!dataFile.is_open())
       {
-        if(logError)
+        if(logFileLoadError)
         {
           gzerr << "No environmental data file was found at " <<
             this->dataDescription.path() << std::endl;
-          logError = false;
+          logFileLoadError = false;
         }
         return;
       }
@@ -260,11 +278,11 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     }
     catch (const std::invalid_argument &exc)
     {
-      if(logError)
+      if(logFileLoadError)
       {
         gzerr << "Failed to load environment data" << std::endl
               << exc.what() << std::endl;
-        logError = false;
+        logFileLoadError = false;
       }
     }
 
