@@ -138,7 +138,7 @@ void EnvironmentLoader::Update(const UpdateInfo &,
   if (!this->dataPtr->pub.has_value())
   {
     auto world = worldEntity(_ecm);
-    auto topic = common::joinPaths(scopedName(world, _ecm),"environment");
+    auto topic = common::joinPaths(scopedName(world, _ecm), "environment");
     this->dataPtr->pub =
       {this->dataPtr->node.Advertise<msgs::DataLoadPathOptions>(topic)};
   }

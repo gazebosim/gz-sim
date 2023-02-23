@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_ENVIRONMENTPRELOAD_VIZTOOL_HH_
 
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>

@@ -18,6 +18,7 @@
 #include "VisualizationTool.hh"
 
 #include <array>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -83,7 +84,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
 
   //////////////////////////////////////////////////
   public: EnvironmentPreloadPrivate() :
-    visualizationPtr(new EnvironmentVisualizationTool) {};
+    visualizationPtr(new EnvironmentVisualizationTool) {}
 
   //////////////////////////////////////////////////
   public: void OnLoadCommand(const msgs::DataLoadPathOptions &_msg)
@@ -320,10 +321,10 @@ void EnvironmentPreload::PreUpdate(
 
     // See https://github.com/gazebosim/gz-sim/issues/1786
     this->dataPtr->node.Subscribe(
-      common::joinPaths(scopedName(world, _ecm),"environment"),
+      common::joinPaths(scopedName(world, _ecm), "environment"),
       &EnvironmentPreloadPrivate::OnLoadCommand, this->dataPtr.get());
     this->dataPtr->node.Subscribe(
-      common::joinPaths(scopedName(world, _ecm),"environment/visualize/res"),
+      common::joinPaths(scopedName(world, _ecm), "environment/visualize/res"),
       &EnvironmentPreloadPrivate::OnVisualResChanged, this->dataPtr.get());
 
     this->dataPtr->visualizationPtr->resample = true;
