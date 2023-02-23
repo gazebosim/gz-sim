@@ -75,7 +75,7 @@ class EnvironmentVisualizationTool
 
   /// \brief The sample resolution
   public: gz::msgs::Vector3d vec;
-  
+
   /// \brief Publisher to publish sample resolution
   public: transport::Node::Publisher pcPub;
 

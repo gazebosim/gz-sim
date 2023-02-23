@@ -47,12 +47,13 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 
-/// \brief This class helps 
+/// \brief This class helps handle point cloud visuallizations
+/// of environment data.
 class EnvironmentVisualizationTool
 {
   /// \brief Environment constructor
   public: EnvironmentVisualizationTool();
-  
+
   /// \brief To synchronize member access.
   private: std::mutex mutex;
 
@@ -116,16 +117,16 @@ class EnvironmentVisualizationTool
 
   /// \brief Publishers for data
   private: std::unordered_map<std::string, transport::Node::Publisher> pubs;
-  
+
   /// \brief Floating point message buffers
   private: std::unordered_map<std::string, gz::msgs::Float_V> floatFields;
-  
+
   /// \brief GZ buffers
   private: transport::Node node;
 
   /// \brief Point cloud buffer
   private: gz::msgs::PointCloudPacked pcMsg;
-  
+
   /// \brief Session cursors
   private: std::unordered_map<std::string,
     gz::math::InMemorySession<double, double>> sessions;

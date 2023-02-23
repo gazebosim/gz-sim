@@ -32,10 +32,10 @@ void EnvironmentVisualizationTool::CreatePointCloudTopics(
 
   for (auto key : _data->frame.Keys())
   {
-      this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
-      gz::msgs::Float_V msg;
-      this->floatFields.emplace(key, msg);
-      this->sessions.emplace(key, _data->frame[key].CreateSession());
+    this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
+    gz::msgs::Float_V msg;
+    this->floatFields.emplace(key, msg);
+    this->sessions.emplace(key, _data->frame[key].CreateSession());
   }
 }
 
@@ -92,7 +92,7 @@ void EnvironmentVisualizationTool::Step(
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::Visualize(
     const std::shared_ptr<components::EnvironmentalData> data,
-    double _xSamples, double _ySamples, double _zSamples) 
+    double _xSamples, double _ySamples, double _zSamples)
 {
 
   for (auto key : data->frame.Keys())
