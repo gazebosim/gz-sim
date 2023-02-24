@@ -166,8 +166,10 @@ class gz::sim::systems::MagnetometerPrivate
      * the rounding logic wouldn't fit, so enforce it.
      */
 
-    /* limit to table bounds - required for maxima even when table spans full globe range */
-    /* limit to (table bounds - 1) because bilinear interpolation requires checking (index + 1) */
+    // limit to table bounds - required for maxima even when table spans full
+    // globe range
+    // limit to (table bounds - 1) because bilinear interpolation requires
+    // checking (index + 1)
     val = constrain(val, min, max - SAMPLING_RES);
 
     return static_cast<unsigned>((-(min) + val) / SAMPLING_RES);
@@ -446,7 +448,8 @@ void MagnetometerPrivate::Update(
 
           // Magnetic strength (10^5xnanoTesla)
           float strength_ga =
-            0.01f * get_mag_strength(lat_rad * 180 / M_PI, lon_rad * 180 / M_PI);
+            0.01f *
+            get_mag_strength(lat_rad * 180 / M_PI, lon_rad * 180 / M_PI);
 
           // Magnetic filed components are calculated by http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
           float H = strength_ga * cosf(inclination_rad);
