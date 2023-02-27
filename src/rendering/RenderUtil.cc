@@ -79,6 +79,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/SemanticLabel.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
@@ -287,6 +288,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// update, and particle emitter msg
   public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
+
+  /// \brief New sensor topics that should be added to ECM as new components
+  public: std::unordered_map<Entity, std::string> newSensorTopics;
 
   /// \brief A list of entities with particle emitter cmds to remove
   public: std::vector<Entity> particleCmdsToRemove;
@@ -758,6 +762,16 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
     {
       _ecm.RemoveComponent<components::VisualCmd>(entity);
     }
+  }
+
+  // create sensor topic components
+  {
+    for (const auto &it : this->dataPtr->newSensorTopics)
+    {
+      // Set topic
+      _ecm.CreateComponent(it.first, components::SensorTopic(it.second));
+    }
+    this->dataPtr->newSensorTopics.clear();
   }
 }
 
@@ -1629,6 +1643,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   {
     sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
   }
+  this->newSensorTopics[_entity] = sdfDataCopy.Topic();
   this->newSensors.push_back(
       std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
   this->sensorEntities.insert(_entity);
