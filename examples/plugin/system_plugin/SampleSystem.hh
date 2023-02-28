@@ -45,7 +45,8 @@ namespace sample_system
     // and ISystemPostUpdate interfaces.
     public gz::sim::ISystemPreUpdate,
     public gz::sim::ISystemUpdate,
-    public gz::sim::ISystemPostUpdate
+    public gz::sim::ISystemPostUpdate,
+    public gz::sim::ISystemReset
   {
     public: SampleSystem2();
 
@@ -59,6 +60,9 @@ namespace sample_system
 
     public: void PostUpdate(const gz::sim::UpdateInfo &_info,
                 const gz::sim::EntityComponentManager &_ecm) override;
+
+    public: void Reset(const UpdateInfo &_info,
+                 EntityComponentManager &_ecm) override;
   };
 }
 //! [header]

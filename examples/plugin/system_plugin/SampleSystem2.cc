@@ -8,7 +8,8 @@ GZ_ADD_PLUGIN(
     gz::sim::System,
     sample_system::SampleSystem2::ISystemPreUpdate,
     sample_system::SampleSystem2::ISystemUpdate,
-    sample_system::SampleSystem2::ISystemPostUpdate)
+    sample_system::SampleSystem2::ISystemPostUpdate,
+    sample_system::SampleSystem2::ISystemReset)
 //! [registerSampleSystem2]
 
 using namespace sample_system;
@@ -37,4 +38,10 @@ void SampleSystem2::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
   gzmsg << "SampleSystem2::PostUpdate" << std::endl;
+}
+
+void SampleSystem2::Reset(const UpdateInfo &_info,
+     EntityComponentManager &_ecm)
+{
+  gzmsg << "SampleSystem2::Reset" << std::endl;
 }
