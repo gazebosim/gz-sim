@@ -48,6 +48,7 @@ set (sources
   Conversions.cc
   ComponentFactory.cc
   EntityComponentManager.cc
+  Joint.cc
   LevelManager.cc
   Link.cc
   Model.cc
