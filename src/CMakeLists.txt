@@ -77,6 +77,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  AddedMass_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc
@@ -168,6 +169,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+  gz-transport${GZ_TRANSPORT_VER}::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE

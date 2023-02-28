@@ -19,6 +19,8 @@
 #define GZ_SIM_GUI_VIEWANGLE_HH_
 
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
 
 #include <memory>
 
@@ -53,6 +55,13 @@ namespace sim
       NOTIFY CamClipDistChanged
     )
 
+    /// \brief view controller index for qml side (0: orbit; 1: ortho)
+    Q_PROPERTY(
+      int viewControlIndex
+      READ ViewControlIndex
+      NOTIFY ViewControlIndexChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -78,6 +87,16 @@ namespace sim
     /// \param[in] _mode New camera view controller
     public slots: void OnViewControl(const QString &_controller);
 
+    /// \brief Callback in Qt thread when camera view reference visual state
+    /// changes.
+    /// \param[in] _enable True to enable camera view control reference visual,
+    /// false to hide it
+    public slots: void OnViewControlReferenceVisual(bool _enable);
+
+    /// \brief Callback in Qt thread when camera view controller changes.
+    /// \param[in] _sensitivity View control sensitivity vlaue
+    public slots: void OnViewControlSensitivity(double _sensitivity);
+
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
 
@@ -94,6 +113,12 @@ namespace sim
     /// \param[in] _msg Pose message
     public: void CamPoseCb(const msgs::Pose &_msg);
 
+    /// \brief Move to model service received
+    /// \param[in] _msg GUI camera message
+    /// \param[in] _res Response
+    public: bool OnMoveToModelService(const gz::msgs::GUICamera &_msg,
+      gz::msgs::Boolean &_res);
+
     /// \brief Get the current gui camera's near and far clipping distances
     public: Q_INVOKABLE QList<double> CamClipDist() const;
 
@@ -104,6 +129,12 @@ namespace sim
     /// \param[in] _near Near clipping plane distance
     /// \param[in] _far Far clipping plane distance
     public slots: void SetCamClipDist(double _near, double _far);
+
+    /// \brief Get the current index for view controller (on qml side)
+    public: int ViewControlIndex() const;
+
+    /// \brief Notify that the camera's view controller has changed
+    signals: void ViewControlIndexChanged();
 
     /// \internal
     /// \brief Pointer to private data.

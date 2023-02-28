@@ -69,7 +69,7 @@ void startBoth(const std::string &_fileName)
   // SIGTERM during initialization doesn't always work properly and that is not
   // what we are testing here.
   using namespace std::chrono_literals;
-  std::this_thread::sleep_for(4s);
+  std::this_thread::sleep_for(15s);
   std::raise(SIGTERM);
   serverThread.join();
   guiThread.join();

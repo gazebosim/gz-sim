@@ -58,11 +58,17 @@ namespace systems
   ///                 (Required if `<enable_recharge>` is set to true)
   /// - `<fix_issue_225>` True to change the battery behavior to fix some issues
   /// described in https://github.com/gazebosim/gz-sim/issues/225.
+  /// - `<start_drainign>` Whether to start draining the battery right away.
+  /// False by default.
   /// - `<power_draining_topic>` A topic that is used to start battery
-  /// discharge. Any message on the specified topic will cause the batter to
+  /// discharge. Any message on the specified topic will cause the battery to
   /// start draining. This element can be specified multiple times if
   /// multiple topics should be monitored. Note that this mechanism will
   /// start the battery draining, and once started will keep drainig.
+  /// - `<stop_power_draining_topic>` A topic that is used to stop battery
+  /// discharge. Any message on the specified topic will cause the battery to
+  /// stop draining.
+
   class LinearBatteryPlugin
       : public System,
         public ISystemConfigure,

@@ -71,6 +71,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep world name
   this->worldName = _world->Name();
 
+  this->parametersRegistry = std::make_unique<
+    gz::transport::parameters::ParametersRegistry>(
+      std::string{"world/"} + this->worldName);
+
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
@@ -148,8 +152,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // Create the system manager
-  this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr, validNs);
+  this->systemMgr = std::make_unique<SystemManager>(
+      _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
+      this->parametersRegistry.get());
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));

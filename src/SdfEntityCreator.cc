@@ -34,6 +34,7 @@
 #else
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Atmosphere.hh"
@@ -560,6 +561,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
   this->dataPtr->ecm->CreateComponent(lightEntity,
     components::LightType(convert(_light->Type())));
 
+  // Light Visual
+  Entity lightVisualEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity, components::Visual());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Pose());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Name(_light->Name() + "Visual"));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::CastShadows(false));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Transparency(false));
+  this->SetParent(lightVisualEntity, lightEntity);
+
   return lightEntity;
 }
 
@@ -947,6 +961,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::AIR_SPEED)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::AirSpeedSensor(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldAngularVelocity(math::Vector3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {

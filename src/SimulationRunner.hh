@@ -404,6 +404,11 @@ namespace gz
       /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
 
+      /// \brief Manager all parameters
+      private: std::unique_ptr<
+        gz::transport::parameters::ParametersRegistry
+      > parametersRegistry;
+
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
 
