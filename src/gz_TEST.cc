@@ -134,7 +134,8 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, SimtimeArgument)
 {
-  std::string cmd = kGzCommand + " -r -v 4 --iterations 100 --initial-sim-time 1000.5 " +
+  std::string cmd =
+    kGzCommand + " -r -v 4 --iterations 100 --initial-sim-time 1000.5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
 
   std::cout << "Running command [" << cmd << "]" << std::endl;
