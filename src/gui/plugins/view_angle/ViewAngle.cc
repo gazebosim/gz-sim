@@ -62,6 +62,21 @@ namespace gz::sim
     /// \brief View Control reference visual service name
     public: std::string viewControlRefVisualService;
 
+    /// \brief View Control sensitivity service name
+    public: std::string viewControlSensitivityService;
+
+    /// \brief Move gui camera to pose service name
+    public: std::string moveToPoseService;
+
+    /// \brief Move gui camera to model service name
+    public: std::string moveToModelService;
+
+    /// \brief New move to model message
+    public: bool newMoveToModel = false;
+
+    /// \brief Distance of the camera to the model
+    public: double distanceMoveToModel = 0.0;
+
     /// \brief gui camera pose
     public: math::Pose3d camPose;
 
@@ -76,6 +91,14 @@ namespace gz::sim
     /// used to update qml side
     /// \return True if there is a new clipping distance from gui camera
     public: bool UpdateQtCamClipDist();
+
+    /// \brief View Control type
+    public: rendering::CameraProjectionType viewControlType =
+              rendering::CameraProjectionType::CPT_PERSPECTIVE;
+
+    /// \brief Checks if there is a new view controller, used to update qml side
+    /// \return True if there is a new view controller from gui camera
+    public: bool UpdateQtViewControl();
 
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
@@ -125,12 +148,27 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   this->dataPtr->viewControlService = "/gui/camera/view_control";
 
   // view control reference visual requests
-  this->dataPtr->viewControlRefVisualService = "/gui/camera/reference_visual";
+  this->dataPtr->viewControlRefVisualService =
+      "/gui/camera/view_control/reference_visual";
+
+  // view control sensitivity requests
+  this->dataPtr->viewControlSensitivityService =
+      "/gui/camera/view_control/sensitivity";
 
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
     topic, &ViewAngle::CamPoseCb, this);
+
+  // Move to pose service
+  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
+
+  // Move to model service
+  this->dataPtr->moveToModelService = "/gui/move_to/model";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
+      &ViewAngle::OnMoveToModelService, this);
+  gzmsg << "Move to model service on ["
+        << this->dataPtr->moveToModelService << "]" << std::endl;
 
   gz::gui::App()->findChild<
     gz::gui::MainWindow *>()->installEventFilter(this);
@@ -147,6 +185,11 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    if (this->dataPtr->UpdateQtViewControl())
+    {
+      this->ViewControlIndexChanged();
     }
   }
   else if (_event->type() ==
@@ -217,7 +260,7 @@ void ViewAngle::OnViewControlReferenceVisual(bool _enable)
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
-      ignerr << "Error setting view controller reference visual" << std::endl;
+      gzerr << "Error setting view controller reference visual" << std::endl;
   };
 
   msgs::Boolean req;
@@ -225,6 +268,29 @@ void ViewAngle::OnViewControlReferenceVisual(bool _enable)
 
   this->dataPtr->node.Request(
       this->dataPtr->viewControlRefVisualService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControlSensitivity(double _sensitivity)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      gzerr << "Error setting view controller sensitivity" << std::endl;
+  };
+
+  if (_sensitivity <= 0.0)
+  {
+    gzerr << "View controller sensitivity must be greater than 0" << std::endl;
+    return;
+  }
+
+  msgs::Double req;
+  req.set_data(_sensitivity);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlSensitivityService, req, cb);
 }
 
 /////////////////////////////////////////////////
@@ -246,6 +312,84 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
 {
   this->dataPtr->camPose.Set(_x, _y, _z, _roll, _pitch, _yaw);
   this->dataPtr->moveToPoseValue = {_x, _y, _z, _roll, _pitch, _yaw};
+}
+
+/////////////////////////////////////////////////
+bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
+  gz::msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  auto scene = this->dataPtr->camera->Scene();
+
+  auto visualToMove = scene->VisualByName(_msg.name());
+  if (nullptr == visualToMove)
+  {
+    gzerr << "Failed to get visual with ID ["
+          << _msg.name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+  Entity entityId = kNullEntity;
+  try
+  {
+    // TODO(ahcorde): When forward porting this to Garder change var type to
+    // unsigned int
+    entityId = std::get<int>(visualToMove->UserData("gazebo-entity"));
+  }
+  catch(std::bad_variant_access &_e)
+  {
+    gzerr << "Failed to get gazebo-entity user data ["
+          << visualToMove->Name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  math::Quaterniond q(
+    _msg.pose().orientation().w(),
+    _msg.pose().orientation().x(),
+    _msg.pose().orientation().y(),
+    _msg.pose().orientation().z());
+
+  gz::math::Vector3d axis;
+  double angle;
+  q.AxisAngle(axis, angle);
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      gzerr << "Error setting view controller" << std::endl;
+  };
+
+  msgs::StringMsg req;
+  std::string str = _msg.projection_type();
+  if (str.find("Orbit") != std::string::npos ||
+      str.find("orbit") != std::string::npos)
+  {
+    req.set_data("orbit");
+  }
+  else if (str.find("Ortho") != std::string::npos ||
+           str.find("ortho") != std::string::npos )
+  {
+    req.set_data("ortho");
+  }
+  else
+  {
+    gzerr << "Unknown view controller selected: " << str << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+
+  this->dataPtr->viewingAngle = true;
+  this->dataPtr->newMoveToModel = true;
+  this->dataPtr->viewAngleDirection = axis;
+  this->dataPtr->distanceMoveToModel = _msg.pose().position().z();
+  this->dataPtr->selectedEntities.push_back(entityId);
+
+  _res.set_data(true);
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -401,6 +545,35 @@ void ViewAnglePrivate::OnComplete()
 {
   this->viewingAngle = false;
   this->moveToPoseValue.reset();
+  if (this->newMoveToModel)
+  {
+    this->selectedEntities.pop_back();
+    this->newMoveToModel = false;
+
+    auto cameraPose = this->camera->WorldPose();
+    auto distance = -(this->viewAngleDirection * this->distanceMoveToModel);
+
+    if (!math::equal(this->viewAngleDirection.X(), 0.0))
+    {
+      cameraPose.Pos().X(distance.X());
+    }
+    if (!math::equal(this->viewAngleDirection.Y(), 0.0))
+    {
+      cameraPose.Pos().Y(distance.Y());
+    }
+    if (!math::equal(this->viewAngleDirection.Z(), 0.0))
+    {
+      cameraPose.Pos().Z(distance.Z());
+    }
+
+    this->moveToPoseValue = {
+      cameraPose.Pos().X(),
+      cameraPose.Pos().Y(),
+      cameraPose.Pos().Z(),
+      cameraPose.Rot().Roll(),
+      cameraPose.Rot().Pitch(),
+      cameraPose.Rot().Yaw()};
+  }
 }
 
 /////////////////////////////////////////////////
@@ -419,6 +592,31 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
     updated = true;
   }
   return updated;
+}
+
+/////////////////////////////////////////////////
+int ViewAngle::ViewControlIndex() const
+{
+  if (this->dataPtr->viewControlType ==
+        rendering::CameraProjectionType::CPT_PERSPECTIVE)
+    return 0;
+
+  return 1;
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtViewControl()
+{
+  if (!this->camera)
+    return false;
+
+  if (this->camera->ProjectionType() != this->viewControlType)
+  {
+    this->viewControlType = this->camera->ProjectionType();
+    return true;
+  }
+
+  return false;
 }
 
 // Register this plugin

@@ -369,7 +369,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
@@ -412,7 +412,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
-  EXPECT_EQ(24u, *server.EntityCount());
+  EXPECT_EQ(25u, *server.EntityCount());
   EXPECT_EQ(3u, *server.SystemCount());
 
   EXPECT_TRUE(server.HasEntity("box"));
