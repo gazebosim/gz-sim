@@ -61,8 +61,8 @@ namespace sample_system
     public: void PostUpdate(const gz::sim::UpdateInfo &_info,
                 const gz::sim::EntityComponentManager &_ecm) override;
 
-    public: void Reset(const UpdateInfo &_info,
-                 EntityComponentManager &_ecm) override;
+    public: void Reset(const gz::sim::UpdateInfo &_info,
+                 gz::sim::EntityComponentManager &_ecm) override;
   };
 }
 //! [header]

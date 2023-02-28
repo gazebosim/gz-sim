@@ -40,8 +40,8 @@ void SampleSystem2::PostUpdate(const gz::sim::UpdateInfo &_info,
   gzmsg << "SampleSystem2::PostUpdate" << std::endl;
 }
 
-void SampleSystem2::Reset(const UpdateInfo &_info,
-     EntityComponentManager &_ecm)
+void SampleSystem2::Reset(const gz::sim::UpdateInfo &_info,
+     gz::sim::EntityComponentManager &_ecm)
 {
   gzmsg << "SampleSystem2::Reset" << std::endl;
 }
