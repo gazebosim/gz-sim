@@ -42,7 +42,6 @@
 #include <ignition/gazebo/components/ParentLinkName.hh>
 #include <ignition/gazebo/components/Pose.hh>
 #include <ignition/gazebo/components/Sensor.hh>
-#include <ignition/gazebo/components/SourceFilePath.hh>
 #include <ignition/gazebo/components/ThreadPitch.hh>
 
 #include "../helpers/EnvTestFixture.hh"
