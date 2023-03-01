@@ -15,26 +15,33 @@
  *
  */
 
-#include <ignition/msgs/Utility.hh>
-
 #include "ignition/gazebo/components/ChildLinkName.hh"
 #include "ignition/gazebo/components/Joint.hh"
 #include "ignition/gazebo/components/JointAxis.hh"
 #include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
 #include "ignition/gazebo/components/JointForceCmd.hh"
+#include "ignition/gazebo/components/JointPosition.hh"
 #include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
+#include "ignition/gazebo/components/JointPositionReset.hh"
+#include "ignition/gazebo/components/JointTransmittedWrench.hh"
 #include "ignition/gazebo/components/JointType.hh"
+#include "ignition/gazebo/components/JointVelocity.hh"
 #include "ignition/gazebo/components/JointVelocityCmd.hh"
 #include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
+#include "ignition/gazebo/components/JointVelocityReset.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/ParentLinkName.hh"
 #include "ignition/gazebo/components/Pose.hh"
 #include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/ThreadPitch.hh"
-// #include "ignition/gazebo/Util.hh"
 
 #include "ignition/gazebo/Joint.hh"
+#include "ignition/gazebo/Util.hh"
+
+using namespace ignition;
+using namespace gazebo;
+
 
 class ignition::gazebo::Joint::Implementation
 {
@@ -42,12 +49,9 @@ class ignition::gazebo::Joint::Implementation
   public: gazebo::Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
-
 //////////////////////////////////////////////////
 Joint::Joint(gazebo::Entity _entity)
-  : dataPtr(ignition::utils::MakeUniqueImpl<Implementation>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
@@ -125,32 +129,24 @@ std::optional<double> Joint::ThreadPitch(
 }
 
 //////////////////////////////////////////////////
-std::optional<sdf::JointAxis> Joint::JointAxis(
-    const EntityComponentManager &_ecm, unsigned int _index) const
+std::optional<std::vector<sdf::JointAxis>> Joint::Axis(
+    const EntityComponentManager &_ecm) const
 {
-  if (_index == 0u)
-  {
-    auto axis = _ecm.Component<components::JointAxis>(this->dataPtr->id);
-    if (!axis)
-      return std::nullopt;
-    return std::optional<sdf::JointAxis>(axis->Data());
-  }
-  else if (_index == 1u)
-  {
-    auto axis = _ecm.Component<components::JointAxis2>(this->dataPtr->id);
-    if (!axis)
-      return std::nullopt;
-    return std::optional<sdf::JointAxis>(axis->Data());
-  }
-  else
-  {
-    ignwarn << "Axis index: [" << _index << "] is not supported" << std::endl;
+  auto axis = _ecm.Component<components::JointAxis>(this->dataPtr->id);
+  if (!axis)
     return std::nullopt;
-  }
+
+  std::vector<sdf::JointAxis> axisVec{axis->Data()};
+
+  auto axis2 = _ecm.Component<components::JointAxis2>(this->dataPtr->id);
+  if (axis2)
+    axisVec.push_back(axis2->Data());
+
+  return std::optional<std::vector<sdf::JointAxis>>(axisVec);
 }
 
 //////////////////////////////////////////////////
-std::optional<sdf::JointType> Joint::JointType(
+std::optional<sdf::JointType> Joint::Type(
     const EntityComponentManager &_ecm) const
 {
   auto jointType = _ecm.Component<components::JointType>(this->dataPtr->id);
@@ -224,7 +220,7 @@ void Joint::SetForce(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Joint::SetVelocityLimit(EntityComponentManager &_ecm,
+void Joint::SetVelocityLimits(EntityComponentManager &_ecm,
     const std::vector<math::Vector2d> &_limits)
 {
   auto jointVelocityLimitsCmd =
@@ -243,7 +239,7 @@ void Joint::SetVelocityLimit(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Joint::SetEffortLimit(EntityComponentManager &_ecm,
+void Joint::SetEffortLimits(EntityComponentManager &_ecm,
     const std::vector<math::Vector2d> &_limits)
 {
   auto jointEffortLimitsCmd =
@@ -262,7 +258,7 @@ void Joint::SetEffortLimit(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Joint::SetPositionLimit(EntityComponentManager &_ecm,
+void Joint::SetPositionLimits(EntityComponentManager &_ecm,
     const std::vector<math::Vector2d> &_limits)
 {
   auto jointPosLimitsCmd =
@@ -278,4 +274,101 @@ void Joint::SetPositionLimit(EntityComponentManager &_ecm,
   {
     jointPosLimitsCmd->Data() = _limits;
   }
+}
+
+//////////////////////////////////////////////////
+void Joint::ResetVelocity(EntityComponentManager &_ecm,
+    const std::vector<double> &_velocities)
+{
+  auto jointVelocityReset =
+    _ecm.Component<components::JointVelocityReset>(this->dataPtr->id);
+
+  if (!jointVelocityReset)
+  {
+    _ecm.CreateComponent(
+        this->dataPtr->id,
+        components::JointVelocityReset(_velocities));
+  }
+  else
+  {
+    jointVelocityReset->Data() = _velocities;
+  }
+}
+
+//////////////////////////////////////////////////
+void Joint::ResetPosition(EntityComponentManager &_ecm,
+    const std::vector<double> &_positions)
+{
+  auto jointPositionReset =
+    _ecm.Component<components::JointPositionReset>(this->dataPtr->id);
+
+  if (!jointPositionReset)
+  {
+    _ecm.CreateComponent(
+        this->dataPtr->id,
+        components::JointPositionReset(_positions));
+  }
+  else
+  {
+    jointPositionReset->Data() = _positions;
+  }
+}
+
+//////////////////////////////////////////////////
+void Joint::EnableVelocityCheck(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::JointVelocity>(_ecm, this->dataPtr->id,
+      _enable);
+}
+
+//////////////////////////////////////////////////
+void Joint::EnablePositionCheck(EntityComponentManager &_ecm, bool _enable)
+    const
+{
+  enableComponent<components::JointPosition>(_ecm, this->dataPtr->id,
+      _enable);
+}
+
+//////////////////////////////////////////////////
+void Joint::EnableTransmittedWrenchCheck(EntityComponentManager &_ecm,
+    bool _enable) const
+{
+  enableComponent<components::JointTransmittedWrench>(_ecm, this->dataPtr->id,
+      _enable);
+}
+
+//////////////////////////////////////////////////
+std::optional<std::vector<double>> Joint::Velocity(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::JointVelocity>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<std::vector<double>> Joint::Position(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::JointPosition>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<std::vector<msgs::Wrench>> Joint::TransmittedWrench(
+    const EntityComponentManager &_ecm) const
+{
+  // TransmittedWrench components contains one wrench msg value
+  // instead of a vector like JointPosition and JointVelocity
+  // components.
+  // todo(anyone) change JointTransmittedWrench to store a vector
+  // of wrench msgs?
+  // We provide an API that returns a vector which is consistent
+  // with Velocity and Position accessor functions
+  auto comp = _ecm.Component<components::JointTransmittedWrench>(
+      this->dataPtr->id);
+  if (!comp)
+    return std::nullopt;
+  std::vector<msgs::Wrench> wrenchVec{comp->Data()};
+  return wrenchVec;
 }
