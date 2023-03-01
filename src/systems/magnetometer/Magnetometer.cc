@@ -441,15 +441,15 @@ void MagnetometerPrivate::Update(
           // Magnetic declination and inclination (radians)
           float declination_rad =
             get_mag_declination(
-              lat_rad * 180 / M_PI, lon_rad * 180 / M_PI) * M_PI / 180;
+              lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
           float inclination_rad =
             get_mag_inclination(
-              lat_rad * 180 / M_PI, lon_rad * 180 / M_PI) * M_PI / 180;
+              lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
 
           // Magnetic strength (10^5xnanoTesla)
           float strength_ga =
             0.01f *
-            get_mag_strength(lat_rad * 180 / M_PI, lon_rad * 180 / M_PI);
+            get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
 
           // Magnetic filed components are calculated by http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
           float H = strength_ga * cosf(inclination_rad);
