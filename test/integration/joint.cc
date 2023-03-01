@@ -122,7 +122,6 @@ TEST_F(JointIntegrationTest, JointNames)
   ecm.CreateComponent<components::ChildLinkName>(id,
     components::ChildLinkName("child_joint_name"));
   EXPECT_EQ("child_joint_name", joint.ChildLinkName(ecm));
-
 }
 
 //////////////////////////////////////////////////
@@ -547,8 +546,8 @@ TEST_F(JointIntegrationTest, TransmittedWrench)
   std::vector<msgs::Wrench> wrenchOut = *joint.TransmittedWrench(ecm);
   // todo(anyone) Unlike Velocity and Position functions that return an
   // empty vector if it has not been populated yet, the wrench vector
-  // will contain one empty wrench msg. This is because the TransmittedAPI
-  // workarounds the fact that the TransmittedWrench component contains
+  // will contain one empty wrench msg. This is because the TransmittedWrench
+  // API workarounds the fact that the TransmittedWrench component contains
   // only one wrench reading instead of a wrench vector like positions and
   // velocities.
   // EXPECT_TRUE(wrenchOut.empty());
