@@ -192,6 +192,10 @@ namespace gz
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
+      /// \brief Get the simulation epoch.
+      /// \return The simulation epoch.
+      public: const std::chrono::steady_clock::duration &SimTimeEpoch() const;
+
       /// \brief Get the update period.
       /// \return The update period.
       public: const std::chrono::steady_clock::duration &UpdatePeriod() const;
@@ -217,8 +221,8 @@ namespace gz
 
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
-      /// pause. A negative number or a time less than the current simulation
-      /// time disables the run-to feature.
+      /// pause. A time prior than the current simulation time disables the
+      /// run-to feature.
       public: void SetRunToSimTime(
                   const std::chrono::steady_clock::duration &_time);
 
@@ -432,6 +436,10 @@ namespace gz
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};
 
+      /// \brief The simulation epoch.
+      /// All simulation times will be larger than the epoch. It defaults to 0.
+      private: std::chrono::steady_clock::duration simTimeEpoch{0};
+
       /// \brief List of simulation times used to compute averages.
       private: std::list<std::chrono::steady_clock::duration> simTimes;
 
@@ -489,12 +497,12 @@ namespace gz
       private: bool requestedRewind{false};
 
       /// \brief If user asks to seek to a specific sim time, this holds the
-      /// time.s A negative value means there's no request from the user.
-      private: std::chrono::steady_clock::duration requestedSeek{-1};
+      /// time.
+      private: std::optional<std::chrono::steady_clock::duration> requestedSeek;
 
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
+      /// \brief A simulation time past the epoch to run to and then pause.
+      private: std::optional<std::chrono::steady_clock::duration>
+        requestedRunToSimTime;
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
