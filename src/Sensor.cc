@@ -15,7 +15,6 @@
  *
  */
 
-#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
@@ -60,7 +59,8 @@ bool Sensor::Valid(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
-std::optional<std::string> Sensor::Name(const EntityComponentManager &_ecm) const
+std::optional<std::string> Sensor::Name(const EntityComponentManager &_ecm)
+    const
 {
   return _ecm.ComponentData<components::Name>(this->dataPtr->id);
 }

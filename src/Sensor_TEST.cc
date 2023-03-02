@@ -19,12 +19,11 @@
 
 #include <cstddef>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Sensor.hh"
-#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/Name.hh"
 #include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Sensor.hh"
+#include "ignition/gazebo/EntityComponentManager.hh"
+#include "ignition/gazebo/Sensor.hh"
 
 /////////////////////////////////////////////////
 TEST(SensorTest, Constructor)

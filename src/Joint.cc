@@ -374,7 +374,8 @@ std::optional<std::vector<msgs::Wrench>> Joint::TransmittedWrench(
 }
 
 //////////////////////////////////////////////////
-std::optional<Model> Joint::ParentModel(const EntityComponentManager &_ecm) const
+std::optional<Model> Joint::ParentModel(const EntityComponentManager &_ecm)
+    const
 {
   auto parent = _ecm.Component<components::ParentEntity>(this->dataPtr->id);
 
