@@ -34,7 +34,10 @@
 #include "../../test/helpers/EnvTestFixture.hh"
 
 int gg_argc = 1;
-char **gg_argv = new char *[gg_argc];
+char* gg_argv[] =
+{
+  reinterpret_cast<char*>(const_cast<char*>("./gui_test")),
+};
 
 using namespace ignition;
 using namespace ignition::gazebo::gui;
@@ -269,4 +272,3 @@ TEST_F(GuiTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   app->exec();
   checkingThread.join();
 }
-

@@ -407,7 +407,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       parsed = ''
       if options['file'] != ''
         # Check if the passed in file exists.
-        if File.exists?(options['file'])
+        if File.exist?(options['file'])
           path = options['file']
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
@@ -417,7 +417,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
               filePath = File.join(resourcePath, options['file'])
-              if File.exists?(filePath)
+              if File.exist?(filePath)
                 path = filePath
                 break
               end
@@ -427,7 +427,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
           if path.nil?
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
-            if !File.exists?(path)
+            if !File.exist?(path)
               path = Importer.findFuelResource(options['file']).to_s
               options['file'] = path
               if path == ""
@@ -544,10 +544,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
         Importer.runGui(options['gui_config'], options['file'],
             options['wait_gui'], options['render_engine_gui'])
       end
-    rescue
-      puts "Library error: Problem running [#{options['command']}]() "\
-        "from #{plugin}."
-    # begin
     end
   # execute
   end

@@ -46,7 +46,9 @@ set (sources
   Barrier.cc
   BaseView.cc
   Conversions.cc
+  ComponentFactory.cc
   EntityComponentManager.cc
+  Joint.cc
   LevelManager.cc
   Link.cc
   Model.cc
@@ -78,6 +80,7 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
+  Joint_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc

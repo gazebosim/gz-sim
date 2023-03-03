@@ -1,5 +1,59 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.14.0 (2022-12-29)
+
+1. Fix Ackermann plugin zero linVel turningRadius bug
+    * [Pull request #1849](https://github.com/gazebosim/gz-sim/pull/1849)
+
+1. Header guard fix for battery power load component
+    * [Pull request #1846](https://github.com/gazebosim/gz-sim/pull/1846)
+
+1. Add interface to allow systems to declare parameters
+    * [Pull request #1431](https://github.com/gazebosim/gz-sim/pull/1431)
+
+1. Adding battery consumers and extra fixes
+    * [Pull request #1811](https://github.com/gazebosim/gz-sim/pull/1811)
+
+1. Disable tests that require dartsim on windows
+    * [Pull request #1840](https://github.com/gazebosim/gz-sim/pull/1840)
+
+1. Added move camera to model service
+    * [Pull request #1823](https://github.com/gazebosim/gz-sim/pull/1823)
+
+1. Add spin box to View Angle plugin for configuring view control sensitivity
+    * [Pull request #1799](https://github.com/gazebosim/gz-sim/pull/1799)
+
+1. Sync View Angle GUI with view controller
+    * [Pull request #1825](https://github.com/gazebosim/gz-sim/pull/1825)
+
+1. Hydrodynamics flags test strengthening
+    * [Pull request #1819](https://github.com/gazebosim/gz-sim/pull/1819)
+
+1. Fixed Fortress tests related to lights
+    * [Pull request #1827](https://github.com/gazebosim/gz-sim/pull/1827)
+
+1. Allow to move to model from Angle view plugin
+    * [Pull request #1810](https://github.com/gazebosim/gz-sim/pull/1810)
+
+1. Fixed light entity number
+    * [Pull request #1818](https://github.com/gazebosim/gz-sim/pull/1818)
+
+1. Check AddBvnAnimation return value
+    * [Pull request #1750](https://github.com/gazebosim/gz-sim/pull/1750)
+
+1. Add checkbox in view angle plugin for toggling view control reference visual
+    * [Pull request #1788](https://github.com/gazebosim/gz-sim/pull/1788)
+
+1. Adds support for hydrodynamic cross terms
+    * [Pull request #1784](https://github.com/gazebosim/gz-sim/pull/1784)
+
+1. Addresses flakiness in `Hydrodynamics.VelocityTestInOil`.
+    * [Pull request #1787](https://github.com/gazebosim/gz-sim/pull/1787)
+
+1. Fix minor bugs in RFComms plugin
+    * [Pull request #1743](https://github.com/gazebosim/gz-sim/pull/1743)
+
+
 ### Gazebo Sim 6.13.0 (2022-11-04)
 
 1. Fix two tests on Windows
@@ -53,7 +107,7 @@
 1. Enable inherited model topic name.
     * [Pull request #1689](https://github.com/gazebosim/ign-gazebo/pull/1689)
 
-1. Fix loading render engine plugins in GUI 
+1. Fix loading render engine plugins in GUI
     * [Pull request #1694](https://github.com/gazebosim/ign-gazebo/pull/1694)
 
 1. Add a service to trigger functionality

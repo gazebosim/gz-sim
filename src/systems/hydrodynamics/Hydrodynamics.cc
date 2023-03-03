@@ -183,6 +183,8 @@ void Hydrodynamics::Configure(
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
   const auto snameConventionMoment = "xyzkmn";
+
+  bool warnBehaviourChange = false;
   for(auto i = 0; i < 6; i++)
   {
     for(auto j = 0; j < 6; j++)
@@ -193,11 +195,17 @@ void Hydrodynamics::Configure(
         SdfParamDouble(_sdf, prefix, 0);
       for(auto k = 0; k < 6; k++)
       {
+        auto fieldName = prefix + snameConventionVel[k];
         this->dataPtr->stabilityQuadraticDerivative[i*36 + j*6 + k] =
           SdfParamDouble(
             _sdf,
-            prefix + snameConventionVel[k],
+            fieldName,
             0);
+
+        if (_sdf->HasElement(fieldName)) {
+          warnBehaviourChange = true;
+        }
+
         this->dataPtr->stabilityQuadraticAbsDerivative[i*36 + j*6 + k] =
           SdfParamDouble(
             _sdf,
@@ -205,6 +213,16 @@ void Hydrodynamics::Configure(
             0);
       }
     }
+  }
+
+
+  if (warnBehaviourChange)
+  {
+    ignwarn << "You are using parameters that may cause instabilities "
+      << "in your simulation. If your simulation crashes we recommend "
+      << "renaming <xUU> -> <xUabsU> and likewise for other axis "
+      << "for more information see:" << std::endl
+      << "\thttps://github.com/gazebosim/gz-sim/pull/1888" << std::endl;
   }
 
   // Added mass according to Fossen's equations (p 37)

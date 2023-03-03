@@ -193,7 +193,7 @@ ColumnLayout {
 
   // Projection
   ComboBox {
-    currentIndex: 0
+    currentIndex: ViewAngle.viewControlIndex
     model: ListModel {
         id: controller
         ListElement {text: "Orbit View Control"}
@@ -204,6 +204,43 @@ ColumnLayout {
     Layout.margins: 10
     onCurrentIndexChanged: {
         ViewAngle.OnViewControl(controller.get(currentIndex).text)
+    }
+  }
+
+  // view control sensitivity
+  GridLayout {
+    Layout.fillWidth: true
+    Layout.margins: 10
+    columns: 2
+
+    Label {
+      id: viewControlSensitivityLabel
+      text: "View control sensitivity"
+    }
+    IgnSpinBox {
+      id: viewControlSensitivitySpinBox
+      Layout.fillWidth: true
+      value: 1.0
+      maximumValue: 10.0
+      minimumValue: 0.01
+      decimals: 2
+      stepSize: 0.1
+      onEditingFinished:{
+        ViewAngle.OnViewControlSensitivity(value)
+      }
+    }
+  }
+
+  // toggle view control reference visual
+  CheckBox {
+    Layout.alignment: Qt.AlignHCenter
+    id: displayVisual
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    text: qsTr("Display View Control Reference Visual")
+    checked: true
+    onClicked: {
+      ViewAngle.OnViewControlReferenceVisual(checked)
     }
   }
 

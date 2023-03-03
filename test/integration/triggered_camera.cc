@@ -25,7 +25,9 @@
 #pragma warning(pop)
 #endif
 
+#include "ignition/gazebo/rendering/Events.hh"
 #include "ignition/gazebo/Server.hh"
+#include "ignition/gazebo/SystemLoader.hh"
 #include "ignition/gazebo/test_config.hh"
 #include <ignition/common/Console.hh>
 #include <ignition/common/Util.hh>
@@ -43,11 +45,30 @@ using namespace std::chrono_literals;
 /// \brief Test TriggeredCameraTest system
 class TriggeredCameraTest : public InternalFixture<::testing::Test>
 {
+  protected: void SetUp() override
+  {
+    InternalFixture::SetUp();
+
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetName("ignition::gazebo::MockSystem");
+    auto plugin = sm.LoadPlugin(sdfPlugin);
+    EXPECT_TRUE(plugin.has_value());
+    this->systemPtr = plugin.value();
+    this->mockSystem = static_cast<MockSystem *>(
+        systemPtr->QueryInterface<System>());
+  }
+
+  public: SystemPluginPtr systemPtr;
+  public: MockSystem *mockSystem;
+
+  private: SystemLoader sm;
 };
 
 std::mutex mutex;
 msgs::Image imageMsg;
 unsigned char *imageBuffer = nullptr;
+bool renderingStarted = false;
 
 /////////////////////////////////////////////////
 void imageCb(const msgs::Image &_msg)
@@ -62,6 +83,13 @@ void imageCb(const msgs::Image &_msg)
     imageBuffer = new unsigned char[imageSamples];
   memcpy(imageBuffer, _msg.data().c_str(), imageSamples);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+void OnPostRender()
+{
+  std::lock_guard<std::mutex> lock(mutex);
+  renderingStarted = true;
 }
 
 /////////////////////////////////////////////////
@@ -80,7 +108,33 @@ TEST_F(TriggeredCameraTest,
   EXPECT_FALSE(*server.Running(0));
 
   server.SetUpdatePeriod(100us);
+
+  common::ConnectionPtr postRenderConn;
+  this->mockSystem = static_cast<MockSystem *>(
+        systemPtr->QueryInterface<System>());
+  this->mockSystem->configureCallback =
+    [&](const Entity &,
+           const std::shared_ptr<const sdf::Element> &,
+           EntityComponentManager &,
+           EventManager &_eventMgr)
+    {
+      postRenderConn = _eventMgr.Connect<events::PostRender>(
+          std::bind(&::OnPostRender));
+    };
+
+  server.AddSystem(this->systemPtr);
   server.Run(false, 0, false);
+
+  // wait for rendering to be initialized
+  int sleep{0};
+  int maxSleep{30};
+  bool ready = false;
+  while (!ready && sleep++ < maxSleep)
+  {
+    std::this_thread::sleep_for(100ms);
+    std::lock_guard<std::mutex> lock(mutex);
+    ready = renderingStarted;
+  }
 
   // Subscribe to the image topic
   transport::Node node;
@@ -94,8 +148,7 @@ TEST_F(TriggeredCameraTest,
   ignition::msgs::Boolean msg;
   msg.set_data(true);
 
-  int sleep{0};
-  int maxSleep{30};
+  sleep = 0;
   while (imageBuffer == nullptr && sleep < maxSleep)
   {
     pub.Publish(msg);

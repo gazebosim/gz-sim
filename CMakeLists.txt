@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.13.0)
+project(ignition-gazebo6 VERSION 6.14.0)
 set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
@@ -70,7 +70,7 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport11 REQUIRED COMPONENTS log)
+ign_find_package(ignition-transport11 REQUIRED COMPONENTS log parameters)
 set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------

@@ -51,17 +51,17 @@ namespace systems
   ///   * <kDotP> - Added mass in roll direction [kgm^2]
   ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
   ///   * <nDotR> - Added mass in yaw direction [kgm^2]
-  ///   * <xUU>   - Quadratic damping, 2nd order, x component [kg/m]
+  ///   * <xUabsU>   - Quadratic damping, 2nd order, x component [kg/m]
   ///   * <xU>    - Linear damping, 1st order, x component [kg]
-  ///   * <yVV>   - Quadratic damping, 2nd order, y component [kg/m]
+  ///   * <yVabsV>   - Quadratic damping, 2nd order, y component [kg/m]
   ///   * <yV>    - Linear damping, 1st order, y component [kg]
-  ///   * <zWW>   - Quadratic damping, 2nd order, z component [kg/m]
+  ///   * <zWabsW>   - Quadratic damping, 2nd order, z component [kg/m]
   ///   * <zW>    - Linear damping, 1st order, z component [kg]
-  ///   * <kPP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
+  ///   * <kPabsP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
   ///   * <kP>    - Linear damping, 1st order, roll component [kg/m]
-  ///   * <mQQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
+  ///   * <mQabsQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
-  ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
+  ///   * <nRabsR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
   /// ### Cross terms
   /// In general we support cross terms as well. These are terms which act on
@@ -72,7 +72,12 @@ namespace systems
   /// and yaw axis respectively.
   ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
   ///       Units are either kg or kgm^2 depending on the choice of terms.
-  ///   * Quadratic Damping:  <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
+  ///   * Quadratic Damping With abs term (this is probably what you want):
+  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>
+  ///       e.g. <xRabsQ>
+  ///       Units are either kg/m or kg/m^2.
+  ///   * Quadratic Damping (could lead to unwanted oscillations):
+  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
   ///       e.g. <xRQ>
   ///       Units are either kg/m or kg/m^2.
   ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
