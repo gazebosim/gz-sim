@@ -104,6 +104,57 @@ TEST_F(ActorIntegrationTest, Pose)
 }
 
 //////////////////////////////////////////////////
+TEST_F(ActorIntegrationTest, TrajectoryPose)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Actor>(id, components::Actor());
+
+  Actor actor(id);
+
+  // No pose
+  EXPECT_EQ(std::nullopt, actor.TrajectoryPose(ecm));
+
+  // Add pose
+  math::Pose3d pose(3, 42, 35, 2.1, 3.2, 1.3);
+  ecm.CreateComponent<components::TrajectoryPose>(id,
+      components::TrajectoryPose(pose));
+  EXPECT_EQ(pose, actor.TrajectoryPose(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ActorIntegrationTest, SetTrajectoryPose)
+{
+  EntityComponentManager ecm;
+
+  auto eActor = ecm.CreateEntity();
+  ecm.CreateComponent(eActor, components::Actor());
+
+  Actor actor(eActor);
+  EXPECT_EQ(eActor, actor.Entity());
+
+  ASSERT_TRUE(actor.Valid(ecm));
+
+  // No TrajectoryPose should exist by default
+  EXPECT_EQ(nullptr, ecm.Component<components::TrajectoryPose>(eActor));
+
+  math::Pose3d pose(0.1, 2.3, 4.7, 0, 0, 1.0);
+  actor.SetTrajectoryPose(ecm, pose);
+
+  // trajectory pose should exist
+  EXPECT_NE(nullptr, ecm.Component<components::TrajectoryPose>(eActor));
+  EXPECT_EQ(pose,
+    ecm.Component<components::TrajectoryPose>(eActor)->Data());
+
+  // Make sure the trajectory pose is updated
+  math::Pose3d pose2(1.0, 3.2, 7.4, 1.0, 0, 0.0);
+  actor.SetTrajectoryPose(ecm, pose2);
+  EXPECT_EQ(pose2,
+    ecm.Component<components::TrajectoryPose>(eActor)->Data());
+}
+
+//////////////////////////////////////////////////
 TEST_F(ActorIntegrationTest, SetAnimationName)
 {
   EntityComponentManager ecm;
@@ -122,7 +173,7 @@ TEST_F(ActorIntegrationTest, SetAnimationName)
   std::string animName = "animation_name";
   actor.SetAnimationName(ecm, animName);
 
-  // aniation name should exist
+  // animation name should exist
   EXPECT_NE(nullptr, ecm.Component<components::AnimationName>(eActor));
   EXPECT_EQ(animName,
     ecm.Component<components::AnimationName>(eActor)->Data());
@@ -153,7 +204,7 @@ TEST_F(ActorIntegrationTest, SetAnimationTime)
   std::chrono::steady_clock::duration animTime = std::chrono::milliseconds(30);
   actor.SetAnimationTime(ecm, animTime);
 
-  // aniation time should exist
+  // animation time should exist
   EXPECT_NE(nullptr, ecm.Component<components::AnimationTime>(eActor));
   EXPECT_EQ(animTime,
     ecm.Component<components::AnimationTime>(eActor)->Data());

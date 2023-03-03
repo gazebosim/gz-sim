@@ -76,6 +76,33 @@ std::optional<math::Pose3d> Actor::Pose(
 }
 
 //////////////////////////////////////////////////
+void Actor::SetTrajectoryPose(EntityComponentManager &_ecm,
+    const math::Pose3d &_pose)
+{
+  auto pose =
+    _ecm.Component<components::TrajectoryPose>(this->dataPtr->id);
+
+  if (!pose)
+  {
+    _ecm.CreateComponent(
+        this->dataPtr->id,
+        components::TrajectoryPose(_pose));
+  }
+  else
+  {
+    pose->Data() = _pose;
+  }
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Pose3d> Actor::TrajectoryPose(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::TrajectoryPose>(
+      this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
 void Actor::SetAnimationName(EntityComponentManager &_ecm,
     const std::string &_name)
 {

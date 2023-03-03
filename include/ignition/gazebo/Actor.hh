@@ -83,12 +83,39 @@ namespace ignition
       public: std::optional<std::string> Name(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the pose of the actor
+      /// \brief Get the pose of the actor.
+      /// If the actor has a trajectory, this will only return the origin
+      /// pose of the trajectory. If a manual trajectory pose is set via
+      /// SetTrajectoryPose, The actual pose of the actor in world frame will
+      /// be Pose * TrajectoryPose.
       /// \param[in] _ecm Entity-component manager.
       /// \return Pose of the actor or nullopt if the entity does not
       /// have a components::Pose component.
+      /// \sa TrajectoryPose
       public: std::optional<math::Pose3d> Pose(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the trajectory pose of the actor. There are two
+      /// ways that the actor can follow a trajectory: 1) SDF script,
+      /// 2) manually setting trajectory pose. This function retrieves 2) the
+      /// manual trajectory pose set by the user. The Trajectory pose is
+      /// given relative to the trajectory pose origin returned by Pose().
+      /// \param[in] _ecm Entity Component manager.
+      /// \return Trajectory pose of the actor w.r.t. to trajectory origin.
+      /// \sa Pose
+      public: std::optional<math::Pose3d> TrajectoryPose(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Set the trajectory pose of the actor. There are two
+      /// ways that the actor can follow a trajectory: 1) SDF script,
+      /// 2) manually setting trajectory pose. This function enables option 2).
+      /// Manually setting the trajectory pose will override the scripted
+      /// trajectory specified in SDF.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _name Trajectory pose w.r.t. to the trajectory origin
+      /// \sa Pose
+      public: void SetTrajectoryPose(EntityComponentManager &_ecm,
+          const math::Pose3d &_pose);
 
       /// \brief Set the name of animation to use for this actor.
       /// \param[in] _ecm Entity Component manager.
