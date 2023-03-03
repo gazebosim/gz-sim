@@ -353,7 +353,7 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.horizontalFOV
-      maximumValue: 5
+      maximumValue: 3.14159
       minimumValue: 0.000001
       decimals: 6
       stepSize: 0.01
