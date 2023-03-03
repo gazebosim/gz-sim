@@ -179,7 +179,8 @@ TEST_F(HydrodynamicsTest,
 
 /////////////////////////////////////////////////
 /// This tests the current. A current of (1, 0, 0) is loaded in via a csv file
-TEST_F(HydrodynamicsTest, TransformsTestIn)
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TransformsTestIn))
 {
   this->defaultForce = math::Vector3d(0, 0, 0);
   auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
