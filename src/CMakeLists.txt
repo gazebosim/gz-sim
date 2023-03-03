@@ -43,6 +43,7 @@ set(cli_sources
 )
 
 set (sources
+  Actor.cc
   Barrier.cc
   BaseView.cc
   Conversions.cc
@@ -73,6 +74,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Actor_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc

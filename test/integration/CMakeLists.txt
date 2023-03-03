@@ -1,6 +1,7 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  actor.cc
   ackermann_steering_system.cc
   air_pressure_system.cc
   altimeter_system.cc
