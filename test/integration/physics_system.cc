@@ -2347,7 +2347,6 @@ TEST_F(PhysicsSystemFixture,
               parentLink.EnableVelocityChecks(_ecm);
               parentLink.EnableAccelerationChecks(_ecm);
               using namespace gz::math;
-              auto dt = std::chrono::duration_cast<std::chrono::nanoseconds>(_info.dt).count();
               // increasing force downward
               auto force = -Vector3d::UnitZ * iterations / nIters;
               // increasing torque around z
@@ -2423,6 +2422,8 @@ TEST_F(PhysicsSystemFixture,
             << "Model should be falling down.";
   }
   
+  double norm_lin_vel_yz, norm_world_lin_vel_xy;
+  double norm_lin_acc_yz, norm_world_lin_acc_xy;
   // the first part checks that:
   // - the collision poses are updated correctly
   // - linear velocities (world/local) are updated.
@@ -2435,6 +2436,11 @@ TEST_F(PhysicsSystemFixture,
     // local should mostly be X , world should be -Z
     EXPECT_NEAR(linAccs[i].X(), gravity.Length(), 1e-2) << "Local linear acceleration should be along X axis";
     EXPECT_NEAR(worldLinAccs[i].Z(), -gravity.Length(), 1e-2) << "World Linear acceleration should be along -Z axis";
+    // on the local(world) YZ(XY) plane the acceleration should be 0
+    norm_lin_acc_yz = sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_NEAR(norm_lin_acc_yz, 0, 1e-2) << "Local Linear acceleration on YZ-plane should be 0";
+    norm_world_lin_acc_xy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() + worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_NEAR(norm_world_lin_acc_xy , 0, 1e-2) << "World Linear acceleration on XY-plane should be 0";
     
     // --- LIN VEL (WORLD, LOCAL)
     // linear velocity should keep increasing, both local and world
@@ -2443,6 +2449,11 @@ TEST_F(PhysicsSystemFixture,
     // local should mostly be X , world should be -Z
     EXPECT_GT(linVels[i-1].X(), 0) << "Local linear vel should be positive in x";
     EXPECT_LT(worldLinVels[i-1].Z(), 0) << "World linear vel should be negative in z";
+    // on the local(world) YZ(XY) plane the velocity should be 0
+    norm_lin_vel_yz = sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_NEAR(norm_lin_vel_yz, 0, 1e-2) << "Local Linear velocity on YZ-plane should be zero";
+    norm_world_lin_vel_xy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() + worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_NEAR(norm_world_lin_vel_xy , 0, 1e-2) << "World Linear acceleration on XY-plane should be zero";
 
     // --- ANG ACC (WORLD, LOCAL)
     // angular acc is constant = 0 (both world and local)
@@ -2463,6 +2474,16 @@ TEST_F(PhysicsSystemFixture,
     // --- LIN ACC (WORLD, LOCAL)
     EXPECT_LT(linAccs[i-1].Length(), linAccs[i].Length()) << "Local Linear Acceleration should be increasing.";
     EXPECT_LT(worldLinAccs[i-1].Length(), worldLinAccs[i].Length()) << "World Linear Acceleration should be increasing.";
+    // on the local(world) YZ(XY) plane the acceleration norm should be positive
+    norm_lin_acc_yz = sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_GT(norm_lin_acc_yz, 0) << "Local Linear acceleration on YZ-plane should be positive";
+    norm_world_lin_acc_xy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() + worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_GT(norm_world_lin_acc_xy , 0) << "World Linear acceleration on XY-plane should be positive";
+    // on the local(world) YZ(XY) plane the velocity should be positive
+    norm_lin_vel_yz = sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_GT(norm_lin_vel_yz, 0) << "Local Linear velocity on YZ-plane should be positive";
+    norm_world_lin_vel_xy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() + worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_GT(norm_world_lin_vel_xy , 0) << "World Linear acceleration on XY-plane should be positive";
     
     // --- ANG ACC (WORLD, LOCAL)
     EXPECT_LT(angAccs[i-1].Length(), angAccs[i].Length()) << "Local Angular Acceleration should be increasing.";
