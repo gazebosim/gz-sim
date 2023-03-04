@@ -3327,7 +3327,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
         return true;
       });
-  
+
   // body linear velocity
   _ecm.Each<components::Pose, components::LinearVelocity,
             components::ParentEntity>(
@@ -3340,19 +3340,19 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       {
         const auto entityFrameData =
             this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
-        
+
         auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
-        math::Vector3d entityWorldLinearVel = 
+        math::Vector3d entityWorldLinearVel =
             math::eigen3::convert(entityFrameData.linearVelocity);
-        
-        auto entityBodyLinearVel = 
+
+        auto entityBodyLinearVel =
             entityWorldPose.Rot().RotateVectorReverse(entityWorldLinearVel);
         *_linearVel = components::LinearVelocity(entityBodyLinearVel);
       }
 
       return true;
     });
-  
+
   // world angular velocity
   _ecm.Each<components::Pose, components::WorldAngularVelocity,
             components::ParentEntity>(
@@ -3364,14 +3364,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         // check if parent entity is a link, e.g. entity is sensor / collision
         if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
         {
-          const auto entityFrameData = 
+          const auto entityFrameData =
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
-            
+
           // set entity world angular velocity
           *_worldAngularVel = components::WorldAngularVelocity(
               math::eigen3::convert(entityFrameData.angularVelocity));
         }
-      
+
         return true;
       });
 
@@ -3400,7 +3400,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
         return true;
       });
-  
+
   // world linear acceleration
   _ecm.Each<components::Pose, components::WorldLinearAcceleration,
             components::ParentEntity>(
@@ -3413,7 +3413,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         {
           const auto entityFrameData =
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
-          
+
           // set entity world linear acceleration
           *_worldLinearAcc = components::WorldLinearAcceleration(
               math::eigen3::convert(entityFrameData.linearAcceleration));
@@ -3446,7 +3446,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
         return true;
       });
-  
+
   // world angular acceleration
   _ecm.Each<components::Pose, components::WorldAngularAcceleration,
             components::ParentEntity>(
@@ -3459,7 +3459,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         {
           const auto entityFrameData =
               this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
-          
+
           // set entity world angular acceleration
           *_worldAngularAcc = components::WorldAngularAcceleration(
               math::eigen3::convert(entityFrameData.angularAcceleration));

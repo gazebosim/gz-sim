@@ -2276,10 +2276,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
 /// This test makes sure that non-link entities' components
 /// are updated by the physics system if they have been enabled.
 /// A collision is a non-link entity
-TEST_F(PhysicsSystemFixture, 
+TEST_F(PhysicsSystemFixture,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(NonLinkComponentsAreUpdated))
 {
-        
+
   ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -2319,7 +2319,7 @@ TEST_F(PhysicsSystemFixture,
         const components::Name *_name,
         const components::ParentEntity *_parentEntity)->bool
         {
-          // we only enable the velocity, acceleration components for 
+          // we only enable the velocity, acceleration components for
           // the collision_with_offset
           if (_name->Data() == collisionWithOffsetName){
             enableComponent<components::WorldPose>(_ecm, _entity);
@@ -2331,9 +2331,9 @@ TEST_F(PhysicsSystemFixture,
             enableComponent<components::AngularAcceleration>(_ecm, _entity);
             enableComponent<components::WorldLinearAcceleration>(_ecm, _entity);
             enableComponent<components::WorldAngularAcceleration>(_ecm, _entity);
-            
+
           }
-          return true; 
+          return true;
         });
 
       _ecm.Each<components::Collision, components::Name, components::ParentEntity>(
@@ -2356,7 +2356,7 @@ TEST_F(PhysicsSystemFixture,
             return true;
         });
     });
-  
+
 
   // save all the components history
   testSystem.OnPostUpdate(
@@ -2375,7 +2375,7 @@ TEST_F(PhysicsSystemFixture,
             const components::AngularAcceleration *_angularAcc,
             const components::WorldLinearAcceleration *_worldLinearAcc,
             const components::WorldAngularAcceleration *_worldAngularAcc) -> bool
-            { 
+            {
               EXPECT_TRUE(_name->Data() == collisionWithOffsetName);
               if (_name->Data() == collisionWithOffsetName)
               {
@@ -2413,15 +2413,15 @@ TEST_F(PhysicsSystemFixture,
   EXPECT_NEAR(0.1, collisionPoses.front().Pos().X(), 1e-2);
   EXPECT_NEAR(0.2, collisionPoses.front().Pos().Y(), 1e-2);
   EXPECT_NEAR(2, collisionPoses.front().Pos().Z(), 1e-2);
-  
+
   // Make sure the position is updated every time step
   // (here, the model is falling down, so only z should be updated)
   for (size_t i = 1; i <= nIters; i++)
   {
-    EXPECT_GT(collisionPoses[i-1].Pos().Z(), collisionPoses[i].Pos().Z()) 
+    EXPECT_GT(collisionPoses[i-1].Pos().Z(), collisionPoses[i].Pos().Z())
             << "Model should be falling down.";
   }
-  
+
   double norm_lin_vel_yz, norm_world_lin_vel_xy;
   double norm_lin_acc_yz, norm_world_lin_acc_xy;
   // the first part checks that:
@@ -2441,7 +2441,7 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_NEAR(norm_lin_acc_yz, 0, 1e-2) << "Local Linear acceleration on YZ-plane should be 0";
     norm_world_lin_acc_xy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() + worldLinAccs[i].Y() * worldLinAccs[i].Y());
     EXPECT_NEAR(norm_world_lin_acc_xy , 0, 1e-2) << "World Linear acceleration on XY-plane should be 0";
-    
+
     // --- LIN VEL (WORLD, LOCAL)
     // linear velocity should keep increasing, both local and world
     EXPECT_LT(linVels[i-1].Length(), linVels[i].Length()) << "Local linear velocity should keep increasing";
@@ -2464,7 +2464,7 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_NEAR(angVels[i].Length(), 0, 1e-2);
     EXPECT_NEAR(worldAngVels[i].Length(), 0, 1e-2);
   }
-  
+
   // Second part, we applied a varying wrench, and we should see:
   //  - linear acceleration (world/local) are updated
   //  - angular acceleration (world/local) are updated
@@ -2484,7 +2484,7 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_GT(norm_lin_vel_yz, 0) << "Local Linear velocity on YZ-plane should be positive";
     norm_world_lin_vel_xy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() + worldLinVels[i].Y() * worldLinVels[i].Y());
     EXPECT_GT(norm_world_lin_vel_xy , 0) << "World Linear acceleration on XY-plane should be positive";
-    
+
     // --- ANG ACC (WORLD, LOCAL)
     EXPECT_LT(angAccs[i-1].Length(), angAccs[i].Length()) << "Local Angular Acceleration should be increasing.";
     EXPECT_LT(worldAngAccs[i-1].Length(), worldAngAccs[i].Length()) << "World Angular Acceleration should be increasing.";
@@ -2493,5 +2493,5 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_LT(angVels[i-1].Length(), angVels[i].Length()) << "Local Angular Velocity should be increasing.";
     EXPECT_LT(worldAngVels[i-1].Length(), worldAngVels[i].Length()) << "World Angular Velocity should be increasing.";
   }
-  
+
 }
