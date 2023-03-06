@@ -23,6 +23,7 @@
 #include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
 #include "ignition/gazebo/components/Name.hh"
+#include "ignition/gazebo/components/ParentEntity.hh"
 #include "ignition/gazebo/components/Pose.hh"
 
 #include "ignition/gazebo/Light.hh"
@@ -507,4 +508,15 @@ void Light::SetSpotFalloff(EntityComponentManager &_ecm,
   {
     lightCmd->Data() = lightMsg;
   }
+}
+
+//////////////////////////////////////////////////
+std::optional<Entity> Light::Parent(const EntityComponentManager &_ecm) const
+{
+  auto parent = _ecm.Component<components::ParentEntity>(this->dataPtr->id);
+
+  if (!parent)
+    return std::nullopt;
+
+  return std::optional<gazebo::Entity>(parent->Data());
 }

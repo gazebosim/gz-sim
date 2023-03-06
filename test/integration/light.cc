@@ -33,9 +33,11 @@
 #include <ignition/gazebo/components/Light.hh>
 #include <ignition/gazebo/components/LightCmd.hh>
 #include <ignition/gazebo/components/LightType.hh>
+#include <ignition/gazebo/components/Link.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/Pose.hh>
+#include <ignition/gazebo/components/World.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -749,4 +751,52 @@ TEST_F(LightIntegrationTest, SetSpotFalloff)
   light.SetSpotFalloff(ecm, falloff2);
   EXPECT_FLOAT_EQ(falloff2,
     ecm.Component<components::LightCmd>(eLight)->Data().spot_falloff());
+}
+
+//////////////////////////////////////////////////
+TEST_F(LightIntegrationTest, Parent)
+{
+  EntityComponentManager ecm;
+
+  {
+    // Link as parent
+    auto eLink = ecm.CreateEntity();
+    ecm.CreateComponent(eLink, components::Link());
+    auto eLight = ecm.CreateEntity();
+    ecm.CreateComponent(eLight, components::Light());
+
+    Light light(eLight);
+    EXPECT_EQ(eLight, light.Entity());
+    EXPECT_FALSE(light.Parent(ecm).has_value());
+
+    ecm.CreateComponent<components::ParentEntity>(eLight,
+        components::ParentEntity(eLink));
+    ASSERT_TRUE(light.Valid(ecm));
+
+    // Check parent link
+    EXPECT_EQ(eLink, ecm.ParentEntity(eLight));
+    auto parentLink = light.Parent(ecm);
+    EXPECT_EQ(eLink, parentLink);
+  }
+
+  {
+    // World as parent
+    auto eWorld = ecm.CreateEntity();
+    ecm.CreateComponent(eWorld, components::World());
+    auto eLight = ecm.CreateEntity();
+    ecm.CreateComponent(eLight, components::Light());
+
+    Light light(eLight);
+    EXPECT_EQ(eLight, light.Entity());
+    EXPECT_FALSE(light.Parent(ecm).has_value());
+
+    ecm.CreateComponent<components::ParentEntity>(eLight,
+        components::ParentEntity(eWorld));
+    ASSERT_TRUE(light.Valid(ecm));
+
+    // Check parent world
+    EXPECT_EQ(eWorld, ecm.ParentEntity(eLight));
+    auto parentWorld = light.Parent(ecm);
+    EXPECT_EQ(eWorld, parentWorld);
+  }
 }
