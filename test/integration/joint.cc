@@ -37,6 +37,7 @@
 #include <ignition/gazebo/components/JointVelocityCmd.hh>
 #include <ignition/gazebo/components/JointVelocityLimitsCmd.hh>
 #include <ignition/gazebo/components/JointVelocityReset.hh>
+#include <ignition/gazebo/components/Model.hh>
 #include <ignition/gazebo/components/Name.hh>
 #include <ignition/gazebo/components/ParentEntity.hh>
 #include <ignition/gazebo/components/ParentLinkName.hh>
@@ -569,4 +570,32 @@ TEST_F(JointIntegrationTest, TransmittedWrench)
   joint.EnableTransmittedWrenchCheck(ecm, false);
   EXPECT_EQ(std::nullopt, joint.TransmittedWrench(ecm));
   EXPECT_EQ(nullptr, ecm.Component<components::JointTransmittedWrench>(eJoint));
+}
+
+//////////////////////////////////////////////////
+TEST_F(JointIntegrationTest, ParentModel)
+{
+  EntityComponentManager ecm;
+
+  // Model
+  auto eModel = ecm.CreateEntity();
+  ecm.CreateComponent(eModel, components::Model());
+  auto eJoint = ecm.CreateEntity();
+  ecm.CreateComponent(eJoint, components::Joint());
+
+  Joint joint(eJoint);
+  EXPECT_EQ(eJoint, joint.Entity());
+  EXPECT_FALSE(joint.ParentModel(ecm).has_value());
+
+  ecm.CreateComponent<components::ParentEntity>(eJoint,
+      components::ParentEntity(eModel));
+
+  ASSERT_TRUE(joint.Valid(ecm));
+
+  // Check parent model
+  EXPECT_EQ(eModel, ecm.ParentEntity(eJoint));
+  auto parentModel = joint.ParentModel(ecm);
+  ASSERT_TRUE(parentModel.has_value());
+  EXPECT_TRUE(parentModel->Valid(ecm));
+  EXPECT_EQ(eModel, parentModel->Entity());
 }

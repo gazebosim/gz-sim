@@ -55,6 +55,7 @@ set (sources
   Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
+  Sensor.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -86,6 +87,7 @@ set (gtest_sources
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
+  Sensor_TEST.cc
   ServerConfig_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
