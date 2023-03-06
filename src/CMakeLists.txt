@@ -68,7 +68,6 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}

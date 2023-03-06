@@ -514,7 +514,7 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
     auto uri = inclElem->Get<std::string>("uri");
     EXPECT_FALSE(uri.empty());
     const std::string version = common::split(uri, "/").back();
-    EXPECT_NO_THROW(std::stol(version));
+    EXPECT_NO_THROW(auto version_parsed = std::stol(version));
   }
 }
 
