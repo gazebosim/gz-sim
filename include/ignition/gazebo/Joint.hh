@@ -35,6 +35,7 @@
 #include "ignition/gazebo/config.hh"
 #include "ignition/gazebo/EntityComponentManager.hh"
 #include "ignition/gazebo/Export.hh"
+#include "ignition/gazebo/Model.hh"
 #include "ignition/gazebo/Types.hh"
 
 namespace ignition
@@ -265,6 +266,13 @@ namespace ignition
       /// wrench check is not enabled.
       /// \sa EnableTransmittedWrenchCheck
       public: std::optional<std::vector<msgs::Wrench>> TransmittedWrench(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the parent model
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Parent Model or nullopt if the entity does not have a
+      /// components::ParentEntity component.
+      public: std::optional<Model> ParentModel(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Private data pointer.
