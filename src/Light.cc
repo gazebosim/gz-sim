@@ -19,7 +19,6 @@
 
 #include <sdf/Light.hh>
 
-#include "ignition/gazebo/components/CastShadows.hh"
 #include "ignition/gazebo/components/Light.hh"
 #include "ignition/gazebo/components/LightType.hh"
 #include "ignition/gazebo/components/LightCmd.hh"
