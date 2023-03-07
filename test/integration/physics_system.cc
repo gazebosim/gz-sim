@@ -2310,15 +2310,15 @@ TEST_F(PhysicsSystemFixture,
   std::vector<math::Vector3d> linVels, angVels, worldLinVels, worldAngVels;
   std::vector<math::Vector3d> linAccs, angAccs, worldLinAccs, worldAngAccs;
   testSystem.OnPreUpdate(
-      [&iterations, &nIters, &halfIters, &collisionName,
-       &collisionWithOffsetName](const UpdateInfo &_info,
+      [&iterations, &nIters, &halfIters,
+       &collisionWithOffsetName](const UpdateInfo &,
                                  EntityComponentManager &_ecm)
       {
         _ecm.EachNew<components::Collision, components::Name,
                      components::ParentEntity>(
-            [&](const Entity &_entity, const components::Collision *_collision,
+            [&](const Entity &_entity, const components::Collision *,
                 const components::Name *_name,
-                const components::ParentEntity *_parentEntity) -> bool
+                const components::ParentEntity *) -> bool
             {
               // we only enable the velocity, acceleration components for
               // the collision_with_offset
@@ -2342,7 +2342,7 @@ TEST_F(PhysicsSystemFixture,
 
         _ecm.Each<components::Collision, components::Name,
                   components::ParentEntity>(
-            [&](const Entity &_entity, const components::Collision *_collision,
+            [&](const Entity &, const components::Collision *,
                 const components::Name *_name,
                 const components::ParentEntity *_parentEntity) -> bool
             {
@@ -2356,9 +2356,13 @@ TEST_F(PhysicsSystemFixture,
                 parentLink.EnableAccelerationChecks(_ecm);
                 using namespace gz::math;
                 // increasing force downward
-                auto force = -Vector3d::UnitZ * iterations / nIters;
+                auto force =
+                    -Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                        static_cast<double>(nIters));
                 // increasing torque around z
-                auto torque = Vector3d::UnitZ * iterations / nIters;
+                auto torque =
+                    Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                       static_cast<double>(nIters));
                 parentLink.AddWorldWrench(_ecm, force, torque);
               }
               return true;
@@ -2376,7 +2380,7 @@ TEST_F(PhysicsSystemFixture,
             components::LinearAcceleration, components::AngularAcceleration,
             components::WorldLinearAcceleration,
             components::WorldAngularAcceleration>(
-            [&](const Entity &, const components::Collision *_collision,
+            [&](const Entity &, const components::Collision *,
                 const components::Name *_name,
                 const components::WorldPose *_pose,
                 const components::LinearVelocity *_linearVel,

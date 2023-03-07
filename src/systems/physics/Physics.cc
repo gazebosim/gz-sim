@@ -3680,7 +3680,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   // TODO(louise) Skip this if there are no collision features
   this->UpdateCollisions(_ecm);
-}
+}  // NOLINT readability/fn_size
+// TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
