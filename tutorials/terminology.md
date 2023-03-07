@@ -80,4 +80,3 @@ to developers touching the source code.
 
 * **Server**: Gazebo Sim's entry point. It's responsible for loading an
     SDF file and instantiating a simulation runner per world.
-

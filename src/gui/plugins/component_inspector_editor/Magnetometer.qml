@@ -41,7 +41,7 @@ Rectangle {
       // Set the 'expandingHeaderText' value to override the default header
       // values, which is based on the model.
       expandingHeaderText: "Magnetometer noise"
-      expandingHeaderToolTip: "Magnetometer noise properties" 
+      expandingHeaderToolTip: "Magnetometer noise properties"
     }
 
     // This is the content that will be expanded/contracted using the

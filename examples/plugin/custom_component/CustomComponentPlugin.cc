@@ -21,4 +21,3 @@
 GZ_ADD_PLUGIN(examples::CustomComponentPlugin,
     gz::sim::System,
     examples::CustomComponentPlugin::ISystemConfigure)
-

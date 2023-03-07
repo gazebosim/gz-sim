@@ -254,4 +254,3 @@ In summary, the key differences between Gazebo Classic and Gazebo are:
 All these changes are meant to give plugin developers more flexibility to
 only use the features they need, and several layers of abstraction which
 can be chosen according to the developer's experience and specific use-case.
-

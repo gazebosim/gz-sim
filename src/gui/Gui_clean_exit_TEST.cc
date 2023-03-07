@@ -69,7 +69,7 @@ void startBoth(const std::string &_fileName)
   // SIGTERM during initialization doesn't always work properly and that is not
   // what we are testing here.
   using namespace std::chrono_literals;
-  std::this_thread::sleep_for(4s);
+  std::this_thread::sleep_for(15s);
   std::raise(SIGTERM);
   serverThread.join();
   guiThread.join();
@@ -77,9 +77,7 @@ void startBoth(const std::string &_fileName)
 }
 
 /////////////////////////////////////////////////
-/// TODO (azeey) Temporarliy disabled until
-/// https://github.com/gazebosim/gz-sim/issues/1443 is resolved
-TEST_P(GazeboDeathTest, DISABLED_CleanExit)
+TEST_P(GazeboDeathTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(CleanExit))
 {
   std::string githubAction;
   // This test hangs when there is high CPU usage, so we skip it on Github

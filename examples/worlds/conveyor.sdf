@@ -222,41 +222,55 @@
 
         <gui fullscreen="0">
             <!-- 3D scene -->
-            <plugin filename="GzScene3D" name="3D View">
-                <gz-gui>
-                    <title>3D View</title>
-                    <property type="bool" key="showTitleBar">false</property>
-                    <property type="string" key="state">docked</property>
-                </gz-gui>
+            <plugin filename="MinimalScene" name="3D View">
+              <gz-gui>
+                <title>3D View</title>
+                <property type="bool" key="showTitleBar">false</property>
+                <property type="string" key="state">docked</property>
+              </gz-gui>
 
-                <engine>ogre2</engine>
-                <scene>scene</scene>
-                <ambient_light>0.4 0.4 0.4</ambient_light>
-                <background_color>0.8 0.8 0.8</background_color>
-                <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+              <engine>ogre2</engine>
+              <scene>scene</scene>
+              <ambient_light>0.4 0.4 0.4</ambient_light>
+              <background_color>0.8 0.8 0.8</background_color>
+              <camera_pose>-6 0 6 0 0.5 0</camera_pose>
             </plugin>
 
-            <!-- World control -->
-            <plugin filename="WorldControl" name="World control">
-                <gz-gui>
-                    <title>World control</title>
-                    <property type="bool" key="showTitleBar">false</property>
-                    <property type="bool" key="resizable">false</property>
-                    <property type="double" key="height">72</property>
-                    <property type="double" key="width">121</property>
-                    <property type="double" key="z">1</property>
-
-                    <property type="string" key="state">floating</property>
-                    <anchors target="3D View">
-                        <line own="left" target="left"/>
-                        <line own="bottom" target="bottom"/>
-                    </anchors>
-                </gz-gui>
-
-                <play_pause>true</play_pause>
-                <step>true</step>
-                <start_paused>true</start_paused>
-
+            <!-- Plugins that add functionality to the scene -->
+            <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+              <gz-gui>
+                <property key="state" type="string">floating</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="GzSceneManager" name="Scene Manager">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="InteractiveViewControl" name="Interactive view control">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="CameraTracking" name="Camera Tracking">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
             </plugin>
 
             <!-- World statistics -->

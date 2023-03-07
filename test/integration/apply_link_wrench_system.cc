@@ -139,6 +139,9 @@ TEST_F(ApplyLinkWrenchTestFixture,
         link4 = Link(model4.CanonicalLink(_ecm));
         EXPECT_TRUE(link4.Valid(_ecm));
         link4.EnableAccelerationChecks(_ecm);
+        link4 = Link(model4.CanonicalLink(_ecm));
+        EXPECT_TRUE(link4.Valid(_ecm));
+        link4.EnableAccelerationChecks(_ecm);
       })
   .OnPostUpdate([&](
       const UpdateInfo &,
@@ -344,4 +347,3 @@ TEST_F(ApplyLinkWrenchTestFixture,
   EXPECT_EQ(targetIterations, iterations);
   EXPECT_EQ(1u, impulseIterations);
 }
-

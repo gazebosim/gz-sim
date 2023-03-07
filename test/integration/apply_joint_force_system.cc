@@ -72,7 +72,7 @@ TEST_F(ApplyJointForceTestFixture,
   test::Relay testSystem;
   std::vector<double> jointForceCmd;
   testSystem.OnPreUpdate(
-      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
@@ -117,4 +117,3 @@ TEST_F(ApplyJointForceTestFixture,
   }
   EXPECT_DOUBLE_EQ(jointForceCmd.back(), testJointForce);
 }
-

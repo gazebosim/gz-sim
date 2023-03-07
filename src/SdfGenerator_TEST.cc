@@ -348,7 +348,7 @@ class ModelElementFixture : public ElementUpdateFixture
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelsInline)
 {
-  this->LoadWorld("test/worlds/shapes.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   this->TestModel("box");
   this->TestModel("capsule");
   this->TestModel("cylinder");
@@ -359,7 +359,7 @@ TEST_F(ModelElementFixture, ModelsInline)
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelIncluded)
 {
-  this->LoadWorld("test/worlds/save_world.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   this->TestModel("backpack1");
   this->TestModel("backpack2");
 }
@@ -367,7 +367,7 @@ TEST_F(ModelElementFixture, ModelIncluded)
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelComponentUpdate)
 {
-  this->LoadWorld("test/worlds/shapes.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   std::string modelName = "box";
   Entity modelEntity = this->ecm.EntityByComponents(
       components::Model(), components::Name(modelName));
@@ -461,8 +461,7 @@ TEST_F(ElementUpdateFixture, ConfigOverrideCopyOrMerge)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, ConfigOverride)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   {
     this->sdfGenConfig.mutable_global_entity_gen_config()
@@ -522,8 +521,7 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsInline)
 {
-  const std::string worldFile{"test/worlds/shapes.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
@@ -535,7 +533,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsInline)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedExpanded)
 {
-  this->LoadWorld("test/worlds/save_world.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
@@ -586,7 +584,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
+  const auto worldFile = common::joinPaths("test", "worlds", "save_world.sdf");
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
@@ -644,17 +642,17 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2";
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3/",
       // Thes following two URIs are invalid, and will not be saved
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt/",
   };
 
@@ -709,7 +707,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 {
   const std::vector<std::string> includeUris = {
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack",
       std::string("file://") + PROJECT_SOURCE_PATH +
           "/test/worlds/models/sphere"};
 
@@ -768,7 +766,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
+  const auto worldFile = common::joinPaths("test", "worlds", "save_world.sdf");
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
@@ -947,8 +945,7 @@ using GenerateWorldFixture = ElementUpdateFixture;
 /////////////////////////////////////////////////
 TEST_F(GenerateWorldFixture, ModelsInline)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   // Check with expandIncludeTags = true
   {

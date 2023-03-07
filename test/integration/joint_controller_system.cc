@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +56,9 @@ TEST_F(JointControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -70,7 +71,7 @@ TEST_F(JointControllerTestFixture,
   test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
   testSystem.OnPreUpdate(
-      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -82,12 +83,12 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-                              const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const gz::sim::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool
@@ -145,6 +146,39 @@ TEST_F(JointControllerTestFixture,
 }
 
 /////////////////////////////////////////////////
+// Tests that the JointController accepts joint velocity commands
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(JointControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
+        JointVelocityMultipleJointsSubTopicCommand))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint velocity is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_controller_test/joints");
+
+  const double testAngVel{10.0};
+  msgs::Double msg;
+  msg.set_data(testAngVel);
+
+  pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
 // Tests the JointController using joint force commands
 TEST_F(JointControllerTestFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
@@ -153,9 +187,10 @@ TEST_F(JointControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_controller.sdf";
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
+
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -163,12 +198,12 @@ TEST_F(JointControllerTestFixture,
 
   server.SetUpdatePeriod(0ns);
 
-  const std::string linkName = "rotor2";
+  const std::string linkName = "rotor3";
 
   test::Relay testSystem;
   math::Vector3d angularVelocity;
   testSystem.OnPreUpdate(
-      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -180,12 +215,12 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-                              const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const gz::sim::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool
@@ -230,9 +265,9 @@ TEST_F(JointControllerTestFixture, InexistentJoint)
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "worlds", "joint_controller_invalid.sdf");
-  serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller_invalid.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

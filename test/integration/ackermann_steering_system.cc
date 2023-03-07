@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +19,19 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Angle.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Quaternion.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Pose.hh"
@@ -40,6 +47,12 @@
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+/// \brief Test AckermannSteeringOnly system
+class AckermannSteeringOnlyTest
+  : public InternalFixture<::testing::Test>
+{
+};
 
 /// \brief Test AckermannSteering system
 class AckermannSteeringTest
@@ -64,8 +77,8 @@ class AckermannSteeringTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
-      const sim::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -125,8 +138,8 @@ class AckermannSteeringTest
     const double desiredLinVel = 10.5;
     const double desiredAngVel = 0.1;
     velocityRamp.OnPreUpdate(
-        [&](const sim::UpdateInfo &/*_info*/,
-            const sim::EntityComponentManager &)
+        [&](const UpdateInfo &/*_info*/,
+            const EntityComponentManager &)
         {
           msgs::Set(msg.mutable_linear(),
                     math::Vector3d(desiredLinVel, 0, 0));
@@ -232,8 +245,8 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       auto id = _ecm.EntityByComponents(
         components::Model(),
@@ -330,8 +343,8 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
   test::Relay testSystem;
 
   std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       auto id = _ecm.EntityByComponents(
         components::Model(),
@@ -414,7 +427,8 @@ TEST_P(AckermannSteeringTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TfPublishes))
 
   int sleep = 0;
   int maxSleep = 30;
-  for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
+  for (; (odomPoses.size() < 3 || odomPoses.size() != tfPoses.size()) &&
+       sleep < maxSleep; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -540,6 +554,60 @@ TEST_P(AckermannSteeringTest,
   ASSERT_NE(maxSleep, sleep);
 
   EXPECT_EQ(5u, odomPosesCount);
+}
+
+TEST_F(AckermannSteeringOnlyTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(SteerPublishCmd))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+          "/model/vehicle/steer_angle"
+          );
+
+  msgs::Double msg;
+  const double targetAngle{0.25};
+  msg.set_data(targetAngle);
+  pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+TEST_F(AckermannSteeringOnlyTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(
+      PublishCmdCustomSubTopicsSteer))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only_custom_sub_topics.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+          "/model/vehicle/steerangle"
+          );
+
+  msgs::Double msg;
+  const double targetAngle{0.25};
+  msg.set_data(targetAngle);
+  pub.Publish(msg);
 }
 
 // Run multiple times

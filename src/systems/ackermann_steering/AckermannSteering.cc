@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,24 +59,38 @@ class gz::sim::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const gz::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
+
+    /// \brief Callback for angle subscription
+  /// \param[in] _msg angle message
+  public: void OnCmdAng(const msgs::Double &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
+
+  /// \brief Update the angle.
+  /// \param[in] _info System update information.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  public: void UpdateAngle(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
+
+  /// \brief Use angle steer only mode.
+  public: bool steeringOnly{false};
 
   /// \brief Entity of the left joint
   public: std::vector<Entity> leftJoints;
@@ -165,10 +180,10 @@ class gz::sim::systems::AckermannSteeringPrivate
   public: std::chrono::steady_clock::duration lastOdomTime{0};
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<gz::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<gz::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -178,6 +193,12 @@ class gz::sim::systems::AckermannSteeringPrivate
 
   /// \brief Last target velocity requested.
   public: msgs::Twist targetVel;
+
+  /// \brief Last target angle requested.
+  public: msgs::Double targetAng;
+
+  /// \brief P gain for angular position.
+  public: double gainPAng{1.0};
 
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
@@ -216,52 +237,71 @@ void AckermannSteering::Configure(const Entity &_entity,
   if (!links.empty())
     this->dataPtr->canonicalLink = Link(links[0]);
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
+  if (_sdf->HasElement("steering_only"))
+  {
+    this->dataPtr->steeringOnly = _sdf->Get<bool>("steering_only");
+    gzmsg << "Using steering only mode: " << this->dataPtr->steeringOnly
+            << std::endl;
+  }
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
-  while (sdfElem)
-  {
-    this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("left_joint");
-  }
-  sdfElem = ptr->GetElement("right_joint");
-  while (sdfElem)
-  {
-    this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("right_joint");
-  }
-  sdfElem = ptr->GetElement("left_steering_joint");
-  while (sdfElem)
+  auto sdfLeftSteerElem = _sdf->FindElement("left_steering_joint");
+  while (sdfLeftSteerElem)
   {
     this->dataPtr->leftSteeringJointNames.push_back(
-                          sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("left_steering_joint");
+                          sdfLeftSteerElem->Get<std::string>());
+    sdfLeftSteerElem = sdfLeftSteerElem->GetNextElement(
+      "left_steering_joint");
   }
-  sdfElem = ptr->GetElement("right_steering_joint");
-  while (sdfElem)
+  auto sdfRightSteerElem = _sdf->FindElement("right_steering_joint");
+  while (sdfRightSteerElem)
   {
     this->dataPtr->rightSteeringJointNames.push_back(
-                           sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("right_steering_joint");
+                           sdfRightSteerElem->Get<std::string>());
+    sdfRightSteerElem = sdfRightSteerElem->GetNextElement(
+      "right_steering_joint");
   }
-
+  if (!this->dataPtr->steeringOnly)
+  {
+    auto sdfLeftElem = _sdf->FindElement("left_joint");
+    while (sdfLeftElem)
+    {
+      this->dataPtr->leftJointNames.push_back(
+        sdfLeftElem->Get<std::string>());
+      sdfLeftElem = sdfLeftElem->GetNextElement("left_joint");
+    }
+    auto sdfRightElem = _sdf->FindElement("right_joint");
+    while (sdfRightElem)
+    {
+      this->dataPtr->rightJointNames.push_back(
+        sdfRightElem->Get<std::string>());
+      sdfRightElem = sdfRightElem->GetNextElement("right_joint");
+    }
+  }
+  if (!this->dataPtr->steeringOnly)
+  {
+    this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
+      this->dataPtr->wheelRadius).first;
+    this->dataPtr->kingpinWidth = _sdf->Get<double>("kingpin_width",
+      this->dataPtr->kingpinWidth).first;
+  }
   this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
       this->dataPtr->wheelSeparation).first;
-  this->dataPtr->kingpinWidth = _sdf->Get<double>("kingpin_width",
-      this->dataPtr->kingpinWidth).first;
+
   this->dataPtr->wheelBase = _sdf->Get<double>("wheel_base",
       this->dataPtr->wheelBase).first;
   this->dataPtr->steeringLimit = _sdf->Get<double>("steering_limit",
       this->dataPtr->steeringLimit).first;
-  this->dataPtr->wheelRadius = _sdf->Get<double>("wheel_radius",
-      this->dataPtr->wheelRadius).first;
+
+  // Get proportional gain for steering angle.
+  if (_sdf->HasElement("steer_p_gain"))
+  {
+    this->dataPtr->gainPAng = _sdf->Get<double>("steer_p_gain");
+  }
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<gz::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -301,22 +341,40 @@ void AckermannSteering::Configure(const Entity &_entity,
     this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
   }
 
-
-  double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
-  if (odomFreq > 0)
+  if (!this->dataPtr->steeringOnly)
   {
-    std::chrono::duration<double> odomPer{1 / odomFreq};
-    this->dataPtr->odomPubPeriod =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
+    double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
+    if (odomFreq > 0)
+    {
+      std::chrono::duration<double> odomPer{1 / odomFreq};
+      this->dataPtr->odomPubPeriod =
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          odomPer);
+    }
   }
-
   // Subscribe to commands
   std::vector<std::string> topics;
+
+
   if (_sdf->HasElement("topic"))
   {
     topics.push_back(_sdf->Get<std::string>("topic"));
   }
-  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  else if (_sdf->HasElement("sub_topic"))
+  {
+    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/" + _sdf->Get<std::string>("sub_topic"));
+  }
+  else if (this->dataPtr->steeringOnly)
+  {
+    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/steer_angle");
+  }
+  else if (!this->dataPtr->steeringOnly)
+  {
+    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  }
+
   auto topic = validTopic(topics);
   if (topic.empty())
   {
@@ -324,59 +382,69 @@ void AckermannSteering::Configure(const Entity &_entity,
            << "Failed to initialize." << std::endl;
     return;
   }
-
-  this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdVel,
+  if (this->dataPtr->steeringOnly)
+  {
+    this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdAng,
       this->dataPtr.get());
-
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
-  {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    gzmsg << "AckermannSteering subscribing to float messages on ["
+          << topic << "]" << std::endl;
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/odometry");
-  auto odomTopic = validTopic(odomTopics);
-  if (topic.empty())
+  else
   {
-    gzerr << "AckermannSteering plugin received invalid model name "
-           << "Failed to initialize." << std::endl;
-    return;
+    this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdVel,
+      this->dataPtr.get());
+    gzmsg << "AckermannSteering subscribing to twist messages on ["
+          << topic << "]" << std::endl;
   }
-
-  this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
-
-  std::vector<std::string> tfTopics;
-  if (_sdf->HasElement("tf_topic"))
+  if (!this->dataPtr->steeringOnly)
   {
-    tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+    std::vector<std::string> odomTopics;
+    if (_sdf->HasElement("odom_topic"))
+    {
+      odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    }
+    odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+        "/odometry");
+    auto odomTopic = validTopic(odomTopics);
+    if (topic.empty())
+    {
+      gzerr << "AckermannSteering plugin received invalid model name "
+            << "Failed to initialize." << std::endl;
+      return;
+    }
+
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+        odomTopic);
+
+    std::vector<std::string> tfTopics;
+    if (_sdf->HasElement("tf_topic"))
+    {
+      tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+    }
+    tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+      "/tf");
+    auto tfTopic = validTopic(tfTopics);
+    if (tfTopic.empty())
+    {
+      gzerr << "AckermannSteering plugin invalid tf topic name "
+            << "Failed to initialize." << std::endl;
+      return;
+    }
+
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+        tfTopic);
+
+    if (_sdf->HasElement("frame_id"))
+      this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
+
+    if (_sdf->HasElement("child_frame_id"))
+      this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
   }
-  tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-    "/tf");
-  auto tfTopic = validTopic(tfTopics);
-  if (tfTopic.empty())
-  {
-    gzerr << "AckermannSteering plugin invalid tf topic name "
-           << "Failed to initialize." << std::endl;
-    return;
-  }
-
-  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      tfTopic);
-
-  if (_sdf->HasElement("frame_id"))
-    this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
-
-  if (_sdf->HasElement("child_frame_id"))
-    this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
-
-  gzmsg << "AckermannSteering subscribing to twist messages on [" <<
-      topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
-    gz::sim::EntityComponentManager &_ecm)
+void AckermannSteering::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::PreUpdate");
 
@@ -391,10 +459,9 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
   auto modelName = this->dataPtr->model.Name(_ecm);
-  if (this->dataPtr->leftJoints.empty() ||
-      this->dataPtr->rightJoints.empty() ||
-      this->dataPtr->leftSteeringJoints.empty() ||
-      this->dataPtr->rightSteeringJoints.empty())
+  if (!this->dataPtr->steeringOnly &&
+      (this->dataPtr->leftJoints.empty() ||
+      this->dataPtr->rightJoints.empty()))
   {
     bool warned{false};
     for (const std::string &name : this->dataPtr->leftJointNames)
@@ -422,6 +489,15 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
         warned = true;
       }
     }
+    if (warned)
+    {
+      warnedModels.insert(modelName);
+    }
+  }
+  if (this->dataPtr->leftSteeringJoints.empty() ||
+      this->dataPtr->rightSteeringJoints.empty())
+  {
+    bool warned{false};
     for (const std::string &name : this->dataPtr->leftSteeringJointNames)
     {
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
@@ -453,9 +529,11 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
       warnedModels.insert(modelName);
     }
   }
-
-  if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty() ||
-      this->dataPtr->leftSteeringJoints.empty() ||
+  if (!this->dataPtr->steeringOnly &&
+    (this->dataPtr->leftJoints.empty() ||
+    this->dataPtr->rightJoints.empty()))
+    return;
+  else if (this->dataPtr->leftSteeringJoints.empty() ||
       this->dataPtr->rightSteeringJoints.empty())
     return;
 
@@ -469,36 +547,39 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
-
-  for (Entity joint : this->dataPtr->leftJoints)
+  if (!this->dataPtr->steeringOnly)
   {
-    // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+    for (Entity joint : this->dataPtr->leftJoints)
+    {
+      // Update wheel velocity
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(
+            joint, components::JointVelocityCmd(
+              {this->dataPtr->leftJointSpeed}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
+      }
     }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-    }
-  }
 
-  for (Entity joint : this->dataPtr->rightJoints)
-  {
-    // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+    for (Entity joint : this->dataPtr->rightJoints)
+    {
+      // Update wheel velocity
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(joint,
+            components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
+      }
     }
   }
 
@@ -536,25 +617,26 @@ void AckermannSteering::PreUpdate(const gz::sim::UpdateInfo &_info,
                      {this->dataPtr->rightSteeringJointSpeed});
     }
   }
-
-  // Create the left and right side joint position components if they
-  // don't exist.
-  auto leftPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->leftJoints[0]);
-  if (!leftPos)
+  if (!this->dataPtr->steeringOnly)
   {
-    _ecm.CreateComponent(this->dataPtr->leftJoints[0],
-        components::JointPosition());
-  }
+    // Create the left and right side joint position components if they
+    // don't exist.
+    auto leftPos = _ecm.Component<components::JointPosition>(
+        this->dataPtr->leftJoints[0]);
+    if (!leftPos)
+    {
+      _ecm.CreateComponent(this->dataPtr->leftJoints[0],
+          components::JointPosition());
+    }
 
-  auto rightPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->rightJoints[0]);
-  if (!rightPos)
-  {
-    _ecm.CreateComponent(this->dataPtr->rightJoints[0],
-        components::JointPosition());
+    auto rightPos = _ecm.Component<components::JointPosition>(
+        this->dataPtr->rightJoints[0]);
+    if (!rightPos)
+    {
+      _ecm.CreateComponent(this->dataPtr->rightJoints[0],
+          components::JointPosition());
+    }
   }
-
   auto leftSteeringPos = _ecm.Component<components::JointPosition>(
       this->dataPtr->leftSteeringJoints[0]);
   if (!leftSteeringPos)
@@ -580,15 +662,21 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
-
-  this->dataPtr->UpdateVelocity(_info, _ecm);
-  this->dataPtr->UpdateOdometry(_info, _ecm);
+  if (this->dataPtr->steeringOnly)
+  {
+    this->dataPtr->UpdateAngle(_info, _ecm);
+  }
+  else
+  {
+    this->dataPtr->UpdateVelocity(_info, _ecm);
+    this->dataPtr->UpdateOdometry(_info, _ecm);
+  }
 }
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateOdometry(
-    const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -690,7 +778,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  auto *tfMsgPose = tfMsg.add_pose();
+  msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -702,8 +790,8 @@ void AckermannSteeringPrivate::UpdateOdometry(
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateVelocity(
-    const gz::sim::UpdateInfo &_info,
-    const gz::sim::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AckermannSteering::UpdateVelocity");
 
@@ -729,14 +817,23 @@ void AckermannSteeringPrivate::UpdateVelocity(
   // Convert the target velocities to joint velocities and angles
   double turningRadius = linVel / angVel;
   double minimumTurningRadius = this->wheelBase / sin(this->steeringLimit);
-  if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+  if (fabs(linVel) > 0.0)
   {
-    turningRadius = minimumTurningRadius;
+    if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+    {
+      turningRadius = minimumTurningRadius;
+    }
+    if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+    {
+      turningRadius = -minimumTurningRadius;
+    }
   }
-  if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+  // special case for angVel not zero and linVel zero
+  else if (fabs(angVel) >= 0.001)
   {
-    turningRadius = -minimumTurningRadius;
+    turningRadius = (angVel / fabs(angVel)) * minimumTurningRadius;
   }
+
   // special case for angVel of zero
   if (fabs(angVel) < 0.001)
   {
@@ -787,14 +884,78 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
   this->targetVel = _msg;
 }
 
+//////////////////////////////////////////////////
+void AckermannSteeringPrivate::UpdateAngle(
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("AckermannSteering::UpdateAngle");
+
+  double ang;
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    ang = this->targetAng.data();
+  }
+
+  // Limit the target angle if needed.
+  this->limiterAng->Limit(
+      ang, this->last0Cmd.ang, this->last1Cmd.ang, _info.dt);
+
+  if (fabs(ang) > this->steeringLimit)
+  {
+    ang = (ang / fabs(ang)) * this->steeringLimit;
+  }
+
+  // Update history of commands.
+  this->last1Cmd = last0Cmd;
+  this->last0Cmd.ang = ang;
+
+  double leftSteeringJointAngle =
+      atan((2.0 * this->wheelBase * sin(ang)) / \
+      ((2.0 * this->wheelBase * cos(ang)) + \
+      (1.0 * this->wheelSeparation * sin(ang))));
+  double rightSteeringJointAngle =
+      atan((2.0 * this->wheelBase * sin(ang)) / \
+      ((2.0 * this->wheelBase * cos(ang)) - \
+      (1.0 * this->wheelSeparation * sin(ang))));
+
+  auto leftSteeringPos = _ecm.Component<components::JointPosition>(
+      this->leftSteeringJoints[0]);
+  auto rightSteeringPos = _ecm.Component<components::JointPosition>(
+      this->rightSteeringJoints[0]);
+
+  // Abort if the joints were not found or just created.
+  if (!leftSteeringPos || !rightSteeringPos ||
+      leftSteeringPos->Data().empty() ||
+      rightSteeringPos->Data().empty())
+  {
+    return;
+  }
+
+  double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
+  double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
+
+  // Simple proportional control with settable gain.
+  // Adding programmable PID values might be a future feature.
+  this->leftSteeringJointSpeed = this->gainPAng * leftDelta;
+  this->rightSteeringJointSpeed = this->gainPAng * rightDelta;
+}
+
+//////////////////////////////////////////////////
+void AckermannSteeringPrivate::OnCmdAng(const msgs::Double &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->targetAng = _msg;
+}
+
 GZ_ADD_PLUGIN(AckermannSteering,
-                    gz::sim::System,
+                    System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "gz::sim::systems::AckermannSteering")
+                    "gz::sim::systems::AckermannSteering")
 
 // TODO(CH3): Deprecated, remove on version 8
 GZ_ADD_PLUGIN_ALIAS(AckermannSteering,

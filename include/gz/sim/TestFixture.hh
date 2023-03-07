@@ -38,6 +38,7 @@ class GZ_SIM_HIDDEN TestFixturePrivate;
 ///
 /// ## Usage
 ///
+/// ```
 /// // Load a world with a fixture
 /// gz::sim::TestFixture fixture("path_to.sdf");
 ///
@@ -51,6 +52,7 @@ class GZ_SIM_HIDDEN TestFixturePrivate;
 ///
 /// // Run the server
 /// fixture.Server()->Run(true, 1000, false);
+/// ```
 ///
 class GZ_SIM_VISIBLE TestFixture
 {

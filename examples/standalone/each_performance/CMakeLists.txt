@@ -7,4 +7,3 @@ find_package(gz-sim7 QUIET REQUIRED)
 add_executable(each each.cc)
 target_link_libraries(each
   gz-sim7::core)
-

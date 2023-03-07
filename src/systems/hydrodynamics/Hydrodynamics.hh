@@ -44,6 +44,8 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.
+  ///
+  /// ### Diagonal terms:
   ///   * <xDotU> - Added mass in x direction [kg]
   ///   * <yDotV> - Added mass in y direction [kg]
   ///   * <zDotW> - Added mass in z direction [kg]
@@ -62,9 +64,22 @@ namespace systems
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
   ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
+  ///
+  /// ### Cross terms
+  /// In general we support cross terms as well. These are terms which act on
+  /// non-diagonal sides. We use the SNAMe convention of naming search terms.
+  /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
+  /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
+  /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
+  /// and yaw axis respectively.
+  ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
+  ///       Units are either kg or kgm^2 depending on the choice of terms.
+  ///   * Quadratic Damping:  <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
+  ///       e.g. <xRQ>
+  ///       Units are either kg/m or kg/m^2.
+  ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
+  ///       Units are either kg or kg or kg/m.
   /// Additionally the system also supports the following parameters:
-  ///   * <waterDensity> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
   ///   * <water_density> - The density of the fluid its moving in.
   ///     Defaults to 998kgm^-3. [kgm^-3]
   ///   * <link_name> - The link of the model that is being subject to
@@ -77,6 +92,20 @@ namespace systems
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
   ///   * <default_current> - A generic current.
   ///      [vector3d m/s, optional, default = [0,0,0]m/s]
+  ///   * <disable_coriolis> - Disable Coriolis force [Boolean, Default: false]
+  ///   * <disable_added_mass> - Disable Added Mass [Boolean, Default: false].
+  ///     To be deprecated in Garden.
+  ///
+  /// ### Loading external currents
+  /// One can use the EnvironmentPreload system to preload currents into the
+  /// plugin using data files. To use the data you may give CSV column names by
+  /// using `lookup_current_*` tags listed below:
+  ///   * <lookup_current_x> - X axis to use for lookup current
+  ///   * <lookup_current_y> - Y axis to use for lookup current
+  ///   * <lookup_current_z> - Z axis to use for lookup current
+  /// If any one of the fields is present, it is assumed current is to be loaded
+  /// by a data file and the topic will be ignored. If one or two fields are
+  /// present, the missing fields are assumed to default to zero.
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -113,7 +142,8 @@ namespace systems
   class Hydrodynamics:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -132,6 +162,11 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(
+        const gz::sim::UpdateInfo &_info,
+        const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

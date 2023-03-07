@@ -20,7 +20,9 @@
 
 #include <memory>
 
-#include <gz/msgs.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include "gz/sim/gui/GuiSystem.hh"
 

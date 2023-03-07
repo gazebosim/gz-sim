@@ -16,4 +16,3 @@ gz_add_system(sensors
     gz-sensors${GZ_SENSORS_VER}::thermal_camera
     gz-sensors${GZ_SENSORS_VER}::wide_angle_camera
 )
-

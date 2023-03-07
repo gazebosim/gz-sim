@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="shapes">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun1">
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>0.5 0.5 -1</direction>
+    </light>
+
+    <light type="directional" name="sun2">
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+
+    <light type="directional" name="sun3">
+      <cast_shadows>true</cast_shadows>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 -0.5 -1</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <!--plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <!--plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane-->
+            <box>
+              <size>20 20 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="duck1">
+      <pose>0 0 3 0.0 0.0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>3.92</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3.92</iyy>
+            <iyz>0</iyz>
+            <izz>3.92</izz>
+          </inertia>
+          <mass>39</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.5</scale>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 0.5</scale>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="duck2">
+      <pose>2 2 1 0.5 0.5 0.5</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>3.92</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3.92</iyy>
+            <iyz>0</iyz>
+            <izz>3.92</izz>
+          </inertia>
+          <mass>39</mass>
+        </inertial>
+        <collision name="collision">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <pose>0 0 -0.4 1.57 0.0 0.0</pose>
+          <geometry>
+            <mesh>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

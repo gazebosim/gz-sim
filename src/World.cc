@@ -240,4 +240,3 @@ uint64_t World::ModelCount(const EntityComponentManager &_ecm) const
 {
   return this->Models(_ecm).size();
 }
-

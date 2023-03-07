@@ -87,7 +87,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
     <gui fullscreen="0">
 
       <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
+      <plugin filename="MinimalScene" name="3D View">
         <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -100,15 +100,33 @@ favorite editor and save this file as `fuel_preview.sdf`:
         <background_color>0.4 0.6 1.0</background_color>
         <camera_pose>8.3 7 7.8 0 0.5 -2.4</camera_pose>
       </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
 
     </gui>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo</uri>
     </include>
 
   </world>
@@ -172,6 +190,3 @@ hand, we'll create it from the UI.
 save directly to `$HOME/.gz/sim/<#>/gui.config`.
 
 @image html files/gui_config/cmd_line.png
-
-
-
