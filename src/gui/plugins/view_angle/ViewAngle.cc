@@ -29,6 +29,7 @@
 #include <ignition/gui/Application.hh>
 #include <ignition/gui/GuiEvents.hh>
 #include <ignition/gui/MainWindow.hh>
+#include <ignition/math/Angle.hh>
 #include <ignition/plugin/Register.hh>
 #include <ignition/rendering/MoveToHelper.hh>
 #include <ignition/rendering/RenderingIface.hh>
@@ -78,6 +79,13 @@ namespace ignition::gazebo
     /// \brief Distance of the camera to the model
     public: double distanceMoveToModel = 0.0;
 
+    /// \brief Camera horizontal fov
+    public: double horizontalFov = 0.0;
+
+    /// \brief Flag indicating if there is a new camera horizontalFOV
+    /// coming from qml side
+    public: bool newHorizontalFOV = false;
+
     /// \brief gui camera pose
     public: math::Pose3d camPose;
 
@@ -100,6 +108,11 @@ namespace ignition::gazebo
     /// \brief Checks if there is a new view controller, used to update qml side
     /// \return True if there is a new view controller from gui camera
     public: bool UpdateQtViewControl();
+
+    /// \brief Checks if there is new camera horizontal fov from gui camera,
+    /// used to update qml side
+    /// \return True if there is a new horizontal fov from gui camera
+    public: bool UpdateQtCamHorizontalFOV();
 
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
@@ -201,6 +214,12 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    // updates qml cam horizontal fov spin boxes if changed
+    if (this->dataPtr->UpdateQtCamHorizontalFOV())
+    {
+      this->CamHorizontalFOVChanged();
     }
 
     if (this->dataPtr->UpdateQtViewControl())
@@ -463,6 +482,19 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 }
 
 /////////////////////////////////////////////////
+double ViewAngle::HorizontalFOV() const
+{
+  return this->dataPtr->horizontalFov;
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetHorizontalFOV(double _horizontalFOV)
+{
+  this->dataPtr->horizontalFov = _horizontalFOV;
+  this->dataPtr->newHorizontalFOV = true;
+}
+
+/////////////////////////////////////////////////
 QList<double> ViewAngle::CamClipDist() const
 {
   return this->dataPtr->camClipDist;
@@ -596,6 +628,13 @@ void ViewAnglePrivate::OnRender()
     this->camera->SetFarClipPlane(this->camClipDist[1]);
     this->newCamClipDist = false;
   }
+
+  // Camera horizontalFOV
+  if (this->newHorizontalFOV)
+  {
+    this->camera->SetHFOV(gz::math::Angle(this->horizontalFov));
+    this->newHorizontalFOV = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -632,6 +671,18 @@ void ViewAnglePrivate::OnComplete()
       cameraPose.Rot().Pitch(),
       cameraPose.Rot().Yaw()};
   }
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtCamHorizontalFOV()
+{
+  bool updated = false;
+  if (std::abs(this->camera->HFOV().Radian() - this->horizontalFov) > 0.0001)
+  {
+    this->horizontalFov = this->camera->HFOV().Radian();
+    updated = true;
+  }
+  return updated;
 }
 
 /////////////////////////////////////////////////
