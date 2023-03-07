@@ -104,6 +104,26 @@ TEST_F(ActorIntegrationTest, Pose)
 }
 
 //////////////////////////////////////////////////
+TEST_F(ActorIntegrationTest, WorldPose)
+{
+  EntityComponentManager ecm;
+
+  auto id = ecm.CreateEntity();
+  ecm.CreateComponent<components::Actor>(id, components::Actor());
+
+  Actor actor(id);
+
+  // No pose
+  EXPECT_EQ(std::nullopt, actor.WorldPose(ecm));
+
+  // Add world pose
+  math::Pose3d pose(0, 3, 9, 0.0, 1.2, -3.0);
+  ecm.CreateComponent<components::WorldPose>(id,
+      components::WorldPose(pose));
+  EXPECT_EQ(pose, actor.WorldPose(ecm));
+}
+
+//////////////////////////////////////////////////
 TEST_F(ActorIntegrationTest, TrajectoryPose)
 {
   EntityComponentManager ecm;

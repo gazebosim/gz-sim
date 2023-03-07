@@ -76,6 +76,18 @@ std::optional<math::Pose3d> Actor::Pose(
 }
 
 //////////////////////////////////////////////////
+std::optional<math::Pose3d> Actor::WorldPose(
+    const EntityComponentManager &_ecm) const
+{
+  auto pose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+
+  if (!pose)
+    return std::nullopt;
+
+  return std::optional<math::Pose3d>(pose->Data());
+}
+
+//////////////////////////////////////////////////
 void Actor::SetTrajectoryPose(EntityComponentManager &_ecm,
     const math::Pose3d &_pose)
 {

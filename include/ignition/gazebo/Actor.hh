@@ -85,13 +85,11 @@ namespace ignition
 
       /// \brief Get the pose of the actor.
       /// If the actor has a trajectory, this will only return the origin
-      /// pose of the trajectory. If a manual trajectory pose is set via
-      /// SetTrajectoryPose, The actual pose of the actor in world frame will
-      /// be Pose * TrajectoryPose.
+      /// pose of the trajectory and not the actual world pose of the actor.
       /// \param[in] _ecm Entity-component manager.
       /// \return Pose of the actor or nullopt if the entity does not
       /// have a components::Pose component.
-      /// \sa TrajectoryPose
+      /// \sa WorldPose
       public: std::optional<math::Pose3d> Pose(
           const EntityComponentManager &_ecm) const;
 
@@ -116,6 +114,19 @@ namespace ignition
       /// \sa Pose
       public: void SetTrajectoryPose(EntityComponentManager &_ecm,
           const math::Pose3d &_pose);
+
+      /// \brief Get the world pose of the actor.
+      /// This returns the current world pose of the actor computed by gazebo.
+      /// The world pose is the combination of the actor's pose and its
+      /// trajectory pose. The currently trajectory pose is either manually set
+      /// via SetTrajectoryPose or interpolated from waypoints in the SDF script.
+      /// based on the current time.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return World pose of the actor or nullopt if the entity does not
+      /// have a components::WorldPose component.
+      /// \sa Pose
+      public: std::optional<math::Pose3d> WorldPose(
+          const EntityComponentManager &_ecm) const;
 
       /// \brief Set the name of animation to use for this actor.
       /// \param[in] _ecm Entity Component manager.
