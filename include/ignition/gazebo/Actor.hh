@@ -119,7 +119,7 @@ namespace ignition
       /// This returns the current world pose of the actor computed by gazebo.
       /// The world pose is the combination of the actor's pose and its
       /// trajectory pose. The currently trajectory pose is either manually set
-      /// via SetTrajectoryPose or interpolated from waypoints in the SDF script.
+      /// via SetTrajectoryPose or interpolated from waypoints in the SDF script
       /// based on the current time.
       /// \param[in] _ecm Entity-component manager.
       /// \return World pose of the actor or nullopt if the entity does not
