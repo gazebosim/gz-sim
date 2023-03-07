@@ -357,6 +357,11 @@ class ignition::gazebo::RenderUtilPrivate
   /// \brief A map of entity ids and actor animation info.
   public: std::unordered_map<Entity, AnimationUpdateData> actorAnimationData;
 
+  /// \brief A map of entity ids and the world pose of actor at current
+  /// timestep. The pose data is used to update the WorldPose component in the
+  /// ECM
+  public: std::unordered_map<Entity, math::Pose3d> actorWorldPoses;
+
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
   /// based on sim time.
@@ -772,6 +777,25 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
       _ecm.CreateComponent(it.first, components::SensorTopic(it.second));
     }
     this->dataPtr->newSensorTopics.clear();
+  }
+
+
+  // update actor world pose
+  {
+    for (const auto &it : this->dataPtr->actorWorldPoses)
+    {
+      // set world pose
+      auto worldPoseComp = _ecm.Component<components::WorldPose>(it.first);
+      if (!worldPoseComp)
+      {
+        _ecm.CreateComponent(it.first, components::WorldPose(it.second));
+      }
+      else
+      {
+        worldPoseComp->Data() = it.second;
+      }
+    }
+    this->dataPtr->actorWorldPoses.clear();
   }
 }
 
@@ -1338,7 +1362,13 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(globalPose * trajPose);
+        math::Pose3d worldPose = globalPose * trajPose;
+        actorVisual->SetLocalPose(worldPose);
+        {
+          // populate world pose map which is used to update ECM
+          std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+          this->dataPtr->actorWorldPoses[tf.first] = worldPose;
+        }
 
         tf.second.erase("actorPose");
         actorMesh->SetSkeletonLocalTransforms(tf.second);
@@ -3172,7 +3202,12 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(globalPose * trajPose);
+    math::Pose3d worldPose = globalPose * trajPose;
+    actorVisual->SetLocalPose(worldPose);
+
+    // populate world pose map which is used to update ECM
+    std::lock_guard<std::mutex> lock(this->updateMutex);
+    this->actorWorldPoses[it.first] = worldPose;
   }
 }
 
