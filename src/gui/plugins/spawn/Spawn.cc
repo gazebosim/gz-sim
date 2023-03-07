@@ -148,7 +148,7 @@ namespace gz::sim
     public: QString errorPopupText;
 
     /// \brief Adds new line after each nChar.
-    public: std::string AddNewLine(std::string &_str, int _nChar);
+    public: std::string AddNewLine(const std::string &_str, int _nChar);
   };
 }
 
@@ -192,7 +192,7 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-std::string SpawnPrivate::AddNewLine(std::string &_str, int _nChar)
+std::string SpawnPrivate::AddNewLine(const std::string &_str, int _nChar)
 {
   std::string out;
   out.reserve(_str.size() + _str.size() / _nChar);
