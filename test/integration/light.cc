@@ -651,13 +651,15 @@ TEST_F(LightIntegrationTest, SetAttenuationQuadratic)
   // light cmd should exist
   EXPECT_NE(nullptr, ecm.Component<components::LightCmd>(eLight));
   EXPECT_FLOAT_EQ(value,
-    ecm.Component<components::LightCmd>(eLight)->Data().attenuation_quadratic());
+      ecm.Component<components::LightCmd>(
+      eLight)->Data().attenuation_quadratic());
 
   // Make sure the light cmd is updated
   double value2 = 0.7;
   light.SetAttenuationQuadratic(ecm, value2);
   EXPECT_FLOAT_EQ(value2,
-    ecm.Component<components::LightCmd>(eLight)->Data().attenuation_quadratic());
+      ecm.Component<components::LightCmd>(
+      eLight)->Data().attenuation_quadratic());
 }
 
 //////////////////////////////////////////////////
