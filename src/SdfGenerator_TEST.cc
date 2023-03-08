@@ -515,7 +515,7 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
     EXPECT_FALSE(uri.empty());
     const std::string version = common::split(uri, "/").back();
 
-    long versionParsed = -1;
+    int64_t versionParsed = -1;
     EXPECT_NO_THROW(versionParsed = std::stol(version));
     EXPECT_NE(-1, versionParsed);
   }
