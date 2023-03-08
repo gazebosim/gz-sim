@@ -78,13 +78,13 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 REQUIRED COMPONENTS log)
-set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
+gz_find_package(gz-transport13 REQUIRED COMPONENTS log)
+set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs9 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
+gz_find_package(gz-msgs10 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-common
@@ -101,8 +101,8 @@ set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools8 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools9 REQUIRED)
+set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
@@ -192,7 +192,7 @@ gz_find_package(GzProtobuf
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs10_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
