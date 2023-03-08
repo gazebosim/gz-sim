@@ -2433,7 +2433,7 @@ TEST_F(PhysicsSystemFixture,
 
   // Make sure the position is updated every time step
   // (here, the model is falling down, so only z should be updated)
-  for (size_t i = 1; i <= nIters; i++)
+  for (size_t i = 1; i < nIters; i++)
   {
     EXPECT_GT(collisionPoses[i - 1].Pos().Z(), collisionPoses[i].Pos().Z())
         << "Model should be falling down.";
