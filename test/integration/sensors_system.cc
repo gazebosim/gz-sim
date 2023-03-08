@@ -133,13 +133,15 @@ void testDefaultTopics()
   };
 
   std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
   transport::Node node;
 
   // Sensors are created in a separate thread, so we sleep here to give them
   // time
   int sleep{0};
   int maxSleep{30};
-  for (; sleep < maxSleep && !node.TopicInfo(topics.front(), publishers);
+  for (; sleep < maxSleep &&
+      !node.TopicInfo(topics.front(), publishers, subscribers);
       ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -148,7 +150,7 @@ void testDefaultTopics()
 
   for (const std::string &topic : topics)
   {
-    bool result = node.TopicInfo(topic, publishers);
+    bool result = node.TopicInfo(topic, publishers, subscribers);
 
     EXPECT_TRUE(result) << "Could not get topic info for " << topic;
     EXPECT_EQ(1u, publishers.size());
