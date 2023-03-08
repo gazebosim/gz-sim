@@ -142,6 +142,7 @@ gz_find_package(gz-sensors8 REQUIRED
     navsat
 
     # rendering
+    dvl
     rendering
     lidar
     gpu_lidar
