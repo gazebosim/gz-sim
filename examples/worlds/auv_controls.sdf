@@ -141,24 +141,31 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
+        <!-- Added mass -->
         <xDotU>-4.876161</xDotU>
         <yDotV>-126.324739</yDotV>
         <zDotW>-126.324739</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>-33.46</mDotQ>
         <nDotR>-33.46</nDotR>
-        <xUU>-6.2282</xUU>
+
+        <!-- Linear drag -->
         <xU>0</xU>
-        <yVV>-601.27</yVV>
         <yV>0</yV>
-        <zWW>-601.27</zWW>
         <zW>0</zW>
-        <kPP>-0.1916</kPP>
         <kP>0</kP>
-        <mQQ>-632.698957</mQQ>
         <mQ>0</mQ>
-        <nRR>-632.698957</nRR>
         <nR>0</nR>
+        <nR>0</nR>
+
+        <!-- Quadratic drag -->
+        <xUabsU>-6.2282</xUabsU>
+        <yVabsV>-601.27</yVabsV>
+        <zWabsW>-601.27</zWabsW>
+        <kPabsP>-0.1916</kPabsP>
+        <mQabsQ>-632.69</mQabsQ>
+        <nRabsR>-632.69</nRabsR>
+
       </plugin>
 
     </include>
