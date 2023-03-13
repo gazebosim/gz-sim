@@ -32,14 +32,14 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/Joint.hh](https://gazebosim.org/api/gazebo/6.15/Joint_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/6.14/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/6.14/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/6.14/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [ignition/gazebo/Joint.hh](https://gazebosim.org/api/gazebo/6/Joint_8hh.html)
+* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/6/Util_8hh.html)
+* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/6/SdfEntityCreator_8hh.html)
+* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
 the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/6.14/classignition_1_1gazebo_1_1EntityComponentManager.html)
+[EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
 directly. The functions presented here exist for convenience and readability.
 
 ### Properties
