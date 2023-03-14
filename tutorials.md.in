@@ -49,6 +49,7 @@ Ignition @IGN_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Ignition Gazebo
 * \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
 * \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
+* \subpage migrationlinkapi "Actor API": Guide on what Actor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Ignition Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Ignition Gazebo.
 
