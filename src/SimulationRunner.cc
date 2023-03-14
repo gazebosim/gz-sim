@@ -126,6 +126,12 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // Epoch
+  this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
+    std::chrono::duration<double>{_config.InitialSimTime()}
+  );
+  this->currentInfo.simTime = this->simTimeEpoch;
+
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -271,13 +277,13 @@ void SimulationRunner::UpdateCurrentInfo()
   // Rewind
   if (this->requestedRewind)
   {
-    gzdbg << "Rewinding simulation back to time zero." << std::endl;
+    gzdbg << "Rewinding simulation back to initial time." << std::endl;
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = -this->currentInfo.simTime;
-    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.dt = this->simTimeEpoch - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->simTimeEpoch;
     this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
     this->currentInfo.iterations = 0;
     this->realTimeWatch.Reset();
@@ -290,22 +296,23 @@ void SimulationRunner::UpdateCurrentInfo()
   }
 
   // Seek
-  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  if (this->requestedSeek && this->requestedSeek.value() >= this->simTimeEpoch)
   {
     gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
-        this->requestedSeek).count() << "s." << std::endl;
+        this->requestedSeek.value()).count() << "s." << std::endl;
 
     this->realTimes.clear();
     this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
-    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.dt = this->requestedSeek.value() -
+      this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek.value();
     this->currentInfo.iterations = 0;
 
     this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
 
-    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+    this->requestedSeek = {};
 
     return;
   }
@@ -849,13 +856,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  if (!this->Paused() &&
-       this->requestedRunToSimTime >
-       std::chrono::steady_clock::duration::zero() &&
-       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  if (!this->Paused() && this->requestedRunToSimTime &&
+       this->requestedRunToSimTime.value() > this->simTimeEpoch &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime.value())
   {
     this->SetPaused(true);
-    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+    this->requestedRunToSimTime = {};
   }
 
   if (!this->Paused() && this->pendingSimIterations > 0)
@@ -1109,14 +1115,13 @@ bool SimulationRunner::Stepping() const
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
-  if (_time >= std::chrono::steady_clock::duration::zero() &&
-      _time > this->currentInfo.simTime)
+  if (_time >= this->simTimeEpoch && _time > this->currentInfo.simTime)
   {
     this->requestedRunToSimTime = _time;
   }
   else
   {
-    this->requestedRunToSimTime = std::chrono::seconds(-1);
+    this->requestedRunToSimTime = {};
   }
 }
 
@@ -1258,7 +1263,7 @@ void SimulationRunner::ProcessWorldControl()
     this->requestedRewind = control.rewind;
 
     // Seek
-    if (control.seek >= std::chrono::steady_clock::duration::zero())
+    if (control.seek >= this->simTimeEpoch)
     {
       this->requestedSeek = control.seek;
     }
@@ -1358,6 +1363,13 @@ EventManager &SimulationRunner::EventMgr()
 const UpdateInfo &SimulationRunner::CurrentInfo() const
 {
   return this->currentInfo;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
+  SimulationRunner::SimTimeEpoch() const
+{
+  return this->simTimeEpoch;
 }
 
 /////////////////////////////////////////////////

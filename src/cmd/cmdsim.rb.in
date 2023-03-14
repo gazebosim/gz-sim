@@ -49,6 +49,8 @@ COMMANDS = { 'sim' =>
   "Available Options:                                                              \n"\
   "  -g                           Run only the GUI.                                \n"\
   "\n"\
+  "  --initial-sim-time [arg]     Initial simulation time, in seconds.             \n"\
+  "\n"\
   "  --iterations [arg]           Number of iterations to execute.                 \n"\
   "\n"\
   "  --levels                     Use the level system. The default is false,      \n"\
@@ -209,6 +211,7 @@ class Cmd
       'file' => '',
       'gui' => 0,
       'hz' => -1,
+      'initial_sim_time' => 0,
       'iterations' => 0,
       'levels' => 0,
       'network_role' => '',
@@ -259,6 +262,10 @@ class Cmd
       end
       opts.on('-z [arg]', Float, 'Update rate in Hertz') do |h|
         options['hz'] = h
+      end
+      opts.on('--initial-sim-time [arg]', Float,
+              'Initial simulation time, in seconds.') do |t|
+        options['initial_sim_time'] = t
       end
       opts.on('-r') do
         options['run'] = 1
@@ -460,7 +467,7 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       end
 
       # Import the runServer function
-      Importer.extern 'int runServer(const char *, int, int, float, int,
+      Importer.extern 'int runServer(const char *, int, int, float, double, int,
                                const char *, int, int, const char *,
                                int, int, int, const char *, const char *,
                                const char *, const char *, const char *,
@@ -497,15 +504,16 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           ENV['RMT_PORT'] = '1500'
           Process.setpgid(0, 0)
           Process.setproctitle('gz sim server')
-          Importer.runServer(parsed, options['iterations'], options['run'],
-            options['hz'], options['levels'], options['network_role'],
-            options['network_secondaries'], options['record'],
-            options['record-path'], options['record-resources'],
-            options['log-overwrite'], options['log-compress'],
-            options['playback'], options['physics_engine'],
-            options['render_engine_server'], options['render_engine_gui'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'],
+          Importer.runServer(parsed,
+            options['iterations'], options['run'], options['hz'],
+            options['initial_sim_time'], options['levels'],
+            options['network_role'], options['network_secondaries'],
+            options['record'], options['record-path'],
+            options['record-resources'], options['log-overwrite'],
+            options['log-compress'], options['playback'],
+            options['physics_engine'], options['render_engine_server'],
+            options['render_engine_gui'], options['file'],
+            options['record-topics'].join(':'), options['wait_gui'],
             options['headless-rendering'], options['record-period'])
         end
 
@@ -536,14 +544,15 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
       elsif options['server'] == 1
         ENV['RMT_PORT'] = '1500'
         Importer.runServer(parsed, options['iterations'], options['run'],
-            options['hz'], options['levels'], options['network_role'],
-            options['network_secondaries'], options['record'],
-            options['record-path'], options['record-resources'],
-            options['log-overwrite'], options['log-compress'],
-            options['playback'], options['physics_engine'],
-            options['render_engine_server'], options['render_engine_gui'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'], options['headless-rendering'], options['record-period'])
+            options['hz'], options['initial_sim_time'], options['levels'],
+            options['network_role'], options['network_secondaries'],
+            options['record'], options['record-path'],
+            options['record-resources'], options['log-overwrite'],
+            options['log-compress'], options['playback'],
+            options['physics_engine'], options['render_engine_server'],
+            options['render_engine_gui'], options['file'],
+            options['record-topics'].join(':'), options['wait_gui'],
+            options['headless-rendering'], options['record-period'])
             # Otherwise run the gui
       else options['gui']
         if plugin.end_with? ".dll"

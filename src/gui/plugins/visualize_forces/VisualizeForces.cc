@@ -130,7 +130,7 @@ void VisualizeForcesPrivate::RetrieveWrenchesFromEcm(
   std::lock_guard<std::mutex> lock(mutex);
   {
     _ecm.Each<components::WorldPose, components::EntityWrenchMap>(
-      [&](const Entity &_entity,
+      [&](const Entity & /*_entity*/,
           components::WorldPose *_worldPose,
           components::EntityWrenchMap *_entityWrenchMap) -> bool
       {

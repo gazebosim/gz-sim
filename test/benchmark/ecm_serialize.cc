@@ -93,8 +93,8 @@ void BM_Serialize1Component(benchmark::State &_st)
     serializedSize = stateMsg.ByteSize();
 #endif
   }
-  _st.counters["serialized_size"] = serializedSize;
-  _st.counters["num_entities"] = entityCount;
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
   _st.counters["num_components"] = 1;
 }
 
@@ -125,8 +125,8 @@ void BM_Serialize5Component(benchmark::State &_st)
     serializedSize = stateMsg.ByteSize();
 #endif
   }
-  _st.counters["serialized_size"] = serializedSize;
-  _st.counters["num_entities"] = entityCount;
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
   _st.counters["num_components"] = 5;
 }
 
@@ -149,7 +149,11 @@ BENCHMARK(BM_Serialize5Component)
   ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
+#endif
