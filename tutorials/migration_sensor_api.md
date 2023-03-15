@@ -18,7 +18,7 @@ yet, feel free to
 
 ## Sensor API
 
-Gazebo-classic's `gazebo::physics::Sensor` provides lots of functionality, which
+Gazebo-classic's `gazebo::sensors::Sensor` provides lots of functionality, which
 can be divided in these categories:
 
 * **Properties**: Setting / getting properties
