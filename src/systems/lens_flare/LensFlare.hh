@@ -32,6 +32,21 @@ namespace systems
   /// \brief Private data class for LensFlare Plugin
   class LensFlarePrivate;
 
+    /** \class LensFlare LensFlare.hh \
+   * gz/sim/systems/LensFlare.hh
+  **/
+  /// \brief Add lens flare effects to the camera output as a render pass
+  /// The system takes in the following parameter:
+  ///   <scale> Sets the scale of the lens flare. If this is
+  ///           not specified, the value defaults to 1.0
+  ///
+  ///   <color> Sets the color of the lens flare. The default
+  ///           is {1.4, 1.2, 1.0}
+  ///
+  ///   <occlusion_steps> Sets the number of steps to take in
+  ///                     each direction to check for occlusions.
+  ///                     The default value is set to 10. Use 0 to disable
+
   class LensFlare:
     public System,
     public ISystemConfigure
@@ -47,7 +62,7 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
-    
+
     /// \brief Private data pointer
     private: std::unique_ptr<LensFlarePrivate> dataPtr;
   };
@@ -55,5 +70,4 @@ namespace systems
 }
 }
 }
-
 #endif

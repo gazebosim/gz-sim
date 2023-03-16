@@ -15,6 +15,8 @@
  *
 */
 
+#include <string>
+
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/math/Vector3.hh>
@@ -79,7 +81,7 @@ class gz::sim::systems::LensFlarePrivate
     /// \brief Name of the Light
     public: std::string lightName;
 
-    /// \brief Pointer to the LensFlarePass 
+    /// \brief Pointer to the LensFlarePass
     public: rendering::LensFlarePassPtr lensFlarePass;
 
     /// \brief Scale of the lens flare
@@ -88,7 +90,7 @@ class gz::sim::systems::LensFlarePrivate
     /// \brief Color of the lens flare
     public: math::Vector3d color = math::Vector3d{1.4, 1.2, 1.0};
 
-    /// \brief Number of occlusion steps to take in each direction. Use 0 to disable
+    /// \brief Number of occlusion steps to take in each direction.
     public: uint32_t occlusionSteps = 10;
 };
 
@@ -106,9 +108,9 @@ void LensFlare::Configure(
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
     this->dataPtr->entity = _entity;
-    this->dataPtr->eventMgr = &_eventMgr;  
+    this->dataPtr->eventMgr = &_eventMgr;
 
-    gzmsg << "Lens flare attached to camera named " 
+    gzmsg << "Lens flare attached to camera named "
             << this->dataPtr->cameraName << std::endl;
 
     if (_sdf->HasElement("scale"))
@@ -127,10 +129,12 @@ void LensFlare::Configure(
     }
 
     // Get Camera Name
-    this->dataPtr->cameraName = scopedName(this->dataPtr->entity, _ecm, "::", false);
-    
+    this->dataPtr->cameraName = scopedName(this->dataPtr->entity,
+                                            _ecm, "::", false);
+
     // call function that connects to post render event
-    // using a separate function because unique_ptr (this->dataPtr) is not supported as a argument of std::bind
+    // using a separate function because unique_ptr (this->dataPtr)
+    // is not supported as a argument of std::bind
     this->dataPtr->ConnectToPostRender();
 }
 
@@ -162,7 +166,7 @@ void LensFlarePrivate::OnPostRender()
     if (!this->scene->IsInitialized() ||
         this->scene->SensorCount() == 0)
     {
-        gzmsg << "Scene is not initialized or sensor count was found 0" 
+        gzmsg << "Scene is not initialized or sensor count was found 0"
                 << std::endl;
     }
 
@@ -186,7 +190,7 @@ void LensFlarePrivate::OnPostRender()
         }
 
         return;
-    }   
+    }
 
     // get light
     if (!this->light)
@@ -199,7 +203,8 @@ void LensFlarePrivate::OnPostRender()
 
     if (rpSystem)
     {
-        rendering::RenderPassPtr flarePass = rpSystem->Create<rendering::LensFlarePass>();
+        rendering::RenderPassPtr flarePass =
+            rpSystem->Create<rendering::LensFlarePass>();
         if (!flarePass)
         {
             gzwarn << "Lens Flare is not supported by the "
@@ -207,14 +212,15 @@ void LensFlarePrivate::OnPostRender()
             return;
         }
 
-        this->lensFlarePass = std::dynamic_pointer_cast<rendering::LensFlarePass>(flarePass);
+        this->lensFlarePass =
+            std::dynamic_pointer_cast<rendering::LensFlarePass>(flarePass);
         this->lensFlarePass->Init(this->scene);
         this->lensFlarePass->SetEnabled(true);
         this->lensFlarePass->SetLight(this->light);
         this->lensFlarePass->SetScale(this->scale);
         this->lensFlarePass->SetColor(this->color);
         this->lensFlarePass->SetOcclusionSteps(this->occlusionSteps);
-        
+
         this->camera->AddRenderPass(lensFlarePass);
         gzmsg << "LensFlare Render pass added to the camera" << std::endl;
     }
@@ -226,8 +232,8 @@ void LensFlarePrivate::OnPostRender()
 
 
 
-GZ_ADD_PLUGIN(LensFlare, 
-                System, 
+GZ_ADD_PLUGIN(LensFlare,
+                System,
                 LensFlare::ISystemConfigure)
 
 // Add plugin alias so that we can refer to the plugin without the version
