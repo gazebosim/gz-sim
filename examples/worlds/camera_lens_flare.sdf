@@ -346,7 +346,7 @@
           <plugin
             filename="gz-sim-lens-flare-system"
             name="gz::sim::systems::LensFlare">
-          </plugin>        
+          </plugin>
         </sensor>
       </link>
     </model>
@@ -384,7 +384,7 @@
             name="gz::sim::systems::LensFlare">
             <scale>0.5</scale>
             <color>3 3 3</color>
-          </plugin>        
+          </plugin>
         </sensor>
       </link>
     </model>
