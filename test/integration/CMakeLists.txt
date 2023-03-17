@@ -86,6 +86,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
