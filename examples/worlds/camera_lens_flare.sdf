@@ -312,7 +312,7 @@
     <!-- wide-angle camera model with lens flare plugin -->
     <model name="wide_angle_camera_lensflare">
       <static>true</static>
-      <pose>0 2 0.5 0 0 0</pose>
+      <pose>0.3 2.22 0.5 0 0 0</pose>
       <link name="link">
         <visual name="visual">
           <geometry>
@@ -323,7 +323,7 @@
         </visual>
         <sensor name="wide_angle_camera" type="wideanglecamera">
           <camera>
-            <horizontal_fov>1.047</horizontal_fov>
+            <horizontal_fov>3.14159</horizontal_fov>
             <image>
               <width>320</width>
               <height>240</height>
@@ -333,7 +333,7 @@
               <far>100</far>
             </clip>
             <lens>
-              <type>gnomonical</type>
+              <type>equidistant</type>
               <scale_to_hfov>true</scale_to_hfov>
               <cutoff_angle>1.5707</cutoff_angle>
               <env_texture_size>512</env_texture_size>
@@ -351,7 +351,7 @@
       </link>
     </model>
 
-        <!-- wide-angle camera model with lens flare plugin -->
+    <!-- camera model with lens flare plugin -->
     <model name="camera_lensflare">
       <static>true</static>
       <pose>0 2 0.3 0 0 0</pose>

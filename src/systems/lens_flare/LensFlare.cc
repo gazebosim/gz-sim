@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,9 +133,9 @@ void LensFlare::Configure(
                                             _ecm, "::", false);
 
     // call function that connects to post render event
-    // using a separate function because unique_ptr (this->dataPtr)
-    // is not supported as a argument of std::bind
-    this->dataPtr->ConnectToPostRender();
+    this->dataPtr->postRenderConn =
+        this->dataPtr->eventMgr->Connect<events::PostRender>(
+        std::bind(&LensFlarePrivate::OnPostRender, this->dataPtr.get()));
 }
 
 
@@ -229,8 +229,6 @@ void LensFlarePrivate::OnPostRender()
     // unecessary callbacks;
     this->postRenderConn.reset();
 }
-
-
 
 GZ_ADD_PLUGIN(LensFlare,
                 System,

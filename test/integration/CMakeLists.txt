@@ -11,6 +11,7 @@ set(tests
   breadcrumbs.cc
   buoyancy.cc
   buoyancy_engine.cc
+  camera_lens_flare.cc
   collada_world_exporter.cc
   components.cc
   contact_system.cc
