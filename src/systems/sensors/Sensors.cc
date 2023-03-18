@@ -31,6 +31,8 @@
 
 #include <gz/math/Helpers.hh>
 
+#include <gz/common/Timer.hh>
+
 #include <gz/rendering/Scene.hh>
 #include <gz/sensors/BoundingBoxCameraSensor.hh>
 #include <gz/sensors/CameraSensor.hh>
@@ -280,6 +282,9 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
+  std::cerr << " ====" << std::endl;
+  common::Timer t;
+  t.Start();
   GZ_PROFILE("SensorsPrivate::RunOnce");
   {
     GZ_PROFILE("Update");
@@ -333,7 +338,11 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
+      common::Timer t2;
+      t2.Start();
       this->scene->PreRender();
+      t2.Stop();
+      std::cerr << "t2 " << t2.ElapsedTime().count() << std::endl;
     }
 
     // disable sensors that have no subscribers to prevent doing unnecessary
@@ -355,7 +364,12 @@ void SensorsPrivate::RunOnce()
     {
       // publish data
       GZ_PROFILE("RunOnce");
+      common::Timer t3;
+      t3.Start();
       this->sensorManager.RunOnce(this->updateTime);
+      t3.Stop();
+      std::cerr << "t3 " << t3.ElapsedTime().count() << std::endl;
+
       this->eventManager->Emit<events::Render>();
     }
 
@@ -382,6 +396,8 @@ void SensorsPrivate::RunOnce()
   this->forceUpdate = false;
   lock.unlock();
   this->renderCv.notify_one();
+  t.Stop();
+  std::cerr << "t " << t.ElapsedTime().count() << std::endl;
 }
 
 //////////////////////////////////////////////////
