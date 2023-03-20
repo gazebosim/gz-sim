@@ -19,7 +19,11 @@ a body can be seen in the following diagram:
 
 # Setting up the buoyancy plugin
 The buoyancy plugin in Gazebo uses the collision mesh to calculate the volume
-of the vehicle. Additionally, it needs to know the density of the fluid in which
+of the vehicle. The calculated volume is used to determine the buoyancy force,
+which is then applied at the pose of the collision mesh in the link frame. Note
+that this may be a different location from the center of volume.
+
+Additionally, it needs to know the density of the fluid in which
 it is moving. By default this is set to 1000kgm^-3. However, in real life this
 may vary depending on many factors like depth, salinity of water etc. To add
 the buoyancy plugin all one needs to do is add the following under the `<world>`
