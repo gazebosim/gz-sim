@@ -17,6 +17,8 @@
 
 #include "Sensors.hh"
 
+#include <chrono>
+
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -77,7 +79,7 @@ class gz::sim::systems::SensorsPrivate
   public: sensors::Manager sensorManager;
 
   /// \brief used to store whether rendering objects have been created.
-  public: bool initialized = false;
+  public: std::atomic<bool> initialized { false };
 
   /// \brief Main rendering interface
   public: RenderUtil renderUtil;
@@ -115,7 +117,7 @@ class gz::sim::systems::SensorsPrivate
   public: bool doInit { false };
 
   /// \brief Flag to signal if rendering update is needed
-  public: bool updateAvailable { false };
+  public: std::atomic<bool> updateAvailable { false };
 
   /// \brief Flag to signal if a rendering update must be done
   public: std::atomic<bool> forceUpdate { false };
@@ -125,6 +127,7 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Mutex to protect rendering data
   public: std::mutex renderMutex;
+  public: std::mutex cvMutex;
 
   /// \brief Condition variable to signal rendering thread
   ///
@@ -270,11 +273,23 @@ void SensorsPrivate::WaitForInit()
 //////////////////////////////////////////////////
 void SensorsPrivate::RunOnce()
 {
-  std::unique_lock<std::mutex> lock(this->renderMutex);
-  this->renderCv.wait(lock, [this]()
   {
-    return !this->running || this->updateAvailable;
-  });
+    std::unique_lock<std::mutex> lock(this->cvMutex);
+
+    std::cerr << " ====" << std::endl;
+    common::Timer w;
+    w.Start();
+    std::cerr << "w start " << std::endl;
+
+    this->renderCv.wait(lock, [this]()
+    {
+      return !this->running || this->updateAvailable;
+    });
+    std::cerr << "w stop" << std::endl;
+
+    w.Stop();
+    std::cerr << "w " << w.ElapsedTime().count() << std::endl;
+  }
 
   if (!this->running)
     return;
@@ -282,7 +297,6 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
-  std::cerr << " ====" << std::endl;
   common::Timer t;
   t.Start();
   GZ_PROFILE("SensorsPrivate::RunOnce");
@@ -291,7 +305,13 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
-  if (!this->activeSensors.empty() || this->forceUpdate)
+  bool activeSensorsEmpty = true;
+  {
+    std::unique_lock<std::mutex> lk(this->sensorMaskMutex);
+    activeSensorsEmpty = this->activeSensors.empty();
+  }
+
+  if (!activeSensorsEmpty || this->forceUpdate)
   {
     // disable sensors that are out of battery or re-enable sensors that are
     // being charged
@@ -389,12 +409,13 @@ void SensorsPrivate::RunOnce()
       this->eventManager->Emit<events::PostRender>();
     }
 
+    std::unique_lock<std::mutex> lk(this->sensorMaskMutex);
     this->activeSensors.clear();
   }
 
   this->updateAvailable = false;
   this->forceUpdate = false;
-  lock.unlock();
+//  lock.unlock();
   this->renderCv.notify_one();
   t.Stop();
   std::cerr << "t " << t.ElapsedTime().count() << std::endl;
@@ -410,8 +431,13 @@ void SensorsPrivate::RenderThread()
   // We have to wait for rendering sensors to be available
   this->WaitForInit();
 
+  std::chrono::steady_clock::time_point prev;
   while (this->running)
   {
+    auto now = std::chrono::steady_clock::now();
+    std::chrono::duration<double> dt = now - prev;
+    std::cerr << "RenderThread RunOnce: " <<  dt.count() << std::endl;
+    prev = now;
     this->RunOnce();
   }
 
@@ -619,7 +645,13 @@ void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Update");
-  std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+
+  common::Timer t;
+  if (!_info.paused)
+    t.Start();
+
+
+  // std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
 
 #ifdef __APPLE__
   // On macOS the render engine must be initialised on the main thread.
@@ -642,7 +674,17 @@ void Sensors::Update(const UpdateInfo &_info,
   {
     this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
   }
+
+  if (!_info.paused)
+  {
+    t.Stop();
+    std::cerr << "Update " << t.ElapsedTime().count() << std::endl;
+  }
+
 }
+
+
+  std::chrono::steady_clock::time_point pprev;
 
 //////////////////////////////////////////////////
 void Sensors::PostUpdate(const UpdateInfo &_info,
@@ -650,8 +692,20 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("Sensors::PostUpdate");
 
+  auto now = std::chrono::steady_clock::now();
+  std::chrono::duration<double> dt = now - pprev;
+  if (!_info.paused)
+  std::cerr << "PostUpdate Rate: " <<  dt.count() << std::endl;
+  pprev = now;
+
+  common::Timer t;
+  if (!_info.paused)
+    t.Start();
+
+
+
   {
-    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+    // std::unique_lock<std::mutex> lock(thus->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
         (this->dataPtr->forceUpdate ||
          _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
@@ -671,6 +725,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
+
+    // TODO this does scene operations! protect w renderMutex
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
     std::vector<sensors::RenderingSensor *> activeSensors;
@@ -720,20 +776,38 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
 
-      std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-      this->dataPtr->renderCv.wait(lock, [this] {
-        return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
+      {
+        std::unique_lock<std::mutex> lock(this->dataPtr->cvMutex);
+
+        common::Timer w;
+        w.Start();
+        this->dataPtr->renderCv.wait(lock, [this] {
+          return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
+        w.Stop();
+        std::cerr << "Post update wait " << w.ElapsedTime().count() << std::endl;
+      }
 
       if (!this->dataPtr->running)
       {
         return;
       }
 
-      this->dataPtr->activeSensors = std::move(activeSensors);
-      this->dataPtr->updateTime = _info.simTime;
-      this->dataPtr->updateAvailable = true;
+      {
+        std::unique_lock<std::mutex> lockMask(this->dataPtr->sensorMaskMutex);
+        this->dataPtr->activeSensors = std::move(activeSensors);
+        this->dataPtr->updateTime = _info.simTime;
+        this->dataPtr->updateAvailable = true;
+      }
+      if (!_info.paused)
+      std::cerr << "update available "<< std::endl;
       this->dataPtr->renderCv.notify_one();
     }
+  }
+
+  if (!_info.paused)
+  {
+    t.Stop();
+    std::cerr << "Post update " << t.ElapsedTime().count() << std::endl;
   }
 }
 
