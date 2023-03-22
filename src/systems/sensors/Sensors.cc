@@ -17,7 +17,6 @@
 
 #include "Sensors.hh"
 
-#include <map>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -98,7 +97,7 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Keep track of cameras, in case we need to handle stereo cameras.
   /// Key: Camera's parent scoped name
   /// Value: Pointer to camera
-  public: std::map<std::string, sensors::CameraSensor *> cameras;
+  public: std::unordered_map<std::string, sensors::CameraSensor *> cameras;
 
   /// \brief Maps gazebo entity to its matching sensor ID
   ///
@@ -124,9 +123,6 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Mutex to protect rendering data
   public: std::mutex renderMutex;
 
-  /// \brief Mutex to protect renderCv
-  public: std::mutex cvMutex;
-
   /// \brief Condition variable to signal rendering thread
   ///
   /// This variable is used to block/unblock operations in the rendering
@@ -143,15 +139,17 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
 
+  /// \brief Next sensors update time
+  public: std::chrono::steady_clock::duration nextUpdateTime;
+
   /// \brief Sensors to include in the next rendering iteration
-  public: std::vector<sensors::RenderingSensor *> activeSensors;
+  public: std::set<sensors::SensorId> activeSensors;
+
+  /// \brief Sensors to be updated next
+  public: std::set<sensors::SensorId> sensorsToUpdate;
 
   /// \brief Mutex to protect sensorMask
-  public: std::mutex sensorMaskMutex;
-
-  /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId,
-    std::chrono::steady_clock::duration> sensorMask;
+  public: std::mutex sensorsMutex;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventManager{nullptr};
@@ -203,6 +201,14 @@ class gz::sim::systems::SensorsPrivate
   /// \param[in] _ecm Entity component manager
   public: void UpdateBatteryState(const EntityComponentManager &_ecm);
 
+  /// \brief Get the next closest sensor update time
+  public: std::chrono::steady_clock::duration NextUpdateTime(
+      std::set<sensors::SensorId> &_sensorsToUpdate,
+      const std::chrono::steady_clock::duration &_currentTime);
+
+  /// \brief Check if any of the sensors have connections
+  public: bool SensorsHaveConnections();
+
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
 
@@ -219,7 +225,7 @@ class gz::sim::systems::SensorsPrivate
   public: std::unordered_map<Entity, bool> modelBatteryStateChanged;
 
   /// \brief A map of sensor ids to their active state
-  public: std::map<sensors::SensorId, bool> sensorStateChanged;
+  public: std::unordered_map<sensors::SensorId, bool> sensorStateChanged;
 
   /// \brief Disable sensors if parent model's battery is drained
   /// Affects sensors that are in nested models
@@ -272,8 +278,8 @@ void SensorsPrivate::WaitForInit()
 void SensorsPrivate::RunOnce()
 {
   {
-    std::unique_lock<std::mutex> lock(this->cvMutex);
-    this->renderCv.wait(lock, [this]()
+    std::unique_lock<std::mutex> cvLock(this->renderMutex);
+    this->renderCv.wait(cvLock, [this]()
     {
       return !this->running || this->updateAvailable;
     });
@@ -291,9 +297,10 @@ void SensorsPrivate::RunOnce()
     this->renderUtil.Update();
   }
 
+
   bool activeSensorsEmpty = true;
   {
-    std::unique_lock<std::mutex> lk(this->sensorMaskMutex);
+    std::unique_lock<std::mutex> lk(this->sensorsMutex);
     activeSensorsEmpty = this->activeSensors.empty();
   }
 
@@ -316,26 +323,6 @@ void SensorsPrivate::RunOnce()
       this->sensorStateChanged.clear();
     }
 
-    // Check the active sensors against masked sensors.
-    //
-    // The internal state of a rendering sensor is not updated until the
-    // rendering operation is complete, which can leave us in a position
-    // where the sensor is falsely indicating that an update is needed.
-    //
-    // To prevent this, add sensors that are currently being rendered to
-    // a mask. Sensors are removed from the mask when 90% of the update
-    // delta has passed, which will allow rendering to proceed.
-    {
-      std::unique_lock<std::mutex> lockMask(this->sensorMaskMutex);
-      for (const auto & sensor : this->activeSensors)
-      {
-        // 90% of update delta (1/UpdateRate());
-        auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
-          std::chrono::duration< double >(0.9 / sensor->UpdateRate()));
-        this->sensorMask[sensor->Id()] = this->updateTime + delta;
-      }
-    }
-
     {
       GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
@@ -350,7 +337,7 @@ void SensorsPrivate::RunOnce()
     // disable sensors that have no subscribers to prevent doing unnecessary
     // work
     std::unordered_set<sensors::RenderingSensor *> tmpDisabledSensors;
-    this->sensorMaskMutex.lock();
+    this->sensorsMutex.lock();
     for (auto id : this->sensorIds)
     {
       sensors::Sensor *s = this->sensorManager.Sensor(id);
@@ -361,7 +348,7 @@ void SensorsPrivate::RunOnce()
         tmpDisabledSensors.insert(rs);
       }
     }
-    this->sensorMaskMutex.unlock();
+    this->sensorsMutex.unlock();
 
     {
       // publish data
@@ -382,11 +369,15 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
+
+      int64_t sec, nsec;
+      std::tie(sec, nsec) = math::durationToSecNsec(this->updateTime);
+
       this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
 
-    std::unique_lock<std::mutex> lk(this->sensorMaskMutex);
+    std::unique_lock<std::mutex> lk(this->sensorsMutex);
     this->activeSensors.clear();
   }
 
@@ -465,15 +456,9 @@ void Sensors::RemoveSensor(const Entity &_entity)
     // Locking mutex to make sure the vector is not being changed while
     // the rendering thread is iterating over it
     {
-      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
-      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(idIter->second);
-      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-      auto activeSensorIt = std::find(this->dataPtr->activeSensors.begin(),
-          this->dataPtr->activeSensors.end(), rs);
-      if (activeSensorIt != this->dataPtr->activeSensors.end())
-      {
-        this->dataPtr->activeSensors.erase(activeSensorIt);
-      }
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
+      this->dataPtr->activeSensors.erase(idIter->second);
+      this->dataPtr->sensorsToUpdate.erase(idIter->second);
     }
 
     // update cameras list
@@ -590,8 +575,9 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     gzdbg << "Resetting Sensors\n";
 
     {
-      std::unique_lock<std::mutex> lock(this->dataPtr->sensorMaskMutex);
-      this->dataPtr->sensorMask.clear();
+      std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
+      this->dataPtr->activeSensors.clear();
+      this->dataPtr->sensorsToUpdate.clear();
     }
 
     for (auto id : this->dataPtr->sensorIds)
@@ -606,6 +592,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
 
       s->SetNextDataUpdateTime(_info.simTime);
     }
+    this->dataPtr->nextUpdateTime =  _info.simTime;
   }
 }
 
@@ -627,8 +614,10 @@ void Sensors::Update(const UpdateInfo &_info,
        _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
        _ecm.HasComponentType(components::WideAngleCamera::typeId)))
   {
+    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     igndbg << "Initialization needed" << std::endl;
     this->dataPtr->renderUtil.Init();
+    this->dataPtr->nextUpdateTime = _info.simTime;
   }
 #endif
 
@@ -655,6 +644,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
          _ecm.HasComponentType(components::WideAngleCamera::typeId)))
     {
+      std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       gzdbg << "Initialization needed" << std::endl;
       this->dataPtr->doInit = true;
       this->dataPtr->renderCv.notify_one();
@@ -665,47 +655,31 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-    std::vector<sensors::RenderingSensor *> activeSensors;
+    // check connections to render events
+    // we will need to perform render updates if there are event subscribers
+    // \todo(anyone) This currently forces scene tree updates at the sim update
+    // rate which can be too frequent and causes a performance hit.
+    // We should look into throttling render updates
+    bool hasRenderConnections =
+      (this->dataPtr->eventManager->ConnectionCount<events::PreRender>() > 0u ||
+      this->dataPtr->eventManager->ConnectionCount<events::Render>() > 0u ||
+      this->dataPtr->eventManager->ConnectionCount<events::PostRender>() > 0u);
 
+    // if nextUpdateTime is max, it probably means there are previously
+    // no active sensors or sensors with connections.
+    // In this case, check if sensors have connections now. If so, we need to
+    // set the nextUpdateTime
+    if (this->dataPtr->nextUpdateTime ==
+        std::chrono::steady_clock::duration::max() &&
+        this->dataPtr->SensorsHaveConnections())
     {
-      std::unique_lock<std::mutex> lk(this->dataPtr->sensorMaskMutex);
-      for (auto id : this->dataPtr->sensorIds)
-      {
-        sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-
-        if (nullptr == s)
-        {
-          continue;
-        }
-
-        auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-
-        if (nullptr == rs)
-        {
-          continue;
-        }
-
-        auto it = this->dataPtr->sensorMask.find(id);
-        if (it != this->dataPtr->sensorMask.end())
-        {
-          if (it->second <= _info.simTime)
-          {
-            this->dataPtr->sensorMask.erase(it);
-          }
-          else
-          {
-            continue;
-          }
-        }
-
-        if (rs && rs->NextDataUpdateTime() <= _info.simTime)
-        {
-          activeSensors.push_back(rs);
-        }
-      }
+      this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
+          this->dataPtr->sensorsToUpdate, _info.simTime);
     }
 
-    if (!activeSensors.empty() ||
+    // notify the render thread if updates are available
+    if (hasRenderConnections ||
+        this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
         this->dataPtr->forceUpdate)
     {
@@ -713,8 +687,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->UpdateBatteryState(_ecm);
 
       {
-        std::unique_lock<std::mutex> lock(this->dataPtr->cvMutex);
-        this->dataPtr->renderCv.wait(lock, [this] {
+        std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
+        this->dataPtr->renderCv.wait(cvLock, [this] {
           return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
       }
 
@@ -724,8 +698,19 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       }
 
       {
-        std::unique_lock<std::mutex> lockMask(this->dataPtr->sensorMaskMutex);
-        this->dataPtr->activeSensors = std::move(activeSensors);
+        std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
+        this->dataPtr->activeSensors = std::move(this->dataPtr->sensorsToUpdate);
+
+        this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
+            this->dataPtr->sensorsToUpdate, _info.simTime);
+
+        // Force scene tree update if there are sensors to be created or
+        // subscribes to the render events. This does not necessary force
+        // sensors to update. Only active sensors will be updated
+        this->dataPtr->forceUpdate =
+            (this->dataPtr->renderUtil.PendingSensors() > 0) ||
+            hasRenderConnections;
+
         this->dataPtr->updateTime = _info.simTime;
         this->dataPtr->updateAvailable = true;
       }
@@ -932,6 +917,86 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   }
 
   return sensor->Name();
+}
+
+//////////////////////////////////////////////////
+std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
+    std::set<sensors::SensorId> &_sensorsToUpdate,
+    const std::chrono::steady_clock::duration &_currentTime)
+{
+  _sensorsToUpdate.clear();
+  std::chrono::steady_clock::duration minNextUpdateTime =
+      std::chrono::steady_clock::duration::max();
+  for (auto id : this->sensorIds)
+  {
+    sensors::Sensor *s = this->sensorManager.Sensor(id);
+
+    if (nullptr == s)
+    {
+      continue;
+    }
+
+    auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+
+    if (nullptr == rs)
+    {
+      continue;
+    }
+
+    if (!rs->HasConnections())
+    {
+      continue;
+    }
+
+    std::chrono::steady_clock::duration time;
+    // if sensor's next update tims is less or equal to current sim time then
+    // it's in the process of being updated by the render loop
+    // Set their next update time  to be current time + update period
+    if (rs->NextDataUpdateTime() <= _currentTime)
+    {
+      time = rs->NextDataUpdateTime() +
+          std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+          std::chrono::duration<double>(1.0 / rs->UpdateRate()));
+    }
+    else
+    {
+      time = rs->NextDataUpdateTime();
+    }
+
+    if (time <= minNextUpdateTime)
+    {
+      _sensorsToUpdate.clear();
+      minNextUpdateTime = time;
+    }
+    _sensorsToUpdate.insert(id);
+  }
+  return minNextUpdateTime;
+}
+
+//////////////////////////////////////////////////
+bool SensorsPrivate::SensorsHaveConnections()
+{
+  for (auto id : this->sensorIds)
+  {
+    sensors::Sensor *s = this->sensorManager.Sensor(id);
+    if (nullptr == s)
+    {
+      continue;
+    }
+
+    auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+
+    if (nullptr == rs)
+    {
+      continue;
+    }
+
+    if (rs->HasConnections())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 GZ_ADD_PLUGIN(Sensors, System,
