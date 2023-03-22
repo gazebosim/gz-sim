@@ -37,7 +37,15 @@ You'll find the APIs below on the following headers:
 It's worth remembering that most of this functionality can be performed using
 the
 [EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly. The functions presented here exist for convenience and readability.
+directly.
+
+As an example the `Light::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
+
+```
+  math::Pose3d pose = _ecm.Component<components::Pose>(lightEntityId)->Data();
+```
+
+The functions presented in the sections below exist for convenience and readability.
 
 ### Properties
 
@@ -61,8 +69,8 @@ Id | `ignition::gazebo::Light::Entity`
 LightType | `ignition::gazebo::Light::Type`
 Name | `ignition::gazebo::Light::Name`
 Position | `ignition::gazebo::Light::Pose`
-Rotation | `ignition::gazebo::Light::Pose``
-SetAttenuation | use `ignition::gazebo::Light::SetAttenuation\*`
+Rotation | `ignition::gazebo::Light::Pose`
+SetAttenuation | use `ignition::gazebo::Light::SetAttenuation*`
 SetCastShadows | `ignition::gazebo::Light::SetCastShadows`
 SetDiffuseColor | `ignition::gazebo::Light::SetDiffuseColor`
 SetDirection | `ignition::gazebo::Light::SetDirection`
@@ -74,11 +82,11 @@ SetRotation | TODO
 SetSelected |  Selection is client-specific, not porting
 SetSpecularColor | `ignition::gazebo::Light::SetSpecularColor`
 SetSpotFalloff | `ignition::gazebo::Light::SetSpotFalloff`
-SetSpotInnerAngle | ignition::gazebo::Light::SetSpotInnerAngle`
-SetSpotOuterAngle | ignition::gazebo::Light::SetSpotOuterAngle`
+SetSpotInnerAngle | `ignition::gazebo::Light::SetSpotInnerAngle`
+SetSpotOuterAngle | `ignition::gazebo::Light::SetSpotOuterAngle`
 SetVisible | TODO
 ShowVisual | TODO
-SpecularColor | ignition::gazebo::Light::SetSpecularColor`
+SpecularColor | `ignition::gazebo::Light::SetSpecularColor`
 ToggleShowVisual | TODO
 Type | `ignition::gazebo::Light::Type`
 Visible | TODO
