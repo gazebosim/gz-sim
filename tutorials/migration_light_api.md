@@ -45,7 +45,9 @@ As an example the `Light::Pose()` is a convienient function for querying the `Po
   math::Pose3d pose = _ecm.Component<components::Pose>(lightEntityId)->Data();
 ```
 
-The functions presented in the sections below exist for convenience and readability.
+The functions presented in the sections below exist for convenience and
+readability. The items marked as `TODO` means that the equivalent API is not
+implemented yet in Gazebo.
 
 ### Properties
 
@@ -122,7 +124,8 @@ These functions deal with modifying the entity tree, attaching children to new
 parents. As mentioned earlier, these APIs in Gazebo classic are provided by the
 `gazebo::physics::Light` class. Most of the APIs are inherited from the base
 `gazebo::physics::Entity` class in classic. We will only list the relevant ones
-here.
+here. As seen below, APIs for changing a Light's entity tree structure are
+currently not implemented yet.
 
 ---
 
