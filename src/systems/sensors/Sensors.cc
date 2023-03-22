@@ -291,12 +291,14 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
+  std::chrono::steady_clock::duration updateTimeApplied;
   GZ_PROFILE("SensorsPrivate::RunOnce");
   {
     GZ_PROFILE("Update");
+    std::unique_lock<std::mutex> timeLock(this->renderMutex);
     this->renderUtil.Update();
+    updateTimeApplied = this->updateTime;
   }
-
 
   bool activeSensorsEmpty = true;
   {
@@ -326,7 +328,7 @@ void SensorsPrivate::RunOnce()
     {
       GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
-      this->scene->SetTime(this->updateTime);
+      this->scene->SetTime(updateTimeApplied);
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -350,10 +352,14 @@ void SensorsPrivate::RunOnce()
     }
     this->sensorsMutex.unlock();
 
+    // safety check to see if reset occurred while we're rendering
+    // avoid publishing outdated data if reset occurred
+    std::unique_lock<std::mutex> timeLock(this->renderMutex);
+    if (updateTimeApplied <= this->updateTime)
     {
       // publish data
       GZ_PROFILE("RunOnce");
-      this->sensorManager.RunOnce(this->updateTime);
+      this->sensorManager.RunOnce(updateTimeApplied);
       this->eventManager->Emit<events::Render>();
     }
 
@@ -369,10 +375,6 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
-
-      int64_t sec, nsec;
-      std::tie(sec, nsec) = math::durationToSecNsec(this->updateTime);
-
       this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
@@ -593,6 +595,8 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
       s->SetNextDataUpdateTime(_info.simTime);
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
+    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+    this->dataPtr->updateTime =  _info.simTime;
   }
 }
 
@@ -653,7 +657,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
-    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+      this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
+      this->dataPtr->updateTime = _info.simTime;
+    }
 
     // check connections to render events
     // we will need to perform render updates if there are event subscribers
@@ -699,7 +707,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
       {
         std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
-        this->dataPtr->activeSensors = std::move(this->dataPtr->sensorsToUpdate);
+        this->dataPtr->activeSensors =
+            std::move(this->dataPtr->sensorsToUpdate);
 
         this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
             this->dataPtr->sensorsToUpdate, _info.simTime);
@@ -710,8 +719,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->forceUpdate =
             (this->dataPtr->renderUtil.PendingSensors() > 0) ||
             hasRenderConnections;
-
-        this->dataPtr->updateTime = _info.simTime;
         this->dataPtr->updateAvailable = true;
       }
       this->dataPtr->renderCv.notify_one();
