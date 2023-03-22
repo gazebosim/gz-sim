@@ -8,7 +8,7 @@ jobs:
     name: Ubuntu Bionic CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@bionic
@@ -19,7 +19,7 @@ jobs:
     name: Ubuntu Focal CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@focal
