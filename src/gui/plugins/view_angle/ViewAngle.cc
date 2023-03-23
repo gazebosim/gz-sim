@@ -64,7 +64,7 @@ namespace gz::sim
       "/gui/camera/view_control/reference_visual";
 
     /// \brief View Control sensitivity service name
-    public: std::string viewControlSensitivityService = 
+    public: std::string viewControlSensitivityService =
       "/gui/camera/view_control/sensitivity";
 
     /// \brief Move gui camera to pose service name
