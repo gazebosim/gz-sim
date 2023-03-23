@@ -104,7 +104,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto cameraCb = std::function<void(const msgs::Image &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         imageTimestamps.push_back(t);
         ++imageCount;
@@ -116,7 +116,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto lidarCb = std::function<void(const msgs::LaserScan &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         lidarTimestamps.push_back(t);
         ++lidarCount;
@@ -128,7 +128,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto depthCb = std::function<void(const msgs::Image &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         depthTimestamps.push_back(t);
         ++depthCount;
@@ -142,7 +142,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto rgbdCb = std::function<void(const msgs::Image &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         rgbdTimestamps.push_back(t);
         ++rgbdCount;
@@ -156,7 +156,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto thermalCb = std::function<void(const msgs::Image &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         thermalTimestamps.push_back(t);
         ++thermalCount;
@@ -170,7 +170,7 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   auto segmentationCb = std::function<void(const msgs::Image &)>(
       [&](const auto &_msg)
       {
-        double t = _msg.header().stamp().sec() + 
+        double t = _msg.header().stamp().sec() +
             _msg.header().stamp().nsec() * 1e-9;
         segmentationTimestamps.push_back(t);
         ++segmentationCount;
@@ -250,10 +250,10 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
   unsigned int maxSleep = 100;
   while (sleep++ < maxSleep &&
          (imageCount < expectedCamMsgCount ||
-         lidarCount < expectedLidarMsgCount ||  
+         lidarCount < expectedLidarMsgCount ||
          depthCount < expectedDepthMsgCount ||
-         rgbdCount < expectedRgbdMsgCount || 
-         thermalCount < expectedThermalMsgCount || 
+         rgbdCount < expectedRgbdMsgCount ||
+         thermalCount < expectedThermalMsgCount ||
          segmentationCount < expectedSegmentationMsgCount))
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
