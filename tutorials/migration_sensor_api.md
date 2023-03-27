@@ -40,7 +40,17 @@ You'll find the Gazebo APIs below on the following headers:
 It's worth remembering that most of this functionality can be performed using
 the
 [EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly. The functions presented here exist for convenience and readability.
+directly.
+
+As an example the `Sensor::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
+
+```
+  math::Pose3d pose = _ecm.Component<components::Pose>(sensorEntityId)->Data();
+```
+
+The functions presented in the sections below exist for convenience and
+readability. The items marked as `TODO` means that the equivalent API is not
+implemented yet in Gazebo.
 
 ### Properties
 
@@ -86,7 +96,7 @@ they deal with entity IDs.
 
 ---
 
-Classic | Gazebo 
+Classic | Gazebo
 -- | --
 ParentId | `ignition::gazebo::Sensor::Parent`
 ParentName | `ignition::gazebo::Sensor::Parent`
