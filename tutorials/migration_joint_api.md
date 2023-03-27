@@ -40,7 +40,17 @@ You'll find the Gazebo APIs below on the following headers:
 It's worth remembering that most of this functionality can be performed using
 the
 [EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly. The functions presented here exist for convenience and readability.
+directly.
+
+As an example the `Join::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
+
+```
+  math::Pose3d pose = _ecm.Component<components::Pose>(jointEntityId)->Data();
+```
+
+The functions presented in the sections below exist for convenience and
+readability. The items marked as `TODO` means that the equivalent API is not
+implemented yet in Gazebo.
 
 ### Properties
 
@@ -156,7 +166,8 @@ GetWorld |  `ignition::gazebo::worldEntity`
 ## Write family
 
 These functions deal with modifying the entity tree, attaching children to new
-parents.
+parents. Note that APIs for changing a Joint's entity tree structure are
+currently not implemented yet.
 
 ---
 
