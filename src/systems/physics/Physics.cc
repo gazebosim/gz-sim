@@ -90,6 +90,7 @@
 #include "ignition/gazebo/Util.hh"
 
 // Components
+#include "ignition/gazebo/components/Actor.hh"
 #include "ignition/gazebo/components/AngularAcceleration.hh"
 #include "ignition/gazebo/components/AngularVelocity.hh"
 #include "ignition/gazebo/components/AngularVelocityCmd.hh"
@@ -2526,8 +2527,14 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
           if (this->linkAddedToModel.find(_entity) ==
               this->linkAddedToModel.end())
           {
-            ignerr << "Internal error: link [" << _entity
-              << "] not in entity map" << std::endl;
+            // ignore links from actors for now
+            auto parentId =
+                _ecm.Component<components::ParentEntity>(_entity)->Data();
+            if (!_ecm.Component<components::Actor>(parentId))
+            {
+              ignerr << "Internal error: link [" << _entity
+                << "] not in entity map" << std::endl;
+            }
           }
           return true;
         }
