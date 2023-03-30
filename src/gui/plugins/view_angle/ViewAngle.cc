@@ -57,19 +57,21 @@ namespace gz::sim
     public: std::mutex mutex;
 
     /// \brief View Control service name
-    public: std::string viewControlService;
+    public: std::string viewControlService = "/gui/camera/view_control";
 
     /// \brief View Control reference visual service name
-    public: std::string viewControlRefVisualService;
+    public: std::string viewControlRefVisualService =
+      "/gui/camera/view_control/reference_visual";
 
     /// \brief View Control sensitivity service name
-    public: std::string viewControlSensitivityService;
+    public: std::string viewControlSensitivityService =
+      "/gui/camera/view_control/sensitivity";
 
     /// \brief Move gui camera to pose service name
-    public: std::string moveToPoseService;
+    public: std::string moveToPoseService = "/gui/move_to/pose";
 
     /// \brief Move gui camera to model service name
-    public: std::string moveToModelService;
+    public: std::string moveToModelService = "/gui/move_to/model";
 
     /// \brief New move to model message
     public: bool newMoveToModel = false;
@@ -144,27 +146,12 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "View Angle";
 
-  // view control requests
-  this->dataPtr->viewControlService = "/gui/camera/view_control";
-
-  // view control reference visual requests
-  this->dataPtr->viewControlRefVisualService =
-      "/gui/camera/view_control/reference_visual";
-
-  // view control sensitivity requests
-  this->dataPtr->viewControlSensitivityService =
-      "/gui/camera/view_control/sensitivity";
-
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
     topic, &ViewAngle::CamPoseCb, this);
 
-  // Move to pose service
-  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
-
   // Move to model service
-  this->dataPtr->moveToModelService = "/gui/move_to/model";
   this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
       &ViewAngle::OnMoveToModelService, this);
   gzmsg << "Move to model service on ["
