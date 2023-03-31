@@ -518,9 +518,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
     this->SetParent(linkEntity, actorEntity);
   }
 
-  // \todo(anyone) Load Joints, Nested Models, and set canonical link
-  // Need to update Actor SDF DOM to include APIs for nested models
-
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
