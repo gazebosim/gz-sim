@@ -93,6 +93,39 @@ void testSensorEntityIds(const sim::EntityComponentManager &_ecm,
   }
 }
 
+/////////////////////////////////////////////////
+void testSensorTopicComponents(const sim::EntityComponentManager &_ecm,
+    const std::unordered_set<sim::Entity> &_ids,
+    const std::vector<std::string> &_topics)
+{
+  EXPECT_FALSE(_ids.empty());
+  for (const auto & id : _ids)
+  {
+    auto sensorTopicComp = _ecm.Component<sim::components::SensorTopic>(id);
+    EXPECT_TRUE(sensorTopicComp);
+    std::string topicStr = "/" + sensorTopicComp->Data();
+    EXPECT_FALSE(topicStr.empty());
+
+    // verify that the topic string stored in sensor topic component
+    // exits in the list of topics
+    // For rendering sensors, they may advertize more than one topics but
+    // the the sensor topic component will only contain one of them, e.g.
+    //   * <topic_prefix>/image - stored in sensor topic component
+    //   * <topic_prefix>/camera_info
+    bool foundTopic = false;
+    for (auto it = _topics.begin(); it != _topics.end(); ++it)
+    {
+      std::string topic = *it;
+      if (topic.find(topicStr) == 0u)
+      {
+        foundTopic = true;
+        break;
+      }
+    }
+    EXPECT_TRUE(foundTopic);
+  }
+}
+
 //////////////////////////////////////////////////
 class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 {
@@ -117,21 +150,10 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 };
 
 //////////////////////////////////////////////////
-void testDefaultTopics()
+void testDefaultTopics(const std::vector<std::string> &_topics)
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
-  std::string prefix{"/world/camera_sensor/model/default_topics/"};
-  std::vector<std::string> topics{
-      prefix + "link/camera_link/sensor/camera/image",
-      prefix + "link/camera_link/sensor/camera/camera_info",
-      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
-      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
-      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
-      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
-      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image"
-  };
-
   std::vector<transport::MessagePublisher> publishers;
   transport::Node node;
 
@@ -139,14 +161,14 @@ void testDefaultTopics()
   // time
   int sleep{0};
   int maxSleep{30};
-  for (; sleep < maxSleep && !node.TopicInfo(topics.front(), publishers);
+  for (; sleep < maxSleep && !node.TopicInfo(_topics.front(), publishers);
       ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   ASSERT_LT(sleep, maxSleep);
 
-  for (const std::string &topic : topics)
+  for (const std::string &topic : _topics)
   {
     bool result = node.TopicInfo(topic, publishers);
 
@@ -198,9 +220,30 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
   server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
-  testDefaultTopics();
+  std::string prefix{"/world/camera_sensor/model/default_topics/"};
+  std::vector<std::string> topics{
+      prefix + "link/camera_link/sensor/camera/image",
+      prefix + "link/camera_link/sensor/camera/camera_info",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
+      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/thermal_camera_link/sensor/thermal_camera/image",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/colored_map",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/labels_map",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/camera_info",
+      "/camera"
+  };
 
+  testDefaultTopics(topics);
   testSensorEntityIds(*ecm, g_sensorEntityIds);
+  testSensorTopicComponents(*ecm, g_sensorEntityIds, topics);
+
   g_sensorEntityIds.clear();
   g_scene.reset();
 
