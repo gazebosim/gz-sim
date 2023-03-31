@@ -2367,7 +2367,8 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
 
         if (_meshSkel)
         {
-          // Animations are offset by 1 because index 0 is taken by the mesh name
+          // Animations are offset by 1 because index 0 is taken by the mesh
+          // name
           auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex() - 1);
 
           if (animation && animation->InterpolateX() && _meshSkel)
