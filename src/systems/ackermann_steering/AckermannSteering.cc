@@ -18,6 +18,7 @@
 
 #include "AckermannSteering.hh"
 
+#include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/odometry.pb.h>
 
 #include <mutex>
@@ -32,6 +33,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
@@ -61,9 +63,13 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \param[in] _msg Velocity message
   public: void OnCmdVel(const msgs::Twist &_msg);
 
-    /// \brief Callback for angle subscription
+  /// \brief Callback for angle subscription
   /// \param[in] _msg angle message
   public: void OnCmdAng(const msgs::Double &_msg);
+
+  /// \brief Callback for actuator angle subscription
+  /// \param[in] _msg angle message
+  public: void OnActuatorAng(const msgs::Actuators &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
@@ -143,11 +149,17 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief Wheel radius
   public: double wheelRadius{0.2};
 
+  /// \brief Index of angle actuator.
+  public: int actuatorNumber = 0;
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
+
+  /// \brief True if using Actuator msg to control steering angle.
+  public: bool useActuatorMsg{false};
 
   /// \brief Update period calculated from <odom__publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
@@ -195,7 +207,7 @@ class gz::sim::systems::AckermannSteeringPrivate
   public: msgs::Twist targetVel;
 
   /// \brief Last target angle requested.
-  public: msgs::Double targetAng;
+  public: double targetAng{0.0};
 
   /// \brief P gain for angular position.
   public: double gainPAng{1.0};
@@ -242,6 +254,26 @@ void AckermannSteering::Configure(const Entity &_entity,
     this->dataPtr->steeringOnly = _sdf->Get<bool>("steering_only");
     gzmsg << "Using steering only mode: " << this->dataPtr->steeringOnly
             << std::endl;
+  }
+
+  if (_sdf->HasElement("use_actuator_msg") &&
+    _sdf->Get<bool>("use_actuator_msg"))
+  {
+    if (_sdf->HasElement("actuatorNumber"))
+    {
+      this->dataPtr->actuatorNumber =
+        _sdf->Get<int>("actuatorNumber");
+      this->dataPtr->useActuatorMsg = true;
+      if (!this->dataPtr->steeringOnly)
+      {
+        this->dataPtr->steeringOnly = true;
+      }
+    }
+    else
+    {
+      gzerr << "Please specify an actuatorNumber" <<
+        "to use Actuator position message control." << std::endl;
+    }
   }
 
   // Get params from SDF
@@ -365,10 +397,16 @@ void AckermannSteering::Configure(const Entity &_entity,
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/" + _sdf->Get<std::string>("sub_topic"));
   }
-  else if (this->dataPtr->steeringOnly)
+  else if ((this->dataPtr->steeringOnly) &&
+    (!this->dataPtr->useActuatorMsg))
   {
     topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/steer_angle");
+  }
+  else if ((this->dataPtr->steeringOnly) &&
+    (this->dataPtr->useActuatorMsg))
+  {
+    topics.push_back("/actuators");
   }
   else if (!this->dataPtr->steeringOnly)
   {
@@ -378,16 +416,28 @@ void AckermannSteering::Configure(const Entity &_entity,
   auto topic = validTopic(topics);
   if (topic.empty())
   {
-    gzerr << "AckermannSteering plugin received invalid model name "
+    gzerr << "AckermannSteering plugin received invalid topic name "
            << "Failed to initialize." << std::endl;
     return;
   }
   if (this->dataPtr->steeringOnly)
   {
-    this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdAng,
-      this->dataPtr.get());
-    gzmsg << "AckermannSteering subscribing to float messages on ["
-          << topic << "]" << std::endl;
+    if (this->dataPtr->useActuatorMsg)
+    {
+      this->dataPtr->node.Subscribe(topic,
+        &AckermannSteeringPrivate::OnActuatorAng,
+        this->dataPtr.get());
+      gzmsg << "AckermannSteering subscribing to Actuator messages on ["
+            << topic << "]" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->node.Subscribe(topic,
+        &AckermannSteeringPrivate::OnCmdAng,
+        this->dataPtr.get());
+      gzmsg << "AckermannSteering subscribing to float messages on ["
+            << topic << "]" << std::endl;
+    }
   }
   else
   {
@@ -894,7 +944,7 @@ void AckermannSteeringPrivate::UpdateAngle(
   double ang;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    ang = this->targetAng.data();
+    ang = this->targetAng;
   }
 
   // Limit the target angle if needed.
@@ -945,7 +995,21 @@ void AckermannSteeringPrivate::UpdateAngle(
 void AckermannSteeringPrivate::OnCmdAng(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  this->targetAng = _msg;
+  this->targetAng = _msg.data();
+}
+
+void AckermannSteeringPrivate::OnActuatorAng(const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  if (this->actuatorNumber > _msg.position_size() - 1)
+  {
+    gzerr << "You tried to access index " << this->actuatorNumber
+      << " of the Actuator position array which is of size "
+      << _msg.position_size() << std::endl;
+    return;
+  }
+
+  this->targetAng = static_cast<double>(_msg.position(this->actuatorNumber));
 }
 
 GZ_ADD_PLUGIN(AckermannSteering,
