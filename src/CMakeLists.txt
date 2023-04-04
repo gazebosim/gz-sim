@@ -47,18 +47,22 @@ set(cli_sources
 )
 
 set (sources
+  Actor.cc
   Barrier.cc
   BaseView.cc
   Conversions.cc
   ComponentFactory.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
+  Joint.cc
   LevelManager.cc
+  Light.cc
   Link.cc
   Model.cc
   Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
+  Sensor.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -77,6 +81,7 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Actor_TEST.cc
   AddedMass_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
@@ -85,11 +90,14 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
+  Joint_TEST.cc
+  Light_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
+  Sensor_TEST.cc
   ServerConfig_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
