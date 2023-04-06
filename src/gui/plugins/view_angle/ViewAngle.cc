@@ -31,6 +31,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/math/Angle.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RenderingIface.hh>
@@ -57,25 +58,34 @@ namespace gz::sim
     public: std::mutex mutex;
 
     /// \brief View Control service name
-    public: std::string viewControlService;
+    public: std::string viewControlService = "/gui/camera/view_control";
 
     /// \brief View Control reference visual service name
-    public: std::string viewControlRefVisualService;
+    public: std::string viewControlRefVisualService =
+      "/gui/camera/view_control/reference_visual";
 
     /// \brief View Control sensitivity service name
-    public: std::string viewControlSensitivityService;
+    public: std::string viewControlSensitivityService =
+      "/gui/camera/view_control/sensitivity";
 
     /// \brief Move gui camera to pose service name
-    public: std::string moveToPoseService;
+    public: std::string moveToPoseService = "/gui/move_to/pose";
 
     /// \brief Move gui camera to model service name
-    public: std::string moveToModelService;
+    public: std::string moveToModelService = "/gui/move_to/model";
 
     /// \brief New move to model message
     public: bool newMoveToModel = false;
 
     /// \brief Distance of the camera to the model
     public: double distanceMoveToModel = 0.0;
+
+    /// \brief Camera horizontal fov
+    public: double horizontalFov = 0.0;
+
+    /// \brief Flag indicating if there is a new camera horizontalFOV
+    /// coming from qml side
+    public: bool newHorizontalFOV = false;
 
     /// \brief gui camera pose
     public: math::Pose3d camPose;
@@ -99,6 +109,11 @@ namespace gz::sim
     /// \brief Checks if there is a new view controller, used to update qml side
     /// \return True if there is a new view controller from gui camera
     public: bool UpdateQtViewControl();
+
+    /// \brief Checks if there is new camera horizontal fov from gui camera,
+    /// used to update qml side
+    /// \return True if there is a new horizontal fov from gui camera
+    public: bool UpdateQtCamHorizontalFOV();
 
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
@@ -144,27 +159,12 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "View Angle";
 
-  // view control requests
-  this->dataPtr->viewControlService = "/gui/camera/view_control";
-
-  // view control reference visual requests
-  this->dataPtr->viewControlRefVisualService =
-      "/gui/camera/view_control/reference_visual";
-
-  // view control sensitivity requests
-  this->dataPtr->viewControlSensitivityService =
-      "/gui/camera/view_control/sensitivity";
-
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
     topic, &ViewAngle::CamPoseCb, this);
 
-  // Move to pose service
-  this->dataPtr->moveToPoseService = "/gui/move_to/pose";
-
   // Move to model service
-  this->dataPtr->moveToModelService = "/gui/move_to/model";
   this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
       &ViewAngle::OnMoveToModelService, this);
   gzmsg << "Move to model service on ["
@@ -185,6 +185,12 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    // updates qml cam horizontal fov spin boxes if changed
+    if (this->dataPtr->UpdateQtCamHorizontalFOV())
+    {
+      this->CamHorizontalFOVChanged();
     }
 
     if (this->dataPtr->UpdateQtViewControl())
@@ -406,6 +412,19 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 }
 
 /////////////////////////////////////////////////
+double ViewAngle::HorizontalFOV() const
+{
+  return this->dataPtr->horizontalFov;
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetHorizontalFOV(double _horizontalFOV)
+{
+  this->dataPtr->horizontalFov = _horizontalFOV;
+  this->dataPtr->newHorizontalFOV = true;
+}
+
+/////////////////////////////////////////////////
 QList<double> ViewAngle::CamClipDist() const
 {
   return this->dataPtr->camClipDist;
@@ -538,6 +557,13 @@ void ViewAnglePrivate::OnRender()
     this->camera->SetFarClipPlane(this->camClipDist[1]);
     this->newCamClipDist = false;
   }
+
+  // Camera horizontalFOV
+  if (this->newHorizontalFOV)
+  {
+    this->camera->SetHFOV(gz::math::Angle(this->horizontalFov));
+    this->newHorizontalFOV = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -574,6 +600,18 @@ void ViewAnglePrivate::OnComplete()
       cameraPose.Rot().Pitch(),
       cameraPose.Rot().Yaw()};
   }
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtCamHorizontalFOV()
+{
+  bool updated = false;
+  if (std::abs(this->camera->HFOV().Radian() - this->horizontalFov) > 0.0001)
+  {
+    this->horizontalFov = this->camera->HFOV().Radian();
+    updated = true;
+  }
+  return updated;
 }
 
 /////////////////////////////////////////////////
