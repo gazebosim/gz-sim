@@ -116,7 +116,8 @@ TEST_F(SensorsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(MemLeak))
   // to increase memory usage
   for (unsigned int i = 1; i < residentMemV.size() - 1; ++i)
   {
-    double resPercentChange = (residentMemV[i+1] - residentMemV[i]) / residentMemV[i];
+    double resPercentChange =
+        (residentMemV[i+1] - residentMemV[i]) / residentMemV[i];
     double sharePercentChange = (shareMemV[i+1] - shareMemV[i]) / shareMemV[i];
 
     gzdbg << "ResPercentChange[" << resPercentChange << "] "
