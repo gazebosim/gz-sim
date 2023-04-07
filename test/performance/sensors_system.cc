@@ -80,6 +80,8 @@ class SensorsSystemFixture : public InternalFixture<::testing::Test>
 // memory leaks
 TEST_F(SensorsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(MemLeak))
 {
+  gz::common::Console::SetVerbosity(4);
+
   // max memory change allowed
   const double resMaxPercentChange = 1.0;
   const double shareMaxPercentChange = 1.0;
