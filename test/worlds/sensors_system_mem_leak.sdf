@@ -1,0 +1,69 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="sensors_system">
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <model name="box">
+      <pose>0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <collision name="collision_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <specular>1 1 1 0.8</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="camera">
+      <static>true</static>
+      <pose>-6 2 2 0 0.5 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="camera" type="camera">
+          <pose>1 0 1.3 0 0 0</pose>
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <noise>
+              <type>gaussian_quantized</type>
+              <mean>0.01</mean>
+              <stddev>0.0002</stddev>
+            </noise>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <topic>camera</topic>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>

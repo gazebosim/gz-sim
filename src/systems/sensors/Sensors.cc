@@ -249,6 +249,7 @@ void SensorsPrivate::WaitForInit()
       if (this->ambientLight)
         this->renderUtil.SetAmbientLight(*this->ambientLight);
 #ifndef __APPLE__
+
       this->renderUtil.Init();
 #else
       // On macOS the render engine must be initialised on the main thread.
@@ -405,6 +406,7 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
 
@@ -633,7 +635,6 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::PostUpdate");
-
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     if (!this->dataPtr->initialized &&
