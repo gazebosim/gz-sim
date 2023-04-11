@@ -171,7 +171,7 @@ class gz::sim::systems::ThrusterPrivateData
   public: void OnCmdThrust(const msgs::Double &_msg);
 
   /// \brief Callback for handling deadband enable/disable update
-  public: void OnDeabandEnable(const msgs::Boolean &_msg);
+  public: void OnDeadbandEnable(const msgs::Boolean &_msg);
 
   /// \brief Recalculates and updates the thrust coefficient.
   public: void UpdateThrustCoefficient();
@@ -401,7 +401,7 @@ void Thruster::Configure(
         << std::endl;
   this->dataPtr->node.Subscribe(
       this->dataPtr->deadbandTopic,
-      &ThrusterPrivateData::OnDeabandEnable,
+      &ThrusterPrivateData::OnDeadbandEnable,
       this->dataPtr.get());
   gzmsg << "Thruster listening to enable_deadband on [" 
         << this->dataPtr->deadbandTopic << "]" << std::endl;
@@ -515,7 +515,7 @@ void ThrusterPrivateData::OnCmdThrust(const gz::msgs::Double &_msg)
 }
 
 /////////////////////////////////////////////////
-void ThrusterPrivateData::OnDeabandEnable(const gz::msgs::Boolean &_msg)
+void ThrusterPrivateData::OnDeadbandEnable(const gz::msgs::Boolean &_msg)
 {
   if (_msg.data() != this->enableDeadband)
   {
