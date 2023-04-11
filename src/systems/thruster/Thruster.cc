@@ -519,8 +519,14 @@ void ThrusterPrivateData::OnDeadbandEnable(const gz::msgs::Boolean &_msg)
 {
   if (_msg.data() != this->enableDeadband)
   {
-    if (_msg.data()) gzmsg << "Enabling deadband." << std::endl;
-    else gzmsg << "Disabling deadband." << std::endl;
+    if (_msg.data())
+    {
+      gzmsg << "Enabling deadband." << std::endl;
+    }
+    else
+    {
+      gzmsg << "Disabling deadband." << std::endl;
+    }
     
     this->enableDeadband = _msg.data();
   }
