@@ -356,7 +356,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
     {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+      ignwarn << "Failed to load gui config file[" << _guiConfig << "]."
               << std::endl;
     }
   }
@@ -420,10 +420,11 @@ std::unique_ptr<gz::gui::Application> createGui(
   auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
+    std::cout << "Loading config\n";
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << defaultConfig << "]."
+      ignerr << "Failed to load default config file[" << defaultConfig << "]."
              << std::endl;
       return nullptr;
     }
