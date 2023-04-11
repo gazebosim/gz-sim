@@ -53,7 +53,8 @@ namespace gui
 std::string defaultGuiConfigFile(bool _isPlayback,
     const char *_customDefaultConfig)
 {
-  std::cout << "defaultGuiConfigFile. isPlayback[" << _isPlayback << "] customDefaultConfig[" << _customDefaultConfig << "]" << std::endl;
+  std::cout << "defaultGuiConfigFile. isPlayback[" << _isPlayback
+    << "] customDefaultConfig[" << _customDefaultConfig << "]" << std::endl;
   std::string defaultConfig;
   std::string defaultGuiConfigName = "gui.config";
   if (nullptr == _customDefaultConfig)
