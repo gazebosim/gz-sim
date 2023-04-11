@@ -171,6 +171,8 @@ class gz::sim::systems::ThrusterPrivateData
   public: void OnCmdThrust(const msgs::Double &_msg);
 
   /// \brief Callback for handling deadband enable/disable update
+  /// \param[in] _msg boolean msg to indicate whether to enable or disable
+  ///                 the deadband
   public: void OnDeadbandEnable(const msgs::Boolean &_msg);
 
   /// \brief Recalculates and updates the thrust coefficient.
@@ -195,7 +197,9 @@ class gz::sim::systems::ThrusterPrivateData
   public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
 
   /// \brief Applies the deadband to the thrust and angular velocity by setting
-  /// those values to zero if their absolute value is below the deadband
+  /// those values to zero if the thrust absolute value is below the deadband
+  /// \param[in] _thrust thrust in N used for check
+  /// \param[in] _angvel angular velocity in rad/s
   public: void ApplyDeadband(double &_thrust, double &_angVel);
 };
 
