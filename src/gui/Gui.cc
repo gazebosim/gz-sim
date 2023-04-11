@@ -53,6 +53,7 @@ namespace gui
 std::string defaultGuiConfigFile(bool _isPlayback,
     const char *_customDefaultConfig)
 {
+  std::cout << "defaultGuiConfigFile. isPlayback[" << _isPlayback << "] customDefaultConfig[" << _customDefaultConfig << "]" << std::endl;
   std::string defaultConfig;
   std::string defaultGuiConfigName = "gui.config";
   if (nullptr == _customDefaultConfig)
@@ -420,7 +421,6 @@ std::unique_ptr<gz::gui::Application> createGui(
   auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
-    std::cout << "Loading config\n";
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
