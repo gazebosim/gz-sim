@@ -193,7 +193,7 @@ class gz::sim::systems::ThrusterPrivateData
   /// \return True if battery is charged, false otherwise. If no battery found,
   /// returns true.
   public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
-          
+
   /// \brief Applies the deadband to the thrust and angular velocity by setting
   /// those values to zero if their absolute value is below the deadband
   public: void ApplyDeadband(double &_thrust, double &_angVel);
@@ -294,7 +294,7 @@ void Thruster::Configure(
               << "[thrust_coefficient] value from the SDF file." << std::endl;
     }
   }
-  
+
   // Get deadband, default to 0
   if (_sdf->HasElement("deadband"))
   {
@@ -374,7 +374,7 @@ void Thruster::Configure(
 
     feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/ang_vel");
-    
+
     this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/enable_deadband");
   }
@@ -403,7 +403,7 @@ void Thruster::Configure(
       this->dataPtr->deadbandTopic,
       &ThrusterPrivateData::OnDeadbandEnable,
       this->dataPtr.get());
-  gzmsg << "Thruster listening to enable_deadband on [" 
+  gzmsg << "Thruster listening to enable_deadband on ["
         << this->dataPtr->deadbandTopic << "]" << std::endl;
 
   this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
@@ -527,7 +527,7 @@ void ThrusterPrivateData::OnDeadbandEnable(const gz::msgs::Boolean &_msg)
     {
       gzmsg << "Disabling deadband." << std::endl;
     }
-    
+
     this->enableDeadband = _msg.data();
   }
 
@@ -701,12 +701,12 @@ void Thruster::PreUpdate(
         this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
-  
+
   if (this->dataPtr->enableDeadband)
   {
     this->dataPtr->ApplyDeadband(desiredThrust, desiredPropellerAngVel);
   }
-  
+
 
   msgs::Double angvel;
   // PID control
