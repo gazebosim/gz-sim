@@ -191,7 +191,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_sdfFile, int _waitGui)
 {
-  std::cout << "CreateGui[" << std::this_thread().get_id() << "]\n";
+  std::cout << "CreateGui[" << std::this_thread::get_id() << "]\n";
   gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
