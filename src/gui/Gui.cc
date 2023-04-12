@@ -431,8 +431,8 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
-      std::cerr << "Failed to load default config file[" << defaultConfig << "]."
-             << std::endl;
+      std::cerr << "Failed to load default config file["
+        << defaultConfig << "]." << std::endl;
       return nullptr;
     }
   }
