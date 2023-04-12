@@ -100,9 +100,12 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       ignmsg << "Copied installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
+      std::cout << "COPIED[" << installedConfig << "] to ["
+        << defaultConfig << "]" << std:endl;
     }
   }
 
+  std::cout << "DONE. Default config is[" << defaultConfig << "]" << std:endl;
   return defaultConfig;
 }
 
@@ -428,7 +431,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load default config file[" << defaultConfig << "]."
+      std::cerr << "Failed to load default config file[" << defaultConfig << "]."
              << std::endl;
       return nullptr;
     }
