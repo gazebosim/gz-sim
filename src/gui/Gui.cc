@@ -105,7 +105,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
     }
   }
 
-  std::cout << "DONE. Default config is[" << defaultConfig << "]" << std:endl;
+  std::cout << "DONE. Default config is[" << defaultConfig << "]" << std::endl;
   return defaultConfig;
 }
 
