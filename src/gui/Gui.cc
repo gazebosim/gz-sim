@@ -106,6 +106,9 @@ std::string defaultGuiConfigFile(bool _isPlayback,
   }
 
   std::cout << "DONE. Default config is[" << defaultConfig << "]" << std::endl;
+
+  if (!common::exists(defaultConfig))
+    std::cout << "STILL DOESN'T EXIST, WTF???" << std::endl;
   return defaultConfig;
 }
 
