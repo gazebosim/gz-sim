@@ -101,7 +101,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
       std::cout << "COPIED[" << installedConfig << "] to ["
-        << defaultConfig << "]" << std:endl;
+        << defaultConfig << "]" << std::endl;
     }
   }
 
