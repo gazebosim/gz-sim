@@ -114,10 +114,11 @@ std::string defaultGuiConfigFile(bool _isPlayback,
   {
     // Use tinyxml to read config
     tinyxml2::XMLDocument doc;
-    auto success = !doc.LoadFile(defaultConfig.c_str());
-    if (!success)
+    tinyxml2::XMLError result = doc.LoadFile(defaultConfig.c_str());
+    if (result != tinyxml2::XML_SUCCESS)
     {
-      std::cout << "TINYXML2 failed to open document\n";
+      std::cout << "TINYXML2 failed to open document["
+         << result << "]\n";
     }
   }
   return defaultConfig;
