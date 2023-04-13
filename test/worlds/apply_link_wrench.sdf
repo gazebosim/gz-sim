@@ -5,11 +5,11 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-apply-link-wrench-system"
-      name="ignition::gazebo::systems::ApplyLinkWrench">
+      name="gz::sim::systems::ApplyLinkWrench">
       <persistent>
         <entity_name>model1</entity_name>
         <entity_type>model</entity_type>

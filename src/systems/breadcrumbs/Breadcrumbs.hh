@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
+#define GZ_GAZEBO_SYSTEMS_BREADCRUMBS_HH_
 
 #include <memory>
 #include <optional>
@@ -27,12 +27,12 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Root.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/math/Pose3.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/System.hh"
 
 namespace ignition
 {
@@ -97,8 +97,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Callback to deployment topic
     private: void OnDeploy(const msgs::Empty &_msg);

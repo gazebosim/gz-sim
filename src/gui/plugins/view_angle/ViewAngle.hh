@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
-#define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
+#ifndef GZ_GAZEBO_GUI_VIEWANGLE_HH_
+#define GZ_GAZEBO_GUI_VIEWANGLE_HH_
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// \<service\> : Set the service to receive view angle requests.
-  class ViewAngle : public ignition::gui::Plugin
+  class ViewAngle : public gz::gui::Plugin
   {
     Q_OBJECT
 

@@ -17,15 +17,15 @@
 
 #include <gtest/gtest.h>
 #include <sdf/sdf.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools.hh>
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools.hh>
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 class SdfInclude : public InternalFixture<::testing::Test>
 {

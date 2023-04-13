@@ -21,30 +21,30 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Pose.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LiftDragPrivate
+class gz::sim::systems::LiftDragPrivate
 {
   // Initialize the system
   public: void Load(const EntityComponentManager &_ecm,
@@ -527,4 +527,7 @@ IGNITION_ADD_PLUGIN(LiftDrag,
                     LiftDrag::ISystemConfigure,
                     LiftDrag::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")

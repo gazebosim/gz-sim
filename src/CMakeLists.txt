@@ -33,7 +33,7 @@ set(gui_sources
 
 ign_add_component(ign
   SOURCES
-    ign.cc
+    gz.cc
     cmd/ModelCommandAPI.cc
   GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
@@ -77,7 +77,7 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
-  ign_TEST.cc
+  gz_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   ModelCommandAPI_TEST.cc
@@ -144,7 +144,7 @@ ign_build_tests(TYPE UNIT
 
 # Command line tests need extra settings
 foreach(CMD_TEST
-  UNIT_ign_TEST
+  UNIT_gz_TEST
   UNIT_ModelCommandAPI_TEST)
 
   if(NOT TARGET ${CMD_TEST})
@@ -183,4 +183,3 @@ endforeach()
 if(NOT WIN32)
   add_subdirectory(cmd)
 endif()
-

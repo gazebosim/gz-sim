@@ -20,12 +20,12 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#define GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -131,4 +131,4 @@ class IGNITION_GAZEBO_VISIBLE Elevator : public System,
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_HH_

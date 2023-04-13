@@ -22,22 +22,22 @@
 #include <string>
 
 #include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/common/Console.hh"
-#include "ignition/rendering/Marker.hh"
-#include "ignition/rendering/RenderingIface.hh"
-#include "ignition/rendering/Scene.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/common/Console.hh"
+#include "gz/rendering/Marker.hh"
+#include "gz/rendering/RenderingIface.hh"
+#include "gz/rendering/Scene.hh"
 
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// Private data for the MarkerManager class
-class ignition::gazebo::MarkerManagerPrivate
+class gz::sim::MarkerManagerPrivate
 {
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.

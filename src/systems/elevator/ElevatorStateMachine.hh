@@ -20,13 +20,13 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#define GZ_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/transport/Node.hh>
 
 #include "afsm/fsm.hpp"
 
@@ -141,4 +141,4 @@ using ElevatorStateMachine = ::afsm::state_machine<ElevatorStateMachineDef>;
 
 #include "state_machine/ElevatorStateMachineImpl.hh"
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_ELEVATOR_STATE_MACHINE_HH_

@@ -18,42 +18,42 @@
 #include "UserCommands.hh"
 
 #include <google/protobuf/message.h>
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
-#include <ignition/msgs/pose.pb.h>
-#include <ignition/msgs/pose_v.pb.h>
-#include <ignition/msgs/physics.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/physics.pb.h>
 
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/common/Profiler.hh"
+#include "gz/common/Profiler.hh"
 
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/PhysicsCmd.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 namespace ignition
@@ -173,7 +173,7 @@ class PhysicsCommand : public UserCommandBase
 }
 
 /// \brief Private UserCommands data class.
-class ignition::gazebo::systems::UserCommandsPrivate
+class gz::sim::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.
@@ -835,5 +835,9 @@ IGNITION_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemPreUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
+                          "gz::sim::systems::UserCommands")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(UserCommands,
                           "ignition::gazebo::systems::UserCommands")

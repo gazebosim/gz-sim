@@ -17,11 +17,11 @@
 
 #include "QuickStartHandler.hh"
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const

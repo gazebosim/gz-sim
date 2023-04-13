@@ -15,7 +15,10 @@ find_package(ignition-cmake2 2.8.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/sim
+  VERSION_SUFFIX
+)
 
 #============================================================================
 # Set project-specific options
@@ -124,7 +127,7 @@ set(IGN_SENSORS_VER ${ignition-sensors3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-rendering
-ign_find_package(ignition-rendering3 REQUIRED VERSION 3.5)
+ign_find_package(ignition-rendering3 REQUIRED VERSION 3.7)
 set(IGN_RENDERING_VER ${ignition-rendering3_VERSION_MAJOR})
 
 #--------------------------------------

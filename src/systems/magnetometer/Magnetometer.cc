@@ -22,33 +22,33 @@
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/MagnetometerSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/MagnetometerSensor.hh>
 
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Magnetometer.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Magnetometer data class.
-class ignition::gazebo::systems::MagnetometerPrivate
+class gz::sim::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,
@@ -309,5 +309,9 @@ IGNITION_ADD_PLUGIN(Magnetometer, System,
   Magnetometer::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
+                          "gz::sim::systems::Magnetometer")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Magnetometer,
                           "ignition::gazebo::systems::Magnetometer")

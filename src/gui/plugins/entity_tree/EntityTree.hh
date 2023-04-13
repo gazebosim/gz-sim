@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
-#define IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
+#ifndef GZ_GAZEBO_GUI_ENTITYTREE_HH_
+#define GZ_GAZEBO_GUI_ENTITYTREE_HH_
 
 #include <map>
 #include <memory>
 #include <vector>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
 namespace ignition
 {

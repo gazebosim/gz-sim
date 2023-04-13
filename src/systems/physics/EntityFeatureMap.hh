@@ -15,19 +15,19 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
-#define IGNITION_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
+#define GZ_GAZEBO_SYSTEMS_PHYSICS_ENTITY_FEATURE_MAP_HH_
 
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
 
-#include <ignition/physics/Entity.hh>
-#include <ignition/physics/FindFeatures.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/RequestFeatures.hh>
+#include <gz/physics/Entity.hh>
+#include <gz/physics/FindFeatures.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/RequestFeatures.hh>
 
-#include "ignition/gazebo/Entity.hh"
+#include "gz/sim/Entity.hh"
 
 namespace ignition::gazebo
 {
@@ -94,7 +94,7 @@ namespace systems::physics_system
     /// requested feature.
     public: template <typename ToFeatureList>
             PhysicsEntityPtr<ToFeatureList>
-            EntityCast(gazebo::Entity _entity) const
+            EntityCast(gz::sim::Entity _entity) const
     {
       // Using constexpr to limit compiler error message to the static_assert
       // cppcheck-suppress syntaxError

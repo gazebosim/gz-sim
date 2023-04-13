@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
+#define GZ_GAZEBO_SYSTEMS_TRIGGEREDPUBLISHER_HH_
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <ignition/transport/Node.hh>
-#include "ignition/gazebo/System.hh"
+#include <gz/transport/Node.hh>
+#include "gz/sim/System.hh"
 
 namespace ignition
 {
