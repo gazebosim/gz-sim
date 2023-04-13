@@ -19,9 +19,11 @@
 
 #include <cstdint>
 #include <cstring>
+#include <deque>
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gz/common/SingletonT.hh>
@@ -77,26 +79,162 @@ namespace components
     }
   };
 
+  /// \brief A wrapper around uintptr_t to prevent implicit conversions.
+  struct RegistrationObjectId
+  {
+    /// \brief Construct object from a pointer.
+    /// \param[in] _ptr Arbitrary pointer.
+    explicit RegistrationObjectId(void *_ptr)
+        : id(reinterpret_cast<std::uintptr_t>(_ptr))
+    {
+    }
+
+    /// \brief Construct object from a uintptr_t.
+    /// \param[in] _ptr Arbitrary pointer address.
+    explicit RegistrationObjectId(std::uintptr_t _ptrAddress)
+        : id(_ptrAddress)
+    {
+    }
+
+    /// \brief Equality comparison.
+    /// \param[in] _other Other RegistrationObjectId object to compare against.
+    bool operator==(const RegistrationObjectId &_other) const
+    {
+      return this->id == _other.id;
+    }
+
+    /// \brief Wrapped uintptr_t variable.
+    std::uintptr_t id;
+  };
+
+
+  /// \brief A class to hold the queue of component descriptors registered by
+  /// translation units. This queue is necessary to ensure that component
+  /// creation continues to work after plugins are unloaded. The typical
+  /// scenario this aims to solve is:
+  ///  1. Plugin P1 registers component descripter for component C1.
+  ///  2. Plugin P1 gets unloaded.
+  ///  3. Plugin P2 registers a component descriptor for component C1 and tries
+  ///     to create an instance of C1.
+  /// When P1 gets unloaded, the destructor of the static component
+  /// registration object calls Factory::Unregister which removes the component
+  /// descriptor from the queue. Without this step, P2 would attempt to use
+  /// the component descriptor created by P1 in step 3 and likely segfault
+  /// because the memory associated with that descriptor has been deleted when
+  /// P1 was unloaded.
+  class ComponentDescriptorQueue
+  {
+    /// \brief Check if the queue is empty
+    public: bool GZ_SIM_HIDDEN Empty()
+    {
+      return this->queue.empty();
+    }
+
+    /// \brief Add a component descriptor to the queue
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    /// \param[in] _comp The component descriptor
+    public: void GZ_SIM_HIDDEN Add(RegistrationObjectId _regObjId,
+                     ComponentDescriptorBase *_comp)
+    {
+      this->queue.push_front({_regObjId, _comp});
+    }
+
+    /// \brief Remove a component descriptor from the queue. This also deletes
+    /// memory allocated for the component descriptor by the static component
+    /// registration object.
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    public: void GZ_SIM_HIDDEN Remove(RegistrationObjectId  _regObjId)
+    {
+      auto compIt = std::find_if(this->queue.rbegin(), this->queue.rend(),
+                                 [&](const auto &_item)
+                                 { return _item.first == _regObjId; });
+
+      if (compIt != this->queue.rend())
+      {
+        ComponentDescriptorBase *compDesc = compIt->second;
+        this->queue.erase(std::prev(compIt.base()));
+        delete compDesc;
+      }
+    }
+
+    /// \brief Create a component using the latest available component
+    /// descriptor. This simply forward to ComponentDescriptorBase::Create
+    /// \sa ComponentDescriptorBase::Create
+    public: GZ_SIM_HIDDEN std::unique_ptr<BaseComponent> Create() const
+    {
+      if (!this->queue.empty())
+      {
+        return this->queue.front().second->Create();
+      }
+      return {};
+    }
+
+    /// \brief Create a component using the latest available component
+    /// descriptor. This simply forward to ComponentDescriptorBase::Create
+    /// \sa ComponentDescriptorBase::Create
+    public: GZ_SIM_HIDDEN std::unique_ptr<BaseComponent> Create(
+        const components::BaseComponent *_data) const
+    {
+      if (!this->queue.empty())
+      {
+        return this->queue.front().second->Create(_data);
+      }
+      return {};
+    }
+
+    /// \brief Queue of component descriptors registered by static registration
+    /// objects.
+    private: std::deque<std::pair<RegistrationObjectId,
+                                  ComponentDescriptorBase *>> queue;
+  };
+
   /// \brief A factory that generates a component based on a string type.
+  // TODO(azeey) Do not inherit from common::SingletonT in Harmonic
   class Factory
       : public gz::common::SingletonT<Factory>
   {
+    // Deleted copy constructors to make the ABI checker happy
+    public: Factory(Factory &) = delete;
+    public: Factory(const Factory &) = delete;
+    // Since the copy constructors are deleted, we need to explicitly declare a
+    // default constructor.
+    // TODO(azeey) Make this private in Harmonic
+    public: Factory() = default;
+
+    /// \brief Get an instance of the singleton
+    public: GZ_SIM_VISIBLE static Factory *Instance();
+
     /// \brief Register a component so that the factory can create instances
     /// of the component based on an ID.
     /// \param[in] _type Type of component to register.
     /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
     ///  objects.
     /// \tparam ComponentTypeT Type of component to register.
-    public: template<typename ComponentTypeT>
+    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
+    public: template <typename ComponentTypeT>
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc)
     {
-      // Every time a plugin which uses a component type is loaded, it attempts
-      // to register it again, so we skip it.
-      if (ComponentTypeT::typeId != 0)
-      {
-        return;
-      }
+      this->Register<ComponentTypeT>(_type, _compDesc,
+                                     RegistrationObjectId{nullptr});
+    }
 
+    /// \brief Register a component so that the factory can create instances
+    /// of the component based on an ID.
+    /// \param[in] _type Type of component to register.
+    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
+    ///  objects.
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    /// \tparam ComponentTypeT Type of component to register.
+    public: template <typename ComponentTypeT>
+    void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
+                  RegistrationObjectId  _regObjId)
+    {
       auto typeHash = gz::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
@@ -120,8 +258,8 @@ namespace components
             << runtimeNameIt->second << "] and type [" << runtimeName
             << "] with name [" << _type << "]. Second type will not work."
             << std::endl;
+          return;
         }
-        return;
       }
 
       // This happens at static initialization time, so we can't use common
@@ -147,7 +285,7 @@ namespace components
       }
 
       // Keep track of all types
-      this->compsById[ComponentTypeT::typeId] = _compDesc;
+      this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
@@ -155,12 +293,23 @@ namespace components
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
-    public: template<typename ComponentTypeT>
+    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
+    public: template <typename ComponentTypeT>
     void Unregister()
     {
-      this->Unregister(ComponentTypeT::typeId);
+      this->Unregister<ComponentTypeT>(RegistrationObjectId{nullptr});
+    }
 
-      ComponentTypeT::typeId = 0;
+    /// \brief Unregister a component so that the factory can't create instances
+    /// of the component anymore.
+    /// \tparam ComponentTypeT Type of component to unregister.
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    public: template<typename ComponentTypeT>
+    void Unregister(RegistrationObjectId  _regObjId)
+    {
+      this->Unregister(ComponentTypeT::typeId, _regObjId);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -169,36 +318,32 @@ namespace components
     /// within the component type itself. Prefer using the templated
     /// `Unregister` function when possible.
     /// \param[in] _typeId Type of component to unregister.
+    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
     public: void Unregister(ComponentTypeId _typeId)
     {
-      // Not registered
-      if (_typeId == 0)
-      {
-        return;
-      }
+      this->Unregister(_typeId, RegistrationObjectId{nullptr});
+    }
 
+    /// \brief Unregister a component so that the factory can't create instances
+    /// of the component anymore.
+    /// \details This function will not reset the `typeId` static variable
+    /// within the component type itself. Prefer using the templated
+    /// `Unregister` function when possible.
+    /// \param[in] _typeId Type of component to unregister.
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    public: void Unregister(ComponentTypeId _typeId,
+                            RegistrationObjectId _regObjId)
+    {
+      auto it = this->compsById.find(_typeId);
+      if (it != this->compsById.end())
       {
-        auto it = this->compsById.find(_typeId);
-        if (it != this->compsById.end())
+        it->second.Remove(_regObjId);
+
+        if (it->second.Empty())
         {
-          delete it->second;
           this->compsById.erase(it);
-        }
-      }
-
-      {
-        auto it = namesById.find(_typeId);
-        if (it != namesById.end())
-        {
-          namesById.erase(it);
-        }
-      }
-
-      {
-        auto it = runtimeNamesById.find(_typeId);
-        if (it != runtimeNamesById.end())
-        {
-          runtimeNamesById.erase(it);
         }
       }
     }
@@ -224,9 +369,10 @@ namespace components
       // Create a new component if a FactoryFn has been assigned to this type.
       std::unique_ptr<components::BaseComponent> comp;
       auto it = this->compsById.find(_type);
-      if (it != this->compsById.end() && nullptr != it->second)
-        comp = it->second->Create();
-
+      if (it != this->compsById.end())
+      {
+        comp = it->second.Create();
+      }
       return comp;
     }
 
@@ -254,8 +400,10 @@ namespace components
       else
       {
         auto it = this->compsById.find(_type);
-        if (it != this->compsById.end() && nullptr != it->second)
-          comp = it->second->Create(_data);
+        if (it != this->compsById.end())
+        {
+          comp = it->second.Create(_data);
+        }
       }
 
       return comp;
@@ -292,19 +440,7 @@ namespace components
     }
 
     /// \brief A list of registered components where the key is its id.
-    ///
-    /// Note about compsByName and compsById. The maps store pointers as the
-    /// values, but never cleans them up, which may (at first glance) seem like
-    /// incorrect behavior. This is not a mistake. Since ComponentDescriptors
-    /// are created at the point in the code where components are defined, this
-    /// generally ends up in a shared library that will be loaded at runtime.
-    ///
-    /// Because this and the plugin loader both use static variables, and the
-    /// order of static initialization and destruction are not guaranteed, this
-    /// can lead to a scenario where the shared library is unloaded (with the
-    /// ComponentDescriptor), but the Factory still exists. For this reason,
-    /// we just keep a pointer, which will dangle until the program is shutdown.
-    private: std::map<ComponentTypeId, ComponentDescriptorBase *> compsById;
+    private: std::map<ComponentTypeId, ComponentDescriptorQueue> compsById;
 
     /// \brief A list of IDs and their equivalent names.
     public: std::map<ComponentTypeId, std::string> namesById;
@@ -328,12 +464,20 @@ namespace components
   { \
     public: GzSimComponents##_classname() \
     { \
-      if (_classname::typeId != 0) \
-        return; \
       using namespace gz;\
       using Desc = sim::components::ComponentDescriptor<_classname>; \
       sim::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc());\
+        _compType, new Desc(), sim::components::RegistrationObjectId(this));\
+    } \
+    public: GzSimComponents##_classname( \
+                const GzSimComponents##_classname&) = delete; \
+    public: GzSimComponents##_classname( \
+                GzSimComponents##_classname&) = delete; \
+    public: ~GzSimComponents##_classname() \
+    { \
+      using namespace gz; \
+      sim::components::Factory::Instance()->Unregister<_classname>( \
+          sim::components::RegistrationObjectId(this)); \
     } \
   }; \
   static GzSimComponents##_classname\

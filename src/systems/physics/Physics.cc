@@ -3328,6 +3328,53 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
+  // body linear velocity
+  _ecm.Each<components::Pose, components::LinearVelocity,
+            components::ParentEntity>(
+    [&](const Entity&, const components::Pose *_pose,
+        components::LinearVelocity *_linearVel,
+        const components::ParentEntity *_parent)->bool
+    {
+      // check if parent entity is a link, e.g. entity is sensor / collision
+      if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
+      {
+        const auto entityFrameData =
+            this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
+
+        auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+        math::Vector3d entityWorldLinearVel =
+            math::eigen3::convert(entityFrameData.linearVelocity);
+
+        auto entityBodyLinearVel =
+            entityWorldPose.Rot().RotateVectorReverse(entityWorldLinearVel);
+        *_linearVel = components::LinearVelocity(entityBodyLinearVel);
+      }
+
+      return true;
+    });
+
+  // world angular velocity
+  _ecm.Each<components::Pose, components::WorldAngularVelocity,
+            components::ParentEntity>(
+      [&](const Entity&,
+          const components::Pose *_pose,
+          components::WorldAngularVelocity *_worldAngularVel,
+          const components::ParentEntity *_parent)->bool
+      {
+        // check if parent entity is a link, e.g. entity is sensor / collision
+        if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
+        {
+          const auto entityFrameData =
+              this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
+
+          // set entity world angular velocity
+          *_worldAngularVel = components::WorldAngularVelocity(
+              math::eigen3::convert(entityFrameData.angularVelocity));
+        }
+
+        return true;
+      });
+
   // body angular velocity
   _ecm.Each<components::Pose, components::AngularVelocity,
             components::ParentEntity>(
@@ -3354,6 +3401,27 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
+  // world linear acceleration
+  _ecm.Each<components::Pose, components::WorldLinearAcceleration,
+            components::ParentEntity>(
+      [&](const Entity &,
+          const components::Pose *_pose,
+          components::WorldLinearAcceleration *_worldLinearAcc,
+          const components::ParentEntity *_parent)->bool
+      {
+        if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
+        {
+          const auto entityFrameData =
+              this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
+
+          // set entity world linear acceleration
+          *_worldLinearAcc = components::WorldLinearAcceleration(
+              math::eigen3::convert(entityFrameData.linearAcceleration));
+        }
+
+        return true;
+      });
+
   // body linear acceleration
   _ecm.Each<components::Pose, components::LinearAcceleration,
             components::ParentEntity>(
@@ -3374,6 +3442,52 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           auto entityBodyLinearAcc =
               entityWorldPose.Rot().RotateVectorReverse(entityWorldLinearAcc);
           *_linearAcc = components::LinearAcceleration(entityBodyLinearAcc);
+        }
+
+        return true;
+      });
+
+  // world angular acceleration
+  _ecm.Each<components::Pose, components::WorldAngularAcceleration,
+            components::ParentEntity>(
+      [&](const Entity &,
+          const components::Pose *_pose,
+          components::WorldAngularAcceleration *_worldAngularAcc,
+          const components::ParentEntity *_parent)->bool
+      {
+        if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
+        {
+          const auto entityFrameData =
+              this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
+
+          // set entity world angular acceleration
+          *_worldAngularAcc = components::WorldAngularAcceleration(
+              math::eigen3::convert(entityFrameData.angularAcceleration));
+        }
+
+        return true;
+      });
+
+  // body angular acceleration
+  _ecm.Each<components::Pose, components::AngularAcceleration,
+            components::ParentEntity>(
+      [&](const Entity &,
+          const components::Pose *_pose,
+          components::AngularAcceleration *_angularAcc,
+          const components::ParentEntity *_parent)->bool
+      {
+        if (auto linkPhys = this->entityLinkMap.Get(_parent->Data()))
+        {
+          const auto entityFrameData =
+              this->LinkFrameDataAtOffset(linkPhys, _pose->Data());
+
+          auto entityWorldPose = math::eigen3::convert(entityFrameData.pose);
+          math::Vector3d entityWorldAngularAcc =
+              math::eigen3::convert(entityFrameData.angularAcceleration);
+
+          auto entityBodyAngularAcc =
+              entityWorldPose.Rot().RotateVectorReverse(entityWorldAngularAcc);
+          *_angularAcc = components::AngularAcceleration(entityBodyAngularAcc);
         }
 
         return true;
@@ -3566,7 +3680,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   // TODO(louise) Skip this if there are no collision features
   this->UpdateCollisions(_ecm);
-}
+}  // NOLINT readability/fn_size
+// TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)

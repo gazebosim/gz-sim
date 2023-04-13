@@ -38,11 +38,16 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 #include "gz/sim/Util.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
@@ -60,6 +65,7 @@
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
@@ -2263,4 +2269,273 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
 
   server->AddSystem(testSystem.systemPtr);
   server->Run(true, nIters, false);
+}
+
+
+//////////////////////////////////////////////////
+/// This test makes sure that non-link entities' components
+/// are updated by the physics system if they have been enabled.
+/// A collision is a non-link entity
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NonLinkComponentsAreUpdated))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile =
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/non_link_components.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  auto gravity = world->Gravity();
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string collisionName{"collision"};
+  const std::string collisionWithOffsetName{"collision_with_offset"};
+
+  // Create a system that records the pose, vel, acc of the collisions.
+  test::Relay testSystem;
+
+  size_t iterations = 0u;
+  std::size_t nIters{100};
+  std::size_t halfIters{nIters / 2};
+
+  std::vector<math::Pose3d> collisionPoses;
+  std::vector<math::Vector3d> linVels, angVels, worldLinVels, worldAngVels;
+  std::vector<math::Vector3d> linAccs, angAccs, worldLinAccs, worldAngAccs;
+  testSystem.OnPreUpdate(
+      [&iterations, &nIters, &halfIters,
+       &collisionWithOffsetName](const UpdateInfo &,
+                                 EntityComponentManager &_ecm)
+      {
+        _ecm.EachNew<components::Collision, components::Name,
+                     components::ParentEntity>(
+            [&](const Entity &_entity, const components::Collision *,
+                const components::Name *_name,
+                const components::ParentEntity *) -> bool
+            {
+              // we only enable the velocity, acceleration components for
+              // the collision_with_offset
+              if (_name->Data() == collisionWithOffsetName)
+              {
+                enableComponent<components::WorldPose>(_ecm, _entity);
+                enableComponent<components::LinearVelocity>(_ecm, _entity);
+                enableComponent<components::AngularVelocity>(_ecm, _entity);
+                enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
+                enableComponent<components::WorldAngularVelocity>(_ecm,
+                                                                  _entity);
+                enableComponent<components::LinearAcceleration>(_ecm, _entity);
+                enableComponent<components::AngularAcceleration>(_ecm, _entity);
+                enableComponent<components::WorldLinearAcceleration>(_ecm,
+                                                                     _entity);
+                enableComponent<components::WorldAngularAcceleration>(_ecm,
+                                                                      _entity);
+              }
+              return true;
+            });
+
+        _ecm.Each<components::Collision, components::Name,
+                  components::ParentEntity>(
+            [&](const Entity &, const components::Collision *,
+                const components::Name *_name,
+                const components::ParentEntity *_parentEntity) -> bool
+            {
+              // after half of the simulation, apply a varying wrench, on the
+              // link
+              if (_name->Data() == collisionWithOffsetName &&
+                  iterations >= halfIters)
+              {
+                gz::sim::Link parentLink(_parentEntity->Data());
+                parentLink.EnableVelocityChecks(_ecm);
+                parentLink.EnableAccelerationChecks(_ecm);
+                using namespace gz::math;
+                // increasing force downward
+                auto force =
+                    -Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                        static_cast<double>(nIters));
+                // increasing torque around z
+                auto torque =
+                    Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                       static_cast<double>(nIters));
+                parentLink.AddWorldWrench(_ecm, force, torque);
+              }
+              return true;
+            });
+      });
+
+  // save all the components history
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<
+            components::Collision, components::Name, components::WorldPose,
+            components::LinearVelocity, components::AngularVelocity,
+            components::WorldLinearVelocity, components::WorldAngularVelocity,
+            components::LinearAcceleration, components::AngularAcceleration,
+            components::WorldLinearAcceleration,
+            components::WorldAngularAcceleration>(
+            [&](const Entity &, const components::Collision *,
+                const components::Name *_name,
+                const components::WorldPose *_pose,
+                const components::LinearVelocity *_linearVel,
+                const components::AngularVelocity *_angularVel,
+                const components::WorldLinearVelocity *_worldLinearVel,
+                const components::WorldAngularVelocity *_worldAngularVel,
+                const components::LinearAcceleration *_linearAcc,
+                const components::AngularAcceleration *_angularAcc,
+                const components::WorldLinearAcceleration *_worldLinearAcc,
+                const components::WorldAngularAcceleration *_worldAngularAcc)
+                -> bool
+            {
+              EXPECT_TRUE(_name->Data() == collisionWithOffsetName);
+              if (_name->Data() == collisionWithOffsetName)
+              {
+                collisionPoses.push_back(_pose->Data());
+                linVels.push_back(_linearVel->Data());
+                angVels.push_back(_angularVel->Data());
+                worldLinVels.push_back(_worldLinearVel->Data());
+                worldAngVels.push_back(_worldAngularVel->Data());
+                linAccs.push_back(_linearAcc->Data());
+                angAccs.push_back(_angularAcc->Data());
+                worldLinAccs.push_back(_worldLinearAcc->Data());
+                worldAngAccs.push_back(_worldAngularAcc->Data());
+              }
+              return true;
+            });
+        ++iterations;
+        return true;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, collisionPoses.size());
+  ASSERT_EQ(nIters, linVels.size());
+  ASSERT_EQ(nIters, angVels.size());
+  ASSERT_EQ(nIters, worldLinVels.size());
+  ASSERT_EQ(nIters, worldAngVels.size());
+  ASSERT_EQ(nIters, linAccs.size());
+  ASSERT_EQ(nIters, angAccs.size());
+  ASSERT_EQ(nIters, worldLinAccs.size());
+  ASSERT_EQ(nIters, worldAngAccs.size());
+  ASSERT_EQ(nIters, iterations);
+
+  // The collision offset should be taken into account in the world pose
+  EXPECT_NEAR(0.1, collisionPoses.front().Pos().X(), 1e-2);
+  EXPECT_NEAR(0.2, collisionPoses.front().Pos().Y(), 1e-2);
+  EXPECT_NEAR(2, collisionPoses.front().Pos().Z(), 1e-2);
+
+  // Make sure the position is updated every time step
+  // (here, the model is falling down, so only z should be updated)
+  for (size_t i = 1; i < nIters; i++)
+  {
+    EXPECT_GT(collisionPoses[i - 1].Pos().Z(), collisionPoses[i].Pos().Z())
+        << "Model should be falling down.";
+  }
+
+  double normLinVelYz, normWorldLinVelXy;
+  double normLinAccYz, normWorldLinAccXy;
+  // the first part checks that:
+  // - the collision poses are updated correctly
+  // - linear velocities (world/local) are updated.
+  for (size_t i = 1; i < halfIters; i++)
+  {
+    // --- LIN ACC (WORLD, LOCAL)
+    // linear acc is constant = gravity (both world and local)
+    EXPECT_NEAR(linAccs[i].Length(), gravity.Length(), 1e-2);
+    EXPECT_NEAR(worldLinAccs[i].Length(), gravity.Length(), 1e-2);
+    // local should mostly be X , world should be -Z
+    EXPECT_NEAR(linAccs[i].X(), gravity.Length(), 1e-2)
+        << "Local linear acceleration should be along X axis";
+    EXPECT_NEAR(worldLinAccs[i].Z(), -gravity.Length(), 1e-2)
+        << "World Linear acceleration should be along -Z axis";
+    // on the local(world) YZ(XY) plane the acceleration should be 0
+    normLinAccYz =
+        sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_NEAR(normLinAccYz, 0, 1e-2)
+        << "Local Linear acceleration on YZ-plane should be 0";
+    normWorldLinAccXy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() +
+                             worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_NEAR(normWorldLinAccXy, 0, 1e-2)
+        << "World Linear acceleration on XY-plane should be 0";
+
+    // --- LIN VEL (WORLD, LOCAL)
+    // linear velocity should keep increasing, both local and world
+    EXPECT_LT(linVels[i - 1].Length(), linVels[i].Length())
+        << "Local linear velocity should keep increasing";
+    EXPECT_LT(worldLinVels[i - 1].Length(), worldLinVels[i].Length())
+        << "World linear velocity should keep increasing";
+    // local should mostly be X , world should be -Z
+    EXPECT_GT(linVels[i - 1].X(), 0)
+        << "Local linear vel should be positive in x";
+    EXPECT_LT(worldLinVels[i - 1].Z(), 0)
+        << "World linear vel should be negative in z";
+    // on the local(world) YZ(XY) plane the velocity should be 0
+    normLinVelYz =
+        sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_NEAR(normLinVelYz, 0, 1e-2)
+        << "Local Linear velocity on YZ-plane should be zero";
+    normWorldLinVelXy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() +
+                             worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_NEAR(normWorldLinVelXy, 0, 1e-2)
+        << "World Linear acceleration on XY-plane should be zero";
+
+    // --- ANG ACC (WORLD, LOCAL)
+    // angular acc is constant = 0 (both world and local)
+    EXPECT_NEAR(angAccs[i].Length(), 0, 1e-2);
+    EXPECT_NEAR(worldAngAccs[i].Length(), 0, 1e-2);
+    // --- ANG VEL (WORLD, LOCAL)
+    // angular velocity is constant
+    EXPECT_NEAR(angVels[i].Length(), 0, 1e-2);
+    EXPECT_NEAR(worldAngVels[i].Length(), 0, 1e-2);
+  }
+
+  // Second part, we applied a varying wrench, and we should see:
+  //  - linear acceleration (world/local) are updated
+  //  - angular acceleration (world/local) are updated
+  //  - angular velocities (world/local) are updated
+  for (size_t i = halfIters + 1; i < nIters; i++)
+  {
+    // --- LIN ACC (WORLD, LOCAL)
+    EXPECT_LT(linAccs[i - 1].Length(), linAccs[i].Length())
+        << "Local Linear Acceleration should be increasing.";
+    EXPECT_LT(worldLinAccs[i - 1].Length(), worldLinAccs[i].Length())
+        << "World Linear Acceleration should be increasing.";
+    // on the local(world) YZ(XY) plane the acceleration norm should be positive
+    normLinAccYz =
+        sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_GT(normLinAccYz, 0)
+        << "Local Linear acceleration on YZ-plane should be positive";
+    normWorldLinAccXy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() +
+                             worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_GT(normWorldLinAccXy, 0)
+        << "World Linear acceleration on XY-plane should be positive";
+    // on the local(world) YZ(XY) plane the velocity should be positive
+    normLinVelYz =
+        sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_GT(normLinVelYz, 0)
+        << "Local Linear velocity on YZ-plane should be positive";
+    normWorldLinVelXy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() +
+                             worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_GT(normWorldLinVelXy, 0)
+        << "World Linear acceleration on XY-plane should be positive";
+
+    // --- ANG ACC (WORLD, LOCAL)
+    EXPECT_LT(angAccs[i - 1].Length(), angAccs[i].Length())
+        << "Local Angular Acceleration should be increasing.";
+    EXPECT_LT(worldAngAccs[i - 1].Length(), worldAngAccs[i].Length())
+        << "World Angular Acceleration should be increasing.";
+
+    // --- ANG VEL (WORLD, LOCAL)
+    EXPECT_LT(angVels[i - 1].Length(), angVels[i].Length())
+        << "Local Angular Velocity should be increasing.";
+    EXPECT_LT(worldAngVels[i - 1].Length(), worldAngVels[i].Length())
+        << "World Angular Velocity should be increasing.";
+  }
 }

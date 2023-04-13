@@ -78,6 +78,7 @@
 #include "gz/sim/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
+#include "Inertial.hh"
 #include "Pose3d.hh"
 #include "SystemPluginInfo.hh"
 
@@ -118,6 +119,9 @@ namespace gz::sim
     /// \brief A map of component types to the function used to update it.
     public: std::map<ComponentTypeId, inspector::UpdateViewCb>
         updateViewCbs;
+
+    /// \brief Handles all Inertial components.
+    public: std::unique_ptr<inspector::Inertial> inertial;
 
     /// \brief Handles all components displayed as a 3D pose.
     public: std::unique_ptr<inspector::Pose3d> pose3d;
@@ -480,6 +484,7 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
       "ComponentsModel", &this->dataPtr->componentsModel);
 
   // Type-specific handlers
+  this->dataPtr->inertial = std::make_unique<inspector::Inertial>(this);
   this->dataPtr->pose3d = std::make_unique<inspector::Pose3d>(this);
   this->dataPtr->systemInfo =
       std::make_unique<inspector::SystemPluginInfo>(this);
@@ -916,10 +921,7 @@ void ComponentInspector::Update(const UpdateInfo &,
   // Remove components in list
   for (auto typeId : itemsToRemove)
   {
-    QMetaObject::invokeMethod(&this->dataPtr->componentsModel,
-        "RemoveComponentType",
-        Qt::QueuedConnection,
-        Q_ARG(sim::ComponentTypeId, typeId));
+    this->dataPtr->componentsModel.RemoveComponentType(typeId);
   }
 }
 
@@ -1029,8 +1031,8 @@ void ComponentInspector::OnLight(
   double _outerAngle, double _falloff, double _intensity, int _type,
   bool _isLightOn, bool _visualizeVisual)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error setting light configuration" << std::endl;

@@ -52,10 +52,13 @@ namespace gz
       /// \param[in] _eventMgr Pointer to the event manager to be used when
       ///  configuring new systems
       /// \param[in] _namespace Namespace to use for the transport node
-      public: explicit SystemManager(const SystemLoaderPtr &_systemLoader,
-                            EntityComponentManager *_entityCompMgr = nullptr,
-                            EventManager *_eventMgr = nullptr,
-                            const std::string &_namespace = std::string());
+      public: explicit SystemManager(
+        const SystemLoaderPtr &_systemLoader,
+        EntityComponentManager *_entityCompMgr = nullptr,
+        EventManager *_eventMgr = nullptr,
+        const std::string &_namespace = std::string(),
+        gz::transport::parameters::ParametersRegistry *
+          _parametersRegistry = nullptr);
 
       /// \brief Check if the system plugin for a given entity is already
       /// loaded, or pending a load.
@@ -122,6 +125,12 @@ namespace gz
       /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
+      /// \brief Get an vector of all active systems implementing
+      ///   "ConfigureParameters"
+      /// \return Vector of systems's configure interfaces.
+      public: const std::vector<ISystemConfigureParameters *>&
+      SystemsConfigureParameters();
+
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
       public: const std::vector<ISystemReset *>& SystemsReset();
@@ -180,6 +189,10 @@ namespace gz
       /// \brief Systems implementing Configure
       private: std::vector<ISystemConfigure *> systemsConfigure;
 
+      /// \brief Systems implementing ConfigureParameters
+      private: std::vector<ISystemConfigureParameters *>
+        systemsConfigureParameters;
+
       /// \brief Systems implementing Reset
       private: std::vector<ISystemReset *> systemsReset;
 
@@ -212,6 +225,10 @@ namespace gz
 
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};
+
+      /// \brief Pointer to associated parameters registry
+      private: gz::transport::parameters::ParametersRegistry *
+        parametersRegistry;
     };
     }
   }  // namespace sim

@@ -28,13 +28,16 @@ using namespace gz;
 using namespace sim;
 
 //////////////////////////////////////////////////
-SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
-                             EntityComponentManager *_entityCompMgr,
-                             EventManager *_eventMgr,
-                             const std::string &_namespace)
+SystemManager::SystemManager(
+  const SystemLoaderPtr &_systemLoader,
+  EntityComponentManager *_entityCompMgr,
+  EventManager *_eventMgr,
+  const std::string &_namespace,
+  gz::transport::parameters::ParametersRegistry *_parametersRegistry)
   : systemLoader(_systemLoader),
     entityCompMgr(_entityCompMgr),
-    eventMgr(_eventMgr)
+    eventMgr(_eventMgr),
+    parametersRegistry(_parametersRegistry)
 {
   transport::NodeOptions opts;
   opts.SetNameSpace(_namespace);
@@ -128,6 +131,9 @@ size_t SystemManager::ActivatePendingSystems()
 
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
+
+    if (system.configureParameters)
+      this->systemsConfigureParameters.push_back(system.configureParameters);
 
     if (system.reset)
       this->systemsReset.push_back(system.reset);
@@ -281,6 +287,16 @@ void SystemManager::AddSystemImpl(
                                  *this->eventMgr);
   }
 
+  // Configure the system parameters, if necessary
+  if (
+    _system.configureParameters && this->entityCompMgr &&
+    this->parametersRegistry)
+  {
+    _system.configureParameters->ConfigureParameters(
+      *this->parametersRegistry,
+      *this->entityCompMgr);
+  }
+
   // Update callbacks will be handled later, add to queue
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
   this->pendingSystems.push_back(_system);
@@ -290,6 +306,12 @@ void SystemManager::AddSystemImpl(
 const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
+}
+
+const std::vector<ISystemConfigureParameters *>&
+SystemManager::SystemsConfigureParameters()
+{
+  return this->systemsConfigureParameters;
 }
 
 //////////////////////////////////////////////////

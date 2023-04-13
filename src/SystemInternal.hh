@@ -47,6 +47,8 @@ namespace gz
               : systemPlugin(std::move(_systemPlugin)),
                 system(systemPlugin->QueryInterface<System>()),
                 configure(systemPlugin->QueryInterface<ISystemConfigure>()),
+                configureParameters(
+                  systemPlugin->QueryInterface<ISystemConfigureParameters>()),
                 reset(systemPlugin->QueryInterface<ISystemReset>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
@@ -63,6 +65,8 @@ namespace gz
               : systemShared(_system),
                 system(_system.get()),
                 configure(dynamic_cast<ISystemConfigure *>(_system.get())),
+                configureParameters(
+                  dynamic_cast<ISystemConfigureParameters *>(_system.get())),
                 reset(dynamic_cast<ISystemReset *>(_system.get())),
                 preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
                 update(dynamic_cast<ISystemUpdate *>(_system.get())),
@@ -120,6 +124,11 @@ namespace gz
       /// \brief Access this system via the ISystemConfigure interface
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemConfigure *configure = nullptr;
+
+      /// \brief Access this system via the ISystemConfigureParameters
+      ///   interface.
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemConfigureParameters *configureParameters = nullptr;
 
       /// \brief Access this system via the ISystemReset interface
       /// Will be nullptr if the System doesn't implement this interface.
