@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-#include <tinyxml2.h>
 #include <QScreen>
 
 #include <gz/common/Console.hh>
@@ -77,14 +76,10 @@ std::string defaultGuiConfigFile(bool _isPlayback,
     defaultConfig = _customDefaultConfig;
   }
 
-  std::cout << "defaultGuiConfigFile. isPlayback[" << _isPlayback
-    << "] defaultConfig[" << defaultConfig << "]" << std::endl;
-
   // Check if the default config file exists. If it doesn't, copy the installed
   // file there first.
   if (!common::exists(defaultConfig))
   {
-    std::cout << "Doesn't exist!!" << std::endl;
     common::createDirectories(common::parentPath(defaultConfig));
 
     auto installedConfig = common::joinPaths(
@@ -101,26 +96,9 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       ignmsg << "Copied installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
-      std::cout << "COPIED[" << installedConfig << "] to ["
-        << defaultConfig << "]" << std::endl;
     }
   }
 
-  std::cout << "DONE. Default config is[" << defaultConfig << "]" << std::endl;
-
-  if (!common::exists(defaultConfig))
-    std::cout << "STILL DOESN'T EXIST, WTF???" << std::endl;
-  else
-  {
-    // Use tinyxml to read config
-    tinyxml2::XMLDocument doc;
-    tinyxml2::XMLError result = doc.LoadFile(defaultConfig.c_str());
-    if (result != tinyxml2::XML_SUCCESS)
-    {
-      std::cout << "TINYXML2 failed to open document["
-         << result << "]\n";
-    }
-  }
   return defaultConfig;
 }
 
@@ -209,7 +187,6 @@ std::unique_ptr<gz::gui::Application> createGui(
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_sdfFile, int _waitGui)
 {
-  std::cout << "CreateGui[" << std::this_thread::get_id() << "]\n";
   gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
@@ -446,7 +423,7 @@ std::unique_ptr<gz::gui::Application> createGui(
     // Also set ~/.ignition/gazebo/gui.config as the default path
     if (!app->LoadConfig(defaultConfig))
     {
-      std::cerr << "Failed to load default config file["
+      ignerr << "Failed to load default config file["
         << defaultConfig << "]." << std::endl;
       return nullptr;
     }
