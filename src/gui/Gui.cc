@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <tinyxml2.h>
 #include <QScreen>
 
 #include <gz/common/Console.hh>
@@ -109,6 +110,16 @@ std::string defaultGuiConfigFile(bool _isPlayback,
 
   if (!common::exists(defaultConfig))
     std::cout << "STILL DOESN'T EXIST, WTF???" << std::endl;
+  else
+  {
+    // Use tinyxml to read config
+    tinyxml2::XMLDocument doc;
+    auto success = !doc.LoadFile(defaultConfig.c_str());
+    if (!success)
+    {
+      std::cout << "TINYXML2 failed to open document\n";
+    }
+  }
   return defaultConfig;
 }
 
