@@ -373,6 +373,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// IDs are available
     public: Entity UniqueId() const;
 
+    /// \brief Clear the scene manager
+    /// Clears internal resources stored in the scene manager.
+    /// Note: this does not actually destroy the objects.
+    public: void Clear();
+
     /// \internal
     /// \brief Pointer to private data class
     private: std::unique_ptr<SceneManagerPrivate> dataPtr;
