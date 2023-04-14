@@ -86,7 +86,7 @@ class EnvironmentVisualizationTool
   public: std::mutex mutex;
 
   /// \brief first load we need to scan for existing data sensor
-  public: bool first {true};
+  public: bool first{true};
 };
 }
 }

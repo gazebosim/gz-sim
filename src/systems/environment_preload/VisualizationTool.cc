@@ -20,13 +20,14 @@
 /////////////////////////////////////////////////
 EnvironmentVisualizationTool::EnvironmentVisualizationTool()
 {
-    this->pcPub =
-      this->node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
+  this->pcPub =
+    this->node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
 }
 
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::CreatePointCloudTopics(
-    const std::shared_ptr<components::EnvironmentalData> _data) {
+    const std::shared_ptr<components::EnvironmentalData> &_data)
+{
   this->pubs.clear();
   this->sessions.clear();
 
@@ -49,10 +50,9 @@ void EnvironmentVisualizationTool::FileReloaded()
 void EnvironmentVisualizationTool::Step(
     const UpdateInfo &_info,
     const EntityComponentManager& _ecm,
-    const std::shared_ptr<components::EnvironmentalData> _data,
+    const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples)
 {
-
   auto now = std::chrono::steady_clock::now();
   std::chrono::duration<double> dt(now - this->lastTick);
 
@@ -64,6 +64,7 @@ void EnvironmentVisualizationTool::Step(
     this->lastTick = now;
   }
 
+  // Progress session pointers to next time stamp
   for (auto &it : this->sessions)
   {
     auto res =
@@ -91,14 +92,13 @@ void EnvironmentVisualizationTool::Step(
 
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::Visualize(
-    const std::shared_ptr<components::EnvironmentalData> data,
+    const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples)
 {
-
-  for (auto key : data->frame.Keys())
+  for (auto key : _data->frame.Keys())
   {
     const auto session = this->sessions[key];
-    auto frame = data->frame[key];
+    auto frame = _data->frame[key];
     auto [lower_bound, upper_bound] = frame.Bounds(session);
     auto step = upper_bound - lower_bound;
     auto dx = step.X() / _xSamples;
@@ -136,7 +136,7 @@ void EnvironmentVisualizationTool::Visualize(
 void EnvironmentVisualizationTool::Publish()
 {
   pcPub.Publish(this->pcMsg);
-  for(auto &[key, pub] : this->pubs)
+  for (auto &[key, pub] : this->pubs)
   {
     pub.Publish(this->floatFields[key]);
   }
@@ -144,11 +144,11 @@ void EnvironmentVisualizationTool::Publish()
 
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::ResizeCloud(
-  const std::shared_ptr<components::EnvironmentalData> _data,
-  const EntityComponentManager& _ecm,
+  const std::shared_ptr<components::EnvironmentalData> &_data,
+  const EntityComponentManager &_ecm,
   unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples)
 {
-  assert (pubs.size() > 0);
+  assert(pubs.size() > 0);
 
   // Assume all data have same point cloud.
   gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
@@ -162,8 +162,7 @@ void EnvironmentVisualizationTool::ResizeCloud(
 
   auto session = this->sessions[this->pubs.begin()->first];
   auto frame = _data->frame[this->pubs.begin()->first];
-  auto [lower_bound, upper_bound] =
-    frame.Bounds(session);
+  auto [lower_bound, upper_bound] = frame.Bounds(session);
 
   auto step = upper_bound - lower_bound;
   auto dx = step.X() / _xSamples;

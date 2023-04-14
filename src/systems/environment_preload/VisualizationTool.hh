@@ -59,7 +59,7 @@ class EnvironmentVisualizationTool
   private: std::mutex mutex;
 
   /// \brief First load we need to scan for existing data sensor
-  private: bool first {true};
+  private: bool first{true};
 
   /// \brief Enable resampling
   public: std::atomic<bool> resample{true};
@@ -71,7 +71,7 @@ class EnvironmentVisualizationTool
   /// available.
   /// \param[in] _data Data to be visuallized
   private: void CreatePointCloudTopics(
-    const std::shared_ptr<components::EnvironmentalData> _data);
+    const std::shared_ptr<components::EnvironmentalData> &_data);
 
   /// \brief Invoke when new file is made available.
   public: void FileReloaded();
@@ -85,8 +85,8 @@ class EnvironmentVisualizationTool
   /// \param[in] _zSample Samples along z
   public: void Step(
     const UpdateInfo &_info,
-    const EntityComponentManager& _ecm,
-    const std::shared_ptr<components::EnvironmentalData> _data,
+    const EntityComponentManager &_ecm,
+    const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples);
 
   /// \brief Publishes a sample of the data
@@ -95,7 +95,7 @@ class EnvironmentVisualizationTool
   /// \param[in] _ySample Samples along y
   /// \param[in] _zSample Samples along z
   private: void Visualize(
-    const std::shared_ptr<components::EnvironmentalData> data,
+    const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples);
 
   /// \brief Get the point cloud data.
@@ -109,8 +109,8 @@ class EnvironmentVisualizationTool
   /// \param[in] _ySample Samples along y
   /// \param[in] _zSample Samples along z
   private: void ResizeCloud(
-    const std::shared_ptr<components::EnvironmentalData> _data,
-    const EntityComponentManager& _ecm,
+    const std::shared_ptr<components::EnvironmentalData> &_data,
+    const EntityComponentManager &_ecm,
     unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples);
 
   /// \brief Publisher for point clouds
