@@ -2702,6 +2702,9 @@ void RenderUtil::Destroy()
 {
   if (!this->dataPtr->engine || !this->dataPtr->scene)
     return;
+  this->dataPtr->wireBoxes.clear();
+  this->dataPtr->sceneManager.Clear();
+  this->dataPtr->markerManager.Clear();
   this->dataPtr->engine->DestroyScene(this->dataPtr->scene);
   this->dataPtr->scene.reset();
   rendering::unloadEngine(this->dataPtr->engine->Name());
