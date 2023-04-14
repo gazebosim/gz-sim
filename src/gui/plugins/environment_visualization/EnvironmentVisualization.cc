@@ -59,7 +59,7 @@ class EnvironmentVisualizationTool
     auto world = worldEntity(_ecm);
     auto topic =
       common::joinPaths(
-        scopedName(world, _ecm), "environment/visualize/res");
+        scopedName(world, _ecm), "environment", "visualize", "res");
     std::lock_guard<std::mutex> lock(this->mutex);
     this->pcPub = node.Advertise<gz::msgs::Vector3d>(topic);
   }

@@ -87,7 +87,7 @@ class EnvironmentLoaderPrivate
       {QString("degree"),
         Units::DataLoadPathOptions_DataAngularUnits_DEGREES},
       {QString("radians"),
-        Units::DataLoadPathOptions_DataAngularUnits_DEGREES}
+        Units::DataLoadPathOptions_DataAngularUnits_RADIANS}
     };
 
   /// \brief Spatial reference.
