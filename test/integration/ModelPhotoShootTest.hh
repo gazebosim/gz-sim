@@ -302,9 +302,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
     testImages("4.png", "4_test.png");
     testImages("5.png", "5_test.png");
 
-    std::cerr << "resetting render con " << std::endl;
     postRenderConn.reset();
-    std::cerr << "exiting " << std::endl;
   }
 
   private: bool takeTestPics{false};
