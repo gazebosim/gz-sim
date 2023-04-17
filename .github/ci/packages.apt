@@ -13,3 +13,5 @@ libignition-transport8-dev
 libsdformat9-dev
 qml-module-qtqml-models2
 xvfb
+x11-utils
+mesa-utils
