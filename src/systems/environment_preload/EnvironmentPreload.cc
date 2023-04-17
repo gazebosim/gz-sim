@@ -322,10 +322,12 @@ void EnvironmentPreload::PreUpdate(
 
     // See https://github.com/gazebosim/gz-sim/issues/1786
     this->dataPtr->node.Subscribe(
-      common::joinPaths(scopedName(world, _ecm), "environment"),
+      transport::TopicUtils::AsValidTopic(
+        scopedName(world, _ecm) + "/environment"),
       &EnvironmentPreloadPrivate::OnLoadCommand, this->dataPtr.get());
     this->dataPtr->node.Subscribe(
-      common::joinPaths(scopedName(world, _ecm), "environment/visualize/res"),
+      transport::TopicUtils::AsValidTopic(
+        scopedName(world, _ecm) + "/environment/visualize/res"),
       &EnvironmentPreloadPrivate::OnVisualResChanged, this->dataPtr.get());
 
     this->dataPtr->visualizationPtr->resample = true;
