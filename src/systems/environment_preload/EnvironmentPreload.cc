@@ -107,7 +107,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       return;
     }
     auto converted = msgs::Convert(_resChanged);
-    if (this->samples  == converted)
+    if (this->samples == converted)
     {
       // If the sample has not changed return.
       // This is because resampling is expensive.
@@ -123,7 +123,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
   {
     if (!this->sdf->HasElement("data"))
     {
-      gzwarn << "No environmental data file was specified";
+      gzerr << "No environmental data file was specified" << std::endl;
       return;
     }
 
@@ -131,9 +131,9 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::string dataPath =
         this->sdf->Get<std::string>("data");
     this->dataDescription.set_path(dataPath);
-    if (common::isRelativePath(dataDescription.path()))
+    if (common::isRelativePath(this->dataDescription.path()))
     {
-      auto * component =
+      auto *component =
           _ecm.Component<components::WorldSdf>(worldEntity(_ecm));
       const std::string rootPath =
           common::parentPath(component->Data().Element()->FilePath());
@@ -216,20 +216,21 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     this->dataDescription.set_y(spatialColumnNames[1]);
     this->dataDescription.set_z(spatialColumnNames[2]);
 
-    needsReload = true;
+    this->needsReload = true;
   }
 
   //////////////////////////////////////////////////
   public: components::EnvironmentalData::ReferenceUnits ConvertUnits(
     const Units &_unit)
   {
-    switch (_unit) {
+    switch (_unit)
+    {
       case Units::DataLoadPathOptions_DataAngularUnits_DEGREES:
         return components::EnvironmentalData::ReferenceUnits::DEGREES;
       case Units::DataLoadPathOptions_DataAngularUnits_RADIANS:
         return components::EnvironmentalData::ReferenceUnits::RADIANS;
       default:
-        gzerr << "Invalid unit conversion" << std::endl;
+        gzerr << "Invalid unit conversion. Defaulting to radians." << std::endl;
         return components::EnvironmentalData::ReferenceUnits::RADIANS;
     }
   }
@@ -252,7 +253,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       std::ifstream dataFile(this->dataDescription.path());
       if (!dataFile.is_open())
       {
-        if(logFileLoadError)
+        if (this->logFileLoadError)
         {
           gzerr << "No environmental data file was found at " <<
             this->dataDescription.path() << std::endl;
@@ -279,15 +280,15 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     }
     catch (const std::invalid_argument &exc)
     {
-      if(logFileLoadError)
+      if (this->logFileLoadError)
       {
         gzerr << "Failed to load environment data" << std::endl
               << exc.what() << std::endl;
-        logFileLoadError = false;
+        this->logFileLoadError = false;
       }
     }
 
-    needsReload = false;
+    this->needsReload = false;
   }
 };
 
