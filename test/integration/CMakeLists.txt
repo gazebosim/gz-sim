@@ -37,6 +37,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  light.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc

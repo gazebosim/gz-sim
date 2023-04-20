@@ -149,7 +149,7 @@ TEST_F(SensorIntegrationTest, Parent)
   }
 
   {
-    // Joint tas parent
+    // Joint as parent
     auto eJoint = ecm.CreateEntity();
     ecm.CreateComponent(eJoint, components::Joint());
     auto eSensor = ecm.CreateEntity();

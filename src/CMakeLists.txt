@@ -51,6 +51,7 @@ set (sources
   EntityComponentManager.cc
   Joint.cc
   LevelManager.cc
+  Light.cc
   Link.cc
   Model.cc
   Primitives.cc
@@ -84,6 +85,7 @@ set (gtest_sources
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
   Joint_TEST.cc
+  Light_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
