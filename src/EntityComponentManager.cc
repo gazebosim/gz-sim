@@ -124,7 +124,7 @@ using namespace gz::sim;
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
-  : dataPtr(new EntityComponentManagerPrivate)
+  : dataPtr(std::make_unique<EntityComponentManagerPrivate>())
 {
 }
 
