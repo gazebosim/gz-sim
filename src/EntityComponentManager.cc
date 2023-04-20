@@ -29,9 +29,6 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
-using namespace gz;
-using namespace gz::sim;
-
 class gz::sim::EntityComponentManagerPrivate
 {
   /// \brief Implementation of the CreateEntity function, which takes a specific
@@ -121,6 +118,9 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 };
+
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
