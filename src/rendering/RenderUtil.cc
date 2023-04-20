@@ -2707,7 +2707,9 @@ void RenderUtil::Destroy()
   this->dataPtr->markerManager.Clear();
   this->dataPtr->engine->DestroyScene(this->dataPtr->scene);
   this->dataPtr->scene.reset();
+#ifdef  __APPLE__
   rendering::unloadEngine(this->dataPtr->engine->Name());
+#endif
   this->dataPtr->engine = nullptr;
   this->dataPtr->initialized = false;
 }
