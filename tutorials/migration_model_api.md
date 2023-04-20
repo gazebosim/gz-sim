@@ -218,7 +218,7 @@ Classic | Ignition
 -- | --
 GetJointController | Use this system: `ignition::gazebo::systems::JointController`
 GetNearestEntityBelow | Requires a system
-PlaceOnEntity | Involves Requires a system
+PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system
 
 ---
