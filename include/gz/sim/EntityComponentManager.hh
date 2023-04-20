@@ -33,6 +33,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
+#include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
