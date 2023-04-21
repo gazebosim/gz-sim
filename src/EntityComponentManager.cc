@@ -153,7 +153,8 @@ Entity EntityComponentManager::CreateEntity()
 }
 
 /////////////////////////////////////////////////
-Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
+Entity gz::sim::EntityComponentManagerPrivate::CreateEntityImplementation(
+    Entity _entity)
 {
   IGN_PROFILE("EntityComponentManager::CreateEntityImplementation");
   this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
@@ -183,8 +184,8 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
-    std::unordered_set<Entity> &_set)
+void gz::sim::EntityComponentManagerPrivate::InsertEntityRecursive(
+    Entity _entity, std::unordered_set<Entity> &_set)
 {
   for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
   {
@@ -627,7 +628,7 @@ bool EntityComponentManager::HasComponentType(
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManagerPrivate::CreateComponentStorage(
+bool gz::sim::EntityComponentManagerPrivate::CreateComponentStorage(
     const ComponentTypeId _typeId)
 {
   auto storage = components::Factory::Instance()->NewStorage(_typeId);
@@ -940,7 +941,7 @@ void EntityComponentManager::ChangedState(
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CalculateStateThreadLoad()
+void gz::sim::EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
   // If the entity component vector is dirty, we need to recalculate the
   // threads and each threads work load
