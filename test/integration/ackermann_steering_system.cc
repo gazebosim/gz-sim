@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/actuators.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -579,6 +580,32 @@ TEST_F(AckermannSteeringOnlyTest,
   msgs::Double msg;
   const double targetAngle{0.25};
   msg.set_data(targetAngle);
+  pub.Publish(msg);
+}
+
+TEST_F(AckermannSteeringOnlyTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(SteerPublishActuatorsCmd))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "ackermann_steering_only_actuators.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Publish actuator command
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Actuators>(
+          "/actuators");
+
+  const double targetAngle{0.25};
+  msgs::Actuators msg;
+  msg.add_position(targetAngle);
+
   pub.Publish(msg);
 }
 
