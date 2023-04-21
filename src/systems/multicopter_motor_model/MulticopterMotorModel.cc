@@ -115,7 +115,7 @@ enum class MotorType {
   kForce
 };
 
-class gz::sim::systems::MulticopterMotorModelPrivate
+class ignition::gazebo::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
   public: void OnActuatorMsg(const msgs::Actuators &_msg);

@@ -40,7 +40,7 @@ using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
 // https://osrf-migration.github.io/gazebo-gh-pages/#!/osrf/gazebo/pull-requests/2950/
-class gz::sim::systems::WheelSlipPrivate
+class ignition::gazebo::systems::WheelSlipPrivate
 {
   /// \brief Initialize the plugin
   public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);

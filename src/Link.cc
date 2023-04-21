@@ -36,7 +36,7 @@
 
 #include "gz/sim/Link.hh"
 
-class gz::sim::LinkPrivate
+class ignition::gazebo::LinkPrivate
 {
   /// \brief Id of link entity.
   public: Entity id{kNullEntity};

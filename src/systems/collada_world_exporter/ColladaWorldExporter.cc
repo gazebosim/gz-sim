@@ -53,7 +53,7 @@ using namespace gz::sim;
 using namespace systems;
 
 
-class gz::sim::systems::ColladaWorldExporterPrivate
+class ignition::gazebo::systems::ColladaWorldExporterPrivate
 {
   // Default constructor
   public: ColladaWorldExporterPrivate() = default;

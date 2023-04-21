@@ -53,7 +53,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private LogPlayback data class.
-class gz::sim::systems::LogPlaybackPrivate
+class ignition::gazebo::systems::LogPlaybackPrivate
 {
   /// \brief Extract model resource files and state file from compression.
   /// \return True if extraction was successful.

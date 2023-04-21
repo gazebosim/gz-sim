@@ -50,7 +50,7 @@ using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /// \brief Private data class.
-class gz::sim::SceneManagerPrivate
+class ignition::gazebo::SceneManagerPrivate
 {
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.

@@ -54,7 +54,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private WindEffects data class.
-class gz::sim::systems::WindEffectsPrivate
+class ignition::gazebo::systems::WindEffectsPrivate
 {
   /// \brief Initialize the system.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.

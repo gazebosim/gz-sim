@@ -51,7 +51,7 @@ using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
-class gz::sim::systems::CameraVideoRecorderPrivate
+class ignition::gazebo::systems::CameraVideoRecorderPrivate
 {
   /// \brief Callback for the video recorder service
   public: bool OnRecordVideo(const msgs::VideoRecord &_msg,

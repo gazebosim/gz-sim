@@ -70,7 +70,7 @@ using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
-class gz::sim::systems::SceneBroadcasterPrivate
+class ignition::gazebo::systems::SceneBroadcasterPrivate
 {
   /// \brief Type alias for the graph used to represent the scene graph.
   public: using SceneGraphType = math::graph::DirectedGraph<

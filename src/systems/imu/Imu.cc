@@ -48,7 +48,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Imu data class.
-class gz::sim::systems::ImuPrivate
+class ignition::gazebo::systems::ImuPrivate
 {
   /// \brief A map of IMU entity to its IMU sensor.
   public: std::unordered_map<Entity,

@@ -30,7 +30,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Thermal data class.
-class gz::sim::systems::ThermalPrivate
+class ignition::gazebo::systems::ThermalPrivate
 {
 };
 

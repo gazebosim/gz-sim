@@ -137,7 +137,7 @@ namespace components = gz::sim::components;
 
 
 // Private data class.
-class gz::sim::systems::PhysicsPrivate
+class ignition::gazebo::systems::PhysicsPrivate
 {
   /// \brief This is the minimum set of features that any physics engine must
   /// implement to be supported by this system.

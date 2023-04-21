@@ -35,7 +35,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::JointPositionControllerPrivate
+class ignition::gazebo::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
