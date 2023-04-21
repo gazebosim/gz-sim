@@ -12,4 +12,6 @@ gz_build_tests(TYPE UNIT
   TransformTypes_TEST.cc
   LIB_DEPS
   gz-math${GZ_MATH_VER}::gz-math${GZ_MATH_VER}
+  ENVIRONMENT
+  GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
