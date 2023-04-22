@@ -106,11 +106,8 @@ void DetachableJoint::Configure(const Entity &_entity,
   this->detachTopic = validTopic(detachTopics);
   igndbg << "Detach topic is: " << this->detachTopic << std::endl;
 
-  // Warn if DEPRECATED <topic> tag is used instead of <detach_topic>
   if (_sdf->HasElement("topic"))
   {
-    ignerr << "<topic> tag is DEPRECATED. Please use <detach_topic> instead."
-           << std::endl;
     if (_sdf->HasElement("detach_topic"))
     {
       if (_sdf->Get<std::string>("topic") !=
@@ -128,10 +125,9 @@ void DetachableJoint::Configure(const Entity &_entity,
     }
     else
     {
-      detachTopics.pop_back();
-      detachTopics.push_back(_sdf->Get<std::string>("topic"));
+      detachTopics.insert(detachTopics.begin(), _sdf->Get<std::string>("topic"));
       this->detachTopic = validTopic(detachTopics);
-      ignerr << "Implicitly converted <topic> to <detach_topic>. "
+      ignwarn << "Implicitly converted <topic> to <detach_topic>. "
              << "Detach topic is: " << this->detachTopic << std::endl;
     }
   }
@@ -150,7 +146,7 @@ void DetachableJoint::Configure(const Entity &_entity,
     attachTopics.push_back(_sdf->Get<std::string>("attach_topic"));
   }
   attachTopics.push_back("/model/" + this->model.Name(_ecm) +
-      "/attachable_joint/attach");
+      "/detachable_joint/attach");
   this->attachTopic = validTopic(attachTopics);
   igndbg << "Attach topic is: " << this->attachTopic << std::endl;
 
@@ -177,8 +173,10 @@ void DetachableJoint::Configure(const Entity &_entity,
   {
     outputTopics.push_back(_sdf->Get<std::string>("output_topic"));
   }
-  outputTopics.push_back(this->childModelName +
-      "/detached_state");
+
+  outputTopics.push_back("/model/" + this->childModelName +
+      "/detachable_joint/state");
+
   this->outputTopic = validTopic(outputTopics);
   igndbg << "Output topic is: " << this->outputTopic << std::endl;
 
@@ -187,7 +185,7 @@ void DetachableJoint::Configure(const Entity &_entity,
       this->outputTopic);
   if (!this->outputPub)
   {
-    std::cerr << "Error advertising topic [" << this->outputTopic << "]"
+    ignerr << "Error advertising topic [" << this->outputTopic << "]"
               << std::endl;
     return;
   }

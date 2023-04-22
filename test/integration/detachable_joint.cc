@@ -285,8 +285,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    // Deafult distance between B1 and the vehicle is 1.5.
    auto defaultDist = 1.5;
    // Although detached, distance (x-axis) between B1 and vehicle should be 1.5.
-   EXPECT_TRUE(abs(vehiclePoses.back().Pos().X() -
-       b1Poses.back().Pos().X()) - defaultDist < 0.0001);
+   EXPECT_NEAR(vehiclePoses.back().Pos().X(),
+       abs(b1Poses.back().Pos().X()) - defaultDist, 0.0001);
 
    // clear the vectors
    b1Poses.clear();

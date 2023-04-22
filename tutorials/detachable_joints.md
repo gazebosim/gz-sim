@@ -56,11 +56,11 @@ used in one model, `detach_topic` is REQUIRED to detach child models individuall
 
 * `attach_topic` (optional): Topic name to be used for re-attaching connections.
  If empty, a default topic will be created with a pattern
-`/model/<model_name>/attachable_joint/attach`. If multiple detachable plugin is
+`/model/<model_name>/detachable_joint/attach`. If multiple detachable plugin is
 used in one model, `attach_topic` is REQUIRED to attach child models individually.
 
 * `output_topic` (optional): Topic name to be used for publishing the state of
 the detachment. If empty, a default topic will be created with a pattern
-`/model/<model_name>/detached_state`. If multiple detachable plugin is
+`/model/<child_model_name>/detachable_joint/state`. If multiple detachable plugin is
 used in one model, `output_topic` is REQUIRED to publish child models state
 individually.

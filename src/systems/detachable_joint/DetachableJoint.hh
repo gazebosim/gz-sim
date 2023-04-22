@@ -90,7 +90,7 @@ namespace systems
     private: transport::Node node;
 
     /// \brief A publisher to send state of the detachment
-    private: ignition::transport::Node::Publisher outputPub;
+    private: transport::Node::Publisher outputPub;
 
     /// \brief Helper function to publish the state of the detachment
     private: void PublishJointState(bool attached);
