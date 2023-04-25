@@ -103,6 +103,7 @@ set(tests_needing_display
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc
+  sensors_system_update_rate.cc
   shader_param_system.cc
   thermal_sensor_system.cc
   thermal_system.cc

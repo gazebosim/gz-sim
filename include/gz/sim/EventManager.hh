@@ -118,6 +118,31 @@ namespace gz
                 }
               }
 
+      /// \brief Get connection count for a particular event
+      /// Connection count for the event
+      public: template <typename E>
+              unsigned int
+              ConnectionCount()
+              {
+                if (this->events.find(typeid(E)) == this->events.end())
+                {
+                  return 0u;
+                }
+
+                E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
+                // All values in the map should be derived from Event,
+                // so this shouldn't be an issue, but it doesn't hurt to check.
+                if (eventPtr != nullptr)
+                {
+                  return eventPtr->ConnectionCount();
+                }
+                else
+                {
+                  gzerr << "Failed to get connection count for event: "
+                    << typeid(E).name() << std::endl;
+                  return 0u;
+                }
+              }
 
       /// \brief Convenience type for storing typeinfo references.
       private: using TypeInfoRef = std::reference_wrapper<const std::type_info>;
