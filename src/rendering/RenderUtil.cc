@@ -1204,6 +1204,13 @@ void RenderUtil::Update()
           entityId, std::get<1>(model), std::get<2>(model));
     }
 
+    for (const auto &actor : newActors)
+    {
+      this->dataPtr->sceneManager.CreateActor(
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
+          std::get<3>(actor));
+    }
+
     for (const auto &link : newLinks)
     {
       this->dataPtr->sceneManager.CreateLink(
@@ -1214,13 +1221,6 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.CreateVisual(
           std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
-    }
-
-    for (const auto &actor : newActors)
-    {
-      this->dataPtr->sceneManager.CreateActor(
-          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
-          std::get<3>(actor));
     }
 
     for (const auto &light : newLights)
@@ -1336,7 +1336,7 @@ void RenderUtil::Update()
       {
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
-        if (!actorMesh || !actorVisual)
+        if (!actorVisual)
         {
           ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
                  << "Skipping skeleton animation update." << std::endl;
@@ -1371,7 +1371,8 @@ void RenderUtil::Update()
         }
 
         tf.second.erase("actorPose");
-        actorMesh->SetSkeletonLocalTransforms(tf.second);
+        if (actorMesh)
+          actorMesh->SetSkeletonLocalTransforms(tf.second);
       }
     }
     else
@@ -3118,7 +3119,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
     auto actorVisual = this->sceneManager.NodeById(it.first);
     auto actorSkel = this->sceneManager.ActorSkeletonById(
         it.first);
-    if (!actorMesh || !actorVisual || !actorSkel)
+    if (!actorVisual)
     {
       ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
              << "Skipping skeleton animation update." << std::endl;
@@ -3131,50 +3132,54 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       ignerr << "invalid animation update data" << std::endl;
       continue;
     }
-    // Enable skeleton animation
-    if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+
+    if (actorMesh && actorSkel)
     {
-      // disable all animations for this actor
-      for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+      // Enable skeleton animation
+      if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
       {
+        // disable all animations for this actor
+        for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+        {
+          actorMesh->SetSkeletonAnimationEnabled(
+              actorSkel->Animation(i)->Name(), false, false, 0.0);
+        }
+
+        // enable requested animation
         actorMesh->SetSkeletonAnimationEnabled(
-            actorSkel->Animation(i)->Name(), false, false, 0.0);
+            animData.animationName, true, animData.loop);
+
+        // Set skeleton root node weight to zero so it is not affected by
+        // the animation being played. This is needed if trajectory animation
+        // is enabled. We need to let the trajectory animation set the
+        // position of the actor instead
+        common::SkeletonPtr skeleton =
+            this->sceneManager.ActorSkeletonById(it.first);
+        if (skeleton)
+        {
+          float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+          std::unordered_map<std::string, float> weights;
+          weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+          actorMesh->SetSkeletonWeights(weights);
+        }
       }
+      // Update skeleton animation by setting animation time.
+      // Note that animation time is different from sim time. An actor can
+      // have multiple animations. Animation time is associated with
+      // current animation that is being played. It is also adjusted if
+      // interpotate_x is enabled.
+      actorMesh->UpdateSkeletonAnimation(animData.time);
 
-      // enable requested animation
-      actorMesh->SetSkeletonAnimationEnabled(
-          animData.animationName, true, animData.loop);
-
-      // Set skeleton root node weight to zero so it is not affected by
-      // the animation being played. This is needed if trajectory animation
-      // is enabled. We need to let the trajectory animation set the
-      // position of the actor instead
-      common::SkeletonPtr skeleton =
-          this->sceneManager.ActorSkeletonById(it.first);
-      if (skeleton)
+      // manually update root transform in order to sync with trajectory
+      // animation
+      if (animData.followTrajectory)
       {
-        float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
-        std::unordered_map<std::string, float> weights;
-        weights[skeleton->RootNode()->Name()] = rootBoneWeight;
-        actorMesh->SetSkeletonWeights(weights);
+        common::SkeletonPtr skeleton =
+            this->sceneManager.ActorSkeletonById(it.first);
+        std::map<std::string, math::Matrix4d> rootTf;
+        rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+        actorMesh->SetSkeletonLocalTransforms(rootTf);
       }
-    }
-    // Update skeleton animation by setting animation time.
-    // Note that animation time is different from sim time. An actor can
-    // have multiple animations. Animation time is associated with
-    // current animation that is being played. It is also adjusted if
-    // interpotate_x is enabled.
-    actorMesh->UpdateSkeletonAnimation(animData.time);
-
-    // manually update root transform in order to sync with trajectory
-    // animation
-    if (animData.followTrajectory)
-    {
-      common::SkeletonPtr skeleton =
-          this->sceneManager.ActorSkeletonById(it.first);
-      std::map<std::string, math::Matrix4d> rootTf;
-      rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
-      actorMesh->SetSkeletonLocalTransforms(rootTf);
     }
 
     // update actor trajectory animation
