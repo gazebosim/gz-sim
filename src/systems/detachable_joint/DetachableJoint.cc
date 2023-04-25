@@ -125,7 +125,8 @@ void DetachableJoint::Configure(const Entity &_entity,
     }
     else
     {
-      detachTopics.insert(detachTopics.begin(), _sdf->Get<std::string>("topic"));
+      detachTopics.insert(detachTopics.begin(),
+                          _sdf->Get<std::string>("topic"));
       this->detachTopic = validTopic(detachTopics);
       ignwarn << "Implicitly converted <topic> to <detach_topic>. "
              << "Detach topic is: " << this->detachTopic << std::endl;
