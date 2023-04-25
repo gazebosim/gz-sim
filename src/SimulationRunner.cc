@@ -71,6 +71,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep world name
   this->worldName = _world->Name();
 
+  this->parametersRegistry = std::make_unique<
+    gz::transport::parameters::ParametersRegistry>(
+      std::string{"world/"} + this->worldName);
+
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   auto physics = _world->PhysicsByIndex(0);
@@ -122,6 +126,12 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // Epoch
+  this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
+    std::chrono::duration<double>{_config.InitialSimTime()}
+  );
+  this->currentInfo.simTime = this->simTimeEpoch;
+
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -142,8 +152,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->node = std::make_unique<transport::Node>(opts);
 
   // Create the system manager
-  this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr, validNs);
+  this->systemMgr = std::make_unique<SystemManager>(
+      _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
+      this->parametersRegistry.get());
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -266,13 +277,11 @@ void SimulationRunner::UpdateCurrentInfo()
   // Rewind
   if (this->requestedRewind)
   {
-    gzdbg << "Rewinding simulation back to time zero." << std::endl;
-    this->realTimes.clear();
-    this->simTimes.clear();
+    gzdbg << "Rewinding simulation back to initial time." << std::endl;
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = -this->currentInfo.simTime;
-    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.dt = this->simTimeEpoch - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->simTimeEpoch;
     this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
     this->currentInfo.iterations = 0;
     this->realTimeWatch.Reset();
@@ -285,63 +294,32 @@ void SimulationRunner::UpdateCurrentInfo()
   }
 
   // Seek
-  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  if (this->requestedSeek && this->requestedSeek.value() >= this->simTimeEpoch)
   {
     gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
-        this->requestedSeek).count() << "s." << std::endl;
+        this->requestedSeek.value()).count() << "s." << std::endl;
 
-    this->realTimes.clear();
-    this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
-    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.dt = this->requestedSeek.value() -
+      this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek.value();
     this->currentInfo.iterations = 0;
 
     this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
 
-    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+    this->requestedSeek = {};
 
     return;
   }
 
   // Regular time flow
 
-  // Store the real time and sim time only if not paused.
-  if (this->realTimeWatch.Running())
-  {
-    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
-    this->simTimes.push_back(this->currentInfo.simTime);
-  }
+  const double simTimeCount =
+      static_cast<double>(this->currentInfo.simTime.count());
+  const double realTimeCount =
+      static_cast<double>(this->currentInfo.realTime.count());
 
-  // Maintain a window size of 20 for realtime and simtime.
-  if (this->realTimes.size() > 20)
-    this->realTimes.pop_front();
-  if (this->simTimes.size() > 20)
-    this->simTimes.pop_front();
-
-  // Compute the average sim and real times.
-  std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
-  std::list<std::chrono::steady_clock::duration>::iterator simIter,
-    realIter;
-
-  simIter = ++(this->simTimes.begin());
-  realIter = ++(this->realTimes.begin());
-  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
-  {
-    simAvg += ((*simIter) - this->simTimes.front());
-    realAvg += ((*realIter) - this->realTimes.front());
-    ++simIter;
-    ++realIter;
-  }
-
-  // RTF, only compute this if the realTime count is greater than zero. The
-  // realtTime count could be zero if simulation was started paused.
-  if (realAvg.count() > 0)
-  {
-    this->realTimeFactor = math::precision(
-          static_cast<double>(simAvg.count()) / realAvg.count(), 4);
-  }
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
@@ -355,6 +333,15 @@ void SimulationRunner::UpdateCurrentInfo()
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
+  }
+  const double simTimeDiff =
+      static_cast<double>(this->currentInfo.simTime.count()) - simTimeCount;
+  const double realTimeDiff =
+      static_cast<double>(this->currentInfo.realTime.count()) - realTimeCount;
+
+  if (realTimeDiff > 0)
+  {
+    this->realTimeFactor = simTimeDiff / realTimeDiff;
   }
 }
 
@@ -401,8 +388,6 @@ void SimulationRunner::UpdatePhysicsParams()
     }
     if (updated)
     {
-      this->simTimes.clear();
-      this->realTimes.clear();
       // Set as OneTimeChange to make sure the update is not missed
       this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
           ComponentState::OneTimeChange);
@@ -844,13 +829,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  if (!this->Paused() &&
-       this->requestedRunToSimTime >
-       std::chrono::steady_clock::duration::zero() &&
-       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  if (!this->Paused() && this->requestedRunToSimTime &&
+       this->requestedRunToSimTime.value() > this->simTimeEpoch &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime.value())
   {
     this->SetPaused(true);
-    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+    this->requestedRunToSimTime = {};
   }
 
   if (!this->Paused() && this->pendingSimIterations > 0)
@@ -1104,14 +1088,13 @@ bool SimulationRunner::Stepping() const
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
-  if (_time >= std::chrono::steady_clock::duration::zero() &&
-      _time > this->currentInfo.simTime)
+  if (_time >= this->simTimeEpoch && _time > this->currentInfo.simTime)
   {
     this->requestedRunToSimTime = _time;
   }
   else
   {
-    this->requestedRunToSimTime = std::chrono::seconds(-1);
+    this->requestedRunToSimTime = {};
   }
 }
 
@@ -1253,7 +1236,7 @@ void SimulationRunner::ProcessWorldControl()
     this->requestedRewind = control.rewind;
 
     // Seek
-    if (control.seek >= std::chrono::steady_clock::duration::zero())
+    if (control.seek >= this->simTimeEpoch)
     {
       this->requestedSeek = control.seek;
     }
@@ -1353,6 +1336,13 @@ EventManager &SimulationRunner::EventMgr()
 const UpdateInfo &SimulationRunner::CurrentInfo() const
 {
   return this->currentInfo;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
+  SimulationRunner::SimTimeEpoch() const
+{
+  return this->simTimeEpoch;
 }
 
 /////////////////////////////////////////////////

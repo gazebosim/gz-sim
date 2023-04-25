@@ -1,10 +1,13 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
+  actor.cc
   ackermann_steering_system.cc
   acoustic_comms.cc
   air_pressure_system.cc
+  air_speed_system.cc
   altimeter_system.cc
+  added_mass.cc
   apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
@@ -30,6 +33,7 @@ set(tests
   hydrodynamics.cc
   hydrodynamics_flags.cc
   imu_system.cc
+  joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
@@ -38,6 +42,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  light.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
@@ -65,6 +70,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  sensor.cc
   spherical_coordinates.cc
   thruster.cc
   touch_plugin.cc

@@ -5,3 +5,4 @@ configure_file (heightmap.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/heightmap.sdf
 configure_file (environmental_data.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/environmental_data.sdf)
 
 configure_file (environmental_sensor.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/environmental_sensor.sdf)
+configure_file (hydrodynamics.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/hydrodynamics.sdf)
