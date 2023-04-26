@@ -119,6 +119,9 @@ class gz::sim::MarkerManagerPrivate
 
   /// \brief Topic name for the marker service
   public: std::string topicName = "/marker";
+
+  /// \brief Topic that publishes marker updates.
+  public: gz::transport::Node::Publisher markerPub;
 };
 
 /////////////////////////////////////////////////
@@ -189,6 +192,9 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
            << "_array service.\n";
   }
 
+  this->dataPtr->markerPub = 
+    this->dataPtr->node.Advertise<msgs::Marker>(this->dataPtr->topicName);
+
   return true;
 }
 
@@ -215,6 +221,7 @@ void MarkerManagerPrivate::Update()
        markerIter != this->markerMsgs.end();)
   {
     this->ProcessMarkerMsg(*markerIter);
+    this->markerPub.Publish(*markerIter);
     this->markerMsgs.erase(markerIter++);
   }
 

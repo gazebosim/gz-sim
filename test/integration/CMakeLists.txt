@@ -52,6 +52,7 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
+  markers.cc
 )
 
 # Tests that require a valid display
