@@ -1,8 +1,8 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  actor.cc
   ackermann_steering_system.cc
+  actor.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
@@ -86,6 +86,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  actor_trajectory.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
@@ -171,6 +172,9 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
   target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
+  target_link_libraries(INTEGRATION_actor_trajectory
     ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
   )
 endif()
