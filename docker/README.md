@@ -70,7 +70,7 @@ distribution using debians.
 
 1. Build a docker image using the `build.bash` command. The first argument
    must be the name of the Gazebo distribution. The list of Gazebo distribution can be found at [Gazebo distribution](https://gazebosim.org/docs). For example, to build an
-   image of Gazebo Fortress:
+   image of Gazebo Garden:
 
     ```
     ./build.bash gz-garden ./Dockerfile.gz

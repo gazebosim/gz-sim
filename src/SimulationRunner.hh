@@ -440,11 +440,6 @@ namespace gz
       /// All simulation times will be larger than the epoch. It defaults to 0.
       private: std::chrono::steady_clock::duration simTimeEpoch{0};
 
-      /// \brief List of simulation times used to compute averages.
-      private: std::list<std::chrono::steady_clock::duration> simTimes;
-
-      /// \brief List of real times used to compute averages.
-      private: std::list<std::chrono::steady_clock::duration> realTimes;
 
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};

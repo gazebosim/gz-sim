@@ -29,11 +29,15 @@ TEST(EventManager, EmitConnectTest)
 {
   EventManager eventManager;
 
+  EXPECT_EQ(0u, eventManager.ConnectionCount<events::Pause>());
+
   bool paused1 = false;
   auto connection1 = eventManager.Connect<events::Pause>(
     [&paused1](bool _paused) {
       paused1 = _paused;
     });
+
+  EXPECT_EQ(1u, eventManager.ConnectionCount<events::Pause>());
 
   // Emitting events causes connection callbacks to be fired.
   eventManager.Emit<events::Pause>(true);
@@ -47,6 +51,8 @@ TEST(EventManager, EmitConnectTest)
       paused2 = _paused;
     });
 
+  EXPECT_EQ(2u, eventManager.ConnectionCount<events::Pause>());
+
   // Multiple connections should each be fired.
   eventManager.Emit<events::Pause>(true);
   EXPECT_EQ(true, paused1);
@@ -58,9 +64,12 @@ TEST(EventManager, EmitConnectTest)
 
   // Clearing the ConnectionPtr will cause it to no longer fire.
   connection1.reset();
+
   eventManager.Emit<events::Pause>(true);
   EXPECT_EQ(false, paused1);
   EXPECT_EQ(true, paused2);
+
+  EXPECT_EQ(1u, eventManager.ConnectionCount<events::Pause>());
 }
 
 /// Test that we are able to connect arbitrary events and signal them.
