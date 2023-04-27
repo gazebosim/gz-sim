@@ -108,7 +108,6 @@ TEST_F(SensorsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(MemLeak))
 
     gz::sim::Server server(serverConfig);
     server.Run(true, 100, false);
-
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
 
