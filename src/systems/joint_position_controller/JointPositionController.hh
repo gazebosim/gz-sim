@@ -53,10 +53,10 @@ namespace systems
   ///  The default value is 0.
   ///
   /// `<use_actuator_msg>` True to enable the use of actutor message
-  /// for position command. Relies on `<actuatorNumber>` for the
+  /// for position command. Relies on `<actuator_number>` for the
   /// index of the position actuator and defaults to topic "/actuators".
   ///
-  /// `<actuatorNumber>` used with `<use_actuator_commands>` to set
+  /// `<actuator_number>` used with `<use_actuator_commands>` to set
   /// the index of the position actuator.
   ///
   /// `<p_gain>` The proportional gain of the PID. Optional parameter.

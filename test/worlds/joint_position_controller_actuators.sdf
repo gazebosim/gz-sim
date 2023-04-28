@@ -116,7 +116,7 @@
         name="gz::sim::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <use_actuator_msg>true</use_actuator_msg>
-        <actuatorNumber>0</actuatorNumber>
+        <actuator_number>0</actuator_number>
       </plugin>
     </model>
   </world>
