@@ -73,6 +73,7 @@
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include <gz/sim/components/ParticleEmitter.hh>
+#include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RgbdCamera.hh"
@@ -642,7 +643,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
   }
 
   // Particle emitters
-  for (uint64_t emitterIndex = 0; emitterIndex  < _link->ParticleEmitterCount();
+  for (uint64_t emitterIndex = 0; emitterIndex < _link->ParticleEmitterCount();
        ++emitterIndex)
   {
     auto emitter = _link->ParticleEmitterByIndex(emitterIndex);
@@ -650,6 +651,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 
     this->SetParent(emitterEntity, linkEntity);
   }
+
+  // Projectors
+  for (uint64_t projectorIndex = 0; projectorIndex < _link->ProjectorCount();
+       ++projectorIndex)
+  {
+    auto projector = _link->ProjectorByIndex(projectorIndex);
+    auto projectorEntity = this->CreateEntities(projector);
+
+    this->SetParent(projectorEntity, linkEntity);
+  }
+
 
   return linkEntity;
 }
@@ -859,6 +871,25 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
       components::Name(_emitter->Name()));
 
   return emitterEntity;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Projector *_projector)
+{
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Projector)");
+
+  // Entity
+  Entity projectorEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Projector(*_projector));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Pose(ResolveSdfPose(_projector->SemanticPose())));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Name(_projector->Name()));
+
+  return projectorEntity;
 }
 
 //////////////////////////////////////////////////

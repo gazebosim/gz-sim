@@ -269,6 +269,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     public: rendering::ParticleEmitterPtr UpdateParticleEmitter(Entity _id,
         const msgs::ParticleEmitter &_emitter);
 
+    /// \brief Create a projector
+    /// \param[in] _id Unique projector id
+    /// \param[in] _emitter Projector sdf dom
+    /// \param[in] _parentId Parent id
+    /// \return Projector object created from the sdf dom
+    public: rendering::ProjectorPtr CreateProjector(
+        Entity _id, const sdf::Projector &_projector, Entity _parentId);
+
     /// \brief Gazebo Sensors is the one responsible for adding sensors
     /// to the scene. Here we just keep track of it and make sure it has
     /// the correct parent.

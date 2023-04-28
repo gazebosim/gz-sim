@@ -67,6 +67,7 @@
 #include <gz/rendering/LightVisual.hh>
 #include <gz/rendering/Material.hh>
 #include <gz/rendering/ParticleEmitter.hh>
+#include <gz/rendering/Projector.hh>
 #include <gz/rendering/Scene.hh>
 #include <gz/rendering/Visual.hh>
 #include <gz/rendering/WireBox.hh>
@@ -110,7 +111,12 @@ class gz::sim::SceneManagerPrivate
 
   /// \brief Map of particle emitter entity in Gazebo to particle emitter
   /// rendering pointers.
-  public: std::map<Entity, rendering::ParticleEmitterPtr> particleEmitters;
+  public: std::unordered_map<Entity, rendering::ParticleEmitterPtr>
+      particleEmitters;
+
+  /// \brief Map of projector entity in Gazebo to projector
+  /// rendering pointers.
+  public: std::unordered_map<Entity, rendering::ProjectorPtr> projectors;
 
   /// \brief Map of sensor entity in Gazebo to sensor pointers.
   public: std::unordered_map<Entity, rendering::SensorPtr> sensors;
@@ -1658,6 +1664,64 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
 }
 
 /////////////////////////////////////////////////
+rendering::ProjectorPtr SceneManager::CreateProjector(
+    Entity _id, const sdf::Projector &_projector, Entity _parentId)
+{
+  if (!this->dataPtr->scene)
+    return rendering::ProjectorPtr();
+
+  if (this->dataPtr->projectors.find(_id) !=
+     this->dataPtr->projectors.end())
+  {
+    gzerr << "Projector with Id: [" << _id << "] already exists in the "
+           <<" scene" << std::endl;
+    return rendering::ProjectorPtr();
+  }
+
+  rendering::VisualPtr parent;
+  if (_parentId != this->dataPtr->worldId)
+  {
+    auto it = this->dataPtr->visuals.find(_parentId);
+    if (it == this->dataPtr->visuals.end())
+    {
+      // It is possible to get here if the model entity is created then
+      // removed in between render updates.
+      return rendering::ProjectorPtr();
+    }
+    parent = it->second;
+  }
+
+  // Name.
+  std::string name = _projector.Name().empty() ? std::to_string(_id) :
+    _projector.Name();
+  if (parent)
+    name = parent->Name() +  "::" + name;
+
+  rendering::ProjectorPtr projector;
+  projector = std::dynamic_pointer_cast<rendering::Projector>(
+      this->dataPtr->scene->Extension()->CreateExt("projector", name));
+  // \todo(iche033) replace above call with CreateProjector in gz-rendering8
+  // projector = this->dataPtr->scene->CreateProjector(name);
+
+  this->dataPtr->projectors[_id] = projector;
+
+  if (parent)
+    parent->AddChild(projector);
+
+  projector->SetLocalPose(_projector.RawPose());
+  projector->SetNearClipPlane(_projector.NearClip());
+  projector->SetFarClipPlane(_projector.FarClip());
+  std::string texture = _projector.Texture();
+  std::string fullPath = common::findFile(
+      asFullPath(texture, _projector.FilePath()));
+  projector->SetTexture(fullPath);
+  projector->SetHFOV(_projector.HorizontalFov());
+  projector->SetVisibilityFlags(_projector.VisibilityFlags());
+
+  return projector;
+}
+
+/////////////////////////////////////////////////
 bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     Entity _parentGazeboId)
 {
@@ -1711,6 +1775,8 @@ bool SceneManager::HasEntity(Entity _id) const
       this->dataPtr->lights.find(_id) != this->dataPtr->lights.end() ||
       this->dataPtr->particleEmitters.find(_id) !=
       this->dataPtr->particleEmitters.end() ||
+      this->dataPtr->projectors.find(_id) !=
+      this->dataPtr->projectors.end() ||
       this->dataPtr->sensors.find(_id) != this->dataPtr->sensors.end();
 }
 
@@ -1736,6 +1802,11 @@ rendering::NodePtr SceneManager::NodeById(Entity _id) const
   if (pIt != this->dataPtr->particleEmitters.end())
   {
     return pIt->second;
+  }
+  auto prIt = this->dataPtr->projectors.find(_id);
+  if (prIt != this->dataPtr->projectors.end())
+  {
+    return prIt->second;
   }
 
   return rendering::NodePtr();
@@ -1993,6 +2064,16 @@ void SceneManager::RemoveEntity(Entity _id)
     {
       this->dataPtr->scene->DestroyVisual(it->second);
       this->dataPtr->particleEmitters.erase(it);
+      return;
+    }
+  }
+
+  {
+    auto it = this->dataPtr->projectors.find(_id);
+    if (it != this->dataPtr->projectors.end())
+    {
+      this->dataPtr->scene->DestroyVisual(it->second);
+      this->dataPtr->projectors.erase(it);
       return;
     }
   }
