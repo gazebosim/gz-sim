@@ -1022,29 +1022,36 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
   common::MeshManager *meshManager = common::MeshManager::Instance();
   descriptor.mesh = meshManager->Load(descriptor.meshName);
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
+  common::SkeletonPtr meshSkel;
   if (nullptr == descriptor.mesh)
   {
-    gzerr << "Actor skin mesh [" << descriptor.meshName << "] not found."
+    gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
            << std::endl;
-    return rendering::VisualPtr();
   }
-
-  // todo(anyone) create a copy of meshSkel so we don't modify the original
-  // when adding animations!
-  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
-  if (nullptr == meshSkel)
+  else
   {
-    gzerr << "Mesh skeleton in [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
+    // todo(anyone) create a copy of meshSkel so we don't modify the original
+    // when adding animations!
+    meshSkel = descriptor.mesh->MeshSkeleton();
+    if (nullptr == meshSkel)
+    {
+      gzwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+             << std::endl;
+    }
+    else
+    {
+      this->dataPtr->actorSkeletons[_id] = meshSkel;
+      // Load all animations
+      mapAnimNameId = this->LoadAnimations(_actor);
+      if (mapAnimNameId.size() == 0)
+        return nullptr;
+    }
   }
 
-  // Load all animations
-  auto mapAnimNameId = this->LoadAnimations(_actor);
-  if (mapAnimNameId.size() == 0)
-    return nullptr;
-
-  this->dataPtr->actorSkeletons[_id] = meshSkel;
+  // load trajectories regardless of whether the mesh skeleton exists
+  // or not. If there is no mesh skeleon, we can still do trajectory
+  // animation
   auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId,
                       meshSkel);
 
@@ -1069,25 +1076,27 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
 
+  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  rendering::MeshPtr actorMesh;
   // create mesh with animations
-  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(
-      descriptor);
-  if (nullptr == actorMesh)
+  if (descriptor.mesh)
   {
-    gzerr << "Actor skin file [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
+    actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
+    if (nullptr == actorMesh)
+    {
+      gzerr << "Actor skin file [" << descriptor.meshName << "] not found."
+             << std::endl;
+      return rendering::VisualPtr();
+    }
+    actorVisual->AddGeometry(actorMesh);
   }
 
-  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
   actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->AddGeometry(actorMesh);
   actorVisual->SetUserData("gazebo-entity", _id);
   actorVisual->SetUserData("pause-update", static_cast<int>(0));
 
   this->dataPtr->visuals[_id] = actorVisual;
   this->dataPtr->actors[_id] = actorMesh;
-
 
   if (parent)
     parent->AddChild(actorVisual);
@@ -1771,11 +1780,11 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
   if (trajIt == this->dataPtr->actorTrajectories.end())
     return animData;
 
+  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+
   auto skelIt = this->dataPtr->actorSkeletons.find(_id);
   if (skelIt == this->dataPtr->actorSkeletons.end())
     return animData;
-
-  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
 
   auto skel = skelIt->second;
   unsigned int animIndex = animData.trajectory.AnimIndex();
@@ -2449,8 +2458,9 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
     trajInfo.SetAnimIndex(0);
     trajInfo.SetStartTime(TP(0ms));
 
+    double animLength = (_meshSkel) ? _meshSkel->Animation(0)->Length() : 0.0;
     auto timepoint = std::chrono::milliseconds(
-                  static_cast<int>(_meshSkel->Animation(0)->Length() * 1000));
+                  static_cast<int>(animLength * 1000));
     trajInfo.SetEndTime(TP(timepoint));
     trajInfo.SetTranslated(false);
     trajectories.push_back(trajInfo);

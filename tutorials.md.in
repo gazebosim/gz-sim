@@ -49,9 +49,12 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 
 * \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Gazebo
 * \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Gazebo
-* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Gazebo Sim when migrating from Gazebo classic
-* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Gazebo Sim when migrating from Gazebo classic
-* \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Gazebo Sim when migrating from Gazebo classic
+* \subpage migrationworldapi "World API": Guide on what World C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationmodelapi "Model API": Guide on what Model C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationlightapi "Light API": Guide on what Light C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationjointapi "Joint API": Guide on what Joint C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationactorapi "Actor API": Guide on what Actor C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo.
 
 ## License
