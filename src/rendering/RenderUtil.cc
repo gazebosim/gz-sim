@@ -2698,6 +2698,21 @@ void RenderUtil::Init()
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::Destroy()
+{
+  if (!this->dataPtr->engine || !this->dataPtr->scene)
+    return;
+  this->dataPtr->wireBoxes.clear();
+  this->dataPtr->sceneManager.Clear();
+  this->dataPtr->markerManager.Clear();
+  this->dataPtr->engine->DestroyScene(this->dataPtr->scene);
+  this->dataPtr->scene.reset();
+  rendering::unloadEngine(this->dataPtr->engine->Name());
+  this->dataPtr->engine = nullptr;
+  this->dataPtr->initialized = false;
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::SetBackgroundColor(const math::Color &_color)
 {
   this->dataPtr->backgroundColor = _color;

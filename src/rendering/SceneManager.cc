@@ -2457,3 +2457,18 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
   }
   return trajectories;
 }
+
+/////////////////////////////////////////////////
+void SceneManager::Clear()
+{
+  this->dataPtr->visuals.clear();
+  this->dataPtr->actors.clear();
+  this->dataPtr->actorSkeletons.clear();
+  this->dataPtr->actorTrajectories.clear();
+  this->dataPtr->lights.clear();
+  this->dataPtr->particleEmitters.clear();
+  this->dataPtr->sensors.clear();
+  this->dataPtr->scene.reset();
+  this->dataPtr->originalTransparency.clear();
+  this->dataPtr->originalDepthWrite.clear();
+}
