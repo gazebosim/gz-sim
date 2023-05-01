@@ -365,7 +365,7 @@
         <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
         <steering_only>true</steering_only>
         <use_actuator_msg>true</use_actuator_msg>
-        <actuatorNumber>0</actuatorNumber>
+        <actuator_number>0</actuator_number>
         <steer_p_gain>10.0</steer_p_gain>
         <steering_limit>0.5</steering_limit>
         <wheel_base>1.0</wheel_base>
