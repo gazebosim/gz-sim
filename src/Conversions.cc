@@ -1764,7 +1764,8 @@ msgs::Projector gz::sim::convert(const sdf::Projector &_in)
   out.set_near_clip(_in.NearClip());
   out.set_far_clip(_in.FarClip());
   out.set_fov(_in.HorizontalFov().Radian());
-  out.set_texture(_in.Texture());
+  out.set_texture(_in.Texture().empty() ? "" :
+      asFullPath(_in.Texture(), _in.FilePath()));
 
   auto header = out.mutable_header()->add_data();
   header->set_key("visibility_flags");
@@ -1792,7 +1793,17 @@ sdf::Projector gz::sim::convert(const msgs::Projector &_in)
     auto data = _in.header().data(i);
     if (data.key() == "visibility_flags" && data.value_size() > 0)
     {
-      out.SetVisibilityFlags(std::stoi(data.value(0)));
+      try
+      {
+        out.SetVisibilityFlags(std::stoul(data.value(0)));
+      }
+      catch (...)
+      {
+        gzerr << "Failed to parse projector <visibility_flags>: "
+              <<  data.value(0) << ". Using default value: 0xFFFFFFFF."
+              << std::endl;
+        out.SetVisibilityFlags(0xFFFFFFFF);
+      }
     }
   }
 

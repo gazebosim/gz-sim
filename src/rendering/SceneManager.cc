@@ -1714,6 +1714,7 @@ rendering::ProjectorPtr SceneManager::CreateProjector(
   std::string texture = _projector.Texture();
   std::string fullPath = common::findFile(
       asFullPath(texture, _projector.FilePath()));
+
   projector->SetTexture(fullPath);
   projector->SetHFOV(_projector.HorizontalFov());
   projector->SetVisibilityFlags(_projector.VisibilityFlags());
