@@ -36,7 +36,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::VelocityControlPrivate
+class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message

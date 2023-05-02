@@ -48,7 +48,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Magnetometer data class.
-class gz::sim::systems::MagnetometerPrivate
+class ignition::gazebo::systems::MagnetometerPrivate
 {
   /// \brief A map of magnetometer entity to its sensor.
   public: std::unordered_map<Entity,

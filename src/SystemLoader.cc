@@ -35,7 +35,7 @@
 
 using namespace gz::sim;
 
-class gz::sim::SystemLoaderPrivate
+class ignition::gazebo::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
   public: explicit SystemLoaderPrivate() = default;

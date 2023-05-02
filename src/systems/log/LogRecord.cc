@@ -65,7 +65,7 @@ using namespace gz;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
-class gz::sim::systems::LogRecordPrivate
+class ignition::gazebo::systems::LogRecordPrivate
 {
   /// \brief Start recording
   /// \param[in] _logPath Path to record to.

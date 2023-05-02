@@ -32,7 +32,7 @@
 using namespace gz;
 using namespace gz::sim;
 
-class gz::sim::EntityComponentManagerPrivate
+class ignition::gazebo::EntityComponentManagerPrivate
 {
   /// \brief Implementation of the CreateEntity function, which takes a specific
   /// entity as input.

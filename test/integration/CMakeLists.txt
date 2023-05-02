@@ -20,6 +20,7 @@ set(tests
   events.cc
   examples_build.cc
   imu_system.cc
+  include_sim_hh.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc

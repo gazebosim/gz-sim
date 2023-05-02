@@ -51,7 +51,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private LogicalCamera data class.
-class gz::sim::systems::LogicalCameraPrivate
+class ignition::gazebo::systems::LogicalCameraPrivate
 {
   /// \brief A map of logicalCamera entities
   public: std::unordered_map<Entity,

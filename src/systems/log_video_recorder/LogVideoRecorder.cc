@@ -45,7 +45,7 @@ using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
-class gz::sim::systems::LogVideoRecorderPrivate
+class ignition::gazebo::systems::LogVideoRecorderPrivate
 {
   /// \brief Rewind the log
   public: void Rewind();

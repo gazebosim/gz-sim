@@ -56,7 +56,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
-class gz::sim::systems::PosePublisherPrivate
+class ignition::gazebo::systems::PosePublisherPrivate
 {
   /// \brief Initializes internal caches for entities whose poses are to be
   /// published and their names
