@@ -33,6 +33,7 @@ set(tests
   hydrodynamics.cc
   hydrodynamics_flags.cc
   imu_system.cc
+  include_sim_hh.cc
   joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
