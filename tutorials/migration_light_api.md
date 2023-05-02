@@ -29,14 +29,14 @@ In Gazebo, the light APIs has been consolidated into a single Light class with
 some of generic functions available through other utility / core classes.
 You'll find the APIs below on the following headers:
 
-* [ignition/gazebo/Light.hh](https://gazebosim.org/api/gazebo/6/Light_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/6/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/6/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [ignition/gazebo/Light.hh](https://gazebosim.org/api/gazebo/7/Light_8hh.html)
+* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
+* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
+* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
 the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
+[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
 directly.
 
 As an example the `Light::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
