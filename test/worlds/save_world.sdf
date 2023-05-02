@@ -7,15 +7,15 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
 
     <model name="inlineM1">
@@ -24,17 +24,17 @@
     </model>
 
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack</uri>
       <name>backpack1</name>
       <pose>1 0 0 0 0 0</pose>
     </include>
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack</uri>
       <name>backpack2</name>
       <pose>1 2 3 0.1 0.2 0.3</pose>
     </include>
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/2</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3</uri>
       <name>backpack3</name>
       <pose>2 0 0 0.1 0.2 0.3</pose>
     </include>

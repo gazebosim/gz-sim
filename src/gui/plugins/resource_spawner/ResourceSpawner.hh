@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
-#define IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#ifndef GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#define GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
 
 #include <qobjectdefs.h>
 #include <memory>
@@ -25,7 +25,7 @@
 #include <ignition/fuel_tools/ClientConfig.hh>
 #include <ignition/fuel_tools/FuelClient.hh>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -154,7 +154,7 @@ namespace gazebo
 
   /// \brief Provides interface for communicating to backend for generation
   /// of local models
-  class ResourceSpawner : public ignition::gui::Plugin
+  class ResourceSpawner : public gz::gui::Plugin
   {
     Q_OBJECT
 

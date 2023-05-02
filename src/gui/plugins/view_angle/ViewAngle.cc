@@ -17,16 +17,16 @@
 
 #include "ViewAngle.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 namespace ignition::gazebo
 {
@@ -50,7 +50,7 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()
@@ -144,4 +144,4 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ViewAngle,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

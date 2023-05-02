@@ -17,15 +17,15 @@
     </physics>
     <plugin
        filename="libignition-gazebo-physics-system.so"
-        name="ignition::gazebo::systems::Physics">
+        name="gz::sim::systems::Physics">
     </plugin>
     <plugin
         filename="libignition-gazebo-user-commands-system.so"
-        name="ignition::gazebo::systems::UserCommands">
+        name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
         filename="libignition-gazebo-scene-broadcaster-system.so"
-        name="ignition::gazebo::systems::SceneBroadcaster">
+        name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -268,7 +268,7 @@
 
       <plugin
           filename="ignition-gazebo-velocity-control-system"
-          name="ignition::gazebo::systems::VelocityControl">
+          name="gz::sim::systems::VelocityControl">
         <link_name>base</link_name>
         <link_name>upper_link</link_name>
         <link_name>lower_link</link_name>

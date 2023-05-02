@@ -17,25 +17,25 @@
 
 #include "JointController.hh"
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/PID.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/PID.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointControllerPrivate
+class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -246,5 +246,9 @@ IGNITION_ADD_PLUGIN(JointController,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(JointController,
+                          "gz::sim::systems::JointController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(JointController,
                           "ignition::gazebo::systems::JointController")

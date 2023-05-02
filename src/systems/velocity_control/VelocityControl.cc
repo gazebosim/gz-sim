@@ -21,22 +21,22 @@
 #include <vector>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/Model.hh"
 
 #include "VelocityControl.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
-class ignition::gazebo::systems::VelocityControlPrivate
+class gz::sim::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message
@@ -377,5 +377,9 @@ IGNITION_ADD_PLUGIN(VelocityControl,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+                          "gz::sim::systems::VelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
                           "ignition::gazebo::systems::VelocityControl")

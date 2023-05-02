@@ -18,18 +18,18 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <condition_variable>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/msgs/world_control.pb.h"
-#include "ignition/msgs/world_stats.pb.h"
-#include "ignition/transport/Node.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/msgs/world_control.pb.h"
+#include "gz/msgs/world_stats.pb.h"
+#include "gz/transport/Node.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 uint64_t kIterations;
@@ -137,7 +137,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   primaryPluginInfo.SetEntityType("world");
   primaryPluginInfo.SetFilename(
       "libignition-gazebo-scene-broadcaster-system.so");
-  primaryPluginInfo.SetName("ignition::gazebo::systems::SceneBroadcaster");
+  primaryPluginInfo.SetName("sim::systems::SceneBroadcaster");
   primaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configPrimary;
@@ -158,7 +158,7 @@ TEST_F(NetworkHandshake, IGN_UTILS_TEST_DISABLED_ON_MAC(Updates))
   secondaryPluginInfo.SetEntityName("default");
   secondaryPluginInfo.SetEntityType("world");
   secondaryPluginInfo.SetFilename("libignition-gazebo-physics-system.so");
-  secondaryPluginInfo.SetName("ignition::gazebo::systems::Physics");
+  secondaryPluginInfo.SetName("sim::systems::Physics");
   secondaryPluginInfo.SetSdf(pluginElem);
 
   ServerConfig configSecondary;

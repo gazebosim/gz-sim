@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,6 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_POSECMD_HH_
 
-#include <ignition/math/Pose3.hh>
-
+#include <gz/sim/components/PoseCmd.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include "ignition/gazebo/components/Component.hh"
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains commanded pose of an
-  /// entity in the world frame represented by ignition::math::Pose3d.
-  using WorldPoseCmd = Component<math::Pose3d, class WorldPoseCmdTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.WorldPoseCmd",
-      WorldPoseCmd)
-}
-}
-}
-}
-#endif

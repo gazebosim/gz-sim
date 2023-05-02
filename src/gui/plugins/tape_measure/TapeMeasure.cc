@@ -15,23 +15,23 @@
  *
 */
 
-#include <ignition/msgs/marker.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <iostream>
 #include <unordered_set>
 #include <string>
 #include <memory>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 #include "TapeMeasure.hh"
 
 namespace ignition::gazebo
@@ -60,22 +60,22 @@ namespace ignition::gazebo
 
     /// \brief The location of the placed starting point of the tape measure
     /// tool, only set when the user clicks to set the point.
-    public: ignition::math::Vector3d startPoint =
-            ignition::math::Vector3d::Zero;
+    public: gz::math::Vector3d startPoint =
+            gz::math::Vector3d::Zero;
 
     /// \brief The location of the placed ending point of the tape measure
     /// tool, only set when the user clicks to set the point.
-    public: ignition::math::Vector3d endPoint = ignition::math::Vector3d::Zero;
+    public: gz::math::Vector3d endPoint = gz::math::Vector3d::Zero;
 
     /// \brief The color to set the marker when hovering the mouse over the
     /// scene.
-    public: ignition::math::Color
-            hoverColor{ignition::math::Color(0.2, 0.2, 0.2, 0.5)};
+    public: gz::math::Color
+            hoverColor{gz::math::Color(0.2, 0.2, 0.2, 0.5)};
 
     /// \brief The color to draw the marker when the user clicks to confirm
     /// its location.
-    public: ignition::math::Color
-            drawColor{ignition::math::Color(0.2, 0.2, 0.2, 1.0)};
+    public: gz::math::Color
+            drawColor{gz::math::Color(0.2, 0.2, 0.2, 1.0)};
 
     /// \brief A set of the currently placed markers.  Used to make sure a
     /// non-existent marker is not deleted.
@@ -91,11 +91,11 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 TapeMeasure::TapeMeasure()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<TapeMeasurePrivate>())
 {
 }
@@ -109,9 +109,9 @@ void TapeMeasure::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Tape measure";
 
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->installEventFilter(this);
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->QuickWindow()->installEventFilter(this);
 }
 
@@ -130,9 +130,9 @@ void TapeMeasure::Measure()
 
   // Notify Scene3D to disable the right click menu while we use it to
   // cancel our current measuring action
-  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(false);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(false);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &dropdownMenuEnabledEvent);
 }
 
@@ -159,9 +159,9 @@ void TapeMeasure::Reset()
 
   // Notify Scene3D that we are done using the right click, so it can
   // re-enable the settings menu
-  ignition::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::DropdownMenuEnabled dropdownMenuEnabledEvent(true);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &dropdownMenuEnabledEvent);
 }
 
@@ -232,10 +232,10 @@ void TapeMeasure::DrawLine(int _id, math::Vector3d &_startPoint,
 /////////////////////////////////////////////////
 bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::HoverToScene::kType)
+  if (_event->type() == gz::gui::events::HoverToScene::kType)
   {
     auto hoverToSceneEvent =
-        reinterpret_cast<ignition::gui::events::HoverToScene *>(_event);
+        reinterpret_cast<gz::gui::events::HoverToScene *>(_event);
 
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -256,10 +256,10 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  else if (_event->type() == ignition::gui::events::LeftClickToScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickToScene::kType)
   {
     auto leftClickToSceneEvent =
-        reinterpret_cast<ignition::gui::events::LeftClickToScene *>(_event);
+        reinterpret_cast<gz::gui::events::LeftClickToScene *>(_event);
 
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -288,11 +288,11 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 
         // Notify Scene3D that we are done using the right click, so it can
         // re-enable the settings menu
-        ignition::gui::events::DropdownMenuEnabled
+        gz::gui::events::DropdownMenuEnabled
           dropdownMenuEnabledEvent(true);
 
-        ignition::gui::App()->sendEvent(
-            ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+        gz::gui::App()->sendEvent(
+            gz::gui::App()->findChild<gz::gui::MainWindow *>(),
             &dropdownMenuEnabledEvent);
       }
       this->dataPtr->currentId = this->dataPtr->kEndPointId;
@@ -317,7 +317,7 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   // Cancel the current action if a right click is detected
-  else if (_event->type() == ignition::gui::events::RightClickToScene::kType)
+  else if (_event->type() == gz::gui::events::RightClickToScene::kType)
   {
     if (this->dataPtr->measure)
     {
@@ -330,4 +330,4 @@ bool TapeMeasure::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(TapeMeasure,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

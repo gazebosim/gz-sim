@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGER_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGER_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGER_HH_
 
 #include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
 
-#include <ignition/transport/NodeOptions.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/EventManager.hh>
+#include <gz/transport/NodeOptions.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/EventManager.hh>
 
 #include "NetworkConfig.hh"
 
@@ -46,7 +46,7 @@ namespace ignition
     class NetworkManager
     {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Create a class derived from NetworkManager based on
       /// a given configuration
@@ -125,4 +125,4 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGER_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGER_HH_

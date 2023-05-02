@@ -15,13 +15,13 @@
  *
 */
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
-#include "ignition/gazebo/TestFixture.hh"
+#include "gz/sim/TestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief System that is inserted into the simulation loop to observe the ECM.
 class HelperSystem :
@@ -106,7 +106,7 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-class ignition::gazebo::TestFixturePrivate
+class gz::sim::TestFixturePrivate
 {
   /// \brief Initialize fixture
   /// \param[in] _config Server config

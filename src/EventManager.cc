@@ -14,10 +14,10 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/EventManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 EventManager::EventManager() = default;

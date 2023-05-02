@@ -11,7 +11,7 @@ loader.
 ```
 <plugin
   filename="ignition-gazebo-collada-world-exporter-system"
-  name="ignition::gazebo::systems::ColladaWorldExporter">
+  name="gz::sim::systems::ColladaWorldExporter">
 </plugin>
 ```
 

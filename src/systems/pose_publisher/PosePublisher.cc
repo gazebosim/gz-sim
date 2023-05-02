@@ -17,7 +17,7 @@
 
 #include "PosePublisher.hh"
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
 
 #include <stack>
 #include <string>
@@ -28,35 +28,35 @@
 
 #include <sdf/Joint.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Time.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Time.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private data class for PosePublisher
-class ignition::gazebo::systems::PosePublisherPrivate
+class gz::sim::systems::PosePublisherPrivate
 {
   /// \brief Initializes internal caches for entities whose poses are to be
   /// published and their names
@@ -555,5 +555,9 @@ IGNITION_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemConfigure,
                     PosePublisher::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
+                          "gz::sim::systems::PosePublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(PosePublisher,
                           "ignition::gazebo::systems::PosePublisher")

@@ -8,15 +8,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -378,7 +378,7 @@
 
       <plugin
         filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
         <right_joint>front_right_wheel_joint</right_joint>
@@ -386,7 +386,7 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <breadcrumb>
          <sdf version="1.6">
@@ -428,7 +428,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <disable_physics_time>0.5</disable_physics_time>
        <breadcrumb>
@@ -472,7 +472,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
         <max_deployments>-1</max_deployments>
         <topic>/fuel_deploy</topic>
         <breadcrumb>
@@ -488,7 +488,7 @@
           </sdf>
         </breadcrumb>
       </plugin>
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <performer_volume>
          <geometry>
@@ -538,7 +538,7 @@
        </breadcrumb>
       </plugin>
       <!-- Breadcrumb with large performer volume -->
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <performer_volume>
          <geometry>
@@ -589,7 +589,7 @@
       </plugin>
 
       <!-- Two Breadcrumbs containing a breadcrumb model that is already spawned (B1).-->
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
        <max_deployments>3</max_deployments>
        <allow_renaming>false</allow_renaming>
        <topic>/no_rename_deploy</topic>
@@ -614,7 +614,7 @@
         </sdf>
        </breadcrumb>
       </plugin>
-      <plugin filename="ignition-gazebo-breadcrumbs-system" name="ignition::gazebo::systems::Breadcrumbs">
+      <plugin filename="ignition-gazebo-breadcrumbs-system" name="gz::sim::systems::Breadcrumbs">
         <max_deployments>3</max_deployments>
         <allow_renaming>true</allow_renaming>
         <topic>/rename_deploy</topic>
@@ -640,7 +640,7 @@
         </breadcrumb>
       </plugin>
     </model>
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
       <performer name="perf1">
         <ref>vehicle_blue</ref>
         <geometry>

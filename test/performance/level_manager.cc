@@ -19,16 +19,16 @@
 #include <gtest/gtest.h>
 #include <array>
 
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 TEST(LevelManagerPerfrormance, LevelVsNoLevel)
 {

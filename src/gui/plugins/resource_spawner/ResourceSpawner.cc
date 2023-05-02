@@ -17,8 +17,8 @@
 
 #include "ResourceSpawner.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <set>
@@ -28,18 +28,18 @@
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 
 Q_DECLARE_METATYPE(ignition::gazebo::Resource)
@@ -63,7 +63,7 @@ namespace ignition::gazebo
     public: PathModel ownerModel;
 
     /// \brief Client used to download resources from Ignition Fuel.
-    public: std::unique_ptr<ignition::fuel_tools::FuelClient>
+    public: std::unique_ptr<gz::fuel_tools::FuelClient>
             fuelClient = nullptr;
 
     /// \brief The map to cache resources after a search is made on an owner,
@@ -103,7 +103,7 @@ namespace {
 constexpr const char *kDefaultOwner = "openrobotics";
 }
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()
@@ -240,15 +240,14 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
 
 /////////////////////////////////////////////////
 ResourceSpawner::ResourceSpawner()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
-  qRegisterMetaType<ignition::gazebo::Resource>();
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  qRegisterMetaType<gz::gazebo::Resource>();
       "ResourceList", &this->dataPtr->resourceModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
     std::make_unique<fuel_tools::FuelClient>();
@@ -755,4 +754,4 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ResourceSpawner,
-    ignition::gui::Plugin)
+    gz::gui::Plugin)

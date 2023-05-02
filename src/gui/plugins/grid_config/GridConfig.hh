@@ -15,13 +15,13 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_GRIDCONFIG_HH_
-#define IGNITION_GAZEBO_GUI_GRIDCONFIG_HH_
+#ifndef GZ_GAZEBO_GUI_GRIDCONFIG_HH_
+#define GZ_GAZEBO_GUI_GRIDCONFIG_HH_
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
-#include <ignition/rendering.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/rendering.hh>
 
 namespace ignition
 {
@@ -29,7 +29,7 @@ namespace gazebo
 {
   class GridConfigPrivate;
 
-  class GridConfig : public ignition::gui::Plugin
+  class GridConfig : public gz::gui::Plugin
   {
     Q_OBJECT
 
