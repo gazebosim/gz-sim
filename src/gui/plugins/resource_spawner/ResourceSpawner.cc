@@ -243,7 +243,8 @@ ResourceSpawner::ResourceSpawner()
   : gz::gui::Plugin(),
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
-  qRegisterMetaType<gz::gazebo::Resource>();
+  qRegisterMetaType<ignition::gazebo::Resource>();
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "ResourceList", &this->dataPtr->resourceModel);
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);

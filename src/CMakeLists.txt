@@ -43,7 +43,9 @@ target_link_libraries(${ign_lib_target}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
 )
-add_executable(runGui ign.cc)
+
+# Executable target that runs the GUI without ruby for debugging purposes.
+add_executable(runGui gz.cc)
 target_link_libraries(runGui PRIVATE ${ign_lib_target})
 
 set (sources

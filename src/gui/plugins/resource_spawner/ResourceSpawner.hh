@@ -22,8 +22,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
 
 #include <gz/gui/Plugin.hh>
 
