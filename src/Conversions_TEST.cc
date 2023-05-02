@@ -1100,7 +1100,7 @@ TEST(Conversions, Projector)
 
   auto header = projectorMsg.header().data(0);
   EXPECT_EQ("visibility_flags", header.key());
-  EXPECT_EQ(0xFF, std::stoi(header.value(0)));
+  EXPECT_EQ(0xFF, std::stoul(header.value(0)));
 
   // Convert the message back to SDF.
   sdf::Projector projector2 = convert<sdf::Projector>(projectorMsg);
