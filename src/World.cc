@@ -28,7 +28,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/World.hh"
 
-class gz::sim::WorldPrivate
+class ignition::gazebo::WorldPrivate
 {
   /// \brief Id of world entity.
   public: Entity id{kNullEntity};

@@ -41,7 +41,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::ApplyLinkWrenchPrivate
+class ignition::gazebo::systems::ApplyLinkWrenchPrivate
 {
   /// \brief Callback for wrench subscription
   /// \param[in] _msg Wrench message

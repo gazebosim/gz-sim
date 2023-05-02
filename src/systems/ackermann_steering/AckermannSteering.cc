@@ -54,7 +54,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class gz::sim::systems::AckermannSteeringPrivate
+class ignition::gazebo::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message

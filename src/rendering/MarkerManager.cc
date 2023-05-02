@@ -37,7 +37,7 @@ using namespace gz;
 using namespace gz::sim;
 
 /// Private data for the MarkerManager class
-class gz::sim::MarkerManagerPrivate
+class ignition::gazebo::MarkerManagerPrivate
 {
   /// \brief Processes a marker message.
   /// \param[in] _msg The message data.

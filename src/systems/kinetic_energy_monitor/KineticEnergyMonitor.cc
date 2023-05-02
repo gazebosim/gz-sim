@@ -43,7 +43,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private data class
-class gz::sim::systems::KineticEnergyMonitorPrivate
+class ignition::gazebo::systems::KineticEnergyMonitorPrivate
 {
   /// \brief Link of the model.
   public: Entity linkEntity;

@@ -52,7 +52,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::LinearBatteryPluginPrivate
+class ignition::gazebo::systems::LinearBatteryPluginPrivate
 {
   /// \brief Reset the plugin
   public: void Reset();

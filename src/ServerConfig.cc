@@ -31,7 +31,7 @@ using namespace gz;
 using namespace gz::sim;
 
 /// \brief Private data for PluginInfoConfig.
-class gz::sim::ServerConfig::PluginInfoPrivate
+class ignition::gazebo::ServerConfig::PluginInfoPrivate
 {
   /// \brief Default constructor.
   public: PluginInfoPrivate() = default;
@@ -192,7 +192,7 @@ void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
 }
 
 /// \brief Private data for ServerConfig.
-class gz::sim::ServerConfigPrivate
+class ignition::gazebo::ServerConfigPrivate
 {
   /// \brief Default constructor.
   public: ServerConfigPrivate()

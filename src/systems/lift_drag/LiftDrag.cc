@@ -44,7 +44,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::LiftDragPrivate
+class ignition::gazebo::systems::LiftDragPrivate
 {
   // Initialize the system
   public: void Load(const EntityComponentManager &_ecm,
