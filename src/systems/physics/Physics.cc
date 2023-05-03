@@ -93,6 +93,7 @@
 #include "gz/sim/Util.hh"
 
 // Components
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
@@ -2872,8 +2873,14 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
           if (this->linkAddedToModel.find(_entity) ==
               this->linkAddedToModel.end())
           {
-            gzerr << "Internal error: link [" << _entity
-              << "] not in entity map" << std::endl;
+            // ignore links from actors for now
+            auto parentId =
+                _ecm.Component<components::ParentEntity>(_entity)->Data();
+            if (!_ecm.Component<components::Actor>(parentId))
+            {
+              gzerr << "Internal error: link [" << _entity
+                    << "] not in entity map" << std::endl;
+            }
           }
           return true;
         }
