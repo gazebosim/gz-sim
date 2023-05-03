@@ -328,10 +328,15 @@ Rectangle {
             }
 
             RoundButton {
-              icon.color: "white"
               Material.background: Material.Green
-              icon.name: "plus"
-              icon.source: "qrc:/Gazebo/images/plus.png"
+              contentItem: Label {
+                text: "+"
+                color: "white"
+                font.pointSize: 30
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+              }
+              padding: 0
               onClicked: {
                 ownerInput.processInput()
               }

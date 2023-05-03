@@ -642,8 +642,8 @@ void ResourceSpawner::OnSortChosen(const QString &_sortType)
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
   gui::events::SpawnPreviewPath event(_sdfPath.toStdString());
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -740,8 +740,8 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
             resource.sdfPath = id.UniqueName();
 
             QMetaObject::invokeMethod(
-                this, [=]() { this->UpdateOwnerListModel(resource); },
-                Qt::QueuedConnection);
+                this, "UpdateOwnerListModel", Qt::QueuedConnection,
+                Q_ARG(ignition::gazebo::Resource, resource));
           }
         }
         if (counter == 0)
