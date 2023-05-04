@@ -52,7 +52,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::BuoyancyPrivate
+class ignition::gazebo::systems::BuoyancyPrivate
 {
   /// \brief Get the fluid density based on a pose. This function can be
   /// used to adjust the fluid density based on the pose of an object in the

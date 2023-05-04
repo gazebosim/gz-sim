@@ -56,7 +56,7 @@ struct Commands
   Commands() {}
 };
 
-class gz::sim::systems::TrackedVehiclePrivate
+class ignition::gazebo::systems::TrackedVehiclePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message

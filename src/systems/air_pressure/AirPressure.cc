@@ -48,7 +48,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private AirPressure data class.
-class gz::sim::systems::AirPressurePrivate
+class ignition::gazebo::systems::AirPressurePrivate
 {
   /// \brief A map of air pressure entity to its sensor
   public: std::unordered_map<Entity,

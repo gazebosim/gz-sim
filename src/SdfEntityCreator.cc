@@ -70,7 +70,7 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
-class gz::sim::SdfEntityCreatorPrivate
+class ignition::gazebo::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};

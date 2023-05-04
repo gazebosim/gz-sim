@@ -50,7 +50,7 @@ using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
-class gz::sim::systems::AltimeterPrivate
+class ignition::gazebo::systems::AltimeterPrivate
 {
   /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,

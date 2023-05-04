@@ -75,7 +75,7 @@ using namespace gz;
 using namespace gz::sim;
 
 // Private data class.
-class gz::sim::RenderUtilPrivate
+class ignition::gazebo::RenderUtilPrivate
 {
   /// True if the rendering component is initialized
   public: bool initialized = false;

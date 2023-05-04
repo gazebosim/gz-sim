@@ -173,7 +173,7 @@ class PhysicsCommand : public UserCommandBase
 }
 
 /// \brief Private UserCommands data class.
-class gz::sim::systems::UserCommandsPrivate
+class ignition::gazebo::systems::UserCommandsPrivate
 {
   /// \brief Callback for create service
   /// \param[in] _req Request containing entity description.

@@ -55,7 +55,7 @@ using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
-class gz::sim::systems::SensorsPrivate
+class ignition::gazebo::systems::SensorsPrivate
 {
   /// \brief Sensor manager object. This manages the lifecycle of the
   /// instantiated sensors.

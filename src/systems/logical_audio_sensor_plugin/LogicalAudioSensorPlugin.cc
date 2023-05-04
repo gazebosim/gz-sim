@@ -43,7 +43,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::LogicalAudioSensorPluginPrivate
+class ignition::gazebo::systems::LogicalAudioSensorPluginPrivate
 {
   /// \brief Creates an audio source with attributes specified in an SDF file.
   /// \param[in] _elem A pointer to the source element in the SDF file.

@@ -42,7 +42,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::TouchPluginPrivate
+class ignition::gazebo::systems::TouchPluginPrivate
 {
   // Initialize the plugin
   public: void Load(const EntityComponentManager &_ecm,

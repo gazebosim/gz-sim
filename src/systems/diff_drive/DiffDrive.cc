@@ -53,7 +53,7 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class gz::sim::systems::DiffDrivePrivate
+class ignition::gazebo::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message

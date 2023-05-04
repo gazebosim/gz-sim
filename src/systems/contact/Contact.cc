@@ -81,7 +81,7 @@ class ContactSensor
   public: std::vector<Entity> collisionEntities;
 };
 
-class gz::sim::systems::ContactPrivate
+class ignition::gazebo::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.

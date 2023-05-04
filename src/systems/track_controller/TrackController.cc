@@ -44,7 +44,7 @@ using namespace gz;
 using namespace gz::sim;
 using namespace systems;
 
-class gz::sim::systems::TrackControllerPrivate
+class ignition::gazebo::systems::TrackControllerPrivate
 {
   public : ~TrackControllerPrivate() {}
   /// \brief Register a collision entity to work with this system (e.g. enable

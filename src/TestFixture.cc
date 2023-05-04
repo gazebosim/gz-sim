@@ -106,7 +106,7 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-class gz::sim::TestFixturePrivate
+class ignition::gazebo::TestFixturePrivate
 {
   /// \brief Initialize fixture
   /// \param[in] _config Server config
