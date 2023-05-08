@@ -15,12 +15,12 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIDEORECORDER_HH_
-#define IGNITION_GAZEBO_GUI_VIDEORECORDER_HH_
+#ifndef GZ_GAZEBO_GUI_VIDEORECORDER_HH_
+#define GZ_GAZEBO_GUI_VIDEORECORDER_HH_
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -29,7 +29,7 @@ namespace gazebo
   class VideoRecorderPrivate;
 
   /// \brief Provides buttons for starting and stopping video recording
-  class VideoRecorder : public ignition::gui::Plugin
+  class VideoRecorder : public gz::gui::Plugin
   {
     Q_OBJECT
 

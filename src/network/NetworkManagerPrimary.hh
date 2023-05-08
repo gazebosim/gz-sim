@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
 #include <atomic>
 #include <future>
@@ -24,10 +24,10 @@
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
 
@@ -111,10 +111,10 @@ namespace ignition
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Publisher for network step sync
-      private: ignition::transport::Node::Publisher simStepPub;
+      private: gz::transport::Node::Publisher simStepPub;
 
       /// \brief Keep track of states received from secondaries.
       private: std::vector<msgs::SerializedStateMap> secondaryStates;
@@ -126,5 +126,5 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGERPRIMARY_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGERPRIMARY_HH_
 

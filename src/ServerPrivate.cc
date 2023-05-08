@@ -21,18 +21,18 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/Interface.hh>
 
-#include <ignition/gui/Application.hh>
+#include <gz/gui/Application.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -61,7 +61,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "ignition::gazebo::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -78,7 +78,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "ignition::gazebo::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };
@@ -248,7 +248,6 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       recordPluginElem->Get<std::string>("compress_path", "");
     std::tie(sdfRecordResources, hasRecordResources) =
       recordPluginElem->Get<bool>("record_resources", false);
-
     hasRecordTopics = recordPluginElem->HasElement("record_topic");
     if (hasRecordTopics)
     {
@@ -258,9 +257,8 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
       {
         auto topic = recordTopicElem->Get<std::string>();
         sdfRecordTopics.push_back(topic);
+        recordTopicElem = recordTopicElem->GetNextElement();
       }
-
-      recordTopicElem = recordTopicElem->GetNextElement();
     }
 
     // Remove from SDF

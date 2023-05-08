@@ -26,29 +26,29 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 #include <ignition/msgs.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -97,8 +97,8 @@ class FirstOrderFilter {
   T previousState;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -669,5 +669,9 @@ IGNITION_ADD_PLUGIN(MulticopterMotorModel,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+                          "gz::sim::systems::MulticopterMotorModel")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "ignition::gazebo::systems::MulticopterMotorModel")

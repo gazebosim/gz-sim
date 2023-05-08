@@ -19,19 +19,19 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
 
@@ -82,7 +82,7 @@
       </uri>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_0_joint</jointName>
         <linkName>X3/rotor_0</linkName>
@@ -102,7 +102,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_1_joint</jointName>
         <linkName>X3/rotor_1</linkName>
@@ -122,7 +122,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_2_joint</jointName>
         <linkName>X3/rotor_2</linkName>
@@ -142,7 +142,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-multicopter-motor-model-system"
-        name="ignition::gazebo::systems::MulticopterMotorModel">
+        name="gz::sim::systems::MulticopterMotorModel">
         <robotNamespace>X3</robotNamespace>
         <jointName>X3/rotor_3_joint</jointName>
         <linkName>X3/rotor_3</linkName>

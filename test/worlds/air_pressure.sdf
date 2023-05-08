@@ -7,7 +7,7 @@
 
     <plugin
       filename="ignition-gazebo-air-pressure-system"
-      name="ignition::gazebo::systems::AirPressure">
+      name="gz::sim::systems::AirPressure">
     </plugin>
 
     <model name="air_pressure_model">

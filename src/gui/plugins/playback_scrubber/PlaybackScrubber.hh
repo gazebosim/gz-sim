@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
-#define IGNITION_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#ifndef GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
+#define GZ_GAZEBO_GUI_PLAYBACK_SCRUBBER_HH_
 
 #include <chrono>
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gui/Plugin.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {

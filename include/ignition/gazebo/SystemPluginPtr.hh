@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
-#define IGNITION_GAZEBO_SYSTEMPLUGINPTR_HH_
+ */
 
-#include <ignition/plugin/SpecializedPluginPtr.hh>
-#include <ignition/gazebo/System.hh>
-
-namespace ignition
-{
-  namespace gazebo
-  {
-    using SystemPluginPtr = ignition::plugin::SpecializedPluginPtr<
-      System,
-      ISystemConfigure,
-      ISystemPreUpdate,
-      ISystemUpdate,
-      ISystemPostUpdate
-    >;
-  }
-}
-
-#endif
+#include <gz/sim/SystemPluginPtr.hh>
+#include <ignition/gazebo/config.hh>

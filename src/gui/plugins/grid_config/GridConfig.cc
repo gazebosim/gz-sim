@@ -15,15 +15,15 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 #include "GridConfig.hh"
 
 namespace ignition::gazebo
@@ -63,11 +63,11 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 GridConfig::GridConfig()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
+  : gz::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
 {
 }
 
@@ -80,8 +80,8 @@ void GridConfig::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Grid config";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -186,8 +186,8 @@ void GridConfig::LoadGrid()
 
     // If we get here, most likely the render engine and scene are fully loaded,
     // but they don't support grids. So stop trying.
-    ignition::gui::App()->findChild<
-        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    gz::gui::App()->findChild<
+        gz::gui::MainWindow *>()->removeEventFilter(this);
     return;
   }
 
@@ -256,4 +256,4 @@ void GridConfig::OnShow(bool _checked)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(GridConfig,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

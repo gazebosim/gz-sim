@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
-#define IGNITION_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#ifndef GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
+#define GZ_GAZEBO_NETWORK_NETWORKMANAGERSECONDARY_HH_
 
 #include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_set>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/transport/Node.hh>
 
 #include "msgs/simulation_step.pb.h"
 #include "msgs/peer_control.pb.h"
@@ -74,10 +74,10 @@ namespace ignition
       private: std::atomic<bool> enableSim {false};
 
       /// \brief Transport node used for communication with simulation graph.
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Publish step acknowledgement messages.
-      private: ignition::transport::Node::Publisher stepAckPub;
+      private: gz::transport::Node::Publisher stepAckPub;
 
       /// \brief Collection of performers associated with this secondary.
       private: std::unordered_set<Entity> performers;
@@ -86,5 +86,5 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKMANAGERSECONDARY_HH_
+#endif  // GZ_GAZEBO_NETWORKMANAGERSECONDARY_HH_
 

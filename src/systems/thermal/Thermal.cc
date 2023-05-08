@@ -15,18 +15,18 @@
  *
  */
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Temperature.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Temperature.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 #include "Thermal.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Thermal data class.
@@ -63,4 +63,7 @@ IGNITION_ADD_PLUGIN(Thermal, System,
   Thermal::ISystemConfigure
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Thermal, "gz::sim::systems::Thermal")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Thermal, "ignition::gazebo::systems::Thermal")

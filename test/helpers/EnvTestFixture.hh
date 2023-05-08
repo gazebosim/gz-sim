@@ -14,15 +14,15 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
-#define IGNITION_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#ifndef GZ_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
+#define GZ_GAZEBO_TEST_HELPERS_ENVTESTFIXTURE_HH_
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include "ignition/gazebo/test_config.hh"
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include "gz/sim/test_config.hh"
 
 using namespace ignition;
 

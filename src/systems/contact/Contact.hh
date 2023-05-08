@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_CONTACT_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_CONTACT_HH_
+#define GZ_GAZEBO_SYSTEMS_CONTACT_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {

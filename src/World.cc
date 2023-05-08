@@ -15,18 +15,18 @@
  *
 */
 
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Vector3.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/World.hh"
 
 class ignition::gazebo::WorldPrivate
 {
@@ -34,11 +34,11 @@ class ignition::gazebo::WorldPrivate
   public: Entity id{kNullEntity};
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
-World::World(gazebo::Entity _entity)
+World::World(gz::sim::Entity _entity)
   : dataPtr(std::make_unique<WorldPrivate>())
 {
   this->dataPtr->id = _entity;
@@ -159,7 +159,7 @@ std::vector<Entity> World::Lights(const EntityComponentManager &_ecm) const
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Light>(entity))
@@ -176,7 +176,7 @@ std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
   auto entities = _ecm.EntitiesByComponents(
       components::ParentEntity(this->dataPtr->id));
 
-  std::vector<gazebo::Entity> result;
+  std::vector<sim::Entity> result;
   for (const auto &entity : entities)
   {
     if (_ecm.Component<components::Actor>(entity))
@@ -210,4 +210,3 @@ uint64_t World::ModelCount(const EntityComponentManager &_ecm) const
 {
   return this->Models(_ecm).size();
 }
-

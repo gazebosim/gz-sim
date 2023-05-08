@@ -17,28 +17,28 @@
 
 #include "DiffDrive.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/DiffDriveOdometry.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/DiffDriveOdometry.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -561,4 +561,7 @@ IGNITION_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

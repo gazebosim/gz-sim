@@ -8,7 +8,7 @@
     <!-- Physics plugin to load meshes -->
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <include>
       <uri>model://scheme_resource_uri</uri>

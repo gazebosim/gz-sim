@@ -23,14 +23,14 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/GraphAlgorithms.hh>
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/GraphAlgorithms.hh>
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
@@ -1303,7 +1303,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
-    gazebo::ComponentState _c)
+    gz::sim::ComponentState _c)
 {
   auto ecIter = this->dataPtr->entityComponents.find(_entity);
 

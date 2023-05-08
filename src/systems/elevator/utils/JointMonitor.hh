@@ -20,13 +20,13 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
+#define GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
 
 #include <functional>
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -76,4 +76,4 @@ class JointMonitor
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_JOINT_MONITOR_HH_
