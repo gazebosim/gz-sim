@@ -21,7 +21,7 @@
   #include <gz/gui/qt.h>
 #endif
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #include <gz/transport.hh>
 
 #include "gz/sim/Export.hh"
