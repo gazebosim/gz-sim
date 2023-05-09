@@ -10,6 +10,7 @@
     * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
     * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
     * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
+    * [Pull request #1985](https://github.com/gazebosim/gz-sim/pull/1985)
 
 1. Infrastructure
     * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
