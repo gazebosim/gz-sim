@@ -1,5 +1,69 @@
 ## Gazebo Sim 3.x
 
+### Gazebo Sim 3.15.0 (2023-05-08)
+
+1. Speed up Resource Spawner load time by fetching model list asynchronously
+    * [Pull request #1962](https://github.com/gazebosim/gz-sim/pull/1962)
+
+1. ign -> gz Migrate Ignition Headers : gz-sim
+    * [Pull request #1646](https://github.com/gazebosim/gz-sim/pull/1646)
+    * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
+    * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
+    * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
+    * [Pull request #1985](https://github.com/gazebosim/gz-sim/pull/1985)
+
+1. Infrastructure
+    * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
+    * [Pull request #1937](https://github.com/gazebosim/gz-sim/pull/1937)
+
+1. Backport portion of #1771 to fix command-line test
+    * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix loading wold with record topic
+    * [Pull request #1855](https://github.com/gazebosim/gz-sim/pull/1855)
+
+1. Remove duplicate Fuel server used by ResourceSpawner
+    * [Pull request #1830](https://github.com/gazebosim/gz-sim/pull/1830)
+
+1. Re-add namespace for GUI render event
+    * [Pull request #1826](https://github.com/gazebosim/gz-sim/pull/1826)
+
+1. Fix QML warnings regarding binding loops
+    * [Pull request #1829](https://github.com/gazebosim/gz-sim/pull/1829)
+
+1. Update documentation on `UpdateInfo::realTime`
+    * [Pull request #1817](https://github.com/gazebosim/gz-sim/pull/1817)
+
+1. Add jennuine as GUI codeowner
+    * [Pull request #1800](https://github.com/gazebosim/gz-sim/pull/1800)
+
+1. Remove plotIcon in Physics.qml for Component Inspector
+    * [Pull request #1658](https://github.com/gazebosim/gz-sim/pull/1658)
+
+1. Convert ignitionrobotics to gazebosim in tutorials
+    * [Pull request #1757](https://github.com/gazebosim/gz-sim/pull/1757)
+    * [Pull request #1758](https://github.com/gazebosim/gz-sim/pull/1758)
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1759)
+    * [Pull request #1760](https://github.com/gazebosim/gz-sim/pull/1760)
+
+1. Added collection name to About Dialog
+    * [Pull request #1756](https://github.com/gazebosim/gz-sim/pull/1756)
+
+1. Remove compiler warnings
+    * [Pull request #1753](https://github.com/gazebosim/gz-sim/pull/1753)
+
+1. Update examples to use gazebosim.org
+    * [Pull request #1749](https://github.com/gazebosim/gz-sim/pull/1749)
+
+1. Remove actors from screen when they are supposed to
+    * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
+
+1. Readd namespaces for Q_ARGS
+    * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
+
 ### Gazebo Sim 3.14.0 (2022-08-17)
 
 1. Change `CODEOWNERS` and maintainer to Michael
