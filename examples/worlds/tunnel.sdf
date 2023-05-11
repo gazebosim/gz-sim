@@ -191,7 +191,7 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
@@ -200,11 +200,11 @@
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <include>
@@ -1676,7 +1676,7 @@
 
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
       <performer name="perf_x1">
         <ref>vehicle</ref>
         <geometry><box><size>2 2 2</size></box></geometry>

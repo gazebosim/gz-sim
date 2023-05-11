@@ -104,14 +104,14 @@
     <% if secondary %>
     <plugin
      filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     name="gz::sim::systems::Physics">
     </plugin>
     <% end %>
 
     <% if primary %>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <% end %>
 
@@ -305,7 +305,7 @@
       </link>
     </model>
 
-    <plugin name="ignition::gazebo" filename="dummy">
+    <plugin name="gz::sim" filename="dummy">
 
     <%
       for shape in shapes

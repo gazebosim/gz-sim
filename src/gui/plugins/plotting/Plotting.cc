@@ -17,27 +17,27 @@
 
 #include "Plotting.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/PoseCmd.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace ignition::gazebo
 {
@@ -69,13 +69,13 @@ namespace ignition::gazebo
     /// \brief attributes of the components,
     /// ex: x,y,z attributes in Vector3d type component
     public: std::map<std::string,
-      std::shared_ptr<ignition::gui::PlotData>> data;
+      std::shared_ptr<gz::gui::PlotData>> data;
   };
 }
 
 using namespace ignition;
 using namespace ignition::gazebo;
-using namespace ignition::gui;
+using namespace gz::gui;
 
 //////////////////////////////////////////////////
 PlotComponent::PlotComponent(const std::string &_type,
@@ -552,4 +552,4 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting,
                     ignition::gazebo::GuiSystem,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

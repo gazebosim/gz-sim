@@ -19,22 +19,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/ConstructEmpty.hh>
-#include <ignition/physics/Entity.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/Implements.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/physics/BoxShape.hh>
+#include <gz/physics/CylinderShape.hh>
+#include <gz/physics/ConstructEmpty.hh>
+#include <gz/physics/Entity.hh>
+#include <gz/physics/ForwardStep.hh>
+#include <gz/physics/Implements.hh>
+#include <gz/physics/Link.hh>
+#include <gz/physics/RemoveEntities.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "../../../test/helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace ignition::gazebo::systems::physics_system;
 
 struct MinimumFeatureList
@@ -113,13 +113,13 @@ TEST_F(EntityFeatureMapFixture,
   // Making these entities different from 1 and 2 ensures that the implicit
   // conversion in ign-physics between EntityPtr and std::size_t doesn't cause
   // false positive tests
-  gazebo::Entity gazeboWorld1Entity = 123;
-  gazebo::Entity gazeboWorld2Entity = 456;
+  gz::sim::Entity gazeboWorld1Entity = 123;
+  gz::sim::Entity gazeboWorld2Entity = 456;
   WorldPtrType testWorld1 = this->engine->ConstructEmptyWorld("world1");
   WorldEntityMap testMap;
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld1));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 
   testMap.AddEntity(gazeboWorld1Entity, testWorld1);
@@ -170,16 +170,16 @@ TEST_F(EntityFeatureMapFixture,
   testMap.Remove(gazeboWorld1Entity);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
-  EXPECT_EQ(gazebo::kNullEntity,
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(gz::sim::kNullEntity,
       testMap.GetByPhysicsId(testWorld1->EntityID()));
   EXPECT_EQ(5u, testMap.TotalMapEntryCount());
 
   testMap.Remove(testWorld2);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld2Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld2Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld2));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.GetByPhysicsId(
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld2));
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.GetByPhysicsId(
       testWorld2->EntityID()));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 }

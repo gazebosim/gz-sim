@@ -15,13 +15,13 @@
  *
  */
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
 
-#include "ignition/gazebo/Actor.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Actor.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

@@ -22,7 +22,7 @@
 
 #include <QtCore>
 
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/Types.hh>
 
 namespace ignition
 {

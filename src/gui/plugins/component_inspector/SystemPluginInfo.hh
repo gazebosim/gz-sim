@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
 #define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <QObject>
 #include <QStandardItem>

@@ -17,14 +17,14 @@
 #ifndef IGNITION_GUI_PLUGINS_PLOTTING_HH_
 #define IGNITION_GUI_PLUGINS_PLOTTING_HH_
 
-#include <ignition/gui/qt.h>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/PlottingInterface.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/SphericalCoordinates.hh>
-#include <ignition/msgs/light.pb.h>
+#include <gz/gui/qt.h>
+#include <gz/gui/Application.hh>
+#include <gz/gui/PlottingInterface.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/msgs/light.pb.h>
 
 #include "sdf/Physics.hh"
 
@@ -76,7 +76,7 @@ class PlotComponent
 
   /// \brief Get all attributes of the component
   /// \return component attributes
-  public: std::map<std::string, std::shared_ptr<ignition::gui::PlotData>>
+  public: std::map<std::string, std::shared_ptr<gz::gui::PlotData>>
     Data() const;
 
   /// \brief Get the Component entity ID

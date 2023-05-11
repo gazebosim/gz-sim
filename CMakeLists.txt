@@ -15,7 +15,10 @@ find_package(ignition-cmake2 2.12.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/sim
+  VERSION_SUFFIX
+)
 set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
@@ -97,7 +100,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.8)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS

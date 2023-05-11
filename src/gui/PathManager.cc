@@ -17,20 +17,20 @@
 
 #include "PathManager.hh"
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 //////////////////////////////////////////////////
 void onAddResourcePaths(const msgs::StringMsg_V &_msg)

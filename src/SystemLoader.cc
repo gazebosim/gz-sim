@@ -19,21 +19,21 @@
 #include <string>
 #include <unordered_set>
 
-#include <ignition/gazebo/SystemLoader.hh>
+#include <gz/sim/SystemLoader.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/plugin/Loader.hh>
+#include <gz/plugin/Loader.hh>
 
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/config.hh>
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 class ignition::gazebo::SystemLoaderPrivate
 {
@@ -43,14 +43,14 @@ class ignition::gazebo::SystemLoaderPrivate
   //////////////////////////////////////////////////
   public: std::list<std::string> PluginPaths() const
   {
-    ignition::common::SystemPaths systemPaths;
+    gz::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
     for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
     std::string homePath;
-    ignition::common::env(IGN_HOMEDIR, homePath);
+    gz::common::env(IGN_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(common::joinPaths(
         homePath, ".ignition", "gazebo", "plugins"));
     systemPaths.AddPluginPaths(IGN_GAZEBO_PLUGIN_INSTALL_DIR);
@@ -72,8 +72,8 @@ class ignition::gazebo::SystemLoaderPrivate
     auto pathToLib = systemPaths.FindSharedLibrary(_sdfPlugin.Filename());
     if (pathToLib.empty())
     {
-      // We assume ignition::gazebo corresponds to the levels feature
-      if (_sdfPlugin.Name() != "ignition::gazebo")
+      // We assume gz::sim corresponds to the levels feature
+      if (_sdfPlugin.Name() != "gz::sim")
       {
         ignerr << "Failed to load system plugin [" << _sdfPlugin.Filename() <<
                   "] : couldn't find shared library." << std::endl;
@@ -129,7 +129,7 @@ class ignition::gazebo::SystemLoaderPrivate
   public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
-  public: ignition::plugin::Loader loader;
+  public: gz::plugin::Loader loader;
 
   /// \brief Paths to search for system plugins.
   public: std::unordered_set<std::string> systemPluginPaths;
@@ -216,4 +216,3 @@ std::string SystemLoader::PrettyStr() const
 {
   return this->dataPtr->loader.PrettyStr();
 }
-

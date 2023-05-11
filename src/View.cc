@@ -15,7 +15,7 @@
  *
  */
 
-#include "ignition/gazebo/detail/View.hh"
+#include "gz/sim/detail/View.hh"
 
 namespace ignition
 {

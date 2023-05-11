@@ -14,31 +14,31 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/entity_wrench.pb.h>
+#include <gz/msgs/entity_wrench.pb.h>
 
 #include <mutex>
 #include <string>
 #include <queue>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/World.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/World.hh"
+#include "gz/sim/Util.hh"
 
 #include "ApplyLinkWrench.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::ApplyLinkWrenchPrivate
@@ -356,5 +356,9 @@ IGNITION_ADD_PLUGIN(ApplyLinkWrench,
                     ApplyLinkWrench::ISystemConfigure,
                     ApplyLinkWrench::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
+                          "gz::sim::systems::ApplyLinkWrench")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
                           "ignition::gazebo::systems::ApplyLinkWrench")

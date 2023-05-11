@@ -21,25 +21,25 @@
 
 #include <sdf/Root.hh>
 
-#include "ignition/common/Profiler.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsCmd.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/common/Profiler.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -203,7 +203,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = gazebo::loadPluginInfo(isPlayback);
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_COMMON_HH_
-#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_COMMON_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_COMMON_HH_
+#define GZ_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_COMMON_HH_
 
 #include <Eigen/Geometry>
 #include <optional>
@@ -24,9 +24,9 @@
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Model.hh"
 
 #include "Parameters.hh"
 

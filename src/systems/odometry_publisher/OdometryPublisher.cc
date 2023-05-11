@@ -17,8 +17,8 @@
 
 #include "OdometryPublisher.hh"
 
-#include <ignition/msgs/odometry.pb.h>
-#include <ignition/msgs/odometry_with_covariance.pb.h>
+#include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/odometry_with_covariance.pb.h>
 
 #include <limits>
 #include <string>
@@ -26,18 +26,18 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/RollingMean.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/RollingMean.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

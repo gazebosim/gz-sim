@@ -28,19 +28,19 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="ignition-gazebo-buoyancy-system"
-      name="ignition::gazebo::systems::Buoyancy">
+      name="gz::sim::systems::Buoyancy">
       <uniform_fluid_density>1000</uniform_fluid_density>
     </plugin>
 
@@ -204,13 +204,13 @@
 
       <plugin
         filename="ignition-gazebo-apply-joint-force-system"
-        name="ignition::gazebo::systems::ApplyJointForce">
+        name="gz::sim::systems::ApplyJointForce">
         <joint_name>propeller_joint</joint_name>
       </plugin>
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
         <cla_stall>-1.4326647564469914</cla_stall>
@@ -227,7 +227,7 @@
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
         <cla_stall>-1.4326647564469914</cla_stall>
@@ -244,7 +244,7 @@
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
@@ -262,7 +262,7 @@
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
 
         <air_density>1000</air_density>
         <cla>1.2535816618911175</cla>
