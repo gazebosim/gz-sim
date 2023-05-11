@@ -16,7 +16,7 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/pose_v.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <algorithm>
 #include <climits>
@@ -26,36 +26,36 @@
 #include <numeric>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Batch.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/MsgIter.hh>
-#include <ignition/transport/log/Playback.hh>
-#include <ignition/transport/log/QualifiedTime.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Batch.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/MsgIter.hh>
+#include <gz/transport/log/Playback.hh>
+#include <gz/transport/log/QualifiedTime.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
@@ -334,7 +334,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 
   // Test case 1:
   // No path specified on command line. This does not go through
-  // ign.cc, recording should take place in the `.ignition` directory
+  // gz.cc, recording should take place in the `.ignition` directory
   {
     // Load SDF
     sdf::Root recordSdfRoot;
@@ -370,7 +370,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // Test case 2:
   // No path specified on command line (only --record, no --record-path).
   // No path specified in SDF.
-  // Run from command line, which should trigger ign.cc, which should initialize
+  // Run from command line, which should trigger gz.cc, which should initialize
   // ignLogDirectory() to default timestamp path. Both console and state logs
   // should be recorded here.
 
@@ -382,7 +382,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   entryList(logPath, entriesBefore);
 
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -437,7 +437,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Ignition Dome.
   // No path specified in C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
-  // state and console logs because ign.cc is not triggered.
+  // state and console logs because gz.cc is not triggered.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -484,10 +484,10 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   entryList(logPath, entriesBefore);
 
   // Test case 2:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // SDF path should be ignored.
   // State log and console log should be stored to default timestamp path
-  // ignLogDirectory because ign.cc is triggered by command line.
+  // gzLogDirectory because gz.cc is triggered by command line.
   {
     // Change log path in SDF to build directory
     sdf::Root recordSdfRoot;
@@ -502,7 +502,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -543,10 +543,10 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   this->CreateLogsDir();
 
   // Test case 3:
-  // A path is specified in SDF - a feature removed in Ignition Dome.
+  // A path is specified in SDF - a feature removed in Gazebo Dome.
   // Empty path is specified via C++ API.
   // Should ignore SDF path. No default logging directory is initialized for
-  // state and console logs because ign.cc is not triggered.
+  // state and console logs because gz.cc is not triggered.
   std::string stateLogPath = this->logDir;
 
   {
@@ -585,7 +585,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified in SDF - a feature removed in Ignition Dome.
   // A different path is specified via C++ API.
   // Should take C++ API path. State log should be stored here. Console log is
-  // not initialized because ign.cc is not triggered.
+  // not initialized because gz.cc is not triggered.
   const std::string sdfPath = common::joinPaths(this->logsDir, "sdfPath");
   const std::string cppPath = common::joinPaths(this->logsDir, "cppPath");
   {
@@ -625,7 +625,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   // A path is specified by --record-path on command line.
   // Both state and console logs should be stored here.
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -667,7 +667,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
     ofs << recordSdfRoot.Element()->ToString("").c_str();
     ofs.close();
 
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + cliPath + " " + tmpRecordSdfPath;
     std::cout << "Running command [" << cmd << "]" << std::endl;
@@ -1039,9 +1039,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
   // Test case 2:
   // Path exists, command line --log-overwrite, should overwrite by
-  // command-line logic in ign.cc
+  // command-line logic in gz.cc
   {
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-overwrite "
       + "--record-path " + this->logDir + " " + recordSdfPath;
@@ -1067,9 +1067,9 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
 
   // Test case 3:
   // Path exists, no --log-overwrite, should create new files by command-line
-  // logic in ign.cc
+  // logic in gz.cc
   {
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-path " + this->logDir + " " + recordSdfPath;
@@ -1430,7 +1430,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
     EXPECT_TRUE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(defaultCmpPath));
 
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
@@ -1460,7 +1460,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogCompressCmdLine))
     EXPECT_FALSE(common::exists(recordPath));
     EXPECT_TRUE(common::exists(this->AppendExtension(recordPath, "(1).zip")));
 
-    // Command line triggers ign.cc, which handles creating a unique path if
+    // Command line triggers gz.cc, which handles creating a unique path if
     // file already exists, so as to not overwrite
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 --log-compress "
       + "--record-path " + recordPath + " " + recordSdfPath;
@@ -1505,7 +1505,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
 #ifndef __APPLE__
   // Log resources from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record --record-resources --record-path " + recordPath + " "
       + recordSdfPath;
@@ -1550,7 +1550,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   }
 
   // Console log is not created because ignLogDirectory() is not initialized,
-  // as ign.cc is not executed by command line.
+  // as gz.cc is not executed by command line.
   EXPECT_TRUE(common::exists(statePath));
 
   // Recorded models should exist
@@ -1592,7 +1592,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 #ifndef __APPLE__
   // Log only the /clock topic from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing ignLogDirectory
     std::string cmd = kIgnCommand + " -r -v 4 --iterations 5 "
       + "--record-topic /clock "
       + "--record-path " + recordPath + " "

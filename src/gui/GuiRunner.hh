@@ -14,19 +14,19 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
-#define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
+#ifndef GZ_SIM_GUI_GUIRUNNER_HH_
+#define GZ_SIM_GUI_GUIRUNNER_HH_
 
-#include <ignition/msgs/serialized_map.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <QtCore>
 #include <string>
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace ignition
 {

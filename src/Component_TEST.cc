@@ -16,24 +16,24 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/msgs/int32.pb.h>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include <memory>
 
 #include <sdf/Element.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/math/Inertial.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Inertial.hh>
 
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Serialization.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Serialization.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>

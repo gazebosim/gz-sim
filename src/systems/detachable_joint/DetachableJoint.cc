@@ -17,26 +17,26 @@
 
 #include <vector>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/DetachableJoint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/DetachableJoint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "DetachableJoint.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /////////////////////////////////////////////////
@@ -96,14 +96,9 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
 
   // Setup detach topic
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
-  {
-    topics.push_back(_sdf->Get<std::string>("topic"));
-  }
-  topics.push_back("/model/" + this->model.Name(_ecm) +
-      "/detachable_joint/detach");
-  this->topic = validTopic(topics);
+  std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
+                             "/detachable_joint/detach"};
+  this->topic = _sdf->Get<std::string>("topic", defaultTopic).first;
 
   this->suppressChildWarning =
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
@@ -194,5 +189,9 @@ IGNITION_ADD_PLUGIN(DetachableJoint,
                     DetachableJoint::ISystemConfigure,
                     DetachableJoint::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
+  "gz::sim::systems::DetachableJoint")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(DetachableJoint,
   "ignition::gazebo::systems::DetachableJoint")

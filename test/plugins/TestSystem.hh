@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_TEST_TESTSYSTEM_HH_
-#define IGNITION_GAZEBO_TEST_TESTSYSTEM_HH_
+#ifndef GZ_GAZEBO_TEST_TESTSYSTEM_HH_
+#define GZ_GAZEBO_TEST_TESTSYSTEM_HH_
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {

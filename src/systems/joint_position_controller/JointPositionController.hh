@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
+#define GZ_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -38,7 +38,7 @@ namespace systems
   /// The topic name is
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///
-  /// This topic accepts ignition::msgs::Double values representing the target
+  /// This topic accepts gz::msgs::Double values representing the target
   /// position. If you wish to change the topic on which this plugin listens
   /// you may use the `<topic>` parameter to specify which topic the plugin
   /// should listen on.
@@ -103,8 +103,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;

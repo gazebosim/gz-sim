@@ -19,34 +19,34 @@
 
 #include <string>
 
-#include <ignition/common/Battery.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Battery.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/BatteryPowerLoad.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/BatteryPowerLoad.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
@@ -56,7 +56,7 @@ class BatteryPluginTest : public InternalFixture<::testing::Test>
     InternalFixture::SetUp();
 
     sdf::Plugin sdfPlugin;
-    sdfPlugin.SetName("ignition::gazebo::MockSystem");
+    sdfPlugin.SetName("gz::sim::MockSystem");
     sdfPlugin.SetFilename("libMockSystem.so");
     auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());

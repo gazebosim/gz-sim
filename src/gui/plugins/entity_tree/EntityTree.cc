@@ -24,31 +24,31 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Primitives.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Primitives.hh"
 
 namespace ignition::gazebo
 {
@@ -76,7 +76,7 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 QString entityType(Entity _entity,
@@ -292,7 +292,7 @@ EntityTree::EntityTree()
   : GuiSystem(), dataPtr(std::make_unique<EntityTreePrivate>())
 {
   // Connect model
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
      "EntityTreeModel", &this->dataPtr->treeModel);
 }
 
@@ -305,8 +305,8 @@ void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Entity tree";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -450,8 +450,8 @@ void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 {
   std::vector<Entity> entitySet {_entity};
   gui::events::EntitiesSelected event(entitySet, true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -459,8 +459,8 @@ void EntityTree::OnEntitySelectedFromQml(Entity _entity)
 void EntityTree::DeselectAllEntities()
 {
   gui::events::DeselectAllEntities event(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -578,4 +578,4 @@ bool EntityTree::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(EntityTree,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

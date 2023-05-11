@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
+#define GZ_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -33,8 +33,8 @@ namespace systems
   class PosePublisherPrivate;
 
   /// \brief Pose publisher system. Attach to an entity to publish the
-  /// transform of its child entities in the form of ignition::msgs::Pose
-  /// messages, or a single ignition::msgs::Pose_V message if
+  /// transform of its child entities in the form of gz::msgs::Pose
+  /// messages, or a single gz::msgs::Pose_V message if
   /// "use_pose_vector_msg" is true.
   ///
   /// The following parameters are used by the system:
@@ -49,8 +49,8 @@ namespace systems
   ///                             also published unless publish_model_pose is
   ///                             set to false
   /// use_pose_vector_msg       : Set to true to publish an
-  ///                             ignition::msgs::Pose_V message instead of
-  ///                             mulitple ignition::msgs::Pose messages.
+  ///                             gz::msgs::Pose_V message instead of
+  ///                             mulitple gz::msgs::Pose messages.
   /// update_frequency          : Frequency of pose publications in Hz. A
   ///                             negative frequency publishes as fast as
   ///                             possible (i.e, at the rate of the simulation

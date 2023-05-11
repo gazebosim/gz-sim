@@ -19,16 +19,16 @@
 
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::ApplyJointForcePrivate
@@ -168,5 +168,9 @@ IGNITION_ADD_PLUGIN(ApplyJointForce,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+                          "gz::sim::systems::ApplyJointForce")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "ignition::gazebo::systems::ApplyJointForce")

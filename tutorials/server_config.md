@@ -91,7 +91,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
   <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -240,12 +240,12 @@ system:
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-scene-broadcaster-system"
-            name="ignition::gazebo::systems::SceneBroadcaster">
+            name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-sensors-system"
-            name="ignition::gazebo::systems::Sensors">
+            name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
   </plugins>

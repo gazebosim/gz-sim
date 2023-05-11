@@ -20,20 +20,20 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/SystemPaths.hh>
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemLoader.hh"
+#include <gz/common/Filesystem.hh>
+#include <gz/common/SystemPaths.hh>
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemLoader.hh"
 
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
-  gazebo::SystemLoader sm;
+  gz::sim::SystemLoader sm;
 
   // Add test plugin to path (referenced in config)
   auto testBuildPath = common::joinPaths(
@@ -45,7 +45,7 @@ TEST(SystemLoader, Constructor)
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='ignition::gazebo::systems::Physics'></plugin>"
+      "name='gz::sim::systems::Physics'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();
@@ -64,7 +64,7 @@ TEST(SystemLoader, Constructor)
 
 TEST(SystemLoader, EmptyNames)
 {
-  gazebo::SystemLoader sm;
+  gz::sim::SystemLoader sm;
   sdf::Plugin plugin;
   auto system = sm.LoadPlugin(plugin);
   ASSERT_FALSE(system.has_value());

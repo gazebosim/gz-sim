@@ -15,13 +15,13 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
+#define GZ_GAZEBO_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -91,7 +91,7 @@ namespace systems
       </link>
       <plugin
         filename="ignition-gazebo-kinetic-energy-monitor-system"
-        name="ignition::gazebo::systems::KineticEnergyMonitor">
+        name="gz::sim::systems::KineticEnergyMonitor">
         <base_link_name>sphere_link</base_link_name>
         <kinetic_energy_threshold>100</kinetic_energy_threshold>
       </plugin>

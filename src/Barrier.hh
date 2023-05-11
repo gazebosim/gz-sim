@@ -15,16 +15,16 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_BARRIER_HH_
-#define IGNITION_GAZEBO_BARRIER_HH_
+#ifndef GZ_GAZEBO_BARRIER_HH_
+#define GZ_GAZEBO_BARRIER_HH_
 
 #include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 namespace ignition
 {
@@ -92,4 +92,4 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_BARRIER_HH_
+#endif  // GZ_GAZEBO_BARRIER_HH_

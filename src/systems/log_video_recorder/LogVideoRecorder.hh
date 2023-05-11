@@ -14,13 +14,13 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
-#define IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
+#ifndef GZ_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
+#define GZ_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {

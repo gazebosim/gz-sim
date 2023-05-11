@@ -19,59 +19,59 @@
 #include <list>
 #include <regex>
 #include <unordered_map>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/CenterOfVolume.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
-#include "ignition/gazebo/components/LightType.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
-#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
-#include "ignition/gazebo/components/SelfCollide.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/Volume.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/CenterOfVolume.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightCmd.hh"
+#include "gz/sim/components/LightType.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/components/SelfCollide.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/Volume.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
@@ -150,11 +150,11 @@ void removeSuffix(const std::string &_suffix, std::string &_s)
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 {
   if (nullptr == _item)
     return;
@@ -251,7 +251,7 @@ void gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const std::string &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const std::string &_data)
 {
   if (nullptr == _item)
     return;
@@ -264,7 +264,7 @@ void gazebo::setData(QStandardItem *_item, const std::string &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const std::ostringstream &_data)
 {
   if (nullptr == _item)
@@ -278,7 +278,7 @@ void gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const bool &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const bool &_data)
 {
   if (nullptr == _item)
     return;
@@ -290,7 +290,7 @@ void gazebo::setData(QStandardItem *_item, const bool &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const int &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const int &_data)
 {
   if (nullptr == _item)
     return;
@@ -302,14 +302,14 @@ void gazebo::setData(QStandardItem *_item, const int &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const Entity &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const Entity &_data)
 {
   setData(_item, static_cast<int>(_data));
 }
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const double &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const double &_data)
 {
   if (nullptr == _item)
     return;
@@ -321,7 +321,7 @@ void gazebo::setData(QStandardItem *_item, const double &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
+void ignition::gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 {
   if (nullptr == _item)
     return;
@@ -336,7 +336,7 @@ void gazebo::setData(QStandardItem *_item, const sdf::Physics &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const sdf::Material &_data)
 {
   if (nullptr == _item)
@@ -369,7 +369,7 @@ void gazebo::setData(QStandardItem *_item,
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const math::SphericalCoordinates &_data)
 {
   if (nullptr == _item)
@@ -388,7 +388,7 @@ void gazebo::setData(QStandardItem *_item,
 }
 
 //////////////////////////////////////////////////
-void gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
+void ignition::gazebo::setUnit(QStandardItem *_item, const std::string &_unit)
 {
   if (nullptr == _item)
     return;
@@ -498,8 +498,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -1345,4 +1345,4 @@ void ComponentInspector::OnAddSystem(const QString &_name,
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ComponentInspector,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

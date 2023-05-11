@@ -14,21 +14,21 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/Result.hh>
-#include <ignition/math/Rand.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/Result.hh>
+#include <gz/math/Rand.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Private data for PluginInfoConfig.
 class ignition::gazebo::ServerConfig::PluginInfoPrivate
@@ -637,7 +637,7 @@ ServerConfig::LogPlaybackPlugin() const
   sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  plugin.SetName("ignition::gazebo::systems::LogPlayback");
+  plugin.SetName("gz::sim::systems::LogPlayback");
   plugin.SetFilename("ignition-gazebo-log-system");
 
   if (!this->LogPlaybackPath().empty())
@@ -659,7 +659,7 @@ ServerConfig::LogRecordPlugin() const
   sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  plugin.SetName("ignition::gazebo::systems::LogRecord");
+  plugin.SetName("gz::sim::systems::LogRecord");
   plugin.SetFilename("ignition-gazebo-log-system");
 
   igndbg << "Generating LogRecord SDF:" << std::endl;
@@ -902,7 +902,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gazebo::parsePluginsFromFile(const std::string &_fname)
+ignition::gazebo::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
@@ -911,7 +911,7 @@ gazebo::parsePluginsFromFile(const std::string &_fname)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gazebo::parsePluginsFromString(const std::string &_str)
+ignition::gazebo::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
@@ -920,7 +920,7 @@ gazebo::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gazebo::loadPluginInfo(bool _isPlayback)
+ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 
@@ -935,7 +935,7 @@ gazebo::loadPluginInfo(bool _isPlayback)
     if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = gazebo::parsePluginsFromFile(envConfig);
+      ret = gz::sim::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
@@ -1015,7 +1015,7 @@ gazebo::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = gazebo::parsePluginsFromFile(defaultConfig);
+  ret = gz::sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {
