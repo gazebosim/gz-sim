@@ -146,7 +146,7 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Linear velocity of the vehicle.
   public: double linearVelocity = 0.0;
 
-  /// \brief deadband
+  /// \brief deadband in newtons
   public: double deadband = 0.0;
 
   /// \brief Flag to enable/disable deadband
