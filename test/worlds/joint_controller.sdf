@@ -315,7 +315,7 @@
     </model>
 
     <model name="joint_controller_test3">
-      <pose>0 0 0.005 0 0 0</pose>
+      <pose>-3 -3 0.005 0 0 0</pose>
       <link name="base_link">
         <pose>0.0 0.0 0.0 0 0 0</pose>
         <inertial>
