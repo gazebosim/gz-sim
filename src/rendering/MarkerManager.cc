@@ -192,7 +192,7 @@ bool MarkerManager::Init(const rendering::ScenePtr &_scene)
            << "_array service.\n";
   }
 
-  this->dataPtr->markerPub = 
+  this->dataPtr->markerPub =
     this->dataPtr->node.Advertise<msgs::Marker>(this->dataPtr->topicName);
 
   return true;
