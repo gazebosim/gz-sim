@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include <gz/sim/config.hh>
 #include <gz/sim/rendering/Export.hh>
 
 #include "gz/rendering/RenderTypes.hh"

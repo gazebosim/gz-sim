@@ -31,6 +31,7 @@ set(tests
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
+  markers.cc
   model.cc
   multicopter.cc
   network_handshake.cc
@@ -52,7 +53,6 @@ set(tests
   wheel_slip.cc
   wind_effects.cc
   world.cc
-  markers.cc
 )
 
 # Tests that require a valid display
@@ -86,6 +86,7 @@ ign_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
 )
 
 # For INTEGRATION_physics_system, we need to check what version of DART is

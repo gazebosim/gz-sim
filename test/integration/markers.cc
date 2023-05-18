@@ -22,6 +22,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utilities/ExtraTestMacros.hh>
 
+#include "gz/sim/rendering/MarkerManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"
 
@@ -51,6 +52,8 @@ void markerCb(const msgs::Marker &_msg)
 /////////////////////////////////////////////////
 TEST_F(MarkersTest, MarkerPublisher)
 {
+  MarkerManager markerManager;
+
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -80,11 +83,11 @@ TEST_F(MarkersTest, MarkerPublisher)
   for (int sleep = 0; sleep < 30; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
- 
+
     mutex.lock();
     bool received = !markerMsgs.empty();
     mutex.unlock();
- 
+
     if (received)
       break;
   }
