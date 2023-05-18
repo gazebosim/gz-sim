@@ -1035,8 +1035,8 @@ TEST_P(SceneBroadcasterTest,
 {
   // Start server
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      common::joinPaths("/", "test", "worlds", "projector.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "projector.sdf"));
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());

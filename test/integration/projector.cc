@@ -64,7 +64,7 @@ TEST_F(ProjectorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool projectorChecked{false};
 
-  this->LoadWorld("test/worlds/projector.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "projector.sdf"));
 
   // Create a system that checks a projector.
   test::Relay testSystem;
@@ -91,7 +91,7 @@ TEST_F(ProjectorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
                 EXPECT_DOUBLE_EQ(7.0, _projector->Data().FarClip());
                 EXPECT_EQ(math::Angle(0.5), _projector->Data().HorizontalFov());
                 EXPECT_EQ(0x01, _projector->Data().VisibilityFlags());
-                EXPECT_EQ("path/to/dummy_image.png",
+                EXPECT_EQ(common::joinPaths("path", "to", "dummy_image.png"),
                     _projector->Data().Texture());
               }
               return true;

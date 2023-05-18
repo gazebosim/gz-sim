@@ -1289,7 +1289,6 @@ void RenderUtil::Update()
           std::get<2>(projector));
     }
 
-
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
     {
       for (const auto &sensor : newSensors)

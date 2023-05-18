@@ -271,7 +271,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Create a projector
     /// \param[in] _id Unique projector id
-    /// \param[in] _emitter Projector sdf dom
+    /// \param[in] _projector Projector sdf dom
     /// \param[in] _parentId Parent id
     /// \return Projector object created from the sdf dom
     public: rendering::ProjectorPtr CreateProjector(

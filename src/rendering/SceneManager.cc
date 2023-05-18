@@ -1674,7 +1674,7 @@ rendering::ProjectorPtr SceneManager::CreateProjector(
      this->dataPtr->projectors.end())
   {
     gzerr << "Projector with Id: [" << _id << "] already exists in the "
-           <<" scene" << std::endl;
+          <<" scene" << std::endl;
     return rendering::ProjectorPtr();
   }
 

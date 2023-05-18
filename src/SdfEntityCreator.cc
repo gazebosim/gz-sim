@@ -70,12 +70,12 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/NavSat.hh"
-#include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
 #include <gz/sim/components/ParticleEmitter.hh>
-#include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
+#include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/SegmentationCamera.hh"
