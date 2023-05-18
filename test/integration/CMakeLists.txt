@@ -31,7 +31,6 @@ set(tests
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
-  markers.cc
   model.cc
   multicopter.cc
   network_handshake.cc
@@ -61,6 +60,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  markers.cc
   rgbd_camera.cc
   sensors_system.cc
 )

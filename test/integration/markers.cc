@@ -19,6 +19,9 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include "gz/rendering/Scene.hh"
 #include <gz/transport/Node.hh>
 #include <gz/utilities/ExtraTestMacros.hh>
 
@@ -43,7 +46,6 @@ std::vector<msgs::Marker> markerMsgs;
 /////////////////////////////////////////////////
 void markerCb(const msgs::Marker &_msg)
 {
-  std::cout << "OnMarkerCb\n";
   mutex.lock();
   markerMsgs.push_back(_msg);
   mutex.unlock();
@@ -52,48 +54,61 @@ void markerCb(const msgs::Marker &_msg)
 /////////////////////////////////////////////////
 TEST_F(MarkersTest, MarkerPublisher)
 {
+  std::map<std::string, std::string> params;
+  auto engine = ignition::rendering::engine("ogre2", params);
+  auto scene = engine->CreateScene("testscene");
+
+  gz::msgs::Marker markerMsg;
+
+  // Function that Waits for a message to be received
+  auto wait = [&](std::size_t _size, gz::msgs::Marker &_markerMsg) {
+    for (int sleep = 0; sleep < 30; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      mutex.lock();
+      bool received = markerMsgs.size() == _size;
+      mutex.unlock();
+
+      if (received)
+        break;
+    }
+
+    mutex.lock();
+    EXPECT_EQ(markerMsgs.size(), _size);
+    auto lastMsg = markerMsgs.back();
+    EXPECT_EQ(_markerMsg.DebugString(), lastMsg.DebugString());
+    mutex.unlock();
+  };
+
+
   MarkerManager markerManager;
-
-  // Start server
-  ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/empty.sdf";
-  serverConfig.SetSdfFile(sdfFile);
-
-  Server server(serverConfig);
+  markerManager.Init(scene);
 
   // subscribe to marker topic
   transport::Node node;
   node.Subscribe("/marker", &markerCb);
 
-  gz::msgs::Marker markerMsg;
+  // Send a request, wait for a message
   markerMsg.set_ns("default");
   markerMsg.set_id(0);
   markerMsg.set_action(gz::msgs::Marker::ADD_MODIFY);
   markerMsg.set_type(gz::msgs::Marker::SPHERE);
   markerMsg.set_visibility(gz::msgs::Marker::GUI);
   node.Request("/marker", markerMsg);
+  markerManager.Update();
+  wait(1, markerMsg);
 
-//  // Run server and verify that we are receiving a message
-//  // from the lidar
-//  size_t iters100 = 100u;
-//  server.Run(true, iters100, false);
-//
-  // Wait for a message to be received
-  for (int sleep = 0; sleep < 30; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  // Update without a new message
+  markerManager.Update();
 
-    mutex.lock();
-    bool received = !markerMsgs.empty();
-    mutex.unlock();
-
-    if (received)
-      break;
-  }
-
-  mutex.lock();
-  EXPECT_GT(markerMsgs.size(), 0u);
-  auto lastMsg = markerMsgs.back();
-  mutex.unlock();
+  // Send another request, and check that there are two messages
+  markerMsg.set_ns("default2");
+  markerMsg.set_id(1);
+  markerMsg.set_action(gz::msgs::Marker::ADD_MODIFY);
+  markerMsg.set_type(gz::msgs::Marker::BOX);
+  markerMsg.set_visibility(gz::msgs::Marker::GUI);
+  node.Request("/marker", markerMsg);
+  markerManager.Update();
+  wait(2, markerMsg);
 }
