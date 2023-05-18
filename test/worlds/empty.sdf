@@ -5,11 +5,10 @@
       <max_step_size>0.001</max_step_size>
       <real_time_factor>0</real_time_factor>
     </physics>
-<!--    <plugin
+    <plugin
       filename="ignition-gazebo-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
-    -->
     <plugin
       filename="ignition-gazebo-user-commands-system"
       name="gz::sim::systems::UserCommands">

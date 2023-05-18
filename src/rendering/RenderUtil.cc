@@ -118,7 +118,7 @@ class gz::sim::RenderUtilPrivate
   public: SceneManager sceneManager;
 
   /// \brief Marker manager
-  public: gz::sim::MarkerManager markerManager;
+  public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
   public: rendering::RenderEngine *engine{nullptr};
@@ -1341,7 +1341,7 @@ Entity RenderUtil::EntityFromNode(const rendering::NodePtr &_node)
 }
 
 /////////////////////////////////////////////////
-gz::sim::MarkerManager &RenderUtil::MarkerManager()
+MarkerManager &RenderUtil::MarkerManager()
 {
   return this->dataPtr->markerManager;
 }
