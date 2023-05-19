@@ -1,8 +1,8 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  actor.cc
   ackermann_steering_system.cc
+  actor.cc
   acoustic_comms.cc
   air_pressure_system.cc
   air_speed_system.cc
@@ -33,6 +33,7 @@ set(tests
   hydrodynamics.cc
   hydrodynamics_flags.cc
   imu_system.cc
+  include_sim_hh.cc
   joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
@@ -93,6 +94,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  actor_trajectory.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
@@ -216,6 +218,9 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+  target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()

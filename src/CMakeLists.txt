@@ -176,6 +176,8 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  gz-physics${GZ_PHYSICS_VER}::core
+  gz-rendering${GZ_RENDERING_VER}::core
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   gz-transport${GZ_TRANSPORT_VER}::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}

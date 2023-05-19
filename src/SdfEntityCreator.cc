@@ -530,6 +530,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Links
+  for (uint64_t linkIndex = 0; linkIndex < _actor->LinkCount();
+      ++linkIndex)
+  {
+    auto link = _actor->LinkByIndex(linkIndex);
+    auto linkEntity = this->CreateEntities(link);
+
+    this->SetParent(linkEntity, actorEntity);
+  }
+
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
