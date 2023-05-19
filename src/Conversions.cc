@@ -1800,7 +1800,7 @@ sdf::Projector gz::sim::convert(const msgs::Projector &_in)
       catch (...)
       {
         gzerr << "Failed to parse projector <visibility_flags>: "
-              <<  data.value(0) << ". Using default value: 0xFFFFFFFF."
+              << data.value(0) << ". Using default value: 0xFFFFFFFF."
               << std::endl;
         out.SetVisibilityFlags(0xFFFFFFFF);
       }
