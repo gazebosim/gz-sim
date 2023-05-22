@@ -74,6 +74,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
@@ -290,6 +291,11 @@ class gz::sim::RenderUtilPrivate
   /// update, and particle emitter msg
   public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
+
+  /// \brief New projector to be created. The elements in the tuple are:
+  /// [0] entity id, [1] projector, [2] parent entity id
+  public: std::vector<std::tuple<Entity, sdf::Projector, Entity>>
+      newProjectors;
 
   /// \brief New sensor topics that should be added to ECM as new components
   public: std::unordered_map<Entity, std::string> newSensorTopics;
@@ -1095,6 +1101,7 @@ void RenderUtil::Update()
   auto newParticleEmitters = std::move(this->dataPtr->newParticleEmitters);
   auto newParticleEmittersCmds =
     std::move(this->dataPtr->newParticleEmittersCmds);
+  auto newProjectors = std::move(this->dataPtr->newProjectors);
   auto removeEntities = std::move(this->dataPtr->removeEntities);
   auto entityPoses = std::move(this->dataPtr->entityPoses);
   auto entityLights = std::move(this->dataPtr->entityLights);
@@ -1124,6 +1131,7 @@ void RenderUtil::Update()
   this->dataPtr->newLights.clear();
   this->dataPtr->newParticleEmitters.clear();
   this->dataPtr->newParticleEmittersCmds.clear();
+  this->dataPtr->newProjectors.clear();
   this->dataPtr->removeEntities.clear();
   this->dataPtr->entityPoses.clear();
   this->dataPtr->entityLights.clear();
@@ -1272,6 +1280,13 @@ void RenderUtil::Update()
     {
       this->dataPtr->sceneManager.UpdateParticleEmitter(
           emitterCmd.first, emitterCmd.second);
+    }
+
+    for (const auto &projector : newProjectors)
+    {
+      this->dataPtr->sceneManager.CreateProjector(
+          std::get<0>(projector), std::get<1>(projector),
+          std::get<2>(projector));
     }
 
     if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
@@ -1879,6 +1894,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         return true;
       });
 
+  // projectors
+  _ecm.Each<components::Projector, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Projector *_projector,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newProjectors.push_back(
+            std::make_tuple(_entity, _projector->Data(), _parent->Data()));
+        return true;
+      });
+
   if (this->enableSensors)
   {
     // Create cameras
@@ -2154,6 +2180,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
       {
         this->newParticleEmitters.push_back(
             std::make_tuple(_entity, _emitter->Data(), _parent->Data()));
+        return true;
+      });
+
+  // projectors
+  _ecm.EachNew<components::Projector, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Projector *_projector,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->newProjectors.push_back(
+            std::make_tuple(_entity, _projector->Data(), _parent->Data()));
         return true;
       });
 
@@ -2515,6 +2552,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
   // particle emitters
   _ecm.EachRemoved<components::ParticleEmitter>(
       [&](const Entity &_entity, const components::ParticleEmitter *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });
+
+  // projectors
+  _ecm.EachRemoved<components::Projector>(
+      [&](const Entity &_entity, const components::Projector *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
         return true;

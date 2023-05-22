@@ -41,6 +41,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
@@ -277,6 +278,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::ParticleEmitter::typeId;
   }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = components::Projector::typeId;
+  }
 
   return type;
 }
@@ -326,6 +331,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
     type = "particle_emitter";
+  }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = "projector";
   }
 
   return type;

@@ -33,6 +33,7 @@
 #include <gz/msgs/material.pb.h>
 #include <gz/msgs/planegeom.pb.h>
 #include <gz/msgs/plugin.pb.h>
+#include <gz/msgs/projector.pb.h>
 #include <gz/msgs/spheregeom.pb.h>
 #include <gz/msgs/Utility.hh>
 
@@ -1746,6 +1747,63 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
     if (data.key() == "topic" && data.value_size() > 0)
     {
       out.SetTopic(data.value(0));
+    }
+  }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+msgs::Projector gz::sim::convert(const sdf::Projector &_in)
+{
+  msgs::Projector out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
+  out.set_near_clip(_in.NearClip());
+  out.set_far_clip(_in.FarClip());
+  out.set_fov(_in.HorizontalFov().Radian());
+  out.set_texture(_in.Texture().empty() ? "" :
+      asFullPath(_in.Texture(), _in.FilePath()));
+
+  auto header = out.mutable_header()->add_data();
+  header->set_key("visibility_flags");
+  header->add_value(std::to_string(_in.VisibilityFlags()));
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+sdf::Projector gz::sim::convert(const msgs::Projector &_in)
+{
+  sdf::Projector out;
+  out.SetName(_in.name());
+  out.SetNearClip(_in.near_clip());
+  out.SetFarClip(_in.far_clip());
+  out.SetHorizontalFov(math::Angle(_in.fov()));
+  out.SetTexture(_in.texture());
+  out.SetRawPose(msgs::Convert(_in.pose()));
+
+  /// \todo(anyone) add "visibility_flags" field to projector.proto
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    auto data = _in.header().data(i);
+    if (data.key() == "visibility_flags" && data.value_size() > 0)
+    {
+      try
+      {
+        out.SetVisibilityFlags(std::stoul(data.value(0)));
+      }
+      catch (...)
+      {
+        gzerr << "Failed to parse projector <visibility_flags>: "
+              << data.value(0) << ". Using default value: 0xFFFFFFFF."
+              << std::endl;
+        out.SetVisibilityFlags(0xFFFFFFFF);
+      }
     }
   }
 
