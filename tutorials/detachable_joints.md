@@ -49,6 +49,10 @@ joint.
 * `<child_model_link>`:  Name of the link in the `<child_model>` that will be used
 as the child link in the detachable joint.
 
+* `topic` (optional): Topic name to be used for detaching connections. Using
+<detach_topic> is preferred. If empty, a default topic will be created with a
+pattern `/model/<model_name>/detachable_joint/detach`.
+
 * `detach_topic` (optional): Topic name to be used for detaching connections.
  If empty, a default topic will be created with a pattern
 `/model/<model_name>/detachable_joint/detach`. If multiple detachable plugin is

@@ -103,8 +103,6 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
   detachTopics.push_back("/model/" + this->model.Name(_ecm) +
       "/detachable_joint/detach");
-  this->detachTopic = validTopic(detachTopics);
-  igndbg << "Detach topic is: " << this->detachTopic << std::endl;
 
   if (_sdf->HasElement("topic"))
   {
@@ -127,11 +125,16 @@ void DetachableJoint::Configure(const Entity &_entity,
     {
       detachTopics.insert(detachTopics.begin(),
                           _sdf->Get<std::string>("topic"));
-      this->detachTopic = validTopic(detachTopics);
-      ignwarn << "Implicitly converted <topic> to <detach_topic>. "
-             << "Detach topic is: " << this->detachTopic << std::endl;
     }
   }
+
+  this->detachTopic = validTopic(detachTopics);
+  if (this->detachTopic.empty())
+  {
+    ignerr << "No valid detach topics for DetachableJoint could be found.\n";
+    return;
+  }
+  igndbg << "Detach topic is: " << this->detachTopic << std::endl;
 
   // Setup subscriber for detach topic
   this->node.Subscribe(
@@ -149,6 +152,11 @@ void DetachableJoint::Configure(const Entity &_entity,
   attachTopics.push_back("/model/" + this->model.Name(_ecm) +
       "/detachable_joint/attach");
   this->attachTopic = validTopic(attachTopics);
+  if (this->attachTopic.empty())
+  {
+    ignerr << "No valid attach topics for DetachableJoint could be found.\n";
+    return;
+  }
   igndbg << "Attach topic is: " << this->attachTopic << std::endl;
 
   // Setup subscriber for attach topic
@@ -179,6 +187,11 @@ void DetachableJoint::Configure(const Entity &_entity,
       "/detachable_joint/state");
 
   this->outputTopic = validTopic(outputTopics);
+  if (this->outputTopic.empty())
+  {
+    ignerr << "No valid output topics for DetachableJoint could be found.\n";
+    return;
+  }
   igndbg << "Output topic is: " << this->outputTopic << std::endl;
 
   // Setup publisher for output topic
