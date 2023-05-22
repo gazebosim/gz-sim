@@ -117,7 +117,7 @@ void DetachableJoint::Configure(const Entity &_entity,
       }
       else
       {
-        ignwarn << "Ignoring <topic> tag and using <detach_topic> tag."
+        igndbg << "Ignoring <topic> tag and using <detach_topic> tag."
                 << std::endl;
       }
     }
