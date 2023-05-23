@@ -61,6 +61,7 @@ set(tests_needing_display
   camera_video_record_system.cc
   depth_camera.cc
   gpu_lidar.cc
+  markers.cc
   rgbd_camera.cc
   sensors_system.cc
 )
@@ -86,6 +87,7 @@ ign_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
 )
 
 # For INTEGRATION_physics_system, we need to check what version of DART is
