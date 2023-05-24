@@ -22,9 +22,9 @@
 
     To monitor the state of each breadcrumbs
 
-      ign topic -e -t /B1/detached_state
-      ign topic -e -t /B2/detached_state
-      ign topic -e -t /B3/detached_state
+      ign topic -e -t /B1/state
+      ign topic -e -t /B2/state
+      ign topic -e -t /B3/state
 -->
 
 <sdf version="1.6">

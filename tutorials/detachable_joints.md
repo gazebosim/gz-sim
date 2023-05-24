@@ -8,6 +8,10 @@ kinematic topology has to be a tree, i.e., kinematic loops are not currently
 supported. This affects the choice of the parent link, and therefore, the
 parent model, which is the model that contains the `DetachableJoint` system.
 Once detached, the joint can be re-attached by publishing to a topic.
+When reattaching, the child model will be attached to the parent model at its
+current pose/configuration. To achieve reattachment at a specific pose, the
+child model can be positioned accordingly through a set_pose service call prior
+to reattaching the joint.
 
 For example, [detachable_joint.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
@@ -37,6 +41,10 @@ need to collide with a parent model or other detached models that have the same
 parent, the parent model needs to have `<self_collide>` set to true. However,
 due to an issue in DART, the default physics engine, it is important that none of the parent
 or child models be in collision in their initial (attached) state.
+Furthermore, it is important to note that reattaching a child model is not
+currently supported while the child model and parent model are in contact.
+Therefore, it is imperative to ensure that there is no collision between the
+child and parent model when attempting to perform the reattachment process.
 
 The system has the following parameters:
 
