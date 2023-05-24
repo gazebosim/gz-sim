@@ -2547,8 +2547,8 @@ TEST_F(PhysicsSystemFixture, JointsInWorld)
 {
   ServerConfig serverConfig;
 
-  const auto sdfFile =
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/joints_in_world.sdf";
+  const auto sdfFile = common::jointPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+                                          "joints_in_world.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
   Server server(serverConfig);
@@ -2573,7 +2573,7 @@ TEST_F(PhysicsSystemFixture, JointsInWorld)
           // After half the iterations, reset the joint position and velocity so
           // that the bob at its equilibrium point and at rest.
           auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
-                                                    components::Joint());
+                                                     components::Joint());
           ASSERT_NE(jointEntity, kNullEntity);
           _ecm.SetComponentData<components::JointVelocityReset>(jointEntity,
                                                                 {0});

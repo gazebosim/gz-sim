@@ -991,7 +991,6 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 
-
         // Optional world features
         auto collisionDetectorComp =
             _ecm.Component<components::PhysicsCollisionDetector>(_entity);
