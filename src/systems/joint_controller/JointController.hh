@@ -44,6 +44,15 @@ namespace systems
   /// using force commands. If this parameter is not set or is false, the
   /// controller will use velocity commands internally.
   ///
+  /// `<use_actuator_msg>` True to enable the use of actuator message
+  /// for velocity command. The actuator msg is an array of floats for
+  /// position, velocity and normalized commands. Relies on
+  /// `<actuator_number>` for the index of the velocity actuator and
+  /// defaults to topic "/actuators" when `topic` or `subtopic not set.
+  ///
+  /// `<actuator_number>` used with `<use_actuator_msg>` to set
+  /// the index of the velocity actuator.
+  ///
   /// `<topic>` Topic to receive commands in. Defaults to
   ///     `/model/<model_name>/joint/<joint_name>/cmd_vel`.
   ///

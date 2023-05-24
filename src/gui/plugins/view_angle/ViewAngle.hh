@@ -62,6 +62,13 @@ namespace sim
       NOTIFY ViewControlIndexChanged
     )
 
+    /// \brief gui camera horizontal fov
+    Q_PROPERTY(
+      double horizontalFOV
+      READ HorizontalFOV
+      NOTIFY CamHorizontalFOVChanged
+    )
+
     /// \brief Constructor
     public: ViewAngle();
 
@@ -96,6 +103,16 @@ namespace sim
     /// \brief Callback in Qt thread when camera view controller changes.
     /// \param[in] _sensitivity View control sensitivity vlaue
     public slots: void OnViewControlSensitivity(double _sensitivity);
+
+    /// \brief Updates gui camera's Horizontal fov
+    /// \param[in] _horizontalFOV Horizontal fov
+    public slots: void SetHorizontalFOV(double _horizontalFOV);
+
+    /// \brief Get the current gui horizontal fov.
+    public: Q_INVOKABLE double HorizontalFOV() const;
+
+    /// \brief Notify that the gui camera's horizontal fov changed
+    signals: void CamHorizontalFOVChanged();
 
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;

@@ -18,6 +18,7 @@
 
 #include "JointController.hh"
 
+#include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 
 #include <string>
@@ -28,6 +29,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
@@ -43,6 +45,10 @@ class gz::sim::systems::JointControllerPrivate
   /// \param[in] _msg Velocity message
   public: void OnCmdVel(const msgs::Double &_msg);
 
+  /// \brief Callback for actuator velocity subscription
+  /// \param[in] _msg Velocity message
+  public: void OnActuatorVel(const msgs::Actuators &_msg);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
@@ -55,11 +61,17 @@ class gz::sim::systems::JointControllerPrivate
   /// \brief Commanded joint velocity
   public: double jointVelCmd{0.0};
 
+  /// \brief Index of velocity actuator.
+  public: int actuatorNumber = 0;
+
   /// \brief mutex to protect jointVelCmd
   public: std::mutex jointVelCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief True if using Actuator msg to control joint velocity.
+  public: bool useActuatorMsg{false};
 
   /// \brief True if force commands are internally used to keep the target
   /// velocity.
@@ -149,9 +161,26 @@ void JointController::Configure(const Entity &_entity,
     gzdbg << "[JointController] Velocity mode" << std::endl;
   }
 
+  if (_sdf->HasElement("use_actuator_msg") &&
+    _sdf->Get<bool>("use_actuator_msg"))
+  {
+    if (_sdf->HasElement("actuator_number"))
+    {
+      this->dataPtr->actuatorNumber =
+        _sdf->Get<int>("actuator_number");
+      this->dataPtr->useActuatorMsg = true;
+    }
+    else
+    {
+      gzerr << "Please specify an actuator_number" <<
+        "to use Actuator velocity message control." << std::endl;
+    }
+  }
+
   // Subscribe to commands
   std::string topic;
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic")))
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (!this->dataPtr->useActuatorMsg))
   {
     topic = transport::TopicUtils::AsValidTopic("/model/" +
         this->dataPtr->model.Name(_ecm) + "/joint/" +
@@ -159,6 +188,18 @@ void JointController::Configure(const Entity &_entity,
     if (topic.empty())
     {
       gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (this->dataPtr->useActuatorMsg))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/actuators");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create Actuator topic for joint ["
             << this->dataPtr->jointNames[0]
             << "]" << std::endl;
       return;
@@ -193,11 +234,25 @@ void JointController::Configure(const Entity &_entity,
       return;
     }
   }
-  this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
-                                this->dataPtr.get());
 
-  gzmsg << "JointController subscribing to Double messages on [" << topic
+  if (this->dataPtr->useActuatorMsg)
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointControllerPrivate::OnActuatorVel,
+      this->dataPtr.get());
+
+    gzmsg << "JointController subscribing to Actuator messages on [" << topic
          << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointControllerPrivate::OnCmdVel,
+      this->dataPtr.get());
+
+    gzmsg << "JointController subscribing to Double messages on [" << topic
+         << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -309,6 +364,20 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->jointVelCmdMutex);
   this->jointVelCmd = _msg.data();
+}
+
+void JointControllerPrivate::OnActuatorVel(const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->jointVelCmdMutex);
+  if (this->actuatorNumber > _msg.velocity_size() - 1)
+  {
+    gzerr << "You tried to access index " << this->actuatorNumber
+      << " of the Actuator velocity array which is of size "
+      << _msg.velocity_size() << std::endl;
+    return;
+  }
+
+  this->jointVelCmd = static_cast<double>(_msg.velocity(this->actuatorNumber));
 }
 
 GZ_ADD_PLUGIN(JointController,

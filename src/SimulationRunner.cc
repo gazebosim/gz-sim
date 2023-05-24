@@ -278,8 +278,6 @@ void SimulationRunner::UpdateCurrentInfo()
   if (this->requestedRewind)
   {
     gzdbg << "Rewinding simulation back to initial time." << std::endl;
-    this->realTimes.clear();
-    this->simTimes.clear();
     this->realTimeFactor = 0;
 
     this->currentInfo.dt = this->simTimeEpoch - this->currentInfo.simTime;
@@ -301,8 +299,6 @@ void SimulationRunner::UpdateCurrentInfo()
     gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
         this->requestedSeek.value()).count() << "s." << std::endl;
 
-    this->realTimes.clear();
-    this->simTimes.clear();
     this->realTimeFactor = 0;
 
     this->currentInfo.dt = this->requestedSeek.value() -
@@ -319,41 +315,11 @@ void SimulationRunner::UpdateCurrentInfo()
 
   // Regular time flow
 
-  // Store the real time and sim time only if not paused.
-  if (this->realTimeWatch.Running())
-  {
-    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
-    this->simTimes.push_back(this->currentInfo.simTime);
-  }
+  const double simTimeCount =
+      static_cast<double>(this->currentInfo.simTime.count());
+  const double realTimeCount =
+      static_cast<double>(this->currentInfo.realTime.count());
 
-  // Maintain a window size of 20 for realtime and simtime.
-  if (this->realTimes.size() > 20)
-    this->realTimes.pop_front();
-  if (this->simTimes.size() > 20)
-    this->simTimes.pop_front();
-
-  // Compute the average sim and real times.
-  std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
-  std::list<std::chrono::steady_clock::duration>::iterator simIter,
-    realIter;
-
-  simIter = ++(this->simTimes.begin());
-  realIter = ++(this->realTimes.begin());
-  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
-  {
-    simAvg += ((*simIter) - this->simTimes.front());
-    realAvg += ((*realIter) - this->realTimes.front());
-    ++simIter;
-    ++realIter;
-  }
-
-  // RTF, only compute this if the realTime count is greater than zero. The
-  // realtTime count could be zero if simulation was started paused.
-  if (realAvg.count() > 0)
-  {
-    this->realTimeFactor = math::precision(
-          static_cast<double>(simAvg.count()) / realAvg.count(), 4);
-  }
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
@@ -367,6 +333,15 @@ void SimulationRunner::UpdateCurrentInfo()
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
+  }
+  const double simTimeDiff =
+      static_cast<double>(this->currentInfo.simTime.count()) - simTimeCount;
+  const double realTimeDiff =
+      static_cast<double>(this->currentInfo.realTime.count()) - realTimeCount;
+
+  if (realTimeDiff > 0)
+  {
+    this->realTimeFactor = simTimeDiff / realTimeDiff;
   }
 }
 
@@ -413,8 +388,6 @@ void SimulationRunner::UpdatePhysicsParams()
     }
     if (updated)
     {
-      this->simTimes.clear();
-      this->realTimes.clear();
       // Set as OneTimeChange to make sure the update is not missed
       this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
           ComponentState::OneTimeChange);
