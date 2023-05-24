@@ -13,7 +13,7 @@ current pose/configuration. To achieve reattachment at a specific pose, the
 child model can be positioned accordingly through a set_pose service call prior
 to reattaching the joint.
 
-For example, [detachable_joint.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
+For example, [detachable_joint.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
 detached from the vehicle. As seen in this example, the parent model is the
 vehicle. The kinematic topology is the following.

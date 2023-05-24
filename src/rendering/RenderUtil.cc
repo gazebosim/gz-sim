@@ -79,6 +79,7 @@
 #include "ignition/gazebo/components/Scene.hh"
 #include "ignition/gazebo/components/SegmentationCamera.hh"
 #include "ignition/gazebo/components/SemanticLabel.hh"
+#include "ignition/gazebo/components/Sensor.hh"
 #include "ignition/gazebo/components/SourceFilePath.hh"
 #include "ignition/gazebo/components/Temperature.hh"
 #include "ignition/gazebo/components/TemperatureRange.hh"
@@ -228,7 +229,7 @@ class ignition::gazebo::RenderUtilPrivate
   public: MarkerManager markerManager;
 
   /// \brief Pointer to rendering engine.
-  public: ignition::rendering::RenderEngine *engine{nullptr};
+  public: rendering::RenderEngine *engine{nullptr};
 
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
@@ -287,6 +288,9 @@ class ignition::gazebo::RenderUtilPrivate
   /// update, and particle emitter msg
   public: std::unordered_map<Entity, msgs::ParticleEmitter>
       newParticleEmittersCmds;
+
+  /// \brief New sensor topics that should be added to ECM as new components
+  public: std::unordered_map<Entity, std::string> newSensorTopics;
 
   /// \brief A list of entities with particle emitter cmds to remove
   public: std::vector<Entity> particleCmdsToRemove;
@@ -352,6 +356,11 @@ class ignition::gazebo::RenderUtilPrivate
 
   /// \brief A map of entity ids and actor animation info.
   public: std::unordered_map<Entity, AnimationUpdateData> actorAnimationData;
+
+  /// \brief A map of entity ids and the world pose of actor at current
+  /// timestep. The pose data is used to update the WorldPose component in the
+  /// ECM
+  public: std::unordered_map<Entity, math::Pose3d> actorWorldPoses;
 
   /// \brief True to update skeletons manually using bone poses
   /// (see actorTransforms). False to let render engine update animation
@@ -758,6 +767,35 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
     {
       _ecm.RemoveComponent<components::VisualCmd>(entity);
     }
+  }
+
+  // create sensor topic components
+  {
+    for (const auto &it : this->dataPtr->newSensorTopics)
+    {
+      // Set topic
+      _ecm.CreateComponent(it.first, components::SensorTopic(it.second));
+    }
+    this->dataPtr->newSensorTopics.clear();
+  }
+
+
+  // update actor world pose
+  {
+    for (const auto &it : this->dataPtr->actorWorldPoses)
+    {
+      // set world pose
+      auto worldPoseComp = _ecm.Component<components::WorldPose>(it.first);
+      if (!worldPoseComp)
+      {
+        _ecm.CreateComponent(it.first, components::WorldPose(it.second));
+      }
+      else
+      {
+        worldPoseComp->Data() = it.second;
+      }
+    }
+    this->dataPtr->actorWorldPoses.clear();
   }
 }
 
@@ -1166,6 +1204,13 @@ void RenderUtil::Update()
           entityId, std::get<1>(model), std::get<2>(model));
     }
 
+    for (const auto &actor : newActors)
+    {
+      this->dataPtr->sceneManager.CreateActor(
+          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
+          std::get<3>(actor));
+    }
+
     for (const auto &link : newLinks)
     {
       this->dataPtr->sceneManager.CreateLink(
@@ -1178,36 +1223,28 @@ void RenderUtil::Update()
           std::get<0>(visual), std::get<1>(visual), std::get<2>(visual));
     }
 
-    for (const auto &actor : newActors)
-    {
-      this->dataPtr->sceneManager.CreateActor(
-          std::get<0>(actor), std::get<1>(actor), std::get<2>(actor),
-          std::get<3>(actor));
-    }
-
     for (const auto &light : newLights)
     {
-      this->dataPtr->sceneManager.CreateLight(std::get<0>(light),
-          std::get<1>(light), std::get<2>(light), std::get<3>(light));
+      auto newLightRendering = this->dataPtr->sceneManager.CreateLight(
+        std::get<0>(light),
+        std::get<1>(light),
+        std::get<2>(light),
+        std::get<3>(light));
 
-      // TODO(anyone) This needs to be updated for when sensors and GUI use
-      // the same scene
-      // create a new id for the light visual, if we're not loading sensors
-      if (!this->dataPtr->enableSensors)
+      if (newLightRendering)
       {
-        auto attempts = 100000u;
-        for (auto i = 0u; i < attempts; ++i)
-        {
-          Entity id = std::numeric_limits<uint64_t>::min() + i;
-          if (!this->dataPtr->sceneManager.HasEntity(id))
-          {
-            rendering::VisualPtr lightVisual =
-              this->dataPtr->sceneManager.CreateLightVisual(
-                id, std::get<1>(light), std::get<2>(light), std::get<0>(light));
-            this->dataPtr->matchLightWithVisuals[std::get<0>(light)] = id;
-            break;
-          }
-        }
+        rendering::VisualPtr lightVisual =
+          this->dataPtr->sceneManager.CreateLightVisual(
+            std::get<0>(light) + 1,
+            std::get<1>(light),
+            std::get<2>(light),
+            std::get<0>(light));
+        this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
+          std::get<0>(light) + 1;
+      }
+      else
+      {
+        ignerr << "Failed to create light" << std::endl;
       }
     }
 
@@ -1299,7 +1336,7 @@ void RenderUtil::Update()
       {
         auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
         auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
-        if (!actorMesh || !actorVisual)
+        if (!actorVisual)
         {
           ignerr << "Actor with Entity ID '" << tf.first << "'. not found. "
                  << "Skipping skeleton animation update." << std::endl;
@@ -1325,10 +1362,17 @@ void RenderUtil::Update()
           trajPose.Rot() = tf.second["actorPose"].Rotation();
         }
 
-        actorVisual->SetLocalPose(globalPose * trajPose);
+        math::Pose3d worldPose = globalPose * trajPose;
+        actorVisual->SetLocalPose(worldPose);
+        {
+          // populate world pose map which is used to update ECM
+          std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+          this->dataPtr->actorWorldPoses[tf.first] = worldPose;
+        }
 
         tf.second.erase("actorPose");
-        actorMesh->SetSkeletonLocalTransforms(tf.second);
+        if (actorMesh)
+          actorMesh->SetSkeletonLocalTransforms(tf.second);
       }
     }
     else
@@ -1630,6 +1674,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   {
     sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
   }
+  this->newSensorTopics[_entity] = sdfDataCopy.Topic();
   this->newSensors.push_back(
       std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
   this->sensorEntities.insert(_entity);
@@ -2341,6 +2386,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
   IGN_PROFILE("RenderUtilPrivate::RemoveRenderingEntities");
+  _ecm.EachRemoved<components::Actor>(
+      [&](const Entity &_entity, const components::Actor *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        this->entityPoses.erase(_entity);
+        this->actorTransforms.erase(_entity);
+        return true;
+      });
   _ecm.EachRemoved<components::Model>(
       [&](const Entity &_entity, const components::Model *)->bool
       {
@@ -2497,15 +2550,21 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::InitRenderEnginePluginPaths()
+{
+  common::SystemPaths pluginPath;
+  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
+  rendering::setPluginPaths(pluginPath.PluginPaths());
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::Init()
 {
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
 
-  ignition::common::SystemPaths pluginPath;
-  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
-  rendering::setPluginPaths(pluginPath.PluginPaths());
+  this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
   if (this->dataPtr->useCurrentGLContext)
@@ -3060,7 +3119,7 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
     auto actorVisual = this->sceneManager.NodeById(it.first);
     auto actorSkel = this->sceneManager.ActorSkeletonById(
         it.first);
-    if (!actorMesh || !actorVisual || !actorSkel)
+    if (!actorVisual)
     {
       ignerr << "Actor with Entity ID '" << it.first << "'. not found. "
              << "Skipping skeleton animation update." << std::endl;
@@ -3073,50 +3132,54 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       ignerr << "invalid animation update data" << std::endl;
       continue;
     }
-    // Enable skeleton animation
-    if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
+
+    if (actorMesh && actorSkel)
     {
-      // disable all animations for this actor
-      for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+      // Enable skeleton animation
+      if (!actorMesh->SkeletonAnimationEnabled(animData.animationName))
       {
+        // disable all animations for this actor
+        for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+        {
+          actorMesh->SetSkeletonAnimationEnabled(
+              actorSkel->Animation(i)->Name(), false, false, 0.0);
+        }
+
+        // enable requested animation
         actorMesh->SetSkeletonAnimationEnabled(
-            actorSkel->Animation(i)->Name(), false, false, 0.0);
+            animData.animationName, true, animData.loop);
+
+        // Set skeleton root node weight to zero so it is not affected by
+        // the animation being played. This is needed if trajectory animation
+        // is enabled. We need to let the trajectory animation set the
+        // position of the actor instead
+        common::SkeletonPtr skeleton =
+            this->sceneManager.ActorSkeletonById(it.first);
+        if (skeleton)
+        {
+          float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
+          std::unordered_map<std::string, float> weights;
+          weights[skeleton->RootNode()->Name()] = rootBoneWeight;
+          actorMesh->SetSkeletonWeights(weights);
+        }
       }
+      // Update skeleton animation by setting animation time.
+      // Note that animation time is different from sim time. An actor can
+      // have multiple animations. Animation time is associated with
+      // current animation that is being played. It is also adjusted if
+      // interpotate_x is enabled.
+      actorMesh->UpdateSkeletonAnimation(animData.time);
 
-      // enable requested animation
-      actorMesh->SetSkeletonAnimationEnabled(
-          animData.animationName, true, animData.loop);
-
-      // Set skeleton root node weight to zero so it is not affected by
-      // the animation being played. This is needed if trajectory animation
-      // is enabled. We need to let the trajectory animation set the
-      // position of the actor instead
-      common::SkeletonPtr skeleton =
-          this->sceneManager.ActorSkeletonById(it.first);
-      if (skeleton)
+      // manually update root transform in order to sync with trajectory
+      // animation
+      if (animData.followTrajectory)
       {
-        float rootBoneWeight = (animData.followTrajectory) ? 0.0 : 1.0;
-        std::unordered_map<std::string, float> weights;
-        weights[skeleton->RootNode()->Name()] = rootBoneWeight;
-        actorMesh->SetSkeletonWeights(weights);
+        common::SkeletonPtr skeleton =
+            this->sceneManager.ActorSkeletonById(it.first);
+        std::map<std::string, math::Matrix4d> rootTf;
+        rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
+        actorMesh->SetSkeletonLocalTransforms(rootTf);
       }
-    }
-    // Update skeleton animation by setting animation time.
-    // Note that animation time is different from sim time. An actor can
-    // have multiple animations. Animation time is associated with
-    // current animation that is being played. It is also adjusted if
-    // interpotate_x is enabled.
-    actorMesh->UpdateSkeletonAnimation(animData.time);
-
-    // manually update root transform in order to sync with trajectory
-    // animation
-    if (animData.followTrajectory)
-    {
-      common::SkeletonPtr skeleton =
-          this->sceneManager.ActorSkeletonById(it.first);
-      std::map<std::string, math::Matrix4d> rootTf;
-      rootTf[skeleton->RootNode()->Name()] = animData.rootTransform;
-      actorMesh->SetSkeletonLocalTransforms(rootTf);
     }
 
     // update actor trajectory animation
@@ -3144,7 +3207,12 @@ void RenderUtilPrivate::UpdateAnimation(const std::unordered_map<Entity,
       trajPose.Rot() = poseFrame.Rotation();
     }
 
-    actorVisual->SetLocalPose(globalPose * trajPose);
+    math::Pose3d worldPose = globalPose * trajPose;
+    actorVisual->SetLocalPose(worldPose);
+
+    // populate world pose map which is used to update ECM
+    std::lock_guard<std::mutex> lock(this->updateMutex);
+    this->actorWorldPoses[it.first] = worldPose;
   }
 }
 

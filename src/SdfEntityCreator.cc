@@ -508,6 +508,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Links
+  for (uint64_t linkIndex = 0; linkIndex < _actor->LinkCount();
+      ++linkIndex)
+  {
+    auto link = _actor->LinkByIndex(linkIndex);
+    auto linkEntity = this->CreateEntities(link);
+
+    this->SetParent(linkEntity, actorEntity);
+  }
+
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
@@ -537,6 +547,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 
   this->dataPtr->ecm->CreateComponent(lightEntity,
     components::LightType(convert(_light->Type())));
+
+  // Light Visual
+  Entity lightVisualEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity, components::Visual());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Pose());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Name(_light->Name() + "Visual"));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::CastShadows(false));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Transparency(false));
+  this->SetParent(lightVisualEntity, lightEntity);
 
   return lightEntity;
 }

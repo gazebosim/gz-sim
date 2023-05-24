@@ -217,7 +217,7 @@ ResourceSpawner::ResourceSpawner()
   ignition::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
-    std::make_unique<ignition::fuel_tools::FuelClient>();
+    std::make_unique<fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -482,7 +482,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        ignition::common::URI(_path.toStdString()), localPath))
+        common::URI(_path.toStdString()), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -551,6 +551,28 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   }
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
+  // Since the ign->gz rename, `servers` here returns two items for the
+  // canonical Fuel server: fuel.ignitionrobotics.org and fuel.gazebosim.org.
+  // For the purposes of the ResourceSpawner, these will be treated as the same
+  // and we will remove the ignitionrobotics server here.
+  auto urlIs = [](const std::string &_url)
+  {
+    return [_url](const fuel_tools::ServerConfig &_server)
+    { return _server.Url().Str() == _url; };
+  };
+
+  auto ignIt = std::find_if(servers.begin(), servers.end(),
+                            urlIs("https://fuel.ignitionrobotics.org"));
+  if (ignIt != servers.end())
+  {
+    auto gzsimIt = std::find_if(servers.begin(), servers.end(),
+                                urlIs("https://fuel.gazebosim.org"));
+    if (gzsimIt != servers.end())
+    {
+      servers.erase(ignIt);
+    }
+  }
+
   ignmsg << "Please wait... Loading models from Fuel.\n";
 
   // Add notice for the user that fuel resources are being loaded
@@ -564,14 +586,14 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     std::set<std::string> ownerSet;
     for (auto const &server : servers)
     {
-      std::vector<ignition::fuel_tools::ModelIdentifier> models;
+      std::vector<fuel_tools::ModelIdentifier> models;
       for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
       {
         models.push_back(iter->Identification());
       }
 
       // Create each fuel resource and add them to the ownerModelMap
-      for (auto id : models)
+      for (const auto &id : models)
       {
         Resource resource;
         resource.name = id.Name();
@@ -584,10 +606,10 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
         // If the resource is cached, we can go ahead and populate the
         // respective information
         if (this->dataPtr->fuelClient->CachedModel(
-              ignition::common::URI(id.UniqueName()), path))
+              common::URI(id.UniqueName()), path))
         {
           resource.isDownloaded = true;
-          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
+          resource.sdfPath = common::joinPaths(path, "model.sdf");
           std::string thumbnailPath = common::joinPaths(path, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
         }
@@ -633,5 +655,5 @@ void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ResourceSpawner,
+IGNITION_ADD_PLUGIN(ResourceSpawner,
     ignition::gui::Plugin)

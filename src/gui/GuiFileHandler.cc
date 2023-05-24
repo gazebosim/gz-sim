@@ -45,7 +45,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   bool result{false};
   unsigned int timeout{5000};

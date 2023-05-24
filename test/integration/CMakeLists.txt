@@ -2,6 +2,7 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   ackermann_steering_system.cc
+  actor.cc
   air_pressure_system.cc
   altimeter_system.cc
   apply_joint_force_system.cc
@@ -25,7 +26,9 @@ set(tests
   fuel_cached_server.cc
   halt_motion.cc
   hydrodynamics.cc
+  hydrodynamics_flags.cc
   imu_system.cc
+  joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
@@ -34,6 +37,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  light.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
@@ -60,6 +64,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  sensor.cc
   spherical_coordinates.cc
   thruster.cc
   touch_plugin.cc
@@ -81,6 +86,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  actor_trajectory.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
@@ -166,6 +172,9 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
   target_link_libraries(INTEGRATION_sensors_system
+    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
+  )
+  target_link_libraries(INTEGRATION_actor_trajectory
     ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
   )
 endif()

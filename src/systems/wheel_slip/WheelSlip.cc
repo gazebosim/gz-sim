@@ -386,7 +386,7 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 IGNITION_ADD_PLUGIN(WheelSlip,
-                    ignition::gazebo::System,
+                    System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 

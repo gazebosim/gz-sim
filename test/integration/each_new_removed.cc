@@ -49,7 +49,7 @@ class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 TEST_F(EachNewRemovedFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(EachNewEachRemovedInSystem))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gazebo::ServerConfig serverConfig;
 
   gazebo::Server server;
 

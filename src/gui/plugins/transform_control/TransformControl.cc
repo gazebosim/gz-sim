@@ -54,6 +54,9 @@ namespace ignition::gazebo
     /// \brief Perform transformations in the render thread.
     public: void HandleTransform();
 
+    /// \brief Handle mouse events
+    public: void HandleMouseEvents();
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
@@ -258,14 +261,14 @@ void TransformControl::OnMode(const QString &_mode)
   // Legacy behaviour: send request to GzScene3D
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error setting transform mode" << std::endl;
     };
 
-    ignition::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(modeStr);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -284,7 +287,7 @@ void TransformControl::OnMode(const QString &_mode)
     else
       ignerr << "Unknown transform mode: [" << modeStr << "]" << std::endl;
 
-    ignition::gazebo::gui::events::TransformControlModeActive
+    gazebo::gui::events::TransformControlModeActive
       transformControlModeActive(this->dataPtr->transformMode);
     ignition::gui::App()->sendEvent(
         ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
@@ -575,9 +578,21 @@ void TransformControlPrivate::HandleTransform()
   // update gizmo visual
   this->transformControl.Update();
 
+  this->HandleMouseEvents();
+
+  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+  ignition::gui::App()->sendEvent(
+      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      &blockOrbitEvent);
+}
+
+/////////////////////////////////////////////////
+void TransformControlPrivate::HandleMouseEvents()
+{
   // check for mouse events
   if (!this->mouseDirty)
     return;
+  this->mouseDirty = false;
 
   // handle mouse movements
   if (this->mouseEvent.Button() == ignition::common::MouseEvent::LEFT)
@@ -615,7 +630,6 @@ void TransformControlPrivate::HandleTransform()
               // It's ok to get here
             }
           }
-          this->mouseDirty = false;
         }
         else
         {
@@ -682,7 +696,6 @@ void TransformControlPrivate::HandleTransform()
         }
 
         this->transformControl.Stop();
-        this->mouseDirty = false;
       }
       // Select entity
       else if (!this->mouseEvent.Dragging())
@@ -753,7 +766,6 @@ void TransformControlPrivate::HandleTransform()
               }
             }
 
-            this->mouseDirty = false;
             return;
           }
         }
@@ -912,13 +924,7 @@ void TransformControlPrivate::HandleTransform()
       }
       this->transformControl.Scale(scale);
     }
-    this->mouseDirty = false;
   }
-
-  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
-      &blockOrbitEvent);
 }
 
 /////////////////////////////////////////////////
@@ -1017,5 +1023,5 @@ void TransformControlPrivate::SnapPoint(
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::TransformControl,
+IGNITION_ADD_PLUGIN(TransformControl,
                     ignition::gui::Plugin)

@@ -2,7 +2,7 @@
 
 Ignition Gazebo supports choosing what physics engine to use at runtime.
 This is made possible by
-[Ignition Physics](https://ignitionrobotics.org/libs/physics)' abstraction
+[Ignition Physics](https://gazebosim.org/libs/physics)' abstraction
 layer.
 
 Ignition Gazebo uses the [DART](https://dartsim.github.io/) physics engine
@@ -10,7 +10,7 @@ by default.
 
 Downstream developers may also integrate other physics engines by creating new
 Ignition Physics engine plugins. See
-[Ignition Physics](https://ignitionrobotics.org/api/physics/2.0/tutorials.html)'s
+[Ignition Physics](https://gazebosim.org/api/physics/2.0/tutorials.html)'s
 tutorials to learn how to integrate a new engine.
 
 ## How Gazebo finds engines

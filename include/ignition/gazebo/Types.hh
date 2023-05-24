@@ -41,8 +41,8 @@ namespace ignition
       /// paused.
       std::chrono::steady_clock::duration simTime{0};
 
-      /// \brief Total wall clock time elapsed. This increases even if
-      /// simulation is paused.
+      /// \brief Total wall clock time elapsed while simulation is running. This
+      /// will not increase while paused.
       std::chrono::steady_clock::duration realTime{0};
 
       /// \brief Simulation time handled during a single update.

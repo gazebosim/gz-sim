@@ -472,7 +472,7 @@ start falling.
         reqType="ignition.msgs.Pose"
         repType="ignition.msgs.Boolean"
         timeout="3000"
-        reqMsg="name: 'blue_vehicle', position: {x: -3, z: 0.325}">
+        reqMsg="name: 'vehicle_blue', position: {x: -3, z: 0.325}">
       </service>
     </plugin>
     <plugin

@@ -21,8 +21,7 @@
 #include <ignition/gazebo/config.hh>
 #include <ignition/gazebo/Export.hh>
 
-/// \brief This library is part of the [Ignition
-/// Robotics](https://ignitionrobotics.org) project.
+/// \brief This library is part of the [Gazebo](https://gazebosim.org) project.
 namespace ignition
 {
   /// \brief Gazebo is a leading open source robotics simulator, that

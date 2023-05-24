@@ -14,7 +14,7 @@ class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
 yet, feel free to
-[ticket an issue](https://github.com/ignitionrobotics/ign-gazebo/issues/).
+[ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
 ## Model API
 
@@ -218,7 +218,7 @@ Classic | Ignition
 -- | --
 GetJointController | Use this system: `ignition::gazebo::systems::JointController`
 GetNearestEntityBelow | Requires a system
-PlaceOnEntity | Involves Requires a system
+PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system
 
 ---

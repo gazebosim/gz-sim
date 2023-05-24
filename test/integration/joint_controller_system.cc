@@ -70,7 +70,7 @@ TEST_F(JointControllerTestFixture,
   test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -82,12 +82,12 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool
@@ -168,7 +168,7 @@ TEST_F(JointControllerTestFixture,
   test::Relay testSystem;
   math::Vector3d angularVelocity;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -180,12 +180,12 @@ TEST_F(JointControllerTestFixture,
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool

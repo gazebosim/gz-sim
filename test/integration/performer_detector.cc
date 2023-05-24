@@ -201,8 +201,8 @@ TEST_F(PerformerDetectorTest,
   auto server = this->StartServer("/test/worlds/performer_detector.sdf", true);
 
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &_info,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &_info,
+                             EntityComponentManager &_ecm)
   {
     Entity vehicle = _ecm.EntityByComponents(
         components::Model(), components::Name("vehicle_blue"));

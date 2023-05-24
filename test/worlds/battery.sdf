@@ -54,6 +54,7 @@
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
         <power_load>500</power_load>  <!-- high load to quickly drain battery -->
+        <start_draining>true</start_draining>
       </plugin>
 
     </model>
@@ -84,8 +85,8 @@
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
         <power_load>500</power_load>  <!-- high load to quickly drain battery -->
-        <power_draining_topic>/battery/discharge1</power_draining_topic>
-        <power_draining_topic>/battery/discharge2</power_draining_topic>
+        <power_draining_topic>/battery/discharge</power_draining_topic>
+        <stop_power_draining_topic>/battery/stop_discharge</stop_power_draining_topic>
       </plugin>
 
     </model>

@@ -27,6 +27,7 @@ end
 
 require 'optparse'
 require 'erb'
+require 'pathname'
 
 # Constants.
 LIBRARY_NAME = '@library_location@'
@@ -337,7 +338,8 @@ class Cmd
   def execute(args)
     options = parse(args)
 
-    if LIBRARY_NAME[0] == '/'
+    library_name_path = Pathname.new(LIBRARY_NAME)
+    if library_name_path.absolute?
       # If the first character is a slash, we'll assume that we've been given an
       # absolute path to the library. This is only used during test mode.
       plugin = LIBRARY_NAME
@@ -405,7 +407,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
       parsed = ''
       if options['file'] != ''
         # Check if the passed in file exists.
-        if File.exists?(options['file'])
+        if File.exist?(options['file'])
           path = options['file']
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
@@ -415,7 +417,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
               filePath = File.join(resourcePath, options['file'])
-              if File.exists?(filePath)
+              if File.exist?(filePath)
                 path = filePath
                 break
               end
@@ -425,7 +427,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
           if path.nil?
             Importer.extern 'char *worldInstallDir()'
             path = File.join(Importer.worldInstallDir().to_s, options['file'])
-            if !File.exists?(path)
+            if !File.exist?(path)
               path = Importer.findFuelResource(options['file']).to_s
               options['file'] = path
               if path == ""
@@ -463,7 +465,13 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
 
         if plugin.end_with? ".dylib"
           puts "`ign gazebo` currently only works with the -s argument on macOS.
-See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+See https://github.com/gazebosim/gz-sim/issues/44 for more info."
+          exit(-1)
+        end
+
+        if plugin.end_with? ".dll"
+          puts "`ign gazebo` currently only works with the -s argument on Windows.
+See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           exit(-1)
         end
 
@@ -522,7 +530,13 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
       else options['gui']
         if plugin.end_with? ".dylib"
           puts "`ign gazebo` currently only works with the -s argument on macOS.
-See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
+See https://github.com/gazebosim/gz-sim/issues/44 for more info."
+          exit(-1)
+        end
+
+        if plugin.end_with? ".dll"
+          puts "`ign gazebo` currently only works with the -s argument on Windows.
+See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           exit(-1)
         end
 
@@ -530,10 +544,6 @@ See https://github.com/ignitionrobotics/ign-gazebo/issues/44 for more info."
         Importer.runGui(options['gui_config'], options['file'],
             options['wait_gui'], options['render_engine_gui'])
       end
-    rescue
-      puts "Library error: Problem running [#{options['command']}]() "\
-        "from #{plugin}."
-    # begin
     end
   # execute
   end

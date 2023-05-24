@@ -14,7 +14,7 @@ class.
 
 If you're trying to use some API which doesn't have an equivalent on Ignition
 yet, feel free to
-[ticket an issue](https://github.com/ignitionrobotics/ign-gazebo/issues/).
+[ticket an issue](https://github.com/gazebosim/gz-sim/issues/).
 
 ## Link API
 
@@ -261,7 +261,7 @@ logic that should be performed from within a system.
 Classic | Ignition
 -- | --
 GetNearestEntityBelow | Requires a system
-PlaceOnEntity | Involves Requires a system
+PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system
 
 ---

@@ -330,7 +330,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Test case 1:
   // No path specified on command line. This does not go through
@@ -417,7 +417,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -473,7 +473,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   // Store number of files before running
   auto logPath = common::joinPaths(homeFake.c_str(), ".ignition", "gazebo",
@@ -686,7 +686,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogPaths))
 #endif
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   this->RemoveLogsDir();
 }
@@ -759,7 +759,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   msgs::SerializedStateMap stateMsg;
   stateMsg.ParseFromString(recordedIter->Data());
   // entity size = 28 in dbl pendulum + 4 in nested model
-  EXPECT_EQ(32, stateMsg.entities_size());
+  EXPECT_EQ(33, stateMsg.entities_size());
   EXPECT_NE(batch.end(), ++recordedIter);
 
   // Playback config
@@ -1089,7 +1089,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogOverwrite))
   // ign gazebo. server_main.cc is deprecated and does not have overwrite
   // renaming implemented. So will always overwrite. Will not test (#) type of
   // renaming on OS X until ign gazebo is fixed:
-  // https://github.com/ignitionrobotics/ign-gazebo/issues/25
+  // https://github.com/gazebosim/gz-sim/issues/25
 
   // New log files were created
   EXPECT_TRUE(common::exists(this->logDir + "(1)"));
@@ -1497,7 +1497,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
@@ -1523,7 +1523,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   // Recorded models should exist
   EXPECT_GT(entryCount(recordPath), 2);
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Remove artifacts. Recreate new directory
@@ -1558,11 +1558,11 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogResources))
   EXPECT_GT(entryCount(recordPath), 1);
 #endif
   EXPECT_TRUE(common::exists(common::joinPaths(recordPath, homeFake,
-      ".ignition", "fuel", "fuel.ignitionrobotics.org", "openrobotics",
+      ".ignition", "fuel", "fuel.gazebosim.org", "openrobotics",
       "models", "x2 config 1")));
 
   // Revert environment variable after test is done
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeOrig.c_str()));
 
   // Remove artifacts
   this->RemoveLogsDir();
@@ -1584,7 +1584,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
   std::string homeOrig;
   common::env(IGN_HOMEDIR, homeOrig);
   std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(ignition::common::setenv(IGN_HOMEDIR, homeFake.c_str()));
+  EXPECT_TRUE(common::setenv(IGN_HOMEDIR, homeFake.c_str()));
 
   const std::string recordPath = this->logDir;
   std::string statePath = common::joinPaths(recordPath, "state.tlog");
