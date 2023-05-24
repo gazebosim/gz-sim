@@ -20,7 +20,7 @@
 #include <chrono>
 #include <cstdint>
 
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {

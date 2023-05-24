@@ -21,7 +21,7 @@
 #include <gz/common/Console.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/Interface.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>

@@ -16,9 +16,9 @@
 */
 #include <sdf/Lidar.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/components/GpuLidar.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/components/GpuLidar.hh>
+#include <gz/sim/EntityComponentManager.hh>
 
 #include "ComponentInspectorEditor.hh"
 #include "Lidar.hh"

@@ -35,7 +35,7 @@
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include <sdf/sdf.hh>
 

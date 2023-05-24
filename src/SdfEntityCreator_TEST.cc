@@ -48,7 +48,7 @@
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
+#include "gz/sim/components/Visibility.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/SdfEntityCreator.hh"

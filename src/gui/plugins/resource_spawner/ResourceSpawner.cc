@@ -33,7 +33,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/fuel_tools/FuelClient.hh>
 #include <gz/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
+#include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>

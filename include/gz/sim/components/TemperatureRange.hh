@@ -20,11 +20,11 @@
 #include <istream>
 #include <ostream>
 
-#include <ignition/math/Temperature.hh>
+#include <gz/math/Temperature.hh>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {

@@ -17,12 +17,12 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
 #define IGNITION_GAZEBO_COMPONENTS_JOINTTRANSMITTEDWRENCH_HH_
 
-#include <ignition/msgs/wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {

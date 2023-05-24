@@ -22,18 +22,18 @@
 
 #include <QtQml>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/Scene.hh>
 
 namespace ignition::gazebo
 {

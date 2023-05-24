@@ -15,8 +15,8 @@
  *
 */
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <string>
 #include <vector>
@@ -24,27 +24,27 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 #include "VisualizeContacts.hh"
 

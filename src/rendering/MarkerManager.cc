@@ -21,7 +21,7 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Events.hh"

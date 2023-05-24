@@ -15,9 +15,9 @@
  *
  */
 
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/transport/Node.hh>
 
 #include "Visualization.hh"
 

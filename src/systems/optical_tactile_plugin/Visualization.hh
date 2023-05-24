@@ -21,11 +21,11 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/msgs/marker.pb.h>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
+#include <gz/msgs/marker.pb.h>
 
-#include "ignition/gazebo/components/ContactSensorData.hh"
+#include "gz/sim/components/ContactSensorData.hh"
 
 namespace ignition
 {

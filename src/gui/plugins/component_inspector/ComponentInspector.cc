@@ -234,7 +234,7 @@ void ignition::gazebo::setData(QStandardItem *_item, const msgs::Light &_data)
 
 //////////////////////////////////////////////////
 template<>
-void gazebo::setData(QStandardItem *_item,
+void ignition::gazebo::setData(QStandardItem *_item,
     const math::Vector3d &_data)
 {
   if (nullptr == _item)

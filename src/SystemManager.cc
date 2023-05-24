@@ -18,10 +18,10 @@
 #include <list>
 #include <set>
 
-#include <ignition/common/StringUtils.hh>
+#include <gz/common/StringUtils.hh>
 
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/Conversions.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
 
 using namespace ignition;

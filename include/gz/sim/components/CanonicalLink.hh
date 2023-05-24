@@ -20,6 +20,7 @@
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
+#include <gz/sim/Entity.hh>
 
 namespace ignition
 {

@@ -284,7 +284,7 @@ namespace components
     void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      auto typeHash = ignition::common::hash64(_type);
+      auto typeHash = gz::common::hash64(_type);
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we

@@ -15,15 +15,15 @@
  *
  */
 
-#include <ignition/msgs/dataframe.pb.h>
+#include <gz/msgs/dataframe.pb.h>
 
 #include <algorithm>
 #include <string>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ImplPtr.hh>
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/comms/MsgManager.hh"
+#include <gz/transport/Node.hh>
+#include <gz/utils/ImplPtr.hh>
+#include "gz/sim/config.hh"
+#include "gz/sim/comms/MsgManager.hh"
 
 /// \brief Private MsgManager data class.
 class ignition::gazebo::comms::MsgManager::Implementation

@@ -20,7 +20,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)

@@ -19,15 +19,15 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 #include "CopyPaste.hh"
 

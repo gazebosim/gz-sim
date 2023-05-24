@@ -20,10 +20,10 @@
 
 #include <memory>
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
-#include "ignition/gazebo/comms/MsgManager.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/comms/MsgManager.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {

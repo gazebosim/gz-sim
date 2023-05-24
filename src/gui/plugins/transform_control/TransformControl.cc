@@ -27,11 +27,11 @@
 #include <vector>
 
 #include <gz/common/Console.hh>
-#include <ignition/common/KeyEvent.hh>
-#include <ignition/common/MouseEvent.hh>
+#include <gz/common/KeyEvent.hh>
+#include <gz/common/MouseEvent.hh>
 #include <gz/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/Geometry.hh>
@@ -40,7 +40,7 @@
 #include <gz/rendering/RenderTypes.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
-#include <ignition/rendering/TransformController.hh>
+#include <gz/rendering/TransformController.hh>
 #include <gz/rendering/Visual.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>

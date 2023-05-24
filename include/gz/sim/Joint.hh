@@ -25,18 +25,18 @@
 #include <gz/msgs/wrench.pb.h>
 #include <gz/utils/ImplPtr.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector2.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 
 #include <sdf/Joint.hh>
 #include <sdf/JointAxis.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Types.hh"
 
 namespace ignition
 {

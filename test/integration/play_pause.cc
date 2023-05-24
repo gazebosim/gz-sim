@@ -19,7 +19,7 @@
 #include <chrono>
 #include <condition_variable>
 
-#include "ignition/msgs.hh"
+#include "gz/msgs.hh"
 #include "gz/transport.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/test_config.hh"  // NOLINT(build/include)

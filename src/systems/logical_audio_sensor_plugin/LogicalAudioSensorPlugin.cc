@@ -31,7 +31,7 @@
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/World.hh>
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #include <gz/transport.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SdfEntityCreator.hh>

@@ -20,7 +20,7 @@
 
 #include <optional>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

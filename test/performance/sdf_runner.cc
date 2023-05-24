@@ -17,7 +17,7 @@
 
 #include <array>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 #include <gz/math/Stopwatch.hh>
 #include <gz/common/Console.hh>
 

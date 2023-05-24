@@ -17,11 +17,11 @@
 #ifndef IGNITION_GAZEBO_COMPONENTS_SYSTEMINFO_HH_
 #define IGNITION_GAZEBO_COMPONENTS_SYSTEMINFO_HH_
 
-#include <ignition/msgs/plugin_v.pb.h>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-#include <ignition/gazebo/config.hh>
+#include <gz/msgs/plugin_v.pb.h>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/config.hh>
 
 namespace ignition
 {

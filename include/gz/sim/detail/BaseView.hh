@@ -22,9 +22,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {

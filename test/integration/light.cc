@@ -17,27 +17,27 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/light.pb.h>
+#include <gz/msgs/light.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
 #include <sdf/Light.hh>
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Light.hh>
-#include <ignition/gazebo/components/Light.hh>
-#include <ignition/gazebo/components/LightCmd.hh>
-#include <ignition/gazebo/components/LightType.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/World.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Light.hh>
+#include <gz/sim/components/Light.hh>
+#include <gz/sim/components/LightCmd.hh>
+#include <gz/sim/components/LightType.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/World.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 

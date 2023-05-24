@@ -20,11 +20,11 @@
 
 #include <memory>
 
-#include <ignition/common/MouseEvent.hh>
+#include <gz/common/MouseEvent.hh>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
-#include <ignition/rendering/Camera.hh>
+#include <gz/rendering/Camera.hh>
 
 namespace ignition
 {

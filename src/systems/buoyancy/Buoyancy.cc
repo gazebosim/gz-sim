@@ -42,7 +42,7 @@
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Link.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Volume.hh"
 #include "gz/sim/components/World.hh"

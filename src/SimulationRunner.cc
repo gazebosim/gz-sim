@@ -27,7 +27,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
 #include "gz/sim/components/Recreate.hh"

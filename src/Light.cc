@@ -15,19 +15,19 @@
  *
  */
 
-#include <ignition/msgs/light.pb.h>
+#include <gz/msgs/light.pb.h>
 
 #include <sdf/Light.hh>
 
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightType.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightType.hh"
+#include "gz/sim/components/LightCmd.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
 
-#include "ignition/gazebo/Light.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Light.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;

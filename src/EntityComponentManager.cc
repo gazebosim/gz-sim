@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <map>
 #include <memory>

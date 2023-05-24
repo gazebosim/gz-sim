@@ -34,7 +34,7 @@
 
 #include "Types.hh"
 
-#include <ignition/msgs/light.pb.h>
+#include <gz/msgs/light.pb.h>
 
 Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
 

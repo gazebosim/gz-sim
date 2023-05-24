@@ -49,7 +49,7 @@
 
 #include <gz/rendering/Image.hh>
 #include <gz/rendering/OrbitViewController.hh>
-#include <ignition/rendering/OrthoViewController.hh>
+#include <gz/rendering/OrthoViewController.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RayQuery.hh>
 #include <gz/rendering/RenderEngine.hh>

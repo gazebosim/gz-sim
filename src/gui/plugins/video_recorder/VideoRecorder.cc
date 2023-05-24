@@ -25,15 +25,15 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/VideoEncoder.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/VideoEncoder.hh>
 #include <gz/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
 

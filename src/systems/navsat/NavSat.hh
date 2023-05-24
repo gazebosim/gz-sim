@@ -17,10 +17,10 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 #define IGNITION_GAZEBO_SYSTEMS_NAVSAT_HH_
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {

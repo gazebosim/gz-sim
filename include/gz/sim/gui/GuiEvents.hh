@@ -192,7 +192,7 @@ namespace events
     /// \param[in] _type Entity type
     /// \param[in] _parent Parent entity.
     public: explicit ModelEditorAddEntity(QString _entity, QString _type,
-                ignition::gazebo::Entity _parent);
+                gz::sim::Entity _parent);
 
     /// \brief Get the entity to add
     public: QString Entity() const;
@@ -202,7 +202,7 @@ namespace events
 
 
     /// \brief Get the parent entity to add the entity to
-    public: ignition::gazebo::Entity ParentEntity() const;
+    public: gz::sim::Entity ParentEntity() const;
 
     /// \brief Get the data map.
     /// \return the QMap of string, string holding custom data.

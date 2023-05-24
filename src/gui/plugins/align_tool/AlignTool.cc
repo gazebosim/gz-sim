@@ -16,7 +16,7 @@
 */
 
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -27,7 +27,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
+#include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/Geometry.hh>
@@ -37,7 +37,7 @@
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
 #include <gz/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
+#include <gz/rendering/WireBox.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/EntityComponentManager.hh"

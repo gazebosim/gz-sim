@@ -23,20 +23,20 @@
 
 #include <QQmlProperty>
 
-#include <ignition/common/MouseEvent.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
-#include "ignition/rendering/Camera.hh"
+#include <gz/common/MouseEvent.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/WireBox.hh>
+#include "gz/rendering/Camera.hh"
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 #include "SelectEntities.hh"
 

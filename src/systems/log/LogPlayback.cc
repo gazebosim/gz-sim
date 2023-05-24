@@ -17,7 +17,6 @@
 
 #include "LogPlayback.hh"
 
-#include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/log_playback_stats.pb.h>
 
 #include <set>
