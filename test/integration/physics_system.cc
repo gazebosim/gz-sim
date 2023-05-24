@@ -2547,8 +2547,8 @@ TEST_F(PhysicsSystemFixture, JointsInWorld)
 {
   ServerConfig serverConfig;
 
-  const auto sdfFile = common::jointPaths(PROJECT_SOURCE_PATH, "test", "worlds",
-                                          "joints_in_world.sdf");
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+                                         "joints_in_world.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
   Server server(serverConfig);
