@@ -512,9 +512,10 @@ namespace components
     public: IgnGazeboComponents##_classname() \
     { \
       using namespace ignition; \
-      using Desc = gazebo::components::ComponentDescriptor<_classname>; \
-      gazebo::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc(), gazebo::components::RegistrationObjectId(this));\
+      using Desc = gz::sim::components::ComponentDescriptor<_classname>; \
+      gz::sim::components::Factory::Instance()->Register<_classname>(\
+        _compType, new Desc(), \
+        gz::sim::components::RegistrationObjectId(this));\
     } \
     public: IgnGazeboComponents##_classname( \
                 const IgnGazeboComponents##_classname&) = delete; \

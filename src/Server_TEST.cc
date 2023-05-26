@@ -170,7 +170,7 @@ TEST_P(ServerFixture, ServerConfigSdfPluginInfo)
   plugin.SetName("interface");
   pluginInfo.SetPlugin(plugin);
 
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.AddPlugin(pluginInfo);
 
   const std::list<ServerConfig::PluginInfo> &plugins = serverConfig.Plugins();
@@ -364,7 +364,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
@@ -386,7 +386,7 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
@@ -693,7 +693,7 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfString(TestWorldSansPhysics::World());
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -1113,7 +1113,7 @@ TEST_P(ServerFixture, ResolveResourcePaths)
   common::setenv("IGN_FILE_PATH", "");
 
   ServerConfig serverConfig;
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   EXPECT_FALSE(*server.Running(0));
 
@@ -1186,7 +1186,7 @@ TEST_P(ServerFixture, Stop)
   serverConfig.SetSdfFile(common::joinPaths((PROJECT_SOURCE_PATH),
       "test", "worlds", "shapes.sdf"));
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   // The simulation runner should not be running.
   EXPECT_FALSE(*server.Running(0));

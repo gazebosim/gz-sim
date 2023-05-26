@@ -311,4 +311,4 @@ void VisualizeContacts::UpdatePeriod(double _period)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeContacts,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

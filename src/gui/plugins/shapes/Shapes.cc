@@ -73,9 +73,9 @@ void Shapes::OnMode(const QString &_mode)
 
   if (!modelSdfString.empty())
   {
-    ignition::gui::events::SpawnFromDescription event(modelSdfString);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(modelSdfString);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
   }
 }

@@ -30,7 +30,7 @@ namespace gazebo
 
   /// \brief Provides buttons for adding a point, directional, or spot light
   /// to the scene
-  class Lights : public ignition::gui::Plugin
+  class Lights : public gz::gui::Plugin
   {
     Q_OBJECT
 

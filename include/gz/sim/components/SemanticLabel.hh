@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_LABEL_HH_
+#define GZ_GAZEBO_COMPONENTS_LABEL_HH_
 
 #include "gz/sim/Export.hh"
 #include "gz/sim/components/Component.hh"

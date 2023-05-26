@@ -186,8 +186,8 @@ void SelectEntitiesPrivate::HandleEntitySelection()
 
       ignition::gazebo::gui::events::EntitiesSelected selectEvent(
           this->selectedEntities);
-      ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
           &selectEvent);
     }
     this->receivedSelectedEntities = false;
@@ -375,8 +375,8 @@ void SelectEntitiesPrivate::SetSelectedEntity(
   this->HighlightNode(topLevelVisual);
   ignition::gazebo::gui::events::EntitiesSelected entitiesSelected(
     this->selectedEntities);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &entitiesSelected);
 }
 
@@ -396,8 +396,8 @@ void SelectEntitiesPrivate::DeselectAllEntities()
   this->selectedEntitiesID.clear();
 
   ignition::gazebo::gui::events::DeselectAllEntities deselectEvent(true);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &deselectEvent);
 }
 
@@ -425,8 +425,8 @@ void SelectEntitiesPrivate::UpdateSelectedEntity(
   {
     ignition::gazebo::gui::events::EntitiesSelected selectEvent(
         this->selectedEntities);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &selectEvent);
   }
 }
@@ -488,17 +488,17 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
   }
   done = true;
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
 
     if (this->dataPtr->mouseEvent.Button() == common::MouseEvent::LEFT &&
@@ -514,7 +514,7 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  else if (_event->type() == ignition::gui::events::Render::kType)
+  else if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->Initialize();
     this->dataPtr->HandleEntitySelection();
@@ -569,16 +569,16 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
     this->dataPtr->selectedEntities.clear();
   }
   else if (_event->type() ==
-    ignition::gui::events::SpawnFromDescription::kType ||
-    _event->type() == ignition::gui::events::SpawnFromPath::kType)
+    gz::gui::events::SpawnFromDescription::kType ||
+    _event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     this->dataPtr->isSpawning = true;
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     if (_e->Key().Key() == Qt::Key_Escape)
     {
       this->dataPtr->mouseDirty = true;
@@ -612,4 +612,4 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::gui::SelectEntities,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

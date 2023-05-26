@@ -479,8 +479,8 @@ void ComponentInspectorEditor::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector editor";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -1348,8 +1348,8 @@ void ComponentInspectorEditor::OnAddEntity(const QString &_entity,
   ignition::gazebo::gui::events::ModelEditorAddEntity addEntityEvent(
       _entity, _type, this->dataPtr->entity);
 
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &addEntityEvent);
 }
 
@@ -1364,8 +1364,8 @@ void ComponentInspectorEditor::OnAddJoint(const QString &_jointType,
   addEntityEvent.Data().insert("parent_link", _parentLink);
   addEntityEvent.Data().insert("child_link", _childLink);
 
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &addEntityEvent);
 }
 
@@ -1391,12 +1391,12 @@ void ComponentInspectorEditor::OnLoadMesh(const QString &_entity,
 
     addEntityEvent.Data().insert("uri", QString(meshStr.c_str()));
 
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &addEntityEvent);
   }
 }
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspectorEditor,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

@@ -360,8 +360,8 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////

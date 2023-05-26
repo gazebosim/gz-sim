@@ -289,8 +289,8 @@ void TransformControl::OnMode(const QString &_mode)
 
     gazebo::gui::events::TransformControlModeActive
       transformControlModeActive(this->dataPtr->transformMode);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &transformControlModeActive);
     this->dataPtr->mouseDirty = true;
   }
@@ -350,7 +350,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -381,31 +381,31 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->selectedEntities.clear();
     }
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::MousePressOnScene::kType)
+  else if (_event->type() == gz::gui::events::MousePressOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::MousePressOnScene *>(_event);
+        static_cast<gz::gui::events::MousePressOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::DragOnScene::kType)
+  else if (_event->type() == gz::gui::events::DragOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::DragOnScene *>(_event);
+        static_cast<gz::gui::events::DragOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyPressOnScene::kType)
   {
-    ignition::gui::events::KeyPressOnScene *_e =
-      static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
+    gz::gui::events::KeyPressOnScene *_e =
+      static_cast<gz::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
 
     if (this->dataPtr->keyEvent.Key() == Qt::Key_T)
@@ -417,10 +417,10 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateRotate();
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
     if (this->dataPtr->keyEvent.Key() == Qt::Key_Escape)
     {
@@ -580,9 +580,9 @@ void TransformControlPrivate::HandleTransform()
 
   this->HandleMouseEvents();
 
-  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &blockOrbitEvent);
 }
 
@@ -677,7 +677,7 @@ void TransformControlPrivate::HandleMouseEvents()
           if (this->poseCmdService.empty())
           {
             std::string worldName;
-            auto worldNames = ignition::gui::worldNames();
+            auto worldNames = gz::gui::worldNames();
             if (!worldNames.empty())
               worldName = worldNames[0].toStdString();
 

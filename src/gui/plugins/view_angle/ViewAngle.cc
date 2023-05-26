@@ -199,14 +199,14 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   ignmsg << "Move to model service on ["
          << this->dataPtr->moveToModelService << "]" << std::endl;
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
 

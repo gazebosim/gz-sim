@@ -54,7 +54,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 BananaForScale::BananaForScale()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<BananaPrivate>())
 {
   this->dataPtr->fuelClient =
@@ -101,12 +101,12 @@ void BananaForScale::OnMode(const QString &_mode)
     sdfPath = ignition::common::joinPaths(localPath, "model.sdf");
   }
 
-  ignition::gui::events::SpawnFromPath event(sdfPath);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::SpawnFromPath event(sdfPath);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::BananaForScale,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

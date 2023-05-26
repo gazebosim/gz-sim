@@ -145,8 +145,8 @@ ModelEditor::~ModelEditor() = default;
 /////////////////////////////////////////////////
 void ModelEditor::Load()
 {
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 //////////////////////////////////////////////////
@@ -240,8 +240,8 @@ void ModelEditor::Update(const UpdateInfo &,
   std::set<Entity> removedEntities;
   ignition::gazebo::gui::events::GuiNewRemovedEntities event(
       newEntities, removedEntities);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 
   this->dataPtr->entitiesToAdd.clear();

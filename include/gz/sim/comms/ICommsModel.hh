@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_ICOMMSMODEL_HH_
-#define IGNITION_GAZEBO_ICOMMSMODEL_HH_
+#ifndef GZ_GAZEBO_ICOMMSMODEL_HH_
+#define GZ_GAZEBO_ICOMMSMODEL_HH_
 
 #include <memory>
 

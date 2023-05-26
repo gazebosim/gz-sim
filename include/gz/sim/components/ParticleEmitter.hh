@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_PARTICLEEMITTER_HH_
-#define IGNITION_GAZEBO_COMPONENTS_PARTICLEEMITTER_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_PARTICLEEMITTER_HH_
+#define GZ_GAZEBO_COMPONENTS_PARTICLEEMITTER_HH_
 
 #include <gz/msgs/particle_emitter.pb.h>
 #include <gz/sim/components/Component.hh>

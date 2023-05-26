@@ -76,7 +76,7 @@ class PlotComponent
 
   /// \brief Get all attributes of the component
   /// \return component attributes
-  public: std::map<std::string, std::shared_ptr<ignition::gui::PlotData>>
+  public: std::map<std::string, std::shared_ptr<gz::gui::PlotData>>
     Data() const;
 
   /// \brief Get the Component entity ID

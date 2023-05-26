@@ -154,8 +154,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -164,10 +164,10 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  if (_event->type() == gz::gui::events::WorldControl::kType)
   {
     auto worldControlEvent =
-      reinterpret_cast<ignition::gui::events::WorldControl *>(_event);
+      reinterpret_cast<gz::gui::events::WorldControl *>(_event);
     if (worldControlEvent)
     {
       msgs::WorldControlState req;
@@ -232,7 +232,7 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 void GuiRunner::RequestState()
 {
   // set up service for async state response callback
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
@@ -286,7 +286,7 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
-  std::string id = std::to_string(ignition::gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   this->dataPtr->node.UnadvertiseSrv(reqSrv);
@@ -326,7 +326,7 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 void GuiRunner::UpdatePlugins()
 {
   // gui plugins
-  auto plugins = ignition::gui::App()->findChildren<GuiSystem *>();
+  auto plugins = gz::gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);

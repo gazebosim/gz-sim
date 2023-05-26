@@ -47,7 +47,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 Lights::Lights()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<LightsPrivate>())
 {
 }
@@ -70,13 +70,13 @@ void Lights::OnNewLightClicked(const QString &_sdfString)
 
   if (!modelSdfString.empty())
   {
-    ignition::gui::events::SpawnFromDescription event(modelSdfString);
-    ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(modelSdfString);
+    gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
           &event);
   }
 }
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Lights,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

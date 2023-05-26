@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_BROKER_HH_
-#define IGNITION_GAZEBO_BROKER_HH_
+#ifndef GZ_GAZEBO_BROKER_HH_
+#define GZ_GAZEBO_BROKER_HH_
 
 #include <memory>
 

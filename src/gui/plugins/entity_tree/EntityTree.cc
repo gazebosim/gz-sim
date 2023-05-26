@@ -468,9 +468,9 @@ void EntityTree::DeselectAllEntities()
 void EntityTree::OnInsertEntity(const QString &_type)
 {
   std::string modelSdfString = getPrimitive(_type.toStdString());
-  ignition::gui::events::SpawnFromDescription event(modelSdfString);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::SpawnFromDescription event(modelSdfString);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
@@ -515,9 +515,9 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
         "</model>"
       "</sdf>";
 
-    ignition::gui::events::SpawnFromDescription event(sdf);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnFromDescription event(sdf);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
 
   }

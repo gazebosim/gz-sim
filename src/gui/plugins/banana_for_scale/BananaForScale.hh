@@ -29,7 +29,7 @@ namespace gazebo
   class BananaPrivate;
 
   /// \brief Provides buttons for adding a banana for scale
-  class BananaForScale: public ignition::gui::Plugin
+  class BananaForScale: public gz::gui::Plugin
   {
     Q_OBJECT
 

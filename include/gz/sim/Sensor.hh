@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SENSOR_HH_
-#define IGNITION_GAZEBO_SENSOR_HH_
+#ifndef GZ_GAZEBO_SENSOR_HH_
+#define GZ_GAZEBO_SENSOR_HH_
 
 #include <memory>
 #include <optional>

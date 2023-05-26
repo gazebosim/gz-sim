@@ -2854,14 +2854,14 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
   ignmsg << "View frames service on ["
          << this->dataPtr->viewFramesService << "]" << std::endl;
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 ////////////////////////////////////////////////
 bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -2871,4 +2871,4 @@ bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizationCapabilities,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

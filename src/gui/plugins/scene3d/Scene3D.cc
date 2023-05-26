@@ -2112,7 +2112,7 @@ std::string IgnRenderer::Initialize()
   }
 
   this->dataPtr->renderUtil.SetWinID(std::to_string(
-    ignition::gui::App()->findChild<ignition::gui::MainWindow *>()->
+    gz::gui::App()->findChild<gz::gui::MainWindow *>()->
       QuickWindow()->winId()));
   this->dataPtr->renderUtil.SetUseCurrentGLContext(true);
   this->dataPtr->renderUtil.Init();
@@ -3713,7 +3713,7 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-           gui::events::DeselectAllEntities::kType)
+           gz::sim::gui::events::DeselectAllEntities::kType)
   {
     auto deselectEvent =
         reinterpret_cast<ignition::gazebo::gui::events::DeselectAllEntities *>(
@@ -3727,9 +3727,9 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::SnapIntervals::kType)
+      gz::gui::events::SnapIntervals::kType)
   {
-    auto snapEvent = reinterpret_cast<ignition::gui::events::SnapIntervals *>(
+    auto snapEvent = reinterpret_cast<gz::gui::events::SnapIntervals *>(
         _event);
     if (snapEvent)
     {
@@ -3740,20 +3740,20 @@ bool Scene3D::eventFilter(QObject *_obj, QEvent *_event)
     }
   }
   else if (_event->type() ==
-      ignition::gui::events::SpawnFromDescription::kType)
+      gz::gui::events::SpawnFromDescription::kType)
   {
     auto spawnPreviewEvent = reinterpret_cast<
-        ignition::gui::events::SpawnFromDescription *>(_event);
+        gz::gui::events::SpawnFromDescription *>(_event);
     if (spawnPreviewEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();
       renderWindow->SetModel(spawnPreviewEvent->Description());
     }
   }
-  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
+  else if (_event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnFromPath *>(_event);
     if (spawnPreviewPathEvent)
     {
       auto renderWindow = this->PluginItem()->findChild<RenderWindowItem *>();

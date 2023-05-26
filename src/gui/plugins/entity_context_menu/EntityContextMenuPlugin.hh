@@ -34,7 +34,7 @@ namespace gazebo
 
   /// \brief This plugin is in charge of showing the entity context menu when
   /// the right button is clicked on a visual.
-  class EntityContextMenu : public ignition::gui::Plugin
+  class EntityContextMenu : public gz::gui::Plugin
   {
     Q_OBJECT
 

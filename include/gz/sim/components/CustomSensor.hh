@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_COMPONENTS_CUSTOMSENSOR_HH_
-#define IGNITION_GAZEBO_COMPONENTS_CUSTOMSENSOR_HH_
+#ifndef GZ_GAZEBO_COMPONENTS_CUSTOMSENSOR_HH_
+#define GZ_GAZEBO_COMPONENTS_CUSTOMSENSOR_HH_
 
 #include <sdf/Sensor.hh>
 #include <gz/sim/components/Factory.hh>

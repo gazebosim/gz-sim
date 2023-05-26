@@ -31,7 +31,7 @@ namespace gazebo
 
   /// \brief Allows to spawn models and lights using the spawn gui events or
   /// drag and drop.
-  class Spawn : public ignition::gui::Plugin
+  class Spawn : public gz::gui::Plugin
   {
     Q_OBJECT
 
@@ -54,7 +54,7 @@ namespace gazebo
 
     /// \brief Handle drop events.
     /// \param[in] _event Event with drop information.
-    public: void OnDropped(const ignition::gui::events::DropOnScene *_event);
+    public: void OnDropped(const gz::gui::events::DropOnScene *_event);
 
     /// \brief Get the text for the popup error message
     /// \return The error text

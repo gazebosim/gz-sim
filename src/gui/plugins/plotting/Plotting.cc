@@ -69,13 +69,13 @@ namespace ignition::gazebo
     /// \brief attributes of the components,
     /// ex: x,y,z attributes in Vector3d type component
     public: std::map<std::string,
-      std::shared_ptr<ignition::gui::PlotData>> data;
+      std::shared_ptr<gz::gui::PlotData>> data;
   };
 }
 
 using namespace ignition;
 using namespace ignition::gazebo;
-using namespace ignition::gui;
+using namespace gz::gui;
 
 //////////////////////////////////////////////////
 PlotComponent::PlotComponent(const std::string &_type,
@@ -552,4 +552,4 @@ void Plotting::Update(const ignition::gazebo::UpdateInfo &_info,
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Plotting,
                     ignition::gazebo::GuiSystem,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)
