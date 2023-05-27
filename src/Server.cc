@@ -182,6 +182,12 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
+  if (this->dataPtr->sdfRoot.WorldCount() == 0)
+  {
+    ignerr << "SDF file doesn't contain a world.\n";
+    return;
+  }
+
   // Add record plugin
   if (_config.UseLogRecord())
   {
