@@ -1088,6 +1088,41 @@ TEST_P(ServerFixture, AddResourcePaths)
   }
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, SdfWithoutWorld)
+{
+  // Initialize logging
+  std::string logBasePath = common::joinPaths(PROJECT_BINARY_PATH, "tmp");
+  common::setenv(IGN_HOMEDIR, logBasePath);
+  std::string path = common::uuid();
+  ignLogInit(path, "test.log");
+
+  // Start server with model SDF file
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/models/sphere/model.sdf");
+
+  gz::sim::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Check error message in log file
+  std::ifstream ifs(common::joinPaths(logBasePath, path, "test.log").c_str(), std::ios::in);
+  bool errFound = false;
+  while ((!errFound) && (!ifs.eof()))
+  {
+    std::string line;
+    std::getline(ifs, line);
+    errFound = (line.find("SDF file doesn't contain a world.") != std::string::npos);
+  }
+  EXPECT_TRUE(errFound);
+
+  // Stop logging
+  ignLogClose();
+  common::removeAll(logBasePath);
+}
+
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
