@@ -24,6 +24,7 @@
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Link.hh"
@@ -158,7 +159,12 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // Publish command and check that vehicle moved
   transport::Node node;
   auto pub = node.Advertise<msgs::Double>(_topic);
-  auto db_pub = node.Advertise<msgs::Boolean>(_db_topic);
+  transport::Node::Publisher db_pub;
+  if (!_db_topic.empty()) {
+    // create publisher only if topic is not empty, otherwise tests will  which should be the case
+    // for the deadband world.
+    db_pub = node.Advertise<msgs::Boolean>(_db_topic);
+  }
 
   int sleep{0};
   int maxSleep{30};
