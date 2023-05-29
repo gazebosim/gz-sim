@@ -1099,21 +1099,23 @@ TEST_P(ServerFixture, SdfWithoutWorld)
 
   // Start server with model SDF file
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/models/sphere/model.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "models", "sphere", "model.sdf"));
 
   gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
   // Check error message in log file
-  std::ifstream ifs(common::joinPaths(logBasePath, path, "test.log").c_str(), std::ios::in);
+  std::string logFullPath = common::joinPaths(logBasePath, path, "test.log");
+  std::ifstream ifs(logFullPath.c_str(), std::ios::in);
   bool errFound = false;
   while ((!errFound) && (!ifs.eof()))
   {
     std::string line;
     std::getline(ifs, line);
-    errFound = (line.find("SDF file doesn't contain a world.") != std::string::npos);
+    std::string errString = "SDF file doesn't contain a world.";
+    errFound = (line.find(errString) != std::string::npos);
   }
   EXPECT_TRUE(errFound);
 
@@ -1121,7 +1123,6 @@ TEST_P(ServerFixture, SdfWithoutWorld)
   ignLogClose();
   common::removeAll(logBasePath);
 }
-
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
