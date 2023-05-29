@@ -161,8 +161,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
   auto pub = node.Advertise<msgs::Double>(_topic);
   transport::Node::Publisher db_pub;
   if (!_db_topic.empty()) {
-    // create publisher only if topic is not empty, otherwise tests will  which should be the case
-    // for the deadband world.
+    // create publisher only if topic is not empty, otherwise tests will get
+    // get complains
     db_pub = node.Advertise<msgs::Boolean>(_db_topic);
   }
 
@@ -348,11 +348,11 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // And we send a command that are below the deadband threshold
     msg.set_data(_deadband / 2.0);
     pub.Publish(msg);
-    // When the deadband is disabled, any command value 
+    // When the deadband is disabled, any command value
     // (especially values below the deadband threshold) should move the model
     fixture.Server()->Run(true, 1000, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    
+
     // make sure we have run a 1000 times
     EXPECT_EQ(1000u, modelPoses.size());
     EXPECT_EQ(1000u, propellerAngVels.size());
@@ -361,7 +361,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // the model should have moved. Note that the distance moved is small
     // This is because we are sending small forces (deadband/2)
     EXPECT_LT(0.1, modelPoses.back().Pos().X());
-    
+
     // Check that the propeller are rotating
     force = _deadband / 2.0;
     omega = sqrt(abs(force / (_density * _thrustCoefficient *
