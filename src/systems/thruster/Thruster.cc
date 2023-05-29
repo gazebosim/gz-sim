@@ -403,12 +403,16 @@ void Thruster::Configure(
 
   gzmsg << "Thruster listening to commands on [" << thrusterTopic << "]"
         << std::endl;
-  this->dataPtr->node.Subscribe(
-      this->dataPtr->deadbandTopic,
-      &ThrusterPrivateData::OnDeadbandEnable,
-      this->dataPtr.get());
-  gzmsg << "Thruster listening to enable_deadband on ["
-        << this->dataPtr->deadbandTopic << "]" << std::endl;
+
+  if (!this->dataPtr->deadbandTopic.empty())
+  {
+    this->dataPtr->node.Subscribe(
+        this->dataPtr->deadbandTopic,
+        &ThrusterPrivateData::OnDeadbandEnable,
+        this->dataPtr.get());
+    gzmsg << "Thruster listening to enable_deadband on ["
+          << this->dataPtr->deadbandTopic << "]" << std::endl;
+  }
 
   this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
       feedbackTopic);
