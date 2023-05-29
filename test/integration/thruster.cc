@@ -345,24 +345,41 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // disable the deadband
     db_msg.set_data(false);
     db_pub.Publish(db_msg);
-    // And we send a command that is still below the deadband threshold
+    // And we send a command that are below the deadband threshold
     msg.set_data(_deadband / 2.0);
     pub.Publish(msg);
-    // Check movements
+    // When the deadband is disabled, any command value 
+    // (especially values below the deadband threshold) should move the model
     fixture.Server()->Run(true, 1000, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    EXPECT_LT(0.1, modelPoses.back().Pos().X());
-
+    
+    // make sure we have run a 1000 times
     EXPECT_EQ(1000u, modelPoses.size());
     EXPECT_EQ(1000u, propellerAngVels.size());
     EXPECT_EQ(1000u, propellerLinVels.size());
+
+    // the model should have moved. Note that the distance moved is small
+    // This is because we are sending small forces (deadband/2)
+    EXPECT_LT(0.1, modelPoses.back().Pos().X());
+    
+    // Check that the propeller are rotating
+    force = _deadband / 2.0;
+    omega = sqrt(abs(force / (_density * _thrustCoefficient *
+        pow(_diameter, 4))));
+    // Account for negative thrust and/or negative thrust coefficient
+    omega *= (force * _thrustCoefficient > 0 ? 1 : -1);
+
+    // for (unsigned int i = 0; i < propellerAngVels.size(); ++i)
+    // {
+    //   EXPECT_NEAR(omega, propellerAngVels[i].X(), omegaTol) << i;
+    // }
     modelPoses.clear();
     propellerAngVels.clear();
     propellerLinVels.clear();
+    // re-enable the deadband
+    db_msg.set_data(true);
+    db_pub.Publish(db_msg);
   }
-  // re-enable the deadband
-  db_msg.set_data(true);
-  db_pub.Publish(db_msg);
 
 }
 
@@ -443,7 +460,7 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 /////////////////////////////////////////////////
 TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
 {
-:string ns = "lowbattery";
+  const std::string ns = "lowbattery";
   const std::string topic =  ns + "/thrust";
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "thruster_battery.sdf");
