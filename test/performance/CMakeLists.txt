@@ -5,6 +5,21 @@ set(tests
   level_manager.cc
 )
 
+set(tests_needing_display
+  sensors_system.cc
+)
+
+# Add systems that need a valid display here.
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND tests ${tests_needing_display})
+else()
+  message(STATUS
+    "Skipping these PERFORMANCE tests because a valid display was not found:")
+  foreach(test ${tests_needing_display})
+    message(STATUS " ${test}")
+  endforeach(test)
+endif()
+
 set(exec
   sdf_runner
 )
@@ -21,7 +36,7 @@ if (MSVC)
   set_source_files_properties(${exec}.cc COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-ign_build_tests(TYPE PERFORMANCE
+gz_build_tests(TYPE PERFORMANCE
   SOURCES
     ${tests}
   LIB_DEPS
@@ -35,8 +50,13 @@ add_executable(
 
 target_link_libraries(
   PERFORMANCE_${exec}
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET PERFORMANCE_sensors_system)
+  target_link_libraries(PERFORMANCE_sensors_system
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()

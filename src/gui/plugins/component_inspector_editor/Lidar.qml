@@ -48,28 +48,28 @@ Rectangle {
   // Noise dynamic bias correlation time
   property double noiseDynamicBiasCorrelationTime: model.data[5]
 
-  // Horizontal scan samples 
+  // Horizontal scan samples
   property double horizontalScanSamples: model.data[6]
 
-  // Horizontal scan resolution 
+  // Horizontal scan resolution
   property double horizontalScanResolution: model.data[7]
 
-  // Horizontal scan min angle 
+  // Horizontal scan min angle
   property double horizontalScanMinAngle: model.data[8]
 
-  // Horizontal scan max angle 
+  // Horizontal scan max angle
   property double horizontalScanMaxAngle: model.data[9]
 
-  // Vertical scan samples 
+  // Vertical scan samples
   property double verticalScanSamples: model.data[10]
 
-  // Vertical scan resolution 
+  // Vertical scan resolution
   property double verticalScanResolution: model.data[11]
 
-  // Vertical scan min angle 
+  // Vertical scan min angle
   property double verticalScanMinAngle: model.data[12]
 
-  // Vertical scan max angle 
+  // Vertical scan max angle
   property double verticalScanMaxAngle: model.data[13]
 
   // Range min
@@ -194,24 +194,24 @@ Rectangle {
           height: rangeGrid.height
           color: "transparent"
           Layout.leftMargin: 20
-    
+
           GridLayout {
             id: rangeGrid
             width: parent.width
             columns: 4
-    
-            // Padding 
+
+            // Padding
             Rectangle {
               Layout.columnSpan: 4
               height: 4
             }
-    
+
             // Range min
             Rectangle {
               color: "transparent"
               height: 40
               Layout.preferredWidth: rangeMinText.width
-    
+
               Text {
                 id : rangeMinText
                 text: 'Min (m)'
@@ -248,13 +248,13 @@ Rectangle {
               }
             }
             // End of min range
-            
+
             // Max range
             Rectangle {
               color: "transparent"
               height: 40
               Layout.preferredWidth: rangeMaxText.width
-    
+
               Text {
                 id : rangeMaxText
                 text: 'Max (m)'
@@ -290,14 +290,14 @@ Rectangle {
                 rangeMaxSpin.onChange.connect(onRangeMax)
               }
             }
-            // End of range max 
-    
+            // End of range max
+
             // Range resolution
             Rectangle {
               color: "transparent"
               height: 40
               Layout.preferredWidth: rangeResolutionText.width
-    
+
               Text {
                 id : rangeResolutionText
                 text: 'Resolution'
@@ -325,7 +325,7 @@ Rectangle {
               Layout.fillWidth: true
               height: 40
               numberValue: rangeResolution
-              minValue: 0 
+              minValue: 0
               maxValue: Number.MAX_VALUE
               stepValue: 0.1
               // Connect to the onLidarUpdate signal in Noise.qml
@@ -354,7 +354,7 @@ Rectangle {
         }
         Rectangle {
           Layout.fillWidth: true
-          height: horizontalScan.height 
+          height: horizontalScan.height
           Layout.leftMargin: 20
           color: "transparent"
           LidarScan {
@@ -390,7 +390,7 @@ Rectangle {
         }
         Rectangle {
           Layout.fillWidth: true
-          height: verticalScan.height 
+          height: verticalScan.height
           Layout.leftMargin: 20
           color: "transparent"
 

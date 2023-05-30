@@ -1,0 +1,26 @@
+<?xml version='1.0'?>
+
+<!-- Note that some of the meshes don't exist. -->
+
+<sdf version='1.6'>
+  <model name='relative_resource_uri'>
+    <pose>0 0 1 0 0 0</pose>
+    <link name='L1'>
+      <visual name='V1'>
+        <geometry>
+          <mesh>
+            <uri>meshes/box.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <visual name='V2'>
+        <pose>1 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/nonexistent.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

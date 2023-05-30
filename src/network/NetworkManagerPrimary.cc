@@ -23,25 +23,25 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
 #include "msgs/simulation_step.pb.h"
 
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
 
 #include "NetworkManagerPrivate.hh"
 #include "PeerTracker.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -74,25 +74,25 @@ void NetworkManagerPrimary::Handshake()
     std::string topic {sc->prefix + "/control"};
     unsigned int timeout = 5000;
 
-    igndbg << "Registering secondary [" << topic << "]" << std::endl;
+    gzdbg << "Registering secondary [" << topic << "]" << std::endl;
     bool executed = this->node.Request(topic, req, timeout, resp, result);
 
     if (executed)
     {
       if (result)
       {
-        ignmsg << "Peer initialized [" << sc->prefix << "]" << std::endl;
+        gzmsg << "Peer initialized [" << sc->prefix << "]" << std::endl;
         sc->ready = true;
       }
       else
       {
-        ignerr << "Peer service call failed [" << sc->prefix << "]"
+        gzerr << "Peer service call failed [" << sc->prefix << "]"
           << std::endl;
       }
     }
     else
     {
-      ignerr << "Peer service call timed out [" << sc->prefix << "], waited "
+      gzerr << "Peer service call timed out [" << sc->prefix << "], waited "
              << timeout << " ms" << std::endl;
     }
 
@@ -112,7 +112,7 @@ bool NetworkManagerPrimary::Ready() const
 //////////////////////////////////////////////////
 bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 {
-  IGN_PROFILE("NetworkManagerPrimary::Step");
+  GZ_PROFILE("NetworkManagerPrimary::Step");
 
   // Check all secondaries have been registered
   bool ready = true;
@@ -124,7 +124,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   // TODO(louise) Wait for peers to be ready in a loop?
   if (!ready)
   {
-    ignerr << "Trying to step network primary before all peers are ready."
+    gzerr << "Trying to step network primary before all peers are ready."
            << std::endl;
     return false;
   }
@@ -150,13 +150,13 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   // Block until all secondaries are done
   {
-    IGN_PROFILE("Waiting for secondaries");
+    GZ_PROFILE("Waiting for secondaries");
 
     auto result = future.wait_for(10s);
 
     if (std::future_status::ready != result)
     {
-      ignerr << "Waited 10 s and got only [" << this->secondaryStates.size()
+      gzerr << "Waited 10 s and got only [" << this->secondaryStates.size()
              << " / " << this->secondaries.size()
              << "] responses from secondaries. Stopping simulation."
              << std::endl;
@@ -167,7 +167,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
 
   // Update primary state with states received from secondaries
   {
-    IGN_PROFILE("Updating primary state");
+    GZ_PROFILE("Updating primary state");
     for (const auto &msg : this->secondaryStates)
     {
       this->dataPtr->ecm->SetState(msg);
@@ -211,8 +211,8 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 {
   // TODO(anyone) Ideally we'd check the number of connections against the
   // number of expected secondaries, but there's no interface for that
-  // on ign-transport yet:
-  // https://github.com/ignitionrobotics/ign-transport/issues/39
+  // on gz-transport yet:
+  // https://github.com/gazebosim/gz-transport/issues/39
   return this->simStepPub.HasConnections();
 }
 
@@ -220,7 +220,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 void NetworkManagerPrimary::PopulateAffinities(
     private_msgs::SimulationStep &_msg)
 {
-  IGN_PROFILE("NetworkManagerPrimary::PopulateAffinities");
+  GZ_PROFILE("NetworkManagerPrimary::PopulateAffinities");
 
   // p: performer
   // l: level

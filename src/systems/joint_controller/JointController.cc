@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +18,51 @@
 
 #include "JointController.hh"
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
+#include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/PID.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/PID.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointControllerPrivate
+class gz::sim::systems::JointControllerPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Double &_msg);
+  public: void OnCmdVel(const msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Callback for actuator velocity subscription
+  /// \param[in] _msg Velocity message
+  public: void OnActuatorVel(const msgs::Actuators &_msg);
+
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity
-  public: Entity jointEntity;
+  public: std::vector<Entity> jointEntities;
+
+  /// \brief Joint name
+  public: std::vector<std::string> jointNames;
 
   /// \brief Commanded joint velocity
-  public: double jointVelCmd;
+  public: double jointVelCmd{0.0};
+
+  /// \brief Index of velocity actuator.
+  public: int actuatorNumber = 0;
 
   /// \brief mutex to protect jointVelCmd
   public: std::mutex jointVelCmdMutex;
@@ -56,12 +70,15 @@ class ignition::gazebo::systems::JointControllerPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief True if using Actuator msg to control joint velocity.
+  public: bool useActuatorMsg{false};
+
   /// \brief True if force commands are internally used to keep the target
   /// velocity.
   public: bool useForceCommands{false};
 
   /// \brief Velocity PID controller.
-  public: ignition::math::PID velPid;
+  public: math::PID velPid;
 };
 
 //////////////////////////////////////////////////
@@ -80,33 +97,35 @@ void JointController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointController plugin should be attached to a model entity. "
+    gzerr << "JointController plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
 
   // Get params from SDF
-  auto jointName = _sdf->Get<std::string>("joint_name");
-  if (jointName.empty())
+  auto sdfElem = _sdf->FindElement("joint_name");
+  while (sdfElem)
   {
-    ignerr << "JointController found an empty jointName parameter. "
-           << "Failed to initialize.";
-    return;
+    if (!sdfElem->Get<std::string>().empty())
+    {
+      this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    }
+    else
+    {
+      gzerr << "<joint_name> provided but is empty." << std::endl;
+    }
+    sdfElem = sdfElem->GetNextElement("joint_name");
   }
-
-  this->dataPtr->jointEntity = this->dataPtr->model.JointByName(_ecm,
-      jointName);
-  if (this->dataPtr->jointEntity == kNullEntity)
+  if (this->dataPtr->jointNames.empty())
   {
-    ignerr << "Joint with name[" << jointName << "] not found. "
-    << "The JointController may not control this joint.\n";
+    gzerr << "Failed to get any <joint_name>." << std::endl;
     return;
   }
 
   if (_sdf->HasElement("initial_velocity"))
   {
     this->dataPtr->jointVelCmd = _sdf->Get<double>("initial_velocity");
-    ignmsg << "Joint velocity initialized to ["
+    gzmsg << "Joint velocity initialized to ["
            << this->dataPtr->jointVelCmd << "]" << std::endl;
   }
 
@@ -127,30 +146,80 @@ void JointController::Configure(const Entity &_entity,
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
-    igndbg << "[JointController] Force mode with parameters:" << std::endl;
-    igndbg << "p_gain: ["     << p         << "]"             << std::endl;
-    igndbg << "i_gain: ["     << i         << "]"             << std::endl;
-    igndbg << "d_gain: ["     << d         << "]"             << std::endl;
-    igndbg << "i_max: ["      << iMax      << "]"             << std::endl;
-    igndbg << "i_min: ["      << iMin      << "]"             << std::endl;
-    igndbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
-    igndbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
-    igndbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+    gzdbg << "[JointController] Force mode with parameters:" << std::endl;
+    gzdbg << "p_gain: ["     << p         << "]"             << std::endl;
+    gzdbg << "i_gain: ["     << i         << "]"             << std::endl;
+    gzdbg << "d_gain: ["     << d         << "]"             << std::endl;
+    gzdbg << "i_max: ["      << iMax      << "]"             << std::endl;
+    gzdbg << "i_min: ["      << iMin      << "]"             << std::endl;
+    gzdbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
+    gzdbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
+    gzdbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
   }
   else
   {
-    igndbg << "[JointController] Velocity mode" << std::endl;
+    gzdbg << "[JointController] Velocity mode" << std::endl;
+  }
+
+  if (_sdf->HasElement("use_actuator_msg") &&
+    _sdf->Get<bool>("use_actuator_msg"))
+  {
+    if (_sdf->HasElement("actuator_number"))
+    {
+      this->dataPtr->actuatorNumber =
+        _sdf->Get<int>("actuator_number");
+      this->dataPtr->useActuatorMsg = true;
+    }
+    else
+    {
+      gzerr << "Please specify an actuator_number" <<
+        "to use Actuator velocity message control." << std::endl;
+    }
   }
 
   // Subscribe to commands
-  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + jointName +
-      "/cmd_vel");
-  if (topic.empty())
+  std::string topic;
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (!this->dataPtr->useActuatorMsg))
   {
-    ignerr << "Failed to create topic for joint [" << jointName
-           << "]" << std::endl;
-    return;
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+        this->dataPtr->model.Name(_ecm) + "/joint/" +
+        this->dataPtr->jointNames[0] + "/cmd_vel");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (this->dataPtr->useActuatorMsg))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/actuators");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create Actuator topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if (_sdf->HasElement("sub_topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/" +
+        _sdf->Get<std::string>("sub_topic"));
+
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic from sub_topic [/model/"
+             << this->dataPtr->model.Name(_ecm) << "/"
+             << _sdf->Get<std::string>("sub_topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
+             << "]" << std::endl;
+      return;
+    }
   }
   if (_sdf->HasElement("topic"))
   {
@@ -159,50 +228,84 @@ void JointController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << jointName
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
              << "]" << std::endl;
       return;
     }
   }
-  this->dataPtr->node.Subscribe(topic, &JointControllerPrivate::OnCmdVel,
-                                this->dataPtr.get());
 
-  ignmsg << "JointController subscribing to Double messages on [" << topic
+  if (this->dataPtr->useActuatorMsg)
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointControllerPrivate::OnActuatorVel,
+      this->dataPtr.get());
+
+    gzmsg << "JointController subscribing to Actuator messages on [" << topic
          << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointControllerPrivate::OnCmdVel,
+      this->dataPtr.get());
+
+    gzmsg << "JointController subscribing to Double messages on [" << topic
+         << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
-void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void JointController::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointController::PreUpdate");
-
-  // If the joint hasn't been identified yet, the plugin is disabled
-  if (this->dataPtr->jointEntity == kNullEntity)
-    return;
+  GZ_PROFILE("JointController::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
+
+  // If the joints haven't been identified yet, look for them
+  if (this->dataPtr->jointEntities.empty())
+  {
+    bool warned{false};
+    for (const std::string &name : this->dataPtr->jointNames)
+    {
+      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      if (joint != kNullEntity)
+      {
+        this->dataPtr->jointEntities.push_back(joint);
+      }
+      else if (!warned)
+      {
+        gzwarn << "Failed to find joint [" << name << "]" << std::endl;
+        warned = true;
+      }
+    }
+  }
+  if (this->dataPtr->jointEntities.empty())
+    return;
 
   // Nothing left to do if paused.
   if (_info.paused)
     return;
 
   // Create joint velocity component if one doesn't exist
-  auto jointVelComp =
-      _ecm.Component<components::JointVelocity>(this->dataPtr->jointEntity);
-  if (jointVelComp == nullptr)
+  auto jointVelComp = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->jointEntities[0]);
+  if (!jointVelComp)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity, components::JointVelocity());
+    _ecm.CreateComponent(this->dataPtr->jointEntities[0],
+        components::JointVelocity());
   }
-  if (jointVelComp == nullptr)
+
+  // We just created the joint velocity component, give one iteration for the
+  // physics system to update its size
+  if (jointVelComp == nullptr || jointVelComp->Data().empty())
     return;
 
   double targetVel;
@@ -211,43 +314,47 @@ void JointController::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     targetVel = this->dataPtr->jointVelCmd;
   }
 
+  double error = jointVelComp->Data().at(0) - targetVel;
+
   // Force mode.
-  if (this->dataPtr->useForceCommands)
+  if ((this->dataPtr->useForceCommands) &&
+      (!jointVelComp->Data().empty()))
   {
-    if (!jointVelComp->Data().empty())
+    for (Entity joint : this->dataPtr->jointEntities)
     {
-      double error = jointVelComp->Data().at(0) - targetVel;
+      // Update force command.
       double force = this->dataPtr->velPid.Update(error, _info.dt);
 
       auto forceComp =
-          _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
+          _ecm.Component<components::JointForceCmd>(joint);
       if (forceComp == nullptr)
       {
-        _ecm.CreateComponent(this->dataPtr->jointEntity,
-                             components::JointForceCmd({force}));
+        _ecm.CreateComponent(joint,
+                            components::JointForceCmd({force}));
       }
       else
       {
-        forceComp->Data()[0] = force;
+        *forceComp = components::JointForceCmd({force});
       }
     }
   }
   // Velocity mode.
-  else
+  else if (!this->dataPtr->useForceCommands)
   {
     // Update joint velocity
-    auto vel =
-      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
+    for (Entity joint : this->dataPtr->jointEntities)
+    {
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
 
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->jointEntity,
-          components::JointVelocityCmd({targetVel}));
-    }
-    else if (!vel->Data().empty())
-    {
-      vel->Data()[0] = targetVel;
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(
+            joint, components::JointVelocityCmd({targetVel}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({targetVel});
+      }
     }
   }
 }
@@ -259,10 +366,28 @@ void JointControllerPrivate::OnCmdVel(const msgs::Double &_msg)
   this->jointVelCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(JointController,
-                    ignition::gazebo::System,
+void JointControllerPrivate::OnActuatorVel(const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->jointVelCmdMutex);
+  if (this->actuatorNumber > _msg.velocity_size() - 1)
+  {
+    gzerr << "You tried to access index " << this->actuatorNumber
+      << " of the Actuator velocity array which is of size "
+      << _msg.velocity_size() << std::endl;
+    return;
+  }
+
+  this->jointVelCmd = static_cast<double>(_msg.velocity(this->actuatorNumber));
+}
+
+GZ_ADD_PLUGIN(JointController,
+                    System,
                     JointController::ISystemConfigure,
                     JointController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointController,
+GZ_ADD_PLUGIN_ALIAS(JointController,
+                          "gz::sim::systems::JointController")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(JointController,
                           "ignition::gazebo::systems::JointController")

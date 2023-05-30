@@ -16,24 +16,24 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/msgs/int32.pb.h>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <memory>
 
 #include <sdf/Element.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/math/Inertial.hh>
+#include <gz/common/Console.hh>
+#include <gz/math/Inertial.hh>
 
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Serialization.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Serialization.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
@@ -41,7 +41,7 @@ class ComponentTest : public InternalFixture<::testing::Test>
   protected: void SetUp() override
   {
     InternalFixture::SetUp();
-    common::setenv("IGN_DEBUG_COMPONENT_FACTORY", "true");
+    common::setenv("GZ_DEBUG_COMPONENT_FACTORY", "true");
   }
 };
 
@@ -62,15 +62,15 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 }
 
 //////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(ComponentTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ComponentTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
 {
   auto factory = components::Factory::Instance();
 
   // Create a custom component with shared_ptr data
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
-  factory->Register<CustomComponent>("ign_gazebo_components.MyCustom",
+  factory->Register<CustomComponent>("gz_sim_components.MyCustom",
      new components::ComponentDescriptor<CustomComponent>());
 
   EntityComponentManager ecm;
@@ -126,7 +126,7 @@ inline std::istream &operator>>(std::istream &_in, sdf::Element &_element)
 
 // ostream operator for math::Inertiald (not defined elsewhere)
 // Note: Must be defined in the correct namespace or clang refuses to find it.
-namespace ignition
+namespace gz
 {
 namespace math
 {
@@ -180,7 +180,7 @@ class NoSerialize : public components::BaseComponent
     return 0;
   }
 
-  public: std::unique_ptr<BaseComponent> Clone() override
+  public: std::unique_ptr<BaseComponent> Clone() const override
   {
     return nullptr;
   }
@@ -332,7 +332,7 @@ TEST_F(ComponentTest, OStream)
     EXPECT_EQ("Mass: 0", ostr.str());
   }
 
-  // Component with a ignition::msgs type that gets serialized by the default
+  // Component with a msgs type that gets serialized by the default
   // serializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,
@@ -484,7 +484,7 @@ TEST_F(ComponentTest, IStream)
     EXPECT_DOUBLE_EQ(200, comp.Data()->MassMatrix().Mass());
   }
 
-  // Component with a ignition::msgs type that gets deserialized by the message
+  // Component with a msgs type that gets deserialized by the message
   // deserializer
   {
     using Custom = components::Component<msgs::Int32, class CustomTag,

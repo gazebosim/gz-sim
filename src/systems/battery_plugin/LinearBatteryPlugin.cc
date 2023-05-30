@@ -17,8 +17,8 @@
 
 #include "LinearBatteryPlugin.hh"
 
-#include <ignition/msgs/battery_state.pb.h>
-#include <ignition/msgs/boolean.pb.h>
+#include <gz/msgs/battery_state.pb.h>
+#include <gz/msgs/boolean.pb.h>
 
 #include <algorithm>
 #include <atomic>
@@ -27,32 +27,33 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Battery.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Battery.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Element.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/BatteryPowerLoad.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::LinearBatteryPluginPrivate
+class gz::sim::systems::LinearBatteryPluginPrivate
 {
   /// \brief Reset the plugin
   public: void Reset();
@@ -63,11 +64,11 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Callback executed to start recharging.
   /// \param[in] _req This value should be true.
-  public: void OnEnableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnEnableRecharge(const msgs::Boolean &_req);
 
   /// \brief Callback executed to stop recharging.
   /// \param[in] _req This value should be true.
-  public: void OnDisableRecharge(const ignition::msgs::Boolean &_req);
+  public: void OnDisableRecharge(const msgs::Boolean &_req);
 
   /// \brief Callback connected to additional topics that can start battery
   /// draining.
@@ -76,10 +77,22 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \param[in] _info Information about the message.
   public: void OnBatteryDrainingMsg(
     const char *_data, const size_t _size,
-    const ignition::transport::MessageInfo &_info);
+    const gz::transport::MessageInfo &_info);
+
+  /// \brief Callback connected to additional topics that can stop battery
+  /// draining.
+  /// \param[in] _data Message data.
+  /// \param[in] _size Message data size.
+  /// \param[in] _info Information about the message.
+  public: void OnBatteryStopDrainingMsg(
+    const char *_data, const size_t _size,
+    const gz::transport::MessageInfo &_info);
 
   /// \brief Name of model, only used for printing warning when battery drains.
   public: std::string modelName;
+
+  /// \brief Name that identifies a battery.
+  public: std::string batteryName;
 
   /// \brief Pointer to battery contained in link.
   public: common::BatteryPtr battery;
@@ -129,15 +142,15 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \TODO(caguero) Remove this flag in Ignition Dome.
+  /// \TODO(caguero) Remove this flag in Gazebo Dome.
   /// \brief Flag to enable some battery fixes.
   public: bool fixIssue225{false};
 
-  /// \TODO(caguero) Remove in Ignition Dome.
+  /// \TODO(caguero) Remove in Gazebo Dome.
   /// \brief Battery current for a historic time window
   public: std::deque<double> iList;
 
-  /// \TODO(caguero) Remove in Ignition Dome.
+  /// \TODO(caguero) Remove in Gazebo Dome.
   /// \brief Time interval for a historic time window
   public: std::deque<double> dtList;
 
@@ -145,7 +158,7 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   public: std::chrono::steady_clock::duration stepSize;
 
   /// \brief Flag on whether the battery should start draining
-  public: bool startDraining = true;
+  public: bool startDraining = false;
 
   /// \brief The start time when battery starts draining in seconds
   public: int drainStartTime = -1;
@@ -157,14 +170,14 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Battery state of charge message publisher
   public: transport::Node::Publisher statePub;
 
-  /// \brief Whether a topic has received any battery-draining command.
-  public: bool startDrainingFromTopics = false;
+  /// \brief Initial power load set trough config
+  public: double initialPowerLoad = 0.0;
 };
 
 /////////////////////////////////////////////////
@@ -203,7 +216,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   auto model = Model(_entity);
   if (!model.Valid(_ecm))
   {
-    ignerr << "Linear battery plugin should be attached to a model entity. "
+    gzerr << "Linear battery plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -221,7 +234,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (this->dataPtr->c <= 0)
   {
-    ignerr << "No <capacity> or incorrect value specified. Capacity should be "
+    gzerr << "No <capacity> or incorrect value specified. Capacity should be "
            << "greater than 0.\n";
     return;
   }
@@ -232,11 +245,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->q0 = _sdf->Get<double>("initial_charge");
     if (this->dataPtr->q0 > this->dataPtr->c || this->dataPtr->q0 < 0)
     {
-      ignerr << "<initial_charge> value should be between [0, <capacity>]."
+      gzerr << "<initial_charge> value should be between [0, <capacity>]."
              << std::endl;
       this->dataPtr->q0 =
         std::max(0.0, std::min(this->dataPtr->q0, this->dataPtr->c));
-      ignerr << "Setting <initial_charge> to [" << this->dataPtr->q0
+      gzerr << "Setting <initial_charge> to [" << this->dataPtr->q0
              << "] instead." << std::endl;
     }
   }
@@ -251,7 +264,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->tau = _sdf->Get<double>("smooth_current_tau");
     if (this->dataPtr->tau <= 0)
     {
-      ignerr << "<smooth_current_tau> value should be positive. "
+      gzerr << "<smooth_current_tau> value should be positive. "
              << "Using [1] instead." << std::endl;
       this->dataPtr->tau = 1;
     }
@@ -262,21 +275,18 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
-    auto batteryName = _sdf->Get<std::string>("battery_name");
+    this->dataPtr->batteryName = _sdf->Get<std::string>("battery_name");
     auto initVoltage = _sdf->Get<double>("voltage");
 
-    // Create battery entity and component
+    // Create battery entity and some components
     this->dataPtr->batteryEntity = _ecm.CreateEntity();
-    // Initialize with initial voltage
-    _ecm.CreateComponent(this->dataPtr->batteryEntity,
-      components::BatterySoC(this->dataPtr->soc));
     _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
-      batteryName));
+      this->dataPtr->batteryName));
     _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
 
     // Create actual battery and assign update function
-    this->dataPtr->battery = std::make_shared<common::Battery>(batteryName,
-      initVoltage);
+    this->dataPtr->battery = std::make_shared<common::Battery>(
+      this->dataPtr->batteryName, initVoltage);
     this->dataPtr->battery->Init();
     this->dataPtr->battery->SetUpdateFunc(
       std::bind(&LinearBatteryPlugin::OnUpdateVoltage, this,
@@ -284,7 +294,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "No <battery_name> or <voltage> specified. Both are required.\n";
+    gzerr << "No <battery_name> or <voltage> specified. Both are required.\n";
     return;
   }
 
@@ -297,7 +307,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
         this->dataPtr->tCharge = _sdf->Get<double>("charging_time");
       else
       {
-        ignerr << "No <charging_time> specified. "
+        gzerr << "No <charging_time> specified. "
                   "Parameter required to enable recharge.\n";
         return;
       }
@@ -315,7 +325,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           disableRechargeTopic);
       if (validEnableRechargeTopic.empty() || validDisableRechargeTopic.empty())
       {
-        ignerr << "Failed to create valid topics. Not valid: ["
+        gzerr << "Failed to create valid topics. Not valid: ["
                << enableRechargeTopic << "] and [" << disableRechargeTopic
                << "]" << std::endl;
         return;
@@ -339,18 +349,21 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   // Consumer-specific
   if (_sdf->HasElement("power_load"))
   {
-    auto powerLoad = _sdf->Get<double>("power_load");
+    this->dataPtr->initialPowerLoad = _sdf->Get<double>("power_load");
     this->dataPtr->consumerId = this->dataPtr->battery->AddConsumer();
     bool success = this->dataPtr->battery->SetPowerLoad(
-      this->dataPtr->consumerId, powerLoad);
+      this->dataPtr->consumerId, this->dataPtr->initialPowerLoad);
     if (!success)
-      ignerr << "Failed to set consumer power load." << std::endl;
+      gzerr << "Failed to set consumer power load." << std::endl;
   }
   else
   {
-    ignwarn << "Required attribute power_load missing "
+    gzwarn << "Required attribute power_load missing "
             << "in LinearBatteryPlugin SDF" << std::endl;
   }
+
+  if (_sdf->HasElement("start_draining"))
+    this->dataPtr->startDraining = _sdf->Get<bool>("start_draining");
 
   // Subscribe to power draining topics, if any.
   if (_sdf->HasElement("power_draining_topic"))
@@ -363,18 +376,39 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           std::bind(&LinearBatteryPluginPrivate::OnBatteryDrainingMsg,
           this->dataPtr.get(), std::placeholders::_1, std::placeholders::_2,
           std::placeholders::_3));
-      ignmsg << "LinearBatteryPlugin subscribes to power draining topic ["
+      gzmsg << "LinearBatteryPlugin subscribes to power draining topic ["
              << topic << "]." << std::endl;
       sdfElem = sdfElem->GetNextElement("power_draining_topic");
     }
   }
 
-  ignmsg << "LinearBatteryPlugin configured. Battery name: "
+  // Subscribe to stop power draining topics, if any.
+  if (_sdf->HasElement("stop_power_draining_topic"))
+  {
+    sdf::ElementConstPtr sdfElem =
+        _sdf->FindElement("stop_power_draining_topic");
+    while (sdfElem)
+    {
+      const auto &topic = sdfElem->Get<std::string>();
+      this->dataPtr->node.SubscribeRaw(topic,
+          std::bind(&LinearBatteryPluginPrivate::OnBatteryStopDrainingMsg,
+          this->dataPtr.get(), std::placeholders::_1, std::placeholders::_2,
+          std::placeholders::_3));
+      ignmsg << "LinearBatteryPlugin subscribes to stop power draining topic ["
+             << topic << "]." << std::endl;
+      sdfElem = sdfElem->GetNextElement("power_draining_topic");
+    }
+  }
+
+  gzmsg << "LinearBatteryPlugin configured. Battery name: "
          << this->dataPtr->battery->Name() << std::endl;
-  igndbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
+  gzdbg << "Battery initial voltage: " << this->dataPtr->battery->InitVoltage()
          << std::endl;
 
   this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
+  // Initialize battery with initial calculated state of charge
+  _ecm.CreateComponent(this->dataPtr->batteryEntity,
+      components::BatterySoC(this->dataPtr->soc));
 
   // Setup battery state topic
   std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
@@ -383,7 +417,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   auto validStateTopic = transport::TopicUtils::AsValidTopic(stateTopic);
   if (validStateTopic.empty())
   {
-    ignerr << "Failed to create valid state topic ["
+    gzerr << "Failed to create valid state topic ["
            << stateTopic << "]" << std::endl;
     return;
   }
@@ -400,7 +434,7 @@ void LinearBatteryPluginPrivate::Reset()
   this->iraw = 0.0;
   this->ismooth = 0.0;
   this->q = this->q0;
-  this->startDrainingFromTopics = false;
+  this->startDraining = false;
 }
 
 /////////////////////////////////////////////////
@@ -411,38 +445,61 @@ double LinearBatteryPluginPrivate::StateOfCharge() const
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnEnableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const msgs::Boolean &/*_req*/)
 {
-  igndbg << "Request for start charging received" << std::endl;
+  gzdbg << "Request for start charging received" << std::endl;
   this->startCharging = true;
 }
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnDisableRecharge(
-  const ignition::msgs::Boolean &/*_req*/)
+  const msgs::Boolean &/*_req*/)
 {
-  igndbg << "Request for stop charging received" << std::endl;
+  gzdbg << "Request for stop charging received" << std::endl;
   this->startCharging = false;
 }
 
 //////////////////////////////////////////////////
 void LinearBatteryPluginPrivate::OnBatteryDrainingMsg(
-  const char *, const size_t, const ignition::transport::MessageInfo &)
+  const char *, const size_t, const gz::transport::MessageInfo &)
 {
-  this->startDrainingFromTopics = true;
+  this->startDraining = true;
+}
+
+//////////////////////////////////////////////////
+void LinearBatteryPluginPrivate::OnBatteryStopDrainingMsg(
+  const char *, const size_t, const gz::transport::MessageInfo &)
+{
+  this->startDraining = false;
 }
 
 //////////////////////////////////////////////////
 void LinearBatteryPlugin::PreUpdate(
-  const ignition::gazebo::UpdateInfo &/*_info*/,
-  ignition::gazebo::EntityComponentManager &_ecm)
+  const UpdateInfo &/*_info*/,
+  EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinearBatteryPlugin::PreUpdate");
+  GZ_PROFILE("LinearBatteryPlugin::PreUpdate");
 
-  // \todo(anyone) Add in the ability to stop the battery from draining
-  // after it has been started by a topic. See this comment:
-  // https://github.com/ignitionrobotics/ign-gazebo/pull/1255#discussion_r770223092
-  this->dataPtr->startDraining = this->dataPtr->startDrainingFromTopics;
+  // Recalculate the total power load among consumers
+  double total_power_load = this->dataPtr->initialPowerLoad;
+  _ecm.Each<components::BatteryPowerLoad>(
+    [&](const Entity & /*_entity*/,
+        const components::BatteryPowerLoad *_batteryPowerLoadInfo)->bool
+    {
+      if (_batteryPowerLoadInfo->Data().batteryId ==
+          this->dataPtr->batteryEntity)
+      {
+        total_power_load = total_power_load +
+            _batteryPowerLoadInfo->Data().batteryPowerLoad;
+      }
+      return true;
+    });
+
+  bool success = this->dataPtr->battery->SetPowerLoad(
+      this->dataPtr->consumerId, total_power_load);
+  if (!success)
+      ignerr << "Failed to set consumer power load." << std::endl;
+
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
   {
@@ -487,12 +544,12 @@ void LinearBatteryPlugin::PreUpdate(
 void LinearBatteryPlugin::Update(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("LinearBatteryPlugin::Update");
+  GZ_PROFILE("LinearBatteryPlugin::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -514,7 +571,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   if (drainTime != this->dataPtr->lastPrintTime)
   {
     this->dataPtr->lastPrintTime = drainTime;
-    igndbg << "[Battery Plugin] Battery drain: " << drainTime <<
+    gzdbg << "[Battery Plugin] Battery drain: " << drainTime <<
       " minutes passed.\n";
   }
 
@@ -526,7 +583,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
     this->dataPtr->stepSize).count()) * 1e-9;
   if (this->dataPtr->tau < dt)
   {
-    ignerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
+    gzerr << "<smooth_current_tau> should be in the range [dt, +inf) but is "
            << "configured with [" << this->dataPtr->tau << "]. We'll be using "
            << "[" << dt << "] instead" << std::endl;
     this->dataPtr->tau = dt;
@@ -548,7 +605,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("LinearBatteryPlugin::PostUpdate");
+  GZ_PROFILE("LinearBatteryPlugin::PostUpdate");
   // Nothing left to do if paused or the publisher wasn't created.
   if (_info.paused || !this->dataPtr->statePub)
     return;
@@ -582,7 +639,7 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
 {
-  IGN_ASSERT(_battery != nullptr, "common::Battery is null.");
+  GZ_ASSERT(_battery != nullptr, "common::Battery is null.");
 
   if (fabs(_battery->Voltage()) < 1e-3 && !this->dataPtr->startCharging)
     return 0.0;
@@ -650,31 +707,35 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   auto socInt = static_cast<int>(this->dataPtr->StateOfCharge() * 100);
   if (socInt % 10 == 0 && socInt != prevSocInt)
   {
-    igndbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
-    igndbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
+    gzdbg << "Battery: " << this->dataPtr->battery->Name() << std::endl;
+    gzdbg << "PowerLoads().size(): " << _battery->PowerLoads().size()
            << std::endl;
-    igndbg << "charging status: " << std::boolalpha
+    gzdbg << "charging status: " << std::boolalpha
            << this->dataPtr->startCharging << std::endl;
-    igndbg << "charging current: " << iCharge << std::endl;
-    igndbg << "voltage: " << voltage << std::endl;
-    igndbg << "state of charge: " << this->dataPtr->StateOfCharge()
+    gzdbg << "charging current: " << iCharge << std::endl;
+    gzdbg << "voltage: " << voltage << std::endl;
+    gzdbg << "state of charge: " << this->dataPtr->StateOfCharge()
            << " (q " << this->dataPtr->q << ")" << std::endl << std::endl;
   }
   if (this->dataPtr->StateOfCharge() < 0 && !this->dataPtr->drainPrinted)
   {
-    ignwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
+    gzwarn << "Model " << this->dataPtr->modelName << " out of battery.\n";
     this->dataPtr->drainPrinted = true;
   }
 
   return voltage;
 }
 
-IGNITION_ADD_PLUGIN(LinearBatteryPlugin,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(LinearBatteryPlugin,
+                    System,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate,
                     LinearBatteryPlugin::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
+  "gz::sim::systems::LinearBatteryPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "ignition::gazebo::systems::LinearBatteryPlugin")

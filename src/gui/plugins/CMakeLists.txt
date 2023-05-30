@@ -4,7 +4,7 @@
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>])
 #
-# Add a gui library to Ignition Gazebo.
+# Add a gui library to Gazebo.
 #
 # <library_name> Required. Name of the gui library
 #
@@ -47,7 +47,7 @@ function(gz_add_gui_library library_name)
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE
-      ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+      gz-sim${PROJECT_VERSION_MAJOR}-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
   )
 endfunction()
@@ -59,7 +59,7 @@ endfunction()
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>])
 #
-# Add a gui plugin to Ignition Gazebo.
+# Add a gui plugin to Gazebo.
 #
 # <plugin_name> Required. Name of the gui plugin.
 #
@@ -99,18 +99,18 @@ function(gz_add_gui_plugin plugin_name)
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
     PUBLIC_LINK_LIBS ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
-    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} ignition-plugin${IGN_PLUGIN_VER}::register
+    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} gz-plugin${GZ_PLUGIN_VER}::register
   )
 
   if(gz_add_gui_plugin_TEST_SOURCES)
     # Plugin symbols failing to resolve on Windows:
     # error LNK2001: unresolved external symbol
     if(NOT WIN32)
-      ign_build_tests(TYPE UNIT
+      gz_build_tests(TYPE UNIT
         SOURCES
           ${gz_add_gui_plugin_TEST_SOURCES}
         LIB_DEPS
-          ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+          gz-sim${PROJECT_VERSION_MAJOR}-gui
           ${plugin_name}
         INCLUDE_DIRS
           # Used to make internal source file headers visible to the unit tests
@@ -122,7 +122,7 @@ function(gz_add_gui_plugin plugin_name)
     endif()
   endif()
 
-  install (TARGETS ${plugin_name} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
+  install (TARGETS ${plugin_name} DESTINATION ${GZ_SIM_GUI_PLUGIN_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(modules)
@@ -135,13 +135,14 @@ add_subdirectory(component_inspector_editor)
 add_subdirectory(copy_paste)
 add_subdirectory(entity_context_menu)
 add_subdirectory(entity_tree)
+add_subdirectory(environment_loader)
+add_subdirectory(environment_visualization)
 add_subdirectory(joint_position_controller)
 add_subdirectory(lights)
 add_subdirectory(playback_scrubber)
 add_subdirectory(plot_3d)
 add_subdirectory(plotting)
 add_subdirectory(resource_spawner)
-add_subdirectory(scene3d)
 add_subdirectory(select_entities)
 add_subdirectory(scene_manager)
 add_subdirectory(shapes)

@@ -5,10 +5,10 @@ running simulation from an external program using the state message.
 
 ## Build
 
-From the root of the `ign-gazebo` repository, do the following to build the example:
+From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
-cd ign-gazebo/examples/standalone/external_ecm
+cd gz-sim/examples/standalone/external_ecm
 mkdir build
 cd build
 cmake ..
@@ -21,12 +21,12 @@ This will generate the `external_ecm` executable under `build`.
 
 Start a simulation, for example:
 
-    ign gazebo shapes.sdf
+    gz sim shapes.sdf
 
 On another terminal, run the `external_ecm` executable, passing the name of the
 running world you want to inspect:
 
-  cd ign-gazebo/examples/standalone/external_ecm
+  cd gz-sim/examples/standalone/external_ecm
   ./external_ecm shapes
 
 You should see something like this:

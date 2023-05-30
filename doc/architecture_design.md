@@ -1,4 +1,4 @@
-# Ignition Gazebo design
+# Gazebo Sim design
 
 > This is an evolving document as design is discussed and iterated on. As features are released,
   the relevant parts of this document should be updated and moved to a tutorial.
@@ -117,7 +117,7 @@ level and performer is only simulated at one runner at a time.
 
 It would be convenient to be able to specify standalone programs in the SDF
 file so they're loaded at the same time as the simulation. For example,
-Gazebo's
+Gazebo Sim's
 [JoyPlugin](https://github.com/osrf/gazebo/blob/gazebo11/plugins/JoyPlugin.hh)
 is a `WorldPlugin`, but it doesn't need to access any world API, or to run
 in the physics thread, or even to run in the gzserver process. However,
@@ -125,6 +125,3 @@ it was implemented as a plugin because that makes it easier to specify in
 SDF.
 
 > **TODO**: Describe what this would look like.
-
-
-

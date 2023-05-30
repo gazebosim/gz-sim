@@ -14,12 +14,16 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
-#define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
+#ifndef GZ_SIM_SIMULATIONRUNNER_HH_
+#define GZ_SIM_SIMULATIONRUNNER_HH_
 
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/log_playback_control.pb.h>
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -36,20 +40,19 @@
 
 #include <sdf/World.hh>
 
-#include <ignition/common/Event.hh>
-#include <ignition/common/WorkerPool.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Event.hh>
+#include <gz/common/WorkerPool.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
@@ -59,16 +62,16 @@
 
 using namespace std::chrono_literals;
 
-namespace ignition
+namespace gz
 {
-  namespace gazebo
+  namespace sim
   {
     // Inline bracket to help doxygen filtering.
-    inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
 
-    class IGNITION_GAZEBO_VISIBLE SimulationRunner
+    class GZ_SIM_VISIBLE SimulationRunner
     {
       /// \brief Constructor
       /// \param[in] _world Pointer to the SDF world.
@@ -189,6 +192,10 @@ namespace ignition
       public: void SetUpdatePeriod(
                   const std::chrono::steady_clock::duration &_updatePeriod);
 
+      /// \brief Get the simulation epoch.
+      /// \return The simulation epoch.
+      public: const std::chrono::steady_clock::duration &SimTimeEpoch() const;
+
       /// \brief Get the update period.
       /// \return The update period.
       public: const std::chrono::steady_clock::duration &UpdatePeriod() const;
@@ -214,8 +221,8 @@ namespace ignition
 
       /// \brief Set the run to simulation time.
       /// \param[in] _time A simulation time in the future to run to and then
-      /// pause. A negative number or a time less than the current simulation
-      /// time disables the run-to feature.
+      /// pause. A time prior than the current simulation time disables the
+      /// run-to feature.
       public: void SetRunToSimTime(
                   const std::chrono::steady_clock::duration &_time);
 
@@ -275,11 +282,12 @@ namespace ignition
 
       /// \brief Get the step size;
       /// \return Step size.
-      public: const ignition::math::clock::duration &StepSize() const;
+      public: const std::chrono::steady_clock::duration &StepSize() const;
 
       /// \brief Set the step size;
       /// \param[in] _step Step size.
-      public: void SetStepSize(const ignition::math::clock::duration &_step);
+      public: void SetStepSize(
+          const std::chrono::steady_clock::duration &_step);
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -314,7 +322,7 @@ namespace ignition
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
-      private: bool GuiInfoService(ignition::msgs::GUI &_res);
+      private: bool GuiInfoService(gz::msgs::GUI &_res);
 
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
@@ -396,8 +404,17 @@ namespace ignition
       /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
 
+      /// \brief Manager all parameters
+      private: std::unique_ptr<
+        gz::transport::parameters::ParametersRegistry
+      > parametersRegistry;
+
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
+
+      /// \brief Copy of the EntityComponentManager immediately after the
+      /// initial entity creation/world load.
+      private: EntityComponentManager initialEntityCompMgr;
 
       /// \brief Manager of all levels.
       private: std::unique_ptr<LevelManager> levelMgr;
@@ -419,44 +436,43 @@ namespace ignition
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};
 
-      /// \brief List of simulation times used to compute averages.
-      private: std::list<std::chrono::steady_clock::duration> simTimes;
+      /// \brief The simulation epoch.
+      /// All simulation times will be larger than the epoch. It defaults to 0.
+      private: std::chrono::steady_clock::duration simTimeEpoch{0};
 
-      /// \brief List of real times used to compute averages.
-      private: std::list<std::chrono::steady_clock::duration> realTimes;
 
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief World statistics publisher.
-      private: ignition::transport::Node::Publisher statsPub;
+      private: gz::transport::Node::Publisher statsPub;
 
       /// \brief Clock publisher for the root `/stats` topic.
-      private: ignition::transport::Node::Publisher rootStatsPub;
+      private: gz::transport::Node::Publisher rootStatsPub;
 
       /// \brief Clock publisher.
-      private: ignition::transport::Node::Publisher clockPub;
+      private: gz::transport::Node::Publisher clockPub;
 
       /// \brief Clock publisher for the root `/clock` topic.
-      private: ignition::transport::Node::Publisher rootClockPub;
+      private: gz::transport::Node::Publisher rootClockPub;
 
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
       /// \brief Stopwatch to keep track of wall time.
-      private: ignition::math::Stopwatch realTimeWatch;
+      private: gz::math::Stopwatch realTimeWatch;
 
       /// \brief Step size
-      private: ignition::math::clock::duration stepSize{10ms};
+      private: std::chrono::steady_clock::duration stepSize{10ms};
 
       /// \brief Desired real time factor
       private: double desiredRtf{1.0};
 
       /// \brief Connection to the pause event.
-      private: ignition::common::ConnectionPtr pauseConn;
+      private: gz::common::ConnectionPtr pauseConn;
 
       /// \brief Connection to the stop event.
-      private: ignition::common::ConnectionPtr stopConn;
+      private: gz::common::ConnectionPtr stopConn;
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
@@ -476,12 +492,12 @@ namespace ignition
       private: bool requestedRewind{false};
 
       /// \brief If user asks to seek to a specific sim time, this holds the
-      /// time.s A negative value means there's no request from the user.
-      private: std::chrono::steady_clock::duration requestedSeek{-1};
+      /// time.
+      private: std::optional<std::chrono::steady_clock::duration> requestedSeek;
 
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      private: std::chrono::steady_clock::duration requestedRunToSimTime{-1};
+      /// \brief A simulation time past the epoch to run to and then pause.
+      private: std::optional<std::chrono::steady_clock::duration>
+        requestedRunToSimTime;
 
       /// \brief Keeps the latest simulation info.
       private: UpdateInfo currentInfo;
@@ -527,6 +543,7 @@ namespace ignition
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+      private: bool resetInitiated{false};
       friend class LevelManager;
     };
     }

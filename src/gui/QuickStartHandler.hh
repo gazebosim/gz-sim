@@ -14,25 +14,25 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
-#define IGNITION_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
+#ifndef GZ_SIM_GUI_QUICKSTARTHANDLER_HH_
+#define GZ_SIM_GUI_QUICKSTARTHANDLER_HH_
 
 #include <QtCore>
 #include <string>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace gui
 {
 /// \brief Class for handling quick start dialog
-class IGNITION_GAZEBO_GUI_VISIBLE QuickStartHandler : public QObject
+class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 {
   Q_OBJECT
 
@@ -68,7 +68,7 @@ class IGNITION_GAZEBO_GUI_VISIBLE QuickStartHandler : public QObject
   private: bool showAgain{true};
 
   /// \brief Installed worlds path.
-  private: std::string worldsPath{IGN_GAZEBO_WORLD_INSTALL_DIR};
+  private: std::string worldsPath{GZ_SIM_WORLD_INSTALL_DIR};
 
   /// \brief Get starting world url.
   private: std::string startingWorld{""};

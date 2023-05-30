@@ -16,7 +16,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <sstream>
 #include <tinyxml2.h>
 
@@ -38,23 +41,23 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class SdfGeneratorFixture : public InternalFixture<::testing::Test>
@@ -87,9 +90,9 @@ class SdfGeneratorFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(SdfGeneratorFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsSpawnedAfterLoad))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsSpawnedAfterLoad))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -115,7 +118,7 @@ TEST_F(SdfGeneratorFixture,
   // This has to be different from the backpack in order to test SDFormat
   // generation for a Fuel URI that was not known when simulation started.
   const std::string groundPlaneUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/ground plane";
+      "https://fuel.gazebosim.org/1.0/openrobotics/models/ground plane";
 
   transport::Node node;
   {
@@ -217,7 +220,7 @@ TEST_F(SdfGeneratorFixture,
 /////////////////////////////////////////////////
 // Test segfaults on Mac at startup, possible collision with test above?
 TEST_F(SdfGeneratorFixture,
-    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -319,7 +322,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 {
   std::string path =
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models");
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH", path);
+  common::setenv("GZ_SIM_RESOURCE_PATH", path);
 
   this->LoadWorld("test/worlds/model_nested_include.sdf");
 
@@ -379,9 +382,9 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, pose->GetText());
 
   std::stringstream ss(pose->GetText());
-  ignition::math::Pose3d p;
+  gz::math::Pose3d p;
   ss >> p;
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), p);
+  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), p);
 
   // M2
   model = model->FirstChildElement("model");
@@ -405,7 +408,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 
   ss = std::stringstream(pose->GetText());
   ss >> p;
-  EXPECT_EQ(ignition::math::Pose3d(0, 2, 2, 0, 0, 0), p);
+  EXPECT_EQ(gz::math::Pose3d(0, 2, 2, 0, 0, 0), p);
 
   // M3
   model = model->FirstChildElement("model");
@@ -419,7 +422,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
   EXPECT_EQ(
-    "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Coke Can/2",
+    "https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/2",
      std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
@@ -433,7 +436,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 
   ss = std::stringstream(pose->GetText());
   ss >> p;
-  EXPECT_EQ(ignition::math::Pose3d(2, 2, 2, 0, 0, 0), p);
+  EXPECT_EQ(gz::math::Pose3d(2, 2, 2, 0, 0, 0), p);
 
   // check reloading generated sdf
   sdf::Root root;
@@ -768,19 +771,19 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
     const sdf::Light *light = world->LightByIndex(0u);
     EXPECT_EQ("directional", light->Name());
     EXPECT_EQ(sdf::LightType::DIRECTIONAL, light->Type());
-    EXPECT_EQ(ignition::math::Pose3d(0, 0, 10, 0, 0, 0),
+    EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
         light->RawPose());
     EXPECT_EQ(std::string(), light->PoseRelativeTo());
     EXPECT_TRUE(light->CastShadows());
-    EXPECT_EQ(ignition::math::Color(0.8f, 0.8f, 0.8f, 1),
+    EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
         light->Diffuse());
-    EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
         light->Specular());
     EXPECT_DOUBLE_EQ(100, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.9, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.01, light->LinearAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
-    EXPECT_EQ(ignition::math::Vector3d(0.5, 0.2, -0.9),
+    EXPECT_EQ(gz::math::Vector3d(0.5, 0.2, -0.9),
         light->Direction());
   }
   // point light in the world
@@ -788,12 +791,12 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
     const sdf::Light *light = world->LightByIndex(1u);
     EXPECT_EQ("point", light->Name());
     EXPECT_EQ(sdf::LightType::POINT, light->Type());
-    EXPECT_EQ(ignition::math::Pose3d(0, -1.5, 3, 0, 0, 0),
+    EXPECT_EQ(gz::math::Pose3d(0, -1.5, 3, 0, 0, 0),
         light->RawPose());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(ignition::math::Color(1.0f, 0.0f, 0.0f, 1),
+    EXPECT_EQ(gz::math::Color(1.0f, 0.0f, 0.0f, 1),
         light->Diffuse());
-    EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
         light->Specular());
     EXPECT_DOUBLE_EQ(4, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.2, light->ConstantAttenuationFactor());
@@ -805,19 +808,19 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
     const sdf::Light *light = world->LightByIndex(2u);
     EXPECT_EQ("spot", light->Name());
     EXPECT_EQ(sdf::LightType::SPOT, light->Type());
-    EXPECT_EQ(ignition::math::Pose3d(0, 1.5, 3, 0, 0, 0),
+    EXPECT_EQ(gz::math::Pose3d(0, 1.5, 3, 0, 0, 0),
         light->RawPose());
     EXPECT_EQ(std::string(), light->PoseRelativeTo());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(ignition::math::Color(0.0f, 1.0f, 0.0f, 1),
+    EXPECT_EQ(gz::math::Color(0.0f, 1.0f, 0.0f, 1),
         light->Diffuse());
-    EXPECT_EQ(ignition::math::Color(0.2f, 0.2f, 0.2f, 1),
+    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
         light->Specular());
     EXPECT_DOUBLE_EQ(5, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.3, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.4, light->LinearAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
-    EXPECT_EQ(ignition::math::Vector3d(0.0, 0.0, -1.0),
+    EXPECT_EQ(gz::math::Vector3d(0.0, 0.0, -1.0),
         light->Direction());
     EXPECT_DOUBLE_EQ(0.1, light->SpotInnerAngle().Radian());
     EXPECT_DOUBLE_EQ(0.5, light->SpotOuterAngle().Radian());
@@ -838,13 +841,13 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
   {
     const sdf::Light *light = link->LightByName("link_light_point");
     EXPECT_EQ("link_light_point", light->Name());
-    EXPECT_EQ(ignition::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
+    EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
         light->RawPose());
     EXPECT_EQ(sdf::LightType::POINT, light->Type());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(ignition::math::Color(0.0f, 0.0f, 1.0f, 1),
+    EXPECT_EQ(gz::math::Color(0.0f, 0.0f, 1.0f, 1),
         light->Diffuse());
-    EXPECT_EQ(ignition::math::Color(0.1f, 0.1f, 0.1f, 1),
+    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
         light->Specular());
     EXPECT_DOUBLE_EQ(2, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.05, light->ConstantAttenuationFactor());
@@ -862,7 +865,7 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithJoints)
 {
-  this->LoadWorld(ignition::common::joinPaths("test", "worlds",
+  this->LoadWorld(gz::common::joinPaths("test", "worlds",
       "joint_sensor.sdf"));
 
   const std::string worldGenSdfRes =
@@ -887,8 +890,8 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   auto *joint = model->JointByName("joint");
   ASSERT_NE(nullptr, joint);
 
-  EXPECT_EQ("link1", joint->ParentLinkName());
-  EXPECT_EQ("link2", joint->ChildLinkName());
+  EXPECT_EQ("link1", joint->ParentName());
+  EXPECT_EQ("link2", joint->ChildName());
   EXPECT_EQ(sdf::JointType::REVOLUTE2, joint->Type());
 
   // Get the first axis
@@ -900,10 +903,10 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   const sdf::JointAxis *axis2 = joint->Axis(1);
   ASSERT_NE(nullptr, axis2);
 
-  EXPECT_EQ(ignition::math::Vector3d::UnitZ, axis->Xyz());
-  EXPECT_EQ(ignition::math::Vector3d::UnitY, axis2->Xyz());
+  EXPECT_EQ(gz::math::Vector3d::UnitZ, axis->Xyz());
+  EXPECT_EQ(gz::math::Vector3d::UnitY, axis2->Xyz());
 
-  EXPECT_EQ("__model__", axis->XyzExpressedIn());
+  EXPECT_EQ("", axis->XyzExpressedIn());
   EXPECT_TRUE(axis2->XyzExpressedIn().empty());
 
   EXPECT_DOUBLE_EQ(-0.5, axis->Lower());
@@ -935,7 +938,7 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   ASSERT_NE(nullptr, forceTorqueSensor);
   EXPECT_EQ("force_torque_sensor", forceTorqueSensor->Name());
   EXPECT_EQ(sdf::SensorType::FORCE_TORQUE, forceTorqueSensor->Type());
-  EXPECT_EQ(ignition::math::Pose3d(10, 11, 12, 0, 0, 0),
+  EXPECT_EQ(gz::math::Pose3d(10, 11, 12, 0, 0, 0),
       forceTorqueSensor->RawPose());
   auto forceTorqueSensorObj = forceTorqueSensor->ForceTorqueSensor();
   ASSERT_NE(nullptr, forceTorqueSensorObj);

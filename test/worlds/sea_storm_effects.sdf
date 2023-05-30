@@ -1,0 +1,192 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="sea_storm_demo">
+    <gravity>0 0 0</gravity>
+
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-wind-effects-system"
+      name="gz::sim::systems::WindEffects">
+      <force_approximation_scaling_factor>
+        <!-- No wind below sea level -->
+        <when zgt="0" zlt="5">0.2</when>  <!-- Transition layer -->
+        <when zge="5">  <!-- Vortex-like winds that worsen with height -->
+          <k>0.5</k>
+          <px>0 0.01 0 0</px>
+          <qy>0 0.01 0 0</qy>
+          <rz>0 0 0.01 0.45</rz>
+        </when>
+      </force_approximation_scaling_factor>
+      <horizontal>
+        <magnitude>
+          <time_for_rise>1</time_for_rise>
+          <sin>
+            <amplitude_percent>0.05</amplitude_percent>
+            <period>60</period>
+          </sin>
+        </magnitude>
+        <direction>
+          <time_for_rise>1</time_for_rise>
+          <sin>
+            <amplitude>5</amplitude>
+            <period>20</period>
+          </sin>
+        </direction>
+      </horizontal>
+    </plugin>
+
+    <wind>
+      <linear_velocity>50 50 0</linear_velocity>
+    </wind>
+
+    <model name="wind_below_surface">
+      <pose>0 0 -5 0 0 0</pose>
+      <enable_wind>true</enable_wind>
+      <link name="box_below_surface">
+        <pose>0 0 1 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.0</mu>
+                <mu2>0.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wind_above_surface">
+      <pose>0 0 1 0 0 0</pose>
+      <link name="box_above_surface">
+        <enable_wind>true</enable_wind>
+        <pose>0 0 1 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.0</mu>
+                <mu2>0.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="wind_up_high">
+      <pose>50 50 20 0 0 0</pose>
+      <link name="box_up_high">
+        <enable_wind>true</enable_wind>
+        <pose>0 0 1 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.0</mu>
+                <mu2>0.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

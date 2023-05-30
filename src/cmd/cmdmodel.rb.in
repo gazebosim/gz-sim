@@ -26,6 +26,7 @@ else
 end
 
 require 'optparse'
+require 'pathname'
 
 # Constants.
 LIBRARY_NAME = '@library_location@'
@@ -41,7 +42,7 @@ COMMON_OPTIONS =
 COMMANDS = { 'model' =>
   "Print information about models.\n\n"+
   "                                                                        \n"\
-  "  ign model [options]                                                   \n"\
+  "  gz model [options]                                                   \n"\
   "                                                                        \n"\
   "Available Options:                                                      \n"\
   "  --list                     Get a list of the available models.        \n"\
@@ -53,7 +54,7 @@ COMMANDS = { 'model' =>
   "                                                                        \n"\
   "                             E.g. to get information about the          \n"\
   "                             caster link in the diff_drive world, run:  \n"\
-  "                             ign model -m vehicle_blue -l caster        \n"\
+  "                             gz model -m vehicle_blue -l caster        \n"\
   "                                                                        \n"\
   "  -s [--sensor]  arg         Select a sensor to show its properties.    \n"\
   "                             If no arg is passed all sensors are printed\n"\
@@ -61,7 +62,7 @@ COMMANDS = { 'model' =>
   "                                                                        \n"\
   "                             E.g. to get information about the          \n"\
   "                             imu sensor in the sensors world, run:      \n"\
-  "                             ign model -m sensors_box -l link -s imu    \n"\
+  "                             gz model -m sensors_box -l link -s imu    \n"\
   "                                                                        \n"\
   "  -j [--joint] arg           Select a joint to show its properties.     \n"\
   "                             If no arg is passed all joints are printed \n"\
@@ -70,12 +71,12 @@ COMMANDS = { 'model' =>
   "                             E.g. to get information about the          \n"\
   "                             caster_wheel joint in the diff_drive       \n"\
   "                             world, run:                                \n"\
-  "                             ign model -m vehicle_blue -j caster_wheel  \n\n"+
+  "                             gz model -m vehicle_blue -j caster_wheel  \n\n"+
   COMMON_OPTIONS
 }
 
 #
-# Class for the Ignition Gazebo Model command line tools.
+# Class for the Gazebo Model command line tools.
 #
 class Cmd
 
@@ -157,7 +158,8 @@ class Cmd
     options = parse(args)
 
     # Read the plugin that handles the command.
-    if LIBRARY_NAME[0] == '/'
+    library_name_path = Pathname.new(LIBRARY_NAME)
+    if library_name_path.absolute?
       # If the first character is a slash, we'll assume that we've been given an
       # absolute path to the library. This is only used during test mode.
       plugin = LIBRARY_NAME
@@ -186,7 +188,7 @@ class Cmd
       options['link_name'], options['joint_name'], options['sensor_name'])
     else
       puts 'Command error: I do not have an implementation for '\
-        "command [ign #{options['command']}]."
+        "command [gz #{options['command']}]."
     end
   # # execute
   end

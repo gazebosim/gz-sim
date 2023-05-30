@@ -21,48 +21,51 @@
 #include <vector>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/twist.pb.h>
 
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include <gz/common/Profiler.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "VelocityControl.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::VelocityControlPrivate
+class gz::sim::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for link velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnLinkCmdVel(const ignition::msgs::Twist &_msg,
-    const ignition::transport::MessageInfo &_info);
+  public: void OnLinkCmdVel(const msgs::Twist &_msg,
+    const transport::MessageInfo &_info);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update link velocity.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateLinkVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Model interface
@@ -112,7 +115,7 @@ void VelocityControl::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "VelocityControl plugin should be attached to a model entity. "
+    gzerr << "VelocityControl plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -122,7 +125,7 @@ void VelocityControl::Configure(const Entity &_entity,
     this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("initial_linear");
     msgs::Set(this->dataPtr->targetVel.mutable_linear(),
         this->dataPtr->linearVelocity);
-    ignmsg << "Linear velocity initialized to ["
+    gzmsg << "Linear velocity initialized to ["
            << this->dataPtr->linearVelocity << "]" << std::endl;
   }
 
@@ -132,7 +135,7 @@ void VelocityControl::Configure(const Entity &_entity,
         _sdf->Get<math::Vector3d>("initial_angular");
     msgs::Set(this->dataPtr->targetVel.mutable_angular(),
         this->dataPtr->angularVelocity);
-    ignmsg << "Angular velocity initialized to ["
+    gzmsg << "Angular velocity initialized to ["
            << this->dataPtr->angularVelocity << "]" << std::endl;
   }
 
@@ -147,7 +150,7 @@ void VelocityControl::Configure(const Entity &_entity,
   auto modelTopic = validTopic(modelTopics);
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
-  ignmsg << "VelocityControl subscribing to twist messages on ["
+  gzmsg << "VelocityControl subscribing to twist messages on ["
          << modelTopic << "]"
          << std::endl;
 
@@ -173,22 +176,22 @@ void VelocityControl::Configure(const Entity &_entity,
     linkTopic = transport::TopicUtils::AsValidTopic(linkTopic);
     this->dataPtr->node.Subscribe(
         linkTopic, &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
-    ignmsg << "VelocityControl subscribing to twist messages on ["
+    gzmsg << "VelocityControl subscribing to twist messages on ["
            << linkTopic << "]"
            << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
-void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void VelocityControl::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VelocityControl::PreUpdate");
+  GZ_PROFILE("VelocityControl::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -250,7 +253,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
           this->dataPtr->links.insert({linkName, link});
         else
         {
-          ignwarn << "Failed to find link [" << linkName
+          gzwarn << "Failed to find link [" << linkName
                 << "] for model [" << modelName << "]" << std::endl;
         }
       }
@@ -277,7 +280,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No link found for angular velocity cmd ["
+      gzwarn << "No link found for angular velocity cmd ["
               << linkName << "]" << std::endl;
     }
   }
@@ -301,7 +304,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
     }
     else
     {
-      ignwarn << "No link found for linear velocity cmd ["
+      gzwarn << "No link found for linear velocity cmd ["
               << linkName << "]" << std::endl;
     }
   }
@@ -311,7 +314,7 @@ void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void VelocityControl::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VelocityControl::PostUpdate");
+  GZ_PROFILE("VelocityControl::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -324,10 +327,10 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("VeocityControl::UpdateVelocity");
+  GZ_PROFILE("VeocityControl::UpdateVelocity");
 
   std::lock_guard<std::mutex> lock(this->mutex);
   this->linearVelocity = msgs::Convert(this->targetVel.linear());
@@ -336,10 +339,10 @@ void VelocityControlPrivate::UpdateVelocity(
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateLinkVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("VelocityControl::UpdateLinkVelocity");
+  GZ_PROFILE("VelocityControl::UpdateLinkVelocity");
 
   std::lock_guard<std::mutex> lock(this->mutex);
   for (const auto& [linkName, msg] : this->linkVels)
@@ -374,11 +377,15 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
   }
 }
 
-IGNITION_ADD_PLUGIN(VelocityControl,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(VelocityControl,
+                    System,
                     VelocityControl::ISystemConfigure,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+GZ_ADD_PLUGIN_ALIAS(VelocityControl,
+                          "gz::sim::systems::VelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "ignition::gazebo::systems::VelocityControl")

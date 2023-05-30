@@ -17,11 +17,11 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "test_config.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace gui;
 
 /////////////////////////////////////////////////

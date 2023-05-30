@@ -17,26 +17,30 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/Pose.hh"
+
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ThrusterTest : public InternalFixture<::testing::Test>
 {
@@ -44,19 +48,27 @@ class ThrusterTest : public InternalFixture<::testing::Test>
   /// \param[in] _world Path to world file
   /// \param[in] _namespace Namespace for topic
   /// \param[in] _topic Thrust topic
-  /// \param[in] _coefficient Thrust coefficient
+  /// \param[in] _thrustCoefficient Thrust coefficient
   /// \param[in] _density Fluid density
   /// \param[in] _diameter Propeller diameter
   /// \param[in] _baseTol Base tolerance for most quantities
+  /// \param[in] _useAngVelCmd Send commands in angular velocity instead of
+  /// force
+  /// \param[in] _mass Mass of the body being propelled.
   public: void TestWorld(const std::string &_world,
       const std::string &_namespace, const std::string &_topic,
-      double _coefficient, double _density, double _diameter, double _baseTol);
+      double _thrustCoefficient, double _density, double _diameter,
+      double _baseTol, double _wakeFraction = 0.2, double _alpha_1 = 1,
+      double _alpha_2 = 0, bool _calculateCoefficient = false,
+      bool _useAngVelCmd = false, double _mass = 100.1);
 };
 
 //////////////////////////////////////////////////
 void ThrusterTest::TestWorld(const std::string &_world,
     const std::string &_namespace, const std::string &_topic,
-    double _coefficient, double _density, double _diameter, double _baseTol)
+    double _thrustCoefficient, double _density, double _diameter,
+    double _baseTol, double _wakeFraction, double _alpha1, double _alpha2,
+    bool _calculateCoefficient, bool _useAngVelCmd, double _mass)
 {
   // Start server
   ServerConfig serverConfig;
@@ -68,13 +80,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
   Link propeller;
   std::vector<math::Pose3d> modelPoses;
   std::vector<math::Vector3d> propellerAngVels;
+  std::vector<math::Vector3d> propellerLinVels;
+  math::Pose3d jointPose, linkWorldPose;
+  math::Vector3d jointAxis;
   double dt{0.0};
   fixture.
   OnConfigure(
-    [&](const ignition::gazebo::Entity &_worldEntity,
+    [&](const gz::sim::Entity &_worldEntity,
       const std::shared_ptr<const sdf::Element> &/*_sdf*/,
-      ignition::gazebo::EntityComponentManager &_ecm,
-      ignition::gazebo::EventManager &/*_eventMgr*/)
+      gz::sim::EntityComponentManager &_ecm,
+      gz::sim::EventManager &/*_eventMgr*/)
     {
       World world(_worldEntity);
 
@@ -82,14 +97,21 @@ void ThrusterTest::TestWorld(const std::string &_world,
       EXPECT_NE(modelEntity, kNullEntity);
       model = Model(modelEntity);
 
+      auto jointEntity = model.JointByName(_ecm, "propeller_joint");
+      jointAxis =
+        _ecm.Component<components::JointAxis>(
+        jointEntity)->Data().Xyz();
+      jointPose = _ecm.Component<components::Pose>(
+          jointEntity)->Data();
+
       auto propellerEntity = model.LinkByName(_ecm, "propeller");
       EXPECT_NE(propellerEntity, kNullEntity);
 
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
-  OnPostUpdate([&](const gazebo::UpdateInfo &_info,
-                            const gazebo::EntityComponentManager &_ecm)
+  OnPostUpdate([&](const sim::UpdateInfo &_info,
+                            const sim::EntityComponentManager &_ecm)
     {
       dt = std::chrono::duration<double>(_info.dt).count();
 
@@ -99,6 +121,10 @@ void ThrusterTest::TestWorld(const std::string &_world,
       auto propellerAngVel = propeller.WorldAngularVelocity(_ecm);
       ASSERT_TRUE(propellerAngVel);
       propellerAngVels.push_back(propellerAngVel.value());
+
+      auto proellerLinVel = propeller.WorldLinearVelocity(_ecm);
+      ASSERT_TRUE(proellerLinVel);
+      propellerLinVels.push_back(proellerLinVel.value());
     }).
   Finalize();
 
@@ -106,6 +132,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
   fixture.Server()->Run(true, 100, false);
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
+  EXPECT_EQ(100u, propellerLinVels.size());
 
   EXPECT_NE(model.Entity(), kNullEntity);
   EXPECT_NE(propeller.Entity(), kNullEntity);
@@ -120,6 +147,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_EQ(math::Vector3d::Zero, vel);
   }
   propellerAngVels.clear();
+  propellerLinVels.clear();
 
   // Publish command and check that vehicle moved
   transport::Node node;
@@ -134,10 +162,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
 
-  // input force cmd - this should be capped to 0
-  double forceCmd{-1000.0};
+  // Test the cmd limits specified in the world file. These should be:
+  //    if (use_angvel_cmd && thrust_coefficient < 0):
+  //        min_thrust = -300
+  //        max_thrust = 0
+  //    else:
+  //        min_thrust = 0
+  //        max_thrust = 300
+  double invalidCmd = (_useAngVelCmd && _thrustCoefficient < 0) ? 1000 : -1000;
   msgs::Double msg;
-  msg.set_data(forceCmd);
+  msg.set_data(invalidCmd);
   pub.Publish(msg);
 
   // Check no movement
@@ -146,12 +180,31 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
+  EXPECT_EQ(100u, propellerLinVels.size());
   modelPoses.clear();
   propellerAngVels.clear();
+  propellerLinVels.clear();
 
-  // input force cmd this should be capped to 300
-  forceCmd = 1000.0;
-  msg.set_data(forceCmd);
+  // max allowed force
+  double force{300.0};
+
+  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
+  // omega = sqrt(thrust /
+  //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+  auto omega = sqrt(abs(force / (_density * _thrustCoefficient *
+          pow(_diameter, 4))));
+  // Account for negative thrust and/or negative thrust coefficient
+  omega *= (force * _thrustCoefficient > 0 ? 1 : -1);
+
+  msg.Clear();
+  if(!_useAngVelCmd)
+  {
+    msg.set_data(force);
+  }
+  else
+  {
+    msg.set_data(omega);
+  }
   pub.Publish(msg);
 
   // Check movement
@@ -168,16 +221,13 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     EXPECT_EQ(100u * sleep, modelPoses.size());
     EXPECT_EQ(100u * sleep, propellerAngVels.size());
+    EXPECT_EQ(100u * sleep, propellerLinVels.size());
   }
-
-  // max allowed force
-  double force{300.0};
 
   // F = m * a
   // s = a * t^2 / 2
   // F = m * 2 * s / t^2
   // s = F * t^2 / 2m
-  double mass{100.1};
   double xTol{1e-2};
   for (unsigned int i = 0; i < modelPoses.size(); ++i)
   {
@@ -191,7 +241,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     auto pose = modelPoses[i];
     auto time = dt * i;
-    EXPECT_NEAR(force * time * time / (2 * mass), pose.Pos().X(), xTol);
+    EXPECT_NEAR(force * time * time / (2 * _mass), pose.Pos().X(), xTol);
     EXPECT_NEAR(0.0, pose.Pos().Y(), _baseTol);
     EXPECT_NEAR(0.0, pose.Pos().Z(), _baseTol);
     EXPECT_NEAR(0.0, pose.Rot().Pitch(), _baseTol);
@@ -205,13 +255,28 @@ void ThrusterTest::TestWorld(const std::string &_world,
       EXPECT_NEAR(0.0, pose.Rot().Roll(), _baseTol);
   }
 
-  // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
-  // omega = sqrt(thrust /
-  //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-  auto omega = sqrt(force / (_density * _coefficient * pow(_diameter, 4)));
+  auto jointWorldPose = linkWorldPose * jointPose;
+  auto unitVector = jointWorldPose.Rot().RotateVector(jointAxis).Normalize();
+
   double omegaTol{1e-1};
   for (unsigned int i = 0; i < propellerAngVels.size(); ++i)
   {
+    auto angularVelocity = propellerAngVels[i].Dot(unitVector);
+    // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246:
+    // thrust_coefficient = alpha_1 + alpha_2 * (((1-wake_fraction) *
+    //    linear_velocity) / (angular_velocity * propeller_diameter))
+    // omega = sqrt(thrust /
+    //     (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+    if (_calculateCoefficient && !gz::math::equal(angularVelocity, 0.0))
+    {
+      _thrustCoefficient = _alpha1 + _alpha2 * (((1 - _wakeFraction) *
+          propellerLinVels[i].Length()) / (angularVelocity * _diameter));
+    }
+    omega = sqrt(abs(force / (_density * _thrustCoefficient *
+        pow(_diameter, 4))));
+    // Account for negative thrust and/or negative thrust coefficient
+    omega *= (force * _thrustCoefficient > 0 ? 1 : -1);
+
     auto angVel = propellerAngVels[i];
     // It takes a few iterations to reach the speed
     if (i > 25)
@@ -231,8 +296,54 @@ void ThrusterTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
+{
+  const std::string ns{"custom"};
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_vel";
+
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_ang_vel_cmd.sdf");
+
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, ns, topic, 0.005, 950, 0.2, 1e-2, 0.2, 1, 0, false,
+      true, 100.01);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwForceCmdControl))
+{
+  const std::string ns{"custom"};
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_thrust";
+
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_ccw_force_cmd.sdf");
+
+  //  Viewed from stern to bow the propeller spins counter-clockwise
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, ns, topic, -0.005, 950, 0.2, 1e-2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CcwAngVelCmdControl))
+{
+  const std::string ns{"custom"};
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_vel";
+
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "thruster_ccw_ang_vel_cmd.sdf");
+
+  //  Viewed from stern to bow the propeller spins counter-clockwise
+  //  Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, ns, topic, -0.005, 950, 0.2, 1e-2, 0.2, 1, 0, false,
+      true);
+}
+
+/////////////////////////////////////////////////
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 {
   const std::string ns{"sub"};
   const std::string topic = "/model/" + ns +
@@ -246,7 +357,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 {
   const std::string ns = "custom";
   const std::string topic = "/model/" + ns +
@@ -259,7 +370,7 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityControl))
 }
 
 /////////////////////////////////////////////////
-TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
 {
   const std::string ns = "lowbattery";
   const std::string topic =  ns + "/thrust";
@@ -270,3 +381,15 @@ TEST_F(ThrusterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(BatteryIntegration))
   this->TestWorld(world, ns, topic, 0.005, 950, 0.25, 1e-2);
 }
 
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ThrustCoefficient))
+{
+  const std::string ns = "custom";
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_thrust";
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thrust_coefficient.sdf");
+
+  // Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, ns, topic, 1, 950, 0.25, 1e-2, 0.2, 0.9, 0.01, true);
+}

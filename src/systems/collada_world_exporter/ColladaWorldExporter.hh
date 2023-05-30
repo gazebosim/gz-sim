@@ -15,18 +15,18 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_COLLADAWORLDEXPORTER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_COLLADAWORLDEXPORTER_HH_
+#ifndef GZ_SIM_SYSTEMS_COLLADAWORLDEXPORTER_HH_
+#define GZ_SIM_SYSTEMS_COLLADAWORLDEXPORTER_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
@@ -35,7 +35,7 @@ namespace systems
   /// \brief A plugin that exports a world to a mesh.
   /// When loaded the plugin will dump a mesh containing all the models in
   /// the world to the current directory.
-  class ColladaWorldExporter:
+  class ColladaWorldExporter final:
     public System,
     public ISystemPostUpdate
   {

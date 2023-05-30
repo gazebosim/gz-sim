@@ -28,43 +28,197 @@
 #pragma warning(pop)
 #endif
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/sensors/Noise.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/AdditivelySeparableScalarField3.hh>
+#include <gz/math/PiecewiseScalarField3.hh>
+#include <gz/math/Polynomial3.hh>
+#include <gz/math/Region3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Vector4.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sensors/Noise.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/components/WindMode.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/WindMode.hh"
 
-#include "ignition/gazebo/Link.hh"
+#include "gz/sim/Link.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
+namespace {
+  using ScalingFactor =
+      math::AdditivelySeparableScalarField3d<math::Polynomial3d>;
+  using PiecewiseScalingFactor = math::PiecewiseScalarField3d<ScalingFactor>;
+
+  //////////////////////////////////////////////////
+  ScalingFactor MakeConstantScalingFactor(double _value)
+  {
+    return ScalingFactor(
+        _value / 3.,
+        math::Polynomial3d::Constant(_value),
+        math::Polynomial3d::Constant(_value),
+        math::Polynomial3d::Constant(_value));
+  }
+
+  //////////////////////////////////////////////////
+  math::Polynomial3d LoadPolynomial3d(const sdf::ElementPtr &_sdf)
+  {
+    math::Vector4<double> coeffs;
+    std::istringstream(_sdf->Get<std::string>()) >> coeffs;
+    return math::Polynomial3d(std::move(coeffs));
+  }
+
+  //////////////////////////////////////////////////
+  ScalingFactor LoadScalingFactor(const sdf::ElementPtr &_sdf)
+  {
+    if (!_sdf->GetFirstElement())
+    {
+      return MakeConstantScalingFactor(_sdf->Get<double>());
+    }
+    double k = 1.;
+    if (_sdf->HasElement("k"))
+    {
+      k = _sdf->GetElementImpl("k")->Get<double>();
+    }
+    math::Polynomial3d p = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("px"))
+    {
+      p = LoadPolynomial3d(_sdf->GetElementImpl("px"));
+    }
+    math::Polynomial3d q = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("qy"))
+    {
+      q = LoadPolynomial3d(_sdf->GetElementImpl("qy"));
+    }
+    math::Polynomial3d r = math::Polynomial3d::Constant(0.);
+    if (_sdf->HasElement("rz"))
+    {
+      r = LoadPolynomial3d(_sdf->GetElementImpl("rz"));
+    }
+    return ScalingFactor(k, std::move(p), std::move(q), std::move(r));
+  }
+
+  //////////////////////////////////////////////////
+  math::Intervald
+  LoadIntervald(const sdf::ElementPtr _sdf, const std::string &_prefix)
+  {
+    bool leftClosed = false;
+    double leftValue = -math::INF_D;
+    const std::string geAttrName = _prefix + "ge";
+    const std::string gtAttrName = _prefix + "gt";
+    if (_sdf->HasAttribute(geAttrName) && _sdf->HasAttribute(gtAttrName))
+    {
+      gzerr << "Attributes '" << geAttrName << "' and '" << gtAttrName << "'"
+             << " are mutually exclusive. Ignoring both." << std::endl;
+    }
+    else if (_sdf->HasAttribute(geAttrName))
+    {
+      sdf::ParamPtr sdfGeAttrValue = _sdf->GetAttribute(geAttrName);
+      if (!sdfGeAttrValue->Get<double>(leftValue))
+      {
+        gzerr << "Invalid '" << geAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+      else
+      {
+        leftClosed = true;
+      }
+    }
+    else if (_sdf->HasAttribute(gtAttrName))
+    {
+      sdf::ParamPtr sdfGtAttrValue = _sdf->GetAttribute(gtAttrName);
+      if(!sdfGtAttrValue->Get<double>(leftValue))
+      {
+        gzerr << "Invalid '" << gtAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+    }
+
+    bool rightClosed = false;
+    double rightValue = math::INF_D;
+    const std::string leAttrName = _prefix + "le";
+    const std::string ltAttrName = _prefix + "lt";
+    if (_sdf->HasAttribute(leAttrName) && _sdf->HasAttribute(ltAttrName))
+    {
+      gzerr << "Attributes '" << leAttrName << "' and '" << ltAttrName << "'"
+             << " are mutually exclusive. Ignoring both." << std::endl;
+    }
+    else if (_sdf->HasAttribute(leAttrName))
+    {
+      sdf::ParamPtr sdfLeAttrValue = _sdf->GetAttribute(leAttrName);
+      if (!sdfLeAttrValue->Get<double>(rightValue))
+      {
+        gzerr << "Invalid '" << leAttrName << "' attribute value. "
+               << "Ignoring." << std::endl;
+      }
+      else
+      {
+        rightClosed = true;
+      }
+    }
+    else if (_sdf->HasAttribute(ltAttrName))
+    {
+      sdf::ParamPtr sdfLtAttrValue = _sdf->GetAttribute(ltAttrName);
+      if (!sdfLtAttrValue->Get<double>(rightValue))
+      {
+        gzerr << "Invalid '" << gtAttrName << "'"
+               << "attribute value. Ignoring."
+               << std::endl;
+      }
+    }
+
+    return math::Intervald(leftValue, leftClosed, rightValue, rightClosed);
+  }
+
+  //////////////////////////////////////////////////
+  PiecewiseScalingFactor LoadPiecewiseScalingFactor(const sdf::ElementPtr _sdf)
+  {
+    if (!_sdf->HasElement("when"))
+    {
+      return PiecewiseScalingFactor::Throughout(LoadScalingFactor(_sdf));
+    }
+    std::vector<PiecewiseScalingFactor::Piece> pieces;
+    for (sdf::ElementPtr sdfPiece = _sdf->GetElement("when");
+         sdfPiece; sdfPiece = sdfPiece->GetNextElement("when"))
+    {
+      pieces.push_back({
+          math::Region3d(LoadIntervald(sdfPiece, "x"),
+                         LoadIntervald(sdfPiece, "y"),
+                         LoadIntervald(sdfPiece, "z")),
+          LoadScalingFactor(sdfPiece),
+      });
+    }
+    return PiecewiseScalingFactor(std::move(pieces));
+  }
+}  // namespace
+
 /// \brief Private WindEffects data class.
-class ignition::gazebo::systems::WindEffectsPrivate
+class gz::sim::systems::WindEffectsPrivate
 {
   /// \brief Initialize the system.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
@@ -144,7 +298,7 @@ class ignition::gazebo::systems::WindEffectsPrivate
   public: double magnitudeMeanVertical{0.0};
 
   /// \brief The scaling factor to approximate wind as force on a mass.
-  public: double forceApproximationScalingFactor{1.0};
+  public: PiecewiseScalingFactor forceApproximationScalingFactor;
 
   /// \brief Noise added to magnitude.
   public: sensors::NoisePtr noiseMagnitude;
@@ -155,7 +309,7 @@ class ignition::gazebo::systems::WindEffectsPrivate
   /// \brief Noise added to Z axis.
   public: sensors::NoisePtr noiseVertical;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Set during Load to true if the configuration for the plugin is
@@ -194,7 +348,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindRise) < 1e-6)
         {
-          ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+          gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -234,7 +388,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
         if (std::fabs(this->characteristicTimeForWindOrientationChange) < 1e-6)
         {
-          ignerr << "Please set <horizontal><direction><time_for_rise> to a "
+          gzerr << "Please set <horizontal><direction><time_for_rise> to a "
                  << "value greater than 0" << std::endl;
           return;
         }
@@ -274,7 +428,7 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
 
       if (std::fabs(this->characteristicTimeForWindRiseVertical) < 1e-6)
       {
-        ignerr << "Please set <horizontal><magnitude><time_for_rise> to a "
+        gzerr << "Please set <horizontal><magnitude><time_for_rise> to a "
                << "value greater than 0" << std::endl;
         return;
       }
@@ -291,19 +445,22 @@ void WindEffectsPrivate::Load(EntityComponentManager &_ecm,
   {
     sdf::ElementPtr sdfForceApprox =
         _sdf->GetElementImpl("force_approximation_scaling_factor");
-
-    this->forceApproximationScalingFactor = sdfForceApprox->Get<double>();
+    this->forceApproximationScalingFactor =
+        LoadPiecewiseScalingFactor(sdfForceApprox);
+  }
+  else
+  {
+    this->forceApproximationScalingFactor =
+        PiecewiseScalingFactor::Throughout(MakeConstantScalingFactor(1.));
   }
 
-  // If the forceApproximationScalingFactor is very small don't update.
   // It doesn't make sense to be negative, that would be negative wind drag.
-  if (std::fabs(this->forceApproximationScalingFactor) < 1e-6)
+  if (this->forceApproximationScalingFactor.Minimum() < 0.)
   {
-    ignerr << "Please set <force_approximation_scaling_factor> to a value "
-           << "greater than 0" << std::endl;
+    gzerr << "<force_approximation_scaling_factor> must "
+           << "always be a nonnegative quantity" << std::endl;
     return;
   }
-
 
   this->validConfig = true;
 }
@@ -314,7 +471,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   auto validWorldName = transport::TopicUtils::AsValidTopic(_worldName);
   if (validWorldName.empty())
   {
-    ignerr << "Failed to setup transport, invalid world name [" << _worldName
+    gzerr << "Failed to setup transport, invalid world name [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -332,7 +489,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
 void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
                                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
+  GZ_PROFILE("WindEffectsPrivate::UpdateWindVelocity");
   double period = std::chrono::duration<double>(_info.dt).count();
   double simTime = std::chrono::duration<double>(_info.simTime).count();
   double kMag = period / this->characteristicTimeForWindRise;
@@ -362,7 +519,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
       kMagVertical * windLinVelSeed->Data().Z();
 
   magnitude += this->magnitudeSinAmplitudePercent * this->magnitudeMean *
-               std::sin(2 * IGN_PI * simTime / this->magnitudeSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->magnitudeSinPeriod);
 
   if (this->noiseMagnitude)
   {
@@ -371,7 +528,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Compute horizontal direction
   double direction =
-      IGN_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
+      GZ_RTOD(atan2(windLinVelSeed->Data().Y(), windLinVelSeed->Data().X()));
 
   if (!this->directionMean)
   {
@@ -386,15 +543,15 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   direction = this->directionMean.value();
 
   direction += this->orientationSinAmplitude *
-               std::sin(2 * IGN_PI * simTime / this->orientationSinPeriod);
+               std::sin(2 * GZ_PI * simTime / this->orientationSinPeriod);
 
   if (this->noiseDirection)
     direction = this->noiseDirection->Apply(direction);
 
   // Apply wind velocity
-  ignition::math::Vector3d windVel;
-  windVel.X(magnitude * std::cos(IGN_DTOR(direction)));
-  windVel.Y(magnitude * std::sin(IGN_DTOR(direction)));
+  math::Vector3d windVel;
+  windVel.X(magnitude * std::cos(GZ_DTOR(direction)));
+  windVel.Y(magnitude * std::sin(GZ_DTOR(direction)));
 
   if (this->noiseVertical)
   {
@@ -413,7 +570,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
                                         EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffectsPrivate::ApplyWindForce");
+  GZ_PROFILE("WindEffectsPrivate::ApplyWindForce");
   auto windVel =
       _ecm.Component<components::WorldLinearVelocity>(this->windEntity);
   if (!windVel)
@@ -421,12 +578,16 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
   Link link;
 
-  _ecm.Each<components::Link, components::Inertial, components::WindMode,
+  _ecm.Each<components::Link,
+            components::Inertial,
+            components::WindMode,
+            components::WorldPose,
             components::WorldLinearVelocity>(
       [&](const Entity &_entity,
           components::Link *,
           components::Inertial *_inertial,
           components::WindMode *_windMode,
+          components::WorldPose *_linkPose,
           components::WorldLinearVelocity *_linkVel) -> bool
       {
         // Skip links for which the wind is disabled
@@ -437,9 +598,16 @@ void WindEffectsPrivate::ApplyWindForce(const UpdateInfo &,
 
         link.ResetEntity(_entity);
 
-        math::Vector3d windForce = _inertial->Data().MassMatrix().Mass() *
-                                   this->forceApproximationScalingFactor *
-                                   (windVel->Data() - _linkVel->Data());
+        double forceScalingFactor =
+            this->forceApproximationScalingFactor(_linkPose->Data().Pos());
+        if (std::isnan(forceScalingFactor))
+        {
+          forceScalingFactor = 0.;
+        }
+
+        const math::Vector3d windForce =
+            _inertial->Data().MassMatrix().Mass() *
+            forceScalingFactor * (windVel->Data() - _linkVel->Data());
 
         // Apply force at center of mass
         link.AddWorldForce(_ecm, windForce);
@@ -543,12 +711,12 @@ void WindEffects::Configure(const Entity &_entity,
 void WindEffects::PreUpdate(const UpdateInfo &_info,
                             EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WindEffects::PreUpdate");
+  GZ_PROFILE("WindEffects::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -582,9 +750,12 @@ void WindEffects::PreUpdate(const UpdateInfo &_info,
 
 }
 
-IGNITION_ADD_PLUGIN(WindEffects, System,
+GZ_ADD_PLUGIN(WindEffects, System,
   WindEffects::ISystemConfigure,
   WindEffects::ISystemPreUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

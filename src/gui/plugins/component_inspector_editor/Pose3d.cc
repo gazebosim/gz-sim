@@ -14,20 +14,20 @@
  * limitations under the License.
  *
 */
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/Util.hh>
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include <ignition/gazebo/EntityComponentManager.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/Util.hh>
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Recreate.hh"
+#include <gz/sim/EntityComponentManager.hh>
 
 #include "ComponentInspectorEditor.hh"
 #include "Pose3d.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Pose3d::Pose3d(ComponentInspectorEditor *_inspector)
@@ -70,7 +70,7 @@ Pose3d::Pose3d(ComponentInspectorEditor *_inspector)
 Q_INVOKABLE void Pose3d::PoseUpdate(
     double _x, double _y, double _z, double _roll, double _pitch, double _yaw)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Pose>(this->inspector->GetEntity());
@@ -83,7 +83,7 @@ Q_INVOKABLE void Pose3d::PoseUpdate(
       _ecm.CreateComponent(modelEntity, components::Recreate());
     }
     else
-      ignerr << "Unable to get the pose component.\n";
+      gzerr << "Unable to get the pose component.\n";
   };
   this->inspector->AddUpdateCallback(cb);
 }

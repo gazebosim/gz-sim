@@ -15,18 +15,18 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_MODELEDITOR_HH_
-#define IGNITION_GAZEBO_GUI_MODELEDITOR_HH_
+#ifndef GZ_SIM_GUI_MODELEDITOR_HH_
+#define GZ_SIM_GUI_MODELEDITOR_HH_
 
 #include <memory>
 
 #include <QtCore>
 
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/Types.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ModelEditorPrivate;
 

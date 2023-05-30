@@ -17,44 +17,44 @@
 
 #include "AirPressure.hh"
 
-#include <ignition/msgs/air_pressure_sensor.pb.h>
+#include <gz/msgs/air_pressure_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
+#include <gz/math/Helpers.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/AirPressureSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/AirPressureSensor.hh>
 
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Private AirPressure data class.
-class ignition::gazebo::systems::AirPressurePrivate
+class gz::sim::systems::AirPressurePrivate
 {
   /// \brief A map of air pressure entity to its sensor
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AirPressureSensor>> entitySensorMap;
 
-  /// \brief Ign-sensors sensor factory for creating sensors
+  /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Keep list of sensors that were created during the previous
@@ -103,7 +103,7 @@ AirPressure::~AirPressure() = default;
 void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressure::PreUpdate");
+  GZ_PROFILE("AirPressure::PreUpdate");
 
   // Create components
   for (auto entity : this->dataPtr->newSensors)
@@ -111,7 +111,7 @@ void AirPressure::PreUpdate(const UpdateInfo &/*_info*/,
     auto it = this->dataPtr->entitySensorMap.find(entity);
     if (it == this->dataPtr->entitySensorMap.end())
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
       continue;
     }
@@ -126,12 +126,12 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
                              const EntityComponentManager &_ecm)
 {
   // Only update and publish if not paused.
-  IGN_PROFILE("AirPressure::PostUpdate");
+  GZ_PROFILE("AirPressure::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -143,7 +143,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
     // check to see if update is necessary
     // we only update if there is at least one sensor that needs data
     // and that sensor has subscribers.
-    // note: ign-sensors does its own throttling. Here the check is mainly
+    // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the AirPressurePrivate::UpdatePressures function
     bool needsUpdate = false;
     for (auto &it : this->dataPtr->entitySensorMap)
@@ -163,7 +163,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Update measurement time
-      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
+      it.second->Update(_info.simTime, false);
     }
   }
 
@@ -193,7 +193,7 @@ void AirPressurePrivate::AddAirPressure(
       sensors::AirPressureSensor>(data);
   if (nullptr == sensor)
   {
-    ignerr << "Failed to create sensor [" << sensorScopedName << "]"
+    gzerr << "Failed to create sensor [" << sensorScopedName << "]"
            << std::endl;
     return;
   }
@@ -217,7 +217,7 @@ void AirPressurePrivate::AddAirPressure(
 //////////////////////////////////////////////////
 void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
+  GZ_PROFILE("AirPressurePrivate::CreateAirPressureEntities");
   if (!this->initialized)
   {
     // Create air pressure sensors
@@ -248,7 +248,7 @@ void AirPressurePrivate::CreateSensors(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::UpdateAirPressures");
+  GZ_PROFILE("AirPressurePrivate::UpdateAirPressures");
   _ecm.Each<components::AirPressureSensor, components::WorldPose>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *,
@@ -262,7 +262,7 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
         }
         else
         {
-          ignerr << "Failed to update air pressure: " << _entity << ". "
+          gzerr << "Failed to update air pressure: " << _entity << ". "
                  << "Entity not found." << std::endl;
         }
 
@@ -274,7 +274,7 @@ void AirPressurePrivate::UpdateAirPressures(const EntityComponentManager &_ecm)
 void AirPressurePrivate::RemoveAirPressureEntities(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("AirPressurePrivate::RemoveAirPressureEntities");
+  GZ_PROFILE("AirPressurePrivate::RemoveAirPressureEntities");
   _ecm.EachRemoved<components::AirPressureSensor>(
     [&](const Entity &_entity,
         const components::AirPressureSensor *)->bool
@@ -282,7 +282,7 @@ void AirPressurePrivate::RemoveAirPressureEntities(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing air pressure sensor for entity ["
+          gzerr << "Internal error, missing air pressure sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -293,9 +293,12 @@ void AirPressurePrivate::RemoveAirPressureEntities(
       });
 }
 
-IGNITION_ADD_PLUGIN(AirPressure, System,
+GZ_ADD_PLUGIN(AirPressure, System,
   AirPressure::ISystemPreUpdate,
   AirPressure::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")
+GZ_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")

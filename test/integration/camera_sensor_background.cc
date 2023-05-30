@@ -19,16 +19,18 @@
 
 #include <string>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/msgs/image.pb.h>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
 
 std::mutex mutex;
@@ -71,15 +73,15 @@ void cameraCb(const msgs::Image & _msg)
 // Test the ability to set the background color using the sensor system
 // plugin.
 TEST_F(CameraSensorBackgroundFixture,
-    IGN_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
+    GZ_UTILS_TEST_DISABLED_ON_MAC(RedBackground))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  sim::ServerConfig serverConfig;
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_empty_scene.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
-  gazebo::Server server(serverConfig);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 

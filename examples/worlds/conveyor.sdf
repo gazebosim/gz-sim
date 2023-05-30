@@ -14,16 +14,16 @@
             <real_time_factor>1.0</real_time_factor>
         </physics>
         <plugin
-                filename="ignition-gazebo-physics-system"
-                name="ignition::gazebo::systems::Physics">
+                filename="gz-sim-physics-system"
+                name="gz::sim::systems::Physics">
         </plugin>
         <plugin
-                filename="ignition-gazebo-user-commands-system"
-                name="ignition::gazebo::systems::UserCommands">
+                filename="gz-sim-user-commands-system"
+                name="gz::sim::systems::UserCommands">
         </plugin>
         <plugin
-                filename="ignition-gazebo-scene-broadcaster-system"
-                name="ignition::gazebo::systems::SceneBroadcaster">
+                filename="gz-sim-scene-broadcaster-system"
+                name="gz::sim::systems::SceneBroadcaster">
         </plugin>
 
         <scene>
@@ -144,41 +144,41 @@
                 <kinematic>0</kinematic>
             </link>
 
-            <plugin filename="libignition-gazebo-track-controller-system.so"
-                    name="ignition::gazebo::systems::TrackController">
+            <plugin filename="gz-sim-track-controller-system"
+                    name="gz::sim::systems::TrackController">
                 <link>base_link</link>
                 <!--debug>true</debug-->
             </plugin>
 
             <!-- Moving Forward: W -->
-            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
-                    name="ignition::gazebo::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+            <plugin filename="gz-sim-triggered-publisher-system"
+                    name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">87</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: 10.0
                 </output>
             </plugin>
 
             <!-- Moving Backward: X -->
-            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
-                    name="ignition::gazebo::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+            <plugin filename="gz-sim-triggered-publisher-system"
+                    name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">88</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: -1.0
                 </output>
             </plugin>
 
             <!-- Stop: S -->
-            <plugin filename="libignition-gazebo-triggered-publisher-system.so"
-                    name="ignition::gazebo::systems::TriggeredPublisher">
-                <input type="ignition.msgs.Int32" topic="/keyboard/keypress">
+            <plugin filename="gz-sim-triggered-publisher-system"
+                    name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
                     <match field="data">83</match>
                 </input>
-                <output type="ignition.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
+                <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
                     data: 0.0
                 </output>
             </plugin>
@@ -222,46 +222,60 @@
 
         <gui fullscreen="0">
             <!-- 3D scene -->
-            <plugin filename="GzScene3D" name="3D View">
-                <ignition-gui>
-                    <title>3D View</title>
-                    <property type="bool" key="showTitleBar">false</property>
-                    <property type="string" key="state">docked</property>
-                </ignition-gui>
+            <plugin filename="MinimalScene" name="3D View">
+              <gz-gui>
+                <title>3D View</title>
+                <property type="bool" key="showTitleBar">false</property>
+                <property type="string" key="state">docked</property>
+              </gz-gui>
 
-                <engine>ogre2</engine>
-                <scene>scene</scene>
-                <ambient_light>0.4 0.4 0.4</ambient_light>
-                <background_color>0.8 0.8 0.8</background_color>
-                <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+              <engine>ogre2</engine>
+              <scene>scene</scene>
+              <ambient_light>0.4 0.4 0.4</ambient_light>
+              <background_color>0.8 0.8 0.8</background_color>
+              <camera_pose>-6 0 6 0 0.5 0</camera_pose>
             </plugin>
 
-            <!-- World control -->
-            <plugin filename="WorldControl" name="World control">
-                <ignition-gui>
-                    <title>World control</title>
-                    <property type="bool" key="showTitleBar">false</property>
-                    <property type="bool" key="resizable">false</property>
-                    <property type="double" key="height">72</property>
-                    <property type="double" key="width">121</property>
-                    <property type="double" key="z">1</property>
-
-                    <property type="string" key="state">floating</property>
-                    <anchors target="3D View">
-                        <line own="left" target="left"/>
-                        <line own="bottom" target="bottom"/>
-                    </anchors>
-                </ignition-gui>
-
-                <play_pause>true</play_pause>
-                <step>true</step>
-                <start_paused>true</start_paused>
-
+            <!-- Plugins that add functionality to the scene -->
+            <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+              <gz-gui>
+                <property key="state" type="string">floating</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="GzSceneManager" name="Scene Manager">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="InteractiveViewControl" name="Interactive view control">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
+            </plugin>
+            <plugin filename="CameraTracking" name="Camera Tracking">
+              <gz-gui>
+                <property key="resizable" type="bool">false</property>
+                <property key="width" type="double">5</property>
+                <property key="height" type="double">5</property>
+                <property key="state" type="string">floating</property>
+                <property key="showTitleBar" type="bool">false</property>
+              </gz-gui>
             </plugin>
 
             <!-- World statistics -->
             <plugin filename="WorldStats" name="World stats">
-                <ignition-gui>
+                <gz-gui>
                     <title>World stats</title>
                     <property type="bool" key="showTitleBar">false</property>
                     <property type="bool" key="resizable">false</property>
@@ -274,7 +288,7 @@
                         <line own="right" target="right"/>
                         <line own="bottom" target="bottom"/>
                     </anchors>
-                </ignition-gui>
+                </gz-gui>
 
                 <sim_time>true</sim_time>
                 <real_time>true</real_time>
@@ -284,7 +298,7 @@
 
             <!-- Translate / rotate -->
             <plugin filename="TransformControl" name="Transform control">
-                <ignition-gui>
+                <gz-gui>
                     <title>Transform control</title>
                     <anchors target="3D View">
                         <line own="left" target="left"/>
@@ -296,12 +310,12 @@
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
                     <property key="cardBackground" type="string">#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
 
             <!-- Insert simple shapes -->
             <plugin filename="Shapes" name="Shapes">
-                <ignition-gui>
+                <gz-gui>
                     <anchors target="Transform control">
                         <line own="left" target="right"/>
                         <line own="top" target="top"/>
@@ -312,11 +326,11 @@
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
                     <property key="cardBackground" type="string">#666666</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
 
             <plugin filename="KeyPublisher" name="Key publisher">
-                <ignition-gui>
+                <gz-gui>
                     <anchors target="3D View">
                         <line own="right" target="right"/>
                         <line own="top" target="top"/>
@@ -326,11 +340,11 @@
                     <property key="height" type="double">5</property>
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
 
             <plugin filename="VisualizeContacts" name="Visualize Contacts">
-                <ignition-gui>
+                <gz-gui>
                     <title>Visualize Contacts</title>
                     <anchors target="3D View">
                         <line own="right" target="right"/>
@@ -342,7 +356,7 @@
                     <property key="state" type="string">floating</property>
                     <property key="showTitleBar" type="bool">false</property>
                     <property key="cardBackground" type="string">#ffffff</property>
-                </ignition-gui>
+                </gz-gui>
             </plugin>
         </gui>
     </world>

@@ -34,6 +34,8 @@ Rectangle {
   // Horizontal margins
   property int margin: 5
 
+  property int tooltipDelay: 500
+
   RowLayout {
     anchors.fill: parent
 

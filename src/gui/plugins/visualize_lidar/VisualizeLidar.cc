@@ -24,47 +24,47 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
-#include "ignition/rendering/RenderTypes.hh"
-#include "ignition/rendering/RenderingIface.hh"
-#include "ignition/rendering/RenderEngine.hh"
-#include "ignition/rendering/Scene.hh"
-#include "ignition/rendering/LidarVisual.hh"
+#include "gz/rendering/RenderTypes.hh"
+#include "gz/rendering/RenderingIface.hh"
+#include "gz/rendering/RenderEngine.hh"
+#include "gz/rendering/Scene.hh"
+#include "gz/rendering/LidarVisual.hh"
 
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/msgs/laserscan.pb.h"
+#include "gz/msgs/laserscan.pb.h"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
+inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   /// \brief Private data class for VisualizeLidar
   class VisualizeLidarPrivate
@@ -98,7 +98,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: QStringList topicList;
 
     /// \brief Entity representing the sensor in the world
-    public: gazebo::Entity lidarEntity;
+    public: sim::Entity lidarEntity;
 
     /// \brief Minimum range for the visual
     public: double minVisualRange{0.0};
@@ -128,8 +128,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 VisualizeLidar::VisualizeLidar()
@@ -156,14 +156,14 @@ void VisualizeLidar::LoadLidar()
   auto engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
-    igndbg << "More than one engine is available. "
+    gzdbg << "More than one engine is available. "
       << "VisualizeLidar plugin will use engine ["
         << engineName << "]" << std::endl;
   }
   auto engine = rendering::engine(engineName);
   if (!engine)
   {
-    ignerr << "Internal error: failed to load engine [" << engineName
+    gzerr << "Internal error: failed to load engine [" << engineName
       << "]. VisualizeLidar plugin won't work." << std::endl;
     return;
   }
@@ -176,7 +176,7 @@ void VisualizeLidar::LoadLidar()
   auto scene = engine->SceneByIndex(0);
   if (!scene)
   {
-    ignerr << "Internal error: scene is null." << std::endl;
+    gzerr << "Internal error: scene is null." << std::endl;
     return;
   }
 
@@ -186,19 +186,19 @@ void VisualizeLidar::LoadLidar()
   }
 
   // Create lidar visual
-  igndbg << "Creating lidar visual" << std::endl;
+  gzdbg << "Creating lidar visual" << std::endl;
 
   auto root = scene->RootVisual();
   this->dataPtr->lidar = scene->CreateLidarVisual();
   if (!this->dataPtr->lidar)
   {
-    ignwarn << "Failed to create lidar, visualize lidar plugin won't work."
+    gzwarn << "Failed to create lidar, visualize lidar plugin won't work."
             << std::endl;
 
     scene->DestroyVisual(this->dataPtr->lidar);
 
-    ignition::gui::App()->findChild<
-        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    gz::gui::App()->findChild<
+        gz::gui::MainWindow *>()->removeEventFilter(this);
   }
   else
   {
@@ -214,16 +214,16 @@ void VisualizeLidar::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Visualize lidar";
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the RenderThread, so it's safe to make
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -248,7 +248,7 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
     }
     else
     {
-      ignerr << "Lidar pointer is not set" << std::endl;
+      gzerr << "Lidar pointer is not set" << std::endl;
     }
   }
 
@@ -260,7 +260,7 @@ bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 void VisualizeLidar::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("VisualizeLidar::Update");
+  GZ_PROFILE("VisualizeLidar::Update");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
@@ -274,7 +274,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
           components::Name(lidarURIVec[0]));
       if (!baseEntity)
       {
-        ignerr << "Error entity " << lidarURIVec[0]
+        gzerr << "Error entity " << lidarURIVec[0]
             << " doesn't exist and cannot be used to set lidar visual pose"
             << std::endl;
         return;
@@ -311,7 +311,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
           }
           if (!foundChild)
           {
-            ignerr << "The entity could not be found."
+            gzerr << "The entity could not be found."
                   << "Error displaying lidar visual" <<std::endl;
             return;
           }
@@ -382,7 +382,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   if (!this->dataPtr->topicName.empty() &&
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
-    ignerr << "Unable to unsubscribe from topic ["
+    gzerr << "Unable to unsubscribe from topic ["
            << this->dataPtr->topicName <<"]" <<std::endl;
   }
   this->dataPtr->topicName = _topicName.toStdString();
@@ -395,12 +395,12 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
                             &VisualizeLidar::OnScan, this))
   {
-    ignerr << "Unable to subscribe to topic ["
+    gzerr << "Unable to subscribe to topic ["
            << this->dataPtr->topicName << "]\n";
     return;
   }
   this->dataPtr->visualDirty = false;
-  ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
+  gzmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -415,14 +415,14 @@ void VisualizeLidar::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetVisible(_value);
-  ignmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
+  gzmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
          << std::endl;
 }
 
 /////////////////////////////////////////////////
 void VisualizeLidar::OnRefresh()
 {
-  ignmsg << "Refreshing topic list for LaserScan messages." << std::endl;
+  gzmsg << "Refreshing topic list for LaserScan messages." << std::endl;
 
   // Clear
   this->dataPtr->topicList.clear();
@@ -436,7 +436,7 @@ void VisualizeLidar::OnRefresh()
     this->dataPtr->node.TopicInfo(topic, publishers);
     for (auto pub : publishers)
     {
-      if (pub.MsgTypeName() == "ignition.msgs.LaserScan")
+      if (pub.MsgTypeName() == "gz.msgs.LaserScan")
       {
         this->dataPtr->topicList.push_back(QString::fromStdString(topic));
         break;
@@ -525,5 +525,5 @@ QString VisualizeLidar::MinRange() const
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeLidar,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::VisualizeLidar,
+                    gz::gui::Plugin)

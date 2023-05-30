@@ -3,31 +3,33 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.12.0)
-set (GZ_DISTRIBUTION "Fortress")
+project(gz-sim7 VERSION 7.5.0)
+set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
-# Find ignition-cmake
+# Find gz-cmake
 #============================================================================
-# If you get an error at this line, you need to install ignition-cmake
-find_package(ignition-cmake2 2.12.0 REQUIRED)
+# If you get an error at this line, you need to install gz-cmake
+find_package(gz-cmake3 REQUIRED)
 
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
-set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
 #============================================================================
 
-option(ENABLE_PROFILER "Enable Ignition Profiler" FALSE)
+option(ENABLE_PROFILER "Enable Gazebo Profiler" FALSE)
 
 if(ENABLE_PROFILER)
-  add_definitions("-DIGN_PROFILER_ENABLE=1")
+  add_definitions("-DGZ_PROFILER_ENABLE=1")
 else()
-  add_definitions("-DIGN_PROFILER_ENABLE=0")
+  add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -39,13 +41,18 @@ endif()
 include(test/find_dri.cmake)
 FindDRI()
 
-option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
-      "Install python modules in standard system paths in the system"
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
       OFF)
 
-option(USE_DIST_PACKAGES_FOR_PYTHON
+include(CMakeDependentOption)
+cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
+      "Install python modules in standard system paths in the system"
+      OFF "NOT SKIP_PYBIND11" OFF)
+
+cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      OFF)
+      OFF "NOT SKIP_PYBIND11" OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -60,46 +67,47 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED VERSION 12.4)
-set(SDF_VER ${sdformat12_VERSION_MAJOR})
+gz_find_package(sdformat13 REQUIRED)
+set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-plugin
-ign_find_package(ignition-plugin1 REQUIRED COMPONENTS loader register)
-set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
+# Find gz-plugin
+gz_find_package(gz-plugin2 REQUIRED COMPONENTS loader register)
+set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-transport
-ign_find_package(ignition-transport11 REQUIRED COMPONENTS log)
-set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
+# Find gz-transport
+gz_find_package(gz-transport12 VERSION 12.1 REQUIRED COMPONENTS log parameters)
+set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-msgs
-ign_find_package(ignition-msgs8 REQUIRED VERSION 8.6)
-set(IGN_MSGS_VER ${ignition-msgs8_VERSION_MAJOR})
+# Find gz-msgs
+gz_find_package(gz-msgs9 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-common
+# Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-ign_find_package(ignition-common4 VERSION 4.5.1
+gz_find_package(gz-common5
   COMPONENTS
     profiler
     events
     av
+    io
   REQUIRED
 )
-set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
+set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-fuel_tools
-ign_find_package(ignition-fuel_tools7 REQUIRED)
-set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
+# Find gz-fuel_tools
+gz_find_package(gz-fuel_tools8 REQUIRED)
+set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
-set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
-ign_find_package (Qt5
+# Find gz-gui
+gz_find_package(gz-gui7 REQUIRED)
+set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package (Qt5
   COMPONENTS
     Core
     Quick
@@ -108,23 +116,24 @@ ign_find_package (Qt5
   PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
 
 #--------------------------------------
-# Find ignition-physics
-ign_find_package(ignition-physics5 VERSION 5.1
+# Find gz-physics
+gz_find_package(gz-physics6
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(IGN_PHYSICS_VER ${ignition-physics5_VERSION_MAJOR})
+set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-sensors
-ign_find_package(ignition-sensors6 REQUIRED VERSION 6.6
+# Find gz-sensors
+gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
   # component order is important
   COMPONENTS
     # non-rendering
     air_pressure
+    air_speed
     altimeter
     imu
     force_torque
@@ -144,83 +153,90 @@ ign_find_package(ignition-sensors6 REQUIRED VERSION 6.6
     depth_camera
     rgbd_camera
     thermal_camera
+    wide_angle_camera
 )
-set(IGN_SENSORS_VER ${ignition-sensors6_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-rendering
-ign_find_package(ignition-rendering6 REQUIRED VERSION 6.5)
-set(IGN_RENDERING_VER ${ignition-rendering6_VERSION_MAJOR})
+# Find gz-rendering
+gz_find_package(gz-rendering7 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-math
-ign_find_package(ignition-math6 REQUIRED COMPONENTS eigen3 VERSION 6.9)
-set(IGN_MATH_VER ${ignition-math6_VERSION_MAJOR})
+# Find gz-math
+gz_find_package(gz-math7 REQUIRED COMPONENTS eigen3)
+set(GZ_MATH_VER ${gz-math7_VERSION_MAJOR})
 
 #--------------------------------------
-# Find ignition-tools
-ign_find_package(ignition-tools
-                 REQUIRED
-                 PKGCONFIG "ignition-tools")
+# Find if gz command is available
+find_program(GZ_TOOLS_PROGRAM gz)
+if (GZ_TOOLS_PROGRAM)
+  message (STATUS "Searching for gz program - found. CLI tests can be built.")
+else()
+  message (STATUS "Searching for gz program - not found. CLI tests are skipped.")
+endif()
 # Note that CLI files are installed regardless of whether the dependency is
 # available during build time
-set(IGN_TOOLS_VER 1)
+set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
-# Find ignition-utils
-ign_find_package(ignition-utils1 REQUIRED COMPONENTS cli)
-set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
+# Find gz-utils
+gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
+set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
 set(REQ_PROTOBUF_VER 3)
-ign_find_package(IgnProtobuf
+gz_find_package(GzProtobuf
                  VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${ignition-msgs8_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
-include(IgnPython)
-find_package(PythonLibs QUIET)
-if (NOT PYTHONLIBS_FOUND)
-  IGN_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
-  message (STATUS "Searching for Python - not found.")
+if (SKIP_PYBIND11)
+  message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
+  find_package(PythonLibs QUIET)
+  if (NOT PYTHONLIBS_FOUND)
+    GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
+    message (STATUS "Searching for Python - not found.")
+  else()
+    message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
-  set(PYBIND11_PYTHON_VERSION 3)
-  find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
+    set(PYBIND11_PYTHON_VERSION 3)
+    find_package(Python3 QUIET COMPONENTS Interpreter Development)
+    find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+    if (pybind11_FOUND)
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      GZ_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
-set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+set(GZ_SIM_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
-set(IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${IGN_LIB_INSTALL_DIR}/ign-${IGN_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
+  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 
 #============================================================================
 # Configure the build
 #============================================================================
-ign_configure_build(QUIT_IF_BUILD_ERRORS)
+gz_configure_build(QUIT_IF_BUILD_ERRORS)
 
 add_subdirectory(examples)
 
 #============================================================================
 # Create package information
 #============================================================================
-ign_create_packages()
+gz_create_packages()
 
 if (${pybind11_FOUND})
 	add_subdirectory(python)
@@ -230,29 +246,39 @@ endif()
 #============================================================================
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.desktop.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.desktop)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.svg)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim${PROJECT_VERSION_MAJOR}.desktop)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo${PROJECT_VERSION_MAJOR}.svg)
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+# https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
-  ign_create_docs(
+  gz_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
     IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
-     "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
-     "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-     "${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}"
-     "${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}"
-     "${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}"
-     "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
-     "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
+     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
   )
 endif()
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
+
+# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
+# TODO(CH3): Deprecated. Remove on tock
+configure_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
+  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
+  COPYONLY)
+install(
+  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
+  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

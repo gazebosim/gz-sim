@@ -15,12 +15,12 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs 1.1
 import QtQuick.Layouts 1.3
 import QtQuick.Controls.Styles 1.4
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 Rectangle {
   id: componentInspector
@@ -155,7 +155,7 @@ Rectangle {
       anchors.fill: parent
       spacing: 0
 
-      IgnGazebo.TypeIcon {
+      GzSim.TypeIcon {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
@@ -216,6 +216,27 @@ Rectangle {
         }
       }
 
+      ToolButton {
+        id: addSystemButton
+        checkable: false
+        text: "\u002B"
+        contentItem: Text {
+          text: addSystemButton.text
+          color: "#b5b5b5"
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+        }
+        visible: (entityType == "model" || entityType == "visual" ||
+                  entityType == "sensor" || entityType == "world")
+        ToolTip.text: "Add a system to this entity"
+        ToolTip.visible: hovered
+        ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+        onClicked: {
+          addSystemDialog.open()
+        }
+      }
+
+
       Label {
         id: entityLabel
         text: 'Entity ' + ComponentInspector.entity
@@ -226,6 +247,111 @@ Rectangle {
       }
     }
   }
+
+  Dialog {
+    id: addSystemDialog
+    modal: false
+    focus: true
+    title: "Add System"
+    closePolicy: Popup.CloseOnEscape
+    width: parent.width
+
+    ColumnLayout {
+      width: parent.width
+      GridLayout {
+        columns: 2
+        columnSpacing: 30
+        Text {
+          text: "Name"
+          Layout.row: 0
+          Layout.column: 0
+        }
+
+        TextField {
+          id: nameField
+          selectByMouse: true
+          Layout.row: 0
+          Layout.column: 1
+          Layout.fillWidth: true
+          Layout.minimumWidth: 250
+          onTextEdited: {
+            addSystemDialog.updateButtonState();
+          }
+          placeholderText: "Leave empty to load first plugin"
+        }
+
+        Text {
+          text: "Filename"
+          Layout.row: 1
+          Layout.column: 0
+        }
+
+        ComboBox {
+          id: filenameCB
+          Layout.row: 1
+          Layout.column: 1
+          Layout.fillWidth: true
+          Layout.minimumWidth: 250
+          model: ComponentInspector.systemNameList
+          currentIndex: 0
+          onCurrentIndexChanged: {
+            if (currentIndex < 0)
+              return;
+            addSystemDialog.updateButtonState();
+          }
+          ToolTip.visible: hovered
+          ToolTip.delay: tooltipDelay
+          ToolTip.text: currentText
+        }
+      }
+
+      Text {
+        id: innerxmlLabel
+        text: "Inner XML"
+      }
+
+      Flickable {
+        id: innerxmlFlickable
+        Layout.minimumHeight: 300
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+
+        flickableDirection: Flickable.VerticalFlick
+        TextArea.flickable: TextArea {
+          id: innerxmlField
+          wrapMode: Text.WordWrap
+          selectByMouse: true
+          textFormat: TextEdit.PlainText
+          font.pointSize: 10
+        }
+        ScrollBar.vertical: ScrollBar {
+          policy: ScrollBar.AlwaysOn
+        }
+      }
+    }
+
+    footer: DialogButtonBox {
+      id: buttons
+      standardButtons: Dialog.Ok | Dialog.Cancel
+    }
+
+    onOpened: {
+      ComponentInspector.QuerySystems();
+      addSystemDialog.updateButtonState();
+    }
+
+    onAccepted: {
+      ComponentInspector.OnAddSystem(nameField.text.trim(),
+          filenameCB.currentText.trim(), innerxmlField.text.trim())
+    }
+
+    function updateButtonState() {
+      buttons.standardButton(Dialog.Ok).enabled =
+          (filenameCB.currentText.trim() != '')
+    }
+  }
+
+
 
   ListView {
     anchors.top: header.bottom

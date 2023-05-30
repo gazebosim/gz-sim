@@ -18,14 +18,14 @@
 #ifndef RENDERING_GUI_PLUGIN_HH_
 #define RENDERING_GUI_PLUGIN_HH_
 
-#include <ignition/gui/qt.h>
-#include <ignition/gui/Plugin.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/gui/qt.h>
+#include <gz/gui/Plugin.hh>
+#include <gz/rendering/Scene.hh>
 
-/// \brief Example of a GUI plugin that uses Ignition Rendering.
-/// This plugin works with either Ignition GUI's Scene3D or Ignition Gazebo's
-/// Scene3D.
-class RenderingGuiPlugin : public ignition::gui::Plugin
+/// \brief Example of a GUI plugin that uses Gazebo Rendering.
+/// This plugin works with Gazebo GUI's MinimalScene or any plugin providing
+/// similar functionality.
+class RenderingGuiPlugin : public gz::gui::Plugin
 {
   Q_OBJECT
 
@@ -51,7 +51,7 @@ class RenderingGuiPlugin : public ignition::gui::Plugin
   private: bool dirty{false};
 
   /// \brief Pointer to the rendering scene.
-  private: ignition::rendering::ScenePtr scene{nullptr};
+  private: gz::rendering::ScenePtr scene{nullptr};
 };
 
 #endif

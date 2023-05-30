@@ -17,7 +17,7 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <ignition/msgs/scene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
 #include <algorithm>
 #include <chrono>
@@ -26,41 +26,43 @@
 #include <string>
 #include <unordered_set>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/Graph.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/Graph.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Lidar.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Lidar.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Projector.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <sdf/Camera.hh>
 #include <sdf/Imu.hh>
@@ -71,39 +73,39 @@
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::SceneBroadcasterPrivate
+class gz::sim::systems::SceneBroadcasterPrivate
 {
   /// \brief Type alias for the graph used to represent the scene graph.
   public: using SceneGraphType = math::graph::DirectedGraph<
           std::shared_ptr<google::protobuf::Message>, bool>;
 
-  /// \brief Setup Ignition transport services and publishers
+  /// \brief Setup Gazebo Transport services and publishers
   /// \param[in] _worldName Name of world.
   public: void SetupTransport(const std::string &_worldName);
 
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+  public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+  public: bool SceneGraphService(msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+  public: bool StateService(msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -165,6 +167,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
+
+  /// \brief Adds projectors to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the projectors
+  /// will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddProjectors(msgs::Link *_msg,
               const Entity _entity, const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -274,7 +285,7 @@ void SceneBroadcaster::Configure(
   const components::Name *name = _ecm.Component<components::Name>(_entity);
   if (name == nullptr)
   {
-    ignerr << "World with id: " << _entity
+    gzerr << "World with id: " << _entity
            << " has no name. SceneBroadcaster cannot create transport topics\n";
     return;
   }
@@ -300,7 +311,7 @@ void SceneBroadcaster::Configure(
   else
   {
     using secs_double = std::chrono::duration<double, std::ratio<1>>;
-    ignerr << "SceneBroadcaster state_hertz must be positive, using default ("
+    gzerr << "SceneBroadcaster state_hertz must be positive, using default ("
       << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
         "Hz)\n";
   }
@@ -317,7 +328,7 @@ void SceneBroadcaster::Configure(
 void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcaster::PostUpdate");
+  GZ_PROFILE("SceneBroadcaster::PostUpdate");
 
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
@@ -382,7 +393,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // Otherwise publish just periodic change components when running
     else if (!_info.paused)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
+      GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
 
       if (_manager.HasPeriodicComponentChanges())
       {
@@ -440,7 +451,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     // changed components
     if (shouldPublish)
     {
-      IGN_PROFILE("SceneBroadcast::PostUpdate Publish State");
+      GZ_PROFILE("SceneBroadcast::PostUpdate Publish State");
       this->dataPtr->statePub.Publish(this->dataPtr->stepMsg);
       this->dataPtr->lastStatePubTime = now;
     }
@@ -448,10 +459,19 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcaster::Reset(const UpdateInfo &_info,
+                             EntityComponentManager &_manager)
+{
+  // Run Post Update so that GUI will be refreshed if reset is called while
+  // simulation is paused.
+  this->PostUpdate(_info, _manager);
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
-  IGN_PROFILE("SceneBroadcast::PoseUpdate");
+  GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
   msgs::Pose_V poseMsg, dyPoseMsg;
   bool dyPoseConnections = this->dyPosePub.HasConnections();
@@ -569,7 +589,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   auto ns = transport::TopicUtils::AsValidTopic("/world/" + _worldName);
   if (ns.empty())
   {
-    ignerr << "Failed to create valid namespace for world [" << _worldName
+    gzerr << "Failed to create valid namespace for world [" << _worldName
            << "]" << std::endl;
     return;
   }
@@ -584,7 +604,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(infoService, &SceneBroadcasterPrivate::SceneInfoService,
       this);
 
-  ignmsg << "Serving scene information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving scene information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
   // Scene graph service
@@ -593,7 +613,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(graphService,
       &SceneBroadcasterPrivate::SceneGraphService, this);
 
-  ignmsg << "Serving graph information on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving graph information on [" << opts.NameSpace() << "/"
          << graphService << "]" << std::endl;
 
   // State service
@@ -604,7 +624,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateService, &SceneBroadcasterPrivate::StateService,
       this);
 
-  ignmsg << "Serving full state on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state on [" << opts.NameSpace() << "/"
          << stateService << "]" << std::endl;
 
   // Async State service
@@ -613,33 +633,33 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->node->Advertise(stateAsyncService,
       &SceneBroadcasterPrivate::StateAsyncService, this);
 
-  ignmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
+  gzmsg << "Serving full state (async) on [" << opts.NameSpace() << "/"
          << stateAsyncService << "]" << std::endl;
 
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<msgs::Scene>(sceneTopic);
 
-  ignmsg << "Publishing scene information on [" << sceneTopic
+  gzmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
 
   // Entity deletion publisher
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<msgs::UInt32_V>(deletionTopic);
 
-  ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
+  gzmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
 
   // State topic
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<msgs::SerializedStepMap>(stateTopic);
 
-  ignmsg << "Publishing state changes on [" << stateTopic << "]"
+  gzmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
 
   // Pose info publisher
@@ -650,7 +670,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->posePub = this->node->Advertise<msgs::Pose_V>(poseTopic,
       poseAdvertOpts);
 
-  ignmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing pose messages on [" << opts.NameSpace() << "/"
          << poseTopic << "]" << std::endl;
 
   // Dynamic pose info publisher
@@ -661,12 +681,12 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   this->dyPosePub = this->node->Advertise<msgs::Pose_V>(dyPoseTopic,
       dyPoseAdvertOpts);
 
-  ignmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
+  gzmsg << "Publishing dynamic pose messages on [" << opts.NameSpace() << "/"
          << dyPoseTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -686,7 +706,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const ignition::msgs::StringMsg &_req)
+    const msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -695,7 +715,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStepMap &_res)
+    msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -711,13 +731,13 @@ bool SceneBroadcasterPrivate::StateService(
   if (success)
     _res.CopyFrom(this->stepMsg);
   else
-    ignerr << "Timed out waiting for state" << std::endl;
+    gzerr << "Timed out waiting for state" << std::endl;
 
   return success;
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -884,6 +904,12 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         {
           sensorMsg->set_type("air_pressure");
         }
+        auto airSpeedComp = _manager.Component<
+          components::AirSpeedSensor>(_entity);
+        if (airSpeedComp)
+        {
+          sensorMsg->set_type("air_speed");
+        }
         auto cameraComp = _manager.Component<components::Camera>(_entity);
         if (cameraComp)
         {
@@ -987,22 +1013,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          ignition::gazebo::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }
@@ -1058,6 +1084,29 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
         // Add to graph
         newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Projectors
+  _manager.EachNew<components::Projector, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::Projector *_projectorComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto projectorMsg = std::make_shared<msgs::Projector>();
+        projectorMsg->CopyFrom(
+            convert<msgs::Projector>(_projectorComp->Data()));
+        // \todo(anyone) add id field to projector msg
+        // projectorMsg->set_id(_entity);
+        projectorMsg->mutable_pose()->CopyFrom(
+            msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(projectorMsg->name(), projectorMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
         newEntity = true;
         return true;
@@ -1245,6 +1294,24 @@ void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddProjectors(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto projectorMsg = std::dynamic_pointer_cast<msgs::Projector>(
+        vertex.second.get().Data());
+    if (!projectorMsg)
+      continue;
+
+    _msg->add_projector()->CopyFrom(*projectorMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1272,6 +1339,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Particle emitters
     AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
+
+    // Projectors
+    AddProjectors(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 
@@ -1287,12 +1357,17 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 }
 
 
-IGNITION_ADD_PLUGIN(SceneBroadcaster,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(SceneBroadcaster,
+                    gz::sim::System,
                     SceneBroadcaster::ISystemConfigure,
-                    SceneBroadcaster::ISystemPostUpdate)
+                    SceneBroadcaster::ISystemPostUpdate,
+                    SceneBroadcaster::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "gz::sim::systems::SceneBroadcaster")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "ignition::gazebo::systems::SceneBroadcaster")

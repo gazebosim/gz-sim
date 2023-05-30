@@ -1,22 +1,22 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo joint position controller plugin demo
+  Gazebo joint position controller plugin demo
 
   Try sending joint position commands:
 
-    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: -1.0"
+    gz topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: -1.0"
 
-    ign topic -t "/rotor_cmd" -m ignition.msgs.Double -p "data: 1.0"
+    gz topic -t "/rotor_cmd" -m gz.msgs.Double -p "data: 1.0"
 -->
 <sdf version="1.6">
   <world name="default">
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -113,8 +113,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>j1</joint_name>
         <topic>rotor_cmd</topic>
         <p_gain>1</p_gain>

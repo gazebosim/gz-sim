@@ -71,7 +71,7 @@ Rectangle {
 
   Component {
     id: writablePositiveNumber
-    IgnSpinBox {
+    GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: minPhysParam

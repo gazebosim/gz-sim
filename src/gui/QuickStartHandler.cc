@@ -17,8 +17,8 @@
 
 #include "QuickStartHandler.hh"
 
-using namespace ignition;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace sim::gui;
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const
@@ -41,7 +41,7 @@ QString QuickStartHandler::Distribution() const
 /////////////////////////////////////////////////
 QString QuickStartHandler::SimVersion() const
 {
-  return QString::fromUtf8(IGNITION_GAZEBO_VERSION_FULL);
+  return QString::fromUtf8(GZ_SIM_VERSION_FULL);
 }
 
 /////////////////////////////////////////////////

@@ -14,28 +14,28 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_HH_
-#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTERVELOCITYCONTROL_HH_
+#ifndef GZ_SIM_SYSTEMS_MULTICOPTERVELOCITYCONTROL_HH_
+#define GZ_SIM_SYSTEMS_MULTICOPTERVELOCITYCONTROL_HH_
 
 #include <Eigen/Geometry>
 #include <memory>
 #include <string>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/System.hh>
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include <gz/sim/System.hh>
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
 #include "Common.hh"
 #include "LeeVelocityController.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief This is a velocity controller for multicopters that allows control
@@ -69,7 +69,7 @@ namespace systems
   /// # Parameters
   /// The following parameters are used by the system
   ///
-  /// robotNamespace: All ign-transport topics subscribed to and published by
+  /// robotNamespace: All gz-transport topics subscribed to and published by
   ///  the system will be prefixed by this string. This is a required parameter.
   ///
   /// commandSubTopic: The system subscribes to this topic to receive twist
@@ -162,8 +162,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Callback for twist messages
     /// The controller waits for the first twist message before publishing any
@@ -182,14 +182,14 @@ namespace systems
     /// \param[in] _ecm Mutable reference to the EntityComponentManager
     /// \param[in] _vels Rotor velocities to be published
     private: void PublishRotorVelocities(
-                 ignition::gazebo::EntityComponentManager &_ecm,
+                 gz::sim::EntityComponentManager &_ecm,
                  const Eigen::VectorXd &_vels);
 
     /// \brief Get the vehicle inertial from child links and nested models
     /// \param[in] _ecm Immutable reference to the EntityComponentManager
     /// \param[in] _entity Model entity to get inertial for
     private: math::Inertiald VehicleInertial(
-                 const ignition::gazebo::EntityComponentManager &_ecm,
+                 const EntityComponentManager &_ecm,
                  Entity _entity);
 
     /// \brief Model interface
@@ -210,7 +210,7 @@ namespace systems
     /// \brief Topic for enable commands.
     private: std::string enableSubTopic{"enable"};
 
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     private: transport::Node node;
 
     /// \brief Holds the rotor velocities computed by the controller. This is

@@ -11,12 +11,12 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -98,8 +98,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.004</thrust_coefficient>
         <fluid_density>1000</fluid_density>

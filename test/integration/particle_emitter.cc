@@ -19,25 +19,24 @@
 
 #include <string>
 
-#include <ignition/common/Util.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Color.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include <ignition/math/Color.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
-
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
+#include "test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ParticleEmitterTest : public InternalFixture<::testing::Test>
 {
@@ -60,8 +59,8 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};
@@ -70,18 +69,17 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 
   // Create a system that checks a particle emitter.
   test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                              const sim::EntityComponentManager &_ecm)
       {
         _ecm.Each<components::ParticleEmitter,
                   components::Name,
                   components::Pose>(
-            [&](const ignition::gazebo::Entity &_entity,
+            [&](const gz::sim::Entity &,
                 const components::ParticleEmitter *_emitter,
                 const components::Name *_name,
                 const components::Pose *_pose) -> bool
             {
-
               if (_name->Data() == "smoke_emitter")
               {
                 updateCustomChecked = true;
@@ -114,36 +112,18 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 
                 // color range image is empty because the emitter system
                 // will not be able to find a file that does not exist
-                // TODO(anyone) this should return  "/path/to/dummy_image.png"
-                // and let rendering do the findFile instead
-                EXPECT_EQ(std::string(),
+                EXPECT_EQ("/path/to/dummy_image.png",
                     _emitter->Data().color_range_image().data());
 
-                // particle scatter ratio is temporarily stored in header
-                bool hasParticleScatterRatio = false;
-                for (int i = 0; i < _emitter->Data().header().data_size(); ++i)
-                {
-                  for (int j = 0;
-                      j < _emitter->Data().header().data(i).value_size(); ++j)
-                  {
-                    if (_emitter->Data().header().data(i).key() ==
-                        "particle_scatter_ratio")
-                    {
-                      EXPECT_DOUBLE_EQ(0.01, math::parseFloat(
-                          _emitter->Data().header().data(i).value(0)));
-                      hasParticleScatterRatio = true;
-                    }
-                  }
-                }
-                EXPECT_TRUE(hasParticleScatterRatio);
+                EXPECT_TRUE(_emitter->Data().has_particle_scatter_ratio());
+                EXPECT_FLOAT_EQ(0.01f,
+                    _emitter->Data().particle_scatter_ratio().data());
               }
               else
               {
                 updateDefaultChecked = true;
 
-                EXPECT_TRUE(_name->Data().find(std::to_string(_entity))
-                    != std::string::npos);
-                EXPECT_EQ(_name->Data(), _emitter->Data().name());
+                EXPECT_EQ("smoke_generator", _name->Data());
                 EXPECT_EQ(msgs::ParticleEmitter_EmitterType_POINT,
                     _emitter->Data().type());
                 EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), _pose->Data());
@@ -153,7 +133,7 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
                     msgs::Convert(_emitter->Data().size()));
                 EXPECT_DOUBLE_EQ(10.0, _emitter->Data().rate().data());
                 EXPECT_DOUBLE_EQ(0.0, _emitter->Data().duration().data());
-                EXPECT_FALSE(_emitter->Data().emitting().data());
+                EXPECT_TRUE(_emitter->Data().emitting().data());
                 EXPECT_EQ(math::Vector3d(1, 1, 1),
                     msgs::Convert(_emitter->Data().particle_size()));
                 EXPECT_DOUBLE_EQ(5.0, _emitter->Data().lifetime().data());
@@ -164,7 +144,7 @@ TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
                     msgs::Convert(_emitter->Data().color_start()));
                 EXPECT_EQ(math::Color::White,
                     msgs::Convert(_emitter->Data().color_end()));
-                EXPECT_DOUBLE_EQ(1.0, _emitter->Data().scale_rate().data());
+                EXPECT_DOUBLE_EQ(0.0, _emitter->Data().scale_rate().data());
                 EXPECT_EQ("", _emitter->Data().color_range_image().data());
               }
 

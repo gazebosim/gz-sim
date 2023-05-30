@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
+#ifndef GZ_SIM_GUI_COMPONENTINSPECTOR_HH_
+#define GZ_SIM_GUI_COMPONENTINSPECTOR_HH_
 
 #include <map>
 #include <memory>
@@ -25,22 +25,23 @@
 #include <sdf/Material.hh>
 #include <sdf/Physics.hh>
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/sim/Types.hh>
 
 #include "Types.hh"
 
-#include <ignition/msgs/light.pb.h>
+#include <gz/msgs/light.pb.h>
 
-Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
+Q_DECLARE_METATYPE(gz::sim::ComponentTypeId)
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorPrivate;
 
@@ -60,7 +61,7 @@ namespace gazebo
     }
     else
     {
-      ignwarn << "Attempting to set unsupported data type to item ["
+      gzwarn << "Attempting to set unsupported data type to item ["
               << _item->text().toStdString() << "]" << std::endl;
     }
   }
@@ -154,12 +155,12 @@ namespace gazebo
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
     public slots: QStandardItem *AddComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
     public slots: void RemoveComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
     public: std::map<ComponentTypeId, QStandardItem *> items;
@@ -169,7 +170,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// None
-  class ComponentInspector : public gazebo::GuiSystem
+  class ComponentInspector : public sim::GuiSystem
   {
     Q_OBJECT
 
@@ -210,6 +211,14 @@ namespace gazebo
       bool nestedModel
       READ NestedModel
       NOTIFY NestedModelChanged
+    )
+
+    /// \brief System display name list
+    Q_PROPERTY(
+      QStringList systemNameList
+      READ SystemNameList
+      WRITE SetSystemNameList
+      NOTIFY SystemNameListChanged
     )
 
     /// \brief Constructor
@@ -371,6 +380,28 @@ namespace gazebo
     /// \brief Node for communication
     /// \return Transport node
     public: transport::Node &TransportNode();
+
+    /// \brief Query system plugin info.
+    public: Q_INVOKABLE void QuerySystems();
+
+    /// \brief Get the system plugin display name list
+    /// \return A list of names that are potentially system plugins
+    public: Q_INVOKABLE QStringList SystemNameList() const;
+
+    /// \brief Set the system plugin display name list
+    /// \param[in] _systempFilenameList A list of system plugin display names
+    public: Q_INVOKABLE void SetSystemNameList(
+        const QStringList &_systemNameList);
+
+    /// \brief Notify that system plugin display name list has changed
+    signals: void SystemNameListChanged();
+
+    /// \brief Callback when a new system is to be added to an entity
+    /// \param[in] _name Name of system
+    /// \param[in] _filename Filename of system
+    /// \param[in] _innerxml Inner XML content of the system
+    public: Q_INVOKABLE void OnAddSystem(const QString &_name,
+        const QString &_filename, const QString &_innerxml);
 
     /// \internal
     /// \brief Pointer to private data.

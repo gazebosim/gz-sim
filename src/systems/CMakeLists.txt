@@ -5,7 +5,7 @@
 #              [PRIVATE_LINK_LIBS <libraries...>]
 #              [PRIVATE_COMPILE_DEFS <definitions...>])
 #
-# Add a system component to Ignition Gazebo.
+# Add a system component to Gazebo.
 #
 # <system> Required. Name of the system.
 #
@@ -44,10 +44,9 @@ function(gz_add_system system_name)
   endif()
 
 
-  ign_add_component(${system_name}
+  gz_add_component(${system_name}
     SOURCES ${sources}
-    GET_TARGET_NAME system_target
-    CXX_STANDARD 17)
+    GET_TARGET_NAME system_target)
 
   target_link_libraries(${system_target}
     PUBLIC
@@ -55,7 +54,7 @@ function(gz_add_system system_name)
       ${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE
       ${gz_add_system_PRIVATE_LINK_LIBS}
-      ignition-plugin${IGN_PLUGIN_VER}::register
+      gz-plugin${GZ_PLUGIN_VER}::register
   )
 
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)
@@ -73,28 +72,32 @@ function(gz_add_system system_name)
   endif()
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
-  install(TARGETS ${system_target} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+  install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
 
-  # The library created by `ign_add_component` includes the ign-gazebo version
-  # (i.e. libignition-gazebo1-name-system.so), but for portability of SDF
+  # The library created by `gz_add_component` includes the gz-sim version
+  # (i.e. libgz-sim1-name-system.so), but for portability of SDF
   # files, we also install an unversioned symlink into the same versioned folder.
+  #
+  # NOTE(CH3): On migration of the CMake project name, ignition-gazebo -> gz-sim
+  # so the generated library target WILL CHANGE
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(WIN32)
     # symlinks on Windows require admin priviledges, fallback to copy
-    ADD_CUSTOM_COMMAND(TARGET ${system_target} POST_BUILD
-      COMMAND "${CMAKE_COMMAND}" -E copy
-        "$<TARGET_FILE:${system_target}>"
-        "$<TARGET_FILE_DIR:${system_target}>/${unversioned}")
+    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy
+      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${versioned}
+      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${unversioned})")
   else()
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${IGNITION_GAZEBO_PLUGIN_INSTALL_DIR})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
   endif()
 endfunction()
 
 add_subdirectory(ackermann_steering)
+add_subdirectory(acoustic_comms)
 add_subdirectory(air_pressure)
+add_subdirectory(air_speed)
 add_subdirectory(altimeter)
 add_subdirectory(apply_joint_force)
 add_subdirectory(apply_link_wrench)
@@ -112,6 +115,8 @@ add_subdirectory(diff_drive)
 if (NOT WIN32)
 add_subdirectory(elevator)
 endif()
+add_subdirectory(environment_preload)
+add_subdirectory(environmental_sensor_system)
 add_subdirectory(follow_actor)
 add_subdirectory(force_torque)
 add_subdirectory(hydrodynamics)

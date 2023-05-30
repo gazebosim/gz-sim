@@ -6,15 +6,15 @@
     </physics>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
       <contacts>
         <include_entity_names>false</include_entity_names>
       </contacts>
     </plugin>
     <plugin
-      filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
     </plugin>
 
     <model name="contact_model">

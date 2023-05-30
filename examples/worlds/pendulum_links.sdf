@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo link velocity control demo
+  Gazebo link velocity control demo
 
   Try sending commands:
-    ign topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m ignition.msgs.Twist -p "angular: {x: 0.5}"
+    gz topic -t "/model/double_pendulum_with_base/link/lower_link/cmd_vel" -m gz.msgs.Twist -p "angular: {x: 0.5}"
 
-    ign topic -t "/model/double_pendulum_with_base/link/upper_link/cmd_vel" -m ignition.msgs.Twist -p "linear: {x:0.2}, angular: {x: 0.5}"
+    gz topic -t "/model/double_pendulum_with_base/link/upper_link/cmd_vel" -m gz.msgs.Twist -p "linear: {x:0.2}, angular: {x: 0.5}"
 
 -->
 
@@ -16,16 +16,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-       filename="libignition-gazebo-physics-system.so"
-        name="ignition::gazebo::systems::Physics">
+       filename="gz-sim-physics-system"
+        name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-        filename="libignition-gazebo-user-commands-system.so"
-        name="ignition::gazebo::systems::UserCommands">
+        filename="gz-sim-user-commands-system"
+        name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-        filename="libignition-gazebo-scene-broadcaster-system.so"
-        name="ignition::gazebo::systems::SceneBroadcaster">
+        filename="gz-sim-scene-broadcaster-system"
+        name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -46,11 +46,12 @@
       <static>true</static>
       <link name="link">
         <collision name="collision">
-        <geometry>
-          <plane>
-            <normal>0 0 1</normal>
-          </plane>
-        </geometry>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
         </collision>
         <visual name="visual">
           <geometry>
@@ -71,7 +72,16 @@
     <model name="double_pendulum_with_base">
       <link name="base">
         <inertial>
-          <mass>100</mass>
+          <pose>-0.188749 0 0.75813399999999997 -0.13567899999999999 0 1.5708</pose>
+          <mass>256.42500000000001</mass>
+          <inertia>
+            <ixx>154.202</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>152.286</iyy>
+            <iyz>0</iyz>
+            <izz>28.8249</izz>
+          </inertia>
         </inertial>
         <visual name="vis_plate_on_ground">
           <pose>0 0 0.01 0 0 0</pose>
@@ -123,7 +133,16 @@
         <pose>0 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
-          <pose>0 0 0.5 0 0 0</pose>
+          <pose>-0.0107143 -4.4408900000000002e-16 0.46428599999999998 0.038729600000000003 -3.4694469519536142e-18 1.5708</pose>
+          <mass>87.964600000000004</mass>
+          <inertia>
+            <ixx>11.999000000000001</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>11.8742</iyy>
+            <iyz>0</iyz>
+            <izz>0.56461300000000003</izz>
+          </inertia>
         </inertial>
         <visual name="vis_upper_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
@@ -267,8 +286,8 @@
       </joint>
 
       <plugin
-          filename="ignition-gazebo-velocity-control-system"
-          name="ignition::gazebo::systems::VelocityControl">
+          filename="gz-sim-velocity-control-system"
+          name="gz::sim::systems::VelocityControl">
         <link_name>base</link_name>
         <link_name>upper_link</link_name>
         <link_name>lower_link</link_name>

@@ -9,12 +9,12 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo6/graph/badge.svg)](https://codecov.io/gh/ignitionrobotics/ign-gazebo/branch/ign-gazebo6)
-Ubuntu Focal  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo6-focal-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo6-focal-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-ign-gazebo6-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-ign-gazebo6-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ign-6-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ign-6-win/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/branch/main)
+Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-focal-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-focal-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
 
-Gazebo Sim is an open source robotics simulator. Through Gazebo sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
+Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
 Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and represents over 16 years of development and experience in robotics and simulation. This library is part of the [Gazebo](https://gazebosim.org) project.
 
@@ -69,7 +69,8 @@ accurate models available through
 [Gazebo Fuel](https://app.gazebosim.org/fuel). You can also build a
 new model using [SDF](http://sdformat.org).
 
-* **TCP/IP Transport**: Run simulation on remote servers and interface to Gazebo Sim through socket-based message passing using
+* **TCP/IP Transport**: Run simulation on remote servers and interface to
+Gazebo Sim through socket-based message passing using
 [Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
@@ -77,32 +78,32 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.9/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
 # Usage
 
 Gazebo Sim can be run from the command line, once [installed](#install), using:
 
 ```
-ign gazebo
+gz sim
 ```
 
 For help, and command line options use:
 
 ```
-ign gazebo -h
+gz sim -h
 ```
 
 ## Known issue of command line tools
 
 In the event that the installation is a mix of Debian and from source, command
-line tools from `ign-tools` may not work correctly.
+line tools from `gz-tools` may not work correctly.
 
 A workaround for a single package is to define the environment variable
-`IGN_CONFIG_PATH` to point to the location of the Gazebo library installation,
+`GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
 where the YAML file for the package is found, such as
 ```
-export IGN_CONFIG_PATH=/usr/local/share/ignition
+export GZ_CONFIG_PATH=/usr/local/share/gz
 ```
 
 However, that environment variable only takes a single path, which means if the
@@ -111,26 +112,26 @@ installations from source are in different locations, only one can be specified.
 Another workaround for working with multiple Gazebo libraries on the command
 line is using symbolic links to each library's YAML file.
 ```
-mkdir ~/.ignition/tools/configs -p
-cd ~/.ignition/tools/configs/
-ln -s /usr/local/share/ignition/fuel7.yaml .
-ln -s /usr/local/share/ignition/transport11.yaml .
-ln -s /usr/local/share/ignition/transportlog11.yaml .
+mkdir ~/.gz/tools/configs -p
+cd ~/.gz/tools/configs/
+ln -s /usr/local/share/gz/fuel8.yaml .
+ln -s /usr/local/share/gz/transport12.yaml .
+ln -s /usr/local/share/gz/transportlog12.yaml .
 ...
-export IGN_CONFIG_PATH=$HOME/.ignition/tools/configs
+export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
 ```
 
 This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
 # Documentation
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.9/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
 # Testing
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.9/install.html).
+See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
 
-See the [Writing Tests section of the contributor guide](https://gazebosim.org/docs/all/contributing#writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
@@ -138,11 +139,11 @@ Refer to the following table for information about important directories and fil
 
 ```
 gz-sim
-├── examples                     Various examples that can be run against binary or source installs of ign-gazebo.
+├── examples                     Various examples that can be run against binary or source installs of gz-sim.
 │   ├── plugin                   Example plugins.
-│   ├── standalone               Example standalone programs that use ign-gazebo as a library.
+│   ├── standalone               Example standalone programs that use gz-sim as a library.
 │   └── worlds                   Example SDF world files.
-├── include/ignition/gazebo      Header files that downstream users are expected to use.
+├── include/gz/sim               Header files that downstream users are expected to use.
 │   └── detail                   Header files that are not intended for downstream use, mainly template implementations.
 ├── src                          Source files and unit tests.
 │   ├── gui                      Graphical interface source code.

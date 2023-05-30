@@ -7,8 +7,8 @@
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <!-- Elevator version 7 -->
@@ -760,8 +760,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_0</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -820,8 +820,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_1</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -880,8 +880,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_2</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -940,8 +940,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>door_3</joint_name>
         <p_gain>60</p_gain>
         <i_gain>0</i_gain>
@@ -1124,8 +1124,8 @@
         </axis>
       </joint>
       <plugin
-        filename="ignition-gazebo-joint-position-controller-system"
-        name="ignition::gazebo::systems::JointPositionController">
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
         <joint_name>lift</joint_name>
         <p_gain>4000000</p_gain>
         <i_gain>2000</i_gain>
@@ -1274,8 +1274,8 @@
       <!-- ====================== END OF DOOR LIDARS ========================= -->
       <!-- ====================== START OF CONTROLLER ======================== -->
       <plugin
-        filename="ignition-gazebo-elevator-system"
-        name="ignition::gazebo::systems::Elevator">
+        filename="gz-sim-elevator-system"
+        name="gz::sim::systems::Elevator">
       </plugin>
       <!-- ======================= END OF CONTROLLER ========================= -->
     </model>

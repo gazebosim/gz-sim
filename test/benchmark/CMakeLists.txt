@@ -1,12 +1,11 @@
 set(TEST_TYPE "BENCHMARK")
+include(GzBenchmark OPTIONAL RESULT_VARIABLE GzBenchmark_FOUND)
 
-include(IgnBenchmark OPTIONAL RESULT_VARIABLE IgnBenchmark_FOUND)
-
-if (IgnBenchmark_FOUND)
+if (GzBenchmark_FOUND)
   set(tests
     each.cc
     ecm_serialize.cc
   )
 
-  ign_add_benchmarks(SOURCES ${tests})
+  gz_add_benchmarks(SOURCES ${tests})
 endif()

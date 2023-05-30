@@ -17,7 +17,7 @@
 
 #include "Barrier.hh"
 
-class ignition::gazebo::BarrierPrivate
+class gz::sim::BarrierPrivate
 {
   /// \brief Mutex for syncronization
   public: std::mutex mutex;
@@ -38,7 +38,7 @@ class ignition::gazebo::BarrierPrivate
   public: unsigned int generation{0};
 };
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 Barrier::Barrier(unsigned int _threadCount)
@@ -97,4 +97,3 @@ void Barrier::Cancel()
   this->dataPtr->cancelled = true;
   this->dataPtr->cv.notify_all();
 }
-

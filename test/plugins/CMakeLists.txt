@@ -19,8 +19,8 @@ set (test_plugins
   Null
 )
 
-# TODO: someone with knowledge of ign-plugin please resolve:
-# TestSystem.obj : error LNK2001: unresolved external symbol IgnitionPluginHook
+# TODO: someone with knowledge of gz-plugin please resolve:
+# TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
 if(NOT WIN32)
   set (test_plugins
     ${test_plugins}
@@ -32,12 +32,11 @@ endif()
 if(BUILD_TESTING)
   foreach (src ${test_plugins})
     add_library(${src} SHARED ${src}.cc)
-    set_property(TARGET ${src} PROPERTY CXX_STANDARD 17)
     target_link_libraries(${src}
       PRIVATE
-        ignition-plugin${IGN_PLUGIN_VER}::register
-        ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
-        ignition-gazebo${PROJECT_VERSION_MAJOR}
+        gz-plugin${GZ_PLUGIN_VER}::register
+        gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+        gz-sim${PROJECT_VERSION_MAJOR}
     )
 
     if (MSVC)

@@ -14,26 +14,26 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
-#define IGNITION_GAZEBO_LOGVIDEORECORDER_SYSTEM_HH_
+#ifndef GZ_SIM_LOGVIDEORECORDER_SYSTEM_HH_
+#define GZ_SIM_LOGVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
 #include <vector>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   class LogVideoRecorderPrivate;
 
   /** \class LogVideoRecorder LogVideoRecorder.hh \
-   * ignition/gazebo/systems/LogVideoRecorder.hh
+   * gz/sim/systems/LogVideoRecorder.hh
   **/
   /// \brief System which recordings videos from log playback
   /// There are two ways to specify what entities in the log playback to follow
@@ -45,12 +45,12 @@ namespace systems
   ///     + `<max>`  Max corner position of box region.
   ///   - `<start_time>`     Sim time when recording should start
   ///   - `<end_time>`       Sim time when recording should end
-  ///   - `<exit_on_finish>` Exit ign-gazebo when log playback recording ends
+  ///   - `<exit_on_finish>` Exit gz-sim when log playback recording ends
   ///
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a
   /// timestamped directory
-  class LogVideoRecorder:
+  class LogVideoRecorder final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate

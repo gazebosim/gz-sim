@@ -14,21 +14,21 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_MODELPHOTOSHOOT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_MODELPHOTOSHOOT_HH_
+#ifndef GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
+#define GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
 
 #include <sdf/sdf.hh>
 
 #include <memory>
 
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
@@ -58,7 +58,7 @@ namespace systems
   ///
   /// To run the example:
   /// ```
-  /// ign gazebo model_photo_shoot.sdf -s -r --iterations 50
+  /// gz sim model_photo_shoot.sdf -s -r --iterations 50
   /// ```
   /// This will start gazebo, load the model take the pictures and shutdown
   /// after 50 iterations. You will find the pictures in the same location you
@@ -77,14 +77,14 @@ namespace systems
     public: ~ModelPhotoShoot() override = default;
 
     // Documentation inherited
-    public: void Configure(const ignition::gazebo::Entity &_id,
+    public: void Configure(const gz::sim::Entity &_id,
                     const std::shared_ptr<const sdf::Element> &_sdf,
-                    ignition::gazebo::EntityComponentManager &_ecm,
-                    ignition::gazebo::EventManager &_eventMgr) override;
+                    gz::sim::EntityComponentManager &_ecm,
+                    gz::sim::EventManager &_eventMgr) override;
 
     // Documentation inherited
-    public: void PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-                    ignition::gazebo::EntityComponentManager &_ecm) override;
+    public: void PreUpdate(const gz::sim::UpdateInfo &_info,
+                    gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ModelPhotoShootPrivate> dataPtr;

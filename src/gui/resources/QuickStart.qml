@@ -243,7 +243,7 @@ Rectangle {
               }
             }
 
-            IgnSortFilterModel {
+            GzSortFilterModel {
               id: sdfFileModel
 
               lessThan: function(left, right) {

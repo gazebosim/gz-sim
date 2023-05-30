@@ -15,53 +15,48 @@
  *
 */
 
-#ifndef __APPLE__
-  #if (defined(_MSVC_LANG))
-    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-      #include <filesystem>  // c++17
-    #else
-      #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-      #include <experimental/filesystem>
-    #endif
-  #elif __GNUC__ < 8
-    #include <experimental/filesystem>
-  #else
-    #include <filesystem>
-  #endif
-#endif
+#include <gz/msgs/entity.pb.h>
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/TopicUtils.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Environment.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/LinearVelocity.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 math::Pose3d worldPose(const Entity &_entity,
     const EntityComponentManager &_ecm)
@@ -69,7 +64,7 @@ math::Pose3d worldPose(const Entity &_entity,
   auto poseComp = _ecm.Component<components::Pose>(_entity);
   if (nullptr == poseComp)
   {
-    ignwarn << "Trying to get world pose from entity [" << _entity
+    gzwarn << "Trying to get world pose from entity [" << _entity
             << "], which doesn't have a pose component" << std::endl;
     return math::Pose3d();
   }
@@ -89,6 +84,45 @@ math::Pose3d worldPose(const Entity &_entity,
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
   return pose;
+}
+
+//////////////////////////////////////////////////
+math::Vector3d relativeVel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    gzwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Vector3d();
+  }
+
+  // work out pose in world frame
+  math::Pose3d pose = poseComp->Data();
+  auto p = _ecm.Component<components::ParentEntity>(_entity);
+  while (p)
+  {
+    // get pose of parent entity
+    auto parentPose = _ecm.Component<components::Pose>(p->Data());
+    if (!parentPose)
+      break;
+    // transform pose
+    pose = parentPose->Data() * pose;
+    // keep going up the tree
+    p = _ecm.Component<components::ParentEntity>(p->Data());
+  }
+
+  auto worldLinVel = _ecm.Component<components::WorldLinearVelocity>(_entity);
+  if (nullptr == worldLinVel)
+  {
+    gzwarn << "Trying to get world velocity from entity [" << _entity
+            << "], which doesn't have a velocity component" << std::endl;
+    return math::Vector3d();
+  }
+
+  math::Vector3d vel = worldLinVel->Data();
+  return pose.Rot().RotateVectorReverse(vel);
 }
 
 //////////////////////////////////////////////////
@@ -112,7 +146,7 @@ std::string scopedName(const Entity &_entity,
     std::string prefix = entityTypeStr(entity, _ecm);
     if (prefix.empty())
     {
-      ignwarn << "Skipping entity [" << name
+      gzwarn << "Skipping entity [" << name
               << "] when generating scoped name, entity type not known."
               << std::endl;
     }
@@ -147,7 +181,7 @@ std::unordered_set<Entity> entitiesFromScopedName(
 {
   if (_delim.empty())
   {
-    ignwarn << "Can't process scoped name [" << _scopedName
+    gzwarn << "Can't process scoped name [" << _scopedName
             << "] with empty delimiter." << std::endl;
     return {};
   }
@@ -244,6 +278,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::ParticleEmitter::typeId;
   }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = components::Projector::typeId;
+  }
 
   return type;
 }
@@ -293,6 +331,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
     type = "particle_emitter";
+  }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = "projector";
   }
 
   return type;
@@ -352,20 +394,8 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
     return _uri;
   }
 #else
-  // Not a relative path, return unmodified
-  #if (defined(_MSVC_LANG))
-    #if (_MSVC_LANG >= 201703L || __cplusplus >= 201703L)
-      using namespace std::filesystem;
-    #else
-      using namespace std::experimental::filesystem;
-    #endif
-  #elif __GNUC__ < 8
-    using namespace std::experimental::filesystem;
-  #else
-    using namespace std::filesystem;
-  #endif
   if (_uri.find("://") != std::string::npos ||
-      !path(_uri).is_relative())
+      !common::isRelativePath(_uri))
   {
     return _uri;
   }
@@ -374,7 +404,7 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   // When SDF is loaded from a string instead of a file
   if (std::string(sdf::kSdfStringSource) == _filePath)
   {
-    ignwarn << "Can't resolve full path for relative path ["
+    gzwarn << "Can't resolve full path for relative path ["
             << _uri << "]. Loaded from a data-string." << std::endl;
     return _uri;
   }
@@ -410,6 +440,19 @@ std::vector<std::string> resourcePaths()
   {
     gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else
+  {
+    gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
+    if (gzPathCStr && *gzPathCStr != '\0')
+    {
+      gzwarn << "Using deprecated environment variable ["
+             << kResourcePathEnvDeprecated
+             << "] to find resources. Please use ["
+             << kResourcePathEnv <<" instead." << std::endl;
+      gzPaths = common::Split(gzPathCStr, ':');
+    }
+  }
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -431,13 +474,14 @@ void addResourcePaths(const std::vector<std::string> &_paths)
     sdfPaths = common::Split(sdfPathCStr, common::SystemPaths::Delimiter());
   }
 
-  // Ignition file paths (for <uri>s)
+  // Gazebo Common file paths (for <uri>s)
   auto systemPaths = common::systemPaths();
-  std::vector<std::string> ignPaths;
-  char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
-  if (ignPathCStr && *ignPathCStr != '\0')
+  std::vector<std::string> commonPaths;
+  char *commonPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
+  if (commonPathCStr && *commonPathCStr != '\0')
   {
-    ignPaths = common::Split(ignPathCStr, common::SystemPaths::Delimiter());
+    commonPaths = common::Split(commonPathCStr,
+        common::SystemPaths::Delimiter());
   }
 
   // Gazebo resource paths
@@ -446,6 +490,19 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   if (gzPathCStr && *gzPathCStr != '\0')
   {
     gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
+  }
+  // TODO(CH3): Deprecated. Remove on tock.
+  else
+  {
+    gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
+    if (gzPathCStr && *gzPathCStr != '\0')
+    {
+      gzwarn << "Using deprecated environment variable ["
+             << kResourcePathEnvDeprecated
+             << "] to find resources. Please use ["
+             << kResourcePathEnv <<" instead." << std::endl;
+      gzPaths = common::Split(gzPathCStr, ':');
+    }
   }
 
   // Add new paths to gzPaths
@@ -465,9 +522,10 @@ void addResourcePaths(const std::vector<std::string> &_paths)
       sdfPaths.push_back(path);
     }
 
-    if (std::find(ignPaths.begin(), ignPaths.end(), path) == ignPaths.end())
+    if (std::find(commonPaths.begin(),
+        commonPaths.end(), path) == commonPaths.end())
     {
-      ignPaths.push_back(path);
+      commonPaths.push_back(path);
     }
   }
 
@@ -478,12 +536,12 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
-  std::string ignPathsStr;
-  for (const auto &path : ignPaths)
-    ignPathsStr += common::SystemPaths::Delimiter() + path;
+  std::string commonPathsStr;
+  for (const auto &path : commonPaths)
+    commonPathsStr += common::SystemPaths::Delimiter() + path;
 
   common::setenv(
-    systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
+    systemPaths->FilePathEnv().c_str(), commonPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
@@ -491,13 +549,16 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
+  // TODO(CH3): Deprecated. Remove on tock.
+  common::setenv(kResourcePathEnvDeprecated.c_str(), gzPathsStr.c_str());
+
   // Force re-evaluation
   // SDF is evaluated at find call
   systemPaths->SetFilePathEnv(systemPaths->FilePathEnv());
 }
 
 //////////////////////////////////////////////////
-gazebo::Entity topLevelModel(const Entity &_entity,
+sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;
@@ -546,12 +607,12 @@ std::string validTopic(const std::vector<std::string> &_topics)
     auto validTopic = transport::TopicUtils::AsValidTopic(topic);
     if (validTopic.empty())
     {
-      ignerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
+      gzerr << "Topic [" << topic << "] is invalid, ignoring." << std::endl;
       continue;
     }
     if (validTopic != topic)
     {
-      igndbg << "Topic [" << topic << "] changed to valid topic ["
+      gzdbg << "Topic [" << topic << "] changed to valid topic ["
              << validTopic << "]" << std::endl;
     }
     return validTopic;
@@ -660,7 +721,46 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
       math::SphericalCoordinates::SPHERICAL);
 
   // Return degrees
-  return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
+  return math::Vector3d(GZ_RTOD(rad.X()), GZ_RTOD(rad.Y()), rad.Z());
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Vector3d> getGridFieldCoordinates(
+  const EntityComponentManager &_ecm,
+  const math::Vector3d& _worldPosition,
+  const std::shared_ptr<components::EnvironmentalData>& _gridField
+  )
+{
+
+  auto origin =
+    _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+  if (!origin)
+  {
+    if (_gridField->reference == math::SphericalCoordinates::SPHERICAL)
+    {
+      // If the reference frame is spherical, we must have some world reference
+      // coordinates.
+      gzerr << "World has no spherical coordinates,"
+          << " but data was loaded with spherical reference plane"
+          << std::endl;
+      return std::nullopt;
+    }
+    else
+    {
+      // No need to transform
+      return _worldPosition;
+    }
+  }
+  auto position = origin->Data().PositionTransform(
+      _worldPosition, math::SphericalCoordinates::LOCAL2,
+      _gridField->reference);
+  if (_gridField->reference == math::SphericalCoordinates::SPHERICAL &&
+    _gridField->units == components::EnvironmentalData::ReferenceUnits::DEGREES)
+  {
+    position.X(GZ_RTOD(position.X()));
+    position.Y(GZ_RTOD(position.Y()));
+  }
+  return position;
 }
 
 //////////////////////////////////////////////////
@@ -715,7 +815,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     }
     else
     {
-      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+      gzwarn << "Fuel couldn't download URL [" << _sdfFile
         << "], error: [" << result.ReadableResult() << "]"
         << std::endl;
     }
@@ -728,8 +828,8 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     // Worlds from environment variable
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
-    // Worlds installed with ign-gazebo
-    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+    // Worlds installed with gz-sim
+    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
 
     filePath = systemPaths.FindFile(_sdfFile);
   }

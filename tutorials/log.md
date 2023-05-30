@@ -1,6 +1,6 @@
 \page log Logging
 
-Ignition records two types of information to files:
+Gazebo records two types of information to files:
 
 * Console messages
     * From the server process only, not the GUI
@@ -8,7 +8,7 @@ Ignition records two types of information to files:
     * Always recorded
 * Simulation state
     * Entity poses, insertion and deletion
-    * Logged to an [Ignition Transport `state.tlog` file](https://ignitionrobotics.org/api/transport/7.0/logging.html)
+    * Logged to an [Gazebo Transport `state.tlog` file](https://gazebosim.org/api/transport/7.0/logging.html)
     * Recording must be enabled from the command line or the C++ API
     * Can be played back using the command line or the C++ API
 
@@ -17,15 +17,15 @@ Ignition records two types of information to files:
 ### From command line
 
 Run the example world with `--record` flag. This records data to a default
-path, i.e. `~/.ignition/gazebo/log/<timestamp>`:
+path, i.e. `~/.gz/sim/log/<timestamp>`:
 
-`ign gazebo -v 4 -r --record pose_publisher.sdf`
+`gz sim -v 4 -r --record pose_publisher.sdf`
 
 A custom path can be specified for recorded files through the `--record-path`
 flag. When `--record-path` is specified, `--record` does not need to be
 separately specified:
 
-`ign gazebo -v 4 -r --record-path ./foo pose_publisher.sdf `
+`gz sim -v 4 -r --record-path ./foo pose_publisher.sdf `
 
 Other options for recording:
 
@@ -42,16 +42,16 @@ Other options for recording:
 ### From C++ API
 
 All features available through the command line are also available through
-[ignition::gazebo::ServerConfig](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1ServerConfig.html).
+[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/2.0/classignition_1_1gazebo_1_1ServerConfig.html).
 When instantiating a server programmatically, logging options can be passed
 to the constructor, for example:
 
 ```
-ignition::gazebo::ServerConfig serverConfig;
+gz::sim::ServerConfig serverConfig;
 serverConfig.SetUseLogRecord(true);
 serverConfig.SetLogRecordPath("custom_path");
 
-ignition::gazebo::Server server(serverConfig);
+gz::sim::Server server(serverConfig);
 ```
 
 ### From plugin in SDF
@@ -62,8 +62,8 @@ Recording can be specified in the SDF, under `<world>` tag:
 <world name="default">
     ...
     <plugin
-      filename="ignition-gazebo-log-system"
-      name="ignition::gazebo::systems::LogRecord">
+      filename="gz-sim-log-system"
+      name="gz::sim::systems::LogRecord">
     </plugin>
     ...
 </world>
@@ -77,9 +77,9 @@ start during a Gazebo run.
 The final record path will depend on a few options:
 
 * If state recording is not enabled, only the console log is recorded to
-  `~/.ignition/gazebo/log/<timestamp>`.
+  `~/.gz/sim/log/<timestamp>`.
 * If only `--record`, all files are recorded to
-  `~/.ignition/gazebo/log/<timestamp>`.
+  `~/.gz/sim/log/<timestamp>`.
 * If `--record-path` is specified:
     * If the path doesn't exist, logs are recorded there.
     * If the path exists:
@@ -94,7 +94,7 @@ The final record path will depend on a few options:
 Playback can be triggered by `--playback` command line flag. `<path>` is the
 directory specified to record:
 
-`ign gazebo -r -v 4 --playback <path>`
+`gz sim -r -v 4 --playback <path>`
 
 ### From plugin in SDF
 

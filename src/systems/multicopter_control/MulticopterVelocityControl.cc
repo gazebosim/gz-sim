@@ -15,38 +15,38 @@
  *
  */
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/math/Inertial.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
 #include "MulticopterVelocityControl.hh"
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 using namespace multicopter_control;
 
@@ -60,7 +60,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "MulticopterVelocityControl plugin should be attached to a model "
+    gzerr << "MulticopterVelocityControl plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -74,7 +74,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (this->comLinkName.empty())
   {
-    ignerr << "found an empty comLinkName parameter. Failed to initialize.\n";
+    gzerr << "found an empty comLinkName parameter. Failed to initialize.\n";
     return;
   }
 
@@ -83,7 +83,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (this->comLinkEntity == kNullEntity)
   {
-    ignerr << "Link " << this->comLinkName
+    gzerr << "Link " << this->comLinkName
            << " could not be found. Failed to initialize.\n";
     return;
   }
@@ -115,7 +115,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify rotorConfiguration.\n";
+    gzerr << "Please specify rotorConfiguration.\n";
   }
 
   this->rotorVelocities.resize(vehicleParams.rotorConfiguration.size());
@@ -124,7 +124,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (kNullEntity == worldEntity)
   {
-    ignerr << "World entity missing." << std::endl;
+    gzerr << "World entity missing." << std::endl;
     return;
   }
 
@@ -133,7 +133,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (nullptr == gravityComp)
   {
-    ignerr << "World missing gravity." << std::endl;
+    gzerr << "World missing gravity." << std::endl;
     return;
   }
 
@@ -148,7 +148,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify velocityGain for MulticopterVelocityControl.\n";
+    gzerr << "Please specify velocityGain for MulticopterVelocityControl.\n";
     return;
   }
 
@@ -159,7 +159,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify attitudeGain for MulticopterVelocityControl.\n";
+    gzerr << "Please specify attitudeGain for MulticopterVelocityControl.\n";
     return;
   }
 
@@ -170,7 +170,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify angularRateGain MulticopterVelocityControl.\n";
+    gzerr << "Please specify angularRateGain MulticopterVelocityControl.\n";
     return;
   }
 
@@ -216,7 +216,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
 
   if (nullptr == this->velocityController)
   {
-    ignerr << "Error while creating the LeeVelocityController\n";
+    gzerr << "Error while creating the LeeVelocityController\n";
     return;
   }
 
@@ -251,7 +251,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
         sdfClone->Get<std::string>("robotNamespace"));
     if (this->robotNamespace.empty())
     {
-      ignerr << "Robot namespace ["
+      gzerr << "Robot namespace ["
              << sdfClone->Get<std::string>("robotNamespace") <<"] is invalid."
              << std::endl;
       return;
@@ -259,7 +259,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify a robotNamespace.\n";
+    gzerr << "Please specify a robotNamespace.\n";
     return;
   }
 
@@ -269,7 +269,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
       this->commandSubTopic);
   if (this->commandSubTopic.empty())
   {
-    ignerr << "Invalid command sub-topic." << std::endl;
+    gzerr << "Invalid command sub-topic." << std::endl;
     return;
   }
 
@@ -279,7 +279,7 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
       this->enableSubTopic);
   if (this->enableSubTopic.empty())
   {
-    ignerr << "Invalid enable sub-topic." << std::endl;
+    gzerr << "Invalid enable sub-topic." << std::endl;
     return;
   }
 
@@ -287,13 +287,13 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
   std::string topic{this->robotNamespace + "/" + this->commandSubTopic};
 
   this->node.Subscribe(topic, &MulticopterVelocityControl::OnTwist, this);
-  ignmsg << "MulticopterVelocityControl subscribing to Twist messages on ["
+  gzmsg << "MulticopterVelocityControl subscribing to Twist messages on ["
          << topic << "]" << std::endl;
 
   std::string enableTopic{this->robotNamespace + "/" + this->enableSubTopic};
   this->node.Subscribe(enableTopic, &MulticopterVelocityControl::OnEnable,
                        this);
-  ignmsg << "MulticopterVelocityControl subscribing to Boolean messages on ["
+  gzmsg << "MulticopterVelocityControl subscribing to Boolean messages on ["
          << enableTopic << "]" << std::endl;
 
   // Create the Actuators component to take control of rotor speeds
@@ -318,7 +318,7 @@ math::Inertiald MulticopterVelocityControl::VehicleInertial(
     auto inertial = _ecm.Component<components::Inertial>(link);
     if (nullptr == inertial)
     {
-      ignerr << "Could not find inertial component on link "
+      gzerr << "Could not find inertial component on link "
              << this->comLinkName << std::endl;
       return vehicleInertial;
     }
@@ -335,10 +335,10 @@ math::Inertiald MulticopterVelocityControl::VehicleInertial(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterVelocityControl::PreUpdate");
+  GZ_PROFILE("MulticopterVelocityControl::PreUpdate");
 
   if (!this->initialized)
   {
@@ -348,7 +348,7 @@ void MulticopterVelocityControl::PreUpdate(
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -427,7 +427,7 @@ void MulticopterVelocityControl::OnEnable(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PublishRotorVelocities(
-    ignition::gazebo::EntityComponentManager &_ecm,
+    EntityComponentManager &_ecm,
     const Eigen::VectorXd &_vels)
 {
   if (_vels.size() != this->rotorVelocitiesMsg.velocity_size())
@@ -463,11 +463,16 @@ void MulticopterVelocityControl::PublishRotorVelocities(
   }
 }
 
-IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(MulticopterVelocityControl,
+                    System,
                     MulticopterVelocityControl::ISystemConfigure,
                     MulticopterVelocityControl::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(
+GZ_ADD_PLUGIN_ALIAS(
+    MulticopterVelocityControl,
+    "gz::sim::systems::MulticopterVelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
     "ignition::gazebo::systems::MulticopterVelocityControl")

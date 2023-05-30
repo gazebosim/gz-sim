@@ -31,6 +31,8 @@ Image {
    */
   property string entityType: ''
 
+  property int tooltipDelay: 500
+
   /**
    * Image address according to type
    */
@@ -68,4 +70,3 @@ Image {
     hoverEnabled: true
   }
 }
-

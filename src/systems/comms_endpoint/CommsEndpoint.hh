@@ -14,21 +14,21 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_COMMSENDPOINT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_COMMSENDPOINT_HH_
+#ifndef GZ_SIM_SYSTEMS_COMMSENDPOINT_HH_
+#define GZ_SIM_SYSTEMS_COMMSENDPOINT_HH_
 
 #include <memory>
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A system that registers in the comms broker an endpoint.
@@ -53,8 +53,8 @@ namespace systems
   ///
   /// Here's an example:
   /// <plugin
-  ///   filename="ignition-gazebo-comms-endpoint-system"
-  ///   name="ignition::gazebo::systems::CommsEndpoint">
+  ///   filename="gz-sim-comms-endpoint-system"
+  ///   name="gz::sim::systems::CommsEndpoint">
   ///   <address>addr1</address>
   ///   <topic>addr1/rx</topic>
   ///   <broker>
@@ -81,11 +81,11 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer.
-    IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
   }
 }

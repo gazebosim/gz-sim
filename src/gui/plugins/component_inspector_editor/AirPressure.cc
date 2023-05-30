@@ -16,16 +16,16 @@
 */
 #include <sdf/AirPressure.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/components/AirPressureSensor.hh>
-#include <ignition/gazebo/EntityComponentManager.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/components/AirPressureSensor.hh>
+#include <gz/sim/EntityComponentManager.hh>
 
 #include "AirPressure.hh"
 #include "ComponentInspectorEditor.hh"
 #include "Types.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 AirPressure::AirPressure(ComponentInspectorEditor *_inspector)
@@ -64,7 +64,7 @@ Q_INVOKABLE void AirPressure::OnAirPressureNoise(
     double _stdDevBias, double _dynamicBiasStdDev,
     double _dynamicBiasCorrelationTime)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
@@ -82,11 +82,11 @@ Q_INVOKABLE void AirPressure::OnAirPressureNoise(
         airpressure->SetPressureNoise(noise);
       }
       else
-        ignerr << "Unable to get the air pressure data.\n";
+        gzerr << "Unable to get the air pressure data.\n";
     }
     else
     {
-      ignerr << "Unable to get the air pressure component.\n";
+      gzerr << "Unable to get the air pressure component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);
@@ -96,7 +96,7 @@ Q_INVOKABLE void AirPressure::OnAirPressureNoise(
 Q_INVOKABLE void AirPressure::OnAirPressureReferenceAltitude(
     double _referenceAltitude)
 {
-  ignition::gazebo::UpdateCallback cb =
+  gz::sim::UpdateCallback cb =
       [=](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
@@ -109,11 +109,11 @@ Q_INVOKABLE void AirPressure::OnAirPressureReferenceAltitude(
         airpressure->SetReferenceAltitude(_referenceAltitude);
       }
       else
-        ignerr << "Unable to get the air pressure data.\n";
+        gzerr << "Unable to get the air pressure data.\n";
     }
     else
     {
-      ignerr << "Unable to get the air pressure component.\n";
+      gzerr << "Unable to get the air pressure component.\n";
     }
   };
   this->inspector->AddUpdateCallback(cb);

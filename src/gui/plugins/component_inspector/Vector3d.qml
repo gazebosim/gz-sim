@@ -97,6 +97,7 @@ Rectangle {
         GzVector3 {
           id: gzVectorInstance
           Layout.fillWidth: true
+          Layout.preferredWidth: parent.width
           gzUnit: model && model.unit != undefined ? model.unit : 'm'
 
           xValue: model.data[0]

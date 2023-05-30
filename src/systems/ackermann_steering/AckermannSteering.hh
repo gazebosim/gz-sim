@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +15,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#ifndef GZ_SIM_SYSTEMS_ACKERMANNSTEERING_HH_
+#define GZ_SIM_SYSTEMS_ACKERMANNSTEERING_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -36,6 +37,22 @@ namespace systems
   /// with any number of left and right wheels.
   ///
   /// # System Parameters
+  ///
+  /// `<steering_only>`: Boolean used to only control the steering angle
+  /// only. Calculates the angles of wheels from steering_limit,  wheel_base,
+  /// and wheel_separation. Uses gz::msg::Double on default topic name
+  /// `/model/{name_of_model}/steer_angle`. Automatically set True when
+  /// `<use_actuator_msg>` is True, uses defaults topic name "/actuators".
+  ///
+  /// `<use_actuator_msg>` True to enable the use of actutor message
+  /// for steering angle command. Relies on `<actuator_number>` for the
+  /// index of the position actuator and defaults to topic "/actuators".
+  ///
+  /// `<actuator_number>` used with `<use_actuator_commands>` to set
+  /// the index of the steering angle position actuator.
+  ///
+  /// `<steer_p_gain>`: Float used to control the steering angle P gain.
+  /// Only used for when in steering_only mode.
   ///
   /// `<left_joint>`: Name of a joint that controls a left wheel. This
   /// element can appear multiple times, and must appear at least once.
@@ -83,8 +100,13 @@ namespace systems
   /// `<max_jerk Maximum>`: jerk [m/s^3], usually >= 0.
   ///
   /// `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
-  /// default value is `/model/{name_of_model}/cmd_vel`.
+  /// receive command messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/cmd_vel` or when steering_only
+  /// is true `/model/{name_of_model}/steer_angle`.
+  ///
+  /// `<sub_topic>`: Custom sub_topic that this system will subscribe to in
+  /// order to receive command messages. This element is optional, and
+  /// creates a topic `/model/{name_of_model}/{sub_topic}`
   ///
   /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
@@ -96,14 +118,14 @@ namespace systems
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional, and the
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional, and the
   /// default value is `{name_of_model}/odom`.
   ///
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   /// the target of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional,
+  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
+  /// `gz.msgs.Odometry` message. This element if optional,
   /// and the default value is `{name_of_model}/{name_of_link}`.
   ///
   /// A robot with rear drive and front steering would have one each
@@ -136,8 +158,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (C) 2021 Open Source Robotics Foundation
 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +16,9 @@
 import os
 import unittest
 
-from ignition.common import set_verbosity
-from ignition.gazebo import TestFixture, World, world_entity
-from ignition.math import Vector3d
-from sdformat import Element
+from gz.common import set_verbosity
+from gz.sim7 import TestFixture, World, world_entity
+from gz.math7 import Vector3d
 
 post_iterations = 0
 iterations = 0
@@ -30,7 +30,7 @@ class TestTestFixture(unittest.TestCase):
         set_verbosity(4)
 
         file_path = os.path.dirname(os.path.realpath(__file__))
-        helper = TestFixture(os.path.join(file_path, 'gravity.sdf'))
+        fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
             global post_iterations
@@ -49,12 +49,12 @@ class TestTestFixture(unittest.TestCase):
             global iterations
             iterations += 1
 
-        helper.on_post_update(on_post_udpate_cb)
-        helper.on_update(on_udpate_cb)
-        helper.on_pre_update(on_pre_udpate_cb)
-        helper.finalize()
+        fixture.on_post_update(on_post_udpate_cb)
+        fixture.on_update(on_udpate_cb)
+        fixture.on_pre_update(on_pre_udpate_cb)
+        fixture.finalize()
 
-        server = helper.server()
+        server = fixture.server()
         server.run(True, 1000, False)
 
         self.assertEqual(1000, pre_iterations)

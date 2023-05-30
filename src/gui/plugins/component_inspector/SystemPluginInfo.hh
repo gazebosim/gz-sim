@@ -14,17 +14,17 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
+#ifndef GZ_SIM_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
+#define GZ_SIM_GUI_COMPONENTINSPECTOR_SYSTEMINFO_HH_
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <QObject>
 #include <QStandardItem>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 class ComponentInspector;
 namespace inspector

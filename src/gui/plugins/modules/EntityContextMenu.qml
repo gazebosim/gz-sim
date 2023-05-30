@@ -16,7 +16,7 @@
 */
 import QtQuick 2.0
 import QtQuick.Controls 2.0
-import IgnGazebo 1.0 as IgnGazebo
+import GzSim 1.0 as GzSim
 
 Item {
   Menu {
@@ -187,7 +187,7 @@ Item {
     menu.open()
   }
 
-  IgnGazebo.EntityContextMenuItem {
+  GzSim.EntityContextMenuItem {
     id: context
     property string entity
     property string type

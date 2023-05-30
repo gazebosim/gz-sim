@@ -2,7 +2,7 @@ gz_add_system(camera-video-recorder
   SOURCES
     CameraVideoRecorder.cc
   PUBLIC_LINK_LIBS
-    ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
-    ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
-    ignition-gazebo${PROJECT_VERSION_MAJOR}-rendering
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-sim${PROJECT_VERSION_MAJOR}-rendering
 )

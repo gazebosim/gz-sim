@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+
+<!-- A world with a body with a fully populated added mass matrix. -->
+
+<sdf version="1.6">
+  <world name="added_mass">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <gravity>0 0 0</gravity>
+
+    <model name="body">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <fluid_added_mass>
+            <xx>0.3949679265119419</xx>
+            <xy>0.046356515552357314</xy>
+            <xz>0.10350947385435993</xz>
+            <xp>0.898797296303345</xp>
+            <xq>0.49882101032414017</xq>
+            <xr>0.37538990588775467</xr>
+            <yy>0.7251406148851146</yy>
+            <yz>0.6826397691305769</yz>
+            <yp>0.7790258092356468</yp>
+            <yq>0.3095523984784859</yq>
+            <yr>0.9762734675205801</yr>
+            <zz>0.7127177841503902</zz>
+            <zp>0.968056899449243</zp>
+            <zq>0.7054363474498657</zq>
+            <zr>0.9327424023111127</zr>
+            <pp>0.7730463848840338</pp>
+            <pq>0.5459481647643502</pq>
+            <pr>0.8074138574151712</pr>
+            <qq>0.13432180787188996</qq>
+            <qr>0.8255294272171281</qr>
+            <rr>0.2597705135260855</rr>
+          </fluid_added_mass>
+        </inertial>
+      </link>
+    </model>
+  </world>
+</sdf>

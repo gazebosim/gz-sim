@@ -17,37 +17,37 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/entity_factory.pb.h>
-#include <ignition/msgs/light.pb.h>
-#include <ignition/msgs/physics.pb.h>
-#include <ignition/msgs/visual.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/VisualCmd.hh"
-#include "ignition/gazebo/components/WheelSlipCmd.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/VisualCmd.hh"
+#include "gz/sim/components/WheelSlipCmd.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 //////////////////////////////////////////////////
 class UserCommandsTest : public InternalFixture<::testing::Test>
@@ -55,8 +55,8 @@ class UserCommandsTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 {
   // Start server
   ServerConfig serverConfig;
@@ -75,8 +75,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -219,7 +219,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   auto light = ecm->EntityByComponents(components::Name("spawned_light"));
@@ -238,7 +238,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check it was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   light = ecm->EntityByComponents(components::Name("light_test"));
@@ -292,7 +292,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Run an iteration and check only the 1st was created
   server.Run(true, 1, false);
 
-  EXPECT_EQ(entityCount + 1, ecm->EntityCount());
+  EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(
@@ -335,7 +335,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Create))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 {
   // Start server
   ServerConfig serverConfig;
@@ -354,8 +354,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -369,8 +369,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
-  // collision + 5 x visual + 1 x light
-  EXPECT_EQ(24u, ecm->EntityCount());
+  // collision + 5 x visual + 1 x light (light + visual)
+  EXPECT_EQ(25u, ecm->EntityCount());
 
   // Entity remove by name
   msgs::Entity req;
@@ -393,7 +393,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(20u, ecm->EntityCount());
+  EXPECT_EQ(21u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("box")));
@@ -416,7 +416,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("sphere")));
@@ -435,7 +435,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check it was not removed
   server.Run(true, 1, false);
-  EXPECT_EQ(16u, ecm->EntityCount());
+  EXPECT_EQ(17u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Link(),
       components::Name("cylinder_link")));
@@ -456,7 +456,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check cylinder was removed and light wasn't
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("cylinder")));
@@ -475,7 +475,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -489,7 +489,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   // Unsupported type - fails to remove
   req.Clear();
@@ -502,7 +502,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 
   // Run an iteration and check nothing was removed
   server.Run(true, 1, false);
-  EXPECT_EQ(12u, ecm->EntityCount());
+  EXPECT_EQ(13u, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Name("sun")));
 
@@ -523,7 +523,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Remove))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 {
   // Start server
   ServerConfig serverConfig;
@@ -538,8 +538,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -688,7 +688,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
   server.Run(false, 1, true);
 
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   poseComp = ecm->Component<components::Pose>(boxEntity);
   ASSERT_NE(nullptr, poseComp);
@@ -697,7 +697,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Pose))
 
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 {
   // Start server
   ServerConfig serverConfig;
@@ -712,8 +712,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -771,12 +771,12 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseVector))
 }
 
 /////////////////////////////////////////////////
-// https://github.com/ignitionrobotics/ign-gazebo/issues/634
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
+// https://github.com/gazebosim/gz-sim/issues/634
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = ignition::common::joinPaths(
+  const auto sdfFile = gz::common::joinPaths(
     std::string(PROJECT_SOURCE_PATH), "test", "worlds", "lights_render.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
@@ -787,8 +787,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -825,26 +825,23 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(0.2, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
   EXPECT_NEAR(0.01, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_FALSE(pointLightComp->Data().CastShadows());
+  EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_TRUE(pointLightComp->Data().Visualize());
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
   req.set_range(2.6f);
   req.set_name("point");
-  req.set_type(ignition::msgs::Light::POINT);
+  req.set_type(gz::msgs::Light::POINT);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(0.001f);
   req.set_cast_shadows(true);
-
-  // todo(ahcorde) Use the field is_light_off in light.proto from
-  // Garden on.
-  auto header = req.mutable_header()->add_data();
-  header->set_key("isLightOn");
-  std::string *value = header->add_value();
-  *value = std::to_string(true);
+  req.set_is_light_off(false);
+  req.set_visualize_visual(false);
 
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
@@ -852,7 +849,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check point light entity has been edited using the service
   pointLightComp = ecm->Component<components::Light>(pointLightEntity);
@@ -867,6 +864,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
   EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_TRUE(pointLightComp->Data().CastShadows());
+  EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_FALSE(pointLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   // Check directional light entity has not been edited yet - Initial values
@@ -894,29 +893,33 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_EQ(
     math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
   EXPECT_TRUE(directionalLightComp->Data().CastShadows());
+  EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_TRUE(directionalLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
   req.set_range(2.6f);
   req.set_name("directional");
-  req.set_type(ignition::msgs::Light::DIRECTIONAL);
+  req.set_type(gz::msgs::Light::DIRECTIONAL);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(false);
-  ignition::msgs::Set(req.mutable_direction(),
-    ignition::math::Vector3d(1, 2, 3));
+  req.set_is_light_off(false);
+  req.set_visualize_visual(false);
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
   EXPECT_TRUE(node.Request(service, req, timeout, res, result));
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check directional light entity has been edited using the service
   directionalLightComp =
@@ -936,6 +939,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
     1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
   EXPECT_FALSE(directionalLightComp->Data().CastShadows());
+  EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_FALSE(directionalLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::DIRECTIONAL,
     directionalLightComp->Data().Type());
 
@@ -961,25 +966,28 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
     0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
   EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
   EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
   EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
 
   req.Clear();
-  ignition::msgs::Set(req.mutable_diffuse(),
-    ignition::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
-  ignition::msgs::Set(req.mutable_specular(),
-    ignition::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
   req.set_range(2.6f);
   req.set_name("spot");
-  req.set_type(ignition::msgs::Light::SPOT);
+  req.set_type(gz::msgs::Light::SPOT);
   req.set_attenuation_linear(0.7f);
   req.set_attenuation_constant(0.6f);
   req.set_attenuation_quadratic(1.0f);
   req.set_cast_shadows(true);
-  ignition::msgs::Set(req.mutable_direction(),
-    ignition::math::Vector3d(1, 2, 3));
+  req.set_is_light_off(true);
+  req.set_visualize_visual(true);
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
   req.set_spot_inner_angle(1.5f);
   req.set_spot_outer_angle(0.3f);
   req.set_spot_falloff(0.9f);
@@ -990,7 +998,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   // Check spot light entity has been edited using the service
   spotLightComp = ecm->Component<components::Light>(spotLightEntity);
@@ -1006,6 +1014,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   EXPECT_NEAR(1, spotLightComp->Data().QuadraticAttenuationFactor(), 0.1);
   EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
   EXPECT_TRUE(spotLightComp->Data().CastShadows());
+  EXPECT_FALSE(spotLightComp->Data().LightOn());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
   EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
   EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
   EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
@@ -1016,8 +1026,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   msgs::Light lightMsg;
   lightMsg.set_name("spot");
-  ignition::msgs::Set(lightMsg.mutable_diffuse(),
-    ignition::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+  gz::msgs::Set(lightMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
   // Publish light config
   auto pub = node.Advertise<msgs::Light>(lightTopic);
@@ -1025,14 +1035,14 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  IGN_SLEEP_MS(10);
+  GZ_SLEEP_MS(10);
 
   EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
     spotLightComp->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 {
   // Start server
   ServerConfig serverConfig;
@@ -1047,8 +1057,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -1111,7 +1121,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Physics))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
 {
   // Start server
   ServerConfig serverConfig;
@@ -1126,8 +1136,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -1212,7 +1222,7 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WheelSlip))
 }
 
 /////////////////////////////////////////////////
-TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Visual))
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Visual))
 {
   // Start server
   ServerConfig serverConfig;
@@ -1227,8 +1237,8 @@ TEST_F(UserCommandsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Visual))
   // Create a system just to get the ECM
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                             gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
