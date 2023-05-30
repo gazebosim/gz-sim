@@ -2557,7 +2557,7 @@ TEST_F(PhysicsSystemFixture, JointsInWorld)
   const int kIters = 1000;
   test::Relay testSystem;
   testSystem.OnPreUpdate(
-      [](const UpdateInfo &_info, EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         _ecm.EachNew<components::Joint, components::ParentEntity>(
             [&](const Entity &_entity, const components::Joint *,
@@ -2582,7 +2582,7 @@ TEST_F(PhysicsSystemFixture, JointsInWorld)
         }
       });
   testSystem.OnPostUpdate(
-      [](const UpdateInfo &_info, const EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, const EntityComponentManager &_ecm)
       {
         auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
                                                    components::Joint());
