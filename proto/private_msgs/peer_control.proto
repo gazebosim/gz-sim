@@ -17,7 +17,7 @@
 
 syntax = "proto3";
 
-package gz.sim.private_msgs;
+package private_msgs;
 
 import "gz/msgs/header.proto";
 

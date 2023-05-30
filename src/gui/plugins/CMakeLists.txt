@@ -49,6 +49,8 @@ function(gz_add_gui_library library_name)
     PRIVATE
       gz-sim${PROJECT_VERSION_MAJOR}-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
+      gz_msgs_gen
+
   )
 endfunction()
 
@@ -112,6 +114,7 @@ function(gz_add_gui_plugin plugin_name)
         LIB_DEPS
           gz-sim${PROJECT_VERSION_MAJOR}-gui
           ${plugin_name}
+          gz_msgs_gen
         INCLUDE_DIRS
           # Used to make internal source file headers visible to the unit tests
           ${CMAKE_CURRENT_SOURCE_DIR}

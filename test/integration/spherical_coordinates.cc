@@ -16,6 +16,9 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/entity_factory.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
@@ -319,7 +322,7 @@ TEST_F(SphericalCoordinatesTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateEntity))
   req.set_sdf(modelStr);
 
   msgs::Set(req.mutable_pose(),
-      {0, 0, 0, desiredRoll, desiredPitch, desiredYaw});
+      gz::math::Pose3d{0, 0, 0, desiredRoll, desiredPitch, desiredYaw});
 
   auto scMsg = req.mutable_spherical_coordinates();
   scMsg->set_latitude_deg(desiredLat);

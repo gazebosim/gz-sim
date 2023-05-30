@@ -32,6 +32,7 @@
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
+#include <gz/msgs/clock.pb.h>
 
 #include "test_config.hh"
 #include "gz/sim/components/CanonicalLink.hh"

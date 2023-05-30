@@ -16,6 +16,10 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+
 #include <mutex>
 
 #include <gz/common/Console.hh>

@@ -17,7 +17,11 @@
 
 #include "SceneBroadcaster.hh"
 
+#include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/scene.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/uint32_v.pb.h>
 
 #include <algorithm>
 #include <chrono>

@@ -142,6 +142,7 @@ gz_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    gz_msgs_gen
 )
 
 

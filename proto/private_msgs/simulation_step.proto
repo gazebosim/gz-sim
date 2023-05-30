@@ -17,23 +17,21 @@
 
 syntax = "proto3";
 
-package gz.sim.private_msgs;
+package private_msgs;
 
-import "gz/msgs/entity.proto";
+import "gz/msgs/world_stats.proto";
+import "private_msgs/performer_affinity.proto";
 
-/// \brief Message to contain information about one performer's distributed
-/// simulation affinity.
-message PerformerAffinity
+/// \brief Message to contain simulation step information for distributed
+/// simulation.
+/// This message is currently sent from NetworkPrimary to NetworkSecondaries
+/// at the beginning of each simulation iteration.
+message SimulationStep
 {
-  /// \brief Information about the performer entity.
-  gz.msgs.Entity entity = 1;
+  /// \brief Iteration information, such as sim time and paused state.
+  gz.msgs.WorldStatistics stats = 1;
 
-  /// \brief Prefix used to communicate with the secondary.
-  string secondary_prefix = 2;
-}
-
-/// \brief Message containing an array of performer affinities.
-message PerformerAffinities
-{
-  repeated PerformerAffinity affinity = 1;
+  /// \brief Updated performer affinities. It will be empty if there are no
+  /// affinity changes.
+  repeated PerformerAffinity affinity = 2;
 }

@@ -18,11 +18,13 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/contacts.pb.h>
+#include <gz/msgs/point_cloud_packed.pb.h>
 
 #include <thread>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
+#include <gz/msgs/PointCloudPackedUtils.hh>
 #include <gz/msgs/Utility.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>

@@ -53,6 +53,8 @@ target_link_libraries(${gui_target}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     ${Qt5Core_LIBRARIES}
     ${Qt5Widgets_LIBRARIES}
+  PRIVATE
+    gz_msgs_gen
 )
 
 set(CMAKE_AUTOMOC OFF)
@@ -75,4 +77,5 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz_msgs_gen
 )

@@ -35,6 +35,9 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/uint32_v.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 

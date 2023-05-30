@@ -282,7 +282,7 @@ TEST_F(MulticopterTest,
   {
     msgs::Twist msg;
     // Command to hover in place.
-    msgs::Set(msg.mutable_linear(), {0, 0, 0.0});
+    msgs::Set(msg.mutable_linear(), gz::math::Vector3d{0, 0, 0.0});
     cmdVel.Publish(msg);
   }
   // Run for a few iterations so the rotors get to their stable velocities

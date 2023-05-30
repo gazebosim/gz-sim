@@ -22,6 +22,7 @@
 
 #include <gz/common/Profiler.hh>
 #include <gz/common/VideoEncoder.hh>
+#include <gz/msgs/video_record.pb.h>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 

@@ -55,6 +55,7 @@ function(gz_add_system system_name)
     PRIVATE
       ${gz_add_system_PRIVATE_LINK_LIBS}
       gz-plugin${GZ_PLUGIN_VER}::register
+      gz_msgs_gen
   )
 
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)

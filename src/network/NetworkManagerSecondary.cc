@@ -22,7 +22,7 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
-#include "msgs/peer_control.pb.h"
+#include "private_msgs/peer_control.pb.h"
 
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/Conversions.hh"

@@ -55,6 +55,7 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz_msgs_gen
 )
 
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
@@ -68,6 +69,7 @@ pybind11_add_module(common MODULE
 
 target_link_libraries(common PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+
 )
 
 configure_build_install_location(${BINDINGS_MODULE_NAME})

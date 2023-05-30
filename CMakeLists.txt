@@ -86,6 +86,33 @@ set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 gz_find_package(gz-msgs10 REQUIRED)
 set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
+# Get the gz-msgs installed messages and generate a library from them
+gz_msgs_get_installed_messages(
+  MESSAGES_PATH_VARIABLE MSGS_PATH
+  MESSAGES_PROTOS_VARIABLE MSGS_PROTOS)
+
+gz_msgs_generate_messages(
+  TARGET gz_msgs_gen
+  PROTO_PACKAGE "gz.msgs"
+  MSGS_PATH ${MSGS_PATH}
+  MSGS_PROTOS ${MSGS_PROTOS})
+
+# Generate library from custom proto messages
+set(MSGS_PROTOS
+  ${CMAKE_CURRENT_SOURCE_DIR}/proto/private_msgs/peer_info.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/proto/private_msgs/peer_control.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/proto/private_msgs/performer_affinity.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/proto/private_msgs/simulation_step.proto
+)
+
+gz_msgs_generate_messages(
+  TARGET gz_sim_private_msgs_gen
+  PROTO_PACKAGE "private_msgs"
+  MSGS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/proto
+  MSGS_PROTOS ${MSGS_PROTOS}
+  DEPENDENCIES gz_msgs_gen
+)
+
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.

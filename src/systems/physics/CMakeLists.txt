@@ -27,4 +27,5 @@ gz_build_tests(TYPE UNIT
   ${gtest_sources}
   LIB_DEPS
   gz-physics${GZ_PHYSICS_VER}::core
+  gz_msgs_gen
 )

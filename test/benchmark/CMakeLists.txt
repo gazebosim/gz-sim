@@ -7,5 +7,5 @@ if (GzBenchmark_FOUND)
     ecm_serialize.cc
   )
 
-  gz_add_benchmarks(SOURCES ${tests})
+  gz_add_benchmarks(SOURCES ${tests} LIB_DEPS gz_msgs_gen)
 endif()

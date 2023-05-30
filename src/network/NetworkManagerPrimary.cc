@@ -27,8 +27,8 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
-#include "msgs/peer_control.pb.h"
-#include "msgs/simulation_step.pb.h"
+#include "private_msgs/peer_control.pb.h"
+#include "private_msgs/simulation_step.pb.h"
 
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"

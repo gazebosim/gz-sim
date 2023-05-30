@@ -27,6 +27,7 @@
 #include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Actor.hh"

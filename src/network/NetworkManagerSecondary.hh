@@ -26,8 +26,8 @@
 #include <gz/sim/Export.hh>
 #include <gz/transport/Node.hh>
 
-#include "msgs/simulation_step.pb.h"
-#include "msgs/peer_control.pb.h"
+#include "private_msgs/simulation_step.pb.h"
+#include "private_msgs/peer_control.pb.h"
 
 #include "NetworkManager.hh"
 

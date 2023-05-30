@@ -1787,8 +1787,8 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
 TEST_F(ComponentsTest, JointTransmittedWrench)
 {
   msgs::Wrench wrench;
-  msgs::Set(wrench.mutable_torque(), {10, 20, 30});
-  msgs::Set(wrench.mutable_force(), {1, 2, 3});
+  msgs::Set(wrench.mutable_torque(), gz::math::Vector3d{10, 20, 30});
+  msgs::Set(wrench.mutable_force(), gz::math::Vector3d{1, 2, 3});
 
   // // Create components.
   auto comp1 = components::JointTransmittedWrench(wrench);

@@ -15,6 +15,10 @@
  *
  */
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/pointcloud_packed.pb.h>
+
 #include <algorithm>
 #include <atomic>
 #include <optional>

@@ -31,7 +31,7 @@
 #include <gz/sim/Entity.hh>
 #include <gz/transport/Node.hh>
 
-#include "msgs/simulation_step.pb.h"
+#include "private_msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"
 

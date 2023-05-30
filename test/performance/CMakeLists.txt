@@ -26,6 +26,7 @@ gz_build_tests(TYPE PERFORMANCE
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    gz_msgs_gen
 )
 
 add_executable(
@@ -38,4 +39,5 @@ target_link_libraries(
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-sim${PROJECT_VERSION_MAJOR}
     gz-sim${PROJECT_VERSION_MAJOR}-gui
+    gz_msgs_gen
 )

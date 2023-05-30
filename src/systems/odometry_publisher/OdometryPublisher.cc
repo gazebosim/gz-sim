@@ -19,6 +19,7 @@
 
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <limits>
 #include <string>

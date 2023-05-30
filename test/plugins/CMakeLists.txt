@@ -37,6 +37,7 @@ if(BUILD_TESTING)
         gz-plugin${GZ_PLUGIN_VER}::register
         gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
         gz-sim${PROJECT_VERSION_MAJOR}
+        gz_msgs_gen
     )
 
     if (MSVC)

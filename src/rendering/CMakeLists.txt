@@ -23,6 +23,8 @@ target_link_libraries(${rendering_target}
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   PRIVATE
     gz-plugin${GZ_PLUGIN_VER}::register
+    gz_sim_private_msgs_gen
+    gz_msgs_gen
 )
 
 install(TARGETS ${rendering_target} DESTINATION ${GZ_LIB_INSTALL_DIR})

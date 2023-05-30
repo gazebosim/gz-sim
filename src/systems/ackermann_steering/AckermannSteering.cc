@@ -18,6 +18,7 @@
 #include "AckermannSteering.hh"
 
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <mutex>
 #include <set>
