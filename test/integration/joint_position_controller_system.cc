@@ -133,8 +133,8 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller_velocity.sdf";
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, 
+    "/test/worlds/joint_position_controller_velocity.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -218,8 +218,8 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/joint_position_controller_velocity.sdf";
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
+    "/test/worlds/joint_position_controller_velocity.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

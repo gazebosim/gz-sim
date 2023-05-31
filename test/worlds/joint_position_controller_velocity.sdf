@@ -116,7 +116,6 @@
       </plugin>
     </model>
 
-
     <model name="joint_position_controller_test_with_max">
       <pose>100 0 0.005 0 0 0</pose>
       <link name="base_link">
