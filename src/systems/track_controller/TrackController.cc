@@ -23,25 +23,25 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/math/eigen3.hh>
-#include <ignition/math/SpeedLimiter.hh>
+#include <gz/math/eigen3.hh>
+#include <gz/math/SpeedLimiter.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::TrackControllerPrivate
@@ -618,5 +618,9 @@ IGNITION_ADD_PLUGIN(TrackController,
                     TrackController::ISystemConfigure,
                     TrackController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(TrackController,
+                          "gz::sim::systems::TrackController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(TrackController,
                           "ignition::gazebo::systems::TrackController")

@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
-#define IGNITION_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
+#define GZ_GAZEBO_SYSTEMS_LOGICAL_AUDIO_SENSOR_PLUGIN_LOGICALAUDIO_HH_
 
 #include <string>
 
-#include <ignition/gazebo/components/LogicalAudio.hh>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/logicalaudiosensorplugin-system/Export.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/sim/components/LogicalAudio.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/logicalaudiosensorplugin-system/Export.hh>
+#include <gz/math/Pose3.hh>
 
 namespace ignition
 {
@@ -70,8 +70,8 @@ namespace logical_audio
       double _sourceEmissionVolume,
       double _innerRadius,
       double _falloffDistance,
-      const ignition::math::Pose3d &_sourcePose,
-      const ignition::math::Pose3d &_targetPose);
+      const gz::math::Pose3d &_sourcePose,
+      const gz::math::Pose3d &_targetPose);
 
   /// \brief Set the attenuation function that matches the defined string.
   /// The string is not case sensitive, and must match the spelling

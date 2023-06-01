@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
-#define IGNITION_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
+#ifndef GZ_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
+#define GZ_GAZEBO_GUI_QUICKSTARTHANDLER_HH_
 
 #include <QtCore>
 #include <string>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Export.hh"
 
 namespace ignition
 {

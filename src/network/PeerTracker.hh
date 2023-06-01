@@ -14,20 +14,20 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
-#define IGNITION_GAZEBO_NETWORK_PEERTRACKER_HH_
+#ifndef GZ_GAZEBO_NETWORK_PEERTRACKER_HH_
+#define GZ_GAZEBO_NETWORK_PEERTRACKER_HH_
 
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/EventManager.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
+#include <gz/sim/EventManager.hh>
 
-#include <ignition/common/Event.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Event.hh>
+#include <gz/transport/Node.hh>
 
 #include "PeerInfo.hh"
 
@@ -55,7 +55,7 @@ namespace ignition
     /// announcements and heartbeats from other peers.
     class IGNITION_GAZEBO_VISIBLE PeerTracker {
       /// \brief Convenience type alias for NodeOptions
-      public: using NodeOptions = ignition::transport::NodeOptions;
+      public: using NodeOptions = gz::transport::NodeOptions;
 
       /// \brief Convenience type alias for duration
       public: using Duration = std::chrono::steady_clock::duration;
@@ -209,18 +209,18 @@ namespace ignition
       private: EventManager *eventMgr;
 
       /// \brief Transport node
-      private: ignition::transport::Node node;
+      private: gz::transport::Node node;
 
       /// \brief Heartbeat publisher
-      private: ignition::transport::Node::Publisher heartbeatPub;
+      private: gz::transport::Node::Publisher heartbeatPub;
 
       /// \brief Announcement publisher
-      private: ignition::transport::Node::Publisher announcePub;
+      private: gz::transport::Node::Publisher announcePub;
     };
     }
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORKCONFIG_HH_
+#endif  // GZ_GAZEBO_NETWORKCONFIG_HH_
 
 

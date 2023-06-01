@@ -58,8 +58,8 @@ namespace logical_audio
       double _sourceEmissionVolume,
       double _innerRadius,
       double _falloffDistance,
-      const ignition::math::Pose3d &_sourcePose,
-      const ignition::math::Pose3d &_targetPose)
+      const gz::math::Pose3d &_sourcePose,
+      const gz::math::Pose3d &_targetPose)
   {
     if (!_playing)
       return 0.0;

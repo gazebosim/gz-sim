@@ -31,16 +31,16 @@ System plugins may be loaded through:
     * Attached to a **model**: `<model><plugin>`
     * Attached to a **sensor**: `<sensor><plugin>`
 * Passing the shared library and class to be loaded through
-  [PluginInfo](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
-  (within [ServerConfig](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1ServerConfig.html))
+  [PluginInfo](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
+  (within [ServerConfig](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1ServerConfig.html))
   when instantiating the
-  [Server](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
+  [Server](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
 
 Ignition will look for system plugins on the following paths, in order:
 
 1. All paths on the `IGN_GAZEBO_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.ignition/gazebo/plugins`
-3. [Systems that are installed with Ignition Gazebo](https://gazebosim.org/api/gazebo/6.9/namespaceignition_1_1gazebo_1_1systems.html)
+3. [Systems that are installed with Ignition Gazebo](https://gazebosim.org/api/gazebo/6/namespace gz_1_1gazebo_1_1systems.html)
 
 ### Ignition GUI plugins
 
@@ -60,9 +60,9 @@ Ignition will look for GUI plugins on the following paths, in order:
 
 1. All paths set on the `IGN_GUI_PLUGIN_PATH` environment variable
 2. [GUI plugins that are installed with Ignition Gazebo](https://github.com/gazebosim/gz-sim/tree/main/src/gui/plugins)
-3. Other paths added by calling `ignition::gui::App()->AddPluginPath`
+3. Other paths added by calling `gz::gui::App()->AddPluginPath`
 4. `~/.ignition/gui/plugins`
-5. [Plugins which are installed with Ignition GUI](https://gazebosim.org/api/gui/4.2/namespaceignition_1_1gui_1_1plugins.html)
+5. [Plugins which are installed with Gazebo GUI](https://gazebosim.org/api/gui/4/namespace gz_1_1gui_1_1plugins.html)
 
 ### Physics engines
 
@@ -109,9 +109,9 @@ Top-level entities such as models, lights and actors may be loaded through:
 * The `/world/<world_name>/create` service:
     * SDF file as string (`<model>` / `<light>` / `<actor>` root)
     * Path / URL to SDF file
-    * (TODO) `ignition::msgs::Model`, `ignition::msgs::Light`
+    * (TODO) `gz::msgs::Model`, `gz::msgs::Light`
 * Within a system, using
-  [SdfEntityCreator](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1SdfEntityCreator.html)
+  [SdfEntityCreator](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1SdfEntityCreator.html)
   or directly creating components and entities.
 
 Ignition will look for URIs (path / URL) in the following, in order:

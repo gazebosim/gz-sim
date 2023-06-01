@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_PATHMANAGER_HH_
-#define IGNITION_GAZEBO_GUI_PATHMANAGER_HH_
+#ifndef GZ_GAZEBO_GUI_PATHMANAGER_HH_
+#define GZ_GAZEBO_GUI_PATHMANAGER_HH_
 
 #include <QtCore>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/config.hh"
 
 namespace ignition
 {

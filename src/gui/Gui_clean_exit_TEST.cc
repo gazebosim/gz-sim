@@ -20,13 +20,13 @@
 #include <csignal>
 #include <chrono>
 #include <exception>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/gui/Gui.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/gui/Gui.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 using namespace ignition;
 

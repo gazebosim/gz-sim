@@ -15,19 +15,19 @@
  *
  */
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <atomic>
 #include <chrono>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 #include <sdf/sdf.hh>
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 #include "CommsEndpoint.hh"
 
 using namespace ignition;

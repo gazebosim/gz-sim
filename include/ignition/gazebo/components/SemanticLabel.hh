@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,6 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
-#define IGNITION_GAZEBO_COMPONENTS_LABEL_HH_
 
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/config.hh"
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component that holds the label of an entity. One example use
-  /// case of the Label component is with Segmentation & Bounding box
-  /// sensors to generate dataset annotations.
-  using SemanticLabel = Component<uint32_t, class SemanticLabelTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SemanticLabel",
-      SemanticLabel)
-}
-}
-}
-}
-#endif
+#include <gz/sim/components/SemanticLabel.hh>
+#include <ignition/gazebo/config.hh>

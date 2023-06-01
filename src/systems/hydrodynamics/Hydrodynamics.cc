@@ -18,20 +18,20 @@
 
 #include <Eigen/Eigen>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/msgs/vector3d.pb.h"
+#include "gz/msgs/vector3d.pb.h"
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 
 #include "Hydrodynamics.hh"
 

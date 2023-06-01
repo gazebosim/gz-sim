@@ -17,20 +17,20 @@
 #ifndef IGNITION_GAZEBO_SYSTEMMANAGER_HH_
 #define IGNITION_GAZEBO_SYSTEMMANAGER_HH_
 
-#include <ignition/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <memory>
 #include <string>
 #include <vector>
 
 #include <sdf/Plugin.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "SystemInternal.hh"
 

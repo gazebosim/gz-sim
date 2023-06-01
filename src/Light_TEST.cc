@@ -19,12 +19,12 @@
 
 #include <cstddef>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Light.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Light.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
 
 /////////////////////////////////////////////////
 TEST(LightTest, Constructor)

@@ -15,8 +15,8 @@
  *
 */
 #include "Null.hh"
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/plugin/Register.hh>
 
 using namespace ignition::gazebo;
 using namespace ignition::gazebo::systems;
@@ -57,10 +57,13 @@ void Null::PostUpdate(const UpdateInfo &/*_info*/,
 }
 
 IGNITION_ADD_PLUGIN(Null,
-                    ignition::gazebo::System,
+                    gz::sim::System,
                     Null::ISystemConfigure,
                     Null::ISystemPreUpdate,
                     Null::ISystemUpdate,
                     Null::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(Null, "gz::sim::systems::Null")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Null, "ignition::gazebo::systems::Null")
