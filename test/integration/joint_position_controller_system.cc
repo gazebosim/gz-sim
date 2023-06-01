@@ -210,7 +210,7 @@ TEST_F(JointPositionControllerTestFixture,
 
 
 /////////////////////////////////////////////////
-// Tests that the JointPositionController accepts joint position commands
+// Tests that the JointPositionController respects the maximum command
 TEST_F(JointPositionControllerTestFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(JointPositonVelocityCommandWithMax))
 {
