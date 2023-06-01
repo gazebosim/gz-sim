@@ -133,7 +133,7 @@ TEST_F(JointPositionControllerTestFixture,
 
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, 
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
     "/test/worlds/joint_position_controller_velocity.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
