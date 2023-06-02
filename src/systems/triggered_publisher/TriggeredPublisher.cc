@@ -33,17 +33,17 @@
 #include <limits>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
+#include <gz/plugin/Register.hh>
 
 // bug https://github.com/protocolbuffers/protobuf/issues/5051
 #ifdef _WIN32
 #undef GetMessage
 #endif
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Base class for input matchers.
@@ -859,5 +859,9 @@ IGNITION_ADD_PLUGIN(TriggeredPublisher,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+                          "gz::sim::systems::TriggeredPublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "ignition::gazebo::systems::TriggeredPublisher")

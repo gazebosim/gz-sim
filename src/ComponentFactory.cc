@@ -15,7 +15,7 @@
  *
  */
 
-#include "ignition/gazebo/components/Factory.hh"
+#include "gz/sim/components/Factory.hh"
 
 using Factory = ignition::gazebo::components::Factory;
 

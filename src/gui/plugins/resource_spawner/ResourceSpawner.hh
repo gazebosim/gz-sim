@@ -15,15 +15,15 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
-#define IGNITION_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#ifndef GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
+#define GZ_GAZEBO_GUI_RESOURCE_SPAWNER_HH_
 
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -141,7 +141,7 @@ namespace gazebo
 
   /// \brief Provides interface for communicating to backend for generation
   /// of local models
-  class ResourceSpawner : public ignition::gui::Plugin
+  class ResourceSpawner : public gz::gui::Plugin
   {
     Q_OBJECT
 

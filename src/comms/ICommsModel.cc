@@ -20,13 +20,13 @@
 #include <memory>
 #include <optional>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 #include <sdf/Element.hh>
-#include "ignition/gazebo/comms/Broker.hh"
-#include "ignition/gazebo/comms/ICommsModel.hh"
-#include "ignition/gazebo/comms/MsgManager.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/comms/Broker.hh"
+#include "gz/sim/comms/ICommsModel.hh"
+#include "gz/sim/comms/MsgManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
 
 using namespace ignition;
 using namespace gazebo;

@@ -19,14 +19,14 @@
 #include <memory>
 #include <string>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/SemanticLabel.hh"
-#include "ignition/gazebo/components/Visual.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/SemanticLabel.hh"
+#include "gz/sim/components/Visual.hh"
 
 using namespace ignition;
 using namespace gazebo;

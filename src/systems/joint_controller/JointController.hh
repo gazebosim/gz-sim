@@ -14,10 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_JOINTCONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_JOINTCONTROLLER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_JOINTCONTROLLER_HH_
+#define GZ_GAZEBO_SYSTEMS_JOINTCONTROLLER_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
 namespace ignition
@@ -93,8 +93,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointControllerPrivate> dataPtr;

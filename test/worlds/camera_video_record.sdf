@@ -9,19 +9,19 @@
     </physics>
     <plugin
       filename="libignition-gazebo-physics-system.so"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="libignition-gazebo-user-commands-system.so"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
       filename="libignition-gazebo-sensors-system.so"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
 
@@ -298,7 +298,7 @@
 
           <plugin
             filename="libignition-gazebo-camera-video-recorder-system.so"
-            name="ignition::gazebo::systems::CameraVideoRecorder">
+            name="gz::sim::systems::CameraVideoRecorder">
             <service>camera/record_video</service>
           </plugin>
 

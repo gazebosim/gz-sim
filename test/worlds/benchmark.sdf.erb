@@ -218,11 +218,11 @@
   <world name="default">
     <plugin
      filename="ignition-gazebo-physics-system"
-     name="ignition::gazebo::systems::Physics">
+     name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -477,7 +477,7 @@
 
     <plugin
       filename="ignition-gazebo-diff-drive-system"
-      name="ignition::gazebo::systems::DiffDrive">
+      name="gz::sim::systems::DiffDrive">
       <left_joint>left_wheel_joint</left_joint>
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>1.25</wheel_separation>
@@ -487,7 +487,7 @@
   </model>
   <% end %>
 
-  <plugin name="ignition::gazebo" filename="dummy">
+  <plugin name="gz::sim" filename="dummy">
   <% vehicles.each do |vehicle| %>
     <performer name="perf_<%= vehicle[:name] %>">
       <ref><%= vehicle[:name] %></ref>

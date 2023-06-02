@@ -15,12 +15,12 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_MULTICOPTER_CONTROL_LEEVELOCITYCONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_MULTICOPTER_CONTROL_LEEVELOCITYCONTROLLER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_MULTICOPTER_CONTROL_LEEVELOCITYCONTROLLER_HH_
+#define GZ_GAZEBO_SYSTEMS_MULTICOPTER_CONTROL_LEEVELOCITYCONTROLLER_HH_
 
 #include <Eigen/Geometry>
 #include <memory>
-#include "ignition/gazebo/config.hh"
+#include "gz/sim/config.hh"
 
 #include "Common.hh"
 #include "LeeVelocityController.hh"

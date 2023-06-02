@@ -21,14 +21,14 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/gazebo/components/Gravity.hh>
-#include <ignition/gazebo/components/World.hh>
-#include <ignition/gazebo/Link.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/Gravity.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Util.hh>
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/double.pb.h>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include "BuoyancyEngine.hh"
 

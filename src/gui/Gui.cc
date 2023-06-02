@@ -16,18 +16,18 @@
  */
 #include <QScreen>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/SignalHandler.hh>
-#include <ignition/common/Filesystem.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/SignalHandler.hh>
+#include <gz/common/Filesystem.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/gui/Plugin.hh>
-#include <ignition/gui/Dialog.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
+#include <gz/gui/Dialog.hh>
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Gui.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/gui/Gui.hh"
 
 #include "AboutDialogHandler.hh"
 #include "GuiFileHandler.hh"
@@ -125,14 +125,14 @@ std::string launchQuickStart(int &_argc, char **_argv,
   ignmsg << "Gazebo Sim Quick start dialog" << std::endl;
 
   // Gui application in dialog mode
-  auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kDialog);
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kDialog);
   app->SetDefaultConfigPath(_defaultConfig);
 
   auto quickStartHandler = new gui::QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
-  auto dialog = new ignition::gui::Dialog();
+  auto dialog = new gz::gui::Dialog();
   dialog->setObjectName("quick_start");
 
   igndbg << "Reading Quick start menu config." << std::endl;
@@ -160,7 +160,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
 
   std::string qmlFile("qrc:/Gazebo/QuickStart.qml");
 
-  QQmlComponent dialogComponent(ignition::gui::App()->Engine(),
+  QQmlComponent dialogComponent(gz::gui::App()->Engine(),
       QString(QString::fromStdString(qmlFile)));
 
   auto dialogItem = qobject_cast<QQuickItem *>(dialogComponent.create(context));
@@ -180,7 +180,7 @@ std::string launchQuickStart(int &_argc, char **_argv,
 }
 
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
+std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_renderEngine)
@@ -190,12 +190,12 @@ std::unique_ptr<ignition::gui::Application> createGui(
 }
 
 //////////////////////////////////////////////////
-std::unique_ptr<ignition::gui::Application> createGui(
+std::unique_ptr<gz::gui::Application> createGui(
     int &_argc, char **_argv, const char *_guiConfig,
     const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
     const char *_sdfFile, int _waitGui, const char *_renderEngine)
 {
-  ignition::common::SignalHandler sigHandler;
+  gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
   sigHandler.AddCallback([&](const int /*_sig*/)
   {
@@ -265,18 +265,18 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // Launch main window
-  auto app = std::make_unique<ignition::gui::Application>(
-    _argc, _argv, ignition::gui::WindowType::kMainWindow);
+  auto app = std::make_unique<gz::gui::Application>(
+    _argc, _argv, gz::gui::WindowType::kMainWindow);
 
   app->AddPluginPath(IGN_GAZEBO_GUI_PLUGIN_INSTALL_DIR);
 
-  auto aboutDialogHandler = new ignition::gazebo::gui::AboutDialogHandler();
+  auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
 
-  auto guiFileHandler = new ignition::gazebo::gui::GuiFileHandler();
+  auto guiFileHandler = new gz::sim::gui::GuiFileHandler();
   guiFileHandler->setParent(app->Engine());
 
-  auto pathManager = new ignition::gazebo::gui::PathManager();
+  auto pathManager = new gz::sim::gui::PathManager();
   pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
@@ -285,7 +285,7 @@ std::unique_ptr<ignition::gui::Application> createGui(
   app->SetDefaultConfigPath(defaultConfig);
 
   // Customize window
-  auto mainWin = app->findChild<ignition::gui::MainWindow *>();
+  auto mainWin = app->findChild<gz::gui::MainWindow *>();
   if (_renderEngine != nullptr)
   {
     mainWin->SetRenderEngine(_renderEngine);
@@ -356,14 +356,14 @@ std::unique_ptr<ignition::gui::Application> createGui(
     // TODO(anyone) Most of ign-gazebo's transport API includes the world name,
     // which makes it complicated to mix configurations across worlds.
     // We could have a way to use world-agnostic topics like Gazebo-classic's ~
-    auto runner = new ignition::gazebo::GuiRunner(worldsMsg.data(0));
+    auto runner = new gz::sim::GuiRunner(worldsMsg.data(0));
     ++runnerCount;
-    runner->setParent(ignition::gui::App());
+    runner->setParent(gz::gui::App());
 
     // Load plugins after runner is up
     if (!app->LoadConfig(_guiConfig))
     {
-      ignwarn << "Failed to load config file[" << _guiConfig << "]."
+      ignwarn << "Failed to load gui config file[" << _guiConfig << "]."
               << std::endl;
     }
   }
@@ -405,8 +405,8 @@ std::unique_ptr<ignition::gui::Application> createGui(
       }
 
       // GUI runner
-      auto runner = new ignition::gazebo::GuiRunner(worldName);
-      runner->setParent(ignition::gui::App());
+      auto runner = new gz::sim::GuiRunner(worldName);
+      runner->setParent(gz::gui::App());
       ++runnerCount;
 
       // Load plugins after creating GuiRunner, so they can access worldName
@@ -437,13 +437,13 @@ std::unique_ptr<ignition::gui::Application> createGui(
   }
 
   // If no plugins have been added, load default config file
-  auto plugins = mainWin->findChildren<ignition::gui::Plugin *>();
+  auto plugins = mainWin->findChildren<gz::gui::Plugin *>();
   if (plugins.empty())
   {
     if (!app->LoadConfig(defaultConfig))
     {
-      ignerr << "Failed to load config file[" << defaultConfig << "]."
-             << std::endl;
+      ignerr << "Failed to load default config file["
+        << defaultConfig << "]." << std::endl;
       return nullptr;
     }
   }
@@ -462,7 +462,7 @@ int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui,
   const char *_renderEngine)
 {
-  auto app = gazebo::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
+  auto app = gz::sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
       _sdfFile, _waitGui, _renderEngine);
   if (nullptr != app)
   {

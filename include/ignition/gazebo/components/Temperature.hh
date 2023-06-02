@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_TEMPERATURE_HH_
-#define IGNITION_GAZEBO_COMPONENTS_TEMPERATURE_HH_
+ */
 
-#include <ignition/math/Temperature.hh>
-
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
+#include <gz/sim/components/Temperature.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component that stores temperature data in Kelvin
-  using Temperature = Component<math::Temperature, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Temperature",
-      Temperature)
-
-  /// \brief A component that stores temperature linear resolution in Kelvin
-  using TemperatureLinearResolution = Component<double, class TemperatureTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT(
-      "ign_gazebo_components.TemperatureLinearResolution",
-      TemperatureLinearResolution)
-}
-}
-}
-}
-
-#endif

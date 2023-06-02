@@ -14,15 +14,15 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
-#define IGNITION_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
+#ifndef GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
+#define GZ_GAZEBO_GUI_ABOUTDIALOGHANDLER_HH_
 
 #include <QtCore>
 #include <QDesktopServices>
 #include <string>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Export.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Export.hh"
 
 namespace ignition
 {

@@ -19,12 +19,12 @@
 
 #include <cstddef>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Joint.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Joint.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
 
 /////////////////////////////////////////////////
 TEST(JointTest, Constructor)

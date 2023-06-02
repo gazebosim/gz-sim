@@ -17,21 +17,21 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/ColladaLoader.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Mesh.hh>
-#include <ignition/common/SubMesh.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/ColladaLoader.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/SubMesh.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
@@ -51,7 +51,7 @@ class ColladaWorldExporterFixture : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ColladaWorldExporterFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ExportWorld))
 {

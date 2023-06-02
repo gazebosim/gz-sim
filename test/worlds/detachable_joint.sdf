@@ -6,7 +6,7 @@
     </physics>
 
     <plugin filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics"/>
+      name="gz::sim::systems::Physics"/>
 
     <model name="ground_plane">
       <static>true</static>

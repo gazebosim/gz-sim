@@ -15,17 +15,17 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
+#define GZ_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 #include <memory>
 #include <string>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 
 namespace ignition
 {
@@ -86,8 +86,8 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Gazebo communication node.
     private: transport::Node node;

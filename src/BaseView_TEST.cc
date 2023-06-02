@@ -17,15 +17,15 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/detail/BaseView.hh"
-#include "ignition/gazebo/detail/View.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/detail/BaseView.hh"
+#include "gz/sim/detail/View.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 

@@ -17,6 +17,7 @@
 
 #include "Barrier.hh"
 
+
 class ignition::gazebo::BarrierPrivate
 {
   /// \brief Mutex for syncronization
@@ -97,4 +98,3 @@ void Barrier::Cancel()
   this->dataPtr->cancelled = true;
   this->dataPtr->cv.notify_all();
 }
-

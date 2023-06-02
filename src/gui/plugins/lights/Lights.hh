@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -30,7 +30,7 @@ namespace gazebo
 
   /// \brief Provides buttons for adding a point, directional, or spot light
   /// to the scene
-  class Lights : public ignition::gui::Plugin
+  class Lights : public gz::gui::Plugin
   {
     Q_OBJECT
 
