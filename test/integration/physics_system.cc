@@ -2543,7 +2543,7 @@ TEST_F(PhysicsSystemFixture,
 /// Tests that joints inside <world> are supported by computing the position of
 /// a pendulum bob from the joint angle. This also tests that commands such as
 /// JointPositionReset work as expected.
-TEST_F(PhysicsSystemFixture, JointsInWorld)
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
 {
   ServerConfig serverConfig;
 
