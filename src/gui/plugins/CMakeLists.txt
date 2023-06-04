@@ -129,6 +129,7 @@ add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(apply_force_torque)
 add_subdirectory(banana_for_scale)
 add_subdirectory(component_inspector)
 add_subdirectory(component_inspector_editor)
