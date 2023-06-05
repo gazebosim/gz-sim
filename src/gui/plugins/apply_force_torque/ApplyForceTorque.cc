@@ -21,6 +21,15 @@
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Util.hh>
 #include <gz/sim/Link.hh>
+#include <gz/sim/World.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/World.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/transport/Node.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
+#include <gz/msgs/entity.pb.h>
 
 #include "ApplyForceTorque.hh"
 
@@ -30,33 +39,26 @@ namespace sim
 {
   class ApplyForceTorquePrivate
   {
-    /// \brief X component of force
-    // TODO: change to Vector3d
-    public: float forceX{0.0};
+    /// \brief Publish wrench messages
+    public: void Publish(bool _applyForce, bool _applyTorque);
 
-    /// \brief Y component of force
-    public: float forceY{0.0};
-    
-    /// \brief Z component of force
-    public: float forceZ{0.0};
-    
-    /// \brief X component of torque
-    public: float torqueX{0.0};
-    
-    /// \brief Y component of torque
-    public: float torqueY{0.0};
-    
-    /// \brief Z component of torque
-    public: float torqueZ{0.0};
+    /// \brief Transport node
+    public: transport::Node node;
 
-    /// \brief True if a force should be applied
-    public: bool applyForce{false};
-
-    /// \brief True if a torque should be applied
-    public: bool applyTorque{false};
+    /// \brief Publisher for EntityWrench messages
+    public: transport::Node::Publisher pub;
 
     /// \brief A mutex to protect wrenches
     public: std::mutex mutex;
+
+    /// \brief Force to be applied
+    public: math::Vector3d force{0.0, 0.0, 0.0};
+
+    /// \brief Torque to be applied
+    public: math::Vector3d torque{0.0, 0.0, 0.0};
+
+    /// \brief Entity to which the wrench should be applied
+    public: Entity entity;
   };
 }
 }
@@ -86,97 +88,96 @@ void ApplyForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  if (this->dataPtr->applyForce)
-  {
-    std::string entityName = "box";
-    auto entities = entitiesFromScopedName(entityName, _ecm);
-    if (entities.empty())
-    {
-      gzerr << "No entity named [" << entityName << "]" << std::endl;
-    }
-    auto entity = *entities.begin();
+  // if (this->dataPtr->applyForce)
+  // {
+  //   std::string entityName = "box";
+  //   auto entities = entitiesFromScopedName(entityName, _ecm);
+  //   if (entities.empty())
+  //   {
+  //     gzerr << "No entity named [" << entityName << "]" << std::endl;
+  //   }
+  //   auto entity = *entities.begin();
 
-    Model model(entity);
-    if (!model.Valid(_ecm))
-    {
-      gzerr << "Entity is not a model." << std::endl;
-    }
+  //   Model model(entity);
+  //   if (!model.Valid(_ecm))
+  //   {
+  //     gzerr << "Entity is not a model." << std::endl;
+  //   }
 
-    Link link(model.CanonicalLink(_ecm));
-    math::Vector3d force{10000.0, 0.0, 0.0};
-    link.AddWorldForce(_ecm, force);
+  //   Link link(model.CanonicalLink(_ecm));
+  //   math::Vector3d force{10000.0, 0.0, 0.0};
+  //   link.AddWorldForce(_ecm, force);
 
-    this->dataPtr->applyForce = false;
-    gzdbg << "Applied force to " << entityName << std::endl;
-  }
+  //   this->dataPtr->applyForce = false;
+  //   gzdbg << "Applied force to " << entityName << std::endl;
+  // }
 }
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
-    EntityComponentManager &/*_ecm*/)
+    EntityComponentManager &_ecm)
 {
+  // Get entity to apply force to
+  if (this->dataPtr->entity == kNullEntity)
+  {
+    std::string entityName = "cylinder";
+    auto entities = entitiesFromScopedName(entityName, _ecm);
+    this->dataPtr->entity = *entities.begin();
+  }
+
+  // Create publisher if not yet created
+  if (!this->dataPtr->pub.Valid())
+  {
+    std::string worldName{""};
+    _ecm.Each<components::World, components::Name>(
+        [&](const Entity &_entity,
+          const components::World * /* _world */ ,
+          const components::Name *_name)->bool
+        {
+          World world(_entity);
+          for (auto &model : world.Models(_ecm))
+          {
+            if (model == this->dataPtr->entity)
+            {
+              worldName = _name->Data();
+              return true;
+            }
+          }
+          gzerr << "World not found" << std::endl;
+          return false;
+        });
+
+    auto topic = transport::TopicUtils::AsValidTopic(
+      "/world/" + worldName + "/wrench");
+    this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::EntityWrench>(topic);
+    gzdbg << "Created publisher to " << topic << std::endl;
+  }
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorque::UpdateForceX(float _forceX)
+void ApplyForceTorque::UpdateForce(double _x, double _y, double _z)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->forceX = _forceX;
+  this->dataPtr->force = {_x, _y, _z};
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorque::UpdateForceY(float _forceY)
+void ApplyForceTorque::UpdateTorque(double _x, double _y, double _z)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->forceY = _forceY;
-}
-
-/////////////////////////////////////////////////
-void ApplyForceTorque::UpdateForceZ(float _forceZ)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->forceZ = _forceZ;
-}
-
-/////////////////////////////////////////////////
-void ApplyForceTorque::UpdateTorqueX(float _torqueX)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->torqueX = _torqueX;
-}
-
-/////////////////////////////////////////////////
-void ApplyForceTorque::UpdateTorqueY(float _torqueY)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->torqueY = _torqueY;
-}
-
-/////////////////////////////////////////////////
-void ApplyForceTorque::UpdateTorqueZ(float _torqueZ)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->torqueZ = _torqueZ;
+  this->dataPtr->torque = {_x, _y, _z};
 }
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::ApplyForce()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  
-  gzdbg << "Force: (" << this->dataPtr->forceX << ", " <<
-          this->dataPtr->forceY << ", " <<
-          this->dataPtr->forceZ <<
+
+  gzdbg << "Force: (" << this->dataPtr->force[0] << ", " <<
+          this->dataPtr->force[1] << ", " <<
+          this->dataPtr->force[2] <<
           ")" << std::endl;
-  if (this->dataPtr->applyForce)
-  {
-    gzdbg << "Previous force not yet applied" << std::endl;
-  }
-  else
-  {
-    gzdbg << "Applying force" << std::endl;
-    this->dataPtr->applyForce = true;
-  }
+  this->dataPtr->Publish(true, false);
 }
 
 /////////////////////////////////////////////////
@@ -184,43 +185,42 @@ void ApplyForceTorque::ApplyTorque()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   
-  gzdbg << "Torque: (" << this->dataPtr->torqueX << ", " <<
-          this->dataPtr->torqueY << ", " <<
-          this->dataPtr->torqueZ <<
+  gzdbg << "Torque: (" << this->dataPtr->torque[0] << ", " <<
+          this->dataPtr->torque[1] << ", " <<
+          this->dataPtr->torque[2] <<
           ")" << std::endl;
-  if (this->dataPtr->applyTorque)
-  {
-    gzdbg << "Previous torque not yet applied" << std::endl;
-  }
-  else
-  {
-    gzdbg << "Applying torque" << std::endl;
-    this->dataPtr->applyTorque = true;
-  }
+  this->dataPtr->Publish(false, true);
 }
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::ApplyAll()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-  
-  gzdbg << "Force: (" << this->dataPtr->forceX << ", " <<
-          this->dataPtr->forceY << ", " <<
-          this->dataPtr->forceZ <<
-          ") Torque: (" << this->dataPtr->torqueX << ", " <<
-          this->dataPtr->torqueY << ", " <<
-          this->dataPtr->torqueZ <<
+
+  gzdbg << "Force: (" << this->dataPtr->force[0] << ", " <<
+          this->dataPtr->force[1] << ", " <<
+          this->dataPtr->force[2] <<
+          ") Torque: (" << this->dataPtr->torque[0] << ", " <<
+          this->dataPtr->torque[1] << ", " <<
+          this->dataPtr->torque[2] <<
           ")" << std::endl;
-  if (this->dataPtr->applyForce || this->dataPtr->applyTorque)
-  {
-    gzdbg << "Previous wrench not yet applied" << std::endl;
-  }
-  else
-  {
-    gzdbg << "Applying wrench" << std::endl;
-    this->dataPtr->applyForce = true;
-    this->dataPtr->applyTorque = true;
-  }
+  this->dataPtr->Publish(true, true);
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorquePrivate::Publish(bool _applyForce, bool _applyTorque)
+{
+  msgs::EntityWrench msg;
+
+  msg.mutable_entity()->set_id(this->entity);
+
+  math::Vector3d zeros{0.0, 0.0, 0.0};
+  msgs::Set(msg.mutable_wrench()->mutable_force(),
+      _applyForce ? this->force : zeros);
+  msgs::Set(msg.mutable_wrench()->mutable_torque(),
+      _applyTorque ? this->torque : zeros);
+
+  this->pub.Publish(msg);
 }
 
 // Register this plugin

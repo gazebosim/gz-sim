@@ -59,29 +59,17 @@ namespace sim
     public: void Update(const UpdateInfo &_info,
       EntityComponentManager &_ecm) override;
 
-    /// \brief Set X component of force
-    /// \param[in] _forceX X component of force
-    public: Q_INVOKABLE void UpdateForceX(float _forceX);
+    /// \brief Set components of force
+    /// \param[in] _x X component of force
+    /// \param[in] _y Y component of force
+    /// \param[in] _z Z component of force
+    public: Q_INVOKABLE void UpdateForce(double _x, double _y, double _z);
 
-    /// \brief Set Y component of force
-    /// \param[in] _forceY Y component of force
-    public: Q_INVOKABLE void UpdateForceY(float _forceY);
-
-    /// \brief Set Z component of force
-    /// \param[in] _forceZ Z component of force
-    public: Q_INVOKABLE void UpdateForceZ(float _forceZ);
-
-    /// \brief Set X component of torque
-    /// \param[in] _torqueX X component of torque
-    public: Q_INVOKABLE void UpdateTorqueX(float _torqueX);
-
-    /// \brief Set Y component of torque
-    /// \param[in] _torqueY Y component of torque
-    public: Q_INVOKABLE void UpdateTorqueY(float _torqueY);
-
-    /// \brief Set Z component of torque
-    /// \param[in] _torqueZ Z component of torque
-    public: Q_INVOKABLE void UpdateTorqueZ(float _torqueZ);
+    /// \brief Set components of torque
+    /// \param[in] _x X component of torque
+    /// \param[in] _y Y component of torque
+    /// \param[in] _z Z component of torque
+    public: Q_INVOKABLE void UpdateTorque(double _x, double _y, double _z);
 
     /// \brief Apply the specified force
     public: Q_INVOKABLE void ApplyForce();

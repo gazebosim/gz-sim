@@ -61,7 +61,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateForceX(forceX.value)
+    onValueChanged: ApplyForceTorque.UpdateForce(
+      forceX.value, forceY.value, forceZ.value)
   }
 
   Label {
@@ -80,7 +81,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateTorqueX(torqueX.value)
+    onValueChanged: ApplyForceTorque.UpdateTorque(
+      torqueX.value,torqueY.value, torqueZ.value)
   }
 
   Label {
@@ -99,7 +101,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateForceY(forceY.value)
+    onValueChanged: ApplyForceTorque.UpdateForce(
+      forceX.value,forceY.value, forceZ.value)
   }
 
   Label {
@@ -118,7 +121,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateTorqueY(torqueY.value)
+    onValueChanged: ApplyForceTorque.UpdateTorque(
+      torqueX.value,torqueY.value, torqueZ.value)
   }
 
   Label {
@@ -137,7 +141,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateForceZ(forceZ.value)
+    onValueChanged: ApplyForceTorque.UpdateForce(
+      forceX.value, forceY.value, forceZ.value)
   }
 
   Label {
@@ -156,7 +161,8 @@ GridLayout {
     value: 0
     decimals: 2
     stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateTorqueZ(torqueZ.value)
+    onValueChanged: ApplyForceTorque.UpdateTorque(
+      torqueX.value,torqueY.value, torqueZ.value)
   }
 
   Button {
