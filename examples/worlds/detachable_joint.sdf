@@ -13,6 +13,18 @@
       ign topic -t "/B1/detach" -m ignition.msgs.Empty -p "unused: true"
       ign topic -t "/B2/detach" -m ignition.msgs.Empty -p "unused: true"
       ign topic -t "/B3/detach" -m ignition.msgs.Empty -p "unused: true"
+
+    To re-attach breadcrumbs
+
+      ign topic -t "/B1/attach" -m ignition.msgs.Empty -p "unused: true"
+      ign topic -t "/B2/attach" -m ignition.msgs.Empty -p "unused: true"
+      ign topic -t "/B3/attach" -m ignition.msgs.Empty -p "unused: true"
+
+    To monitor the state of each breadcrumbs
+
+      ign topic -e -t /B1/state
+      ign topic -e -t /B2/state
+      ign topic -e -t /B3/state
 -->
 
 <sdf version="1.6">
@@ -353,23 +365,32 @@
         <wheel_separation>1.25</wheel_separation>
         <wheel_radius>0.3</wheel_radius>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B1</child_model>
        <child_link>body</child_link>
-       <topic>/B1/detach</topic>
+       <detach_topic>/B1/detach</detach_topic>
+       <attach_topic>/B1/attach</attach_topic>
+       <output_topic>/B1/state</output_topic>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B2</child_model>
        <child_link>body</child_link>
-       <topic>/B2/detach</topic>
+       <detach_topic>/B2/detach</detach_topic>
+       <attach_topic>/B2/attach</attach_topic>
+       <output_topic>/B2/state</output_topic>
       </plugin>
-      <plugin filename="ignition-gazebo-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
        <parent_link>chassis</parent_link>
        <child_model>B3</child_model>
        <child_link>body</child_link>
-       <topic>/B3/detach</topic>
+       <detach_topic>/B3/detach</detach_topic>
+       <attach_topic>/B3/attach</attach_topic>
+       <output_topic>/B3/state</output_topic>
       </plugin>
     </model>
 
