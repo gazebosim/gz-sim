@@ -53,11 +53,11 @@ FindDRI()
 
 option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
       "Install python modules in standard system paths in the system"
-      OFF "NOT SKIP_PYBIND11" OFF)
+      ${skip_pybind11_default_value})
 
 option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      OFF "NOT SKIP_PYBIND11" OFF)
+      ${skip_pybind11_default_value})
 
 #============================================================================
 # Search for project-specific dependencies
