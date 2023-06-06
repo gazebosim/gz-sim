@@ -42,6 +42,28 @@ namespace sim
   {
     Q_OBJECT
 
+    /// \brief Model name
+    Q_PROPERTY(
+      QString modelName
+      READ ModelName
+      NOTIFY ModelNameChanged
+    )
+
+    /// \brief Link list
+    Q_PROPERTY(
+      QStringList linkNameList
+      READ LinkNameList
+      NOTIFY LinkNameListChanged
+    )
+
+    /// \brief Link index
+    Q_PROPERTY(
+      int linkIndex
+      READ LinkIndex
+      WRITE SetLinkIndex
+      NOTIFY LinkIndexChanged
+    )
+
     /// \brief Constructor
     public: ApplyForceTorque();
 
@@ -52,6 +74,9 @@ namespace sim
     public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
 
     // Documentation inherited
+    protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
+
+    // Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
       EntityComponentManager &_ecm) override;
 
@@ -59,11 +84,38 @@ namespace sim
     public: void Update(const UpdateInfo &_info,
       EntityComponentManager &_ecm) override;
 
+    /// \brief Get name of the selected model
+    public: Q_INVOKABLE QString ModelName() const;
+
+    /// \brief Notify that the model name (potentially) changed
+    signals: void ModelNameChanged();
+
+    /// \brief Get names of links of the selected model
+    public: Q_INVOKABLE QStringList LinkNameList() const;
+
+    /// \brief Notify that the link list (potentially) changed
+    signals: void LinkNameListChanged();
+
+    /// \brief Get index of the link in the list
+    public: Q_INVOKABLE int LinkIndex() const;
+
+    /// \brief Notify that the link index (potentially) changed
+    signals: void LinkIndexChanged();
+
+    /// \brief Set the index of the link in the list
+    public: Q_INVOKABLE void SetLinkIndex(int _linkIndex);
+
     /// \brief Set components of force
     /// \param[in] _x X component of force
     /// \param[in] _y Y component of force
     /// \param[in] _z Z component of force
     public: Q_INVOKABLE void UpdateForce(double _x, double _y, double _z);
+
+    /// \brief Set components of force offset
+    /// \param[in] _x X component of force offset
+    /// \param[in] _y Y component of force offset
+    /// \param[in] _z Z component of force offset
+    public: Q_INVOKABLE void UpdateOffset(double _x, double _y, double _z);
 
     /// \brief Set components of torque
     /// \param[in] _x X component of torque
