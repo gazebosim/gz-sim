@@ -53,11 +53,11 @@ FindDRI()
 
 option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
       "Install python modules in standard system paths in the system"
-      OFF)
+      OFF "NOT SKIP_PYBIND11" OFF)
 
 option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      OFF)
+      OFF "NOT SKIP_PYBIND11" OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -234,7 +234,7 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND AND NOT SKIP_PYBIND11)
 	add_subdirectory(python)
 endif()
 #============================================================================
