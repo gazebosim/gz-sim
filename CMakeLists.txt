@@ -176,9 +176,7 @@ set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
