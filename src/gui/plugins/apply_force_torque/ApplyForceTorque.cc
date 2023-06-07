@@ -15,14 +15,13 @@
  *
 */
 
-#include <iostream>
 #include <mutex>
 #include <vector>
+#include <string>
 
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/sim/gui/GuiEvents.hh>
-#include <gz/sim/Util.hh>
 #include <gz/sim/Link.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/World.hh>
@@ -43,7 +42,7 @@ namespace sim
   class ApplyForceTorquePrivate
   {
     /// \brief Publish wrench messages
-    public: void Publish(bool _applyForce, bool _applyTorque);
+    public: void PublishWrench(bool _applyForce, bool _applyTorque);
 
     /// \brief Transport node
     public: transport::Node node;
@@ -51,7 +50,7 @@ namespace sim
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
 
-    /// \brief A mutex to protect wrenches
+    /// \brief To synchronize member access
     public: std::mutex mutex;
 
     /// \brief Name of the selected model
@@ -130,37 +129,6 @@ bool ApplyForceTorque::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
-    EntityComponentManager &/*_ecm*/)
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  // if (this->dataPtr->applyForce)
-  // {
-  //   std::string entityName = "box";
-  //   auto entities = entitiesFromScopedName(entityName, _ecm);
-  //   if (entities.empty())
-  //   {
-  //     gzerr << "No entity named [" << entityName << "]" << std::endl;
-  //   }
-  //   auto entity = *entities.begin();
-
-  //   Model model(entity);
-  //   if (!model.Valid(_ecm))
-  //   {
-  //     gzerr << "Entity is not a model." << std::endl;
-  //   }
-
-  //   Link link(model.CanonicalLink(_ecm));
-  //   math::Vector3d force{10000.0, 0.0, 0.0};
-  //   link.AddWorldForce(_ecm, force);
-
-  //   this->dataPtr->applyForce = false;
-  //   gzdbg << "Applied force to " << entityName << std::endl;
-  // }
-}
-
-/////////////////////////////////////////////////
 void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
@@ -171,54 +139,49 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     {
       return;
     }
-
     this->dataPtr->changedEntity = false;
-    if (this->dataPtr->selectedEntities.empty())
-    {
-      this->dataPtr->modelName = "";
-      this->dataPtr->linkList.clear();
-      this->dataPtr->linkIndex = -1;
-    }
-    else
+
+    this->dataPtr->modelName = "";
+    this->dataPtr->linkList.clear();
+    this->dataPtr->linkNameList.clear();
+    this->dataPtr->linkIndex = -1;
+
+    if (!this->dataPtr->selectedEntities.empty())
     {
       auto entity = this->dataPtr->selectedEntities.front();
-      Model modelSelected(entity);
-      Link linkSelected(entity);
-      // What happens if the entity is neither a Link nor a Model?
-      if (modelSelected.Valid(_ecm))
+      Model selectedModel(entity);
+      Link selectedLink(entity);
+      if (selectedModel.Valid(_ecm))
       {
-        linkSelected = Link(modelSelected.CanonicalLink(_ecm));
+        selectedLink = Link(selectedModel.CanonicalLink(_ecm));
       }
-      else if (linkSelected.Valid(_ecm))
+      else if (selectedLink.Valid(_ecm))
       {
-        modelSelected = *linkSelected.ParentModel(_ecm);
+        selectedModel = *selectedLink.ParentModel(_ecm);
+      }
+      else
+      {
+        return;
       }
 
       this->dataPtr->modelName = QString::fromStdString(
-        modelSelected.Name(_ecm));
+        selectedModel.Name(_ecm));
 
-      this->dataPtr->linkList.clear();
-      this->dataPtr->linkNameList.clear();
-
-      auto links = modelSelected.Links(_ecm);
+      // Put all of the model's links into the list
+      auto links = selectedModel.Links(_ecm);
       unsigned int i{0};
-      while (i < modelSelected.LinkCount(_ecm))
+      while (i < selectedModel.LinkCount(_ecm))
       {
         Link link(links[i]);
         this->dataPtr->linkList.push_back(link);
         this->dataPtr->linkNameList.push_back(
           QString::fromStdString(*link.Name(_ecm)));
-
-        if (link.Entity() == linkSelected.Entity())
+        if (link.Entity() == selectedLink.Entity())
         {
           this->dataPtr->linkIndex = i;
         }
         ++i;
       }
-
-      gzdbg << "modelName: " << this->dataPtr->modelName.toStdString() <<
-        ", link: " << *linkSelected.Name(_ecm) <<
-        ", linkIndex: " << this->dataPtr->linkIndex << std::endl;
 
       // Create publisher if not yet created
       if (!this->dataPtr->pub.Valid())
@@ -281,7 +244,6 @@ void ApplyForceTorque::SetLinkIndex(int _linkIndex)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->linkIndex = _linkIndex;
-  gzdbg << "linkIndex: " << this->dataPtr->linkIndex << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -309,43 +271,25 @@ void ApplyForceTorque::UpdateTorque(double _x, double _y, double _z)
 void ApplyForceTorque::ApplyForce()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  gzdbg << "Force: (" << this->dataPtr->force[0] << ", " <<
-          this->dataPtr->force[1] << ", " <<
-          this->dataPtr->force[2] <<
-          ")" << std::endl;
-  this->dataPtr->Publish(true, false);
+  this->dataPtr->PublishWrench(true, false);
 }
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::ApplyTorque()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  gzdbg << "Torque: (" << this->dataPtr->torque[0] << ", " <<
-          this->dataPtr->torque[1] << ", " <<
-          this->dataPtr->torque[2] <<
-          ")" << std::endl;
-  this->dataPtr->Publish(false, true);
+  this->dataPtr->PublishWrench(false, true);
 }
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::ApplyAll()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-
-  gzdbg << "Force: (" << this->dataPtr->force[0] << ", " <<
-          this->dataPtr->force[1] << ", " <<
-          this->dataPtr->force[2] <<
-          ") Torque: (" << this->dataPtr->torque[0] << ", " <<
-          this->dataPtr->torque[1] << ", " <<
-          this->dataPtr->torque[2] <<
-          ")" << std::endl;
-  this->dataPtr->Publish(true, true);
+  this->dataPtr->PublishWrench(true, true);
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorquePrivate::Publish(bool _applyForce, bool _applyTorque)
+void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
 {
   if (this->linkIndex == -1)
   {
@@ -360,20 +304,33 @@ void ApplyForceTorquePrivate::Publish(bool _applyForce, bool _applyTorque)
     return;
   }
 
+  math::Vector3d forceToApply = 
+    _applyForce ? this->force : math::Vector3d::Zero;
+  math::Vector3d offsetToApply = 
+    _applyForce ? this->offset : math::Vector3d::Zero;
+  math::Vector3d torqueToApply = 
+    _applyTorque ? this->torque : math::Vector3d::Zero;
+
+  gzdbg << "Applying wrench [" <<
+    forceToApply[0] << " " <<
+    forceToApply[1] << " " <<
+    forceToApply[2] << " " <<
+    torqueToApply[0] << " " <<
+    torqueToApply[1] << " " <<
+    torqueToApply[2] << "] to entity [" <<
+    entity << "] with force offset [" <<
+    offsetToApply[0] << " " <<
+    offsetToApply[1] << " " <<
+    offsetToApply[2] << "]." << std::endl;
+
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_id(entity);
-  msgs::Set(msg.mutable_wrench()->mutable_force(),
-      _applyForce ? this->force : math::Vector3d::Zero);
-  msgs::Set(msg.mutable_wrench()->mutable_force_offset(),
-      _applyForce ? this->offset : math::Vector3d::Zero);
-  msgs::Set(msg.mutable_wrench()->mutable_torque(),
-      _applyTorque ? this->torque : math::Vector3d::Zero);
+  msgs::Set(msg.mutable_wrench()->mutable_force(), forceToApply);
+  msgs::Set(msg.mutable_wrench()->mutable_force_offset(), offsetToApply);
+  msgs::Set(msg.mutable_wrench()->mutable_torque(), torqueToApply);
 
   this->pub.Publish(msg);
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(ApplyForceTorque,
-              gz::gui::Plugin,
-              System,
-              ApplyForceTorque::ISystemPreUpdate);
+GZ_ADD_PLUGIN(ApplyForceTorque, gz::gui::Plugin);

@@ -19,11 +19,8 @@
 #define GZ_GUI_APPLYFORCETORQUE_HH_
 
 #include <memory>
-#include <string>
 
 #include <gz/sim/gui/GuiSystem.hh>
-#include <gz/gui/Plugin.hh>
-#include <gz/sim/System.hh>
 
 namespace gz
 {
@@ -35,10 +32,7 @@ namespace sim
   ///
   /// ## Configuration
   /// This plugin doesn't accept any custom configuration.
-  class ApplyForceTorque
-      : public gz::sim::GuiSystem,
-        public System,
-        public gz::sim::ISystemPreUpdate
+  class ApplyForceTorque : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
@@ -77,29 +71,25 @@ namespace sim
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     // Documentation inherited
-    public: void PreUpdate(const UpdateInfo &_info,
-      EntityComponentManager &_ecm) override;
-
-    // Documentation inherited
     public: void Update(const UpdateInfo &_info,
       EntityComponentManager &_ecm) override;
 
-    /// \brief Get name of the selected model
+    /// \brief Get the name of the selected model
     public: Q_INVOKABLE QString ModelName() const;
 
-    /// \brief Notify that the model name (potentially) changed
+    /// \brief Notify that the model name changed
     signals: void ModelNameChanged();
 
-    /// \brief Get names of links of the selected model
+    /// \brief Get the name of the links of the selected model
     public: Q_INVOKABLE QStringList LinkNameList() const;
 
-    /// \brief Notify that the link list (potentially) changed
+    /// \brief Notify that the link list changed
     signals: void LinkNameListChanged();
 
     /// \brief Get index of the link in the list
     public: Q_INVOKABLE int LinkIndex() const;
 
-    /// \brief Notify that the link index (potentially) changed
+    /// \brief Notify that the link index changed
     signals: void LinkIndexChanged();
 
     /// \brief Set the index of the link in the list
