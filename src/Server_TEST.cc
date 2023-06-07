@@ -1114,7 +1114,10 @@ TEST_P(ServerFixture, SdfWithoutWorld)
   {
     std::string line;
     std::getline(ifs, line);
-    std::string errString = "SDF file doesn't contain a world.";
+    std::string errString = "SDF file doesn't contain a world. ";
+    errString += "If you wish to spawn a model, ";
+    errString += "use the ResourceSpawner GUI plugin ";
+    errString += "or the 'world/<world_name>/create' service.";
     errFound = (line.find(errString) != std::string::npos);
   }
   EXPECT_TRUE(errFound);
