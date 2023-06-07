@@ -53,11 +53,11 @@ FindDRI()
 
 option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
       "Install python modules in standard system paths in the system"
-      ${skip_pybind11_default_value})
+      OFF)
 
 option(USE_DIST_PACKAGES_FOR_PYTHON
       "Use dist-packages instead of site-package to install python modules"
-      ${skip_pybind11_default_value})
+      OFF)
 
 #============================================================================
 # Search for project-specific dependencies
@@ -205,14 +205,17 @@ else()
 
   set(PYBIND11_PYTHON_VERSION 3)
   find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+  if (NOT SKIP_PYBIND11)
+    find_package(pybind11 2.2 QUIET)
+
+    if (${pybind11_FOUND})
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+  	else()
+  		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+  		message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
