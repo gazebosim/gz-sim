@@ -702,23 +702,45 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
-    auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
-        _geom.MeshShape()->FilePath());
-    if (fullPath.empty())
-    {
-      gzerr << "Mesh geometry missing uri" << std::endl;
-      return geom;
-    }
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
+    std::string meshUri;
     rendering::MeshDescriptor descriptor;
+    if (meshManager->IsValidFilename(_geom.MeshShape()->Uri()))
+    {
+      // Assume absolute path to mesh file
+      auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
+          _geom.MeshShape()->FilePath());
+      if (fullPath.empty())
+      {
+        gzerr << "Mesh geometry missing uri" << std::endl;
+        return geom;
+      }
+      meshUri = fullPath;
+      descriptor.mesh = meshManager->Load(meshUri);
+    }
+    else
+    {
+      // if it's not a file, see if the mesh exists in the
+      // mesh manager and load it by name
+      const std::string basename = common::basename(_geom.MeshShape()->Uri());
+      descriptor.mesh = meshManager->MeshByName(basename);
+      if (descriptor.mesh)
+      {
+        meshUri = basename;
+      }
+      else
+      {
+        gzerr << "Invalid mesh: " << _geom.MeshShape()->Uri()
+              << std::endl;
+        return geom;
+      }
+    }
 
-    // Assume absolute path to mesh file
-    descriptor.meshName = fullPath;
+    descriptor.meshName = meshUri;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    common::MeshManager *meshManager =
-        common::MeshManager::Instance();
-    descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }

@@ -101,6 +101,7 @@ set(tests_needing_display
   depth_camera.cc
   distortion_camera.cc
   gpu_lidar.cc
+  mesh_uri.cc
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc
