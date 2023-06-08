@@ -91,8 +91,8 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/camera_sensor_scene_background.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "camera_sensor_scene_background.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);

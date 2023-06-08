@@ -1398,7 +1398,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             if (nullptr == mesh)
             {
               gzwarn << "Failed to load mesh from [" << fullPath
-                      << "]." << std::endl;
+                     << "]." << std::endl;
               return true;
             }
           }
@@ -1411,7 +1411,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             if (nullptr == mesh)
             {
               gzwarn << "Failed to load mesh by name [" << basename
-                      << "]." << std::endl;
+                     << "]." << std::endl;
               return true;
             }
           }
