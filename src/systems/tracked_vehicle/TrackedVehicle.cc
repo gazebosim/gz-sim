@@ -683,9 +683,9 @@ void TrackedVehiclePrivate::UpdateVelocity(
   if (sendCommandsToTracks)
   {
     // Convert the target velocities to track velocities.
-    this->rightSpeed = (linVel + angVel * this->tracksSeparation /
+    this->rightSpeed = - (linVel + angVel * this->tracksSeparation /
       (2.0 * steeringEfficiencyCopy));
-    this->leftSpeed = (linVel - angVel * this->tracksSeparation /
+    this->leftSpeed = - (linVel - angVel * this->tracksSeparation /
       (2.0 * steeringEfficiencyCopy));
 
     // radius of the turn the robot is doing
