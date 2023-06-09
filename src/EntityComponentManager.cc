@@ -964,6 +964,27 @@ std::unordered_set<ComponentTypeId>
 }
 
 /////////////////////////////////////////////////
+void EntityComponentManager::EachPeriodicChange(const std::function<
+                  void(const Entity &_entity,
+                       components::BaseComponent *_type)> _f) const
+{
+  for (const auto &[componentType, entities] : this->dataPtr->periodicChangedComponents)
+  {
+    
+    for (const auto entity: entities) {
+
+      const components::BaseComponent* implementation =  
+        this->ComponentImplementation(entity, componentType);
+      
+      if(!implementation)
+        continue;
+      
+      _f(entity, const_cast<components::BaseComponent*>(implementation));
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
   auto vertex = this->dataPtr->entities.VertexFromId(_entity);

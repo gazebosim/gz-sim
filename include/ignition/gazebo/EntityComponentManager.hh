@@ -601,6 +601,13 @@ namespace ignition
       public: std::unordered_set<ComponentTypeId>
           ComponentTypesWithPeriodicChanges() const;
 
+      /// \brief Get all components with periodic changes.
+      /// \param[in] _f Callback function to be called for each matching entity
+      /// and component that has experienced a change.
+      public: void EachPeriodicChange(const std::function<
+                  void(const Entity &_entity,
+                       components::BaseComponent *_component)> _f) const; 
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
