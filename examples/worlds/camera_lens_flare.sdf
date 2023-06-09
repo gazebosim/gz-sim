@@ -32,8 +32,8 @@
         </gz-gui>
         <engine>ogre2</engine>
         <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0.8 0.8 0.8</background_color>
+        <ambient_light>0.0 0.0 0.0</ambient_light>
+        <background_color>0.0 0.0 0.0</background_color>
         <camera_pose>-6 0 6 0 0.5 0</camera_pose>
       </plugin>
 
@@ -201,38 +201,30 @@
     </plugin>
 
     <!-- Inspector -->
-    <plugin filename="ComponentInspector" name="Component inspector">
-        <gz-gui>
-            <property type="bool" key="showTitleBar">false</property>
-            <property type="string" key="state">docked</property>
-        </gz-gui>
-    </plugin>
-
-    <!-- Entity tree -->
-    <plugin filename="EntityTree" name="Entity tree">
-        <gz-gui>
-            <property type="bool" key="showTitleBar">false</property>
-            <property type="string" key="state">docked</property>
-        </gz-gui>
-    </plugin>
-
-        <!-- Image Display -->
     <plugin filename="ImageDisplay" name="Image Display">
         <gz-gui>
-            <property type="bool" key="showTitleBar">false</property>
+            <property type="bool" key="showTitleBar">true</property>
             <property type="string" key="state">docked</property>
         </gz-gui>
-        <topic>camera</topic>
+        <topic>camera_lensflare</topic>
     </plugin>
+
   </gui>
 
-    <light type="directional" name="sun">
-      <cast_shadows>true</cast_shadows>
-      <pose>0 0 10 0 0 0</pose>
-      <diffuse>1 1 1 1</diffuse>
-      <specular>0.5 0.5 0.5 1</specular>
-      <direction>-0.5 0.1 -0.9</direction>
-    </light>
+  <scene>
+    <ambient>0.4 0.4 0.4 1.0</ambient>
+    <!--<background>0.529412 0.803922 1 1.0</background>-->
+    <background>0.1 0.3 1 1.0</background>
+  </scene>
+  <gravity>0 -2 -1.8</gravity>
+
+  <light type="directional" name="sun">
+    <cast_shadows>true</cast_shadows>
+    <pose>0 0 0 0.0 0.0 0.0</pose>
+    <diffuse>1.0 1.0 1.0 1.0</diffuse>
+    <specular>0.2 0.2 0.2 1</specular>
+    <direction>-1.0 0.0 -0.2</direction>
+  </light>
 
     <model name="ground_plane">
       <static>true</static>
@@ -244,7 +236,32 @@
               <size>100 100</size>
             </plane>
           </geometry>
+
+          <surface>
+            <friction>
+              <ode>
+                <mu>0</mu>
+                <mu2>0</mu2>
+              </ode>
+            </friction>
+          </surface>
         </collision>
+        <collision name="block">
+          <pose>1.6 2 -0.495 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1 0.25 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="block2">
+          <pose>1.6 2 -0.495 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1 0.25 1</size>
+            </box>
+          </geometry>
+        </visual>
         <visual name="visual">
           <geometry>
             <plane>
@@ -262,7 +279,8 @@
     </model>
 
     <model name='box'>
-      <pose>1.6 2.4 0.5 0 0 0</pose>
+      <pose>1.6 2.9 0.5 0 0 0</pose>
+
       <link name='box_link'>
         <inertial>
           <inertia>
@@ -282,13 +300,6 @@
               <size>1 1 1</size>
             </box>
           </geometry>
-          <surface>
-            <friction>
-              <ode/>
-            </friction>
-            <bounce/>
-            <contact/>
-          </surface>
         </collision>
         <visual name='box_visual'>
           <geometry>
@@ -298,7 +309,7 @@
           </geometry>
           <material>
             <ambient>0.3 0.3 0.3 1</ambient>
-            <diffuse>0.7 0.7 0.7 1</diffuse>
+            <diffuse>0.7 0.0 0.0 1</diffuse>
             <specular>1 1 1 1</specular>
           </material>
         </visual>
@@ -310,51 +321,51 @@
     </model>
 
     <!-- wide-angle camera model with lens flare plugin -->
-    <model name="wide_angle_camera_lensflare">
-      <static>true</static>
-      <pose>0.3 2.22 0.5 0 0 0</pose>
-      <link name="link">
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
-        <sensor name="wide_angle_camera" type="wideanglecamera">
-          <camera>
-            <horizontal_fov>3.14159</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-            <lens>
-              <type>equidistant</type>
-              <scale_to_hfov>true</scale_to_hfov>
-              <cutoff_angle>1.5707</cutoff_angle>
-              <env_texture_size>512</env_texture_size>
-            </lens>
-          </camera>
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>true</visualize>
-          <topic>wide_angle_camera</topic>
-          <plugin
-            filename="gz-sim-lens-flare-system"
-            name="gz::sim::systems::LensFlare">
-          </plugin>
-        </sensor>
-      </link>
-    </model>
+    <!--<model name="wide_angle_camera_lensflare">-->
+    <!--  <static>true</static>-->
+    <!--  <pose>0.3 2.22 0.5 0 0 0</pose>-->
+    <!--  <link name="link">-->
+    <!--    <visual name="visual">-->
+    <!--      <geometry>-->
+    <!--        <box>-->
+    <!--          <size>0.1 0.1 0.1</size>-->
+    <!--        </box>-->
+    <!--      </geometry>-->
+    <!--    </visual>-->
+    <!--    <sensor name="wide_angle_camera" type="wideanglecamera">-->
+    <!--      <camera>-->
+    <!--        <horizontal_fov>3.14159</horizontal_fov>-->
+    <!--        <image>-->
+    <!--          <width>320</width>-->
+    <!--          <height>240</height>-->
+    <!--        </image>-->
+    <!--        <clip>-->
+    <!--          <near>0.1</near>-->
+    <!--          <far>100</far>-->
+    <!--        </clip>-->
+    <!--        <lens>-->
+    <!--          <type>equidistant</type>-->
+    <!--          <scale_to_hfov>true</scale_to_hfov>-->
+    <!--          <cutoff_angle>1.5707</cutoff_angle>-->
+    <!--          <env_texture_size>512</env_texture_size>-->
+    <!--        </lens>-->
+    <!--      </camera>-->
+    <!--      <always_on>1</always_on>-->
+    <!--      <update_rate>30</update_rate>-->
+    <!--      <visualize>true</visualize>-->
+    <!--      <topic>wide_angle_camera</topic>-->
+    <!--      <plugin-->
+    <!--        filename="gz-sim-lens-flare-system"-->
+    <!--        name="gz::sim::systems::LensFlare">-->
+    <!--      </plugin>-->
+    <!--    </sensor>-->
+    <!--  </link>-->
+    <!--</model>-->
 
     <!-- camera model with lens flare plugin -->
     <model name="camera_lensflare">
       <static>true</static>
-      <pose>0 2 0.3 0 0 0</pose>
+      <pose>-1 2 0.3 0 0 0</pose>
       <link name="link">
         <visual name="visual">
           <geometry>
@@ -378,16 +389,45 @@
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <topic>camera</topic>
+          <topic>camera_lensflare</topic>
           <plugin
             filename="gz-sim-lens-flare-system"
             name="gz::sim::systems::LensFlare">
-            <scale>0.5</scale>
-            <color>3 3 3</color>
+            <!--<scale>0.1</scale>-->
+            <!--<color>3 3 3</color>-->
           </plugin>
         </sensor>
       </link>
     </model>
-
+    <!--<model name="camera">-->
+    <!--  <static>true</static>-->
+    <!--  <pose>0 2 0.3 0 0 0</pose>-->
+    <!--  <link name="link">-->
+    <!--    <visual name="visual">-->
+    <!--      <geometry>-->
+    <!--        <box>-->
+    <!--          <size>0.1 0.1 0.1</size>-->
+    <!--        </box>-->
+    <!--      </geometry>-->
+    <!--    </visual>-->
+    <!--    <sensor name="camera" type="camera">-->
+    <!--      <camera>-->
+    <!--        <horizontal_fov>1.047</horizontal_fov>-->
+    <!--        <image>-->
+    <!--          <width>320</width>-->
+    <!--          <height>240</height>-->
+    <!--        </image>-->
+    <!--        <clip>-->
+    <!--          <near>0.1</near>-->
+    <!--          <far>100</far>-->
+    <!--        </clip>-->
+    <!--      </camera>-->
+    <!--      <always_on>1</always_on>-->
+    <!--      <update_rate>30</update_rate>-->
+    <!--      <visualize>true</visualize>-->
+    <!--      <topic>camera</topic>-->
+    <!--    </sensor>-->
+    <!--  </link>-->
+    <!--</model>-->
   </world>
 </sdf>

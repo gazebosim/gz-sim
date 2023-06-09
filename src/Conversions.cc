@@ -33,6 +33,7 @@
 #include <gz/msgs/material.pb.h>
 #include <gz/msgs/planegeom.pb.h>
 #include <gz/msgs/plugin.pb.h>
+#include <gz/msgs/projector.pb.h>
 #include <gz/msgs/spheregeom.pb.h>
 #include <gz/msgs/Utility.hh>
 
@@ -46,6 +47,7 @@
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
 #include <sdf/AirPressure.hh>
+#include <sdf/AirSpeed.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
@@ -707,16 +709,7 @@ template<>
 GZ_SIM_VISIBLE
 msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
 {
-  msgs::Inertial out;
-  msgs::Set(out.mutable_pose(), _in.Pose());
-  out.set_mass(_in.MassMatrix().Mass());
-  out.set_ixx(_in.MassMatrix().Ixx());
-  out.set_iyy(_in.MassMatrix().Iyy());
-  out.set_izz(_in.MassMatrix().Izz());
-  out.set_ixy(_in.MassMatrix().Ixy());
-  out.set_ixz(_in.MassMatrix().Ixz());
-  out.set_iyz(_in.MassMatrix().Iyz());
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
@@ -724,19 +717,7 @@ template<>
 GZ_SIM_VISIBLE
 math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
 {
-  math::MassMatrix3d massMatrix;
-  massMatrix.SetMass(_in.mass());
-  massMatrix.SetIxx(_in.ixx());
-  massMatrix.SetIyy(_in.iyy());
-  massMatrix.SetIzz(_in.izz());
-  massMatrix.SetIxy(_in.ixy());
-  massMatrix.SetIxz(_in.ixz());
-  massMatrix.SetIyz(_in.iyz());
-
-  math::Inertiald out;
-  out.SetMassMatrix(massMatrix);
-  out.SetPose(msgs::Convert(_in.pose()));
-  return out;
+  return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
@@ -1197,6 +1178,26 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
+  // TODO(ahcorde): Enable this code in Harmonic
+  // else if (_in.Type() == sdf::SensorType::AIR_SPEED)
+  // {
+  //   if (_in.AirSpeedSensor())
+  //   {
+  //     msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
+  //
+  //     if (_in.AirSpeedSensor()->SpeedNoise().Type()
+  //         != sdf::NoiseType::NONE)
+  //     {
+  //       sim::set(sensor->mutable_speed_noise(),
+  //           _in.AirSpeedSensor()->PressureNoise());
+  //     }
+  //   }
+  //   else
+  //   {
+  //     gzerr << "Attempting to convert an air speed SDF sensor, but the "
+  //       << "sensor pointer is null.\n";
+  //   }
+  // }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -1422,6 +1423,27 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
     out.SetAirPressureSensor(sensor);
   }
+  // TODO(ahcorde): Enable this code in Harmonic
+  // else if (out.Type() == sdf::SensorType::AIR_SPEED)
+  // {
+  //   sdf::AirSpeed sensor;
+  //   if (_in.has_air_speed())
+  //   {
+  //     if (_in.air_speed().has_speed_noise())
+  //     {
+  //       sensor.SetSpeedNoise(sim::convert<sdf::Noise>(
+  //             _in.air_speed().speed_noise()));
+  //     }
+  //
+  //   }
+  //   else
+  //   {
+  //     gzerr << "Attempting to convert an air speed sensor message, but the "
+  //       << "message does not have an air speed nested message.\n";
+  //   }
+  //
+  //   out.SetAirSpeedSensor(sensor);
+  // }
   else if (out.Type() == sdf::SensorType::IMU)
   {
     sdf::Imu sensor;
@@ -1710,6 +1732,63 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
     if (data.key() == "topic" && data.value_size() > 0)
     {
       out.SetTopic(data.value(0));
+    }
+  }
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+msgs::Projector gz::sim::convert(const sdf::Projector &_in)
+{
+  msgs::Projector out;
+  out.set_name(_in.Name());
+  msgs::Set(out.mutable_pose(), _in.RawPose());
+  out.set_near_clip(_in.NearClip());
+  out.set_far_clip(_in.FarClip());
+  out.set_fov(_in.HorizontalFov().Radian());
+  out.set_texture(_in.Texture().empty() ? "" :
+      asFullPath(_in.Texture(), _in.FilePath()));
+
+  auto header = out.mutable_header()->add_data();
+  header->set_key("visibility_flags");
+  header->add_value(std::to_string(_in.VisibilityFlags()));
+
+  return out;
+}
+
+//////////////////////////////////////////////////
+template<>
+GZ_SIM_VISIBLE
+sdf::Projector gz::sim::convert(const msgs::Projector &_in)
+{
+  sdf::Projector out;
+  out.SetName(_in.name());
+  out.SetNearClip(_in.near_clip());
+  out.SetFarClip(_in.far_clip());
+  out.SetHorizontalFov(math::Angle(_in.fov()));
+  out.SetTexture(_in.texture());
+  out.SetRawPose(msgs::Convert(_in.pose()));
+
+  /// \todo(anyone) add "visibility_flags" field to projector.proto
+  for (int i = 0; i < _in.header().data_size(); ++i)
+  {
+    auto data = _in.header().data(i);
+    if (data.key() == "visibility_flags" && data.value_size() > 0)
+    {
+      try
+      {
+        out.SetVisibilityFlags(std::stoul(data.value(0)));
+      }
+      catch (...)
+      {
+        gzerr << "Failed to parse projector <visibility_flags>: "
+              << data.value(0) << ". Using default value: 0xFFFFFFFF."
+              << std::endl;
+        out.SetVisibilityFlags(0xFFFFFFFF);
+      }
     }
   }
 

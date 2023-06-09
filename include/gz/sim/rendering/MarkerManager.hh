@@ -66,6 +66,11 @@ class GZ_SIM_RENDERING_VISIBLE MarkerManager
   /// \param[in] _name Name of service
   public: void SetTopic(const std::string &_name);
 
+  /// \brief Clear the marker manager
+  /// Clears internal resources stored in the marker manager.
+  /// Note: this does not actually destroy the objects.
+  public: void Clear();
+
   /// \internal
   /// \brief Private data pointer
   private: std::unique_ptr<MarkerManagerPrivate> dataPtr;

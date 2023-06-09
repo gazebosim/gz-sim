@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +36,7 @@ namespace systems
   /// reference to a single joint.
   ///
   /// A new Gazebo Transport topic is created to send target joint positions.
-  /// The topic name is
+  /// The default topic name is
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///
   /// This topic accepts gz::msgs::Double values representing the target
@@ -46,9 +47,17 @@ namespace systems
   /// ## System Parameters
   ///
   /// `<joint_name>` The name of the joint to control. Required parameter.
+  ///  Can also include multiple `<joint_name>` for identical joints.
   ///
   /// `<joint_index>` Axis of the joint to control. Optional parameter.
   ///  The default value is 0.
+  ///
+  /// `<use_actuator_msg>` True to enable the use of actutor message
+  /// for position command. Relies on `<actuator_number>` for the
+  /// index of the position actuator and defaults to topic "/actuators".
+  ///
+  /// `<actuator_number>` used with `<use_actuator_commands>` to set
+  /// the index of the position actuator.
   ///
   /// `<p_gain>` The proportional gain of the PID. Optional parameter.
   ///  The default value is 1.
@@ -81,6 +90,9 @@ namespace systems
   /// `<topic>` If you wish to listen on a non-default topic you may specify it
   /// here, otherwise the controller defaults to listening on
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  ///
+  /// `<sub_topic>` If you wish to listen on a sub_topic you may specify it
+  /// here "/model/<model_name>/<sub_topic>".
   ///
   /// `<initial_position>` Initial position of a joint. Optional parameter.
   ///  The default value is 0.

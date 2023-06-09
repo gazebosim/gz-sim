@@ -330,6 +330,15 @@ void ShaderParamPrivate::OnUpdate()
       }
     }
 
+    // inherit cast shadows property from existing material
+    rendering::MaterialPtr oldMat;
+    if (visual->GeometryCount() >  0u)
+      oldMat = this->visual->GeometryByIndex(0u)->Material();
+    else
+      oldMat = this->visual->Material();
+    if (oldMat)
+      mat->SetCastShadows(oldMat->CastShadows());
+
     this->visual->SetMaterial(mat);
     scene->DestroyMaterial(mat);
     this->material = this->visual->Material();
