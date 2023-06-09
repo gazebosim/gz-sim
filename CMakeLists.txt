@@ -39,6 +39,8 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
 set(skip_pybind11_default_value OFF)
 if (MSVC)
   set(skip_pybind11_default_value ON)
@@ -211,9 +213,9 @@ else()
 
     if (${pybind11_FOUND})
       message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-  	else()
-  		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-  		message (STATUS "Searching for pybind11 - not found.")
+    else()
+      IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
     endif()
   endif()
 endif()
@@ -237,7 +239,7 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
-if (pybind11_FOUND AND NOT SKIP_PYBIND11)
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================
