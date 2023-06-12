@@ -66,10 +66,10 @@ std::string meshModelStr(bool _static = false)
       "<model name='spawned_model'>" +
       "<link name='link'>" +
       "<visual name='visual'>" +
-      "<geometry><mesh><uri>unit_box</uri></mesh></geometry>" +
+      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>" +
       "</visual>" +
       "<collision name='visual'>" +
-      "<geometry><mesh><uri>unit_box</uri></mesh></geometry>" +
+      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>" +
       "</collision>" +
       "</link>" +
       "<static>" + std::to_string(_static) + "</static>" +

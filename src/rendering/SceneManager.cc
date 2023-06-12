@@ -713,16 +713,17 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
           _geom.MeshShape()->FilePath());
       if (fullPath.empty())
       {
-        gzerr << "Mesh geometry missing uri" << std::endl;
+        gzwarn << "Failed to load mesh from [" << fullPath
+               << "]." << std::endl;
         return geom;
       }
       meshUri = fullPath;
       descriptor.mesh = meshManager->Load(meshUri);
     }
-    else
+    else if (common::URI(_geom.MeshShape()->Uri()).Scheme() == "name")
     {
-      // if it's not a file, see if the mesh exists in the
-      // mesh manager and load it by name
+      // if it's not a file and has a name:// scheme, see if the mesh
+      // exists in the mesh manager and load it by name
       const std::string basename = common::basename(_geom.MeshShape()->Uri());
       descriptor.mesh = meshManager->MeshByName(basename);
       if (descriptor.mesh)
@@ -731,10 +732,16 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       }
       else
       {
-        gzerr << "Invalid mesh: " << _geom.MeshShape()->Uri()
-              << std::endl;
+        gzwarn << "Failed to load mesh by name [" << basename
+               << "]." << std::endl;
         return geom;
       }
+    }
+    else
+    {
+      gzwarn << "Failed to load mesh [" << _geom.MeshShape()->Uri()
+             << "]." << std::endl;
+      return geom;
     }
 
     descriptor.meshName = meshUri;

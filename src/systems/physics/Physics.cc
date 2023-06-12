@@ -1402,10 +1402,11 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
               return true;
             }
           }
-          else
+          else if (common::URI(meshSdf->Uri()).Scheme() == "name")
           {
-            // if it's not a file, see if the mesh exists in the
-            // mesh manager and load it by name
+            // if it's not a file and has a name:// scheme, see if the mesh
+            // exists in the mesh manager and load it by name
+
             const std::string basename = common::basename(meshSdf->Uri());
             mesh = meshManager.MeshByName(basename);
             if (nullptr == mesh)
@@ -1414,6 +1415,12 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
                      << "]." << std::endl;
               return true;
             }
+          }
+          else
+          {
+            gzwarn << "Failed to load mesh [" << meshSdf->Uri()
+                   << "]." << std::endl;
+            return true;
           }
           auto linkMeshFeature =
               this->entityLinkMap.EntityCast<MeshFeatureList>(_parent->Data());
