@@ -39,6 +39,17 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
+set(skip_pybind11_default_value OFF)
+if (MSVC)
+  set(skip_pybind11_default_value ON)
+endif()
+
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
+      ${skip_pybind11_default_value})
+
 include(test/find_dri.cmake)
 FindDRI()
 
@@ -196,14 +207,17 @@ else()
 
   set(PYBIND11_PYTHON_VERSION 3)
   find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+  if (NOT SKIP_PYBIND11)
+    find_package(pybind11 2.2 QUIET)
+
+    if (${pybind11_FOUND})
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
@@ -225,7 +239,7 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================
