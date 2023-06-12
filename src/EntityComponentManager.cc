@@ -964,15 +964,33 @@ std::unordered_set<ComponentTypeId>
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::EachPeriodicChange(const std::function<
-                  void(const Entity &_entity,
-                       const ComponentTypeId &_type)> _f) const
+void EntityComponentManager::PeriodicChangeEntityComponentMap(
+  std::unordered_map<Entity,
+    std::unordered_set<ComponentTypeId>> &_changes) const
 {
-  for (const auto &[componentType, entities] : this->dataPtr->periodicChangedComponents)
+  // Get all changes
+  for (const auto &[componentType, entities] :
+    this->dataPtr->periodicChangedComponents)
   {
-    for (const auto entity: entities) {  
-      _f(entity, componentType);
+    for (const auto entity : entities)
+    {
+      _changes[entity].emplace(componentType);
     }
+  }
+
+  // Get all removed components
+  for (const auto &[entity, components] :
+    this->dataPtr->componentsMarkedAsRemoved)
+  {
+    for (const auto &comp : components)
+    {
+      _changes[entity].erase(comp);
+    }
+  }
+
+  // Get all removed entities
+  for (const auto &entity : this->dataPtr->toRemoveEntities) {
+    _changes.erase(entity);
   }
 }
 
@@ -1709,7 +1727,7 @@ void EntityComponentManager::State(
     }
 
     // Serialize components that have changed
-    for (auto &typeId: components) {
+    for (auto &typeId : components) {
       // Find the component in the message
       auto compIter = entIter->second.mutable_components()->find(typeId);
       if (compIter != entIter->second.mutable_components()->end())
@@ -1729,7 +1747,7 @@ void EntityComponentManager::State(
       cmp.set_component(ostr.str());
       (*(entIter->second.mutable_components()))[
       static_cast<int64_t>(typeId)] = cmp;
-    }  
+    }
   }
 }
 

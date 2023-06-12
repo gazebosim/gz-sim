@@ -259,16 +259,11 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// This is currently only used in playback mode.
   public: bool pubPeriodicChanges{false};
 
-  /// \brief Stores a cache of components that are changed. (This prevents dropping of
-  /// periodic change components which may not be frequent enough)
+  /// \brief Stores a cache of components that are changed. (This prevents
+  ///  dropping of periodic change components which may not be updated
+  ///  frequently enough)
   public: std::unordered_map<Entity,
     std::unordered_set<ComponentTypeId>> changedComponents;
-
-  void ApplyPeriodicCacheChanges(msgs::SerializedStateMap &_stateMsg, const EntityComponentManager &_ecm) {
-    _ecm.State(_stateMsg, changedComponents);
-    this->changedComponents.clear();
-  }
-
 };
 
 
@@ -355,12 +350,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
   // Iterate through entities and their changes to cache them.
-  _manager.EachPeriodicChange([&](const Entity &_entity, const ComponentTypeId &_type) {
-    this->dataPtr->changedComponents[_entity].emplace(_type);
-  });
-
-  // TODO(arjo): Remove items in the periodic change cache that have been removed.
-
+  _manager.PeriodicChangeEntityComponentMap(this->dataPtr->changedComponents);
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
@@ -440,9 +430,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
       }
     }
 
-    // Apply changes that were caught by the periodic state tracker
-    this->dataPtr->ApplyPeriodicCacheChanges(
-      *this->dataPtr->stepMsg.mutable_state(), _manager);
+    // Apply changes that were caught by the periodic state tracker and then
+    // clear the change tracker.
+    _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+      this->dataPtr->changedComponents);
+    this->dataPtr->changedComponents.clear();
 
     // Full state on demand
     if (this->dataPtr->stateServiceRequest)

@@ -604,9 +604,8 @@ namespace ignition
       /// \brief Get all components with periodic changes.
       /// \param[in] _f Callback function to be called for each matching entity
       /// and component that has experienced a change.
-      public: void EachPeriodicChange(const std::function<
-                  void(const Entity &_entity,
-                       const ComponentTypeId &_type)> _f) const; 
+      public: void PeriodicChangeEntityComponentMap(std::unordered_map<Entity,
+                        std::unordered_set<ComponentTypeId>> &_changes) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
