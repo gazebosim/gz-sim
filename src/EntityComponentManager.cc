@@ -966,20 +966,12 @@ std::unordered_set<ComponentTypeId>
 /////////////////////////////////////////////////
 void EntityComponentManager::EachPeriodicChange(const std::function<
                   void(const Entity &_entity,
-                       components::BaseComponent *_type)> _f) const
+                       const ComponentTypeId &_type)> _f) const
 {
   for (const auto &[componentType, entities] : this->dataPtr->periodicChangedComponents)
   {
-    
-    for (const auto entity: entities) {
-
-      const components::BaseComponent* implementation =  
-        this->ComponentImplementation(entity, componentType);
-      
-      if(!implementation)
-        continue;
-      
-      _f(entity, const_cast<components::BaseComponent*>(implementation));
+    for (const auto entity: entities) {  
+      _f(entity, componentType);
     }
   }
 }
@@ -1697,6 +1689,48 @@ void EntityComponentManager::State(
   {
     _t.join();
   });
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::State(
+  msgs::SerializedStateMap &_state,
+  const std::unordered_map<Entity,
+        std::unordered_set<ComponentTypeId>> &_entityMap) const
+{
+  for (auto &[entity, components] : _entityMap) {
+    // Add entity to message if it does not exist
+    auto entIter = _state.mutable_entities()->find(entity);
+    if (entIter == _state.mutable_entities()->end())
+    {
+      msgs::SerializedEntityMap ent;
+      ent.set_id(entity);
+      (*_state.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
+      entIter = _state.mutable_entities()->find(entity);
+    }
+
+    // Serialize components that have changed
+    for (auto &typeId: components) {
+      // Find the component in the message
+      auto compIter = entIter->second.mutable_components()->find(typeId);
+      if (compIter != entIter->second.mutable_components()->end())
+      {
+        // If the component is present we don't need to update it.
+        continue;
+      }
+
+      auto compIdx = this->dataPtr->componentTypeIndex[entity][typeId];
+      auto &comp = this->dataPtr->componentStorage[entity][compIdx];
+
+      // Add the component to the message
+      msgs::SerializedComponent cmp;
+      cmp.set_type(comp->TypeId());
+      std::ostringstream ostr;
+      comp->Serialize(ostr);
+      cmp.set_component(ostr.str());
+      (*(entIter->second.mutable_components()))[
+      static_cast<int64_t>(typeId)] = cmp;
+    }  
+  }
 }
 
 //////////////////////////////////////////////////

@@ -606,7 +606,7 @@ namespace ignition
       /// and component that has experienced a change.
       public: void EachPeriodicChange(const std::function<
                   void(const Entity &_entity,
-                       components::BaseComponent *_component)> _f) const; 
+                       const ComponentTypeId &_type)> _f) const; 
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -634,6 +634,18 @@ namespace ignition
                   const std::unordered_set<Entity> &_entities = {},
                   const std::unordered_set<ComponentTypeId> &_types = {},
                   bool _full = false) const;
+
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \details The header of the message will not be populated, it is the
+      /// responsibility of the caller to timestamp it before use.
+      /// \param[out] _state The serialized state message to populate.
+      /// \param[in] _entityMap A map of entities and components to serialize.
+      /// False will get only components and entities that have changed.
+      public: void State(
+                  msgs::SerializedStateMap &_state,
+                  const std::unordered_map<Entity,
+                        std::unordered_set<ComponentTypeId>> &_entityMap) const;
 
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration

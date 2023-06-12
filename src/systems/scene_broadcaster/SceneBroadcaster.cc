@@ -24,6 +24,7 @@
 #include <condition_variable>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <ignition/common/Profiler.hh>
@@ -261,44 +262,10 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Stores a cache of components that are changed. (This prevents dropping of
   /// periodic change components which may not be frequent enough)
   public: std::unordered_map<Entity,
-    std::unordered_map<ComponentTypeId,
-    std::unique_ptr<components::BaseComponent>>> changedComponents;
+    std::unordered_set<ComponentTypeId>> changedComponents;
 
-  void ApplyPeriodicCacheChanges(msgs::SerializedStateMap &_stateMsg) {
-    for (auto &[entity, components] : changedComponents) {
-
-      // Add entity to message if it does not exist
-      auto entIter = _stateMsg.mutable_entities()->find(entity);
-      if (entIter == _stateMsg.mutable_entities()->end())
-      {
-        msgs::SerializedEntityMap ent;
-        ent.set_id(entity);
-        (*_stateMsg.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
-        entIter = _stateMsg.mutable_entities()->find(entity);
-      }
-
-      // Serialize components that have changed
-      for (auto &[typeId, comp]: components) {
-
-        // Find the component in the message
-        auto compIter = entIter->second.mutable_components()->find(typeId);
-        
-        if (compIter != entIter->second.mutable_components()->end())
-        {
-          // If the component is present we don't need to update it.
-          continue;
-        }
-
-        // Add the component to the message
-        msgs::SerializedComponent cmp;
-        cmp.set_type(comp->TypeId());
-        std::ostringstream ostr;
-        comp->Serialize(ostr);
-        cmp.set_component(ostr.str());
-        (*(entIter->second.mutable_components()))[
-        static_cast<int64_t>(typeId)] = cmp;
-      }  
-    }
+  void ApplyPeriodicCacheChanges(msgs::SerializedStateMap &_stateMsg, const EntityComponentManager &_ecm) {
+    _ecm.State(_stateMsg, changedComponents);
     this->changedComponents.clear();
   }
 
@@ -388,14 +355,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
   // Iterate through entities and their changes to cache them.
-  _manager.EachPeriodicChange([&](const Entity &_entity,
-                      components::BaseComponent *_component) {
-    //ignerr << "got change" <<"\n";
-    this->dataPtr->changedComponents[_entity].emplace(_component->TypeId(),
-      _component->Clone());
+  _manager.EachPeriodicChange([&](const Entity &_entity, const ComponentTypeId &_type) {
+    this->dataPtr->changedComponents[_entity].emplace(_type);
   });
+
   // TODO(arjo): Remove items in the periodic change cache that have been removed.
-  
+
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
@@ -477,7 +442,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
     // Apply changes that were caught by the periodic state tracker
     this->dataPtr->ApplyPeriodicCacheChanges(
-      *this->dataPtr->stepMsg.mutable_state());
+      *this->dataPtr->stepMsg.mutable_state(), _manager);
 
     // Full state on demand
     if (this->dataPtr->stateServiceRequest)
