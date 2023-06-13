@@ -21,6 +21,7 @@
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
+#include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
 #include <sdf/World.hh>
@@ -35,6 +36,7 @@
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Level.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Light.hh"
@@ -508,6 +510,21 @@ void LevelManager::ConfigureDefaultLevel()
       entityNamesInDefault.insert(light->Name());
     }
   }
+
+  // Joints
+  // We assume no performers are joints
+  for (uint64_t jointIndex = 0;
+       jointIndex < this->runner->sdfWorld->JointCount(); ++jointIndex)
+  {
+    auto joint = this->runner->sdfWorld->JointByIndex(jointIndex);
+
+    if (this->entityNamesInLevels.find(joint->Name()) ==
+        this->entityNamesInLevels.end())
+    {
+      entityNamesInDefault.insert(joint->Name());
+    }
+  }
+
   // Components
   this->runner->entityCompMgr.CreateComponent(
       defaultLevel, components::Level());
@@ -847,6 +864,20 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     }
   }
 
+  // Joints
+  for (uint64_t jointIndex = 0;
+       jointIndex < this->runner->sdfWorld->JointCount(); ++jointIndex)
+  {
+    auto joint = this->runner->sdfWorld->JointByIndex(jointIndex);
+    if (_namesToLoad.find(joint->Name()) != _namesToLoad.end())
+    {
+      Entity jointEntity = this->entityCreator->CreateEntities(joint);
+
+      this->entityCreator->SetParent(jointEntity, this->worldEntity);
+    }
+  }
+
+
   this->activeEntityNames.insert(_namesToLoad.begin(), _namesToLoad.end());
 }
 
@@ -878,6 +909,17 @@ void LevelManager::UnloadInactiveEntities(
 
   this->runner->entityCompMgr.Each<components::Light, components::Name>(
       [&](const Entity &_entity, const components::Light *,
+          const components::Name *_name) -> bool
+      {
+        if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())
+        {
+          this->entityCreator->RequestRemoveEntity(_entity, true);
+        }
+        return true;
+      });
+
+  this->runner->entityCompMgr.Each<components::Joint, components::Name>(
+      [&](const Entity &_entity, const components::Joint *,
           const components::Name *_name) -> bool
       {
         if (_namesToUnload.find(_name->Data()) != _namesToUnload.end())

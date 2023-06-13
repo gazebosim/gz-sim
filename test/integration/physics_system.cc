@@ -121,7 +121,6 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
     server.Run(true, 1, false);
     EXPECT_FALSE(server.Running());
   }
-  // TODO(addisu) add useful EXPECT calls
 }
 
 ////////////////////////////////////////////////
@@ -2538,4 +2537,87 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_LT(worldAngVels[i - 1].Length(), worldAngVels[i].Length())
         << "World Angular Velocity should be increasing.";
   }
+}
+
+//////////////////////////////////////////////////
+/// Tests that joints inside <world> are supported by computing the position of
+/// a pendulum bob from the joint angle. This also tests that commands such as
+/// JointPositionReset work as expected.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+                                         "joints_in_world.sdf");
+
+  serverConfig.SetSdfFile(sdfFile);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ns);
+
+  const int kIters = 1000;
+  test::Relay testSystem;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
+      {
+        _ecm.EachNew<components::Joint, components::ParentEntity>(
+            [&](const Entity &_entity, const components::Joint *,
+                const components::ParentEntity *) -> bool
+            {
+              enableComponent<components::JointPosition>(_ecm, _entity);
+              enableComponent<components::JointVelocity>(_ecm, _entity);
+              return true;
+            });
+
+        if (_info.iterations == kIters / 2)
+        {
+          // After half the iterations, reset the joint position and velocity so
+          // that the bob at its equilibrium point and at rest.
+          auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
+                                                     components::Joint());
+          ASSERT_NE(jointEntity, kNullEntity);
+          _ecm.SetComponentData<components::JointVelocityReset>(jointEntity,
+                                                                {0});
+          _ecm.SetComponentData<components::JointPositionReset>(jointEntity,
+                                                                {GZ_PI_2});
+        }
+      });
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &_info, const EntityComponentManager &_ecm)
+      {
+        auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
+                                                   components::Joint());
+        ASSERT_NE(jointEntity, kNullEntity);
+
+        auto m2Entity = _ecm.EntityByComponents(components::Name("m2"),
+                                                components::Model());
+        ASSERT_NE(m2Entity, kNullEntity);
+
+        math::Pose3d m2Pose = worldPose(m2Entity, _ecm);
+
+        auto jointPos =
+            _ecm.ComponentData<components::JointPosition>(jointEntity);
+        ASSERT_TRUE(jointPos.has_value());
+        ASSERT_EQ(1u, jointPos->size());
+
+        if (_info.iterations < kIters / 2)
+        {
+          // If the joint is properly working, the position of the model can be
+          // determined from the joint angle with the equations:
+          // x = L*cos(θ)
+          // z = -L*sin(θ)
+          // where L is the length of the model from the pivot (2m for this
+          // test).
+          const double theta = (*jointPos)[0];
+          const double kLength = 2.0;
+          EXPECT_NEAR(m2Pose.X(), kLength * cos(theta), 1e-2);
+          EXPECT_NEAR(m2Pose.Z(), -kLength * sin(theta), 1e-2);
+        }
+        else
+        {
+          EXPECT_NEAR((*jointPos)[0], GZ_PI_2, 1e-2);
+        }
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
 }
