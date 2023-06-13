@@ -624,6 +624,12 @@ class gz::sim::systems::PhysicsPrivate
             physics::sdf::ConstructSdfNestedModel>{};
 
   //////////////////////////////////////////////////
+  // World models (used for world joints)
+  public: struct WorldModelFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::WorldModelFeature>{};
+
+  //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
           physics::World,
@@ -633,7 +639,9 @@ class gz::sim::systems::PhysicsPrivate
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
-          SolverFeatureList>;
+          SolverFeatureList,
+          WorldModelFeatureList
+          >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
   /// gz-physics.
@@ -1033,6 +1041,15 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           {
             solverFeature->SetSolver(solverComp->Data());
           }
+        }
+
+        // World Model proxy (used for joints directly under <world> in SDF)
+        auto worldModelFeature =
+            this->entityWorldMap.EntityCast<WorldModelFeatureList>(_entity);
+        if (worldModelFeature)
+        {
+          auto modelPtrPhys = worldModelFeature->GetWorldModel();
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
         }
 
         return true;
