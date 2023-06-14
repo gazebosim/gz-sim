@@ -366,7 +366,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     this->dataPtr->limiterLin->SetMaxJerk(maxJerk);
   }
 
-  //Instantiate the angular speed limiters.
+  // Instantiate the angular speed limiters.
   this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse angular speed limiter parameters.
@@ -400,9 +400,6 @@ void AckermannSteering::Configure(const Entity &_entity,
     const double maxAngJerk = _sdf->Get<double>("max_angular_jerk");
     this->dataPtr->limiterAng->SetMaxJerk(maxAngJerk);
   }
-
-
-
 
   if (!this->dataPtr->steeringOnly)
   {
@@ -951,7 +948,7 @@ void AckermannSteeringPrivate::UpdateVelocity(
   double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
   double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
 
-  // simple proportional controller
+  // Simple proportional controller
   this->leftSteeringJointSpeed = leftDelta * this->gainPAng;
   this->rightSteeringJointSpeed = rightDelta * this->gainPAng;
 }
