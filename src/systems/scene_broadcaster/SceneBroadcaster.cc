@@ -395,15 +395,8 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
 
-      if (_manager.HasPeriodicComponentChanges())
-      {
-        // TODO(arjo): We probably don't need this with the new cache method?
-        auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-        _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-             {}, periodicComponents);
-        this->dataPtr->pubPeriodicChanges = false;
-      }
-      else
+      // TODO(arjo): We may not need this.
+      if (!_manager.HasPeriodicComponentChanges())
       {
         // log files may be recorded at lower rate than sim time step. So in
         // playback mode, the scene broadcaster may not see any periodic
@@ -428,13 +421,13 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         // we may be able to remove this in the future and update tests
         this->dataPtr->stepMsg.mutable_state();
       }
-    }
 
-    // Apply changes that were caught by the periodic state tracker and then
-    // clear the change tracker.
-    _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-      this->dataPtr->changedComponents);
-    this->dataPtr->changedComponents.clear();
+      // Apply changes that were caught by the periodic state tracker and then
+      // clear the change tracker.
+      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+        this->dataPtr->changedComponents);
+      this->dataPtr->changedComponents.clear();
+    }
 
     // Full state on demand
     if (this->dataPtr->stateServiceRequest)
