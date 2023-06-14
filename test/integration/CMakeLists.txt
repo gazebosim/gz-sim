@@ -94,6 +94,7 @@ set(tests_needing_display
   depth_camera.cc
   distortion_camera.cc
   gpu_lidar.cc
+  markers.cc
   optical_tactile_plugin.cc
   rgbd_camera.cc
   sensors_system.cc
@@ -134,6 +135,7 @@ ign_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
 )
 
 

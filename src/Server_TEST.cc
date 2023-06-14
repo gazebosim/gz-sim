@@ -1203,6 +1203,45 @@ TEST_P(ServerFixture, Stop)
   EXPECT_FALSE(server.Running());
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, SdfWithoutWorld)
+{
+  // Initialize logging
+  std::string logBasePath = common::joinPaths(PROJECT_BINARY_PATH, "tmp");
+  common::setenv(IGN_HOMEDIR, logBasePath);
+  std::string path = common::uuid();
+  ignLogInit(path, "test.log");
+
+  // Start server with model SDF file
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "models", "sphere", "model.sdf"));
+
+  gz::sim::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(server.Running(0).has_value());
+
+  // Check error message in log file
+  std::string logFullPath = common::joinPaths(logBasePath, path, "test.log");
+  std::ifstream ifs(logFullPath.c_str(), std::ios::in);
+  bool errFound = false;
+  while ((!errFound) && (!ifs.eof()))
+  {
+    std::string line;
+    std::getline(ifs, line);
+    std::string errString = "SDF file doesn't contain a world. ";
+    errString += "If you wish to spawn a model, ";
+    errString += "use the ResourceSpawner GUI plugin ";
+    errString += "or the 'world/<world_name>/create' service.";
+    errFound = (line.find(errString) != std::string::npos);
+  }
+  EXPECT_TRUE(errFound);
+
+  // Stop logging
+  ignLogClose();
+  common::removeAll(logBasePath);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
