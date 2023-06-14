@@ -652,14 +652,7 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
   return std::all_of(this->matchers.begin(), this->matchers.end(),
                      [&](const auto &_matcher)
                      {
-                       try
-                       {
-                         return _matcher->Match(_inputMsg);
-                       } catch (const google::protobuf::FatalException &err)
-                       {
-                          ignerr << err.what() << std::endl;
-                          return false;
-                       }
+                       return _matcher->Match(_inputMsg);
                      });
 }
 

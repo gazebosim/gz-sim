@@ -146,9 +146,7 @@ set(IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
