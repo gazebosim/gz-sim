@@ -186,12 +186,10 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 gz_find_package(GzProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
-                 REQUIRED
-                 COMPONENTS all
-                 PRETTY Protobuf)
+                REQUIRED
+                COMPONENTS all
+                PRETTY Protobuf)
 set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------
