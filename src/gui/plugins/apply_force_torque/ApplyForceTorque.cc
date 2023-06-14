@@ -304,11 +304,11 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
     return;
   }
 
-  math::Vector3d forceToApply = 
+  math::Vector3d forceToApply =
     _applyForce ? this->force : math::Vector3d::Zero;
-  math::Vector3d offsetToApply = 
+  math::Vector3d offsetToApply =
     _applyForce ? this->offset : math::Vector3d::Zero;
-  math::Vector3d torqueToApply = 
+  math::Vector3d torqueToApply =
     _applyTorque ? this->torque : math::Vector3d::Zero;
 
   gzdbg << "Applying wrench [" <<
