@@ -602,8 +602,12 @@ namespace ignition
           ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Get all components with periodic changes.
-      /// \param[in] _f Callback function to be called for each matching entity
-      /// and component that has experienced a change.
+      /// \param[in] _changes A list of components with the latest periodic
+      /// changes. If a component has a periodic change, it is added to the
+      /// hash map. It the component or entity was removed, it is removed from
+      /// the hashmap. This way the hashmap stores a list of components and
+      /// entities which have had periodic changes in the past and still
+      /// exit within the ECM.
       public: void PeriodicChangeEntityComponentMap(std::unordered_map<Entity,
                         std::unordered_set<ComponentTypeId>> &_changes) const;
 
@@ -637,10 +641,10 @@ namespace ignition
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \details The header of the message will not be populated, it is the
-      /// responsibility of the caller to timestamp it before use.
-      /// \param[out] _state The serialized state message to populate.
+      /// responsibility of the caller to timestamp it before use. Additionally,
+      /// changes such as addition or removal will not be populated.
+      /// \param[inout] _state The serialized state message to populate.
       /// \param[in] _entityMap A map of entities and components to serialize.
-      /// False will get only components and entities that have changed.
       public: void State(
                   msgs::SerializedStateMap &_state,
                   const std::unordered_map<Entity,
