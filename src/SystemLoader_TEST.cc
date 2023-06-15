@@ -97,9 +97,8 @@ TEST(SystemLoader, PluginPaths)
   for (const auto &s : paths)
   {
     // the returned path string may not be exact match due to extra '/'
-    // appended at the end of the string. So use absPath to generate
-    // a path string that matches the format returned by joinPaths
-    if (common::absPath(s) == testBuildPath)
+    // appended at the end of the string. So use absPath to compare paths
+    if (common::absPath(s) == common::absPath(testBuildPath))
     {
       hasPath = true;
       break;
