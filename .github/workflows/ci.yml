@@ -1,6 +1,10 @@
 name: Ubuntu CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - 'ign-gazebo6'
 
 jobs:
   bionic-ci:

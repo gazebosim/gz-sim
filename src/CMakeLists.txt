@@ -152,12 +152,16 @@ ign_add_component(ign
     ${cli_sources}
   GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
-  PRIVATE
+  PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
 )
+
+# Executable target that runs the GUI without ruby for debugging purposes.
+add_executable(runGui gz.cc)
+target_link_libraries(runGui PRIVATE ${ign_lib_target})
 
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
