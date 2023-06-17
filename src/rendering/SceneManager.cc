@@ -702,47 +702,17 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
-    common::MeshManager *meshManager =
-        common::MeshManager::Instance();
-    std::string meshUri;
     rendering::MeshDescriptor descriptor;
-    if (meshManager->IsValidFilename(_geom.MeshShape()->Uri()))
-    {
-      // Assume absolute path to mesh file
-      auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
-          _geom.MeshShape()->FilePath());
-      if (fullPath.empty())
-      {
-        gzwarn << "Failed to load mesh from [" << fullPath
-               << "]." << std::endl;
-        return geom;
-      }
-      meshUri = fullPath;
-      descriptor.mesh = meshManager->Load(meshUri);
-    }
-    else if (common::URI(_geom.MeshShape()->Uri()).Scheme() == "name")
-    {
-      // if it's not a file and has a name:// scheme, see if the mesh
-      // exists in the mesh manager and load it by name
-      const std::string basename = common::basename(_geom.MeshShape()->Uri());
-      descriptor.mesh = meshManager->MeshByName(basename);
-      if (descriptor.mesh)
-      {
-        meshUri = basename;
-      }
-      else
-      {
-        gzwarn << "Failed to load mesh by name [" << basename
-               << "]." << std::endl;
-        return geom;
-      }
-    }
-    else
-    {
-      gzwarn << "Failed to load mesh [" << _geom.MeshShape()->Uri()
-             << "]." << std::endl;
+    descriptor.mesh = loadMesh(_geom.MeshShape());
+    if (!descriptor.mesh)
       return geom;
-    }
+    std::string meshUri =
+        (common::URI(_geom.MeshShape()->Uri()).Scheme() == "name") ?
+         common::basename(_geom.MeshShape()->Uri()) :
+         asFullPath(_geom.MeshShape()->Uri(),
+                    _geom.MeshShape()->FilePath());
+    auto a =     asFullPath(_geom.MeshShape()->Uri(),
+                    _geom.MeshShape()->FilePath());
 
     descriptor.meshName = meshUri;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();

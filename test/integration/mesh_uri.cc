@@ -40,7 +40,6 @@ using namespace sim;
 
 std::mutex mutex;
 int g_count = 0;
-unsigned char *g_imageBuffer = nullptr;
 msgs::Image g_image;
 
 /////////////////////////////////////////////////
@@ -128,13 +127,19 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_LT(0u, g_count);
 
+  unsigned char *imageBuffer = nullptr;
+  unsigned int midIdx = 0u;
+  unsigned int bufferSize = 0u;
   // Empty scene - camera should see just red background
-  unsigned int bufferSize = g_image.width() *g_image.height() * 3u;
-  unsigned char *imageBuffer = new unsigned char[bufferSize];
-  memcpy(imageBuffer, g_image.data().c_str(), bufferSize);
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    bufferSize = g_image.width() *g_image.height() * 3u;
+    imageBuffer = new unsigned char[bufferSize];
+    memcpy(imageBuffer, g_image.data().c_str(), bufferSize);
 
-  unsigned midIdx = (g_image.height() * 0.5 * g_image.width()  +
-    g_image.width() * 0.5) * 3;
+    midIdx = (g_image.height() * 0.5 * g_image.width()  +
+      g_image.width() * 0.5) * 3;
+  }
   unsigned int r = imageBuffer[midIdx];
   unsigned int g = imageBuffer[midIdx + 1];
   unsigned int b = imageBuffer[midIdx + 2];
@@ -183,7 +188,10 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_LT(0u, g_count);
 
-  memcpy(imageBuffer, g_image.data().c_str(), bufferSize);
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    memcpy(imageBuffer, g_image.data().c_str(), bufferSize);
+  }
   r = imageBuffer[midIdx];
   g = imageBuffer[midIdx + 1];
   b = imageBuffer[midIdx + 2];
