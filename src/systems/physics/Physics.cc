@@ -1690,19 +1690,19 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
 
           if (jointAxis)
           {
-            if (auto mimicJoint = jointAxis->Data().MimicJoint())
+            if (auto mimic = jointAxis->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(mimicJoint->Joint(),
-                  mimicJoint->Multiplier(), mimicJoint->Offset(), mimicJoint->Reference());
+              existingJoint->SetMimicConstraint(mimic->Joint(), mimic->Axis(),
+                  mimic->Multiplier(), mimic->Offset(), mimic->Reference());
             }
           }
 
           if (jointAxis2)
           {
-            if (auto mimicJoint = jointAxis2->Data().MimicJoint())
+            if (auto mimic = jointAxis2->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(mimicJoint->Joint(),
-                  mimicJoint->Multiplier(), mimicJoint->Offset(), mimicJoint->Reference());
+              existingJoint->SetMimicConstraint(mimic->Joint(), mimic->Axis(),
+                  mimic->Multiplier(), mimic->Offset(), mimic->Reference());
             }
           }
 
