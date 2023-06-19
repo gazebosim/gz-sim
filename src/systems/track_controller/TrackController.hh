@@ -96,7 +96,8 @@ namespace systems
   class TrackController
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemPostUpdate
   {
     /// \brief Constructor
     public: TrackController();
@@ -112,8 +113,12 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-      const gz::sim::UpdateInfo &_info,
-      gz::sim::EntityComponentManager &_ecm) override;
+      const UpdateInfo &_info,
+      EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+      const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TrackControllerPrivate> dataPtr;
