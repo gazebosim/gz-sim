@@ -288,7 +288,8 @@ void TrackController::Configure(const Entity &_entity,
   this->dataPtr->kinematicStatePub =
     this->dataPtr->node.Advertise<msgs::KinematicState1D>(kinTopic);
 
-  double kinFreq = _sdf->Get<double>("kinematic_state_publish_frequency", 50).first;
+  double kinFreq = _sdf->Get<double>(
+    "kinematic_state_publish_frequency", 50).first;
   std::chrono::duration<double> kinPer{0.0};
   if (kinFreq > 0)
   {
@@ -296,8 +297,8 @@ void TrackController::Configure(const Entity &_entity,
     this->dataPtr->kinStatePubPeriod =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(kinPer);
   }
-  gzdbg << "Publishing kinematic state to " << kinTopic << " with period " << kinPer.count()
-    << " seconds." << std::endl;
+  gzdbg << "Publishing kinematic state to " << kinTopic
+    << " with period " << kinPer.count() << " seconds." << std::endl;
 
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
@@ -490,31 +491,34 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
   //
   // Only the position and velocity fields of the message are populated, as
   // these are the only known values. E.g. at timestep 'k':
-  // - Given an ideal system: (position k) = (position k-1) + (velocity k-1) * dt,
-  // - And (velocity k) is known from the velocity command (possibly limited by the SpeedLimiter).
-  // However, since this is a velocity-resolved controler, (acceleration k) and (jerk k)
-  // are unknown, e.g.:
+  // - For an ideal system: (position k) = (position k-1) + (velocity k-1) * dt,
+  // - And (velocity k) is known from the velocity command (possibly limited by
+  // the SpeedLimiter).
+  // However, since this is a velocity-resolved controler, (acceleration k)
+  // and (jerk k) are unknown, e.g.:
   //   (acceleration k) = ( (velocity k+1) - (velocity k) ) / dt
   //   in which (velocity k+1) is unknown in timestep k.
   //
-  // Note that, in case of a lower publish frequency than the simulation frequency, a similar issue
-  // exists for the velocity, since only the instantaneous velocity is known at each time step,
-  // and not the average velocity. E.g. consider:
+  // Note that, in case of a lower publish frequency than the simulation
+  // frequency, a similar issue exists for the velocity, since only the
+  // instantaneous velocity is known at each time step, and not the average
+  // velocity. E.g. consider:
   //
   //    Time        0    1    2    3    4    5
   //    Velocity   10   10   10   10    0    0
   //    Position    0   10   20   30   40   40
   //
   // with publish at:
-  // - time 0: position 10 and velocity 10
+  // - time 0: position 0 and velocity 10
   // - time 5: position 40 and velocity 0
   //
-  // For '(pos k) = (pos k-1) + (vel k-1) * dt' to hold, with k = time 5 and k-1 = time 0, the
-  // reported velocity at 0 should be '8': (40 - 0) / 5 = 8 (i.e. the average velocity over 0 to 5),
+  // For '(pos k) = (pos k-1) + (vel k-1) * dt' to hold, with k = time 5
+  // and k-1 = time 0, the reported velocity at 0 should be '8':
+  //   (40 - 0) / 5 = 8  (i.e. the average velocity over time 0 to 5),
   // instead of the reported (instantaneous) velocity '10'.
   //
-  // Imo. this error is acceptable, as real life sensors (e.g. encoder and resolver) also report
-  // instantaneous values for position and velocity.
+  // Imo. this error is acceptable, as real life sensors (e.g. encoder and
+  // resolver) also report instantaneous values for position and velocity.
   //
   msgs::KinematicState1D msg;
 
