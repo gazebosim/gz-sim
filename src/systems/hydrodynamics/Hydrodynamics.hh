@@ -44,6 +44,7 @@ namespace systems
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.
+  ///
   /// ### Diagonal terms:
   ///   * <xDotU> - Added mass in x direction [kg]
   ///   * <yDotV> - Added mass in y direction [kg]
@@ -51,18 +52,19 @@ namespace systems
   ///   * <kDotP> - Added mass in roll direction [kgm^2]
   ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
   ///   * <nDotR> - Added mass in yaw direction [kgm^2]
-  ///   * <xUU>   - Quadratic damping, 2nd order, x component [kg/m]
+  ///   * <xUabsU>   - Quadratic damping, 2nd order, x component [kg/m]
   ///   * <xU>    - Linear damping, 1st order, x component [kg]
-  ///   * <yVV>   - Quadratic damping, 2nd order, y component [kg/m]
+  ///   * <yVabsV>   - Quadratic damping, 2nd order, y component [kg/m]
   ///   * <yV>    - Linear damping, 1st order, y component [kg]
-  ///   * <zWW>   - Quadratic damping, 2nd order, z component [kg/m]
+  ///   * <zWabsW>   - Quadratic damping, 2nd order, z component [kg/m]
   ///   * <zW>    - Linear damping, 1st order, z component [kg]
-  ///   * <kPP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
+  ///   * <kPabsP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
   ///   * <kP>    - Linear damping, 1st order, roll component [kg/m]
-  ///   * <mQQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
+  ///   * <mQabsQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
   ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
-  ///   * <nRR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
+  ///   * <nRabsR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
   ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
+  ///
   /// ### Cross terms
   /// In general we support cross terms as well. These are terms which act on
   /// non-diagonal sides. We use the SNAMe convention of naming search terms.
@@ -72,7 +74,12 @@ namespace systems
   /// and yaw axis respectively.
   ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
   ///       Units are either kg or kgm^2 depending on the choice of terms.
-  ///   * Quadratic Damping:  <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
+  ///   * Quadratic Damping With abs term (this is probably what you want):
+  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>
+  ///       e.g. <xRabsQ>
+  ///       Units are either kg/m or kg/m^2.
+  ///   * Quadratic Damping (could lead to unwanted oscillations):
+  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
   ///       e.g. <xRQ>
   ///       Units are either kg/m or kg/m^2.
   ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
@@ -93,6 +100,17 @@ namespace systems
   ///   * <disable_coriolis> - Disable Coriolis force [Boolean, Default: false]
   ///   * <disable_added_mass> - Disable Added Mass [Boolean, Default: false].
   ///     To be deprecated in Garden.
+  ///
+  /// ### Loading external currents
+  /// One can use the EnvironmentPreload system to preload currents into the
+  /// plugin using data files. To use the data you may give CSV column names by
+  /// using `lookup_current_*` tags listed below:
+  ///   * <lookup_current_x> - X axis to use for lookup current
+  ///   * <lookup_current_y> - Y axis to use for lookup current
+  ///   * <lookup_current_z> - Z axis to use for lookup current
+  /// If any one of the fields is present, it is assumed current is to be loaded
+  /// by a data file and the topic will be ignored. If one or two fields are
+  /// present, the missing fields are assumed to default to zero.
   ///
   /// # Example
   /// An example configuration is provided in the examples folder. The example
@@ -129,7 +147,8 @@ namespace systems
   class Hydrodynamics:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: Hydrodynamics();
@@ -148,6 +167,11 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(
+        const gz::sim::UpdateInfo &_info,
+        const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<HydrodynamicsPrivateData> dataPtr;

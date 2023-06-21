@@ -2,9 +2,12 @@ set(TEST_TYPE "INTEGRATION")
 
 set(tests
   ackermann_steering_system.cc
+  actor.cc
   acoustic_comms.cc
   air_pressure_system.cc
+  air_speed_system.cc
   altimeter_system.cc
+  added_mass.cc
   apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
@@ -30,6 +33,8 @@ set(tests
   hydrodynamics.cc
   hydrodynamics_flags.cc
   imu_system.cc
+  include_sim_hh.cc
+  joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
@@ -38,6 +43,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  light.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
@@ -57,6 +63,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  projector.cc
   rf_comms.cc
   recreate_entities.cc
   reset.cc
@@ -65,6 +72,7 @@ set(tests
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
+  sensor.cc
   spherical_coordinates.cc
   thruster.cc
   touch_plugin.cc
@@ -86,6 +94,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  actor_trajectory.cc
   camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
@@ -101,6 +110,7 @@ set(tests_needing_display
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc
+  sensors_system_update_rate.cc
   shader_param_system.cc
   thermal_sensor_system.cc
   thermal_system.cc
@@ -212,6 +222,9 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+  target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()

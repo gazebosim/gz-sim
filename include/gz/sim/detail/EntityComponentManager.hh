@@ -52,14 +52,18 @@ namespace traits
   template<typename T>
   struct HasEqualityOperator
   {
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnonnull"
+#endif
     enum
     {
       // False positive codecheck "Using C-style cast"
       value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
     };
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
+#endif
   };
 }
 

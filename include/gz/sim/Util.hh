@@ -48,6 +48,13 @@ namespace gz
     math::Pose3d GZ_SIM_VISIBLE worldPose(const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Helper function to compute world velocity of an entity
+    /// \param[in] _entity Entity to get the world pose for
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return World pose of entity
+    math::Vector3d GZ_SIM_VISIBLE relativeVel(const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
     /// \brief Helper function to generate scoped name for an entity.
     /// \param[in] _entity Entity to get the name for.
     /// \param[in] _ecm Immutable reference to ECM.

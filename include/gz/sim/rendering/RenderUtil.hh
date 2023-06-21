@@ -53,6 +53,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Initialize the renderer. Must be called in the rendering thread.
     public: void Init();
 
+    /// \brief Destroy the renderer. Must be called in the rendering thread.
+    public: void Destroy();
+
     /// \brief Count of pending sensors. Must be called in the rendering thread.
     /// \return Number of sensors to be added on the next `Update` call
     ///
