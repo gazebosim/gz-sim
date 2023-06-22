@@ -410,9 +410,9 @@ void LevelManager::ConfigureDefaultLevel()
   // Joints
   // We assume no performers are joints
   for (uint64_t jointIndex = 0;
-       jointIndex < this->runner->sdfWorld->JointCount(); ++jointIndex)
+       jointIndex < this->runner->sdfWorld.JointCount(); ++jointIndex)
   {
-    auto joint = this->runner->sdfWorld->JointByIndex(jointIndex);
+    auto joint = this->runner->sdfWorld.JointByIndex(jointIndex);
 
     if (this->entityNamesInLevels.find(joint->Name()) ==
         this->entityNamesInLevels.end())
@@ -703,14 +703,14 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
 
   // Joints
   for (uint64_t jointIndex = 0;
-       jointIndex < this->runner->sdfWorld->JointCount(); ++jointIndex)
+       jointIndex < this->runner->sdfWorld.JointCount(); ++jointIndex)
   {
-    auto joint = this->runner->sdfWorld->JointByIndex(jointIndex);
+    auto joint = this->runner->sdfWorld.JointByIndex(jointIndex);
     if (_namesToLoad.find(joint->Name()) != _namesToLoad.end())
     {
       Entity jointEntity = this->entityCreator->CreateEntities(joint);
 
-      this->entityCreator->SetParent(jointEntity, this->worldEntity);
+      this->entityCreator->SetParent(jointEntity, worldEntity);
     }
   }
 
