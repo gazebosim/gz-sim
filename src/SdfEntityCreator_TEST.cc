@@ -108,7 +108,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
   // Check entities
   // 1 x world + 5 x model + 5 x link + 5 x collision + 5 x visual + 1 x light
-  EXPECT_EQ(22u, this->ecm.EntityCount());
+  // + 1 x wind
+  EXPECT_EQ(23u, this->ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -684,8 +685,8 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
-  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light
-  EXPECT_EQ(8u, this->ecm.EntityCount());
+  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light + 1 x wind
+  EXPECT_EQ(9u, this->ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -1107,7 +1108,8 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
 
   // Check entities
   // 1 x world + 4 x model + 4 x link + 4 x collision + 4 x visual + 1 x light
-  EXPECT_EQ(22u, this->ecm.EntityCount());
+  // + 1 x wind
+  EXPECT_EQ(23u, this->ecm.EntityCount());
 
   auto world = this->ecm.EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, world);
@@ -1133,7 +1135,7 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
   creator.RequestRemoveEntity(models.front());
   this->ecm.ProcessEntityRemovals();
 
-  EXPECT_EQ(18u, this->ecm.EntityCount());
+  EXPECT_EQ(19u, this->ecm.EntityCount());
 
   models = this->ecm.ChildrenByComponents(world, components::Model());
   ASSERT_EQ(4u, models.size());
@@ -1156,7 +1158,7 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
   creator.RequestRemoveEntity(models.front(), false);
   this->ecm.ProcessEntityRemovals();
 
-  EXPECT_EQ(17u, this->ecm.EntityCount());
+  EXPECT_EQ(18u, this->ecm.EntityCount());
 
   // There's only 1 model left
   models = this->ecm.ChildrenByComponents(world, components::Model());

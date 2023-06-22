@@ -223,6 +223,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     mutex.lock();
+    std::cout << "poseMsgs.size[" << poseMsgs.size() << "] BasePoses.size[" << basePoses.size() << "] LowerLinkPoses.size[" << lowerLinkPoses.size() << "] UpperLinkPoses.size[" << upperLinkPoses.size() << "] sensorPoses.size[" << sensorPoses.size() << "]\n";
     received =
         (poseMsgs.size() == (basePoses.size() + lowerLinkPoses.size() +
                              upperLinkPoses.size() + sensorPoses.size()));

@@ -65,10 +65,6 @@ Server::Server(const ServerConfig &_config)
   this->dataPtr->LoadSdfRootHelper(_config, this->dataPtr->sdfRoot, outputMsgs);
   gzmsg << outputMsgs;
 
-  // Add record plugin
-  if (_config.UseLogRecord())
-    this->dataPtr->AddRecordPlugin(_config);
-
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
   // Do this before the `CreateEntities` function call.
@@ -86,11 +82,6 @@ Server::Server(const ServerConfig &_config)
   // downloading simulation assets so that the GUI is not blocked during
   // download.
   this->dataPtr->SetupTransport();
-
-  // Force each simulation runner to remain paused until the downloads are
-  // complete.
-  for (auto &runner : this->dataPtr->simRunners)
-    runner->SetForcedPause(true);
 
   // Download the simulation assets. This function will block if
   // _config.WaitForAssets() is true;

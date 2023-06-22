@@ -106,6 +106,7 @@ class gz::sim::systems::ContactPrivate
 void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
                          const std::vector<Entity> &_collisionEntities)
 {
+  std::cout << "\n\n\n\n\nLoading Contact SEnsor\n\n\n\n";
   this->collisionEntities = _collisionEntities;
 
   auto contactElem = _sdf->GetElement("contact");
@@ -194,6 +195,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
             // element.
             collisionEntities.push_back(childEntities.front());
 
+            std::cout << "Creating ContactSensorData for [" << childEntities.front() << "]\n";
             // Create component to be filled by physics.
             _ecm.CreateComponent(childEntities.front(),
                                  components::ContactSensorData());

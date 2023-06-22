@@ -45,6 +45,7 @@ SystemManager::SystemManager(const SystemLoaderPtr &_systemLoader,
 void SystemManager::LoadPlugin(const Entity _entity,
                                const sdf::Plugin &_plugin)
 {
+  std::cout << "SystemManager::LoadPlugin[" << _plugin.ToElement()->ToString("") << "]\n";
   std::optional<SystemPluginPtr> system;
   {
     std::lock_guard<std::mutex> lock(this->systemLoaderMutex);

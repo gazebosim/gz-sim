@@ -651,6 +651,9 @@ namespace gz
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
 
+      public: std::optional<Entity> EntityByName(
+                  const std::string &_name) const;
+
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate. This function
       /// is protected to facilitate testing.

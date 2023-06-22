@@ -47,6 +47,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Model.hh"
 
@@ -250,7 +251,7 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
+  std::string poseTopic = topicFromScopedName(_entity, _ecm, true) + "/pose";
   poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
   if (poseTopic.empty())
   {

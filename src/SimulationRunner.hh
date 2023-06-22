@@ -78,9 +78,13 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
+      /// \param[in] _createEntities True to create entities. Use false if
+      /// you'd like to delay entity creation. False is used to support
+      /// background simulation asset download.
       public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
-                                const ServerConfig &_config = ServerConfig());
+                                const ServerConfig &_config = ServerConfig(),
+                                bool _createEntities = true);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -158,8 +162,7 @@ namespace gz
           const std::list<ServerConfig::PluginInfo> &_plugins);
 
       /// \brief Load logging/playback plugins
-      /// \param[in] _config Configuration to load plugins from.
-      public: void LoadLoggingPlugins(const ServerConfig &_config);
+      public: void LoadLoggingPlugins(sdf::Plugins &_plugins);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -380,7 +383,6 @@ namespace gz
       public: void CreateEntity(const std::variant<
                   sdf::Actor, sdf::Light, sdf::Model> &_asset);
 
-
       /// \brief Set whether the paused state of true should be enforced.
       /// Setting this to true will force simulation to pause, and it can only
       /// be unpaused if this function is called with a false parameter value.
@@ -396,8 +398,8 @@ namespace gz
 
       /// \brief Create entities for the world simulated by this runner based
       /// on the provided SDF Root object.
-      /// \param[in] _root SDF root object to read from.
-      public: void CreateEntities(const sdf::Root &_root);
+      /// \param[in] _world SDF world created entities from.
+      public: void CreateEntities(const sdf::World &_world);
 
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
@@ -504,7 +506,7 @@ namespace gz
       private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
-      private: const sdf::World sdfWorld;
+      private: sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
@@ -536,6 +538,8 @@ namespace gz
 
       /// \brief Asset creation mutex.
       private: std::mutex assetCreationMutex;
+      private: std::mutex stepMutex;
+      private: std::condition_variable creationCv;
 
       /// \brief Set of assets to create during the next preupdate.
       private: std::vector<
@@ -580,7 +584,7 @@ namespace gz
       /// background. The simulation runner must remain paused while this
       /// takes place. This flag can be used to make sure simulation stays
       /// paused.
-      private: bool forcedPause{false};
+      private: bool forcedPause{true};
 
       /// \brief During a forced pause, the user may request that simulation
       /// should run. This flag will capture that request, and then be used

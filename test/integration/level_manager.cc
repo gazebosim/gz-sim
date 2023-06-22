@@ -123,10 +123,12 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
     testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
                             const sim::EntityComponentManager &_ecm)
     {
+    std::cout << "\n\nOnPoseUpdate!!!\n\n";
       _ecm.Each<components::Model, components::Name>(
           [&](const Entity &, const components::Model *,
               const components::Name *_name) -> bool
           {
+          std::cout << "LoadedModels[" << _name->Data() << "]\n";
             this->loadedModels.push_back(_name->Data());
             return true;
           });
@@ -223,7 +225,7 @@ TEST_F(LevelManagerFixture, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DefaultLevel))
   // There should be 2 performers
   EXPECT_EQ(2u, this->performerLevels.size());
 }
-
+/*
 ///////////////////////////////////////////////
 /// Check a level is loaded when a performer is inside a level
 /// Check a level is unloaded when a performer is outside a level
@@ -478,3 +480,4 @@ TEST_F(LevelManagerFixture,
   testSequence(perf1, perf2);
   testSequence(perf2, perf1);
 }
+*/

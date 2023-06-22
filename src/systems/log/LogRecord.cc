@@ -189,6 +189,7 @@ LogRecord::LogRecord()
 //////////////////////////////////////////////////
 LogRecord::~LogRecord()
 {
+  std::cout << "\n\n Log REcord destructor \n\n";
   if (this->dataPtr->instStarted)
   {
     // Use gz-transport directly

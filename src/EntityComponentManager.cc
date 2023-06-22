@@ -2236,3 +2236,22 @@ void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
   tmpCopy.ApplyEntityDiff(*this, ecmDiff);
   this->CopyFrom(tmpCopy);
 }
+
+/////////////////////////////////////////////////
+std::optional<Entity> EntityComponentManager::EntityByName(
+    const std::string &_name) const
+{
+  std::optional<Entity> entity;
+  this->Each<components::Name>([&](const Entity _entity,
+        const components::Name *_entityName)->bool
+  {
+    if (_entityName->Data() == _name)
+    {
+      entity = _entity;
+      return false;
+    }
+    return true;
+  });
+
+  return entity;
+}

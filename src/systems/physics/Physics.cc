@@ -1113,6 +1113,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           }
           else
           {
+            std::cout << "\nConstructing model. Model[" << model.Name()
+              << "] Link Count[" << model.LinkCount() << "]\n";
             auto modelPtrPhys = worldPtrPhys->ConstructModel(model);
 
             this->entityModelMap.AddEntity(_entity, modelPtrPhys);
@@ -2777,8 +2779,8 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
   }
   else
   {
-    _ecm.Each<components::Link>(
-      [&](const Entity &_entity, components::Link *) -> bool
+    _ecm.Each<components::Link, components::Name>(
+      [&](const Entity &_entity, components::Link *, components::Name *_name) -> bool
       {
         if (this->staticEntities.find(_entity) != this->staticEntities.end() ||
             _ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
@@ -2795,7 +2797,7 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
               this->linkAddedToModel.end())
           {
             gzerr << "Internal error: link [" << _entity
-              << "] not in entity map" << std::endl;
+              << "][" << _name->Data() << "] not in entity map" << std::endl;
           }
           return true;
         }

@@ -24,10 +24,12 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
+    <!--
     <plugin
       filename="gz-sim-log-system"
       name="gz::sim::systems::LogRecord">
     </plugin>
+    -->
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

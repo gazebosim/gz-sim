@@ -662,8 +662,8 @@ ServerConfig::PluginInfo
 ServerConfig::LogRecordPlugin() const
 {
   sdf::Plugin plugin;
-  auto entityName = "*";
-  auto entityType = "world";
+  std::string entityName = "*";
+  std::string entityType = "world";
   plugin.SetName("gz::sim::systems::LogRecord");
   plugin.SetFilename("gz-sim-log-system");
 

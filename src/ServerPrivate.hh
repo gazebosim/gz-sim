@@ -75,10 +75,6 @@ namespace gz
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
-      /// \brief Add logging record plugin.
-      /// \param[in] _config Server configuration parameters.
-      public: void AddRecordPlugin(const ServerConfig &_config);
-
       /// \brief Create the simulation runners, one for each world.
       public: void CreateSimulationRunners();
 
