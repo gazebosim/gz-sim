@@ -175,4 +175,3 @@ void NetworkManagerSecondary::OnStep(
 
   this->dataPtr->ecm->SetAllComponentsUnchanged();
 }
-

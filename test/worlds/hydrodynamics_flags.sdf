@@ -1,0 +1,355 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="multi_lrauv">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics">
+    </plugin>
+    <gravity>0 0 0</gravity>
+    <model name="tethys">
+      <pose>0 0 1 0 0 1.57</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>147.8671</mass>
+          <inertia>
+            <ixx>3.000000</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>41.980233</iyy>
+            <iyz>0</iyz>
+            <izz>41.980233</izz>
+          </inertia>
+        </inertial>
+        <collision name="main_body_buoyancy">
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <!-- Horizontal fins -->
+      <link name="horizontal_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 1.57 0 0.5</pose>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Vertical fins -->
+      <link name="vertical_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Joints -->
+      <joint name="horizontal_fins_joint" type="revolute">
+        <pose>0 0 0 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>horizontal_fins</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>-0.261799</lower>
+            <upper>0.261799</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-hydrodynamics-system"
+              name="gz::sim::systems::Hydrodynamics">
+        <link_name>base_link</link_name>
+        <xDotU>-4.876161</xDotU>
+        <yDotV>-126.324739</yDotV>
+        <zDotW>-126.324739</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>-33.46</mDotQ>
+        <nDotR>-33.46</nDotR>
+        <xUabsU>-6.2282</xUabsU>
+        <xU>0</xU>
+        <yVabsV>-601.27</yVabsV>
+        <yV>0</yV>
+        <zWabsW>-601.27</zWabsW>
+        <zW>0</zW>
+        <kPabsP>-0.1916</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>-632.698957</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>-632.698957</nRabsR>
+        <nR>0</nR>
+        <disable_added_mass>true</disable_added_mass>
+        <disable_coriolis>true</disable_coriolis>
+      </plugin>
+    </model>
+
+    <model name="triton">
+      <pose>5 0 1 0 0 1.57</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>147.8671</mass>
+          <inertia>
+            <ixx>3.000000</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>41.980233</iyy>
+            <iyz>0</iyz>
+            <izz>41.980233</izz>
+          </inertia>
+        </inertial>
+        <collision name="main_body_buoyancy">
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <!-- Horizontal fins -->
+      <link name="horizontal_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 1.57 0 0.5</pose>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Vertical fins -->
+      <link name="vertical_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Joints -->
+      <joint name="horizontal_fins_joint" type="revolute">
+        <pose>0 0 0 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>horizontal_fins</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>-0.261799</lower>
+            <upper>0.261799</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-hydrodynamics-system"
+              name="gz::sim::systems::Hydrodynamics">
+        <link_name>base_link</link_name>
+        <xDotU>-4.876161</xDotU>
+        <yDotV>-126.324739</yDotV>
+        <zDotW>-126.324739</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>-33.46</mDotQ>
+        <nDotR>-33.46</nDotR>
+        <xUabsU>-6.2282</xUabsU>
+        <xU>0</xU>
+        <yVabsV>-601.27</yVabsV>
+        <yV>0</yV>
+        <zWabsW>-601.27</zWabsW>
+        <zW>0</zW>
+        <kPabsP>-0.1916</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>-632.698957</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>-632.698957</nRabsR>
+        <nR>0</nR>
+        <disable_added_mass>true</disable_added_mass>
+      </plugin>
+    </model>
+
+    <model name="daphne">
+      <pose>-5 0 1 0 0 1.57</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>147.8671</mass>
+          <inertia>
+            <ixx>3.000000</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>41.980233</iyy>
+            <iyz>0</iyz>
+            <izz>41.980233</izz>
+          </inertia>
+        </inertial>
+        <collision name="main_body_buoyancy">
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>2 0.3 0.246445166667</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+      <!-- Horizontal fins -->
+      <link name="horizontal_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 1.57 0 0.5</pose>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Vertical fins -->
+      <link name="vertical_fins">
+        <pose>1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0007924568755</ixx>
+            <ixy>-0.0000000002674</ixy>
+            <ixz>0.0003978158176</ixz>
+            <iyy>0.0010546736475</iyy>
+            <iyz>-0.0000000006729</iyz>
+            <izz>0.0002633558262</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.02</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <!-- Joints -->
+      <joint name="horizontal_fins_joint" type="revolute">
+        <pose>0 0 0 0 0 0</pose>
+        <parent>base_link</parent>
+        <child>horizontal_fins</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>-0.261799</lower>
+            <upper>0.261799</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-hydrodynamics-system"
+              name="gz::sim::systems::Hydrodynamics">
+        <link_name>base_link</link_name>
+        <xDotU>-4.876161</xDotU>
+        <yDotV>-126.324739</yDotV>
+        <zDotW>-126.324739</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>-33.46</mDotQ>
+        <nDotR>-33.46</nDotR>
+        <xUabsU>-6.2282</xUabsU>
+        <xU>0</xU>
+        <yVabsV>-601.27</yVabsV>
+        <yV>0</yV>
+        <zWabsW>-601.27</zWabsW>
+        <zW>0</zW>
+        <kPabsP>-0.1916</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>-632.698957</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>-632.698957</nRabsR>
+        <nR>0</nR>
+        <disable_coriolis>true</disable_coriolis>
+      </plugin>
+    </model>
+  </world>
+</sdf>

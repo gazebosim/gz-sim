@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (C) 2021 Open Source Robotics Foundation
 
 # Licensed under the Apache License, Version 2.0 (the "License");

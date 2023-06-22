@@ -136,7 +136,7 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     // running variable gets updated before this function returns. With
     // a small number of iterations it is possible that the run thread
     // successfuly completes before this function returns.
-    cond.wait(lock);
+    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
     return true;
   }
 

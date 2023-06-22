@@ -124,7 +124,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
   }
 
   gzmsg << "Contact system publishing on " << this->topic << std::endl;
-  this->pub = this->node.Advertise<gz::msgs::Contacts>(this->topic);
+  this->pub = this->node.Advertise<msgs::Contacts>(this->topic);
 }
 
 //////////////////////////////////////////////////

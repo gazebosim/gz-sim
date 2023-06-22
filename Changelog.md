@@ -1,6 +1,385 @@
 ## Gazebo Sim 7.x
 
-### Gazebo Sim 7.X.X (20XX-XX-XX)
+### Gazebo Sim 7.5.0 (2023-05-14)
+
+1. Actuators message input for JointController.
+    * [Pull request #1953](https://github.com/gazebosim/gz-sim/pull/1953)
+
+1. fixed a code block in the python interfaces tutorial
+    * [Pull request #1982](https://github.com/gazebosim/gz-sim/pull/1982)
+
+1. Add missing cmake exports from core library
+    * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
+
+1. Actuators message for JointPositionController.
+    * [Pull request #1954](https://github.com/gazebosim/gz-sim/pull/1954)
+
+1. Update sdf plugins to use actuator_number.
+    * [Pull request #1976](https://github.com/gazebosim/gz-sim/pull/1976)
+
+1. Unload render engine when the sensors system exits
+    * [Pull request #1960](https://github.com/gazebosim/gz-sim/pull/1960)
+
+1. Use GzSpinBox.
+    * [Pull request #1969](https://github.com/gazebosim/gz-sim/pull/1969)
+
+1. Add tutorial on migrating the Actor class from gazebo classic
+    * [Pull request #1929](https://github.com/gazebosim/gz-sim/pull/1929)
+
+1. Add back in the marker example
+    * [Pull request #1972](https://github.com/gazebosim/gz-sim/pull/1972)
+
+1. Optimize render updates and use of thread mutexes in Sensors system
+    * [Pull request #1938](https://github.com/gazebosim/gz-sim/pull/1938)
+
+1. Fix use of actors that only has trajectory animation
+    * [Pull request #1947](https://github.com/gazebosim/gz-sim/pull/1947)
+
+1. Actuators message input for Ackermann Steering.
+    * [Pull request #1952](https://github.com/gazebosim/gz-sim/pull/1952)
+
+1. Add tutorial on migrating the Joint class from gazebo classic
+    * [Pull request #1925](https://github.com/gazebosim/gz-sim/pull/1925)
+
+1. Add tutorial on migrating the Light class from gazebo classic
+    * [Pull request #1931](https://github.com/gazebosim/gz-sim/pull/1931)
+
+1. Remove filtering from realtime factor (RTF) calculation
+    * [Pull request #1942](https://github.com/gazebosim/gz-sim/pull/1942)
+
+1. Fix docker/README.md
+    * [Pull request #1964](https://github.com/gazebosim/gz-sim/pull/1964)
+
+1. gz_TEST: improve initial sim time test reliability
+    * [Pull request #1916](https://github.com/gazebosim/gz-sim/pull/1916)
+
+1. Use a queue to track component registration from mulitiple sources
+    * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
+
+1. Initialize services in ViewAngle constructor
+    * [Pull request #1943](https://github.com/gazebosim/gz-sim/pull/1943)
+
+1. CI workflow: use checkout v3
+    * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #1937](https://github.com/gazebosim/gz-sim/pull/1937)
+
+1. add comment on center of buoyancy force
+    * [Pull request #1935](https://github.com/gazebosim/gz-sim/pull/1935)
+
+1. Get Windows to green on gz-sim7
+    * [Pull request #1917](https://github.com/gazebosim/gz-sim/pull/1917)
+
+1. Add Light class
+    * [Pull request #1918](https://github.com/gazebosim/gz-sim/pull/1918)
+
+1. Resolve inconsistent visibility on ign-gazebo6
+    * [Pull request #1914](https://github.com/gazebosim/gz-sim/pull/1914)
+
+1. relax msg count check in RF comms integration test
+    * [Pull request #1920](https://github.com/gazebosim/gz-sim/pull/1920)
+
+1. Fix off-by-one error in physics test
+    * [Pull request #1921](https://github.com/gazebosim/gz-sim/pull/1921)
+
+1. Fix formatting of error messages with large mesh file names
+    * [Pull request #1654](https://github.com/gazebosim/gz-sim/pull/1654)
+
+1. Add Actor class
+    * [Pull request #1913](https://github.com/gazebosim/gz-sim/pull/1913)
+
+1. Update all velocity and acceleration components of non-link entities
+    * [Pull request #1868](https://github.com/gazebosim/gz-sim/pull/1868)
+
+1. Add Sensor class
+    * [Pull request #1912](https://github.com/gazebosim/gz-sim/pull/1912)
+
+1. Minor vocab fix
+    * [Pull request #1915](https://github.com/gazebosim/gz-sim/pull/1915)
+
+1. Allow to change camera user hfov in camera_view plugin
+    * [Pull request #1807](https://github.com/gazebosim/gz-sim/pull/1807)
+
+1. Address a few Windows CI Issues
+    * [Pull request #1911](https://github.com/gazebosim/gz-sim/pull/1911)
+
+1. Added magnetometer value based on location
+    * [Pull request #1907](https://github.com/gazebosim/gz-sim/pull/1907)
+
+1. Allow specifying initial simulation time with a CLI argument
+    * [Pull request #1801](https://github.com/gazebosim/gz-sim/pull/1801)
+
+1. Add Joint class
+    * [Pull request #1910](https://github.com/gazebosim/gz-sim/pull/1910)
+
+1. Added reset simulation tutorial
+    * [Pull request #1824](https://github.com/gazebosim/gz-sim/pull/1824)
+
+1. Add SensorTopic component to rendering sensors
+    * [Pull request #1908](https://github.com/gazebosim/gz-sim/pull/1908)
+
+1. Use a queue to track component registration from mulitiple sources
+    * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
+
+1. Document behaviour changes introduced #1784
+    * [Pull request #1888](https://github.com/gazebosim/gz-sim/pull/1888)
+
+1. Fix GUI_clean_exit test by increasing thread delay
+    * [Pull request #1902](https://github.com/gazebosim/gz-sim/pull/1902)
+
+1. Partial backport of 1728
+    * [Pull request #1901](https://github.com/gazebosim/gz-sim/pull/1901)
+
+1. Fix gz plugin paths in windows
+    * [Pull request #1899](https://github.com/gazebosim/gz-sim/pull/1899)
+
+1. Increase timeout for UNIT_Gui_clean_exit_TEST
+    * [Pull request #1897](https://github.com/gazebosim/gz-sim/pull/1897)
+
+1. fix triggered camera test by waiting for rendering / scene to be ready
+    * [Pull request #1895](https://github.com/gazebosim/gz-sim/pull/1895)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix some windows warnings (C4244 and C4305)
+    * [Pull request #1874](https://github.com/gazebosim/gz-sim/pull/1874)
+
+1. Minor optimization to transform control tool
+    * [Pull request #1854](https://github.com/gazebosim/gz-sim/pull/1854)
+
+1. inherit material cast shadows property
+    * [Pull request #1856](https://github.com/gazebosim/gz-sim/pull/1856)
+
+1. fix record topic
+    * [Pull request #1855](https://github.com/gazebosim/gz-sim/pull/1855)
+
+1. Remove duplicate Fuel server used by ResourceSpawner
+    * [Pull request #1830](https://github.com/gazebosim/gz-sim/pull/1830)
+
+1. re-add namespace
+    * [Pull request #1826](https://github.com/gazebosim/gz-sim/pull/1826)
+
+1. Fix QML warnings regarding binding loops
+    * [Pull request #1829](https://github.com/gazebosim/gz-sim/pull/1829)
+
+1. Update documentation on `UpdateInfo::realTime`
+    * [Pull request #1817](https://github.com/gazebosim/gz-sim/pull/1817)
+
+1. Add jennuine as GUI codeowner
+    * [Pull request #1800](https://github.com/gazebosim/gz-sim/pull/1800)
+
+1. remove PlotIcon
+    * [Pull request #1658](https://github.com/gazebosim/gz-sim/pull/1658)
+
+1. Final update of ignitionrobotics to gazebosim for citadel
+    * [Pull request #1760](https://github.com/gazebosim/gz-sim/pull/1760)
+
+1. Convert ignitionrobotics to gazebosim in tutorials
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1759)
+
+1. Convert ignitionrobotics to gazebosim in sources and includes
+    * [Pull request #1758](https://github.com/gazebosim/gz-sim/pull/1758)
+
+1. Convert ignitionrobotics to gazebosim in tests directory
+    * [Pull request #1757](https://github.com/gazebosim/gz-sim/pull/1757)
+
+1. Added collection name to About Dialog
+    * [Pull request #1756](https://github.com/gazebosim/gz-sim/pull/1756)
+
+1. Citadel: Removed warnings
+    * [Pull request #1753](https://github.com/gazebosim/gz-sim/pull/1753)
+
+1. Remove actors from screen when they are supposed to
+    * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
+
+1. readd namespaces for Q_ARGS
+    * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
+
+1. 🎈 3.14.0
+    * [Pull request #1657](https://github.com/gazebosim/gz-sim/pull/1657)
+
+1. Remove redundant namespace references
+    * [Pull request #1635](https://github.com/gazebosim/gz-sim/pull/1635)
+
+1. 🎈 3.14.0~pre1
+    * [Pull request #1650](https://github.com/gazebosim/gz-sim/pull/1650)
+
+### Gazebo Sim 7.4.0 (2023-02-14)
+
+1. Added airspeed sensor
+    * [Pull request #1847](https://github.com/gazebosim/gz-sim/pull/1847)
+
+1. JointPosController: support nested joints
+    * [Pull request #1851](https://github.com/gazebosim/gz-sim/pull/1851)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix view angle plugin
+    * [Pull request #1877](https://github.com/gazebosim/gz-sim/pull/1877)
+
+1. Fix cmake unrecognized argument warning
+    * [Pull request #1882](https://github.com/gazebosim/gz-sim/pull/1882)
+
+### Gazebo Sim 7.3.0 (2023-02-02)
+
+1. Fluid added mass
+    * [Pull request #1592](https://github.com/gazebosim/gz-sim/pull/1592)
+
+1. Add P gain value for Ackermann steering.
+    * [Pull request #1873](https://github.com/gazebosim/gz-sim/pull/1873)
+
+1. Add orientation to Odom with covariance.
+    * [Pull request #1876](https://github.com/gazebosim/gz-sim/pull/1876)
+
+### Gazebo Sim 7.2.0 (2023-01-25)
+
+1. Enable the JointController and JointPositionController to use sub_topics and control multiple joints.
+    * [Pull request #1861](https://github.com/gazebosim/gz-sim/pull/1861)
+
+1. Ackermann steering with steering angle and sub_topic.
+    * [Pull request #1860](https://github.com/gazebosim/gz-sim/pull/1860)
+
+1. port: 6 to 7 (10-JAN-2023)
+    * [Pull request #1857](https://github.com/gazebosim/gz-sim/pull/1857)
+
+1. Add ignition alias back
+    * [Pull request #1858](https://github.com/gazebosim/gz-sim/pull/1858)
+
+1. fix SdfGenerator unit test
+    * [Pull request #1853](https://github.com/gazebosim/gz-sim/pull/1853)
+
+1. Allow using a CSV file to define currents for hydrodynamic system
+    * [Pull request #1839](https://github.com/gazebosim/gz-sim/pull/1839)
+
+1. Add multichannel lookup for environment sensors.
+    * [Pull request #1814](https://github.com/gazebosim/gz-sim/pull/1814)
+
+1. Example controller for LRAUV
+    * [Pull request #1822](https://github.com/gazebosim/gz-sim/pull/1822)
+
+1. Fix component removal in component inspector
+    * [Pull request #1833](https://github.com/gazebosim/gz-sim/pull/1833)
+
+1. port: 6 to 7 (06-DEC-2023)
+    * [Pull request #1832](https://github.com/gazebosim/gz-sim/pull/1832)
+
+1. port: 6 to 7 (29-NOV-2023)
+    * [Pull request #1821](https://github.com/gazebosim/gz-sim/pull/1821)
+
+1. Fix #1812.
+    * [Pull request #1813](https://github.com/gazebosim/gz-sim/pull/1813)
+
+1. Removed unused attributes
+    * [Pull request #1809](https://github.com/gazebosim/gz-sim/pull/1809)
+
+1. Fixes buoyancy flakiness when spawning entities
+    * [Pull request #1808](https://github.com/gazebosim/gz-sim/pull/1808)
+
+1. Remove fixed width from world control
+    * [Pull request #1805](https://github.com/gazebosim/gz-sim/pull/1805)
+
+1. Backport #1748: Adds a tool for environment data visualization and custom environmental sensors
+    * [Pull request #1798](https://github.com/gazebosim/gz-sim/pull/1798)
+
+1. Acoustic comms : Propagation model
+    * [Pull request #1793](https://github.com/gazebosim/gz-sim/pull/1793)
+
+1. Add pre-commit hooks configuration
+    * [Pull request #1792](https://github.com/gazebosim/gz-sim/pull/1792)
+
+1. Add checkbox in view angle plugin for toggling view control reference visual
+    * [Pull request #1788](https://github.com/gazebosim/gz-sim/pull/1788)
+
+1. Add EnvironmentalData component
+    * [Pull request #1616](https://github.com/gazebosim/gz-sim/pull/1616)
+
+### Gazebo Sim 7.1.0 (2022-11-10)
+
+1. Allow SDF model to be constructed in a single shot
+    * [Pull request #1560](https://github.com/gazebosim/gz-sim/pull/1560)
+
+1. Allow loading a model SDF file in the Server class
+    * [Pull request #1775](https://github.com/gazebosim/gz-sim/pull/1775)
+
+1. Address flaky UNIT_Gui_TEST
+    * [Pull request #1776](https://github.com/gazebosim/gz-sim/pull/1776)
+
+1. Change name of nameFilter of saveDialog to "SDF files"
+    * [Pull request #1774](https://github.com/gazebosim/gz-sim/pull/1774)
+
+1. Acoustic comms : Packet collision timeout
+    * [Pull request #1755](https://github.com/gazebosim/gz-sim/pull/1755)
+
+1. Fix typo in include inside Export.hh
+    * [Pull request #1778](https://github.com/gazebosim/gz-sim/pull/1778)
+
+1. Towards Green CI
+    * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
+
+1. Refactor: Trajectory loading seperated into external function
+    * [Pull request #1744](https://github.com/gazebosim/gz-sim/pull/1744)
+
+1. Add pybind11 module as MODULE
+    * [Pull request #1763](https://github.com/gazebosim/gz-sim/pull/1763)
+
+1. Clarify errors when plugins fail to load
+    * [Pull request #1727](https://github.com/gazebosim/gz-sim/pull/1727)
+
+1. Fix tutorial for `blender_sdf_exporter`
+    * [Pull request #1718](https://github.com/gazebosim/gz-sim/pull/1718)
+
+1. Cherry pick acoustic comms to gz-sim7
+    * [Pull request #1704](https://github.com/gazebosim/gz-sim/pull/1704)
+
+1. Update tutorial for `blender_distort_meshes`
+    * [Pull request #1719](https://github.com/gazebosim/gz-sim/pull/1719)
+
+1. Removes Actor Visuals When They Are Despawned
+    * [Pull request #1697](https://github.com/gazebosim/gz-sim/pull/1697)
+
+1. Update examples to used gazebosim
+    * [Pull request #1726](https://github.com/gazebosim/gz-sim/pull/1726)
+
+1. Merge forward 6 to 7, 2022-10-21
+    * [Pull request #1768](https://github.com/gazebosim/gz-sim/pull/1768)
+
+1. Merge forward 6 to 7, 2022-10-06
+    * [Pull request #1676](https://github.com/gazebosim/gz-sim/pull/1676)
+
+1. Add information about <topic> system paramter
+    * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
+
+1. Adding tests for hydrodynamics
+    * [Pull request #1617](https://github.com/gazebosim/gz-sim/pull/1617)
+
+1. Fix Windows and Doxygen
+    * [Pull request #1643](https://github.com/gazebosim/gz-sim/pull/1643)
+
+1. Merge forward 3 to 6, 2022-08-16
+    * [Pull request #1651](https://github.com/gazebosim/gz-sim/pull/1651)
+
+1. Add support for specifying log record period
+    * [Pull request #1636](https://github.com/gazebosim/gz-sim/pull/1636)
+
+1. Common widget GzColor replacement
+    * [Pull request #1530](https://github.com/gazebosim/gz-sim/pull/1530)
+
+1. Replace plotIcon in ComponentInspector with GzPlotIcon
+    * [Pull request #1638](https://github.com/gazebosim/gz-sim/pull/1638)
+
+1. Component Inspector with common widget pose plotting
+    * [Pull request #1607](https://github.com/gazebosim/gz-sim/pull/1607)
+
+1. Change CODEOWNERS and maintainer to Michael
+    * [Pull request #1644](https://github.com/gazebosim/gz-sim/pull/1644)
+
+1. Replace pose in ViewAngle with GzPose
+    * [Pull request #1641](https://github.com/gazebosim/gz-sim/pull/1641)
+
+### Gazebo Sim 7.0.0 (2022-09-27)
 
 1. Fix some warnings in visualize_lidar.sdf
     * [Pull request #1702](https://github.com/gazebosim/gz-sim/pull/1702)
@@ -347,6 +726,139 @@
     * [Pull request #1093](https://github.com/gazebosim/gz-sim/pull/1093)
 
 ## Gazebo Sim 6.x
+
+### Gazebo Sim 6.14.0 (2022-12-29)
+
+1. Fix Ackermann plugin zero linVel turningRadius bug
+    * [Pull request #1849](https://github.com/gazebosim/gz-sim/pull/1849)
+
+1. Header guard fix for battery power load component
+    * [Pull request #1846](https://github.com/gazebosim/gz-sim/pull/1846)
+
+1. Add interface to allow systems to declare parameters
+    * [Pull request #1431](https://github.com/gazebosim/gz-sim/pull/1431)
+
+1. Adding battery consumers and extra fixes
+    * [Pull request #1811](https://github.com/gazebosim/gz-sim/pull/1811)
+
+1. Disable tests that require dartsim on windows
+    * [Pull request #1840](https://github.com/gazebosim/gz-sim/pull/1840)
+
+1. Added move camera to model service
+    * [Pull request #1823](https://github.com/gazebosim/gz-sim/pull/1823)
+
+1. Add spin box to View Angle plugin for configuring view control sensitivity
+    * [Pull request #1799](https://github.com/gazebosim/gz-sim/pull/1799)
+
+1. Sync View Angle GUI with view controller
+    * [Pull request #1825](https://github.com/gazebosim/gz-sim/pull/1825)
+
+1. Hydrodynamics flags test strengthening
+    * [Pull request #1819](https://github.com/gazebosim/gz-sim/pull/1819)
+
+1. Fixed Fortress tests related to lights
+    * [Pull request #1827](https://github.com/gazebosim/gz-sim/pull/1827)
+
+1. Allow to move to model from Angle view plugin
+    * [Pull request #1810](https://github.com/gazebosim/gz-sim/pull/1810)
+
+1. Fixed light entity number
+    * [Pull request #1818](https://github.com/gazebosim/gz-sim/pull/1818)
+
+1. Check AddBvnAnimation return value
+    * [Pull request #1750](https://github.com/gazebosim/gz-sim/pull/1750)
+
+1. Add checkbox in view angle plugin for toggling view control reference visual
+    * [Pull request #1788](https://github.com/gazebosim/gz-sim/pull/1788)
+
+1. Adds support for hydrodynamic cross terms
+    * [Pull request #1784](https://github.com/gazebosim/gz-sim/pull/1784)
+
+1. Addresses flakiness in `Hydrodynamics.VelocityTestInOil`.
+    * [Pull request #1787](https://github.com/gazebosim/gz-sim/pull/1787)
+
+1. Fix minor bugs in RFComms plugin
+    * [Pull request #1743](https://github.com/gazebosim/gz-sim/pull/1743)
+
+
+### Gazebo Sim 6.13.0 (2022-11-04)
+
+1. Fix two tests on Windows
+    * [Pull request #1779](https://github.com/gazebosim/ign-gazebo/pull/1779)
+
+1. 3 to 6 20221013
+    * [Pull request #1762](https://github.com/gazebosim/ign-gazebo/pull/1762)
+
+1. Some minor changes to hydrodynamic flags test
+    * [Pull request #1772](https://github.com/gazebosim/ign-gazebo/pull/1772)
+
+1. Fix thruster integration test
+    * [Pull request #1767](https://github.com/gazebosim/ign-gazebo/pull/1767)
+
+1. Fix scene_broadcaster_system test
+    * [Pull request #1766](https://github.com/gazebosim/ign-gazebo/pull/1766)
+
+1. Script and tutorial for generating procedural datasets with Blender
+    * [Pull request #1412](https://github.com/gazebosim/ign-gazebo/pull/1412)
+
+1. Enable use of ign gazebo -s on Windows (take two)
+    * [Pull request #1764](https://github.com/gazebosim/ign-gazebo/pull/1764)
+
+1. Removed unused speedlimit file
+    * [Pull request #1761](https://github.com/gazebosim/ign-gazebo/pull/1761)
+
+1. Fortress: Removed warnings
+    * [Pull request #1754](https://github.com/gazebosim/ign-gazebo/pull/1754)
+
+1. Enable/Disable individual hydrodynamic components.
+    * [Pull request #1692](https://github.com/gazebosim/ign-gazebo/pull/1692)
+
+1. Adding thrust coefficient calculation
+    * [Pull request #1652](https://github.com/gazebosim/ign-gazebo/pull/1652)
+
+1. Restore Add System GUI plugin
+    * [Pull request #1685](https://github.com/gazebosim/ign-gazebo/pull/1685)
+
+1. Return absolute path when finding a resource
+    * [Pull request #1741](https://github.com/gazebosim/ign-gazebo/pull/1741)
+
+1. Adds sky cubemap URI to the sky.proto's header
+    * [Pull request #1739](https://github.com/gazebosim/ign-gazebo/pull/1739)
+
+1. Update triggered_publisher.sdf
+    * [Pull request #1737](https://github.com/gazebosim/ign-gazebo/pull/1737)
+
+1. Add ResourceSpawner example file
+    * [Pull request #1701](https://github.com/gazebosim/ign-gazebo/pull/1701)
+
+1. Enable inherited model topic name.
+    * [Pull request #1689](https://github.com/gazebosim/ign-gazebo/pull/1689)
+
+1. Fix loading render engine plugins in GUI
+    * [Pull request #1694](https://github.com/gazebosim/ign-gazebo/pull/1694)
+
+1. Add a service to trigger functionality
+    * [Pull request #1611](https://github.com/gazebosim/ign-gazebo/pull/1611)
+
+1. Fix installation instructions on Ubuntu 22.04
+    * [Pull request #1686](https://github.com/gazebosim/ign-gazebo/pull/1686)
+
+1. Fix reference link in ackermann steering
+    * [Pull request #1683](https://github.com/gazebosim/ign-gazebo/pull/1683)
+
+### Gazebo Sim 6.12.0 (2022-08-30)
+
+1. Add topic parameter to thrust plugin
+    * [Pull request #1681](https://github.com/gazebosim/gz-sim/pull/1681)
+
+1. Add information about `<topic>` system parameter
+    * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
+
+1. Adding tests for hydrodynamics
+    * [Pull request #1617](https://github.com/gazebosim/gz-sim/pull/1617)
+
+1. Fix Windows and Doxygen
+    * [Pull request #1643](https://github.com/gazebosim/gz-sim/pull/1643)
 
 ### Gazebo Sim 6.11.0 (2022-08-17)
 

@@ -38,11 +38,16 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 #include "gz/sim/Util.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
@@ -60,6 +65,7 @@
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
@@ -100,12 +106,12 @@ class PhysicsSystemFixtureWithDart6_10 : public PhysicsSystemFixture
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/shapes.sdf");
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
@@ -115,14 +121,13 @@ TEST_F(PhysicsSystemFixture, CreatePhysicsWorld)
     server.Run(true, 1, false);
     EXPECT_FALSE(server.Running());
   }
-  // TODO(addisu) add useful EXPECT calls
 }
 
 ////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/falling.sdf";
@@ -133,22 +138,22 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
   const sdf::World *world = root.WorldByIndex(0);
   const sdf::Model *model = world->ModelByIndex(0);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
   const std::string modelName = "sphere";
-  std::vector<gz::math::Pose3d> spherePoses;
+  std::vector<math::Pose3d> spherePoses;
 
   // Create a system that records the poses of the sphere
   test::Relay testSystem;
 
   testSystem.OnPostUpdate(
-    [modelName, &spherePoses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [modelName, &spherePoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const gz::sim::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName) {
@@ -191,7 +196,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
 // must be correct.
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/canonical.sdf";
@@ -203,7 +208,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -212,7 +217,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 
   const sdf::Model *model = world->ModelByIndex(0);
 
-  std::unordered_map<std::string, gz::math::Pose3d> expectedLinPoses;
+  std::unordered_map<std::string, math::Pose3d> expectedLinPoses;
   for (auto &linkName : linksToCheck)
     expectedLinPoses[linkName] = model->LinkByName(linkName)->RawPose();
   ASSERT_EQ(3u, expectedLinPoses.size());
@@ -220,14 +225,14 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, gz::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpLinkPoses;
   testSystem.OnPostUpdate(
-    [&modelName, &postUpLinkPoses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&modelName, &postUpLinkPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const gz::sim::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -263,7 +268,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/nondefault_canonical.sdf";
@@ -275,7 +280,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
@@ -284,13 +289,13 @@ TEST_F(PhysicsSystemFixture,
   // Create a system that records the pose of the model.
   test::Relay testSystem;
 
-  std::vector<gz::math::Pose3d> modelPoses;
+  std::vector<math::Pose3d> modelPoses;
   testSystem.OnPostUpdate(
-    [&modelName, &modelPoses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&modelName, &modelPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const gz::sim::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (_name->Data() == modelName)
@@ -318,7 +323,7 @@ TEST_F(PhysicsSystemFixture,
 // Test physics integration with revolute joints
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -330,7 +335,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
@@ -347,11 +352,11 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
   // arm is in its initial position. The minimum distance is when the arm is in
   // line with the support arm.
   testSystem.OnPostUpdate(
-    [&rotatingLinkName, &armDistances](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&rotatingLinkName, &armDistances](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Link, components::Name, components::Pose>(
-        [&](const gz::sim::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (rotatingLinkName == _name->Data())
@@ -397,8 +402,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RevoluteJoint))
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 {
-  gz::sim::ServerConfig serverConfig;
-  sim::Server server(serverConfig);
+  ServerConfig serverConfig;
+  Server server(serverConfig);
   server.SetPaused(false);
 
   // Create a system just to get the ECM
@@ -408,8 +413,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
   // shared pointer owned by the SimulationRunner.
   EntityComponentManager *ecm{nullptr};
   test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
-                             sim::EntityComponentManager &_ecm)
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
       {
         ecm = &_ecm;
       });
@@ -481,29 +486,29 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(SetFrictionCoefficient))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/friction.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
   std::map<std::string, double> boxParams{
       {"box1", 0.01}, {"box2", 0.1}, {"box3", 1.0}};
-  std::map<std::string, std::vector<gz::math::Pose3d>> poses;
+  std::map<std::string, std::vector<math::Pose3d>> poses;
 
   // Create a system that records the poses of the 3 boxes
   test::Relay testSystem;
 
   testSystem.OnPostUpdate(
-    [&boxParams, &poses](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&boxParams, &poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const gz::sim::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           if (boxParams.find(_name->Data()) != boxParams.end()) {
@@ -567,23 +572,23 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(MultiAxisJointPosition))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/demo_joint_types.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(0ns);
 
   test::Relay testSystem;
   // Create JointPosition components if they don't already exist
   testSystem.OnPreUpdate(
-      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Joint>(
-            [&](const gz::sim::Entity &_entity,
+            [&](const Entity &_entity,
                 components::Joint *) -> bool
             {
               auto posComp = _ecm.Component<components::JointPosition>(_entity);
@@ -598,10 +603,10 @@ TEST_F(PhysicsSystemFixture,
   std::map<std::string, std::size_t> jointPosDof;
 
   testSystem.OnPostUpdate(
-    [&](const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name, components::JointPosition>(
-        [&](const gz::sim::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointPosition *_jointPos) -> bool
@@ -647,7 +652,7 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetPositionComponent))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -659,7 +664,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -673,10 +678,10 @@ TEST_F(PhysicsSystemFixture,
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const gz::sim::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
       {
         EXPECT_NE(nullptr, _name);
@@ -711,11 +716,11 @@ TEST_F(PhysicsSystemFixture,
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name, components::JointPosition>(
-          [&](const gz::sim::Entity &,
+          [&](const Entity &,
               const components::Joint *,
               const components::Name *_name,
               const components::JointPosition *_pos)
@@ -747,7 +752,7 @@ TEST_F(PhysicsSystemFixture,
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetVelocityComponent))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -759,7 +764,7 @@ TEST_F(PhysicsSystemFixture,
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -773,10 +778,10 @@ TEST_F(PhysicsSystemFixture,
   bool firstRun = true;
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const gz::sim::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -809,12 +814,12 @@ TEST_F(PhysicsSystemFixture,
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-    const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointVelocity>(
-        [&](const gz::sim::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointVelocity *_vel)
@@ -845,7 +850,7 @@ TEST_F(PhysicsSystemFixture,
 /// Test joint position limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -857,7 +862,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -878,10 +883,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
   // commands do not break the positional limit.
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const gz::sim::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -934,12 +939,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointPosition>(
-        [&](const gz::sim::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointPosition *_pos)
@@ -968,7 +973,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointPositionLimitsCommandComponent)
 /// Test joint velocity limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint.sdf";
@@ -980,7 +985,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -1001,10 +1006,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
   // commands do not break the velocity limit.
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const gz::sim::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -1057,12 +1062,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
   std::vector<double> velocities;
 
   testSystem.OnPostUpdate([&](
-    const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint,
                 components::Name,
                 components::JointVelocity>(
-        [&](const gz::sim::Entity &,
+        [&](const Entity &,
             const components::Joint *,
             const components::Name *_name,
             const components::JointVelocity *_vel)
@@ -1092,7 +1097,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityLimitsCommandComponent)
 /// Test joint effort limit command component
 TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/revolute_joint_equilibrium.sdf";
@@ -1104,7 +1109,7 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ms);
 
@@ -1125,10 +1130,10 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
   // commands do not break the effort limit.
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Joint, components::Name>(
-        [&](const gz::sim::Entity &_entity,
+        [&](const Entity &_entity,
             const components::Joint *, components::Name *_name) -> bool
         {
           if (_name->Data() == rotatingJointName)
@@ -1186,12 +1191,12 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
   std::vector<double> positions;
 
   testSystem.OnPostUpdate([&](
-    const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+    const UpdateInfo &, const EntityComponentManager &_ecm)
     {
     _ecm.Each<components::Joint,
     components::Name,
     components::JointPosition>(
-      [&](const gz::sim::Entity &,
+      [&](const Entity &,
         const components::Joint *,
         const components::Name *_name,
         const components::JointPosition *_pos)
@@ -1219,28 +1224,28 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/contact.sdf";
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1ns);
 
   // a map of model name to its axis aligned box
-  std::map<std::string, gz::math::AxisAlignedBox> bbox;
+  std::map<std::string, math::AxisAlignedBox> bbox;
 
   // Create a system that records the bounding box of a model
   test::Relay testSystem;
 
   testSystem.OnPreUpdate(
-    [&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &,
+    EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Static>(
-        [&](const gz::sim::Entity &_entity, const components::Model *,
+        [&](const Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Static *)->bool
         {
           // create axis aligned box to be filled by physics
@@ -1258,13 +1263,13 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
     });
 
   testSystem.OnPostUpdate(
-    [&](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       // store models that have axis aligned box computed
       _ecm.Each<components::Model, components::Name, components::Static,
         components::AxisAlignedBox>(
-        [&](const gz::sim::Entity &, const components::Model *,
+        [&](const Entity &, const components::Model *,
         const components::Name *_name, const components::Static *,
         const components::AxisAlignedBox *_aabb)->bool
         {
@@ -1279,9 +1284,9 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 
   EXPECT_EQ(1u, bbox.size());
   EXPECT_EQ("box1", bbox.begin()->first);
-  EXPECT_EQ(gz::math::AxisAlignedBox(
-      gz::math::Vector3d(-1.25, -2, 0),
-      gz::math::Vector3d(-0.25, 2, 1)),
+  EXPECT_EQ(math::AxisAlignedBox(
+      math::Vector3d(-1.25, -2, 0),
+      math::Vector3d(-0.25, 2, 1)),
       bbox.begin()->second);
 }
 
@@ -1290,7 +1295,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
 // This tests whether nested models can be loaded correctly
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 {
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
 
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/nested_model.sdf";
@@ -1302,22 +1307,22 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
   serverConfig.SetSdfFile(sdfFile);
 
-  sim::Server server(serverConfig);
+  Server server(serverConfig);
 
   server.SetUpdatePeriod(1us);
 
   // Create a system that records the poses of the links after physics
   test::Relay testSystem;
 
-  std::unordered_map<std::string, gz::math::Pose3d> postUpModelPoses;
-  std::unordered_map<std::string, gz::math::Pose3d> postUpLinkPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpModelPoses;
+  std::unordered_map<std::string, math::Pose3d> postUpLinkPoses;
   std::unordered_map<std::string, std::string> parents;
   testSystem.OnPostUpdate(
-    [&postUpModelPoses, &postUpLinkPoses, &parents](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
+    [&postUpModelPoses, &postUpLinkPoses, &parents](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
     {
       _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const gz::sim::Entity &_entity, const components::Model *,
+        [&](const Entity &_entity, const components::Model *,
         const components::Name *_name, const components::Pose *_pose)->bool
         {
           // store model pose
@@ -1336,7 +1341,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModel))
 
       _ecm.Each<components::Link, components::Name, components::Pose,
                 components::ParentEntity>(
-        [&](const gz::sim::Entity &, const components::Link *,
+        [&](const Entity &, const components::Link *,
         const components::Name *_name, const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
         {
@@ -2000,8 +2005,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(Heightmap))
 {
   gz::sim::ServerConfig serverConfig;
 
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/heightmap.sdf";
+  const auto sdfFile = common::joinPaths(PROJECT_BINARY_PATH,
+    "test", "worlds", "heightmap.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   sdf::Root root;
@@ -2263,4 +2268,356 @@ TEST_F(PhysicsSystemFixtureWithDart6_10,
 
   server->AddSystem(testSystem.systemPtr);
   server->Run(true, nIters, false);
+}
+
+
+//////////////////////////////////////////////////
+/// This test makes sure that non-link entities' components
+/// are updated by the physics system if they have been enabled.
+/// A collision is a non-link entity
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NonLinkComponentsAreUpdated))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile =
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/non_link_components.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  auto gravity = world->Gravity();
+  ASSERT_TRUE(nullptr != world);
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  const std::string collisionName{"collision"};
+  const std::string collisionWithOffsetName{"collision_with_offset"};
+
+  // Create a system that records the pose, vel, acc of the collisions.
+  test::Relay testSystem;
+
+  size_t iterations = 0u;
+  std::size_t nIters{100};
+  std::size_t halfIters{nIters / 2};
+
+  std::vector<math::Pose3d> collisionPoses;
+  std::vector<math::Vector3d> linVels, angVels, worldLinVels, worldAngVels;
+  std::vector<math::Vector3d> linAccs, angAccs, worldLinAccs, worldAngAccs;
+  testSystem.OnPreUpdate(
+      [&iterations, &nIters, &halfIters,
+       &collisionWithOffsetName](const UpdateInfo &,
+                                 EntityComponentManager &_ecm)
+      {
+        _ecm.EachNew<components::Collision, components::Name,
+                     components::ParentEntity>(
+            [&](const Entity &_entity, const components::Collision *,
+                const components::Name *_name,
+                const components::ParentEntity *) -> bool
+            {
+              // we only enable the velocity, acceleration components for
+              // the collision_with_offset
+              if (_name->Data() == collisionWithOffsetName)
+              {
+                enableComponent<components::WorldPose>(_ecm, _entity);
+                enableComponent<components::LinearVelocity>(_ecm, _entity);
+                enableComponent<components::AngularVelocity>(_ecm, _entity);
+                enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
+                enableComponent<components::WorldAngularVelocity>(_ecm,
+                                                                  _entity);
+                enableComponent<components::LinearAcceleration>(_ecm, _entity);
+                enableComponent<components::AngularAcceleration>(_ecm, _entity);
+                enableComponent<components::WorldLinearAcceleration>(_ecm,
+                                                                     _entity);
+                enableComponent<components::WorldAngularAcceleration>(_ecm,
+                                                                      _entity);
+              }
+              return true;
+            });
+
+        _ecm.Each<components::Collision, components::Name,
+                  components::ParentEntity>(
+            [&](const Entity &, const components::Collision *,
+                const components::Name *_name,
+                const components::ParentEntity *_parentEntity) -> bool
+            {
+              // after half of the simulation, apply a varying wrench, on the
+              // link
+              if (_name->Data() == collisionWithOffsetName &&
+                  iterations >= halfIters)
+              {
+                gz::sim::Link parentLink(_parentEntity->Data());
+                parentLink.EnableVelocityChecks(_ecm);
+                parentLink.EnableAccelerationChecks(_ecm);
+                using namespace gz::math;
+                // increasing force downward
+                auto force =
+                    -Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                        static_cast<double>(nIters));
+                // increasing torque around z
+                auto torque =
+                    Vector3d::UnitZ * (static_cast<double>(iterations) /
+                                       static_cast<double>(nIters));
+                parentLink.AddWorldWrench(_ecm, force, torque);
+              }
+              return true;
+            });
+      });
+
+  // save all the components history
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<
+            components::Collision, components::Name, components::WorldPose,
+            components::LinearVelocity, components::AngularVelocity,
+            components::WorldLinearVelocity, components::WorldAngularVelocity,
+            components::LinearAcceleration, components::AngularAcceleration,
+            components::WorldLinearAcceleration,
+            components::WorldAngularAcceleration>(
+            [&](const Entity &, const components::Collision *,
+                const components::Name *_name,
+                const components::WorldPose *_pose,
+                const components::LinearVelocity *_linearVel,
+                const components::AngularVelocity *_angularVel,
+                const components::WorldLinearVelocity *_worldLinearVel,
+                const components::WorldAngularVelocity *_worldAngularVel,
+                const components::LinearAcceleration *_linearAcc,
+                const components::AngularAcceleration *_angularAcc,
+                const components::WorldLinearAcceleration *_worldLinearAcc,
+                const components::WorldAngularAcceleration *_worldAngularAcc)
+                -> bool
+            {
+              EXPECT_TRUE(_name->Data() == collisionWithOffsetName);
+              if (_name->Data() == collisionWithOffsetName)
+              {
+                collisionPoses.push_back(_pose->Data());
+                linVels.push_back(_linearVel->Data());
+                angVels.push_back(_angularVel->Data());
+                worldLinVels.push_back(_worldLinearVel->Data());
+                worldAngVels.push_back(_worldAngularVel->Data());
+                linAccs.push_back(_linearAcc->Data());
+                angAccs.push_back(_angularAcc->Data());
+                worldLinAccs.push_back(_worldLinearAcc->Data());
+                worldAngAccs.push_back(_worldAngularAcc->Data());
+              }
+              return true;
+            });
+        ++iterations;
+        return true;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, collisionPoses.size());
+  ASSERT_EQ(nIters, linVels.size());
+  ASSERT_EQ(nIters, angVels.size());
+  ASSERT_EQ(nIters, worldLinVels.size());
+  ASSERT_EQ(nIters, worldAngVels.size());
+  ASSERT_EQ(nIters, linAccs.size());
+  ASSERT_EQ(nIters, angAccs.size());
+  ASSERT_EQ(nIters, worldLinAccs.size());
+  ASSERT_EQ(nIters, worldAngAccs.size());
+  ASSERT_EQ(nIters, iterations);
+
+  // The collision offset should be taken into account in the world pose
+  EXPECT_NEAR(0.1, collisionPoses.front().Pos().X(), 1e-2);
+  EXPECT_NEAR(0.2, collisionPoses.front().Pos().Y(), 1e-2);
+  EXPECT_NEAR(2, collisionPoses.front().Pos().Z(), 1e-2);
+
+  // Make sure the position is updated every time step
+  // (here, the model is falling down, so only z should be updated)
+  for (size_t i = 1; i < nIters; i++)
+  {
+    EXPECT_GT(collisionPoses[i - 1].Pos().Z(), collisionPoses[i].Pos().Z())
+        << "Model should be falling down.";
+  }
+
+  double normLinVelYz, normWorldLinVelXy;
+  double normLinAccYz, normWorldLinAccXy;
+  // the first part checks that:
+  // - the collision poses are updated correctly
+  // - linear velocities (world/local) are updated.
+  for (size_t i = 1; i < halfIters; i++)
+  {
+    // --- LIN ACC (WORLD, LOCAL)
+    // linear acc is constant = gravity (both world and local)
+    EXPECT_NEAR(linAccs[i].Length(), gravity.Length(), 1e-2);
+    EXPECT_NEAR(worldLinAccs[i].Length(), gravity.Length(), 1e-2);
+    // local should mostly be X , world should be -Z
+    EXPECT_NEAR(linAccs[i].X(), gravity.Length(), 1e-2)
+        << "Local linear acceleration should be along X axis";
+    EXPECT_NEAR(worldLinAccs[i].Z(), -gravity.Length(), 1e-2)
+        << "World Linear acceleration should be along -Z axis";
+    // on the local(world) YZ(XY) plane the acceleration should be 0
+    normLinAccYz =
+        sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_NEAR(normLinAccYz, 0, 1e-2)
+        << "Local Linear acceleration on YZ-plane should be 0";
+    normWorldLinAccXy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() +
+                             worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_NEAR(normWorldLinAccXy, 0, 1e-2)
+        << "World Linear acceleration on XY-plane should be 0";
+
+    // --- LIN VEL (WORLD, LOCAL)
+    // linear velocity should keep increasing, both local and world
+    EXPECT_LT(linVels[i - 1].Length(), linVels[i].Length())
+        << "Local linear velocity should keep increasing";
+    EXPECT_LT(worldLinVels[i - 1].Length(), worldLinVels[i].Length())
+        << "World linear velocity should keep increasing";
+    // local should mostly be X , world should be -Z
+    EXPECT_GT(linVels[i - 1].X(), 0)
+        << "Local linear vel should be positive in x";
+    EXPECT_LT(worldLinVels[i - 1].Z(), 0)
+        << "World linear vel should be negative in z";
+    // on the local(world) YZ(XY) plane the velocity should be 0
+    normLinVelYz =
+        sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_NEAR(normLinVelYz, 0, 1e-2)
+        << "Local Linear velocity on YZ-plane should be zero";
+    normWorldLinVelXy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() +
+                             worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_NEAR(normWorldLinVelXy, 0, 1e-2)
+        << "World Linear acceleration on XY-plane should be zero";
+
+    // --- ANG ACC (WORLD, LOCAL)
+    // angular acc is constant = 0 (both world and local)
+    EXPECT_NEAR(angAccs[i].Length(), 0, 1e-2);
+    EXPECT_NEAR(worldAngAccs[i].Length(), 0, 1e-2);
+    // --- ANG VEL (WORLD, LOCAL)
+    // angular velocity is constant
+    EXPECT_NEAR(angVels[i].Length(), 0, 1e-2);
+    EXPECT_NEAR(worldAngVels[i].Length(), 0, 1e-2);
+  }
+
+  // Second part, we applied a varying wrench, and we should see:
+  //  - linear acceleration (world/local) are updated
+  //  - angular acceleration (world/local) are updated
+  //  - angular velocities (world/local) are updated
+  for (size_t i = halfIters + 1; i < nIters; i++)
+  {
+    // --- LIN ACC (WORLD, LOCAL)
+    EXPECT_LT(linAccs[i - 1].Length(), linAccs[i].Length())
+        << "Local Linear Acceleration should be increasing.";
+    EXPECT_LT(worldLinAccs[i - 1].Length(), worldLinAccs[i].Length())
+        << "World Linear Acceleration should be increasing.";
+    // on the local(world) YZ(XY) plane the acceleration norm should be positive
+    normLinAccYz =
+        sqrt(linAccs[i].Y() * linAccs[i].Y() + linAccs[i].Z() * linAccs[i].Z());
+    EXPECT_GT(normLinAccYz, 0)
+        << "Local Linear acceleration on YZ-plane should be positive";
+    normWorldLinAccXy = sqrt(worldLinAccs[i].X() * worldLinAccs[i].X() +
+                             worldLinAccs[i].Y() * worldLinAccs[i].Y());
+    EXPECT_GT(normWorldLinAccXy, 0)
+        << "World Linear acceleration on XY-plane should be positive";
+    // on the local(world) YZ(XY) plane the velocity should be positive
+    normLinVelYz =
+        sqrt(linVels[i].Y() * linVels[i].Y() + linVels[i].Z() * linVels[i].Z());
+    EXPECT_GT(normLinVelYz, 0)
+        << "Local Linear velocity on YZ-plane should be positive";
+    normWorldLinVelXy = sqrt(worldLinVels[i].X() * worldLinVels[i].X() +
+                             worldLinVels[i].Y() * worldLinVels[i].Y());
+    EXPECT_GT(normWorldLinVelXy, 0)
+        << "World Linear acceleration on XY-plane should be positive";
+
+    // --- ANG ACC (WORLD, LOCAL)
+    EXPECT_LT(angAccs[i - 1].Length(), angAccs[i].Length())
+        << "Local Angular Acceleration should be increasing.";
+    EXPECT_LT(worldAngAccs[i - 1].Length(), worldAngAccs[i].Length())
+        << "World Angular Acceleration should be increasing.";
+
+    // --- ANG VEL (WORLD, LOCAL)
+    EXPECT_LT(angVels[i - 1].Length(), angVels[i].Length())
+        << "Local Angular Velocity should be increasing.";
+    EXPECT_LT(worldAngVels[i - 1].Length(), worldAngVels[i].Length())
+        << "World Angular Velocity should be increasing.";
+  }
+}
+
+//////////////////////////////////////////////////
+/// Tests that joints inside <world> are supported by computing the position of
+/// a pendulum bob from the joint angle. This also tests that commands such as
+/// JointPositionReset work as expected.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds",
+                                         "joints_in_world.sdf");
+
+  serverConfig.SetSdfFile(sdfFile);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ns);
+
+  const int kIters = 1000;
+  test::Relay testSystem;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
+      {
+        _ecm.EachNew<components::Joint, components::ParentEntity>(
+            [&](const Entity &_entity, const components::Joint *,
+                const components::ParentEntity *) -> bool
+            {
+              enableComponent<components::JointPosition>(_ecm, _entity);
+              enableComponent<components::JointVelocity>(_ecm, _entity);
+              return true;
+            });
+
+        if (_info.iterations == kIters / 2)
+        {
+          // After half the iterations, reset the joint position and velocity so
+          // that the bob at its equilibrium point and at rest.
+          auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
+                                                     components::Joint());
+          ASSERT_NE(jointEntity, kNullEntity);
+          _ecm.SetComponentData<components::JointVelocityReset>(jointEntity,
+                                                                {0});
+          _ecm.SetComponentData<components::JointPositionReset>(jointEntity,
+                                                                {GZ_PI_2});
+        }
+      });
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &_info, const EntityComponentManager &_ecm)
+      {
+        auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
+                                                   components::Joint());
+        ASSERT_NE(jointEntity, kNullEntity);
+
+        auto m2Entity = _ecm.EntityByComponents(components::Name("m2"),
+                                                components::Model());
+        ASSERT_NE(m2Entity, kNullEntity);
+
+        math::Pose3d m2Pose = worldPose(m2Entity, _ecm);
+
+        auto jointPos =
+            _ecm.ComponentData<components::JointPosition>(jointEntity);
+        ASSERT_TRUE(jointPos.has_value());
+        ASSERT_EQ(1u, jointPos->size());
+
+        if (_info.iterations < kIters / 2)
+        {
+          // If the joint is properly working, the position of the model can be
+          // determined from the joint angle with the equations:
+          // x = L*cos(θ)
+          // z = -L*sin(θ)
+          // where L is the length of the model from the pivot (2m for this
+          // test).
+          const double theta = (*jointPos)[0];
+          const double kLength = 2.0;
+          EXPECT_NEAR(m2Pose.X(), kLength * cos(theta), 1e-2);
+          EXPECT_NEAR(m2Pose.Z(), -kLength * sin(theta), 1e-2);
+        }
+        else
+        {
+          EXPECT_NEAR((*jointPos)[0], GZ_PI_2, 1e-2);
+        }
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
 }

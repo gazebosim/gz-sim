@@ -16,6 +16,7 @@
  */
 #include <memory>
 #include <mutex>
+#include <limits>
 #include <string>
 
 #include <gz/msgs/double.pb.h>
@@ -31,10 +32,12 @@
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/BatteryPowerLoad.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Link.hh"
@@ -77,6 +80,9 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief The link entity which will spin
   public: Entity linkEntity;
 
+  /// \brief Battery consumer entity
+  public: Entity consumerEntity;
+
   /// \brief Axis along which the propeller spins. Expressed in the joint
   /// frame. Addume this doesn't change during simulation.
   public: math::Vector3d jointAxis;
@@ -114,14 +120,47 @@ class gz::sim::systems::ThrusterPrivateData
   /// thrust
   public: double thrustCoefficient = 1;
 
+  /// \brief True if the thrust coefficient was set by configuration.
+  public: bool thrustCoefficientSet = false;
+
+  /// \brief Relative speed reduction between the water at the propeller vs
+  /// behind the vessel.
+  public: double wakeFraction = 0.2;
+
+  /// \brief Constant given by the open water propeller diagram. Used in the
+  /// calculation of the thrust coefficient.
+  public: double alpha1 = 1;
+
+  /// \brief Constant given by the open water propeller diagram. Used in the
+  /// calculation of the thrust coefficient.
+  public: double alpha2 = 0;
+
   /// \brief Density of fluid in kgm^-3, default: 1000kgm^-3
   public: double fluidDensity = 1000;
 
   /// \brief Diameter of propeller in m, default: 0.02
   public: double propellerDiameter = 0.02;
 
+  /// \brief Linear velocity of the vehicle.
+  public: double linearVelocity = 0.0;
+
+  /// \brief Topic name used to control thrust. Optional
+  public: std::string topic = "";
+
+  /// \brief Battery entity used by the thruster to consume power.
+  public: std::string batteryName = "";
+
+  /// \brief Battery power load of the thruster.
+  public: double powerLoad = 0.0;
+
+  /// \brief Has the battery consumption being initialized.
+  public: bool batteryInitialized = false;
+
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
+
+  /// \brief Recalculates and updates the thrust coefficient.
+  public: void UpdateThrustCoefficient();
 
   /// \brief callback for handling angular velocity update
   public: void OnCmdAngVel(const gz::msgs::Double &_msg);
@@ -151,14 +190,14 @@ Thruster::Thruster():
 
 /////////////////////////////////////////////////
 void Thruster::Configure(
-  const gz::sim::Entity &_entity,
+  const Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  gz::sim::EntityComponentManager &_ecm,
-  gz::sim::EventManager &/*_eventMgr*/)
+  EntityComponentManager &_ecm,
+  EventManager &/*_eventMgr*/)
 {
   // Create model object, to access convenient functions
   this->dataPtr->modelEntity = _entity;
-  auto model = gz::sim::Model(_entity);
+  auto model = Model(_entity);
   auto modelName = model.Name(_ecm);
 
   // Get namespace
@@ -181,6 +220,7 @@ void Thruster::Configure(
   if (_sdf->HasElement("thrust_coefficient"))
   {
     this->dataPtr->thrustCoefficient = _sdf->Get<double>("thrust_coefficient");
+    this->dataPtr->thrustCoefficientSet = true;
   }
 
   // Get propeller diameter
@@ -203,6 +243,47 @@ void Thruster::Configure(
       ThrusterPrivateData::OperationMode::ForceCmd;
   }
 
+  // Get wake fraction number, default 0.2 otherwise
+  if (_sdf->HasElement("wake_fraction"))
+  {
+    this->dataPtr->wakeFraction = _sdf->Get<double>("wake_fraction");
+  }
+
+  // Get alpha_1, default to 1 othwewise
+  if (_sdf->HasElement("alpha_1"))
+  {
+    this->dataPtr->alpha1 = _sdf->Get<double>("alpha_1");
+    if (this->dataPtr->thrustCoefficientSet)
+    {
+      gzwarn << " The [alpha_2] value will be ignored as a "
+              << "[thrust_coefficient] was also defined through the SDF file."
+              << " If you want the system to use the alpha values to calculate"
+              << " and update the thrust coefficient please remove the "
+              << "[thrust_coefficient] value from the SDF file." << std::endl;
+    }
+  }
+
+  // Get alpha_2, default to 1 othwewise
+  if (_sdf->HasElement("alpha_2"))
+  {
+    this->dataPtr->alpha2 = _sdf->Get<double>("alpha_2");
+    if (this->dataPtr->thrustCoefficientSet)
+    {
+      gzwarn << " The [alpha_2] value will be ignored as a "
+              << "[thrust_coefficient] was also defined through the SDF file."
+              << " If you want the system to use the alpha values to calculate"
+              << " and update the thrust coefficient please remove the "
+              << "[thrust_coefficient] value from the SDF file." << std::endl;
+    }
+  }
+
+  // Get a custom topic.
+  if (_sdf->HasElement("topic"))
+  {
+    this->dataPtr->topic = transport::TopicUtils::AsValidTopic(
+      _sdf->Get<std::string>("topic"));
+  }
+
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
   if (kNullEntity == this->dataPtr->jointEntity)
   {
@@ -212,7 +293,7 @@ void Thruster::Configure(
   }
 
   this->dataPtr->jointAxis =
-    _ecm.Component<gz::sim::components::JointAxis>(
+    _ecm.Component<components::JointAxis>(
     this->dataPtr->jointEntity)->Data().Xyz();
 
   this->dataPtr->jointPose = _ecm.Component<components::Pose>(
@@ -220,25 +301,43 @@ void Thruster::Configure(
 
   // Get link entity
   auto childLink =
-      _ecm.Component<gz::sim::components::ChildLinkName>(
+      _ecm.Component<components::ChildLinkName>(
       this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
-  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+  std::string thrusterTopic;
+  std::string feedbackTopic;
+  if (!this->dataPtr->topic.empty())
   {
-    // Keeping cmd_pos for backwards compatibility
-    // TODO(chapulina) Deprecate cmd_pos, because the commands aren't positions
-    std::string thrusterTopicOld =
-      gz::transport::TopicUtils::AsValidTopic(
-        "/model/" + ns + "/joint/" + jointName + "/cmd_pos");
+    // Subscribe to specified topic for force commands
+    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
+      ns + "/" + this->dataPtr->topic);
+    if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+    {
+      this->dataPtr->node.Subscribe(
+          thrusterTopic,
+          &ThrusterPrivateData::OnCmdThrust,
+          this->dataPtr.get());
 
-    this->dataPtr->node.Subscribe(
-      thrusterTopicOld,
-      &ThrusterPrivateData::OnCmdThrust,
-      this->dataPtr.get());
+      feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
+        ns + "/" + this->dataPtr->topic + "/ang_vel");
+    }
+    else
+    {
+      this->dataPtr->node.Subscribe(
+        thrusterTopic,
+        &ThrusterPrivateData::OnCmdAngVel,
+        this->dataPtr.get());
 
+      feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
+          ns + "/" + this->dataPtr->topic + "/force");
+    }
+  }
+  else if (this->dataPtr->opmode ==
+           ThrusterPrivateData::OperationMode::ForceCmd)
+  {
     // Subscribe to force commands
-    std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
+    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
 
     this->dataPtr->node.Subscribe(
@@ -246,20 +345,14 @@ void Thruster::Configure(
       &ThrusterPrivateData::OnCmdThrust,
       this->dataPtr.get());
 
-    gzmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
-          << std::endl;
-
-    std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
+    feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/ang_vel");
-    this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
-      feedbackTopic
-    );
   }
   else
   {
     gzdbg << "Using angular velocity mode" << std::endl;
     // Subscribe to angvel commands
-    std::string thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
+    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
 
     this->dataPtr->node.Subscribe(
@@ -267,19 +360,21 @@ void Thruster::Configure(
       &ThrusterPrivateData::OnCmdAngVel,
       this->dataPtr.get());
 
-    gzmsg << "Thruster listening to commands in [" << thrusterTopic << "]"
-          << std::endl;
-
-    std::string feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/force");
-    this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
-      feedbackTopic
-    );
+    feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
+        "/model/" + ns + "/joint/" + jointName + "/force");
   }
+
+  gzmsg << "Thruster listening to commands on [" << thrusterTopic << "]"
+        << std::endl;
+
+  this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
+      feedbackTopic);
 
   // Create necessary components if not present.
   enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
   enableComponent<components::WorldAngularVelocity>(_ecm,
+      this->dataPtr->linkEntity);
+  enableComponent<components::WorldLinearVelocity>(_ecm,
       this->dataPtr->linkEntity);
 
   double minThrustCmd = this->dataPtr->cmdMin;
@@ -350,6 +445,22 @@ void Thruster::Configure(
   {
     gzdbg << "Using velocity control for propeller joint." << std::endl;
   }
+
+  // Get power load and battery name info
+  if (_sdf->HasElement("power_load"))
+  {
+    if (!_sdf->HasElement("battery_name"))
+    {
+      ignerr << "Specified a <power_load> but missing <battery_name>."
+          "Specify a battery name so the power load can be assigned to it."
+          << std::endl;
+    }
+    else
+    {
+      this->dataPtr->powerLoad = _sdf->Get<double>("power_load");
+      this->dataPtr->batteryName = _sdf->Get<std::string>("battery_name");
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -380,6 +491,14 @@ void ThrusterPrivateData::OnCmdAngVel(const gz::msgs::Double &_msg)
 /////////////////////////////////////////////////
 double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
 {
+  // Only update if the thrust coefficient was not set by configuration
+  // and angular velocity is not zero. Some velocity is needed to calculate
+  // the thrust coefficient otherwise it will never start moving.
+  if (!this->thrustCoefficientSet &&
+      std::abs(this->propellerAngVel) > std::numeric_limits<double>::epsilon())
+  {
+    this->UpdateThrustCoefficient();
+  }
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   auto propAngularVelocity = sqrt(abs(
@@ -390,6 +509,14 @@ double ThrusterPrivateData::ThrustToAngularVec(double _thrust)
   propAngularVelocity *= (_thrust * this->thrustCoefficient > 0) ? 1: -1;
 
   return propAngularVelocity;
+}
+
+/////////////////////////////////////////////////
+void ThrusterPrivateData::UpdateThrustCoefficient()
+{
+  this->thrustCoefficient = this->alpha1 + this->alpha2 *
+      (((1 - this->wakeFraction) * this->linearVelocity)
+      / (this->propellerAngVel * this->propellerDiameter));
 }
 
 /////////////////////////////////////////////////
@@ -436,7 +563,56 @@ void Thruster::PreUpdate(
     return;
   }
 
+  // Init battery consumption if it was set
+  if (!this->dataPtr->batteryName.empty() &&
+      !this->dataPtr->batteryInitialized)
+  {
+    this->dataPtr->batteryInitialized = true;
+
+    // Check that a battery exists with the specified name
+    Entity batteryEntity;
+    int numBatteriesWithName = 0;
+    _ecm.Each<components::BatterySoC, components::Name>(
+      [&](const Entity &_entity,
+        const components::BatterySoC */*_BatterySoC*/,
+        const components::Name *_name)->bool
+      {
+        if (this->dataPtr->batteryName == _name->Data())
+        {
+          ++numBatteriesWithName;
+          batteryEntity = _entity;
+        }
+        return true;
+      });
+    if (numBatteriesWithName == 0)
+    {
+      ignerr << "Can't assign battery consumption to battery: ["
+             << this->dataPtr->batteryName << "]. No batteries"
+             "were found with the given name." << std::endl;
+      return;
+    }
+    if (numBatteriesWithName > 1)
+    {
+      ignerr << "More than one battery found with name: ["
+             << this->dataPtr->batteryName << "]. Please make"
+             "sure battery names are unique within the system."
+             << std::endl;
+      return;
+    }
+
+    // Create the battery consumer entity and its component
+    this->dataPtr->consumerEntity = _ecm.CreateEntity();
+    components::BatteryPowerLoadInfo batteryPowerLoadInfo{
+        batteryEntity, this->dataPtr->powerLoad};
+    _ecm.CreateComponent(this->dataPtr->consumerEntity,
+        components::BatteryPowerLoad(batteryPowerLoadInfo));
+    _ecm.SetParentEntity(this->dataPtr->consumerEntity, batteryEntity);
+  }
+
   gz::sim::Link link(this->dataPtr->linkEntity);
+
+
+  auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
 
   // TODO(arjo129): add logic for custom coordinate frame
   // Convert joint axis to the world frame
@@ -450,6 +626,8 @@ void Thruster::PreUpdate(
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     desiredThrust = this->dataPtr->thrust;
+    this->dataPtr->propellerAngVel =
+        this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
 
@@ -501,6 +679,11 @@ void Thruster::PreUpdate(
     _ecm,
     unitVector * desiredThrust,
     unitVector * torque);
+
+  // Update the LinearVelocity of the vehicle
+  this->dataPtr->linearVelocity =
+      _ecm.Component<components::WorldLinearVelocity>(
+      this->dataPtr->linkEntity)->Data().Length();
 }
 
 /////////////////////////////////////////////////

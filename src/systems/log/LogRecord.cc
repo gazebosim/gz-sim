@@ -371,7 +371,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
-      gz::transport::log::RecorderError::SUCCESS)
+      transport::log::RecorderError::SUCCESS)
   {
     this->instStarted = true;
     return true;
@@ -736,11 +736,11 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-GZ_ADD_PLUGIN(gz::sim::systems::LogRecord,
-                    gz::sim::System,
-                    LogRecord::ISystemConfigure,
-                    LogRecord::ISystemPreUpdate,
-                    LogRecord::ISystemPostUpdate)
+GZ_ADD_PLUGIN(LogRecord,
+              System,
+              LogRecord::ISystemConfigure,
+              LogRecord::ISystemPreUpdate,
+              LogRecord::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LogRecord,
                           "gz::sim::systems::LogRecord")

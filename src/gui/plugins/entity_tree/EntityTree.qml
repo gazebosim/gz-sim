@@ -116,7 +116,7 @@ Rectangle {
       height: childrenRect.height
 
       Text {
-          text: sectionText 
+          text: sectionText
           font.pointSize: 10
           padding: 5
       }
@@ -125,7 +125,7 @@ Rectangle {
 
   Rectangle {
     id: header
-    visible: true 
+    visible: true
     height: addEntity.height
     anchors.top: parent.top
     anchors.left: parent.left
@@ -178,7 +178,7 @@ Rectangle {
           Item {
             Layout.fillWidth: true
             height: childrenRect.height
-            Loader { 
+            Loader {
               property string sectionText: "Model"
               sourceComponent: menuSectionHeading
             }
@@ -222,7 +222,7 @@ Rectangle {
 
           MenuItem
           {
-            id: sphere 
+            id: sphere
             text: "Sphere"
             onClicked: {
               EntityTree.OnInsertEntity("sphere")
@@ -231,7 +231,7 @@ Rectangle {
 
           MenuItem
           {
-            id: mesh 
+            id: mesh
             text: "Mesh"
             onClicked: {
               loadFileDialog.open()
@@ -252,7 +252,7 @@ Rectangle {
           Item {
             Layout.fillWidth: true
             height: childrenRect.height
-            Loader { 
+            Loader {
               property string sectionText: "Light"
               sourceComponent: menuSectionHeading
             }
@@ -260,7 +260,7 @@ Rectangle {
 
           MenuItem
           {
-            id: directionalLight 
+            id: directionalLight
             text: "Directional"
             onClicked: {
               EntityTree.OnInsertEntity("directional")
@@ -278,7 +278,7 @@ Rectangle {
 
           MenuItem
           {
-            id: spotLight 
+            id: spotLight
             text: "Spot"
             onClicked: {
               EntityTree.OnInsertEntity("spot")

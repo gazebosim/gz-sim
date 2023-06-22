@@ -24,4 +24,3 @@ From the root of the repository:
     cd examples/standalone/gtest_setup/build
     ./gravity_TEST
     ./command_TEST
-

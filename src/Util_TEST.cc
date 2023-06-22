@@ -32,6 +32,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
@@ -360,6 +361,10 @@ TEST_F(UtilTest, EntityTypeId)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
   EXPECT_EQ(components::ParticleEmitter::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ(components::Projector::typeId, entityTypeId(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -409,6 +414,10 @@ TEST_F(UtilTest, EntityTypeStr)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
   EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ("projector", entityTypeStr(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -824,7 +833,7 @@ TEST_F(UtilTest, EntityFromMsg)
   ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
 
   // Check entities
-  auto createMsg = [&ecm](Entity _id, const std::string &_name = "",
+  auto createMsg = [&](Entity _id, const std::string &_name = "",
       msgs::Entity::Type _type = msgs::Entity::NONE) -> msgs::Entity
   {
     msgs::Entity msg;

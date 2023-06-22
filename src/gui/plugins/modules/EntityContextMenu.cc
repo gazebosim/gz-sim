@@ -86,7 +86,7 @@ using namespace sim;
 void GzSimPlugin::registerTypes(const char *_uri)
 {
   // Register our 'EntityContextMenuItem' in qml engine
-  qmlRegisterType<gz::sim::EntityContextMenu>(_uri, 1, 0,
+  qmlRegisterType<EntityContextMenu>(_uri, 1, 0,
       "EntityContextMenuItem");
 }
 
@@ -163,14 +163,14 @@ void EntityContextMenu::OnRemove(
       "/world/" + this->dataPtr->worldName + "/remove";
   }
 
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &_rep, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &_rep, const bool _result)
   {
     if (!_result || !_rep.data())
       gzerr << "Error sending remove request" << std::endl;
   };
 
-  gz::msgs::Entity req;
+  msgs::Entity req;
   req.set_name(_data.toStdString());
   req.set_type(convert<msgs::Entity_Type>(_type.toStdString()));
 
@@ -180,8 +180,8 @@ void EntityContextMenu::OnRemove(
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
 {
-  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
-      [](const gz::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       gzerr << "Error sending move to request" << std::endl;
@@ -190,49 +190,49 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   std::string request = _request.toStdString();
   if (request == "move_to")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->moveToService, req, cb);
   }
   else if (request == "follow")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
   }
   else if (request == "view_transparent")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
   }
   else if (request == "view_com")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
   }
   else if (request == "view_inertia")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_joints")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewJointsService, req, cb);
   }
   else if (request == "view_wireframes")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
   }
   else if (request == "view_collisions")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCollisionsService, req, cb);
   }
@@ -244,13 +244,13 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "copy")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
   }
   else if (request == "paste")
   {
-    gz::msgs::Empty req;
+    msgs::Empty req;
     this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else

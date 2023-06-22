@@ -69,7 +69,7 @@ void JointStatePublisher::Configure(
     while (elem)
     {
       std::string jointName = elem->Get<std::string>();
-      sim::Entity jointEntity = this->model.JointByName(_ecm, jointName);
+      Entity jointEntity = this->model.JointByName(_ecm, jointName);
       if (jointEntity != kNullEntity)
       {
         this->CreateComponents(_ecm, jointEntity);
@@ -105,7 +105,7 @@ void JointStatePublisher::Configure(
 
 //////////////////////////////////////////////////
 void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
-    sim::Entity _joint)
+    Entity _joint)
 {
   if (this->joints.find(_joint) != this->joints.end())
   {
@@ -313,7 +313,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(JointStatePublisher,
-                    gz::sim::System,
+                    System,
                     JointStatePublisher::ISystemConfigure,
                     JointStatePublisher::ISystemPostUpdate)
 

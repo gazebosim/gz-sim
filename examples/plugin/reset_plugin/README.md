@@ -1,6 +1,6 @@
 # System Reset API
 
-This example uses the JointPositionRandomizer system to randomize the joint 
+This example uses the JointPositionRandomizer system to randomize the joint
 positions of a robot arm at every reset.
 
 

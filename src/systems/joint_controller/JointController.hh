@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,13 +38,26 @@ namespace systems
   /// ## System Parameters
   ///
   /// `<joint_name>` The name of the joint to control. Required parameter.
+  ///  Can also include multiple `<joint_name>` for identical joints.
   ///
   /// `<use_force_commands>` True to enable the controller implementation
   /// using force commands. If this parameter is not set or is false, the
   /// controller will use velocity commands internally.
   ///
+  /// `<use_actuator_msg>` True to enable the use of actuator message
+  /// for velocity command. The actuator msg is an array of floats for
+  /// position, velocity and normalized commands. Relies on
+  /// `<actuator_number>` for the index of the velocity actuator and
+  /// defaults to topic "/actuators" when `topic` or `subtopic not set.
+  ///
+  /// `<actuator_number>` used with `<use_actuator_msg>` to set
+  /// the index of the velocity actuator.
+  ///
   /// `<topic>` Topic to receive commands in. Defaults to
   ///     `/model/<model_name>/joint/<joint_name>/cmd_vel`.
+  ///
+  /// `<sub_topic>` Sub topic to receive commands in.
+  ///  Defaults to "/model/<model_name>/<sub_topic>".
   ///
   /// `<initial_velocity>` Velocity to start with.
   ///
@@ -105,4 +119,3 @@ namespace systems
 }
 
 #endif
-

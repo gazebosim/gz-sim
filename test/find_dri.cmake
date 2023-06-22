@@ -100,5 +100,3 @@ set(VALID_DRI_DISPLAY ${VALID_DRI_DISPLAY} PARENT_SCOPE)
 endfunction()
 
 ############################## End FindDRI support #############################
-
-

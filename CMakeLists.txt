@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.0.0)
+project(gz-sim7 VERSION 7.5.0)
 set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
@@ -77,7 +77,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 REQUIRED COMPONENTS log)
+gz_find_package(gz-transport12 VERSION 12.1 REQUIRED COMPONENTS log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -93,6 +93,7 @@ gz_find_package(gz-common5
     profiler
     events
     av
+    io
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
@@ -127,11 +128,12 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
   # component order is important
   COMPONENTS
     # non-rendering
     air_pressure
+    air_speed
     altimeter
     imu
     force_torque
@@ -184,12 +186,10 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 gz_find_package(GzProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
-                 REQUIRED
-                 COMPONENTS all
-                 PRETTY Protobuf)
+                REQUIRED
+                COMPONENTS all
+                PRETTY Protobuf)
 set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
 
 #--------------------------------------

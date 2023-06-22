@@ -68,6 +68,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   // Keep world name
   this->worldName = _world.Name();
 
+  this->parametersRegistry = std::make_unique<
+    gz::transport::parameters::ParametersRegistry>(
+      std::string{"world/"} + this->worldName);
+
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
   const sdf::Physics *physics = _world.PhysicsByIndex(0);
@@ -119,6 +123,12 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+  // Epoch
+  this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
+    std::chrono::duration<double>{_config.InitialSimTime()}
+  );
+  this->currentInfo.simTime = this->simTimeEpoch;
+
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -166,8 +176,9 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
          << "/" << genWorldSdfService << "]" << std::endl;
 
   // Create the system manager
-  this->systemMgr = std::make_unique<SystemManager>(_systemLoader,
-      &this->entityCompMgr, &this->eventMgr, validNs);
+  this->systemMgr = std::make_unique<SystemManager>(
+      _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
+      this->parametersRegistry.get());
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -239,13 +250,11 @@ void SimulationRunner::UpdateCurrentInfo()
   // Rewind
   if (this->requestedRewind)
   {
-    gzdbg << "Rewinding simulation back to time zero." << std::endl;
-    this->realTimes.clear();
-    this->simTimes.clear();
+    gzdbg << "Rewinding simulation back to initial time." << std::endl;
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = -this->currentInfo.simTime;
-    this->currentInfo.simTime = std::chrono::steady_clock::duration::zero();
+    this->currentInfo.dt = this->simTimeEpoch - this->currentInfo.simTime;
+    this->currentInfo.simTime = this->simTimeEpoch;
     this->currentInfo.realTime = std::chrono::steady_clock::duration::zero();
     this->currentInfo.iterations = 0;
     this->realTimeWatch.Reset();
@@ -258,63 +267,32 @@ void SimulationRunner::UpdateCurrentInfo()
   }
 
   // Seek
-  if (this->requestedSeek >= std::chrono::steady_clock::duration::zero())
+  if (this->requestedSeek && this->requestedSeek.value() >= this->simTimeEpoch)
   {
     gzdbg << "Seeking to " << std::chrono::duration_cast<std::chrono::seconds>(
-        this->requestedSeek).count() << "s." << std::endl;
+        this->requestedSeek.value()).count() << "s." << std::endl;
 
-    this->realTimes.clear();
-    this->simTimes.clear();
     this->realTimeFactor = 0;
 
-    this->currentInfo.dt = this->requestedSeek - this->currentInfo.simTime;
-    this->currentInfo.simTime = this->requestedSeek;
+    this->currentInfo.dt = this->requestedSeek.value() -
+      this->currentInfo.simTime;
+    this->currentInfo.simTime = this->requestedSeek.value();
     this->currentInfo.iterations = 0;
 
     this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
 
-    this->requestedSeek = std::chrono::steady_clock::duration{-1};
+    this->requestedSeek = {};
 
     return;
   }
 
   // Regular time flow
 
-  // Store the real time and sim time only if not paused.
-  if (this->realTimeWatch.Running())
-  {
-    this->realTimes.push_back(this->realTimeWatch.ElapsedRunTime());
-    this->simTimes.push_back(this->currentInfo.simTime);
-  }
+  const double simTimeCount =
+      static_cast<double>(this->currentInfo.simTime.count());
+  const double realTimeCount =
+      static_cast<double>(this->currentInfo.realTime.count());
 
-  // Maintain a window size of 20 for realtime and simtime.
-  if (this->realTimes.size() > 20)
-    this->realTimes.pop_front();
-  if (this->simTimes.size() > 20)
-    this->simTimes.pop_front();
-
-  // Compute the average sim and real times.
-  std::chrono::steady_clock::duration simAvg{0}, realAvg{0};
-  std::list<std::chrono::steady_clock::duration>::iterator simIter,
-    realIter;
-
-  simIter = ++(this->simTimes.begin());
-  realIter = ++(this->realTimes.begin());
-  while (simIter != this->simTimes.end() && realIter != this->realTimes.end())
-  {
-    simAvg += ((*simIter) - this->simTimes.front());
-    realAvg += ((*realIter) - this->realTimes.front());
-    ++simIter;
-    ++realIter;
-  }
-
-  // RTF, only compute this if the realTime count is greater than zero. The
-  // realtTime count could be zero if simulation was started paused.
-  if (realAvg.count() > 0)
-  {
-    this->realTimeFactor = math::precision(
-          static_cast<double>(simAvg.count()) / realAvg.count(), 4);
-  }
 
   // Fill the current update info
   this->currentInfo.realTime = this->realTimeWatch.ElapsedRunTime();
@@ -328,6 +306,15 @@ void SimulationRunner::UpdateCurrentInfo()
     this->currentInfo.simTime += this->stepSize;
     ++this->currentInfo.iterations;
     this->currentInfo.dt = this->stepSize;
+  }
+  const double simTimeDiff =
+      static_cast<double>(this->currentInfo.simTime.count()) - simTimeCount;
+  const double realTimeDiff =
+      static_cast<double>(this->currentInfo.realTime.count()) - realTimeCount;
+
+  if (realTimeDiff > 0)
+  {
+    this->realTimeFactor = simTimeDiff / realTimeDiff;
   }
 }
 
@@ -374,8 +361,6 @@ void SimulationRunner::UpdatePhysicsParams()
     }
     if (updated)
     {
-      this->simTimes.clear();
-      this->realTimes.clear();
       // Set as OneTimeChange to make sure the update is not missed
       this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
           ComponentState::OneTimeChange);
@@ -390,14 +375,14 @@ void SimulationRunner::PublishStats()
   GZ_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  gz::msgs::WorldStatistics msg;
+  msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.realTime);
+    math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    gz::math::durationToSecNsec(this->currentInfo.simTime);
+    math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -426,7 +411,7 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  gz::msgs::Clock clockMsg;
+  msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
@@ -475,7 +460,8 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
@@ -516,7 +502,7 @@ void SimulationRunner::UpdateSystems()
 {
   GZ_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // a gz::common::WorkerPool. There is overhead associated with
+  // a common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
@@ -640,14 +626,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // https://github.com/gazebosim/gz-gui/pull/306 and
     // https://github.com/gazebosim/gz-sim/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<gz::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
@@ -674,13 +660,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<gz::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<gz::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
@@ -700,7 +686,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       gzmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<gz::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<msgs::Clock>(
           "/clock");
     }
   }
@@ -831,13 +817,12 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  if (!this->Paused() &&
-       this->requestedRunToSimTime >
-       std::chrono::steady_clock::duration::zero() &&
-       this->currentInfo.simTime >= this->requestedRunToSimTime)
+  if (!this->Paused() && this->requestedRunToSimTime &&
+       this->requestedRunToSimTime.value() > this->simTimeEpoch &&
+       this->currentInfo.simTime >= this->requestedRunToSimTime.value())
   {
     this->SetPaused(true);
-    this->requestedRunToSimTime = std::chrono::steady_clock::duration{-1};
+    this->requestedRunToSimTime = {};
   }
 
   if (!this->Paused() && this->pendingSimIterations > 0)
@@ -1135,14 +1120,13 @@ bool SimulationRunner::Stepping() const
 void SimulationRunner::SetRunToSimTime(
     const std::chrono::steady_clock::duration &_time)
 {
-  if (_time >= std::chrono::steady_clock::duration::zero() &&
-      _time > this->currentInfo.simTime)
+  if (_time >= this->simTimeEpoch && _time > this->currentInfo.simTime)
   {
     this->requestedRunToSimTime = _time;
   }
   else
   {
-    this->requestedRunToSimTime = std::chrono::seconds(-1);
+    this->requestedRunToSimTime = {};
   }
 }
 
@@ -1284,7 +1268,7 @@ void SimulationRunner::ProcessWorldControl()
     this->requestedRewind = control.rewind;
 
     // Seek
-    if (control.seek >= std::chrono::steady_clock::duration::zero())
+    if (control.seek >= this->simTimeEpoch)
     {
       this->requestedSeek = control.seek;
     }
@@ -1388,6 +1372,13 @@ const UpdateInfo &SimulationRunner::CurrentInfo() const
 
 /////////////////////////////////////////////////
 const std::chrono::steady_clock::duration &
+  SimulationRunner::SimTimeEpoch() const
+{
+  return this->simTimeEpoch;
+}
+
+/////////////////////////////////////////////////
+const std::chrono::steady_clock::duration &
 SimulationRunner::UpdatePeriod() const
 {
   return this->updatePeriod;
@@ -1465,7 +1456,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(gz::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(msgs::GUI &_res)
 {
   _res.Clear();
 

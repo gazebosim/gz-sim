@@ -138,6 +138,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -172,6 +181,15 @@
               <radius>0.3</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 
@@ -206,6 +224,15 @@
               <radius>0.2</radius>
             </sphere>
           </geometry>
+          <surface>
+            <friction>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
         </collision>
       </link>
 

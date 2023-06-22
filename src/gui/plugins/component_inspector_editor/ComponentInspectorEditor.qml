@@ -107,7 +107,7 @@ Rectangle {
   // \param[in] _value The value that should be used to set the _widgetId's
   // value attribute.
   function getDecimalsAdjustValue(_widgetId, _value) {
-    // Make sure to update the value, otherwise zeros are used intead of 
+    // Make sure to update the value, otherwise zeros are used intead of
     // the actual values.
     _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
     return getDecimals(_widgetId.width)
@@ -614,7 +614,7 @@ Rectangle {
               ComponentInspectorEditor.OnAddEntity(airPressure.text, "sensor");
             }
           }
-      
+
           MenuItem {
             id: altimeter
             text: "Altimeter"
@@ -622,7 +622,7 @@ Rectangle {
               ComponentInspectorEditor.OnAddEntity(altimeter.text, "sensor");
             }
           }
-      
+
           MenuItem {
             id: cameraSensorMenu
             text: "Camera >"
@@ -634,7 +634,7 @@ Rectangle {
               onEntered: cameraSubmenu.open()
             }
           }
-      
+
           MenuItem {
             id: contact
             text: "Contact"
@@ -642,7 +642,7 @@ Rectangle {
               ComponentInspectorEditor.OnAddEntity(contact.text, "sensor");
             }
           }
-      
+
           MenuItem {
             id: forceTorque
             text: "Force torque"
@@ -674,7 +674,7 @@ Rectangle {
               ComponentInspectorEditor.OnAddEntity(imu.text, "sensor");
             }
           }
-      
+
           MenuItem {
             id: magnetometer
             text: "Magnetometer"
@@ -683,7 +683,7 @@ Rectangle {
             }
           }
         }
-      
+
         Menu {
           id: cameraSubmenu
           x: addSensorMenu.x - addSensorMenu.width

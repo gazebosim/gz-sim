@@ -50,6 +50,8 @@ class HydrodynamicsTest : public InternalFixture<::testing::Test>
   /// \param[in] _drag_coeff Body drag coefficient
   public: std::vector<math::Vector3d> TestWorld(const std::string &_world,
    const std::string &_namespace);
+
+  public: math::Vector3d defaultForce{0, 0, 10.0};
 };
 
 //////////////////////////////////////////////////
@@ -88,8 +90,7 @@ std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(
       body.EnableVelocityChecks(_ecm);
 
       // Add force
-      math::Vector3d force(0, 0, 10.0);
-      body.AddWorldForce(_ecm, force);
+      body.AddWorldForce(_ecm, this->defaultForce);
     }).
   OnPostUpdate([&](const UpdateInfo &/*_info*/,
                             const EntityComponentManager &_ecm)
@@ -112,13 +113,15 @@ std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(
 /////////////////////////////////////////////////
 /// This test evaluates whether the hydrodynamic plugin affects the motion
 /// of the body when a force is applied.
-TEST_F(HydrodynamicsTest, VelocityTestinOil)
+TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
 {
-  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
   auto sphere1Vels = this->TestWorld(world, "sphere1");
   auto sphere2Vels = this->TestWorld(world, "sphere2");
+
+  auto whenSphere1ExceedsSphere2Vel = 2000;
 
   for (unsigned int i = 0; i < 1000; ++i)
   {
@@ -128,28 +131,33 @@ TEST_F(HydrodynamicsTest, VelocityTestinOil)
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].X());
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].Y());
 
-    // Wait a couple of iterations for the body to move
-    if(i > 4)
+    // Expect sphere1 to fall faster than sphere 2 as no hydro
+    // drag is applied to it.
+    EXPECT_LE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
+    if(sphere1Vels[i].Z() < sphere2Vels[i].Z()
+      &&  whenSphere1ExceedsSphere2Vel > 1000)
     {
-      EXPECT_LT(sphere1Vels[i].Z(), sphere2Vels[i].Z());
-
-      if (i > 900)
-      {
-        // Expect for the velocity to stabilize
-        EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
-        EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
-      }
+      // Mark this as the time when velocity of sphere1 exceeds sphere 2
+      whenSphere1ExceedsSphere2Vel = i;
+    }
+    if (i > 900)
+    {
+      // Expect for the velocity to stabilize
+      EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
+      EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
     }
   }
+  EXPECT_LT(whenSphere1ExceedsSphere2Vel, 500);
 }
 
 /////////////////////////////////////////////////
 /// This test makes sure that the transforms of the hydrodynamics
 /// plugin are correct by comparing 3 cylinders in different
 /// positions and orientations.
-TEST_F(HydrodynamicsTest, TransformsTestinWater)
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TransformsTestinWater))
 {
-  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
   auto cylinder1Vels = this->TestWorld(world, "cylinder1");
@@ -166,5 +174,30 @@ TEST_F(HydrodynamicsTest, TransformsTestinWater)
     // Expect for final velocities to be similar
     EXPECT_NEAR(cylinder1Vels[i].Z(), cylinder2Vels[i].Z(), 1e-4);
     EXPECT_NEAR(cylinder2Vels[i].Z(), cylinder3Vels[i].Z(), 1e-4);
+  }
+}
+
+/////////////////////////////////////////////////
+/// This tests the current. A current of (1, 0, 0) is loaded in via a csv file
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TransformsTestIn))
+{
+  this->defaultForce = math::Vector3d(0, 0, 0);
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  auto sphereVel = this->TestWorld(world, "sphere_current");
+
+  for (unsigned int i = 990; i < 1000; ++i)
+  {
+    // Expect for the velocity to stabilize
+    EXPECT_NEAR(sphereVel[i-1].Z(), sphereVel[i].Z(), 1e-6);
+    EXPECT_NEAR(sphereVel[i-1].Y(), sphereVel[i].Y(), 1e-6);
+    EXPECT_NEAR(sphereVel[i-1].X(), sphereVel[i].X(), 1e-3);
+
+    // Given current of  (1,0,0), vehicle should move in similar direction.
+    EXPECT_NEAR(sphereVel[i-1].Z(), 0, 1e-6);
+    EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
+    EXPECT_GT(sphereVel[i-1].X(), 0);
   }
 }

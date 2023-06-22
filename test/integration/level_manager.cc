@@ -73,15 +73,15 @@ class ModelMover: public test::Relay
     poseCmd = std::move(_pose);
   }
 
-  public: sim::Entity Id() const
+  public: Entity Id() const
   {
     return entity;
   }
 
   /// \brief Sets the pose component of the entity to the commanded pose. This
   /// function meant to be called in the preupdate phase
-  private: void MoveModel(const sim::UpdateInfo &,
-                          sim::EntityComponentManager &_ecm)
+  private: void MoveModel(const UpdateInfo &,
+                          EntityComponentManager &_ecm)
   {
     if (this->poseCmd)
     {
@@ -93,7 +93,7 @@ class ModelMover: public test::Relay
 
 
   /// \brief Entity to move
-  private: sim::Entity entity;
+  private: Entity entity;
   /// \brief Pose command
   private: std::optional<math::Pose3d> poseCmd;
 };
@@ -106,7 +106,7 @@ class LevelManagerFixture : public InternalFixture<::testing::Test>
   {
     InternalFixture::SetUp();
 
-    gz::sim::ServerConfig serverConfig;
+    sim::ServerConfig serverConfig;
 
     // Except tile_0, which is on the default level, every tile belongs to a
     // level. The name of the level corresponds to the tile in its suffix, i.e.,

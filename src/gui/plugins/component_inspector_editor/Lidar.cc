@@ -150,4 +150,3 @@ Q_INVOKABLE void Lidar::OnLidarChange(
   };
   this->inspector->AddUpdateCallback(cb);
 }
-

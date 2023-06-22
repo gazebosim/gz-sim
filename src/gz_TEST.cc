@@ -23,6 +23,8 @@
 #include <string>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "test_config.hh"  // NOLINT(build/include)
@@ -63,8 +65,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
+TEST(CmdLine, Server)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -79,6 +80,9 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
         << output;
   }
 
+// Disable on WIN32 as on Windows it is not support to prepend
+// a command with the env variable to set
+#ifndef _WIN32
   // Use GZ_SIM_RESOURCE_PATH instead of specifying the complete path
   cmd = std::string("GZ_SIM_RESOURCE_PATH=") +
     PROJECT_SOURCE_PATH + "/test/worlds " + kGzCommand +
@@ -93,15 +97,16 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Server))
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+#endif
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
+TEST(CmdLine, CachedFuelWorld)
 {
   std::string projectPath = std::string(PROJECT_SOURCE_PATH) + "/test/worlds";
   gz::common::setenv("GZ_FUEL_CACHE_PATH", projectPath.c_str());
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5" +
-    " https://fuel.ignitionrobotics.org/1.0/OpenRobotics/worlds/Test%20world";
+    " https://fuel.gazebosim.org/1.0/openroboticstest/worlds/test%20world";
   std::cout << "Running command [" << cmd << "]" << std::endl;
 
   std::string output = customExecStr(cmd);
@@ -110,7 +115,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(CachedFuelWorld))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
+TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";
@@ -127,7 +132,47 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(SimServer))
 }
 
 /////////////////////////////////////////////////
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(Gazebo))
+TEST(CmdLine, SimtimeArgument)
+{
+  std::string cmd =
+    kGzCommand + " -r -v 4 --iterations 500 --initial-sim-time 1000.5 " +
+    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf -z 1000";
+
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+  int msgCount = 0;
+
+  gz::transport::Node node;
+  auto cb = [&](const gz::msgs::Clock &_msg) -> void
+  {
+    EXPECT_GE(_msg.sim().sec() + 1e-9 * _msg.sim().nsec(),
+        1000.5);
+    msgCount++;
+  };
+
+  auto cbFcn = std::function<void(const gz::msgs::Clock &)>(cb);
+  EXPECT_TRUE(node.Subscribe(std::string("/clock"), cbFcn));
+
+  std::string output = customExecStr(cmd);
+
+  // Try waiting different amounts if no messages have been received
+  if (!msgCount)
+  {
+    for (auto i : {1, 10, 100, 1000})
+    {
+      std::cout << "Sleeping for " << i << " ms";
+      GZ_SLEEP_MS(i);
+      std::cout << ", recevied " << msgCount << " messages." << std::endl;
+      if (msgCount)
+      {
+        break;
+      }
+    }
+  }
+  EXPECT_GT(msgCount, 0) << output;
+}
+
+/////////////////////////////////////////////////
+TEST(CmdLine, Gazebo)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
     std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf";

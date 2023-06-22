@@ -59,7 +59,7 @@ using namespace gz;
 using namespace sim;
 
 /////////////////////////////////////////////////
-class EntityCompMgrTest : public sim::EntityComponentManager
+class EntityCompMgrTest : public EntityComponentManager
 {
   public: void ProcessEntityRemovals()
   {
@@ -107,8 +107,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   EXPECT_TRUE(this->ecm.HasComponentType(components::LaserRetro::typeId));
 
   // Check entities
-  // 1 x world + 5 x model + 5 x link + 5 x collision + 5 x visual + 1 x light
-  // + 1 x wind
+  // 1 x world + 5 x model + 5 x link + 5 x collision + 5 x visual +
+  // 1 x light (light + visual)
   EXPECT_EQ(23u, this->ecm.EntityCount());
 
   // Check worlds
@@ -168,35 +168,35 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       if (modelCount == 1)
       {
-        EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("box", _name->Data());
         boxModelEntity = _entity;
       }
       else if (modelCount == 2)
       {
-        EXPECT_EQ(gz::math::Pose3d(-1, -2, -3, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("cylinder", _name->Data());
         cylModelEntity = _entity;
       }
       else if (modelCount == 3)
       {
-        EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
       else if (modelCount == 4)
       {
-        EXPECT_EQ(gz::math::Pose3d(-4, -5, -6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
       else if (modelCount == 5)
       {
-        EXPECT_EQ(gz::math::Pose3d(4, 5, 6, 0, 0, 1),
+        EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
@@ -237,7 +237,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       if (linkCount == 1)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("box_link", _name->Data());
 
@@ -248,7 +248,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (linkCount == 2)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("cylinder_link", _name->Data());
 
@@ -259,7 +259,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (linkCount == 3)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("sphere_link", _name->Data());
 
@@ -371,7 +371,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       if (collisionCount == 1)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("box_collision", _name->Data());
@@ -386,7 +386,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (collisionCount == 2)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("cylinder_collision", _name->Data());
@@ -401,7 +401,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (collisionCount == 3)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("sphere_collision", _name->Data());
@@ -486,7 +486,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       if (visualCount == 1)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("box_visual", _name->Data());
@@ -512,7 +512,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (visualCount == 2)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("cylinder_visual", _name->Data());
@@ -538,7 +538,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (visualCount == 3)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ("sphere_visual", _name->Data());
@@ -637,7 +637,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       lightCount++;
 
-      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+      EXPECT_EQ(math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
           _pose->Data());
 
       EXPECT_EQ("sun", _name->Data());
@@ -647,19 +647,19 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       EXPECT_EQ("sun", _light->Data().Name());
       EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
-      EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
+      EXPECT_EQ(math::Pose3d(0, 0, 10, 0, 0, 0),
           _light->Data().RawPose());
       EXPECT_EQ("", _light->Data().PoseRelativeTo());
       EXPECT_TRUE(_light->Data().CastShadows());
-      EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
+      EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1),
           _light->Data().Diffuse());
-      EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
+      EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1),
           _light->Data().Specular());
       EXPECT_DOUBLE_EQ(1000, _light->Data().AttenuationRange());
       EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
       EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
-      EXPECT_EQ(gz::math::Vector3d(-0.5, 0.1, -0.9),
+      EXPECT_EQ(math::Vector3d(-0.5, 0.1, -0.9),
           _light->Data().Direction());
       return true;
     });
@@ -685,8 +685,8 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
-  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light + 1 x wind
-  EXPECT_EQ(9u, this->ecm.EntityCount());
+  // 1 x world + 1 x model + 1 x link + 1 x visual + 4 x light (light + visual)
+  EXPECT_EQ(12u, this->ecm.EntityCount());
 
   // Check worlds
   unsigned int worldCount{0};
@@ -734,7 +734,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_EQ(worldEntity, _parent->Data());
       EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
 
-      EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 0),
+      EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
       sphModelEntity = _entity;
@@ -765,7 +765,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
       linkCount++;
 
-      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+      EXPECT_EQ(math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere_link", _name->Data());
       EXPECT_EQ(sphModelEntity, _parent->Data());
@@ -804,7 +804,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
       visualCount++;
 
-      EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
+      EXPECT_EQ(math::Pose3d(0.0, 0.0, 0.0, 0, 0, 0),
           _pose->Data());
 
       EXPECT_EQ("sphere_visual", _name->Data());
@@ -846,7 +846,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       // light attached to link
       if (lightCount == 1u)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("link_light_point", _name->Data());
 
@@ -855,13 +855,13 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
-        EXPECT_EQ(gz::math::Pose3d(0, 0, 1, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0, 0, 1, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(gz::math::Color(0.0f, 0.0f, 1.0f, 1),
+        EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
+        EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(2, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.05, _light->Data().ConstantAttenuationFactor());
@@ -871,7 +871,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       // directional light in the world
       else if (lightCount == 2u)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("directional", _name->Data());
 
@@ -880,25 +880,25 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
-        EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0, 0, 10, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_TRUE(_light->Data().CastShadows());
-        EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
+        EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
+        EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(100, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.9, _light->Data().ConstantAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.01, _light->Data().LinearAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
-        EXPECT_EQ(gz::math::Vector3d(0.5, 0.2, -0.9),
+        EXPECT_EQ(math::Vector3d(0.5, 0.2, -0.9),
             _light->Data().Direction());
       }
       // point light in the world
       else if (lightCount == 3u)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
 
@@ -907,13 +907,13 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
-        EXPECT_EQ(gz::math::Pose3d(0, -1.5, 3, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0, -1.5, 3, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(gz::math::Color(1.0f, 0.0f, 0.0f, 1),
+        EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
+        EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(4, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.2, _light->Data().ConstantAttenuationFactor());
@@ -923,7 +923,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       // spot light in the world
       else if (lightCount == 4u)
       {
-        EXPECT_EQ(gz::math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("spot", _name->Data());
 
@@ -932,19 +932,19 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
-        EXPECT_EQ(gz::math::Pose3d(0, 1.5, 3, 0, 0, 0),
+        EXPECT_EQ(math::Pose3d(0, 1.5, 3, 0, 0, 0),
             _light->Data().RawPose());
         EXPECT_EQ(std::string(), _light->Data().PoseRelativeTo());
         EXPECT_FALSE(_light->Data().CastShadows());
-        EXPECT_EQ(gz::math::Color(0.0f, 1.0f, 0.0f, 1),
+        EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f, 1),
             _light->Data().Diffuse());
-        EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
+        EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1),
             _light->Data().Specular());
         EXPECT_DOUBLE_EQ(5, _light->Data().AttenuationRange());
         EXPECT_DOUBLE_EQ(0.3, _light->Data().ConstantAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.4, _light->Data().LinearAttenuationFactor());
         EXPECT_DOUBLE_EQ(0.001, _light->Data().QuadraticAttenuationFactor());
-        EXPECT_EQ(gz::math::Vector3d(0.0, 0.0, -1.0),
+        EXPECT_EQ(math::Vector3d(0.0, 0.0, -1.0),
             _light->Data().Direction());
         EXPECT_DOUBLE_EQ(0.1, _light->Data().SpotInnerAngle().Radian());
         EXPECT_DOUBLE_EQ(0.5, _light->Data().SpotOuterAngle().Radian());
@@ -1107,8 +1107,8 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check entities
-  // 1 x world + 4 x model + 4 x link + 4 x collision + 4 x visual + 1 x light
-  // + 1 x wind
+  // 1 x world + 4 x model + 4 x link + 4 x collision + 4 x visual
+  // + 1 x light (light + visual)
   EXPECT_EQ(23u, this->ecm.EntityCount());
 
   auto world = this->ecm.EntityByComponents(components::World());
@@ -1212,7 +1212,7 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
       visualCount++;
       return true;
     });
-  EXPECT_EQ(4u, visualCount);
+  EXPECT_EQ(5u, visualCount);
 }
 
 template <typename... Ts>
@@ -1220,7 +1220,7 @@ size_t removedCount(EntityCompMgrTest &_manager)
 {
   size_t count = 0;
   _manager.EachRemoved<Ts...>(
-      [&](const gz::sim::Entity &, const Ts *...) -> bool
+      [&](const Entity &, const Ts *...) -> bool
       {
         ++count;
         return true;

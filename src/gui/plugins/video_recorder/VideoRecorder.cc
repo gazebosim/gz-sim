@@ -328,7 +328,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
 /////////////////////////////////////////////////
 bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gz::gui::events::Render::kType)
+  if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -394,5 +394,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::VideoRecorder,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(VideoRecorder,
+              gz::gui::Plugin)

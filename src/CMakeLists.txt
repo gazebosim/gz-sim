@@ -32,6 +32,10 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
+set(component_sources
+  components/Environment.cc
+)
+
 set(gui_sources
   ${gui_sources}
   PARENT_SCOPE
@@ -43,17 +47,22 @@ set(cli_sources
 )
 
 set (sources
+  Actor.cc
   Barrier.cc
   BaseView.cc
   Conversions.cc
+  ComponentFactory.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
+  Joint.cc
   LevelManager.cc
+  Light.cc
   Link.cc
   Model.cc
   Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
+  Sensor.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -64,14 +73,16 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
+  ${component_sources}
 )
 
 set (gtest_sources
   ${gtest_sources}
+  Actor_TEST.cc
+  AddedMass_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc
@@ -79,11 +90,14 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
+  Joint_TEST.cc
+  Light_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
+  Sensor_TEST.cc
   ServerConfig_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
@@ -93,7 +107,6 @@ set (gtest_sources
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
-  gz_TEST.cc
   comms/Broker_TEST.cc
   comms/MsgManager_TEST.cc
   network/NetworkConfig_TEST.cc
@@ -101,14 +114,21 @@ set (gtest_sources
   network/NetworkManager_TEST.cc
 )
 
+# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
+# CMake generators, see also cmd/CMakeLists.txt
+get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT GENERATOR_IS_MULTI_CONFIG)
+  list(APPEND gtest_sources gz_TEST.cc)
+endif()
+
+
 # Tests that require a valid display
 set(tests_needing_display
-  ModelCommandAPI_TEST.cc
+  Server_Rendering_TEST.cc
 )
 
-# Disable tests that need CLI if gz-tools is not found
-if (MSVC OR NOT GZ_TOOLS_PROGRAM)
-  list(REMOVE_ITEM gtest_sources gz_TEST.cc ModelCommandAPI_TEST.cc)
+if(NOT GENERATOR_IS_MULTI_CONFIG)
+  list(APPEND tests_needing_display ModelCommandAPI_TEST.cc)
 endif()
 
 # Add systems that need a valid display here.
@@ -156,7 +176,10 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  gz-physics${GZ_PHYSICS_VER}::core
+  gz-rendering${GZ_RENDERING_VER}::core
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+  gz-transport${GZ_TRANSPORT_VER}::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
@@ -191,6 +214,13 @@ gz_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
 )
+
+# Some server unit tests require rendering.
+if (TARGET UNIT_Server_Rendering_TEST)
+ target_link_libraries(UNIT_Server_Rendering_TEST
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+endif()
 
 # Command line tests need extra settings
 foreach(CMD_TEST
@@ -228,8 +258,19 @@ foreach(CMD_TEST
   set_tests_properties(${CMD_TEST} PROPERTIES
     ENVIRONMENT "${_env_vars}")
 
+  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
+  # in build directory in necessary. For regular tests, the trick is to place all libraries
+  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
+  # as they are in the same directory where the executable is loaded. For tests that are
+  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
+  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that is only available
+  # since CMake 3.22. However, if an older CMake is used another trick to install the libraries
+  # beforehand
+  if (WIN32 AND CMAKE_VERSION STRGREATER "3.22")
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+  endif()
+
 endforeach()
 
-if(NOT WIN32)
-  add_subdirectory(cmd)
-endif()
+add_subdirectory(cmd)

@@ -387,6 +387,8 @@ namespace components
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
+    // TODO(azeey) Change to const char* in Harmonic to prevent static
+    // initialization order fiasco.
     public: inline static std::string typeName;
   };
 
@@ -433,6 +435,8 @@ namespace components
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
+    // TODO(azeey) Change to const char* in Harmonic to prevent static
+    // initialization order fiasco.
     public: inline static std::string typeName;
   };
 

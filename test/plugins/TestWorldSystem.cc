@@ -22,4 +22,3 @@ GZ_ADD_PLUGIN(gz::sim::TestWorldSystem,
     gz::sim::System,
     gz::sim::TestWorldSystem::ISystemConfigure,
     gz::sim::TestWorldSystem::ISystemUpdate)
-
