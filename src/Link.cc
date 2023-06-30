@@ -432,3 +432,47 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
               msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
   }
 }
+
+//////////////////////////////////////////////////
+void Link::AddWorldWrench(EntityComponentManager &_ecm,
+                                    const math::Vector3d &_force,
+                                    const math::Vector3d &_offset,
+                                    const math::Vector3d &_torque) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  math::Pose3d linkWorldPose = worldPose(this->dataPtr->id, _ecm);
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial)
+  {
+    gzdbg << "Inertial Component not found" << std::endl;
+    return;
+  }
+
+  // We want the force to be applied at an offset from the center of mass, but
+  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
+  // compute the resulting force and torque on the link origin.
+  auto posComWorldCoord = linkWorldPose.Rot().RotateVector(
+    _offset + inertial->Data().Pose().Pos());
+
+  math::Vector3d torqueWithOffset = _torque + posComWorldCoord.Cross(_force);
+
+  auto linkWrenchComp =
+    _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
+
+  if (!linkWrenchComp)
+  {
+    components::ExternalWorldWrenchCmd wrench;
+    msgs::Set(wrench.Data().mutable_force(), _force);
+    msgs::Set(wrench.Data().mutable_torque(), torqueWithOffset);
+    _ecm.CreateComponent(this->dataPtr->id, wrench);
+  }
+  else
+  {
+    msgs::Set(linkWrenchComp->Data().mutable_force(),
+      msgs::Convert(linkWrenchComp->Data().force()) + _force);
+
+    msgs::Set(linkWrenchComp->Data().mutable_torque(),
+      msgs::Convert(linkWrenchComp->Data().torque()) + torqueWithOffset);
+  }
+}
