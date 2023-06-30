@@ -68,8 +68,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat13 REQUIRED)
-set(SDF_VER ${sdformat13_VERSION_MAJOR})
+gz_find_package(sdformat14 REQUIRED)
+set(SDF_VER ${sdformat14_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-plugin
@@ -118,14 +118,14 @@ gz_find_package (Qt5
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics6
+gz_find_package(gz-physics7
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
+set(GZ_PHYSICS_VER ${gz-physics7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
