@@ -28,7 +28,8 @@ namespace sim
 {
   class ApplyForceTorquePrivate;
 
-  /// \brief Publish wrench to "/world/apply_link_wrench/wrench" topic.
+  /// \brief Publish wrench to "/world/<world_name>/wrench" topic.
+  /// Requires the ApplyLinkWrench system to be loaded.
   ///
   /// ## Configuration
   /// This plugin doesn't accept any custom configuration.
@@ -100,12 +101,6 @@ namespace sim
     /// \param[in] _y Y component of force
     /// \param[in] _z Z component of force
     public: Q_INVOKABLE void UpdateForce(double _x, double _y, double _z);
-
-    /// \brief Set components of force offset
-    /// \param[in] _x X component of force offset
-    /// \param[in] _y Y component of force offset
-    /// \param[in] _z Z component of force offset
-    public: Q_INVOKABLE void UpdateOffset(double _x, double _y, double _z);
 
     /// \brief Set components of torque
     /// \param[in] _x X component of torque

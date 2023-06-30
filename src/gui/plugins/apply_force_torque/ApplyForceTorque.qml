@@ -16,8 +16,6 @@
 */
 import QtQuick 2.9
 import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.0
-import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
@@ -25,10 +23,22 @@ GridLayout {
   columns: 8
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 600
+  Layout.minimumHeight: 650
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
+
+  // Maximum value for GzSpinBoxes
+  property int maxValue: 1000000
+
+  // Minimum value for GzSpinBoxes
+  property int minValue: -1000000
+
+  // Precision of the GzSpinBoxes in decimal places
+  property int decimalPlaces: 2
+
+  // Step size of the GzSpinBoxes
+  property double step: 1.0
 
   Text {
     Layout.columnSpan: 2
@@ -55,30 +65,19 @@ GridLayout {
     Layout.columnSpan: 6
     id: linkCombo
     Layout.fillWidth: true
-    // enabled: ApplyForceTorque.configured
     model: ApplyForceTorque.linkNameList
     currentIndex: ApplyForceTorque.linkIndex
     onCurrentIndexChanged: {
       ApplyForceTorque.linkIndex = currentIndex
     }
-    // ToolTip.visible: hovered
-    // ToolTip.text: qsTr("Link to which the wrench should be applied")
   }
 
   // Force
   Text {
-    Layout.columnSpan: 4
+    Layout.columnSpan: 8
     id: forceText
     color: "dimgrey"
-    text: qsTr("Force")
-  }
-  
-  Text {
-    Layout.columnSpan: 4
-    horizontalAlignment: Text.AlignHCenter
-    id: torqueText
-    color: "dimgrey"
-    text: qsTr("Application point")
+    text: qsTr("Force (applied to link origin):")
   }
 
   Label {
@@ -90,37 +89,16 @@ GridLayout {
   }
 
   GzSpinBox {
-    Layout.columnSpan: 2
+    Layout.columnSpan: 6
     Layout.fillWidth: true
     id: forceX
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateForce(
       forceX.value, forceY.value, forceZ.value)
-  }
-
-  Label {
-    Layout.columnSpan: 2
-    horizontalAlignment: Text.AlignRight
-    id: offsetXText
-    color: "dimgrey"
-    text: qsTr("X (m)")
-  }
-
-  GzSpinBox {
-    Layout.columnSpan: 2
-    Layout.fillWidth: true
-    id: offsetX
-    maximumValue: 1000000
-    minimumValue: -1000000
-    value: 0
-    decimals: 2
-    stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateOffset(
-      offsetX.value, offsetY.value, offsetZ.value)
   }
 
   Label {
@@ -132,37 +110,16 @@ GridLayout {
   }
 
   GzSpinBox {
-    Layout.columnSpan: 2
+    Layout.columnSpan: 6
     Layout.fillWidth: true
     id: forceY
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateForce(
       forceX.value,forceY.value, forceZ.value)
-  }
-
-  Label {
-    Layout.columnSpan: 2
-    horizontalAlignment: Text.AlignRight
-    id: offsetYText
-    color: "dimgrey"
-    text: qsTr("Y (m)")
-  }
-
-  GzSpinBox {
-    Layout.columnSpan: 2
-    Layout.fillWidth: true
-    id: offsetY
-    maximumValue: 1000000
-    minimumValue: -1000000
-    value: 0
-    decimals: 2
-    stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateOffset(
-      offsetX.value, offsetY.value, offsetZ.value)
   }
 
   Label {
@@ -174,37 +131,16 @@ GridLayout {
   }
 
   GzSpinBox {
-    Layout.columnSpan: 2
+    Layout.columnSpan: 6
     Layout.fillWidth: true
     id: forceZ
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateForce(
       forceX.value, forceY.value, forceZ.value)
-  }
-
-  Label {
-    Layout.columnSpan: 2
-    horizontalAlignment: Text.AlignRight
-    id: offsetZText
-    color: "dimgrey"
-    text: qsTr("Z (m)")
-  }
-
-  GzSpinBox {
-    Layout.columnSpan: 2
-    Layout.fillWidth: true
-    id: offsetZ
-    maximumValue: 1000000
-    minimumValue: -1000000
-    value: 0
-    decimals: 2
-    stepSize: 1.0
-    onValueChanged: ApplyForceTorque.UpdateOffset(
-      offsetX.value, offsetY.value, offsetZ.value)
   }
 
   Button {
@@ -217,6 +153,13 @@ GridLayout {
   }
 
   // Torque
+  Text {
+    Layout.columnSpan: 8
+    id: torqueText
+    color: "dimgrey"
+    text: qsTr("Torque:")
+  }
+
   Label {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
@@ -229,11 +172,11 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueX
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateTorque(
       torqueX.value,torqueY.value, torqueZ.value)
   }
@@ -250,11 +193,11 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueY
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateTorque(
       torqueX.value,torqueY.value, torqueZ.value)
   }
@@ -271,11 +214,11 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueZ
-    maximumValue: 1000000
-    minimumValue: -1000000
+    maximumValue: maxValue
+    minimumValue: minValue
     value: 0
-    decimals: 2
-    stepSize: 1.0
+    decimals: decimalPlaces
+    stepSize: step
     onValueChanged: ApplyForceTorque.UpdateTorque(
       torqueX.value,torqueY.value, torqueZ.value)
   }
