@@ -22,7 +22,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 * \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
 
-**Migration from Gazebo classic**
+### Migration from Gazebo classic
 
 * \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Gazebo
 * \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Gazebo
@@ -41,7 +41,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage python_interfaces Python interfaces
 
-**Specific systems and features**
+### Specific systems and features
 
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
 * \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
@@ -70,7 +70,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
 * \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
 
-**Blender help**
+### Blender help
 
 * \subpage model_and_optimize_meshes "Model and optimize meshes in Blender": Some recomendations when creating meshes in Blender for simulations.
 * \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
