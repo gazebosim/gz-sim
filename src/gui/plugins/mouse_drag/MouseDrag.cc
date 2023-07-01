@@ -19,15 +19,24 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/MouseEvent.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Helpers.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/Link.hh>
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Inertial.hh>
 #include <gz/transport/Node.hh>
 #include <gz/msgs/Utility.hh>
 #include <gz/msgs/entity_wrench.pb.h>
 #include <gz/plugin/Register.hh>
+#include <gz/math/Vector3.hh>
 
 #include "MouseDrag.hh"
 
@@ -46,6 +55,12 @@ namespace sim
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
 
+    /// \brief Pointer to the rendering scene
+    public: rendering::ScenePtr scene{nullptr};
+
+    /// \brief User camera
+    public: rendering::CameraPtr camera{nullptr};
+
     /// \brief Holds the latest mouse event
     public: gz::common::MouseEvent mouseEvent;
 
@@ -53,10 +68,17 @@ namespace sim
     public: bool mouseDirty{false};
 
     /// \brief True if the force should be applied to the center of mass
-    public: bool applyCOM{false};
+    public: bool applyCOM{true};
 
     /// \brief Block orbit
     public: bool blockOrbit{false};
+
+    /// \brief Visual of the Link to which apply the wrenches
+    public: Entity visualId;
+
+    /// \brief Offset of the force application point relative to the
+    /// center of mass
+    public: math::Vector3d offset{0.0, 0.0, 0.0};
   };
 }
 }
@@ -106,9 +128,6 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    this->dataPtr->HandleMouseEvents();
-
-    gzdbg << "Block orbit: " << this->dataPtr->blockOrbit << std::endl;
     gz::gui::events::BlockOrbit blockOrbitEvent(this->dataPtr->blockOrbit);
     gz::gui::App()->sendEvent(
         gz::gui::App()->findChild<gz::gui::MainWindow *>(),
@@ -136,15 +155,41 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
 
 /////////////////////////////////////////////////
 void MouseDrag::Update(const UpdateInfo &/*_info*/,
-  EntityComponentManager &/* _ecm */)
+  EntityComponentManager &_ecm)
 {
+  if (this->dataPtr->visualId == kNullEntity)
+  {
+    return;
+  }
+
+  // Get Link corresponding to clicked Visual
+  Link link;
+  auto linkId =
+    _ecm.ComponentData<components::ParentEntity>(this->dataPtr->visualId);
+  if (linkId)
+  {
+    link = Link(*linkId);
+    if (!link.Valid(_ecm))
+    {
+      return;
+    }
+  }
+
+  auto inertial = _ecm.Component<components::Inertial>(*linkId);
+  if (!inertial)
+  {
+    gzdbg << "Link must have an inertial component" << std::endl;
+    return;
+  }
+  auto centerOfMass = inertial->Data().Pose().Pos();
 }
 
 /////////////////////////////////////////////////
-void MouseDrag::OnSwitchCOM(const bool _checked)
+void MouseDrag::OnSwitchCOM(const bool /* _checked */)
 {
-  this->dataPtr->applyCOM = _checked;
-  gzdbg << "Apply force to COM: " << this->dataPtr->applyCOM << std::endl;
+  // this->dataPtr->applyCOM = _checked;
+  gzdbg << "Only CoM application is currently supported"
+        << this->dataPtr->applyCOM << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -156,37 +201,67 @@ void MouseDragPrivate::HandleMouseEvents()
     return;
   }
   this->mouseDirty = false;
-  
-  if (this->mouseEvent.Button() == common::MouseEvent::LEFT)
+
+  // Get scene and user camera
+  if (nullptr == this->scene)
   {
-    if (this->mouseEvent.Type() == common::MouseEvent::PRESS &&
-        this->mouseEvent.Control())
+    this->scene = rendering::sceneFromFirstRenderEngine();
+    if (nullptr == this->scene)
     {
-      gzdbg << "Ctrl-Left click press" << std::endl;
-      this->blockOrbit = true;
+      return;
     }
-    else if (this->mouseEvent.Type() == common::MouseEvent::RELEASE)
+
+    for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
     {
-      gzdbg << "Left click release" << std::endl;
-      this->blockOrbit = true;
-    }
-  }
-  else if (this->mouseEvent.Button() == common::MouseEvent::RIGHT)
-  {
-    if (this->mouseEvent.Type() == common::MouseEvent::PRESS &&
-        this->mouseEvent.Control())
-    {
-      gzdbg << "Ctrl-Right click press" << std::endl;
-      this->blockOrbit = true;
-    }
-    else if (this->mouseEvent.Type() == common::MouseEvent::RELEASE)
-    {
-      gzdbg << "Right click release" << std::endl;
-      this->blockOrbit = true;
+      auto cam = std::dynamic_pointer_cast<rendering::Camera>(
+        this->scene->NodeByIndex(i));
+      if (cam && cam->HasUserData("user-camera") &&
+          std::get<bool>(cam->UserData("user-camera")))
+      {
+        this->camera = cam;
+        gzdbg << "MouseDrag plugin is using camera ["
+              << this->camera->Name() << "]" << std::endl;
+        break;
+      }
     }
   }
 
-  if (this->mouseEvent.Type() == common::MouseEvent::MOVE)
+  if (this->mouseEvent.Type() == common::MouseEvent::PRESS &&
+      this->mouseEvent.Control())
+  {
+    this->blockOrbit = true;
+
+    // Get the visual at mouse position
+    rendering::VisualPtr visual = this->scene->VisualAt(
+      this->camera,
+      this->mouseEvent.Pos());
+
+    this->visualId = kNullEntity;
+    try
+    {
+      this->visualId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
+    }
+    catch(std::bad_variant_access &e)
+    {
+      // It's ok to get here
+    }
+
+    if (this->mouseEvent.Button() == common::MouseEvent::LEFT)
+    {
+      gzdbg << "Ctrl-Left click press" << std::endl;
+    }
+    else if (this->mouseEvent.Button() == common::MouseEvent::RIGHT)
+    {
+      gzdbg << "Ctrl-Right click press" << std::endl;
+    }
+  }
+  else if (this->mouseEvent.Type() == common::MouseEvent::RELEASE)
+  {
+    this->blockOrbit = false;
+    this->visualId = kNullEntity;
+    gzdbg << "Click release" << std::endl;
+  }
+  else if (this->mouseEvent.Type() == common::MouseEvent::MOVE)
   {
     gzdbg << "Mouse Move [" << this->mouseEvent.Pos() << "]" << std::endl;
   }
