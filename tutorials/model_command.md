@@ -21,7 +21,6 @@ Open a new terminal and enter:
 
 And available models should be printed:
 
-
     Available models:
         - ground_plane
         - vehicle_blue
