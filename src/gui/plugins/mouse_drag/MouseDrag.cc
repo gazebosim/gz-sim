@@ -93,16 +93,18 @@ namespace sim
     public: bool modeDirty{false};
 
     /// \brief True if the force should be applied to the center of mass
-    public: bool applyCOM{true};
+    public: bool applyCOM{false};
 
     /// \brief Block orbit
     public: bool blockOrbit{false};
 
-    /// \brief Visual of the Link to which apply the wrenches
+    /// \brief Visual of the Link to which the wrenches are applied
     public: Entity visualId;
 
+    math::Vector3d applicationPoint;
+
     /// \brief Offset of the force application point relative to the
-    /// center of mass
+    /// link origin
     public: math::Vector3d offset{0.0, 0.0, 0.0};
 
     /// \brief Plane of force application
@@ -164,17 +166,31 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
   {
     this->dataPtr->OnRender();
   }
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
+  {
+    auto event =
+      static_cast<gz::gui::events::LeftClickOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
+  else if (_event->type() == gz::gui::events::RightClickOnScene::kType)
+  {
+    auto event =
+      static_cast<gz::gui::events::RightClickOnScene *>(_event);
+    this->dataPtr->mouseEvent = event->Mouse();
+    this->dataPtr->mouseDirty = true;
+  }
   else if (_event->type() == gz::gui::events::MousePressOnScene::kType)
   {
     auto event =
-        static_cast<gz::gui::events::MousePressOnScene *>(_event);
+      static_cast<gz::gui::events::MousePressOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == gz::gui::events::DragOnScene::kType)
   {
     auto event =
-        static_cast<gz::gui::events::DragOnScene *>(_event);
+      static_cast<gz::gui::events::DragOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
@@ -185,11 +201,12 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void MouseDrag::Update(const UpdateInfo &/*_info*/,
+void MouseDrag::Update(const UpdateInfo &_info,
   EntityComponentManager &_ecm)
 {
   if (this->dataPtr->mode == MouseDragMode::NONE ||
-      this->dataPtr->visualId == kNullEntity)
+      this->dataPtr->visualId == kNullEntity ||
+      _info.paused)
   {
     return;
   }
@@ -207,44 +224,51 @@ void MouseDrag::Update(const UpdateInfo &/*_info*/,
     }
   }
 
+  auto linkWorldPose = worldPose(*linkId, _ecm);
   auto inertial = _ecm.Component<components::Inertial>(*linkId);
-  math::Pose3d linkWorldPose = worldPose(*linkId, _ecm);
   if (!inertial)
   {
-    gzdbg << "Link must have an inertial component" << std::endl;
     return;
   }
-  auto centerOfMass =
-    linkWorldPose.Pos() +
-    linkWorldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
-  math::Vector3d applicationPoint = centerOfMass;
-  if (!this->dataPtr->applyCOM)
-  {
-    applicationPoint +=
-      linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
-  }
 
-  // Recalculate the plane of application when necessary
   if (this->dataPtr->modeDirty)
   {
     this->dataPtr->modeDirty = false;
 
-    // Make a ray query at the center of the image
+    if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
+    {
+      // Calculate offset of force application from link origin
+      if (this->dataPtr->applyCOM)
+      {
+        this->dataPtr->offset = inertial->Data().Pose().Pos();
+        this->dataPtr->applicationPoint =
+          linkWorldPose.Pos() +
+          linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
+      }
+      else
+      {
+        this->dataPtr->offset = linkWorldPose.Rot().RotateVectorReverse(
+          this->dataPtr->applicationPoint - linkWorldPose.Pos());
+      }
+    }
+
+    // The plane of wrench application should be normal to the center
+    // of the camera view and pass through the application point
     this->dataPtr->rayQuery->SetFromCamera(
       this->dataPtr->camera, math::Vector2d(0, 0));
-
     math::Vector3d direction = this->dataPtr->rayQuery->Direction();
-
-    double planeOffset = direction.AbsDot(applicationPoint);
-    this->dataPtr->plane = math::Planed(-direction, planeOffset);
-
-    gzdbg << "Mode " << this->dataPtr->mode
-          << " Entity " << *linkId
-          << " Point " << applicationPoint
-          << " Normal " << -direction << std::endl;
+    double planeOffset = direction.Dot(this->dataPtr->applicationPoint);
+    this->dataPtr->plane = math::Planed(direction, planeOffset);
+  }
+  else
+  {
+    this->dataPtr->applicationPoint =
+      linkWorldPose.Pos() +
+      linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
   }
 
   math::Vector3d force;
+  math::Vector3d offsetFromCoM;
   math::Vector3d torque;
 
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
@@ -271,21 +295,22 @@ void MouseDrag::Update(const UpdateInfo &/*_info*/,
     auto target = this->dataPtr->plane.Intersection(origin, direction);
     if (!target)
     {
-      gzdbg << "No intersection found" << std::endl;
       return;
     }
-    math::Vector3d displacement = *target - applicationPoint;
-    // gzdbg << "Displacement " << displacement << std::endl;
+    math::Vector3d displacement = *target - this->dataPtr->applicationPoint;
 
     static math::Vector3d displacementPrev;
 
     force = 1e3*displacement + 1e4*(displacement-displacementPrev);
     displacementPrev = displacement;
+
+    offsetFromCoM = this->dataPtr->offset - inertial->Data().Pose().Pos();
   }
 
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_id(*linkId);
   msgs::Set(msg.mutable_wrench()->mutable_force(), force);
+  // msgs::Set(msg.mutable_wrench()->mutable_force_offset(), offsetFromCoM);
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
 
   this->dataPtr->pub.Publish(msg);
@@ -328,7 +353,7 @@ void MouseDragPrivate::OnRender()
       gzerr << "MouseDrag camera is not available" << std::endl;
       return;
     }
-    this->rayQuery = this->camera->Scene()->CreateRayQuery();
+    this->rayQuery = this->scene->CreateRayQuery();
   }
 
   gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
@@ -348,9 +373,11 @@ void MouseDragPrivate::HandleMouseEvents()
   this->mouseDirty = false;
 
   if (this->mouseEvent.Type() == common::MouseEvent::PRESS &&
-      this->mouseEvent.Control())
+      this->mouseEvent.Control() &&
+      this->mouseEvent.Button() != common::MouseEvent::MIDDLE)
   {
     this->mousePressPos = this->mouseEvent.Pos();
+    this->blockOrbit = true;
 
     // Get the visual at mouse position
     rendering::VisualPtr visual = this->scene->VisualAt(
@@ -363,6 +390,14 @@ void MouseDragPrivate::HandleMouseEvents()
       return;
     }
 
+    if (!this->applyCOM)
+    {
+      this->applicationPoint = rendering::screenToScene(
+        this->mousePressPos, this->camera,
+        this->rayQuery);
+    }
+    this->modeDirty = true;
+
     try
     {
       this->visualId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
@@ -374,15 +409,11 @@ void MouseDragPrivate::HandleMouseEvents()
 
     if (this->mouseEvent.Button() == common::MouseEvent::LEFT)
     {
-      // TODO(anyone): revert to rotation mode
-      // this->mode = MouseDragMode::ROTATE;
-      this->mode = MouseDragMode::TRANSLATE;
-      this->modeDirty = true;
+      this->mode = MouseDragMode::ROTATE;
     }
     else if (this->mouseEvent.Button() == common::MouseEvent::RIGHT)
     {
       this->mode = MouseDragMode::TRANSLATE;
-      this->modeDirty = true;
     }
   }
   else if (this->mouseEvent.Type() == common::MouseEvent::RELEASE)
@@ -390,7 +421,6 @@ void MouseDragPrivate::HandleMouseEvents()
     this->mode = MouseDragMode::NONE;
     this->blockOrbit = false;
     this->visualId = kNullEntity;
-    gzdbg << "Released" << std::endl;
   }
   else if (this->mouseEvent.Type() == common::MouseEvent::MOVE)
   {
