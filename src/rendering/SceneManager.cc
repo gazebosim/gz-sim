@@ -1191,7 +1191,7 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
   if (this->HasEntity(_id))
   {
-    ignerr << "Light with Id: [" << _id << "] can not be create there is "
+    gzerr << "Light with Id: [" << _id << "] can not be create there is "
               "another entity with the same entity number" << std::endl;
     return nullptr;
   }
@@ -2376,8 +2376,8 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       {
         if (!meshSkel->AddBvhAnimation(animFilename, animScale))
         {
-          ignerr << "Bvh animation in file " << animFilename
-                 << " failed to load during actor creation" << std::endl;
+          gzerr << "Bvh animation in file " << animFilename
+                << " failed to load during actor creation" << std::endl;
           continue;
         }
       }
@@ -2473,8 +2473,8 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
       const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
       if (nullptr == trajSdf)
       {
-        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
-               << std::endl;
+        gzerr << "Null trajectory SDF for [" << _actor.Name() << "]"
+              << std::endl;
         continue;
       }
       common::TrajectoryInfo trajInfo;
@@ -2517,9 +2517,9 @@ SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
             }
             else
             {
-              ignwarn << "Animation has no x displacement. "
-                      << "Ignoring <interpolate_x> for the animation in '"
-                      << animation->Filename() << "'." << std::endl;
+              gzwarn << "Animation has no x displacement. "
+                     << "Ignoring <interpolate_x> for the animation in '"
+                     << animation->Filename() << "'." << std::endl;
             }
             animInterpolateCheck.insert(animation->Filename());
           }

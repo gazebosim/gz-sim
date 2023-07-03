@@ -265,7 +265,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -811,6 +812,7 @@ ServerConfig::SourceType ServerConfig::Source() const
 }
 
 /////////////////////////////////////////////////
+namespace {
 void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
@@ -917,6 +919,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>

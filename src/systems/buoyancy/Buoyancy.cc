@@ -643,7 +643,7 @@ void Buoyancy::PostUpdate(
 bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
-  return this->IsEnabled(_entity, _ecm);
+  return this->dataPtr->IsEnabled(_entity, _ecm);
 }
 
 GZ_ADD_PLUGIN(Buoyancy,
