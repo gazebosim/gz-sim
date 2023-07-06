@@ -435,18 +435,28 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 void Link::AddWorldWrench(EntityComponentManager &_ecm,
-                                    const math::Vector3d &_force,
-                                    const math::Vector3d &_offset,
-                                    const math::Vector3d &_torque) const
+                          const math::Vector3d &_force,
+                          const math::Vector3d &_offset,
+                          const math::Vector3d &_torque) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  math::Pose3d linkWorldPose = worldPose(this->dataPtr->id, _ecm);
+  auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);
 
   // Can't apply force if the inertial's pose is not found
   if (!inertial)
   {
     gzdbg << "Inertial Component not found" << std::endl;
     return;
+  }
+
+  math::Pose3d linkWorldPose;
+  if (worldPoseComp)
+  {
+    linkWorldPose = worldPoseComp->Data();
+  }
+  else
+  {
+    linkWorldPose = worldPose(this->dataPtr->id, _ecm);
   }
 
   // We want the force to be applied at an offset from the center of mass, but
