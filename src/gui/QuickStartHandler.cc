@@ -17,13 +17,16 @@
 
 #include "QuickStartHandler.hh"
 
+#include "gz/sim/InstallationDirectories.hh"
+
 using namespace gz;
 using namespace sim::gui;
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const
 {
-  return QString::fromUtf8(this->worldsPath.c_str());
+  std::string worldsPathLocal = gz::sim::getWorldInstallDir();
+  return QString::fromUtf8(worldsPathLocal.c_str());
 }
 
 /////////////////////////////////////////////////

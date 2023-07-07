@@ -27,4 +27,6 @@ gz_build_tests(TYPE UNIT
   ${gtest_sources}
   LIB_DEPS
   gz-physics${GZ_PHYSICS_VER}::core
+  ENVIRONMENT
+  GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )

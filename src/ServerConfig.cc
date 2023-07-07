@@ -25,6 +25,7 @@
 #include <gz/fuel_tools/Result.hh>
 #include <gz/math/Rand.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -1016,7 +1017,7 @@ sim::loadPluginInfo(bool _isPlayback)
   if (!common::exists(defaultConfig))
   {
     auto installedConfig = common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+        gz::sim::getServerConfigPath(),
         configFilename);
 
     if (!common::createDirectories(defaultConfigDir))
