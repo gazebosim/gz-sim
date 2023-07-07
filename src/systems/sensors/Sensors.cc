@@ -280,11 +280,14 @@ void SensorsPrivate::RunOnce()
 {
   {
     std::unique_lock<std::mutex> cvLock(this->renderMutex);
-    this->renderCv.wait(cvLock, [this]()
+    this->renderCv.wait_for(cvLock, std::chrono::microseconds(1000), [this]()
     {
       return !this->running || this->updateAvailable;
     });
   }
+
+  if (!this->updateAvailable)
+    return;
 
   if (!this->running)
     return;
