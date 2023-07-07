@@ -17,22 +17,22 @@
 #ifndef GZ_SIM_GZ_HH_
 #define GZ_SIM_GZ_HH_
 
-#include "gz/sim/gz/Export.hh"
+#include "gz/sim/Export.hh"
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" GZ_SIM_GZ_VISIBLE char *gzSimVersion();
+extern "C" GZ_SIM_VISIBLE char *gzSimVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
-extern "C" GZ_SIM_GZ_VISIBLE char *simVersionHeader();
+extern "C" GZ_SIM_VISIBLE char *simVersionHeader();
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
-extern "C" GZ_SIM_GZ_VISIBLE void cmdVerbosity(
+extern "C" GZ_SIM_VISIBLE void cmdVerbosity(
     const char *_verbosity);
 
-extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
+extern "C" GZ_SIM_VISIBLE const char *worldInstallDir();
 
 /// \brief External hook to run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
@@ -62,7 +62,7 @@ extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
 /// \return 0 if successful, 1 if not.
-extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
+extern "C" GZ_SIM_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
