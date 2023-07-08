@@ -642,7 +642,8 @@ TEST_P(AckermannSteeringTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(
       AngularSpeedLimiters))
 {
-  const std::string &_sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH, "test", "worlds", "ackermann_steering_with_angular.sdf"));
+  const std::string &_sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH, "test", "worlds", "ackermann_steering_with_angular.sdf"));
   const std::string &_cmdVelTopic = "/model/vehicle/cmd_vel";
   const std::string &_odomTopic = "/model/vehicle/odometry";
 
