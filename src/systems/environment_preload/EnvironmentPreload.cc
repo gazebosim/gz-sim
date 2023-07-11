@@ -134,7 +134,7 @@ void EnvironmentPreload::PreUpdate(
               }
               else if (unitName != "radians")
               {
-                ignerr << "Unrecognized unit " << unitName << "\n";
+                gzerr << "Unrecognized unit " << unitName << "\n";
               }
             }
           }
