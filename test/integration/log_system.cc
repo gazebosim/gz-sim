@@ -1669,7 +1669,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
 #ifndef __APPLE__
   // Log from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzlogDirectory
     std::string cmd = kGzCommand + " -r -v 4 --iterations "
       + std::to_string(numIterations) + " "
       + "--record-period 0.002 "
