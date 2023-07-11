@@ -29,6 +29,7 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Gui.hh"
@@ -92,7 +93,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
     }
 
     auto installedConfig = common::joinPaths(
-        GZ_SIM_GUI_CONFIG_PATH, defaultGuiConfigName);
+        gz::sim::getGUIConfigPath(), defaultGuiConfigName);
     if (!common::copyFile(installedConfig, defaultConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
@@ -275,7 +276,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   auto app = std::make_unique<gz::gui::Application>(
     _argc, _argv, gz::gui::WindowType::kMainWindow);
 
-  app->AddPluginPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
+  app->AddPluginPath(gz::sim::getGUIPluginInstallDir());
 
   auto aboutDialogHandler = new gz::sim::gui::AboutDialogHandler();
   aboutDialogHandler->setParent(app->Engine());
@@ -287,7 +288,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   pathManager->setParent(app->Engine());
 
   // add import path so we can load custom modules
-  app->Engine()->addImportPath(GZ_SIM_GUI_PLUGIN_INSTALL_DIR);
+  app->Engine()->addImportPath(gz::sim::getGUIPluginInstallDir().c_str());
 
   app->SetDefaultConfigPath(defaultConfig);
 

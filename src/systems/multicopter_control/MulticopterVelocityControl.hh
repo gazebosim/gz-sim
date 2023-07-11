@@ -21,6 +21,9 @@
 #include <memory>
 #include <string>
 
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/twist.pb.h>
 #include <gz/transport/Node.hh>
 
 #include <gz/sim/System.hh>
