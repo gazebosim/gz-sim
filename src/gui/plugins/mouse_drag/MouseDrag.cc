@@ -103,18 +103,18 @@ namespace sim
     /// \brief Visual of the Link to which the wrenches are applied
     public: Entity visualId;
 
-    /// \brief Application point of the force in world coordinates
+    /// \brief Application point of the wrench in world coordinates
     math::Vector3d applicationPoint;
 
     /// \brief Offset of the force application point relative to the
-    /// link origin, written in the link-fixed frame
+    /// link origin, expressed in the link-fixed frame
     public: math::Vector3d offset{0.0, 0.0, 0.0};
 
     /// \brief Plane of force application
     public: math::Planed plane;
 
     /// \brief Initial position of a mouse click
-    public: math::Vector2i mousePressPos{0, 0};
+    public: math::Vector2i mousePressPos;
 
     /// \brief Initial world rotation of the link during mouse click
     public: math::Quaterniond initialRot;
@@ -229,6 +229,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
       return;
     }
   }
+  link.EnableVelocityChecks(_ecm, true);
 
   auto linkWorldPose = worldPose(*linkId, _ecm);
   auto inertial = _ecm.Component<components::Inertial>(*linkId);
@@ -271,7 +272,6 @@ void MouseDrag::Update(const UpdateInfo &_info,
   }
   else
   {
-    // TODO(anyone): can this become an else if?
     if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
     {
       this->dataPtr->applicationPoint =
@@ -280,7 +280,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
     }
   }
 
-  // Normalize point on the image
+  // Normalize mouse position on the image
   double width = this->dataPtr->camera->ImageWidth();
   double height = this->dataPtr->camera->ImageHeight();
 
@@ -307,65 +307,59 @@ void MouseDrag::Update(const UpdateInfo &_info,
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
   {
     // Calculate rotation axes
-    math::Pose3d camPose = this->dataPtr->camera->WorldPose();
-    math::Vector3d verticalAxis(camPose.Rot().ZAxis());
-    math::Vector3d horizontalAxis(-camPose.Rot().YAxis());
-
-    // Map mouse displacement with desired pose
-    math::Vector3d targetHorizontal =
-      (*target - this->dataPtr->applicationPoint).Dot(horizontalAxis) *
-      horizontalAxis + this->dataPtr->applicationPoint;
-    math::Vector3d targetVertical =
-      (*target - this->dataPtr->applicationPoint).Dot(verticalAxis) *
-      verticalAxis + this->dataPtr->applicationPoint;
-
+    math::Vector3d camPos = this->dataPtr->camera->WorldPose().Pos();
     math::Vector3d start =
-      (this->dataPtr->applicationPoint - camPose.Pos()).Normalized();
-    math::Vector3d endHorizontal =
-      (targetHorizontal - camPose.Pos()).Normalized();
-    math::Vector3d endVertical = (targetVertical - camPose.Pos()).Normalized();
+      (this->dataPtr->applicationPoint - camPos).Normalized();
+    math::Vector3d end = (*target - camPos).Normalized();
 
-    double angleHorizontal = atan2(
-      start.Cross(endHorizontal).Length(), start.Dot(endHorizontal));
-    if (this->dataPtr->mouseEvent.Pos().X() < this->dataPtr->mousePressPos.X())
-      angleHorizontal = -angleHorizontal;
+    math::Vector3d axis = start.Cross(end);
+    double angle = -atan2(axis.Length(), start.Dot(end));
+    axis -= axis.Dot(this->dataPtr->plane.Normal()) *
+      this->dataPtr->plane.Normal();
+    axis.Normalize();
 
-    double angleVertical = atan2(
-      start.Cross(endVertical).Length(), start.Dot(endVertical));
-    if (this->dataPtr->mouseEvent.Pos().Y() < this->dataPtr->mousePressPos.Y())
-      angleVertical = -angleVertical;
-
-    math::Quaterniond desiredRot =
-      math::Quaterniond(verticalAxis, angleHorizontal) *
-      math::Quaterniond(horizontalAxis, angleVertical);
+    // Desired change in rotation relative to the rotation on mouse click
+    math::Quaterniond desiredRot = math::Quaterniond(axis, angle);
 
     // Calculate the necessary rotation and torque
     math::Quaterniond displacementRot =
       linkWorldPose.Rot().Inverse() * (this->dataPtr->initialRot * desiredRot);
-    math::Vector3d displacementVec = displacementRot.Euler();
-    static math::Vector3d displacementVecPrev;
+    math::Vector3d angularVel;
+    if (auto v = link.WorldAngularVelocity(_ecm))
+    {
+      angularVel = *v;
+      gzdbg << "angularVel [" << angularVel << "]" << std::endl;
+    }
 
     torque =
-      1e3 * displacementVec + 1e4 * (displacementVec - displacementVecPrev);
-    displacementVecPrev = displacementVec;
+      1e3 * displacementRot.Euler() - 5e2 * angularVel;
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
     math::Vector3d displacement = *target - this->dataPtr->applicationPoint;
-    static math::Vector3d displacementPrev;
+    math::Vector3d linearVel;
+    math::Vector3d angularVel;
+    if (auto v = link.WorldLinearVelocity(_ecm))
+    {
+      linearVel = *v;
+      gzdbg << "linearVel [" << linearVel << "]" << std::endl;
+    }
+    if (auto v = link.WorldAngularVelocity(_ecm))
+    {
+      angularVel = *v;
+      gzdbg << "angularVel [" << angularVel << "]" << std::endl;
+    }
 
-    force = 1e3 * displacement + 1e4 * (displacement - displacementPrev);
-    displacementPrev = displacement;
-
-    offsetFromCoM = this->dataPtr->offset - inertial->Data().Pose().Pos();
+    force = 1e3 * displacement - 1e2 * linearVel;
+    torque =
+      linkWorldPose.Rot().RotateVector(this->dataPtr->offset).Cross(force) -
+      1e1 * angularVel;
   }
 
+  // Publish wrench
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_id(*linkId);
   msgs::Set(msg.mutable_wrench()->mutable_force(), force);
-  // msgs::Set(msg.mutable_wrench()->mutable_force_offset(), offsetFromCoM);
-  torque += linkWorldPose.Rot().RotateVector(
-    offsetFromCoM + inertial->Data().Pose().Pos()).Cross(force);
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
 
   this->dataPtr->pub.Publish(msg);
@@ -445,6 +439,7 @@ void MouseDragPrivate::HandleMouseEvents()
       return;
     }
 
+    // Get the 3D coordinates of the clicked point
     this->applicationPoint = rendering::screenToScene(
       this->mouseEvent.Pos(), this->camera,
       this->rayQuery);
