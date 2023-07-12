@@ -703,7 +703,7 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
     rendering::MeshDescriptor descriptor;
-    descriptor.mesh = loadMesh(_geom.MeshShape());
+    descriptor.mesh = loadMesh(*_geom.MeshShape());
     if (!descriptor.mesh)
       return geom;
     std::string meshUri =

@@ -314,7 +314,7 @@ namespace gz
     /// \brief Load a mesh from a Mesh SDF DOM
     /// \param[in] _meshSdf Mesh SDF DOM
     /// \return The loaded mesh or null if the mesh can not be loaded.
-    GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh *_meshSdf);
+    GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};

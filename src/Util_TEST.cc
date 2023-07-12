@@ -1009,18 +1009,18 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 TEST_F(UtilTest, LoadMesh)
 {
   sdf::Mesh meshSdf;
-  EXPECT_EQ(nullptr, loadMesh(&meshSdf));
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
 
   meshSdf.SetUri("invalid_uri");
   meshSdf.SetFilePath("invalid_filepath");
-  EXPECT_EQ(nullptr, loadMesh(&meshSdf));
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
 
   meshSdf.SetUri("name://unit_box");
-  EXPECT_NE(nullptr, loadMesh(&meshSdf));
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
 
   meshSdf.SetUri("duck.dae");
   std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "media", "duck.dae");
   meshSdf.SetFilePath(filePath);
-  EXPECT_NE(nullptr, loadMesh(&meshSdf));
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
 }

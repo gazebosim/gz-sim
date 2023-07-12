@@ -1389,7 +1389,7 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          const common::Mesh *mesh = loadMesh(meshSdf);
+          const common::Mesh *mesh = loadMesh(*meshSdf);
           if (!mesh)
             return true;
 

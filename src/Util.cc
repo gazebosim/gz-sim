@@ -840,15 +840,15 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
   return filePath;
 }
 
-const common::Mesh *loadMesh(const sdf::Mesh *_meshSdf)
+const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
 {
   const common::Mesh *mesh = nullptr;
   auto &meshManager = *common::MeshManager::Instance();
-  if (common::URI(_meshSdf->Uri()).Scheme() == "name")
+  if (common::URI(_meshSdf.Uri()).Scheme() == "name")
   {
     // if it has a name:// scheme, see if the mesh
     // exists in the mesh manager and load it by name
-    const std::string basename = common::basename(_meshSdf->Uri());
+    const std::string basename = common::basename(_meshSdf.Uri());
     mesh = meshManager.MeshByName(basename);
     if (nullptr == mesh)
     {
@@ -857,10 +857,10 @@ const common::Mesh *loadMesh(const sdf::Mesh *_meshSdf)
       return nullptr;
     }
   }
-  else if (meshManager.IsValidFilename(_meshSdf->Uri()))
+  else if (meshManager.IsValidFilename(_meshSdf.Uri()))
   {
     // load mesh by file path
-    auto fullPath = asFullPath(_meshSdf->Uri(), _meshSdf->FilePath());
+    auto fullPath = asFullPath(_meshSdf.Uri(), _meshSdf.FilePath());
     mesh = meshManager.Load(fullPath);
     if (nullptr == mesh)
     {
@@ -871,7 +871,7 @@ const common::Mesh *loadMesh(const sdf::Mesh *_meshSdf)
   }
   else
   {
-    gzwarn << "Failed to load mesh [" << _meshSdf->Uri()
+    gzwarn << "Failed to load mesh [" << _meshSdf.Uri()
            << "]." << std::endl;
     return nullptr;
   }
