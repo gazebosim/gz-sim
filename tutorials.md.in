@@ -15,7 +15,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
 * \subpage debugging "Debugging": Information about debugging Gazebo.
 
-### GUI features
+### GUI and rendering features
 
 * \subpage move_camera_to_model Move camera to model
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
