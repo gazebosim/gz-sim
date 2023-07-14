@@ -1710,8 +1710,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           {
             if (auto mimic = jointAxis->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(mimic->Joint(), mimic->Axis(),
-                  mimic->Multiplier(), mimic->Offset(), mimic->Reference());
+              existingJoint->SetMimicConstraint(0,
+                  mimic->Joint(),
+                  mimic->Axis(),
+                  mimic->Multiplier(),
+                  mimic->Offset(),
+                  mimic->Reference());
             }
           }
 
@@ -1719,8 +1723,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           {
             if (auto mimic = jointAxis2->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(mimic->Joint(), mimic->Axis(),
-                  mimic->Multiplier(), mimic->Offset(), mimic->Reference());
+              existingJoint->SetMimicConstraint(1,
+                  mimic->Joint(),
+                  mimic->Axis(),
+                  mimic->Multiplier(),
+                  mimic->Offset(),
+                  mimic->Reference());
             }
           }
 
