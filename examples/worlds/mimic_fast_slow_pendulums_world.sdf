@@ -103,8 +103,8 @@
         </collision>
       </link>
 
-      <!-- upper link 1, length 1, IC -90 degrees -->
-      <link name="upper_link_1">
+      <!-- slow link, length 1, IC -90 degrees -->
+      <link name="slow_link">
         <pose>0 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -119,7 +119,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint">
+        <visual name="vis_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -147,7 +147,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint">
+        <collision name="col_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -167,8 +167,8 @@
         </collision>
       </link>
 
-      <!-- upper link 2, length 0.5, IC -90 degrees -->
-      <link name="upper_link_2">
+      <!-- fast link, length 0.5, IC -90 degrees -->
+      <link name="fast_link">
         <pose>-0.5 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -183,7 +183,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint_2">
+        <visual name="vis_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -211,7 +211,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint_2">
+        <collision name="col_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -231,25 +231,25 @@
         </collision>
       </link>
 
-      <joint name="upper_joint_1" type="revolute">
+      <joint name="slow_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_1</child>
+        <child>slow_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
+          <xyz>-1.0 0 0</xyz>
         </axis>
       </joint>
 
-      <joint name="upper_joint_2" type="revolute">
+      <joint name="fast_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_2</child>
+        <child>fast_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
+          <xyz>-1.0 0 0</xyz>
         </axis>
       </joint>
 
     </model>
 
-    <model name="pendulum_with_base_mimic_big_follows_small">
+    <model name="pendulum_with_base_mimic_slow_follows_fast">
       <pose>0 3 0 0 0 0</pose>
       <link name="base">
         <inertial>
@@ -301,8 +301,8 @@
         </collision>
       </link>
 
-      <!-- upper link 1, length 1, IC -90 degrees -->
-      <link name="upper_link_1">
+      <!-- slow link, length 1, IC -90 degrees -->
+      <link name="slow_link">
         <pose>0 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -317,7 +317,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint">
+        <visual name="vis_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -345,7 +345,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint">
+        <collision name="col_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -365,8 +365,8 @@
         </collision>
       </link>
 
-      <!-- upper link 2, length 0.5, IC -90 degrees -->
-      <link name="upper_link_2">
+      <!-- fast link, length 0.5, IC -90 degrees -->
+      <link name="fast_link">
         <pose>-0.5 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -381,7 +381,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint_2">
+        <visual name="vis_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -409,7 +409,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint_2">
+        <collision name="col_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -429,28 +429,28 @@
         </collision>
       </link>
 
-      <joint name="upper_joint_1" type="revolute">
+      <joint name="slow_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_1</child>
+        <child>slow_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
-          <mimic joint="upper_joint_2" axis="axis">
+          <xyz>-1.0 0 0</xyz>
+          <mimic joint="fast_joint" axis="axis">
             <multiplier>1</multiplier>
           </mimic>
         </axis>
       </joint>
 
-      <joint name="upper_joint_2" type="revolute">
+      <joint name="fast_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_2</child>
+        <child>fast_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
+          <xyz>-1.0 0 0</xyz>
         </axis>
       </joint>
 
     </model>
 
-    <model name="pendulum_with_base_mimic_small_follows_big">
+    <model name="pendulum_with_base_mimic_fast_follows_slow">
       <pose>0 -3 0 0 0 0</pose>
       <link name="base">
         <inertial>
@@ -502,8 +502,8 @@
         </collision>
       </link>
 
-      <!-- upper link 1, length 1, IC -90 degrees -->
-      <link name="upper_link_1">
+      <!-- slow link, length 1, IC -90 degrees -->
+      <link name="slow_link">
         <pose>0 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -518,7 +518,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint">
+        <visual name="vis_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -546,7 +546,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint">
+        <collision name="col_slow_joint">
           <pose>-0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -566,8 +566,8 @@
         </collision>
       </link>
 
-      <!-- upper link 2, length 0.5, IC -90 degrees -->
-      <link name="upper_link_2">
+      <!-- fast link, length 0.5, IC -90 degrees -->
+      <link name="fast_link">
         <pose>-0.5 0 2.1 -1.5708 0 0</pose>
         <self_collide>0</self_collide>
         <inertial>
@@ -582,7 +582,7 @@
             <izz>0.006</izz>
           </inertia>
         </inertial>
-        <visual name="vis_upper_joint_2">
+        <visual name="vis_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -610,7 +610,7 @@
             <specular>0.8 0.8 0.8 1</specular>
           </material>
         </visual>
-        <collision name="col_upper_joint_2">
+        <collision name="col_fast_joint">
           <pose>0.05 0 0 0 1.5708 0</pose>
           <geometry>
             <cylinder>
@@ -630,20 +630,20 @@
         </collision>
       </link>
 
-      <joint name="upper_joint_1" type="revolute">
+      <joint name="slow_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_1</child>
+        <child>slow_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
+          <xyz>-1.0 0 0</xyz>
         </axis>
       </joint>
 
-      <joint name="upper_joint_2" type="revolute">
+      <joint name="fast_joint" type="revolute">
         <parent>base</parent>
-        <child>upper_link_2</child>
+        <child>fast_link</child>
         <axis>
-          <xyz>1.0 0 0</xyz>
-          <mimic joint="upper_joint_1" axis="axis">
+          <xyz>-1.0 0 0</xyz>
+          <mimic joint="slow_joint" axis="axis">
             <multiplier>1</multiplier>
           </mimic>
         </axis>
