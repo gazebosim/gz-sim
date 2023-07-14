@@ -20,6 +20,12 @@
 
 #include <memory>
 
+#include <QString>
+#include <QStringList>
+#include <QObject>
+#include <QEvent>
+
+#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/gui/GuiSystem.hh>
 
 namespace gz

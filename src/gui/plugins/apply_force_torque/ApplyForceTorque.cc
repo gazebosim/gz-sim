@@ -15,23 +15,23 @@
  *
 */
 
+#include <mutex>
 #include <string>
 
 #include <gz/gui/Application.hh>
-#include <gz/gui/MainWindow.hh>
 #include <gz/gui/Helpers.hh>
-#include <gz/sim/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Link.hh>
 #include <gz/sim/Model.hh>
-#include <gz/sim/World.hh>
-#include <gz/sim/EntityComponentManager.hh>
-#include <gz/sim/components/World.hh>
-#include <gz/sim/components/Name.hh>
-#include <gz/msgs/Utility.hh>
-#include <gz/msgs/entity_wrench.pb.h>
-#include <gz/plugin/Register.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/gui/GuiEvents.hh>
 #include <gz/transport/Node.hh>
-#include <gz/math/Vector3.hh>
 
 #include "ApplyForceTorque.hh"
 
@@ -49,6 +49,9 @@ namespace sim
 
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
+
+    /// \brief To synchronize member access
+    public: std::mutex mutex;
 
     /// \brief Name of the selected model
     public: QString modelName;
@@ -73,6 +76,9 @@ namespace sim
 
     /// \brief Torque to be applied
     public: math::Vector3d torque{0.0, 0.0, 0.0};
+
+    /// \brief Offset from the link origin to the center of mass in world coords
+    public: math::Vector3d inertialPos;
   };
 }
 }
@@ -113,13 +119,13 @@ void ApplyForceTorque::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
 
   gz::gui::App()->findChild<gz::gui::MainWindow *>
     ()->installEventFilter(this);
-  gz::gui::App()->findChild<gz::gui::MainWindow *>
-    ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool ApplyForceTorque::eventFilter(QObject *_obj, QEvent *_event)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
   if (_event->type() ==
     gz::sim::gui::events::EntitiesSelected::kType)
   {
@@ -142,6 +148,8 @@ bool ApplyForceTorque::eventFilter(QObject *_obj, QEvent *_event)
 void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
   EntityComponentManager &_ecm)
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
   if (this->dataPtr->changedEntity)
   {
     this->dataPtr->changedEntity = false;
@@ -199,6 +207,19 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
       std::string linkName =
         this->dataPtr->linkNameList[this->dataPtr->linkIndex].toStdString();
       this->dataPtr->selectedEntity = parentModel->LinkByName(_ecm, linkName);
+    }
+  }
+
+  // Get the position of the center of mass
+  if (this->dataPtr->selectedEntity.has_value())
+  {
+    auto linkWorldPose = worldPose(*this->dataPtr->selectedEntity, _ecm);
+    auto inertial = _ecm.Component<components::Inertial>(
+      *this->dataPtr->selectedEntity);
+    if (inertial)
+    {
+      this->dataPtr->inertialPos =
+        linkWorldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
     }
   }
 
@@ -265,6 +286,8 @@ void ApplyForceTorque::ApplyAll()
 /////////////////////////////////////////////////
 void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   if (!this->selectedEntity.has_value())
   {
     gzdbg << "No link selected" << std::endl;
@@ -274,7 +297,8 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
   math::Vector3d forceToApply =
     _applyForce ? this->force : math::Vector3d::Zero;
   math::Vector3d torqueToApply =
-    _applyTorque ? this->torque : math::Vector3d::Zero;
+    _applyTorque ? this->torque : math::Vector3d::Zero +
+    this->inertialPos.Cross(forceToApply);
 
   gzdbg << "Applying wrench [" <<
     forceToApply[0] << " " <<

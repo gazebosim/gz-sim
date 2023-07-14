@@ -77,7 +77,7 @@ GridLayout {
     Layout.columnSpan: 8
     id: forceText
     color: "dimgrey"
-    text: qsTr("Force (applied to link origin):")
+    text: qsTr("Force (applied to the center of mass):")
   }
 
   Label {
