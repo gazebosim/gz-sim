@@ -264,6 +264,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
       return;
     }
   }
+  link.EnableVelocityChecks(_ecm, true);
 
   auto linkWorldPose = worldPose(*linkId, _ecm);
   auto inertial = _ecm.Component<components::Inertial>(*linkId);
