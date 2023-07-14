@@ -514,7 +514,10 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
     auto uri = inclElem->Get<std::string>("uri");
     EXPECT_FALSE(uri.empty());
     const std::string version = common::split(uri, "/").back();
-    EXPECT_NO_THROW(std::stol(version));
+
+    int64_t versionParsed = -1;
+    EXPECT_NO_THROW(versionParsed = std::stol(version));
+    EXPECT_NE(-1, versionParsed);
   }
 }
 
@@ -642,13 +645,13 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/2";
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/",
-      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/2/",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3/",
       // Thes following two URIs are invalid, and will not be saved
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt",

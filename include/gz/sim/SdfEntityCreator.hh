@@ -28,6 +28,7 @@
 #include <sdf/Model.hh>
 #include <sdf/ParticleEmitter.hh>
 #include <sdf/Physics.hh>
+#include <sdf/Projector.hh>
 #include <sdf/Sensor.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
@@ -154,6 +155,12 @@ namespace gz
       /// \return ParticleEmitter entity.
       /// \sa CreateEntities(const sdf::Link *)
       public: Entity CreateEntities(const sdf::ParticleEmitter *_emitter);
+
+      /// \brief Create all entities that exist in the
+      /// sdf::Projector object.
+      /// \param[in] _projector SDF Projector object.
+      /// \return Projector entity.
+      public: Entity CreateEntities(const sdf::Projector *_projector);
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation

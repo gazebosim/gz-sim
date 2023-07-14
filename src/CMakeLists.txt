@@ -47,17 +47,23 @@ set(cli_sources
 )
 
 set (sources
+  Actor.cc
   Barrier.cc
   BaseView.cc
   Conversions.cc
+  ComponentFactory.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
+  InstallationDirectories.cc
+  Joint.cc
   LevelManager.cc
+  Light.cc
   Link.cc
   Model.cc
   Primitives.cc
   SdfEntityCreator.cc
   SdfGenerator.cc
+  Sensor.cc
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
@@ -68,7 +74,6 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  cmd/ModelCommandAPI.cc
   ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
@@ -77,6 +82,8 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
+  Actor_TEST.cc
+  AddedMass_TEST.cc
   Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc
@@ -84,11 +91,14 @@ set (gtest_sources
   Conversions_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
+  Joint_TEST.cc
+  Light_TEST.cc
   Link_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
   SdfGenerator_TEST.cc
+  Sensor_TEST.cc
   ServerConfig_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
@@ -159,6 +169,21 @@ target_link_libraries(${gz_lib_target}
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+gz_add_get_install_prefix_impl(GET_INSTALL_PREFIX_FUNCTION gz::sim::getInstallPrefix
+                               GET_INSTALL_PREFIX_HEADER gz/sim/InstallationDirectories.hh
+                               OVERRIDE_INSTALL_PREFIX_ENV_VARIABLE GZ_SIM_INSTALL_PREFIX)
+
+set_property(
+  SOURCE InstallationDirectories.cc
+  PROPERTY COMPILE_DEFINITIONS
+  GZ_SIM_GUI_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}/gui"
+  GZ_SIM_SYSTEM_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}/systems"
+  GZ_SIM_SERVER_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}"
+  GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins"
+  GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui"
+  GZ_SIM_WORLD_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/worlds"
+)
+
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   gz-math${GZ_MATH_VER}
@@ -167,7 +192,10 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  gz-physics${GZ_PHYSICS_VER}::core
+  gz-rendering${GZ_RENDERING_VER}::core
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+  gz-transport${GZ_TRANSPORT_VER}::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
@@ -201,6 +229,8 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 # Some server unit tests require rendering.

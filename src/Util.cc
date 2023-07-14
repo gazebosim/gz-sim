@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/entity.pb.h>
+
 #include <gz/common/Filesystem.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
@@ -29,6 +31,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 
 #include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/components/Joint.hh"
@@ -38,12 +41,15 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/LinearVelocity.hh"
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 namespace gz
@@ -79,6 +85,45 @@ math::Pose3d worldPose(const Entity &_entity,
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
   return pose;
+}
+
+//////////////////////////////////////////////////
+math::Vector3d relativeVel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    gzwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Vector3d();
+  }
+
+  // work out pose in world frame
+  math::Pose3d pose = poseComp->Data();
+  auto p = _ecm.Component<components::ParentEntity>(_entity);
+  while (p)
+  {
+    // get pose of parent entity
+    auto parentPose = _ecm.Component<components::Pose>(p->Data());
+    if (!parentPose)
+      break;
+    // transform pose
+    pose = parentPose->Data() * pose;
+    // keep going up the tree
+    p = _ecm.Component<components::ParentEntity>(p->Data());
+  }
+
+  auto worldLinVel = _ecm.Component<components::WorldLinearVelocity>(_entity);
+  if (nullptr == worldLinVel)
+  {
+    gzwarn << "Trying to get world velocity from entity [" << _entity
+            << "], which doesn't have a velocity component" << std::endl;
+    return math::Vector3d();
+  }
+
+  math::Vector3d vel = worldLinVel->Data();
+  return pose.Rot().RotateVectorReverse(vel);
 }
 
 //////////////////////////////////////////////////
@@ -234,6 +279,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::ParticleEmitter::typeId;
   }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = components::Projector::typeId;
+  }
 
   return type;
 }
@@ -283,6 +332,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
     type = "particle_emitter";
+  }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = "projector";
   }
 
   return type;
@@ -777,7 +830,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with gz-sim
-    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(gz::sim::getWorldInstallDir());
 
     filePath = systemPaths.FindFile(_sdfFile);
   }

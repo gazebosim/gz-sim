@@ -201,7 +201,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   // Run until a sensor measurement
   pressureReceiver.Start(topic);
   imageReceiver.Start("camera");
-  while (!(pressureReceiver.msgReceived && imageReceiver.msgReceived))
+  while (!pressureReceiver.msgReceived)
   {
     // Step once to get sensor to output measurement
     server.Run(true, 1, false);
@@ -209,6 +209,12 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   EXPECT_GE(server.IterationCount().value(), current);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
+
+  while (!imageReceiver.msgReceived)
+  {
+    // Step once to get sensor to output measurement
+    server.Run(true, 1, false);
+  }
 
   // Mostly green box
   {
@@ -218,7 +224,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FLOAT_EQ(0.0, centerPix.R());
     EXPECT_FLOAT_EQ(0.0, centerPix.B());
   }
-
   // Run until 2000 steps
   pressureReceiver.msgReceived = false;
   imageReceiver.msgReceived = false;
@@ -284,13 +289,19 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   current = 2001;
   target = 4001;
 
-  while (!(pressureReceiver.msgReceived && imageReceiver.msgReceived))
+  while (!pressureReceiver.msgReceived)
   {
     // Step once to get sensor to output measurement
     server.Run(true, 1, false);
   }
   EXPECT_GE(server.IterationCount().value(), 1u);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
+
+  while (!imageReceiver.msgReceived)
+  {
+    // Step once to get sensor to output measurement
+    server.Run(true, 1, false);
+  }
 
   // Mostly green box
   {
@@ -304,6 +315,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   // Run until target steps
   pressureReceiver.msgReceived = false;
   imageReceiver.msgReceived = false;
+
   server.Run(true, 2000 - server.IterationCount().value(), false);
 
   // Check iterator state

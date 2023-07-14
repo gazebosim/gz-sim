@@ -25,6 +25,7 @@
 #include <gz/fuel_tools/Result.hh>
 #include <gz/math/Rand.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -248,6 +249,7 @@ class gz::sim::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
+            initialSimTime(_cfg->initialSimTime),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
@@ -264,7 +266,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -274,6 +277,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
+
+  /// \brief The initial simulation time in seconds.
+  public: double initialSimTime = 0;
 
   /// \brief Use the level system
   public: bool useLevels{false};
@@ -390,10 +396,22 @@ std::string ServerConfig::SdfString() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::SetInitialSimTime(const double &_initialSimTime) const
+{
+  this->dataPtr->initialSimTime = _initialSimTime;
+}
+
+//////////////////////////////////////////////////
 void ServerConfig::SetUpdateRate(const double &_hz)
 {
   if (_hz > 0)
     this->dataPtr->updateRate = _hz;
+}
+
+/////////////////////////////////////////////////
+double ServerConfig::InitialSimTime() const
+{
+  return this->dataPtr->initialSimTime;
 }
 
 /////////////////////////////////////////////////
@@ -795,6 +813,7 @@ ServerConfig::SourceType ServerConfig::Source() const
 }
 
 /////////////////////////////////////////////////
+namespace {
 void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
@@ -901,6 +920,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
@@ -997,7 +1017,7 @@ sim::loadPluginInfo(bool _isPlayback)
   if (!common::exists(defaultConfig))
   {
     auto installedConfig = common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+        gz::sim::getServerConfigPath(),
         configFilename);
 
     if (!common::createDirectories(defaultConfigDir))

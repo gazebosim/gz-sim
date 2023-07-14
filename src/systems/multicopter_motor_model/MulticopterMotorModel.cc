@@ -157,8 +157,8 @@ class gz::sim::systems::MulticopterMotorModelPrivate
   /// \brief Sampling time (from motor_model.hpp).
   public: double samplingTime = 0.01;
 
-  /// \brief Index of motor on multirotor_base.
-  public: int motorNumber = 0;
+  /// \brief Index of motor in Actuators msg on multirotor_base.
+  public: int actuatorNumber = 0;
 
   /// \brief Turning direction of the motor.
   public: int turningDirection = turning_direction::kCw;
@@ -283,11 +283,22 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     return;
   }
 
-  if (sdfClone->HasElement("motorNumber"))
-    this->dataPtr->motorNumber =
+  if (sdfClone->HasElement("actuator_number"))
+  {
+    this->dataPtr->actuatorNumber =
+      sdfClone->GetElement("actuator_number")->Get<int>();
+  }
+  else if (sdfClone->HasElement("motorNumber"))
+  {
+    this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
+    gzwarn << "<motorNumber> is depricated, "
+           << "please use <actuator_number>.\n";
+  }
   else
-    gzerr << "Please specify a motorNumber.\n";
+  {
+    gzerr << "Please specify a actuator_number.\n";
+  }
 
   if (sdfClone->HasElement("turningDirection"))
   {
@@ -512,9 +523,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 
   if (msg.has_value())
   {
-    if (this->motorNumber > msg->velocity_size() - 1)
+    if (this->actuatorNumber > msg->velocity_size() - 1)
     {
-      gzerr << "You tried to access index " << this->motorNumber
+      gzerr << "You tried to access index " << this->actuatorNumber
         << " of the Actuator velocity array which is of size "
         << msg->velocity_size() << std::endl;
       return;
@@ -523,13 +534,13 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     if (this->motorType == MotorType::kVelocity)
     {
       this->refMotorInput = std::min(
-          static_cast<double>(msg->velocity(this->motorNumber)),
+          static_cast<double>(msg->velocity(this->actuatorNumber)),
           static_cast<double>(this->maxRotVelocity));
     }
     //  else if (this->motorType == MotorType::kPosition)
     else  // if (this->motorType == MotorType::kForce) {
     {
-      this->refMotorInput = msg->velocity(this->motorNumber);
+      this->refMotorInput = msg->velocity(this->actuatorNumber);
     }
   }
 
@@ -554,7 +565,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       double motorRotVel = jointVelocity->Data()[0];
       if (motorRotVel / (2 * GZ_PI) > 1 / (2 * this->samplingTime))
       {
-        gzerr << "Aliasing on motor [" << this->motorNumber
+        gzerr << "Aliasing on motor [" << this->actuatorNumber
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotorVelocitySlowdownSim param.\n";
       }

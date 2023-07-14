@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 #ifndef GZ_SIM_TYPES_HH_
 #define GZ_SIM_TYPES_HH_
 
@@ -41,8 +41,8 @@ namespace gz
       /// paused.
       std::chrono::steady_clock::duration simTime{0};
 
-      /// \brief Total wall clock time elapsed. This increases even if
-      /// simulation is paused.
+      /// \brief Total wall clock time elapsed while simulation is running. This
+      /// will not increase while paused.
       std::chrono::steady_clock::duration realTime{0};
 
       /// \brief Simulation time handled during a single update.

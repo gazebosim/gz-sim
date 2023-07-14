@@ -15,8 +15,8 @@ steps below.
 ## Decide on interfaces to implement
 
 The first step of implementing a system plugin is to determine the subset of
-available interfaces to implement.  Aside from the base `System` object,
-there are currently three additional available interfaces:
+available interfaces to implement. Aside from the base `System` object,
+there are currently four additional available interfaces:
 
 1. ISystemConfigure
   1. Has read-write access to world entities and components.
@@ -27,13 +27,16 @@ there are currently three additional available interfaces:
   1. Has read-write access to world entities and components.
   2. This is where systems say what they'd like to happen at time gz::sim::UpdateInfo::simTime.
   3. Can be used to modify state before physics runs, for example for applying control signals or performing network synchronization.
-2. ISystemUpdate
+3. ISystemUpdate
   1. Has read-write access to world entities and components.
   2. Used for physics simulation step (i.e., simulates what happens at time gz::sim::UpdateInfo::simTime).
-3. ISystemPostUpdate
+4. ISystemPostUpdate
   1. Has read-only access to world entities and components.
   2. Captures everything that happened at time gz::sim::UpdateInfo::simTime.
   3. Used to read out results at the end of a simulation step to be used for sensor or controller updates.
+5. ISystemReset
+  1. Has read-write access to world entities and components.
+  2. Executed once the moment the plugin is reseted.
 
 It's important to note that gz::sim::UpdateInfo::simTime does not refer to the current time, but the time reached after the `PreUpdate` and `Update` calls have finished.
 So, if any of the `*Update` functions are called with simulation paused, time does not advance, which means the time reached after `PreUpdate` and `Update` is the same as the starting time.

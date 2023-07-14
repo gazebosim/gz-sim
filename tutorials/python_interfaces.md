@@ -1,15 +1,15 @@
 \page python_interfaces Python interfaces
 
-# Overview
+## Overview
 
-Gazebo provides a Python API to interact with world.
+Gazebo provides a Python API to interact with the world.
 
 For now, we provide a `TestFixture` class that allows to load a world file,
 step simulation and check entities and components.
 
  - **Step 1**: Load a world with a fixture
 
-```{.python}
+```python
 file_path = os.path.dirname(os.path.realpath(__file__))
 fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 ```
@@ -40,7 +40,7 @@ fixture.finalize()
 server.run(True, 1000, False)
 ```
 
-# Run the example
+## Run the example
 
 In the
 [examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/gz-sim7/examples/scripts/python_api)

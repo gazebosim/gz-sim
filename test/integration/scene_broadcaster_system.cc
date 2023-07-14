@@ -1030,6 +1030,66 @@ TEST_P(SceneBroadcasterTest,
   EXPECT_EQ(1, count);
 }
 
+TEST_P(SceneBroadcasterTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfoHasProjector))
+{
+  // Start server
+  gz::sim::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "projector.sdf"));
+
+  sim::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Run server
+  server.Run(true, 1, false);
+
+  // Create requester
+  transport::Node node;
+
+  bool result{false};
+  unsigned int timeout{5000};
+  gz::msgs::Scene res;
+
+  EXPECT_TRUE(node.Request("/world/projectors/scene/info",
+        timeout, res, result));
+  ASSERT_TRUE(result);
+
+  ASSERT_EQ(2, res.model_size());
+  int count = 0;
+  for (int i = 0; i < res.model_size(); ++i)
+  {
+    if (res.model(i).name() == "projector_model")
+    {
+      count++;
+      // There should be one link
+      ASSERT_EQ(1, res.model(i).link_size());
+      // The link should have one projector
+      ASSERT_EQ(1, res.model(i).link(0).projector_size());
+
+      // Check a few parameter values to make sure we have the correct
+      // projector
+      const msgs::Projector &projector =
+        res.model(i).link(0).projector(0);
+      EXPECT_EQ("projector", projector.name());
+      EXPECT_EQ(math::Pose3d(0, 1, 0, 0, 0, 0),
+          msgs::Convert(projector.pose()));
+      EXPECT_DOUBLE_EQ(2.0, projector.near_clip());
+      EXPECT_DOUBLE_EQ(7.0, projector.far_clip());
+      EXPECT_DOUBLE_EQ(0.5, projector.fov());
+      EXPECT_NE(std::string::npos,
+          projector.texture().find("path/to/dummy_image.png"));
+      auto header = projector.header().data(0);
+      EXPECT_EQ("visibility_flags", header.key());
+      EXPECT_EQ(0x01, std::stoul(header.value(0)));
+    }
+  }
+
+  // Should have found 1 projector
+  EXPECT_EQ(1, count);
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SceneBroadcasterTest,
     ::testing::Range(1, 2));
