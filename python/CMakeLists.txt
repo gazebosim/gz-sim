@@ -73,17 +73,6 @@ target_link_libraries(common PRIVATE
 configure_build_install_location(${BINDINGS_MODULE_NAME})
 configure_build_install_location(common)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # Workaround for Clang and pybind11 on Focal
-  # https://github.com/pybind/pybind11/issues/1604
-  # Resolved by newer versions of pybind11
-  if(${pybind11_VERSION} VERSION_LESS "2.4.4")
-    target_compile_options(common PRIVATE -fsized-deallocation)
-    target_compile_options(sim PRIVATE -fsized-deallocation)
-  endif()
-endif()
-
-
 if (BUILD_TESTING)
   set(python_tests
     testFixture_TEST
