@@ -764,6 +764,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsEnginePlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsEnginePlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::PhysicsSolver::typeId)
     {
       auto comp = _ecm.Component<components::PhysicsSolver>(
