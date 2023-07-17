@@ -19,34 +19,34 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/MouseEvent.hh>
-#include <gz/rendering/RenderTypes.hh>
-#include <gz/rendering/RenderingIface.hh>
-#include <gz/rendering/Scene.hh>
-#include <gz/rendering/Camera.hh>
-#include <gz/rendering/RayQuery.hh>
-#include <gz/rendering/Utils.hh>
-#include <gz/rendering/ArrowVisual.hh>
-#include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Application.hh>
-#include <gz/gui/MainWindow.hh>
+#include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
-#include <gz/sim/gui/GuiEvents.hh>
-#include <gz/sim/Entity.hh>
-#include <gz/sim/Link.hh>
-#include <gz/sim/EntityComponentManager.hh>
-#include <gz/sim/Util.hh>
-#include <gz/sim/components/ParentEntity.hh>
-#include <gz/sim/components/Inertial.hh>
-#include <gz/transport/Node.hh>
-#include <gz/msgs/Utility.hh>
-#include <gz/msgs/entity_wrench.pb.h>
-#include <gz/plugin/Register.hh>
-#include <gz/math/Vector2.hh>
-#include <gz/math/Vector3.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/PID.hh>
 #include <gz/math/Plane.hh>
 #include <gz/math/Quaternion.hh>
-#include <gz/math/PID.hh>
-#include <gz/math/Inertial.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/entity_wrench.pb.h>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/ArrowVisual.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Utils.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/gui/GuiEvents.hh>
+#include <gz/transport/Node.hh>
 
 #include "MouseDrag.hh"
 
@@ -117,14 +117,23 @@ namespace sim
     /// \brief True if BlockOrbit events should be sent
     public: bool sendBlockOrbit{false};
 
+    /// \brief True if the dragging mode is active
+    public: bool dragActive{false};
+
     /// \brief Visual of the Link to which the wrenches are applied
     public: Entity visualId;
 
     /// \brief Application point of the wrench in world coordinates
     math::Vector3d applicationPoint;
 
+    /// \brief Initial world rotation of the link during mouse click
+    public: math::Quaterniond initialRot;
+
     /// \brief Point to which the link is dragged to, in translation mode
     math::Vector3d target;
+
+    /// \brief Goal pose for rotation mode
+    public: math::Pose3d goalPose;
 
     /// \brief Offset of the force application point relative to the
     /// link origin, expressed in the link-fixed frame
@@ -135,9 +144,6 @@ namespace sim
 
     /// \brief Initial position of a mouse click
     public: math::Vector2i mousePressPos;
-
-    /// \brief Initial world rotation of the link during mouse click
-    public: math::Quaterniond initialRot;
 
     /// \brief Current dragging mode
     public: MouseDragMode mode = MouseDragMode::NONE;
@@ -154,8 +160,15 @@ namespace sim
     /// \brief Spring stiffness for rotation
     public: double rotStiffness = 100;
 
-    /// \brief Arrow for visualizing wrench
+    /// \brief Arrow for visualizing force in translation mode.
+    /// This arrow goes from the application point to the target point.
     public: rendering::ArrowVisualPtr arrowVisual;
+
+    /// \brief Box for visualizing rotation mode
+    public: rendering::VisualPtr boxVisual;
+
+    /// \brief Size of the bounding box of the selected link
+    public: math::Vector3d bboxSize;
   };
 }
 }
@@ -196,8 +209,6 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
 
   gz::gui::App()->findChild<gz::gui::MainWindow *>
     ()->installEventFilter(this);
-  gz::gui::App()->findChild<gz::gui::MainWindow *>
-    ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -259,12 +270,13 @@ void MouseDrag::Update(const UpdateInfo &_info,
   if (linkId)
   {
     link = Link(*linkId);
-    if (!link.Valid(_ecm))
+    auto model = link.ParentModel(_ecm);
+    if (!link.Valid(_ecm) || model->Static(_ecm))
     {
+      this->dataPtr->blockOrbit = false;
       return;
     }
   }
-  link.EnableVelocityChecks(_ecm, true);
 
   auto linkWorldPose = worldPose(*linkId, _ecm);
   auto inertial = _ecm.Component<components::Inertial>(*linkId);
@@ -272,6 +284,8 @@ void MouseDrag::Update(const UpdateInfo &_info,
   {
     return;
   }
+
+  this->dataPtr->dragActive = true;
   this->dataPtr->UpdateGains(linkWorldPose, inertial->Data());
 
   if (this->dataPtr->modeDirty)
@@ -342,8 +356,6 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
   math::Vector3d force;
   math::Vector3d torque;
-  math::Quaterniond errorRot;
-  math::Vector3d errorPos;
 
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
   {
@@ -361,15 +373,18 @@ void MouseDrag::Update(const UpdateInfo &_info,
     axis.Normalize();
 
     // Calculate the necessary rotation and torque
-    errorRot =
-      (this->dataPtr->initialRot * math::Quaterniond(axis, angle)).Inverse() *
-      linkWorldPose.Rot();
+    this->dataPtr->goalPose.Rot() =
+      this->dataPtr->initialRot * math::Quaterniond(axis, angle);
+    this->dataPtr->goalPose.Pos() = linkWorldPose.Pos();
+    math::Quaterniond errorRot =
+      this->dataPtr->goalPose.Rot().Inverse() * linkWorldPose.Rot();
     torque = this->dataPtr->CalculatePID(
       this->dataPtr->rotPid, errorRot.Euler(), _info.dt);
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
-    errorPos = this->dataPtr->applicationPoint - this->dataPtr->target;
+    math::Vector3d errorPos =
+      this->dataPtr->applicationPoint - this->dataPtr->target;
     force = this->dataPtr->CalculatePID(
       this->dataPtr->posPid, errorPos, _info.dt);
     torque =
@@ -425,18 +440,37 @@ void MouseDragPrivate::OnRender()
       return;
     }
     this->rayQuery = this->scene->CreateRayQuery();
+
     this->arrowVisual = this->scene->CreateArrowVisual();
-    this->arrowVisual->SetMaterial("Default/TransYellow");
+    this->arrowVisual->SetMaterial("Default/TransRed");
+    this->arrowVisual->ShowArrowHead(true);
+    this->arrowVisual->ShowArrowShaft(true);
+    this->arrowVisual->ShowArrowRotation(false);
+    this->arrowVisual->SetVisible(false);
+
+    this->boxVisual = scene->CreateVisual();
+    this->boxVisual->AddGeometry(scene->CreateBox());
+    this->boxVisual->SetInheritScale(false);
+    this->boxVisual->SetMaterial("Default/TransRed");
+    this->boxVisual->SetUserData("gui-only", static_cast<bool>(true));
+    this->boxVisual->SetVisible(false);
   }
 
   // Update the visualization
-  if (this->mode == MouseDragMode::NONE)
+  if (!this->dragActive)
   {
-    this->arrowVisual->ShowArrowHead(false);
-    this->arrowVisual->ShowArrowShaft(false);
-    this->arrowVisual->ShowArrowRotation(false);
+    this->arrowVisual->SetVisible(false);
+    this->boxVisual->SetVisible(false);
   }
-  else
+  else if (this->mode == MouseDragMode::ROTATE)
+  {
+    this->boxVisual->SetLocalPose(this->goalPose);
+    this->boxVisual->SetLocalScale(1.2 * this->bboxSize);
+
+    this->arrowVisual->SetVisible(false);
+    this->boxVisual->SetVisible(true);
+  }
+  else if (this->mode == MouseDragMode::TRANSLATE)
   {
     math::Vector3d axisDir = this->target - this->applicationPoint;
     math::Vector3d u = axisDir.Normalized();
@@ -448,32 +482,14 @@ void MouseDragPrivate::OnRender()
       quat.SetFromAxisAngle(u.Perpendicular(), angle);
     else
       quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
+    double scale = 2 * this->bboxSize.Length();
 
-    if (this->mode == MouseDragMode::ROTATE)
-    {
-      quat =
-        math::Quaterniond(this->camera->WorldPose().Rot().XAxis(), GZ_PI/2) *
-        quat;
-      double scale = axisDir.Length() / 0.075f;
+    this->arrowVisual->SetLocalPosition(this->applicationPoint);
+    this->arrowVisual->SetLocalRotation(quat);
+    this->arrowVisual->SetLocalScale(scale, scale, axisDir.Length() / 0.75);
 
-      this->arrowVisual->SetLocalPosition(this->applicationPoint);
-      this->arrowVisual->SetLocalRotation(quat);
-      this->arrowVisual->SetLocalScale(scale, scale, 0);
-
-      this->arrowVisual->ShowArrowHead(false);
-      this->arrowVisual->ShowArrowShaft(false);
-      this->arrowVisual->ShowArrowRotation(true);
-    }
-    if (this->mode == MouseDragMode::TRANSLATE)
-    {
-      this->arrowVisual->SetLocalPosition(this->applicationPoint);
-      this->arrowVisual->SetLocalRotation(quat);
-      this->arrowVisual->SetLocalScale(1, 1, axisDir.Length());
-
-      this->arrowVisual->ShowArrowHead(true);
-      this->arrowVisual->ShowArrowShaft(true);
-      this->arrowVisual->ShowArrowRotation(false);
-    }
+    this->arrowVisual->SetVisible(true);
+    this->boxVisual->SetVisible(false);
   }
 
   if (this->sendBlockOrbit)
@@ -537,6 +553,8 @@ void MouseDragPrivate::HandleMouseEvents()
       this->mouseEvent.Pos(), this->camera,
       this->rayQuery);
 
+    this->bboxSize = visual->LocalBoundingBox().Size();
+
     if (this->mouseEvent.Button() == common::MouseEvent::LEFT)
     {
       this->mode = MouseDragMode::ROTATE;
@@ -549,6 +567,7 @@ void MouseDragPrivate::HandleMouseEvents()
   else if (this->mouseEvent.Type() == common::MouseEvent::RELEASE)
   {
     this->mode = MouseDragMode::NONE;
+    this->dragActive = false;
     this->blockOrbit = false;
     this->sendBlockOrbit = true;
   }
@@ -598,7 +617,7 @@ void MouseDragPrivate::UpdateGains(math::Pose3d _linkWorldPose,
       this->posPid[i].SetPGain(this->posStiffness * mass);
       this->posPid[i].SetDGain(2 * sqrt(this->posStiffness) * mass);
       this->rotPid[i].SetPGain(0);
-      this->rotPid[i].SetDGain(sqrt(this->rotStiffness) * inertia(i, i));
+      this->rotPid[i].SetDGain(0.5 * sqrt(this->rotStiffness) * inertia(i, i));
     }
   }
 }
