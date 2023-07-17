@@ -40,6 +40,14 @@ GridLayout {
   // Step size of the GzSpinBoxes
   property double step: 1.0
 
+  Label {
+    Layout.columnSpan: 8
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    id: frameText
+    text: "Forces and torques are given in link-fixed frame"
+  }
+
   Text {
     Layout.columnSpan: 2
     id: modelText

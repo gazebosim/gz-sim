@@ -21,6 +21,7 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/math/Quaternion.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/entity_wrench.pb.h>
 #include <gz/msgs/Utility.hh>
@@ -71,14 +72,17 @@ namespace sim
     /// \brief True if a new link was selected from the dropdown
     public: bool changedIndex{false};
 
-    /// \brief Force to be applied
+    /// \brief Force to be applied in link-fixed frame''
     public: math::Vector3d force{0.0, 0.0, 0.0};
 
-    /// \brief Torque to be applied
+    /// \brief Torque to be applied in link-fixed frame
     public: math::Vector3d torque{0.0, 0.0, 0.0};
 
     /// \brief Offset from the link origin to the center of mass in world coords
     public: math::Vector3d inertialPos;
+
+    /// \brief Orientation of the link-fixed frame
+    public: math::Quaterniond linkRot;
   };
 }
 }
@@ -210,7 +214,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     }
   }
 
-  // Get the position of the center of mass
+  // Get the position of the center of mass and link orientation
   if (this->dataPtr->selectedEntity.has_value())
   {
     auto linkWorldPose = worldPose(*this->dataPtr->selectedEntity, _ecm);
@@ -220,6 +224,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     {
       this->dataPtr->inertialPos =
         linkWorldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
+      this->dataPtr->linkRot = linkWorldPose.Rot();
     }
   }
 
@@ -294,20 +299,12 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
     return;
   }
 
-  math::Vector3d forceToApply =
-    _applyForce ? this->force : math::Vector3d::Zero;
-  math::Vector3d torqueToApply =
-    _applyTorque ? this->torque : math::Vector3d::Zero +
+  // Force and torque in world coordinates
+  math::Vector3d forceToApply = this->linkRot.RotateVector(
+    _applyForce ? this->force : math::Vector3d::Zero);
+  math::Vector3d torqueToApply = this->linkRot.RotateVector(
+    _applyTorque ? this->torque : math::Vector3d::Zero) +
     this->inertialPos.Cross(forceToApply);
-
-  gzdbg << "Applying wrench [" <<
-    forceToApply[0] << " " <<
-    forceToApply[1] << " " <<
-    forceToApply[2] << " " <<
-    torqueToApply[0] << " " <<
-    torqueToApply[1] << " " <<
-    torqueToApply[2] << "] to entity [" <<
-    *this->selectedEntity << "]" << std::endl;
 
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_id(*this->selectedEntity);
