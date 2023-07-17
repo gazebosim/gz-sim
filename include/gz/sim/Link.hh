@@ -314,10 +314,11 @@ namespace gz
       /// \param[in] _offset The point of application of the force expressed
       /// in the link-fixed frame and relative to the center of mass.
       /// \param[in] _torque Torque to be applied expressed in world coordinates
-      public: void AddWorldWrench(EntityComponentManager &_ecm,
-                                    const math::Vector3d &_force,
-                                    const math::Vector3d &_offset,
-                                    const math::Vector3d &_torque) const;
+      public: void AddWorldWrenchRelativeToCOM(
+                                EntityComponentManager &_ecm,
+                                const math::Vector3d &_force,
+                                const math::Vector3d &_offset,
+                                const math::Vector3d &_torque) const;
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;

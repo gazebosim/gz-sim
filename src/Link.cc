@@ -434,10 +434,10 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Link::AddWorldWrench(EntityComponentManager &_ecm,
-                          const math::Vector3d &_force,
-                          const math::Vector3d &_offset,
-                          const math::Vector3d &_torque) const
+void Link::AddWorldWrenchRelativeToCOM(EntityComponentManager &_ecm,
+                                      const math::Vector3d &_force,
+                                      const math::Vector3d &_offset,
+                                      const math::Vector3d &_torque) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
   auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);

@@ -282,7 +282,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       continue;
     }
 
-    link.AddWorldWrench(_ecm, force, offset, torque);
+    link.AddWorldWrenchRelativeToCOM(_ecm, force, offset, torque);
 
     if (this->dataPtr->verbose)
     {
@@ -307,7 +307,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       // an entity is inserted
       continue;
     }
-    link.AddWorldWrench(_ecm, force, offset, torque);
+    link.AddWorldWrenchRelativeToCOM(_ecm, force, offset, torque);
   }
 }
 
