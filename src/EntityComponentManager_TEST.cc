@@ -2206,6 +2206,59 @@ TEST_P(EntityComponentManagerFixture, Descendants)
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(PeriodicChangeEntityComponentMap))
+{
+  Entity e1 = manager.CreateEntity();
+  auto c1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+
+  std::unordered_map<Entity,
+                        std::unordered_set<ComponentTypeId>> changeTracker;
+
+  // No periodic changes keep cache empty.
+  manager.PeriodicChangeEntityComponentMap(changeTracker);
+  EXPECT_EQ(changeTracker.size(), 0);
+
+  // Create a periodic change.
+  manager.SetChanged(e1, c1->TypeId(), ComponentState::PeriodicChange);
+
+  // 1 periodic change, should be reflected in cache.
+  manager.PeriodicChangeEntityComponentMap(changeTracker);
+  EXPECT_EQ(changeTracker.size(), 1);
+  EXPECT_EQ(changeTracker[e1].count(c1->TypeId()), 1);
+
+  manager.RunSetAllComponentsUnchanged();
+
+  // Has periodic change. Cache should be full.
+  manager.PeriodicChangeEntityComponentMap(changeTracker);
+  EXPECT_EQ(changeTracker.size(), 1);
+  EXPECT_EQ(changeTracker[e1].count(c1->TypeId()), 1);
+  EXPECT_EQ(changeTracker[e1].size(), 1);
+
+  // Serialize state
+  msgs::SerializedStateMap state;
+  manager.State(state, changeTracker);
+  EXPECT_EQ(state.entities().size(), 1);
+  EXPECT_EQ(
+    state.entities().find(e1)->second.components().size(), 1);
+  EXPECT_NE(state.entities().find(e1)->second
+      .components().find(c1->TypeId()),
+    state.entities().find(e1)->second.components().end());
+
+  // Component removed cache should be updated.
+  manager.RemoveComponent<IntComponent>(e1);
+  manager.PeriodicChangeEntityComponentMap(changeTracker);
+  EXPECT_EQ(changeTracker.size(), 1);
+  EXPECT_EQ(changeTracker[e1].size(), 0);
+
+  // Entity removed cache should be updated.
+  manager.RequestRemoveEntity(e1);
+  manager.PeriodicChangeEntityComponentMap(changeTracker);
+  EXPECT_EQ(changeTracker.size(), 0);
+
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(SetChanged))
 {
   // Create entities

@@ -601,6 +601,16 @@ namespace ignition
       public: std::unordered_set<ComponentTypeId>
           ComponentTypesWithPeriodicChanges() const;
 
+      /// \brief Get all components with periodic changes.
+      /// \param[in] _changes A list of components with the latest periodic
+      /// changes. If a component has a periodic change, it is added to the
+      /// hash map. It the component or entity was removed, it is removed from
+      /// the hashmap. This way the hashmap stores a list of components and
+      /// entities which have had periodic changes in the past and still
+      /// exist within the ECM.
+      public: void PeriodicChangeEntityComponentMap(std::unordered_map<Entity,
+                        std::unordered_set<ComponentTypeId>> &_changes) const;
+
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
       /// one will be created.
@@ -627,6 +637,18 @@ namespace ignition
                   const std::unordered_set<Entity> &_entities = {},
                   const std::unordered_set<ComponentTypeId> &_types = {},
                   bool _full = false) const;
+
+      /// \brief Get a message with the serialized state of the given entities
+      /// and components.
+      /// \details The header of the message will not be populated, it is the
+      /// responsibility of the caller to timestamp it before use. Additionally,
+      /// changes such as addition or removal will not be populated.
+      /// \param[inout] _state The serialized state message to populate.
+      /// \param[in] _entityMap A map of entities and components to serialize.
+      public: void State(
+                  msgs::SerializedStateMap &_state,
+                  const std::unordered_map<Entity,
+                        std::unordered_set<ComponentTypeId>> &_entityMap) const;
 
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
