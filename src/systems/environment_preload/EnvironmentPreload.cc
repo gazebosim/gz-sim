@@ -130,15 +130,16 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::lock_guard<std::mutex> lock(mtx);
     std::string dataPath =
         this->sdf->Get<std::string>("data");
-    this->dataDescription.set_path(dataPath);
+    
     if (common::isRelativePath(this->dataDescription.path()))
     {
       auto *component =
           _ecm.Component<components::WorldSdf>(worldEntity(_ecm));
       const std::string rootPath =
           common::parentPath(component->Data().Element()->FilePath());
-      dataPath = common::joinPaths(rootPath, this->dataDescription.path());
+      dataPath = common::joinPaths(rootPath, dataPath);
     }
+    this->dataDescription.set_path(dataPath);
 
     this->dataDescription.set_units(
       Units::DataLoadPathOptions_DataAngularUnits_RADIANS);
@@ -262,7 +263,9 @@ class gz::sim::systems::EnvironmentPreloadPrivate
         return;
       }
 
-      gzmsg << "Loading Environment Data\n";
+      gzmsg << "Loading Environment Data " << this->dataDescription.path() <<
+        std::endl;
+
       using ComponentDataT = components::EnvironmentalData;
       auto data = ComponentDataT::MakeShared(
           common::IO<ComponentDataT::FrameT>::ReadFrom(
@@ -271,7 +274,6 @@ class gz::sim::systems::EnvironmentPreloadPrivate
               this->dataDescription.time(), spatialColumnNames),
           spatialReference, units, this->dataDescription.static_time());
       this->envData = data;
-
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
       _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
