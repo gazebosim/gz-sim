@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.1.0)
+project(gz-sim7 VERSION 7.4.0)
 set (GZ_DISTRIBUTION "Garden")
 
 #============================================================================
@@ -77,7 +77,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 REQUIRED COMPONENTS log)
+gz_find_package(gz-transport12 VERSION 12.1 REQUIRED COMPONENTS log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -128,11 +128,12 @@ set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED
+gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
   # component order is important
   COMPONENTS
     # non-rendering
     air_pressure
+    air_speed
     altimeter
     imu
     force_torque

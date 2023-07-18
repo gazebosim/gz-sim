@@ -32,6 +32,7 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/CastShadows.hh"
@@ -892,6 +893,12 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         if (airPressureComp)
         {
           sensorMsg->set_type("air_pressure");
+        }
+        auto airSpeedComp = _manager.Component<
+          components::AirSpeedSensor>(_entity);
+        if (airSpeedComp)
+        {
+          sensorMsg->set_type("air_speed");
         }
         auto cameraComp = _manager.Component<components::Camera>(_entity);
         if (cameraComp)

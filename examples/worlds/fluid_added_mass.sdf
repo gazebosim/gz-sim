@@ -1,0 +1,346 @@
+<?xml version="1.0" ?>
+<!--
+
+Demo of fluid added mass SDF parameter.
+
+-->
+<sdf version="1.6">
+  <world name="fluid_added_mass">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-apply-link-wrench-system"
+      name="gz::sim::systems::ApplyLinkWrench">
+
+      <persistent>
+        <entity_name>sphere_no_added_mass</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+      <persistent>
+        <entity_name>sphere_in_water</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+      <persistent>
+        <entity_name>sphere_in_air</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+      <persistent>
+        <entity_name>box_diagonal</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+      <persistent>
+        <entity_name>box_xx_xy_xz</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+      <persistent>
+        <entity_name>box_xy</entity_name>
+        <entity_type>model</entity_type>
+        <force>1 0 0</force>
+      </persistent>
+
+    </plugin>
+
+    <gravity>0 0 0</gravity>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="sphere_no_added_mass">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere_in_water">
+      <pose>0 1.5 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+          <!--
+            Added mass matrix for a sphere is mostly zeros, with just the translational diagonal set.
+
+            Each element is half the displaced fluid mass.
+
+            Assuming the sphere is fully submerged.
+
+            Sv: Sphere volume
+            Fd: Fluid density
+            Fm: Fluid mass
+            a: Added mass
+
+            Sv = 4 / 3 * pi * r ^ 3
+
+            Fm = Sv * Fd
+
+            a = Fm / 2 = 2 / 3 * pi * r ^ 3 * Fd
+
+            The values below use 1000 kg/m^3 for the fluid density.
+          -->
+          <fluid_added_mass>
+            <xx>261.666</xx>
+            <yy>261.666</yy>
+            <zz>261.666</zz>
+          </fluid_added_mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere_in_air">
+      <pose>0 -1.5 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+          <!--
+            The values below use 1 kg/m^3 for the fluid density.
+          -->
+          <fluid_added_mass>
+            <xx>0.261666</xx>
+            <yy>0.261666</yy>
+            <zz>0.261666</zz>
+          </fluid_added_mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 1 1</ambient>
+            <diffuse>0 1 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box_diagonal">
+      <pose>0 4.0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+          <fluid_added_mass>
+            <xx>0.261666</xx>
+            <yy>0.261666</yy>
+            <zz>0.261666</zz>
+            <!--xx>0.261666</xx>
+            <yy>0.261666</yy>
+            <zz>0.261666</zz-->
+          </fluid_added_mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 1 1</ambient>
+            <diffuse>0 1 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box_xx_xy_xz">
+      <pose>0 6.0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+          <fluid_added_mass>
+            <xx>0.261666</xx>
+            <xy>0.261666</xy>
+            <xz>0.261666</xz>
+          </fluid_added_mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 1 1</ambient>
+            <diffuse>0 1 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box_xy">
+      <pose>0 8.0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+          <mass>1.0</mass>
+          <fluid_added_mass>
+            <xy>0.261666</xy>
+          </fluid_added_mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 1 1</ambient>
+            <diffuse>0 1 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

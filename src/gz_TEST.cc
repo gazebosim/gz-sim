@@ -23,6 +23,8 @@
 #include <string>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "test_config.hh"  // NOLINT(build/include)
@@ -127,6 +129,46 @@ TEST(CmdLine, GazeboServer)
     EXPECT_NE(output.find("iteration " + std::to_string(i)), std::string::npos)
         << output;
   }
+}
+
+/////////////////////////////////////////////////
+TEST(CmdLine, SimtimeArgument)
+{
+  std::string cmd =
+    kGzCommand + " -r -v 4 --iterations 500 --initial-sim-time 1000.5 " +
+    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf -z 1000";
+
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+  int msgCount = 0;
+
+  gz::transport::Node node;
+  auto cb = [&](const gz::msgs::Clock &_msg) -> void
+  {
+    EXPECT_GE(_msg.sim().sec() + 1e-9 * _msg.sim().nsec(),
+        1000.5);
+    msgCount++;
+  };
+
+  auto cbFcn = std::function<void(const gz::msgs::Clock &)>(cb);
+  EXPECT_TRUE(node.Subscribe(std::string("/clock"), cbFcn));
+
+  std::string output = customExecStr(cmd);
+
+  // Try waiting different amounts if no messages have been received
+  if (!msgCount)
+  {
+    for (auto i : {1, 10, 100, 1000})
+    {
+      std::cout << "Sleeping for " << i << " ms";
+      GZ_SLEEP_MS(i);
+      std::cout << ", recevied " << msgCount << " messages." << std::endl;
+      if (msgCount)
+      {
+        break;
+      }
+    }
+  }
+  EXPECT_GT(msgCount, 0) << output;
 }
 
 /////////////////////////////////////////////////
