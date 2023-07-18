@@ -607,7 +607,7 @@ namespace ignition
       /// hash map. It the component or entity was removed, it is removed from
       /// the hashmap. This way the hashmap stores a list of components and
       /// entities which have had periodic changes in the past and still
-      /// exit within the ECM.
+      /// exist within the ECM.
       public: void PeriodicChangeEntityComponentMap(std::unordered_map<Entity,
                         std::unordered_set<ComponentTypeId>> &_changes) const;
 
