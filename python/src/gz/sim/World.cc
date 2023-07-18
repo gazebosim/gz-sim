@@ -34,8 +34,7 @@ void defineSimWorld(pybind11::object module)
 {
   pybind11::class_<gz::sim::World>(module, "World")
   .def(pybind11::init<gz::sim::Entity>())
-  // Make get methods as read_only_property?
-  .def( "entity", &gz::sim::World::Entity,
+  .def("entity", &gz::sim::World::Entity,
       "Get the entity which this World is related to.")
   .def("valid", &gz::sim::World::Valid,
       py::arg("ecm"),
@@ -53,7 +52,6 @@ void defineSimWorld(pybind11::object module)
   .def("atmosphere", &gz::sim::World::Atmosphere,
       py::arg("ecm"),
       "Get atmosphere information.")
-  // Make get/set methods as properties? Probably no because of ecm argument
   .def("spherical_coordinates", &gz::sim::World::SphericalCoordinates,
       py::arg("ecm"),
       "Get spherical coordinates for the world origin.")
@@ -75,7 +73,7 @@ void defineSimWorld(pybind11::object module)
       py::arg("ecm"),
       py::arg("name"),
       "Get the ID of a model entity which is an immediate child of "
-      " this world.")
+      "this world.")
   .def("lights", &gz::sim::World::Lights,
       py::arg("ecm"),
       "Get all lights which are immediate children of this world.")

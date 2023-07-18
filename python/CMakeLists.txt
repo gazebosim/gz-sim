@@ -87,6 +87,7 @@ endif()
 if (BUILD_TESTING)
   set(python_tests
     testFixture_TEST
+    world_TEST
   )
 
   execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version
