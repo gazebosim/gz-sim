@@ -609,10 +609,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
                         options['wait_gui'], options['render_engine_gui'],
                         options['render_engine_gui_api_backend'])
       end
-    rescue
-      puts "Library error: Problem running [#{options['command']}]() "\
-        "from #{plugin}."
-    # begin
     end
   # execute
   end
