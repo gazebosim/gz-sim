@@ -394,8 +394,6 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else if (!_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-
-      // TODO(arjo): We may not need this.
       if (!_manager.HasPeriodicComponentChanges())
       {
         // log files may be recorded at lower rate than sim time step. So in
