@@ -130,7 +130,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::lock_guard<std::mutex> lock(mtx);
     std::string dataPath =
         this->sdf->Get<std::string>("data");
-    
+
     if (common::isRelativePath(this->dataDescription.path()))
     {
       auto *component =

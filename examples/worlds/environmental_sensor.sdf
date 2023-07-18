@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
-<!-- 
+<!--
   This example show cases how to load and unload environmental data.
   Before opening this file in a seperate terminal run:
     gz topic -e -t /sensors/humidity
   Then open this file by running:
     gz sim environmental_sensor.sdf
-  You should see a data stream of increasing numbers eventually stop at 90. 
+  You should see a data stream of increasing numbers eventually stop at 90.
 -->
 <sdf version="1.6">
   <world name="environmental_sensor_example">
