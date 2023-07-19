@@ -232,7 +232,7 @@ namespace gz
       /// \brief Set attenuation range of this light.
       /// \param[in] _ecm Entity-component manager.
       /// Light attenuation is not applicable to directional lights.
-      /// \param[in] _bool True to cast shadows, false to not cast shadows.
+      /// \param[in] _range Attenuation range value to set.
       public: void SetAttenuationRange(EntityComponentManager &_ecm,
           double _range);
 

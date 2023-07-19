@@ -18,6 +18,7 @@
 
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
+#include "Light.hh"
 #include "Server.hh"
 #include "ServerConfig.hh"
 #include "TestFixture.hh"
@@ -30,6 +31,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
 
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
+  gz::sim::python::defineSimLight(m);
   gz::sim::python::defineSimServer(m);
   gz::sim::python::defineSimServerConfig(m);
   gz::sim::python::defineSimTestFixture(m);
