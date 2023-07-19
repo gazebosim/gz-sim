@@ -18,10 +18,13 @@
 #ifndef GZ_SIM_SYSTEMS_PYTHONSYSTEMLOADER_HH_
 #define GZ_SIM_SYSTEMS_PYTHONSYSTEMLOADER_HH_
 
+#include <pybind11/embed.h>
+
+#include <gz/sim/System.hh>
 #include <sdf/Element.hh>
 
 #include <gz/sim/config.hh>
-#include <gz/sim/System.hh>
+#include <gz/sim/python-system-loader-system/Export.hh>
 
 namespace gz
 {
@@ -32,12 +35,13 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 // TODO(azeey) Add ParameterConfigure
-class PythonSystemLoader : public System,
-                           public ISystemConfigure,
-                           // public ISystemReset,
-                           public ISystemPreUpdate,
-                           // public ISystemUpdate,
-                           public ISystemPostUpdate
+class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
+    : public System,
+      public ISystemConfigure,
+      // public ISystemReset,
+      public ISystemPreUpdate,
+      // public ISystemUpdate,
+      public ISystemPostUpdate
 {
   // Documentation inherited
   public: void Configure(const Entity &_entity,
@@ -54,6 +58,10 @@ class PythonSystemLoader : public System,
                           const EntityComponentManager &_ecm) override;
 
   private: bool validConfig{false};
+  private: pybind11::module_ pythonModule;
+  private: pybind11::object pythonSystem;
+  private: pybind11::object preUpdateMethod;
+  private: pybind11::object postUpdateMethod;
 };
 }  // namespace systems
 }  // namespace GZ_SIM_VERSION_NAMESPACE

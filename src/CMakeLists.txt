@@ -168,6 +168,12 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
 )
+
+if (pybind11_FOUND)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
+  target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE -DHAVE_PYBIND11)
+endif()
+
 if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE stdc++fs)
