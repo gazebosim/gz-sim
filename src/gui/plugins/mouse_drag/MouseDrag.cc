@@ -102,6 +102,9 @@ namespace sim
     /// \brief Holds the latest mouse event
     public: gz::common::MouseEvent mouseEvent;
 
+    /// \brief Initial position of a mouse click
+    public: math::Vector2i mousePressPos;
+
     /// \brief True if there are new mouse events to process
     public: bool mouseDirty{false};
 
@@ -111,17 +114,23 @@ namespace sim
     /// \brief True if the force should be applied to the center of mass
     public: bool applyCOM{false};
 
-    /// \brief Block orbit
+    /// \brief True if camera orbit should be blocked
     public: bool blockOrbit{false};
 
     /// \brief True if BlockOrbit events should be sent
     public: bool sendBlockOrbit{false};
 
-    /// \brief True if the dragging mode is active
+    /// \brief True if dragging is active
     public: bool dragActive{false};
 
-    /// \brief Visual of the Link to which the wrenches are applied
-    public: Entity visualId;
+    /// \brief Current dragging mode
+    public: MouseDragMode mode = MouseDragMode::NONE;
+
+    /// \brief Link to which the wrenches are applied
+    public: Entity linkId;
+
+    /// \brief Plane of force application
+    public: math::Planed plane;
 
     /// \brief Application point of the wrench in world coordinates
     math::Vector3d applicationPoint;
@@ -139,15 +148,6 @@ namespace sim
     /// link origin, expressed in the link-fixed frame
     public: math::Vector3d offset{0.0, 0.0, 0.0};
 
-    /// \brief Plane of force application
-    public: math::Planed plane;
-
-    /// \brief Initial position of a mouse click
-    public: math::Vector2i mousePressPos;
-
-    /// \brief Current dragging mode
-    public: MouseDragMode mode = MouseDragMode::NONE;
-
     /// \brief PID controllers for translation
     public: math::PID posPid[3];
 
@@ -157,7 +157,7 @@ namespace sim
     /// \brief Spring stiffness for translation, in (m/s²)/m
     public: double posStiffness = 100;
 
-    /// \brief Spring stiffness for rotation
+    /// \brief Spring stiffness for rotation, in (rad/s²)/rad
     public: double rotStiffness = 100;
 
     /// \brief Arrow for visualizing force in translation mode.
@@ -260,30 +260,28 @@ void MouseDrag::Update(const UpdateInfo &_info,
       _info.paused)
   {
     this->dataPtr->mode = MouseDragMode::NONE;
+    this->dataPtr->dragActive = false;
     return;
   }
 
   // Get Link corresponding to clicked Visual
-  Link link;
-  auto linkId =
-    _ecm.ComponentData<components::ParentEntity>(this->dataPtr->visualId);
-  if (linkId)
+  Link link(this->dataPtr->linkId);
+  auto model = link.ParentModel(_ecm);
+  if (!link.Valid(_ecm) || model->Static(_ecm))
   {
-    link = Link(*linkId);
-    auto model = link.ParentModel(_ecm);
-    if (!link.Valid(_ecm) || model->Static(_ecm))
-    {
-      this->dataPtr->blockOrbit = false;
-      return;
-    }
+    this->dataPtr->blockOrbit = false;
+    return;
   }
 
-  auto linkWorldPose = worldPose(*linkId, _ecm);
-  auto inertial = _ecm.Component<components::Inertial>(*linkId);
+  auto linkWorldPose = worldPose(this->dataPtr->linkId, _ecm);
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->linkId);
   if (!inertial)
   {
     return;
   }
+
+  if (this->dataPtr->blockOrbit)
+    this->dataPtr->sendBlockOrbit = true;
 
   this->dataPtr->dragActive = true;
   this->dataPtr->UpdateGains(linkWorldPose, inertial->Data());
@@ -291,6 +289,11 @@ void MouseDrag::Update(const UpdateInfo &_info,
   if (this->dataPtr->modeDirty)
   {
     this->dataPtr->modeDirty = false;
+
+    gui::events::DeselectAllEntities event(true);
+    gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+      &event);
 
     if (this->dataPtr->mode == MouseDragMode::ROTATE)
     {
@@ -320,7 +323,6 @@ void MouseDrag::Update(const UpdateInfo &_info,
     double planeOffset = direction.Dot(this->dataPtr->applicationPoint);
     this->dataPtr->plane = math::Planed(direction, planeOffset);
 
-    gzdbg << "Resetting PIDs" << std::endl;
     for (auto i : {0, 1, 2})
     {
       this->dataPtr->posPid[i].Reset();
@@ -374,10 +376,10 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
     // Calculate the necessary rotation and torque
     this->dataPtr->goalPose.Rot() =
-      this->dataPtr->initialRot * math::Quaterniond(axis, angle);
+      math::Quaterniond(axis, angle) * this->dataPtr->initialRot;
     this->dataPtr->goalPose.Pos() = linkWorldPose.Pos();
     math::Quaterniond errorRot =
-      this->dataPtr->goalPose.Rot().Inverse() * linkWorldPose.Rot();
+      linkWorldPose.Rot() * this->dataPtr->goalPose.Rot().Inverse();
     torque = this->dataPtr->CalculatePID(
       this->dataPtr->rotPid, errorRot.Euler(), _info.dt);
   }
@@ -395,7 +397,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
   // Publish wrench
   msgs::EntityWrench msg;
-  msg.mutable_entity()->set_id(*linkId);
+  msg.mutable_entity()->set_id(this->dataPtr->linkId);
   msgs::Set(msg.mutable_wrench()->mutable_force(), force);
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
 
@@ -519,15 +521,6 @@ void MouseDragPrivate::HandleMouseEvents()
       this->mouseEvent.Control() &&
       this->mouseEvent.Button() != common::MouseEvent::MIDDLE)
   {
-    this->blockOrbit = true;
-    this->sendBlockOrbit = true;
-    this->modeDirty = true;
-
-    gui::events::DeselectAllEntities event(true);
-    gz::gui::App()->sendEvent(
-        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-        &event);
-
     // Get the visual at mouse position
     rendering::VisualPtr visual = this->scene->VisualAt(
       this->camera,
@@ -540,13 +533,17 @@ void MouseDragPrivate::HandleMouseEvents()
     }
     try
     {
-      this->visualId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
+      this->linkId =
+        std::get<uint64_t>(visual->Parent()->UserData("gazebo-entity"));
     }
     catch(std::bad_variant_access &e)
     {
       this->mode = MouseDragMode::NONE;
       return;
     }
+
+    this->blockOrbit = true;
+    this->modeDirty = true;
 
     // Get the 3D coordinates of the clicked point
     this->applicationPoint = rendering::screenToScene(
@@ -569,14 +566,12 @@ void MouseDragPrivate::HandleMouseEvents()
     this->mode = MouseDragMode::NONE;
     this->dragActive = false;
     this->blockOrbit = false;
-    this->sendBlockOrbit = true;
   }
   else if (this->mouseEvent.Type() == common::MouseEvent::MOVE)
   {
     if (this->mode != MouseDragMode::NONE)
     {
       this->blockOrbit = true;
-      this->sendBlockOrbit = true;
     }
   }
 }
