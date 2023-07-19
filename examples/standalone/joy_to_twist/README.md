@@ -1,9 +1,9 @@
 # Joy to Twist
 
 Standalone program that subscribes to
-[ignition::msgs::Joy](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
+[gz::msgs::Joy](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Joy.html)
 messages and converts publishes
-[ignition::msgs::Twist](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Twist.html)
+[gz::msgs::Twist](https://gazebosim.org/api/msgs/5.6/classignition_1_1msgs_1_1Twist.html)
 messages according to user-defined configuration.
 
 ## Build

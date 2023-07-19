@@ -2243,6 +2243,70 @@
 
 ## Gazebo Sim 3.x
 
+### Gazebo Sim 3.15.0 (2023-05-08)
+
+1. Speed up Resource Spawner load time by fetching model list asynchronously
+    * [Pull request #1962](https://github.com/gazebosim/gz-sim/pull/1962)
+
+1. ign -> gz Migrate Ignition Headers : gz-sim
+    * [Pull request #1646](https://github.com/gazebosim/gz-sim/pull/1646)
+    * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
+    * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
+    * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
+    * [Pull request #1985](https://github.com/gazebosim/gz-sim/pull/1985)
+
+1. Infrastructure
+    * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
+    * [Pull request #1937](https://github.com/gazebosim/gz-sim/pull/1937)
+
+1. Backport portion of #1771 to fix command-line test
+    * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix loading wold with record topic
+    * [Pull request #1855](https://github.com/gazebosim/gz-sim/pull/1855)
+
+1. Remove duplicate Fuel server used by ResourceSpawner
+    * [Pull request #1830](https://github.com/gazebosim/gz-sim/pull/1830)
+
+1. Re-add namespace for GUI render event
+    * [Pull request #1826](https://github.com/gazebosim/gz-sim/pull/1826)
+
+1. Fix QML warnings regarding binding loops
+    * [Pull request #1829](https://github.com/gazebosim/gz-sim/pull/1829)
+
+1. Update documentation on `UpdateInfo::realTime`
+    * [Pull request #1817](https://github.com/gazebosim/gz-sim/pull/1817)
+
+1. Add jennuine as GUI codeowner
+    * [Pull request #1800](https://github.com/gazebosim/gz-sim/pull/1800)
+
+1. Remove plotIcon in Physics.qml for Component Inspector
+    * [Pull request #1658](https://github.com/gazebosim/gz-sim/pull/1658)
+
+1. Convert ignitionrobotics to gazebosim in tutorials
+    * [Pull request #1757](https://github.com/gazebosim/gz-sim/pull/1757)
+    * [Pull request #1758](https://github.com/gazebosim/gz-sim/pull/1758)
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1759)
+    * [Pull request #1760](https://github.com/gazebosim/gz-sim/pull/1760)
+
+1. Added collection name to About Dialog
+    * [Pull request #1756](https://github.com/gazebosim/gz-sim/pull/1756)
+
+1. Remove compiler warnings
+    * [Pull request #1753](https://github.com/gazebosim/gz-sim/pull/1753)
+
+1. Update examples to use gazebosim.org
+    * [Pull request #1749](https://github.com/gazebosim/gz-sim/pull/1749)
+
+1. Remove actors from screen when they are supposed to
+    * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
+
+1. Readd namespaces for Q_ARGS
+    * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
+
 ### Gazebo Sim 3.14.0 (2022-08-17)
 
 1. Change `CODEOWNERS` and maintainer to Michael
@@ -2369,7 +2433,7 @@
 1. Fix generation of systems library symlinks in build directory
     * [Pull request #1160](https://github.com/gazebosim/gz-sim/pull/1160)
 
-1. Backport gazebo::Util::validTopic() from ign-gazebo4.
+1. Backport sim::Util::validTopic() from ign-gazebo4.
     * [Pull request #1153](https://github.com/gazebosim/gz-sim/pull/1153)
 
 1. Support setting the background color for sensors
@@ -2886,7 +2950,7 @@
     * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
     * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.
@@ -3031,7 +3095,7 @@
 1. Enhanced log playback performance.
     * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
     * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.
@@ -3145,7 +3209,7 @@
 
 ### Ignition Gazebo 2.18.0 (2020-05-20)
 
-1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `gz::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
     * [Pull Request 146](https://github.com/gazebosim/gz-sim/pull/146)
 
 1. DetachableJoint system: Add option to suppress warning about missing child model
@@ -3562,7 +3626,7 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [BitBucket pull request 299](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/299)
 
-1. Added system for ignition::sensors::AirPressureSensor.
+1. Added system for gz::sensors::AirPressureSensor.
     * [BitBucket pull request 300](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/300)
 
 1. Support conversion and serialization of Imu components. IMU sensors are

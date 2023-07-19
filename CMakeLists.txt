@@ -15,7 +15,10 @@ find_package(ignition-cmake2 2.12.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/sim
+  VERSION_SUFFIX
+)
 set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
@@ -35,6 +38,17 @@ if (UNIX AND NOT APPLE)
 else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
+
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
+set(skip_pybind11_default_value OFF)
+if (MSVC)
+  set(skip_pybind11_default_value ON)
+endif()
+
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
+      ${skip_pybind11_default_value})
 
 include(test/find_dri.cmake)
 FindDRI()
@@ -97,7 +111,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.8)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -173,9 +187,7 @@ set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
@@ -193,14 +205,17 @@ else()
 
   set(PYBIND11_PYTHON_VERSION 3)
   find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+  if (NOT SKIP_PYBIND11)
+    find_package(pybind11 2.2 QUIET)
+
+    if (${pybind11_FOUND})
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
@@ -222,7 +237,7 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================

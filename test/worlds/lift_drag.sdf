@@ -9,7 +9,7 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="ground_plane">
@@ -172,7 +172,7 @@
 
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>
@@ -190,7 +190,7 @@
       </plugin>
       <plugin
         filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>

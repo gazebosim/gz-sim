@@ -17,10 +17,10 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 

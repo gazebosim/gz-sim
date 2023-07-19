@@ -30,21 +30,21 @@
 
 #include <thread>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /// \brief Test SceneBroadcaster system
 class SceneBroadcasterTest
@@ -57,11 +57,11 @@ class SceneBroadcasterTest
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(25u, *server.EntityCount());
@@ -107,11 +107,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PoseInfo))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(25u, *server.EntityCount());
@@ -153,11 +153,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(25u, *server.EntityCount());
@@ -193,11 +193,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopic))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(25u, *server.EntityCount());
@@ -238,11 +238,11 @@ TEST_P(SceneBroadcasterTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(SceneTopicSensors))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/altimeter_with_pose.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(12u, *server.EntityCount());
@@ -289,11 +289,11 @@ TEST_P(SceneBroadcasterTest,
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -350,11 +350,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(DeletedTopic))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
@@ -420,11 +420,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/shapes.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(25u, *server.EntityCount());
@@ -531,11 +531,11 @@ TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 TEST_P(SceneBroadcasterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(StateStatic))
 {
   // Start server
-  gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/empty.sdf");
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(9u, *server.EntityCount());

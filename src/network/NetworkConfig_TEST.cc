@@ -17,16 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
 #include "NetworkConfig.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 TEST(NetworkManager, ValueConstructor)
 {
-  ignition::common::Console::SetVerbosity(4);
+  gz::common::Console::SetVerbosity(4);
   {
     // Primary without number of secondaries is invalid
     auto config = NetworkConfig::FromValues("PRIMARY", 0);

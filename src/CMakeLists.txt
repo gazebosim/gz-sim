@@ -38,7 +38,7 @@ set(gui_sources
 )
 
 set(cli_sources
-  ign.cc
+  gz.cc
   cmd/ModelCommandAPI.cc
 )
 
@@ -108,11 +108,11 @@ set (gtest_sources
   network/NetworkManager_TEST.cc
 )
 
-# ign_TEST and ModelCommandAPI_TEST are not supported with multi config
+# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
 # CMake generators, see also cmd/CMakeLists.txt
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND gtest_sources ign_TEST.cc)
+  list(APPEND gtest_sources gz_TEST.cc)
 endif()
 
 
@@ -152,12 +152,16 @@ ign_add_component(ign
     ${cli_sources}
   GET_TARGET_NAME ign_lib_target)
 target_link_libraries(${ign_lib_target}
-  PRIVATE
+  PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
 )
+
+# Executable target that runs the GUI without ruby for debugging purposes.
+add_executable(runGui gz.cc)
+target_link_libraries(runGui PRIVATE ${ign_lib_target})
 
 # Create the library target
 ign_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
@@ -169,6 +173,8 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   ignition-common${IGN_COMMON_VER}::profiler
   ignition-fuel_tools${IGN_FUEL_TOOLS_VER}::ignition-fuel_tools${IGN_FUEL_TOOLS_VER}
   ignition-gui${IGN_GUI_VER}::ignition-gui${IGN_GUI_VER}
+  ignition-physics${IGN_PHYSICS_VER}::core
+  ignition-rendering${IGN_RENDERING_VER}::core
   ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
@@ -207,7 +213,7 @@ ign_build_tests(TYPE UNIT
 
 # Command line tests need extra settings
 foreach(CMD_TEST
-  UNIT_ign_TEST
+  UNIT_gz_TEST
   UNIT_ModelCommandAPI_TEST)
 
   if(NOT TARGET ${CMD_TEST})

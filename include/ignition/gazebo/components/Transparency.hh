@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,6 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_TRANSPARENCY_HH_
-#define IGNITION_GAZEBO_COMPONENTS_TRANSPARENCY_HH_
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
+#include <gz/sim/components/Transparency.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component used to indicate an entity's transparency value
-  /// e.g. visual entities. Value is in the range from 0 (opaque) to
-  /// 1 (transparent).
-  using Transparency = Component<float, class TransparencyTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Transparency",
-      Transparency)
-}
-}
-}
-}
-
-#endif

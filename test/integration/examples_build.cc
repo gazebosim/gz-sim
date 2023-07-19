@@ -18,19 +18,19 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/math/SemanticVersion.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/math/SemanticVersion.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
 // https://github.com/gazebosim/gz-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
-using namespace ignition;
+using namespace gz;
 
 #ifndef _WIN32
 #include <climits>  // NOLINT(build/include_order)

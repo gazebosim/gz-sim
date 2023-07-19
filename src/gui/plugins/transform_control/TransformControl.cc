@@ -17,8 +17,8 @@
 
 #include "TransformControl.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -26,26 +26,26 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/KeyEvent.hh>
-#include <ignition/common/MouseEvent.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Grid.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderTypes.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/TransformController.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/KeyEvent.hh>
+#include <gz/common/MouseEvent.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Grid.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/TransformController.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
@@ -186,11 +186,11 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 TransformControl::TransformControl()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<TransformControlPrivate>())
 {
 }
@@ -223,9 +223,9 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->installEventFilter(this);
-  ignition::gui::App()->findChild<ignition::gui::MainWindow *>
+  gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->QuickWindow()->installEventFilter(this);
 }
 
@@ -242,12 +242,12 @@ void TransformControl::OnSnapUpdate(
   // Emit event to GzScene3D in legacy mode
   if (this->dataPtr->legacy)
   {
-    ignition::gui::events::SnapIntervals event(
+    gz::gui::events::SnapIntervals event(
         this->dataPtr->xyzSnapVals,
         this->dataPtr->rpySnapVals,
         this->dataPtr->scaleSnapVals);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(), &event);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(), &event);
   }
 
   this->newSnapValues();
@@ -289,8 +289,8 @@ void TransformControl::OnMode(const QString &_mode)
 
     gazebo::gui::events::TransformControlModeActive
       transformControlModeActive(this->dataPtr->transformMode);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &transformControlModeActive);
     this->dataPtr->mouseDirty = true;
   }
@@ -350,7 +350,7 @@ void TransformControl::LoadGrid()
 /////////////////////////////////////////////////
 bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -381,31 +381,31 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->selectedEntities.clear();
     }
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::MousePressOnScene::kType)
+  else if (_event->type() == gz::gui::events::MousePressOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::MousePressOnScene *>(_event);
+        static_cast<gz::gui::events::MousePressOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::DragOnScene::kType)
+  else if (_event->type() == gz::gui::events::DragOnScene::kType)
   {
     auto event =
-        static_cast<ignition::gui::events::DragOnScene *>(_event);
+        static_cast<gz::gui::events::DragOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::KeyPressOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyPressOnScene::kType)
   {
-    ignition::gui::events::KeyPressOnScene *_e =
-      static_cast<ignition::gui::events::KeyPressOnScene*>(_event);
+    gz::gui::events::KeyPressOnScene *_e =
+      static_cast<gz::gui::events::KeyPressOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
 
     if (this->dataPtr->keyEvent.Key() == Qt::Key_T)
@@ -417,10 +417,10 @@ bool TransformControl::eventFilter(QObject *_obj, QEvent *_event)
       this->activateRotate();
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     this->dataPtr->keyEvent = _e->Key();
     if (this->dataPtr->keyEvent.Key() == Qt::Key_Escape)
     {
@@ -580,9 +580,9 @@ void TransformControlPrivate::HandleTransform()
 
   this->HandleMouseEvents();
 
-  ignition::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &blockOrbitEvent);
 }
 
@@ -677,7 +677,7 @@ void TransformControlPrivate::HandleMouseEvents()
           if (this->poseCmdService.empty())
           {
             std::string worldName;
-            auto worldNames = ignition::gui::worldNames();
+            auto worldNames = gz::gui::worldNames();
             if (!worldNames.empty())
               worldName = worldNames[0].toStdString();
 
@@ -1024,4 +1024,4 @@ void TransformControlPrivate::SnapPoint(
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(TransformControl,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

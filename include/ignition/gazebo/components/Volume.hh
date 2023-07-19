@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2022 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
-#ifndef IGNITION_GAZEBO_COMPONENTS_VOLUME_HH_
-#define IGNITION_GAZEBO_COMPONENTS_VOLUME_HH_
+ */
 
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Component.hh>
+#include <gz/sim/components/Volume.hh>
 #include <ignition/gazebo/config.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A volume component where the units are m^3.
-  /// Double value indicates volume of an entity.
-  using Volume = Component<double, class VolumeTag>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Volume", Volume)
-}
-}
-}
-}
-
-#endif

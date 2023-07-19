@@ -17,8 +17,8 @@
 
 #include "Spawn.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <algorithm>
 #include <limits>
@@ -27,35 +27,35 @@
 #include <vector>
 #include <QQmlProperty>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Uuid.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/math/Vector2.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RayQuery.hh>
-#include <ignition/rendering/Utils.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/Utils.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/Scene.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
 namespace ignition::gazebo
 {
@@ -154,7 +154,7 @@ using namespace gazebo;
 
 /////////////////////////////////////////////////
 Spawn::Spawn()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<SpawnPrivate>())
 {
 }
@@ -184,8 +184,8 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   if (!worldNames.empty())
     this->dataPtr->worldName = worldNames[0].toStdString();
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -477,63 +477,63 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
 ////////////////////////////////////////////////
 bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     if (this->dataPtr->generatePreview || this->dataPtr->isPlacing)
       this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::HoverOnScene::kType)
+  else if (_event->type() == gz::gui::events::HoverOnScene::kType)
   {
-    ignition::gui::events::HoverOnScene *_e =
-      static_cast<ignition::gui::events::HoverOnScene*>(_event);
+    gz::gui::events::HoverOnScene *_e =
+      static_cast<gz::gui::events::HoverOnScene*>(_event);
     this->dataPtr->mouseHoverPos = _e->Mouse().Pos();
     this->dataPtr->hoverDirty = true;
   }
   else if (_event->type() ==
-    ignition::gui::events::SpawnFromDescription::kType)
+    gz::gui::events::SpawnFromDescription::kType)
   {
-    ignition::gui::events::SpawnFromDescription *_e =
-      static_cast<ignition::gui::events::SpawnFromDescription*>(_event);
+    gz::gui::events::SpawnFromDescription *_e =
+      static_cast<gz::gui::events::SpawnFromDescription*>(_event);
     this->dataPtr->spawnSdfString = _e->Description();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
+  else if (_event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnFromPath *>(_event);
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  else if (_event->type() == gz::gui::events::SpawnCloneFromName::kType)
   {
     auto spawnCloneEvent =
-      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnCloneFromName *>(_event);
     if (spawnCloneEvent)
     {
       this->dataPtr->spawnCloneName = spawnCloneEvent->Name();
       this->dataPtr->generatePreview = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     if (_e->Key().Key() == Qt::Key_Escape)
     {
       this->dataPtr->escapeReleased = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::DropOnScene::kType)
+  else if (_event->type() == gz::gui::events::DropOnScene::kType)
   {
     auto dropOnSceneEvent =
-      reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
+      reinterpret_cast<gz::gui::events::DropOnScene *>(_event);
     if (dropOnSceneEvent)
     {
       this->OnDropped(dropOnSceneEvent);
@@ -544,7 +544,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
+void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
 {
   if (nullptr == _event || nullptr == this->dataPtr->camera ||
       nullptr == this->dataPtr->rayQuery)
@@ -647,4 +647,4 @@ void Spawn::SetErrorPopupText(const QString &_errorTxt)
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::Spawn,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

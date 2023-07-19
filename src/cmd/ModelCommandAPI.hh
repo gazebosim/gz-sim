@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/ign/Export.hh"
+#include "gz/sim/ign/Export.hh"
 
 /// \brief External hook to get a list of available models.
 extern "C" IGNITION_GAZEBO_IGN_VISIBLE void cmdModelList();

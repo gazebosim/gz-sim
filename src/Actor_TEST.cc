@@ -19,11 +19,11 @@
 
 #include <cstddef>
 
-#include "ignition/gazebo/Actor.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/Actor.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
 /////////////////////////////////////////////////
 TEST(ActorTest, Constructor)

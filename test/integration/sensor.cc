@@ -17,18 +17,18 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/gazebo/EntityComponentManager.hh>
-#include <ignition/gazebo/Sensor.hh>
-#include <ignition/gazebo/components/Joint.hh>
-#include <ignition/gazebo/components/Link.hh>
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParentEntity.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/Sensor.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Sensor.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Sensor.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 

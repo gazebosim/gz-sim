@@ -21,19 +21,19 @@
 #include <unordered_set>
 #include <vector>
 
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/rendering/Events.hh"
+#include "gz/sim/rendering/Events.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"

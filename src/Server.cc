@@ -17,21 +17,21 @@
 
 #include <numeric>
 
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
 
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
@@ -137,6 +137,14 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       ignerr << err << "\n";
+    return;
+  }
+
+  if (this->dataPtr->sdfRoot.WorldCount() == 0)
+  {
+    ignerr << "SDF file doesn't contain a world. " <<
+      "If you wish to spawn a model, use the ResourceSpawner GUI plugin " <<
+      "or the 'world/<world_name>/create' service.\n";
     return;
   }
 
