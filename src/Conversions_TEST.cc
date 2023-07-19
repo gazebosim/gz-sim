@@ -35,6 +35,7 @@
 #include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Polyline.hh>
+#include <sdf/Projector.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
@@ -1075,6 +1076,40 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Projector)
+{
+  sdf::Projector projector;
+  projector.SetName("my_projector");
+  projector.SetNearClip(0.03);
+  projector.SetFarClip(30);
+  projector.SetHorizontalFov(math::Angle(0.4));
+  projector.SetTexture("projector.png");
+  projector.SetVisibilityFlags(0xFF);
+
+  // Convert SDF to a message.
+  msgs::Projector projectorMsg = convert<msgs::Projector>(projector);
+
+  EXPECT_EQ("my_projector", projectorMsg.name());
+  EXPECT_NEAR(0.03, projectorMsg.near_clip(), 1e-3);
+  EXPECT_NEAR(30, projectorMsg.far_clip(), 1e-3);
+  EXPECT_NEAR(0.4, projectorMsg.fov(), 1e-3);
+  EXPECT_EQ("projector.png", projectorMsg.texture());
+
+  auto header = projectorMsg.header().data(0);
+  EXPECT_EQ("visibility_flags", header.key());
+  EXPECT_EQ(0xFF, std::stoul(header.value(0)));
+
+  // Convert the message back to SDF.
+  sdf::Projector projector2 = convert<sdf::Projector>(projectorMsg);
+  EXPECT_EQ(projector2.Name(), projector.Name());
+  EXPECT_NEAR(projector2.NearClip(), projector.NearClip(), 1e-3);
+  EXPECT_NEAR(projector2.FarClip(), projector.FarClip(), 1e-3);
+  EXPECT_EQ(projector2.HorizontalFov(), projector.HorizontalFov());
+  EXPECT_EQ(projector2.Texture(), projector.Texture());
+  EXPECT_EQ(projector2.VisibilityFlags(), projector.VisibilityFlags());
 }
 
 /////////////////////////////////////////////////

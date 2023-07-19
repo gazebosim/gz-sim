@@ -48,7 +48,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-using IntComponent = components::Component<int, class IntComponentTag>;
+using IntComponent = Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
@@ -337,8 +337,8 @@ TEST_P(EntityComponentManagerFixture,
   auto comp4 = manager.CreateComponent<DoubleComponent>(eIntDouble,
       DoubleComponent(0.456));
   ASSERT_NE(nullptr, comp4);
-  auto comp5 = manager.CreateComponent<components::Pose>(ePose,
-      components::Pose({1, 2, 3, 0, 0, 0}));
+  auto comp5 = manager.CreateComponent<Pose>(ePose,
+      Pose({1, 2, 3, 0, 0, 0}));
   ASSERT_NE(nullptr, comp5);
   auto comp6 = manager.CreateComponent<CustomComponent>(eCustom,
       CustomComponent(Custom()));

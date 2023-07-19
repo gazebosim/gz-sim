@@ -15,10 +15,10 @@
  *
 */
 
-#include "gz/sim/Export.hh"
+#include "gz/sim/gz/Export.hh"
 
 /// \brief External hook to get a list of available models.
-extern "C" GZ_SIM_VISIBLE void cmdModelList();
+extern "C" GZ_SIM_GZ_VISIBLE void cmdModelList();
 
 /// \brief External hook to dump model information.
 /// \param[in] _modelName Model name.
@@ -26,7 +26,7 @@ extern "C" GZ_SIM_VISIBLE void cmdModelList();
 /// \param[in] _linkName Link name.
 /// \param[in] _jointName Joint name.
 /// \param[in] _sensorName Sensor name.
-extern "C" GZ_SIM_VISIBLE void cmdModelInfo(
+extern "C" GZ_SIM_GZ_VISIBLE void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName,
     const char *_sensorName);

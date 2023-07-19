@@ -68,10 +68,10 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
       _j * this->normalForces.step() + _i * 3 * sizeof(float);
 
     measuredPoint.X() = *reinterpret_cast<float*>(
-        &msgBuffer[msgBufferIndex]);
+      &msgBuffer[msgBufferIndex]);
 
     measuredPoint.Y() = *reinterpret_cast<float*>(
-        &msgBuffer[msgBufferIndex + sizeof(float)]);
+      &msgBuffer[msgBufferIndex + sizeof(float)]);
 
     measuredPoint.Z() = *reinterpret_cast<float*>(
       &msgBuffer[msgBufferIndex + 2*sizeof(float)]);

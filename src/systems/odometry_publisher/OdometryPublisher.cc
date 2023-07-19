@@ -467,6 +467,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
   msgCovariance.mutable_pose_with_covariance()->
     mutable_pose()->mutable_position()->set_z(msg.pose().position().z());
 
+  // Copy orientation from odometry msg.
+  msgs::Set(msgCovariance.mutable_pose_with_covariance()->mutable_pose()->
+    mutable_orientation(), pose.Rot());
+
   // Copy twist from odometry msg.
   msgCovariance.mutable_twist_with_covariance()->
     mutable_twist()->mutable_angular()->set_x(msg.twist().angular().x());
