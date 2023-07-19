@@ -30,10 +30,10 @@ namespace sim
 {
 namespace python
 {
-void defineSimLink(pybind11::object module)
+void defineSimLink(py::object module)
 {
-  pybind11::class_<gz::sim::Link>(module, "Link")
-  .def(pybind11::init<gz::sim::Entity>())
+  py::class_<gz::sim::Link>(module, "Link")
+  .def(py::init<gz::sim::Entity>())
   .def("entity", &gz::sim::Link::Entity,
       "Get the entity which this Link is related to.")
   .def("reset_entity", &gz::sim::Link::ResetEntity,
