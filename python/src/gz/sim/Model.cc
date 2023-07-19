@@ -30,10 +30,10 @@ namespace sim
 {
 namespace python
 {
-void defineSimModel(pybind11::object module)
+void defineSimModel(py::object module)
 {
-  pybind11::class_<gz::sim::Model>(module, "Model")
-  .def(pybind11::init<gz::sim::Entity>())
+  py::class_<gz::sim::Model>(module, "Model")
+  .def(py::init<gz::sim::Entity>())
   .def("entity", &gz::sim::Model::Entity,
       "Get the entity which this Model is related to.")
   .def("valid", &gz::sim::Model::Valid,
