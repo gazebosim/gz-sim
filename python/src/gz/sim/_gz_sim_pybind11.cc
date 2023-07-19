@@ -16,6 +16,7 @@
 
 #include <pybind11/pybind11.h>
 
+#include "Actor.hh"
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
 #include "Server.hh"
@@ -28,6 +29,7 @@
 PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
 
+  gz::sim::python::defineSimActor(m);
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
   gz::sim::python::defineSimServer(m);
