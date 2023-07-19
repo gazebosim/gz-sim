@@ -22,11 +22,15 @@
 #include <gz/msgs/server_control.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
+
 #include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <optional>
+#ifdef HAVE_PYBIND11
+#include <pybind11/embed.h>
+#endif
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -146,6 +150,10 @@ namespace gz
       /// \return True if successful.
       private: bool ServerControlService(
         const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
+
+#ifdef HAVE_PYBIND11
+      public: pybind11::scoped_interpreter guard{};
+#endif
 
       /// \brief A pool of worker threads.
       public: common::WorkerPool workerPool{2};
