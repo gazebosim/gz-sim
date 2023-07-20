@@ -11,9 +11,24 @@
     <!-- prevent sinking -->
     <gravity>0 0 0</gravity>
 
+    <!-- Current Data -->
+    <plugin
+      filename="gz-sim-environment-preload-system"
+      name="gz::sim::systems::EnvironmentPreload">
+      <data>@CMAKE_SOURCE_DIR@/test/worlds/hydrodynamic_currents.csv</data>
+      <dimensions>
+        <time>timestamp</time>
+        <space>
+          <x>x</x>
+          <y>y</y>
+          <z>z</z>
+        </space>
+      </dimensions>
+    </plugin>
+
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <light type="directional" name="sun">
@@ -94,8 +109,8 @@
       </link>
 
       <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
         <link_name>sphere2_link</link_name>
         <water_density>918</water_density>
         <xDotU>0</xDotU>
@@ -104,17 +119,17 @@
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
-        <xUU>0</xUU>
+        <xUabsU>0</xUabsU>
         <xU>0</xU>
-        <yVV>0</yVV>
+        <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWW>11.5359</zWW>
+        <zWabsW>11.5359</zWabsW>
         <zW>0.211869</zW>
-        <kPP>0</kPP>
+        <kPabsP>0</kPabsP>
         <kP>0</kP>
-        <mQQ>0</mQQ>
+        <mQabsQ>0</mQabsQ>
         <mQ>0</mQ>
-        <nRR>0</nRR>
+        <nRabsR>0</nRabsR>
         <nR>0</nR>
       </plugin>
     </model>
@@ -153,8 +168,8 @@
         </link>
 
       <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
         <link_name>cylinder1_link</link_name>
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
@@ -163,17 +178,17 @@
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
-        <xUU>0</xUU>
+        <xUabsU>0</xUabsU>
         <xU>0</xU>
-        <yVV>0</yVV>
+        <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWW>94.2475</zWW>
+        <zWabsW>94.2475</zWabsW>
         <zW>0.0037699</zW>
-        <kPP>0</kPP>
+        <kPabsP>0</kPabsP>
         <kP>0</kP>
-        <mQQ>0</mQQ>
+        <mQabsQ>0</mQabsQ>
         <mQ>0</mQ>
-        <nRR>0</nRR>
+        <nRabsR>0</nRabsR>
         <nR>0</nR>
       </plugin>
     </model>
@@ -212,8 +227,8 @@
         </link>
 
       <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
         <link_name>cylinder2_link</link_name>
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
@@ -222,17 +237,17 @@
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
-        <xUU>0</xUU>
+        <xUabsU>0</xUabsU>
         <xU>0</xU>
-        <yVV>0</yVV>
+        <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWW>94.2475</zWW>
+        <zWabsW>94.2475</zWabsW>
         <zW>0.0037699</zW>
-        <kPP>0</kPP>
+        <kPabsP>0</kPabsP>
         <kP>0</kP>
-        <mQQ>0</mQQ>
+        <mQabsQ>0</mQabsQ>
         <mQ>0</mQ>
-        <nRR>0</nRR>
+        <nRabsR>0</nRabsR>
         <nR>0</nR>
       </plugin>
     </model>
@@ -271,8 +286,8 @@
         </link>
 
       <plugin
-        filename="ignition-gazebo-hydrodynamics-system"
-        name="ignition::gazebo::systems::Hydrodynamics">
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
         <link_name>cylinder3_link</link_name>
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
@@ -281,18 +296,78 @@
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
-        <xUU>0</xUU>
+        <xUabsU>0</xUabsU>
         <xU>0</xU>
-        <yVV>0</yVV>
+        <yVabsV>0</yVabsV>
+        <yV>0</yV>
+        <zWabsW>94.2475</zWabsW>
+        <zW>0.0037699</zW>
+        <kPabsP>0</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>0</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>0</nRabsR>
+        <nR>0</nR>
+      </plugin>
+    </model>
+
+    <model name="sphere_current">
+      <link name="sphere_current_link">
+        <pose>4 0 0 0 0 0</pose>
+        <inertial>
+          <mass>40</mass>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+
+        <visual name='sphere_current_visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <collision name='sphere_current_collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <plugin
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+        <link_name>sphere_current_link</link_name>
+        <water_density>918</water_density>
+        <xDotU>15.381</xDotU>
+        <yDotV>15.381</yDotV>
+        <zDotW>15.381</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <xUU>94.2475</xUU>
+        <xU>0</xU>
+        <yVV>94.2475</yVV>
         <yV>0</yV>
         <zWW>94.2475</zWW>
-        <zW>0.0037699</zW>
+        <zW>0</zW>
         <kPP>0</kPP>
         <kP>0</kP>
         <mQQ>0</mQQ>
         <mQ>0</mQ>
         <nRR>0</nRR>
         <nR>0</nR>
+        <lookup_current_x>current_x</lookup_current_x>
+        <lookup_current_y>current_y</lookup_current_y>
+        <lookup_current_z>current_z</lookup_current_z>
       </plugin>
     </model>
   </world>

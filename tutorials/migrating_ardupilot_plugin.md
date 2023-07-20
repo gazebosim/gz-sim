@@ -15,7 +15,7 @@ can be found in [this fork](https://github.com/gerkey/ardupilot_gazebo/tree/igni
 ## Background
 
 The `ardupilot_gazebo` plugin is used with Gazebo to assist with simulating
-unmanned aerial vehicles (UAVs, aka drones). For more information on how to use
+aerial vehicles (aka drones). For more information on how to use
 it, check the [ArduPilot
 documentation](https://ardupilot.org/dev/docs/using-gazebo-simulator-with-sitl.html).
 

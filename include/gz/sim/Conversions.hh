@@ -54,6 +54,7 @@
 #include <sdf/ParticleEmitter.hh>
 #include <sdf/Plugin.hh>
 #include <sdf/Physics.hh>
+#include <sdf/Projector.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sensor.hh>
 
@@ -713,6 +714,43 @@ namespace gz
     /// \return Particle emitter message.
     template<>
     sdf::ParticleEmitter convert(const msgs::ParticleEmitter &_in);
+
+    /// \brief Generic conversion from a projector SDF object to another
+    /// type.
+    /// \param[in] _in Projector SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const sdf::Projector &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a projector SDF object to
+    /// a projector message object.
+    /// \param[in] _in Projector SDF object.
+    /// \return Projector message.
+    template<>
+    msgs::Projector convert(const sdf::Projector &_in);
+
+    /// \brief Generic conversion from a projector SDF object to another
+    /// type.
+    /// \param[in] _in Projector SDF object.
+    /// \return Conversion result.
+    /// \tparam Out Output type.
+    template<class Out>
+    Out convert(const msgs::Projector &/*_in*/)
+    {
+      Out::ConversionNotImplemented;
+    }
+
+    /// \brief Specialized conversion from a projector SDF object to
+    /// a projector message object.
+    /// \param[in] _in Projecotr SDF object.
+    /// \return Projector message.
+    template<>
+    sdf::Projector convert(const msgs::Projector &_in);
+
 
     /// \brief Generic conversion from an SDF element to another type.
     /// \param[in] _in SDF element.

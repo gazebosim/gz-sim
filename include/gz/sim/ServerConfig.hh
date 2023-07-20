@@ -246,6 +246,15 @@ namespace gz
       /// an UpdateRate has not been set.
       public: std::optional<double> UpdateRate() const;
 
+      /// \brief Set the initial simulation time in seconds.
+      /// \param[in] _initialSimTime The desired initial simulation time in
+      /// seconds.
+      public: void SetInitialSimTime(const double &_initialSimTime) const;
+
+      /// \brief Get the initial simulation time in seconds.
+      /// \return The initial simulation time in seconds.
+      public: double InitialSimTime() const;
+
       /// \brief Get whether the server is using the level system
       /// \return True if the server is set to use the level system
       public: bool UseLevels() const;

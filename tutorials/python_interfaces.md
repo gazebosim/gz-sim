@@ -9,7 +9,7 @@ step simulation and check entities and components.
 
  - **Step 1**: Load a world with a fixture
 
-```{.python}
+```python
 file_path = os.path.dirname(os.path.realpath(__file__))
 fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 ```
