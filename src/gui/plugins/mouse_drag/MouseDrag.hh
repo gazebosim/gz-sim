@@ -53,7 +53,8 @@ namespace sim
     public: void Update(const UpdateInfo &_info,
       EntityComponentManager &_ecm) override;
 
-    /// \brief Callback when echo button is pressed
+    /// \brief Callback when COM switch is pressed
+    /// \param[in] _checked True if force should be applied to center of mass
     public slots: void OnSwitchCOM(const bool _checked);
 
     /// \internal

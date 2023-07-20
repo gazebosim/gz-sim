@@ -74,13 +74,19 @@ namespace sim
     /// \brief Perform rendering calls in the rendering thread.
     public: void OnRender();
 
-    /// \brief Update the PID loop on 3 coordinates and return the command value
+    /// \brief Update the PID loop on 3 coordinates
+    /// \param[in] _pid PID controllers on 3 coordinates to be updated
+    /// \param[in] _error Error vector since last call (p_state - p_target)
+    /// \param[in] _dt Change in time since last call
+    /// \return the command value
     public: math::Vector3d CalculatePID(
       math::PID _pid[3],
       const math::Vector3d &_error,
       const std::chrono::duration<double> &_dt);
 
     /// \brief Update the PID gains with critical damping
+    /// \param[in] _linkWorldPose world pose of the link
+    /// \param[in] _inertial inertial of the link
     public: void UpdateGains(math::Pose3d _linkWorldPose,
       math::Inertiald _inertial);
 
@@ -155,17 +161,17 @@ namespace sim
     public: math::PID rotPid[3];
 
     /// \brief Spring stiffness for translation, in (m/s²)/m
-    public: double posStiffness = 100;
+    public: double posStiffness = 100.0;
 
     /// \brief Spring stiffness for rotation, in (rad/s²)/rad
-    public: double rotStiffness = 100;
+    public: double rotStiffness = 100.0;
 
     /// \brief Arrow for visualizing force in translation mode.
     /// This arrow goes from the application point to the target point.
-    public: rendering::ArrowVisualPtr arrowVisual;
+    public: rendering::ArrowVisualPtr arrowVisual{nullptr};
 
     /// \brief Box for visualizing rotation mode
-    public: rendering::VisualPtr boxVisual;
+    public: rendering::VisualPtr boxVisual{nullptr};
 
     /// \brief Size of the bounding box of the selected link
     public: math::Vector3d bboxSize;
@@ -390,9 +396,14 @@ void MouseDrag::Update(const UpdateInfo &_info,
     force = this->dataPtr->CalculatePID(
       this->dataPtr->posPid, errorPos, _info.dt);
     torque =
-      linkWorldPose.Rot().RotateVector(this->dataPtr->offset).Cross(force) +
-      this->dataPtr->CalculatePID(
+      linkWorldPose.Rot().RotateVector(this->dataPtr->offset).Cross(force);
+    // Rotation damping on translation mode isn't done if the force
+    // is applied to the center of mass
+    if (!this->dataPtr->applyCOM)
+    {
+      torque += this->dataPtr->CalculatePID(
         this->dataPtr->rotPid, linkWorldPose.Rot().Euler(), _info.dt);
+    }
   }
 
   // Publish wrench
@@ -443,8 +454,12 @@ void MouseDragPrivate::OnRender()
     }
     this->rayQuery = this->scene->CreateRayQuery();
 
+    auto mat = this->scene->Material("Default/TransRed")->Clone();
+    mat->SetDepthCheckEnabled(false);
+    mat->SetDepthWriteEnabled(false);
+
     this->arrowVisual = this->scene->CreateArrowVisual();
-    this->arrowVisual->SetMaterial("Default/TransRed");
+    this->arrowVisual->SetMaterial(mat);
     this->arrowVisual->ShowArrowHead(true);
     this->arrowVisual->ShowArrowShaft(true);
     this->arrowVisual->ShowArrowRotation(false);
@@ -453,7 +468,7 @@ void MouseDragPrivate::OnRender()
     this->boxVisual = scene->CreateVisual();
     this->boxVisual->AddGeometry(scene->CreateBox());
     this->boxVisual->SetInheritScale(false);
-    this->boxVisual->SetMaterial("Default/TransRed");
+    this->boxVisual->SetMaterial(mat);
     this->boxVisual->SetUserData("gui-only", static_cast<bool>(true));
     this->boxVisual->SetVisible(false);
   }
