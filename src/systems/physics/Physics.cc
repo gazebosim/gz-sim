@@ -1406,15 +1406,9 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          auto &meshManager = *common::MeshManager::Instance();
-          auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
-          auto *mesh = meshManager.Load(fullPath);
-          if (nullptr == mesh)
-          {
-            gzwarn << "Failed to load mesh from [" << fullPath
-                    << "]." << std::endl;
+          const common::Mesh *mesh = loadMesh(*meshSdf);
+          if (!mesh)
             return true;
-          }
 
           auto linkMeshFeature =
               this->entityLinkMap.EntityCast<MeshFeatureList>(_parent->Data());
