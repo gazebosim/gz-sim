@@ -40,10 +40,8 @@ void PythonSystemLoader::Configure(
   }
   // TODO (azeey) Where do we look for the python file? Do we need a separate
   // environment variable similar to GZ_SIM_SYSTEM_PLUGIN_PATH or can we use the
-  // same variable? For now, only look for the file as an absolute path or
-  // relative to CWD.
-  // Alternatively, we can consider PYTHONPATH and the requirement would be that
-  // we can just import the module.
+  // same variable? For now, just load it as a module, which will be affected by 
+  // PYTHONPATH.
   try
   {
     py::module_ sys = py::module_::import("sys");
@@ -95,28 +93,40 @@ void PythonSystemLoader::Configure(
   {
     this->pythonSystem.attr("configure")(_entity);
   }
-
+  // TODO(azeey) Add support for ConfigureParameters
   if (py::hasattr(this->pythonSystem, "pre_update"))
   {
     this->preUpdateMethod = this->pythonSystem.attr("pre_update");
   }
+  if (py::hasattr(this->pythonSystem, "update"))
+  {
+    this->updateMethod = this->pythonSystem.attr("update");
+  }
+  if (py::hasattr(this->pythonSystem, "post_update"))
+  {
+    this->postUpdateMethod = this->pythonSystem.attr("post_update");
+  }
+  if (py::hasattr(this->pythonSystem, "reset"))
+  {
+    this->resetMethod = this->pythonSystem.attr("reset");
+  }
   this->validConfig = true;
 }
 
-void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
-                                   EntityComponentManager &_ecm)
+//////////////////////////////////////////////////
+template <typename ...Args>
+void PythonSystemLoader::CallPythonMethod(py::object _method, Args&&... _args)
 {
   if (!this->validConfig)
   {
     return;
   }
 
-  if (this->preUpdateMethod)
+  if (_method)
   {
     try
     {
-      this->preUpdateMethod(
-          _info, py::cast(_ecm, py::return_value_policy::reference));
+      _method(std::forward<Args>(_args)...);
     }
     catch (const pybind11::error_already_set &_err)
     {
@@ -125,12 +135,40 @@ void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
     }
   }
 }
-void PythonSystemLoader::PostUpdate(const UpdateInfo &/* _info */,
-                                    const EntityComponentManager &/* _ecm */)
+
+//////////////////////////////////////////////////
+void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
+                                   EntityComponentManager &_ecm)
 {
+  CallPythonMethod(this->preUpdateMethod, _info,
+                   py::cast(_ecm, py::return_value_policy::reference));
 }
 
+//////////////////////////////////////////////////
+void PythonSystemLoader::Update(const UpdateInfo &_info,
+                                EntityComponentManager &_ecm)
+{
+  CallPythonMethod(this->updateMethod, _info,
+                   py::cast(_ecm, py::return_value_policy::reference));
+}
+
+//////////////////////////////////////////////////
+void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
+                                    const EntityComponentManager &_ecm)
+{
+  CallPythonMethod(this->postUpdateMethod, _info,
+                   py::cast(_ecm, py::return_value_policy::reference));
+}
+//////////////////////////////////////////////////
+void PythonSystemLoader::Reset(const UpdateInfo &_info,
+                               EntityComponentManager &_ecm)
+{
+  CallPythonMethod(this->resetMethod, _info,
+                   py::cast(_ecm, py::return_value_policy::reference));
+}
+
+
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
-              ISystemPostUpdate)
+              ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN_ALIAS(PythonSystemLoader, "gz::sim::systems::PythonSystemLoader")
 }  // namespace gz::sim::systems
