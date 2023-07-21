@@ -2,6 +2,19 @@
 <!--
   Gazebo python system loader example
 
+  Before running this, add `examples/scripts/python_api/systems` to your
+  PYTHONPATH
+
+```
+  export PYTHONPATH=path_to_gazebo/examples/scripts/python_api/systems:$PYTHONPATH
+```
+
+If you're building with Colcon, you'll also need to put `install/lib/python` in
+your PYTHONPATH
+
+```
+  export PYTHONPATH=path_to_colcon_workspace/install/lib/python:$PYTHONPATH
+```
 -->
 <sdf version="1.6">
   <world name="python_system">
