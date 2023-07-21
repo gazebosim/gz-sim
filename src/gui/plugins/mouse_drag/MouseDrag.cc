@@ -25,10 +25,12 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Inertial.hh>
 #include <gz/math/PID.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/math/Plane.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
@@ -44,7 +46,10 @@
 #include <gz/sim/Link.hh>
 #include <gz/sim/Util.hh>
 #include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/SystemPluginInfo.hh>
+#include <gz/sim/components/World.hh>
 #include <gz/sim/gui/GuiEvents.hh>
 #include <gz/transport/Node.hh>
 
@@ -96,6 +101,9 @@ namespace sim
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
 
+    /// \brief World name
+    public: std::string worldName;
+
     /// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene{nullptr};
 
@@ -129,6 +137,9 @@ namespace sim
     /// \brief True if dragging is active
     public: bool dragActive{false};
 
+    /// \brief True if the ApplyLinkWrench system is loaded
+    public: bool systemLoaded{false};
+
     /// \brief Current dragging mode
     public: MouseDragMode mode = MouseDragMode::NONE;
 
@@ -147,8 +158,8 @@ namespace sim
     /// \brief Point to which the link is dragged to, in translation mode
     math::Vector3d target;
 
-    /// \brief Goal pose for rotation mode
-    public: math::Pose3d goalPose;
+    /// \brief Goal link rotation for rotation mode
+    public: math::Quaterniond goalRot;
 
     /// \brief Offset of the force application point relative to the
     /// link origin, expressed in the link-fixed frame
@@ -201,8 +212,9 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
   auto worldNames = gz::gui::worldNames();
   if (!worldNames.empty())
   {
+    this->dataPtr->worldName = worldNames[0].toStdString();
     auto topic = transport::TopicUtils::AsValidTopic(
-      "/world/" + worldNames[0].toStdString() + "/wrench");
+      "/world/" + this->dataPtr->worldName + "/wrench");
     if (topic == "")
     {
       gzerr << "Unable to create publisher" << std::endl;
@@ -262,6 +274,77 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
 void MouseDrag::Update(const UpdateInfo &_info,
   EntityComponentManager &_ecm)
 {
+  // Load the ApplyLinkWrench system
+  if (!this->dataPtr->systemLoaded)
+  {
+    const std::string name{"gz::sim::systems::ApplyLinkWrench"};
+    const std::string filename{"gz-sim-apply-link-wrench-system"};
+    const std::string innerxml{"<verbose>0</verbose>"};
+
+    // Get world entity
+    Entity worldEntity;
+    _ecm.Each<components::World, components::Name>(
+      [&](const Entity &_entity,
+        const components::World */*_world*/,
+        const components::Name *_name)->bool
+      {
+        if (_name->Data() == this->dataPtr->worldName)
+        {
+          worldEntity = _entity;
+          return false;
+        }
+        return true;
+      });
+
+    // Check if already loaded
+    auto msg = _ecm.ComponentData<components::SystemPluginInfo>(worldEntity);
+    if (!msg)
+    {
+      gzdbg << "Unable to find SystemPluginInfo component for entity "
+            << worldEntity << std::endl;
+      return;
+    }
+    for (const auto &plugin : msg->plugins())
+    {
+      if (plugin.filename() == filename)
+      {
+        this->dataPtr->systemLoaded = true;
+        gzdbg << "ApplyLinkWrench system already loaded" << std::endl;
+        break;
+      }
+    }
+
+    // Request to load system
+    if (!this->dataPtr->systemLoaded)
+    {
+      msgs::EntityPlugin_V req;
+      req.mutable_entity()->set_id(worldEntity);
+      auto plugin = req.add_plugins();
+      plugin->set_name(name);
+      plugin->set_filename(filename);
+      plugin->set_innerxml(innerxml);
+
+      msgs::Boolean res;
+      bool result;
+      unsigned int timeout = 5000;
+      std::string service{"/world/" + this->dataPtr->worldName +
+          "/entity/system/add"};
+      if (this->dataPtr->node.Request(service, req, timeout, res, result))
+      {
+        this->dataPtr->systemLoaded = true;
+        gzdbg << "ApplyLinkWrench system has been loaded" << std::endl;
+      }
+      else
+      {
+        gzerr << "Error adding new system to entity: "
+              << worldEntity << "\n"
+              << "Name: " << name << "\n"
+              << "Filename: " << filename << "\n"
+              << "Inner XML: " << innerxml << std::endl;
+      }
+    }
+  }
+
   if (this->dataPtr->mode == MouseDragMode::NONE ||
       _info.paused)
   {
@@ -301,26 +384,21 @@ void MouseDrag::Update(const UpdateInfo &_info,
       gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 
-    if (this->dataPtr->mode == MouseDragMode::ROTATE)
+    this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
+    this->dataPtr->initialRot = linkWorldPose.Rot();
+
+    // Calculate offset of force application from link origin
+    if (this->dataPtr->applyCOM || this->dataPtr->mode == MouseDragMode::ROTATE)
     {
-      this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
-      this->dataPtr->initialRot = linkWorldPose.Rot();
+      this->dataPtr->offset = inertial->Data().Pose().Pos();
+      this->dataPtr->applicationPoint =
+        linkWorldPose.Pos() +
+        linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
     }
-    else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
+    else
     {
-      // Calculate offset of force application from link origin
-      if (this->dataPtr->applyCOM)
-      {
-        this->dataPtr->offset = inertial->Data().Pose().Pos();
-        this->dataPtr->applicationPoint =
-          linkWorldPose.Pos() +
-          linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
-      }
-      else
-      {
-        this->dataPtr->offset = linkWorldPose.Rot().RotateVectorReverse(
-          this->dataPtr->applicationPoint - linkWorldPose.Pos());
-      }
+      this->dataPtr->offset = linkWorldPose.Rot().RotateVectorReverse(
+        this->dataPtr->applicationPoint - linkWorldPose.Pos());
     }
 
     // The plane of wrench application should be normal to the center
@@ -335,8 +413,8 @@ void MouseDrag::Update(const UpdateInfo &_info,
       this->dataPtr->rotPid[i].Reset();
     }
   }
-  // Track the application point in translation mode
-  else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
+  // Track the application point
+  else
   {
     this->dataPtr->applicationPoint =
       linkWorldPose.Pos() +
@@ -353,25 +431,19 @@ void MouseDrag::Update(const UpdateInfo &_info,
   // Make a ray query at the mouse position
   this->dataPtr->rayQuery->SetFromCamera(
     this->dataPtr->camera, math::Vector2d(nx, ny));
+  math::Vector3d end = this->dataPtr->rayQuery->Direction();
 
-  math::Vector3d origin = this->dataPtr->rayQuery->Origin();
-  math::Vector3d direction = this->dataPtr->rayQuery->Direction();
-
-  if (auto t = this->dataPtr->plane.Intersection(origin, direction))
-    this->dataPtr->target = *t;
-  else
-    return;
-
+  // Wrench in world coordinates, applied at the link origin
   math::Vector3d force;
   math::Vector3d torque;
-
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
   {
     // Calculate rotation angle from mouse displacement
-    math::Vector3d camPos = this->dataPtr->camera->WorldPose().Pos();
-    math::Vector3d start =
-      (this->dataPtr->applicationPoint - camPos).Normalized();
-    math::Vector3d end = (this->dataPtr->target - camPos).Normalized();
+    nx = 2.0 * this->dataPtr->mousePressPos.X() / width - 1.0;
+    ny = 1.0 - 2.0 * this->dataPtr->mousePressPos.Y() / height;
+    this->dataPtr->rayQuery->SetFromCamera(
+      this->dataPtr->camera, math::Vector2d(nx, ny));
+    math::Vector3d start = this->dataPtr->rayQuery->Direction();
     math::Vector3d axis = start.Cross(end);
     double angle = -atan2(axis.Length(), start.Dot(end));
 
@@ -381,16 +453,21 @@ void MouseDrag::Update(const UpdateInfo &_info,
     axis.Normalize();
 
     // Calculate the necessary rotation and torque
-    this->dataPtr->goalPose.Rot() =
+    this->dataPtr->goalRot =
       math::Quaterniond(axis, angle) * this->dataPtr->initialRot;
-    this->dataPtr->goalPose.Pos() = linkWorldPose.Pos();
     math::Quaterniond errorRot =
-      linkWorldPose.Rot() * this->dataPtr->goalPose.Rot().Inverse();
+      linkWorldPose.Rot() * this->dataPtr->goalRot.Inverse();
     torque = this->dataPtr->CalculatePID(
       this->dataPtr->rotPid, errorRot.Euler(), _info.dt);
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
+    math::Vector3d origin = this->dataPtr->rayQuery->Origin();
+    if (auto t = this->dataPtr->plane.Intersection(origin, end))
+      this->dataPtr->target = *t;
+    else
+      return;
+
     math::Vector3d errorPos =
       this->dataPtr->applicationPoint - this->dataPtr->target;
     force = this->dataPtr->CalculatePID(
@@ -481,7 +558,8 @@ void MouseDragPrivate::OnRender()
   }
   else if (this->mode == MouseDragMode::ROTATE)
   {
-    this->boxVisual->SetLocalPose(this->goalPose);
+    this->boxVisual->SetLocalPosition(this->applicationPoint);
+    this->boxVisual->SetLocalRotation(this->goalRot);
     this->boxVisual->SetLocalScale(1.2 * this->bboxSize);
 
     this->arrowVisual->SetVisible(false);

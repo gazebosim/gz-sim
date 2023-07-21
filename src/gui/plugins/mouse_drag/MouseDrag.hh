@@ -29,7 +29,7 @@ namespace sim
   class MouseDragPrivate;
 
   /// \brief Translate and rotate links by dragging them with the mouse.
-  /// Requires the ApplyLinkWrench system to be loaded.
+  /// Automatically loads the ApplyLinkWrench system.
   ///
   /// ## Configuration
   /// This plugin doesn't accept any custom configuration.
