@@ -470,13 +470,17 @@ class gz::sim::systems::PhysicsPrivate
             physics::GetJointFromModel,
             physics::GetBasicJointProperties,
             physics::GetBasicJointState,
-            physics::SetBasicJointState,
-            physics::SetMimicConstraintFeature>{};
+            physics::SetBasicJointState>{};
 
   /// \brief Feature list to construct joints
   public: struct ConstructSdfJointFeatureList : gz::physics::FeatureList<
             JointFeatureList,
             gz::physics::sdf::ConstructSdfJoint>{};
+
+  /// \brief Feature list for mimic constraints
+  public: struct MimicConstraintJointFeatureList : gz::physics::FeatureList<
+            JointFeatureList,
+            physics::SetMimicConstraintFeature>{};
 
   //////////////////////////////////////////////////
   // Detachable joints
@@ -681,6 +685,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
+            MimicConstraintJointFeatureList,
             JointVelocityCommandFeatureList,
             JointGetTransmittedWrenchFeatureList,
             JointPositionLimitsCommandFeatureList,
@@ -1702,7 +1707,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           // No need to create this joint because it was already created when
           // parsing the model.
 
-          // Check if mimic joint constraint should be applied to this joint.
+          // Check if mimic constraint should be applied to this joint's axes.
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
 
@@ -1710,12 +1715,31 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           {
             if (auto mimic = jointAxis->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(0,
-                  mimic->Joint(),
-                  mimic->Axis(),
-                  mimic->Multiplier(),
-                  mimic->Offset(),
-                  mimic->Reference());
+              auto jointPtrMimic = this->entityJointMap
+                  .EntityCast<MimicConstraintJointFeatureList>(existingJoint);
+              if (jointPtrMimic)
+              {
+                jointPtrMimic->SetMimicConstraint(0,
+                    mimic->Joint(),
+                    mimic->Axis(),
+                    mimic->Multiplier(),
+                    mimic->Offset(),
+                    mimic->Reference());
+              }
+              else
+              {
+                static bool informed{false};
+                if (!informed)
+                {
+                  gzerr << "Attempting to create a mimic constraint for joint ["
+                        <<_name->Data()
+                        << "] but the chosen physics engine does not support "
+                        << "mimic constraints, so no constraint will be "
+                        << "created."
+                        << std::endl;
+                  informed = true;
+                }
+              }
             }
           }
 
@@ -1723,12 +1747,31 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           {
             if (auto mimic = jointAxis2->Data().Mimic())
             {
-              existingJoint->SetMimicConstraint(1,
-                  mimic->Joint(),
-                  mimic->Axis(),
-                  mimic->Multiplier(),
-                  mimic->Offset(),
-                  mimic->Reference());
+              auto jointPtrMimic = this->entityJointMap
+                  .EntityCast<MimicConstraintJointFeatureList>(existingJoint);
+              if (jointPtrMimic)
+              {
+                jointPtrMimic->SetMimicConstraint(1,
+                    mimic->Joint(),
+                    mimic->Axis(),
+                    mimic->Multiplier(),
+                    mimic->Offset(),
+                    mimic->Reference());
+              }
+              else
+              {
+                static bool informed{false};
+                if (!informed)
+                {
+                  gzerr << "Attempting to create a mimic constraint for joint ["
+                        <<_name->Data()
+                        << "] but the chosen physics engine does not support "
+                        << "mimic constraints, so no constraint will be "
+                        << "created."
+                        << std::endl;
+                  informed = true;
+                }
+              }
             }
           }
 
