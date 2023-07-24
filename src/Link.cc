@@ -448,7 +448,6 @@ void Link::AddWorldWrenchRelativeToCOM(EntityComponentManager &_ecm,
     gzdbg << "Inertial Component not found" << std::endl;
     return;
   }
-
   math::Pose3d linkWorldPose;
   if (worldPoseComp)
   {
@@ -463,7 +462,8 @@ void Link::AddWorldWrenchRelativeToCOM(EntityComponentManager &_ecm,
   // ExternalWorldWrenchCmd applies the force at the link origin so we need to
   // compute the resulting force and torque on the link origin.
   auto posComWorldCoord = linkWorldPose.Rot().RotateVector(
-    _offset + inertial->Data().Pose().Pos());
+    inertial->Data().Pose().Rot().RotateVector(_offset) +
+    inertial->Data().Pose().Pos());
 
   math::Vector3d torqueWithOffset = _torque + posComWorldCoord.Cross(_force);
 

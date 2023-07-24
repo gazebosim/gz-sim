@@ -621,9 +621,11 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
   EXPECT_NE(nullptr, wrenchComp);
   wrenchMsg = wrenchComp->Data();
 
+  math::Vector3d posComWorldCoord = linkWorldPose.Rot().RotateVector(
+    inertiaPose.Rot().RotateVector(offset) + inertiaPose.Pos());
   expectedTorque =
       torque +
-      linkWorldPose.Rot().RotateVector(offset + inertiaPose.Pos()).Cross(force);
+      posComWorldCoord.Cross(force);
   EXPECT_EQ(force, math::Vector3d(
       wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(expectedTorque, math::Vector3d(
