@@ -162,7 +162,7 @@
             <plugin filename="gz-sim-track-controller-system"
                     name="gz::sim::systems::TrackController">
                 <link>base_link</link>
-                <kinematic_state_publish_frequency>1</kinematic_state_publish_frequency>
+                <odometry_publish_frequency>1</odometry_publish_frequency>
                 <!--debug>true</debug-->
             </plugin>
 

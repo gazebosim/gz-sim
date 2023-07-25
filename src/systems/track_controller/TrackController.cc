@@ -17,7 +17,7 @@
 
 #include "TrackController.hh"
 
-#include <gz/msgs/kinematic_state_1D.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -176,12 +176,12 @@ class gz::sim::systems::TrackControllerPrivate
   /// \brief Limiter of the commanded velocity.
   public: math::SpeedLimiter limiter;
 
-  /// \brief Kinematic state message publisher.
-  public: transport::Node::Publisher kinematicStatePub;
-  /// \brief Update period calculated from <kinematic_state_publish_frequency>.
-  public: std::chrono::steady_clock::duration kinStatePubPeriod{0};
-  /// \brief Last sim time the kinematic state was published.
-  public: std::chrono::steady_clock::duration lastKinStatePubTime{0};
+  /// \brief Odometry message publisher.
+  public: transport::Node::Publisher odometryPub;
+  /// \brief Update period calculated from <odometry_publish_frequency>.
+  public: std::chrono::steady_clock::duration odometryPubPeriod{0};
+  /// \brief Last sim time the odometry was published.
+  public: std::chrono::steady_clock::duration lastOdometryPubTime{0};
 };
 
 //////////////////////////////////////////////////
@@ -281,24 +281,24 @@ void TrackController::Configure(const Entity &_entity,
   gzdbg << "Subscribed to " << corTopic << " for receiving track center "
          << "of rotation commands." << std::endl;
 
-  // Publish track kinematic state
-  const auto kDefaultKinTopic = topicPrefix + "/track_kinematic_state";
-  const auto kinTopic = validTopic({_sdf->Get<std::string>(
-    "kinematic_state_topic", kDefaultKinTopic).first, kDefaultKinTopic});
-  this->dataPtr->kinematicStatePub =
-    this->dataPtr->node.Advertise<msgs::KinematicState1D>(kinTopic);
+  // Publish track odometry
+  const auto kDefaultOdometryTopic = topicPrefix + "/odometry";
+  const auto odometryTopic = validTopic({_sdf->Get<std::string>(
+    "odometry_topic", kDefaultOdometryTopic).first, kDefaultOdometryTopic});
+  this->dataPtr->odometryPub =
+    this->dataPtr->node.Advertise<msgs::Odometry>(odometryTopic);
 
-  double kinFreq = _sdf->Get<double>(
-    "kinematic_state_publish_frequency", 50).first;
-  std::chrono::duration<double> kinPer{0.0};
-  if (kinFreq > 0)
+  double odometryFreq = _sdf->Get<double>(
+    "odometry_publish_frequency", 50).first;
+  std::chrono::duration<double> odometryPer{0.0};
+  if (odometryFreq > 0)
   {
-    kinPer = std::chrono::duration<double>(1 / kinFreq);
-    this->dataPtr->kinStatePubPeriod =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(kinPer);
+    odometryPer = std::chrono::duration<double>(1 / odometryFreq);
+    this->dataPtr->odometryPubPeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odometryPer);
   }
-  gzdbg << "Publishing kinematic state to " << kinTopic
-    << " with period " << kinPer.count() << " seconds." << std::endl;
+  gzdbg << "Publishing odometry to " << odometryTopic
+    << " with period " << odometryPer.count() << " seconds." << std::endl;
 
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
@@ -479,18 +479,19 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
     return;
 
   // Throttle publishing
-  auto diff = _info.simTime - this->dataPtr->lastKinStatePubTime;
-  if (diff < this->dataPtr->kinStatePubPeriod)
+  auto diff = _info.simTime - this->dataPtr->lastOdometryPubTime;
+  if (diff < this->dataPtr->odometryPubPeriod)
   {
     return;
   }
-  this->dataPtr->lastKinStatePubTime = _info.simTime;
+  this->dataPtr->lastOdometryPubTime = _info.simTime;
 
 
-  // Construct the kinematic state message and publish it:
+  // Construct the odometry message and publish it:
   //
-  // Only the position and velocity fields of the message are populated, as
-  // these are the only known values. E.g. at timestep 'k':
+  // Only odometry info is published (i.e. no other kinematic state info such
+  // as acceleration or jerk), as these are the only known values.
+  // E.g. at timestep 'k':
   // - For an ideal system: (position k) = (position k-1) + (velocity k-1) * dt,
   // - And (velocity k) is known from the velocity command (possibly limited by
   // the SpeedLimiter).
@@ -513,24 +514,24 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
   // - time 5: position 40 and velocity 0
   //
   // For '(pos k) = (pos k-1) + (vel k-1) * dt' to hold, with k = time 5
-  // and k-1 = time 0, the reported velocity at 0 should be '8':
+  // and k-1 = time 0, the reported velocity at time 0 should be '8':
   //   (40 - 0) / 5 = 8  (i.e. the average velocity over time 0 to 5),
   // instead of the reported (instantaneous) velocity '10'.
   //
   // Imo. this error is acceptable, as real life sensors (e.g. encoder and
   // resolver) also report instantaneous values for position and velocity.
   //
-  msgs::KinematicState1D msg;
+  msgs::Odometry msg;
 
   // Set the time stamp in the header
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
   // Set position and velocity
-  msg.set_position(this->dataPtr->position);
-  msg.set_velocity(this->dataPtr->velocity);
+  msg.mutable_pose()->mutable_position()->set_x(this->dataPtr->position);
+  msg.mutable_twist()->mutable_linear()->set_x(this->dataPtr->velocity);
 
-  this->dataPtr->kinematicStatePub.Publish(msg);
+  this->dataPtr->odometryPub.Publish(msg);
 }
 
 
