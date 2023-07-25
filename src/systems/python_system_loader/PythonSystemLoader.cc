@@ -17,8 +17,6 @@
 
 #include "PythonSystemLoader.hh"
 
-#include <dlfcn.h>
-
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SystemLoader.hh>
@@ -29,7 +27,7 @@ namespace gz::sim::systems
 {
 void PythonSystemLoader::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
-    EntityComponentManager &, EventManager &)
+    EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
   auto [moduleName, hasModule] = _sdf->Get<std::string>("module_name", "");
   if (!hasModule)
@@ -91,7 +89,9 @@ void PythonSystemLoader::Configure(
   }
   if (py::hasattr(this->pythonSystem, "configure"))
   {
-    this->pythonSystem.attr("configure")(_entity);
+    sdf::ElementPtr sdfClone = _sdf->Clone();
+    this->pythonSystem.attr("configure")(
+        _entity, sdfClone, py::cast(_ecm, py::return_value_policy::reference));
   }
   // TODO(azeey) Add support for ConfigureParameters
   if (py::hasattr(this->pythonSystem, "pre_update"))
