@@ -38,7 +38,7 @@ void defineSimWorld(py::object module)
       "Get the entity which this World is related to.")
   .def("valid", &gz::sim::World::Valid,
       py::arg("ecm"),
-      "Check whether this world correctly refers to an entity that"
+      "Check whether this world correctly refers to an entity that "
       "has a components::World.")
   .def("name", &gz::sim::World::Name,
       py::arg("ecm"),
@@ -62,12 +62,12 @@ void defineSimWorld(py::object module)
   .def("light_by_name", &gz::sim::World::LightByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a light entity which is an immediate child of"
+      "Get the ID of a light entity which is an immediate child of "
       "this world.")
   .def("actor_by_name", &gz::sim::World::ActorByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a actor entity which is an immediate child of"
+      "Get the ID of a actor entity which is an immediate child of "
       "this world.")
   .def("model_by_name", &gz::sim::World::ModelByName,
       py::arg("ecm"),
@@ -85,15 +85,15 @@ void defineSimWorld(py::object module)
       "Get all models which are immediate children of this world.")
   .def("light_count", &gz::sim::World::LightCount,
       py::arg("ecm"),
-      "Get the number of lights which are immediate children of this"
+      "Get the number of lights which are immediate children of this "
       "world.")
   .def("actor_count", &gz::sim::World::ActorCount,
       py::arg("ecm"),
-      "Get the number of actors which are immediate children of this"
+      "Get the number of actors which are immediate children of this "
       "world.")
   .def("model_count", &gz::sim::World::ModelCount,
       py::arg("ecm"),
-      "Get the number of models which are immediate children of this"
+      "Get the number of models which are immediate children of this "
       "world.");
 }
 }  // namespace python

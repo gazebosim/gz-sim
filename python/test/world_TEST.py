@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2023 Open Source Robotics Foundation
+# Copyright (C) 2021 Open Source Robotics Foundation
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,43 +13,67 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import unittest
 
-from gz.sim8 import EntityComponentManager, World, world_entity
-from gz.math7 import SphericalCoordinates
+from gz.common import set_verbosity
+from gz.sim8 import TestFixture, World, world_entity
+from gz.math7 import Vector3d, SphericalCoordinates
+from sdformat13 import Atmosphere
 
+post_iterations = 0
+iterations = 0
+pre_iterations = 0
 
-class WorldTEST(unittest.TestCase):
-    def setUp(self):
-        self.ecm = EntityComponentManager()
-        self.world_e = world_entity(self.ecm)
-        self.world = World(self.world_e)
+class TestWorld(unittest.TestCase):
 
-    def test_world_entity(self):
-        self.assertEqual(self.world_e, self.world.entity())
+    def test_world(self):
+        set_verbosity(4)
 
-    def test_world_valid(self):
-        self.assertFalse(self.world.valid(self.ecm))
-        # Missing a way to set up the world component in the entity
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        fixture = TestFixture(os.path.join(file_path, 'world.sdf'))
 
-    def test_world_name(self):
-        self.assertEqual(None, self.world.name(self.ecm))
-        # Missing a way to set up the name for the world
+        def on_post_udpate_cb(_info, _ecm):
+            global post_iterations
+            post_iterations += 1
 
-    def test_world_gravity(self):
-        self.assertEqual(None, self.world.gravity(self.ecm))
-        # Missing a way to set up the gravity for the world
+        def on_pre_udpate_cb(_info, _ecm):
+            global pre_iterations
+            pre_iterations += 1
+            world_e = world_entity(_ecm)
+            self.assertEqual(1, world_e)
+            world = World(world_e)
+            # Valid Test
+            self.assertTrue(world.valid(_ecm))
+            # Name Test
+            self.assertEqual('world_test', world.name(_ecm))
+            # Gravity Test
+            self.assertEqual(Vector3d(0, 0, -10), world.gravity(_ecm))
+            # Magnetic Field Test
+            self.assertEqual(Vector3d(1, 2, 3), world.magnetic_field(_ecm))
+            # Atmosphere Test
+            atmosphere = world.atmosphere(_ecm)
+            self.assertEqual(300, atmosphere.temperature())
+            self.assertEqual(100000, atmosphere.pressure())
+            self.assertEqual(-0.005, atmosphere.temperature_gradient())
+            # Spherical Coordinates Test
+            self.assertTrue(world.spherical_coordinates(_ecm))
 
-    def test_world_atmosphere(self):
-        self.assertEqual(None, self.world.atmosphere(self.ecm))
-        # Missing a way to set up the atmosphere for the world
+        def on_udpate_cb(_info, _ecm):
+            global iterations
+            iterations += 1
 
-    def test_world_magnetic_field(self):
-        self.assertEqual(None, self.world.magnetic_field(self.ecm))
-        # Missing a way to set up the magnetic field for the world
+        fixture.on_post_update(on_post_udpate_cb)
+        fixture.on_update(on_udpate_cb)
+        fixture.on_pre_update(on_pre_udpate_cb)
+        fixture.finalize()
 
-    def test_world_spherical_coordinates(self):
-        self.assertEqual(None, self.world.spherical_coordinates(self.ecm))
-        self.world.set_spherical_coordinates(self.ecm, SphericalCoordinates())
-        # This assertion should be `self.assertEqual(SphericalCoordinates(), self.world.spherical_coordinates(self.ecm))`
-        self.assertEqual(None, self.world.spherical_coordinates(self.ecm))
+        server = fixture.server()
+        server.run(True, 1000, False)
+
+        self.assertEqual(1000, pre_iterations)
+        self.assertEqual(1000, iterations)
+        self.assertEqual(1000, post_iterations)
+
+if __name__ == '__main__':
+    unittest.main()
