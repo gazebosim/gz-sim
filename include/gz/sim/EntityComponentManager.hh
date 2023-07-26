@@ -639,8 +639,8 @@ namespace ignition
                   const std::unordered_set<ComponentTypeId> &_types = {},
                   bool _full = false) const;
 
-      /// \brief Get a message with relevant changes to the state given
-      /// a periodic 
+      /// \brief Populate a message with relevant changes to the state given
+      /// a periodic change cache.
       /// \details The header of the message will not be populated, it is the
       /// responsibility of the caller to timestamp it before use. Additionally,
       /// changes such as addition or removal will not be populated.
