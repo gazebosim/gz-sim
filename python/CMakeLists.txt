@@ -88,6 +88,7 @@ endif()
 
 if (BUILD_TESTING)
   set(python_tests
+    link_TEST
     model_TEST
     testFixture_TEST
     world_TEST

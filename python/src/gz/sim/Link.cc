@@ -40,7 +40,7 @@ void defineSimLink(py::object module)
       "Reset Entity to a new one.")
   .def("valid", &gz::sim::Link::Valid,
       py::arg("ecm"),
-      "Check whether this link correctly refers to an entity that"
+      "Check whether this link correctly refers to an entity that "
       "has a components::Link.")
   .def("name", &gz::sim::Link::Name,
       py::arg("ecm"),
@@ -57,12 +57,12 @@ void defineSimLink(py::object module)
   .def("collision_by_name", &gz::sim::Link::CollisionByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a collision entity which is an immediate child of"
+      "Get the ID of a collision entity which is an immediate child of "
       "this link.")
   .def("visual_by_name", &gz::sim::Link::VisualByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a visual entity which is an immediate child of"
+      "Get the ID of a visual entity which is an immediate child of "
       "this link.")
   .def("collisions", &gz::sim::Link::Collisions,
       py::arg("ecm"),
@@ -72,11 +72,11 @@ void defineSimLink(py::object module)
       "Get all visuals which are immediate children of this link.")
   .def("collision_count", &gz::sim::Link::CollisionCount,
       py::arg("ecm"),
-      "Get the number of collisions which are immediate children of"
+      "Get the number of collisions which are immediate children of "
       "this link.")
   .def("visual_count", &gz::sim::Link::VisualCount,
       py::arg("ecm"),
-      "Get the number of visuals which are immediate children of this"
+      "Get the number of visuals which are immediate children of this "
       "link.")
   .def("world_pose", &gz::sim::Link::WorldPose,
       py::arg("ecm"),
@@ -87,15 +87,15 @@ void defineSimLink(py::object module)
   .def("world_linear_velocity",
       py::overload_cast<const EntityComponentManager &>(&gz::sim::Link::WorldLinearVelocity, py::const_),
       py::arg("ecm"),
-      "Get the linear velocity at the origin of of the link frame"
-      "expressed in the world frame, using an offset expressed in a"
-      "body-fixed frame. If no offset is given, the velocity at the origin of"
+      "Get the linear velocity at the origin of of the link frame "
+      "expressed in the world frame, using an offset expressed in a "
+      "body-fixed frame. If no offset is given, the velocity at the origin of "
       "the Link frame will be returned.")
   .def("world_linear_velocity", 
       py::overload_cast<const EntityComponentManager &, const math::Vector3d &>(&gz::sim::Link::WorldLinearVelocity, py::const_),
       py::arg("ecm"),
       py::arg("offset"),
-      "Get the linear velocity of a point on the body in the world"
+      "Get the linear velocity of a point on the body in the world "
       "frame, using an offset expressed in a body-fixed frame.")
   .def("world_angular_velocity", &gz::sim::Link::WorldAngularVelocity,
       py::arg("ecm"),
@@ -103,18 +103,18 @@ void defineSimLink(py::object module)
   .def("enable_velocity_checks", &gz::sim::Link::EnableVelocityChecks,
       py::arg("ecm"),
       py::arg("enable") = true,
-      "By default, Gazebo will not report velocities for a link, so"
-      "functions like `WorldLinearVelocity` will return nullopt. This"
+      "By default, Gazebo will not report velocities for a link, so "
+      "functions like `world_linear_velocity` will return nullopt. This "
       "function can be used to enable all velocity checks.")
   .def("set_linear_velocity", &gz::sim::Link::SetLinearVelocity,
       py::arg("ecm"),
       py::arg("velocity"),
-      "Set the linear velocity on this link. If this is set, wrenches"
+      "Set the linear velocity on this link. If this is set, wrenches "
       "on this link will be ignored for the current time step.")
   .def("set_angular_velocity", &gz::sim::Link::SetAngularVelocity,
       py::arg("ecm"),
       py::arg("velocity"),
-      "Set the angular velocity on this link. If this is set, wrenches"
+      "Set the angular velocity on this link. If this is set, wrenches "
       "on this link will be ignored for the current time step.")
   .def("world_angular_acceleration", &gz::sim::Link::WorldAngularAcceleration,
       py::arg("ecm"),
@@ -125,35 +125,35 @@ void defineSimLink(py::object module)
   .def("enable_acceleration_checks", &gz::sim::Link::EnableAccelerationChecks,
       py::arg("ecm"),
       py::arg("enable") = true,
-      "By default, Gazebo will not report accelerations for a link, so"
-      "functions like `WorldLinearAcceleration` will return nullopt. This"
+      "By default, Gazebo will not report accelerations for a link, so "
+      "functions like `world_linear_acceleration` will return nullopt. This "
       "function can be used to enable all acceleration checks.")
   .def("world_inertia_matrix", &gz::sim::Link::WorldInertiaMatrix,
       py::arg("ecm"),
       "Get the inertia matrix in the world frame.")
   .def("world_kinetic_energy", &gz::sim::Link::WorldKineticEnergy,
       py::arg("ecm"),
-      "Get the rotational and translational kinetic energy of the"
+      "Get the rotational and translational kinetic energy of the "
       "link with respect to the world frame.")
   .def("add_world_force",
       py::overload_cast<EntityComponentManager &, const math::Vector3d &>(&gz::sim::Link::AddWorldForce, py::const_),
       py::arg("ecm"),
       py::arg("force"),
-      "Add a force expressed in world coordinates and applied at the"
+      "Add a force expressed in world coordinates and applied at the "
       "center of mass of the link.")
   .def("add_world_force",
       py::overload_cast<EntityComponentManager &, const math::Vector3d &, const math::Vector3d &>(&gz::sim::Link::AddWorldForce, py::const_),
       py::arg("ecm"),
       py::arg("force"),
       py::arg("position"),
-      "Add a force expressed in world coordinates and applied at"
+      "Add a force expressed in world coordinates and applied at "
       "an offset from the center of mass of the link.")
   .def("add_world_wrench", &gz::sim::Link::AddWorldWrench,
       py::arg("ecm"),
       py::arg("force"),
       py::arg("torque"),
-      "Add a wrench expressed in world coordinates and applied to"
-      "the link at the link's origin. This wrench is applied for one"
+      "Add a wrench expressed in world coordinates and applied to "
+      "the link at the link's origin. This wrench is applied for one "
       "simulation step.");
 }
 }  // namespace python
