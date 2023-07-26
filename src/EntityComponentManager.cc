@@ -964,7 +964,7 @@ std::unordered_set<ComponentTypeId>
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::PeriodicChangeEntityComponentMap(
+void EntityComponentManager::UpdatePeriodicChangeCache(
   std::unordered_map<Entity,
     std::unordered_set<ComponentTypeId>> &_changes) const
 {
@@ -1710,7 +1710,7 @@ void EntityComponentManager::State(
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManager::State(
+void EntityComponentManager::PeriodicStateFromCache(
   msgs::SerializedStateMap &_state,
   const std::unordered_map<Entity,
         std::unordered_set<ComponentTypeId>> &_entityMap) const

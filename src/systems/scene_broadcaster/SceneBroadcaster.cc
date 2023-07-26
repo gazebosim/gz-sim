@@ -350,7 +350,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
   // Iterate through entities and their changes to cache them.
-  _manager.PeriodicChangeEntityComponentMap(this->dataPtr->changedComponents);
+  _manager.UpdatePeriodicChangeCache(this->dataPtr->changedComponents);
 
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
@@ -422,7 +422,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
       // Apply changes that were caught by the periodic state tracker and then
       // clear the change tracker.
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+      _manager.PeriodicStateFromCache(*this->dataPtr->stepMsg.mutable_state(),
         this->dataPtr->changedComponents);
       this->dataPtr->changedComponents.clear();
     }
