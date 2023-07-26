@@ -602,7 +602,7 @@ namespace ignition
           ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Get all components with periodic changes.
-      /// \param[in] _changes A list of components with the latest periodic
+      /// \param[inout] _changes A list of components with the latest periodic
       /// changes. If a component has a periodic change, it is added to the
       /// hash map. It the component or entity was removed, it is removed from
       /// the hashmap. This way the hashmap stores a list of components and
