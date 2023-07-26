@@ -35,7 +35,7 @@ namespace sim
   class ApplyForceTorquePrivate;
 
   /// \brief Publish wrench to "/world/<world_name>/wrench" topic.
-  /// Requires the ApplyLinkWrench system to be loaded.
+  /// Automatically loads the ApplyLinkWrench system.
   ///
   /// ## Configuration
   /// This plugin doesn't accept any custom configuration.

@@ -23,6 +23,7 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
@@ -31,6 +32,9 @@
 #include <gz/sim/Model.hh>
 #include <gz/sim/Util.hh>
 #include <gz/sim/components/Inertial.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/SystemPluginInfo.hh>
+#include <gz/sim/components/World.hh>
 #include <gz/sim/gui/GuiEvents.hh>
 #include <gz/transport/Node.hh>
 
@@ -42,7 +46,9 @@ namespace sim
 {
   class ApplyForceTorquePrivate
   {
-    /// \brief Publish wrench messages
+    /// \brief Publish EntityWrench messages in order to apply force and torque
+    /// \param[in] _applyForce True if the force should be applied
+    /// \param[in] _applyTorque True if the torque should be applied
     public: void PublishWrench(bool _applyForce, bool _applyTorque);
 
     /// \brief Transport node
@@ -50,6 +56,12 @@ namespace sim
 
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
+
+    /// \brief World name
+    public: std::string worldName;
+
+    /// \brief True if the ApplyLinkWrench system is loaded
+    public: bool systemLoaded{false};
 
     /// \brief To synchronize member access
     public: std::mutex mutex;
@@ -109,8 +121,9 @@ void ApplyForceTorque::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
   auto worldNames = gz::gui::worldNames();
   if (!worldNames.empty())
   {
+    this->dataPtr->worldName = worldNames[0].toStdString();
     auto topic = transport::TopicUtils::AsValidTopic(
-      "/world/" + worldNames[0].toStdString() + "/wrench");
+      "/world/" + this->dataPtr->worldName + "/wrench");
     if (topic == "")
     {
       gzerr << "Unable to create publisher" << std::endl;
@@ -153,6 +166,77 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
   EntityComponentManager &_ecm)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+  // Load the ApplyLinkWrench system
+  if (!this->dataPtr->systemLoaded)
+  {
+    const std::string name{"gz::sim::systems::ApplyLinkWrench"};
+    const std::string filename{"gz-sim-apply-link-wrench-system"};
+    const std::string innerxml{"<verbose>0</verbose>"};
+
+    // Get world entity
+    Entity worldEntity;
+    _ecm.Each<components::World, components::Name>(
+      [&](const Entity &_entity,
+        const components::World */*_world*/,
+        const components::Name *_name)->bool
+      {
+        if (_name->Data() == this->dataPtr->worldName)
+        {
+          worldEntity = _entity;
+          return false;
+        }
+        return true;
+      });
+
+    // Check if already loaded
+    auto msg = _ecm.ComponentData<components::SystemPluginInfo>(worldEntity);
+    if (!msg)
+    {
+      gzdbg << "Unable to find SystemPluginInfo component for entity "
+            << worldEntity << std::endl;
+      return;
+    }
+    for (const auto &plugin : msg->plugins())
+    {
+      if (plugin.filename() == filename)
+      {
+        this->dataPtr->systemLoaded = true;
+        gzdbg << "ApplyLinkWrench system already loaded" << std::endl;
+        break;
+      }
+    }
+
+    // Request to load system
+    if (!this->dataPtr->systemLoaded)
+    {
+      msgs::EntityPlugin_V req;
+      req.mutable_entity()->set_id(worldEntity);
+      auto plugin = req.add_plugins();
+      plugin->set_name(name);
+      plugin->set_filename(filename);
+      plugin->set_innerxml(innerxml);
+
+      msgs::Boolean res;
+      bool result;
+      unsigned int timeout = 5000;
+      std::string service{"/world/" + this->dataPtr->worldName +
+          "/entity/system/add"};
+      if (this->dataPtr->node.Request(service, req, timeout, res, result))
+      {
+        this->dataPtr->systemLoaded = true;
+        gzdbg << "ApplyLinkWrench system has been loaded" << std::endl;
+      }
+      else
+      {
+        gzerr << "Error adding new system to entity: "
+              << worldEntity << "\n"
+              << "Name: " << name << "\n"
+              << "Filename: " << filename << "\n"
+              << "Inner XML: " << innerxml << std::endl;
+      }
+    }
+  }
 
   if (this->dataPtr->changedEntity)
   {
@@ -315,4 +399,4 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(ApplyForceTorque, gz::gui::Plugin);
+GZ_ADD_PLUGIN(ApplyForceTorque, gz::gui::Plugin)
