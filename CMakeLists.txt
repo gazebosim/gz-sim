@@ -170,6 +170,11 @@ gz_find_package(gz-math7 REQUIRED COMPONENTS eigen3)
 set(GZ_MATH_VER ${gz-math7_VERSION_MAJOR})
 
 #--------------------------------------
+# Find sdformat
+gz_find_package(sdformat13 REQUIRED)
+set(SDF_VER ${sdformat13_VERSION_MAJOR})
+
+#--------------------------------------
 # Find if gz command is available
 find_program(GZ_TOOLS_PROGRAM gz)
 if (GZ_TOOLS_PROGRAM)

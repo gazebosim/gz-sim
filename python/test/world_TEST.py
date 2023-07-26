@@ -18,7 +18,7 @@ import unittest
 
 from gz.common import set_verbosity
 from gz.sim8 import TestFixture, World, world_entity
-from gz.math7 import Vector3d, SphericalCoordinates
+from gz.math7 import Vector3d
 from sdformat13 import Atmosphere
 
 post_iterations = 0
