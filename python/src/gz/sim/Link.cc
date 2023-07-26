@@ -90,7 +90,7 @@ void defineSimLink(py::object module)
       "expressed in the world frame, using an offset expressed in a "
       "body-fixed frame. If no offset is given, the velocity at the origin of "
       "the Link frame will be returned.")
-  .def("world_linear_velocity", 
+  .def("world_linear_velocity",
       py::overload_cast<const EntityComponentManager &, const math::Vector3d &>(&gz::sim::Link::WorldLinearVelocity, py::const_),
       py::arg("ecm"),
       py::arg("offset"),
