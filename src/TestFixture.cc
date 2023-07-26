@@ -212,7 +212,7 @@ std::shared_ptr<Server> TestFixture::Server() const
 {
   if (!this->dataPtr->finalized)
   {
-    gzwarn << "Fixture has not been finalized, any functions you attempted"
+    ignwarn << "Fixture has not been finalized, any functions you attempted"
       << "to hook into will not be run. It is recommended to call Finalize()"
       << "before accessing the server."
       << std::endl;
