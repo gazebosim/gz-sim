@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <utility>
 
 #include <gz/common/geospatial/Dem.hh>
 #include <gz/common/geospatial/HeightmapData.hh>
@@ -3742,12 +3743,21 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
+  // Using ExtraContactData to expose contact Norm, Force & Depth
+  using Policy = physics::FeaturePolicy3d;
+  using GCFeature = physics::GetContactsFromLastStepFeature;
+  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>; 
+
+  // A contact is described by a contact_point and the corresponding
+  // extraContactData which we bundle in a pair data structure
+  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+                                const ExtraContactData *>;
   // Each contact object we get from gz-physics contains the EntityPtrs of the
   // two colliding entities and other data about the contact such as the
-  // position. This map groups contacts so that it is easy to query all the
+  // position and extra contact date (wrench, normal and penetration depth).
+  // This map groups contacts so that it is easy to query all the
   // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity,
-      std::deque<const WorldShapeType::ContactPoint *>>;
+  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
 
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
@@ -3761,16 +3771,19 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
   for (const auto &contactComposite : allContacts)
   {
-    const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
+    const auto &contact_point = contactComposite.Get<WorldShapeType::ContactPoint>();
+    const auto &extra_contact_data =
+        contactComposite.Query<ExtraContactData>();
     auto coll1Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact.collision1->EntityID());
+      this->entityCollisionMap.GetByPhysicsId(contact_point.collision1->EntityID());
     auto coll2Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact.collision2->EntityID());
+      this->entityCollisionMap.GetByPhysicsId(contact_point.collision2->EntityID());
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      entityContactMap[coll1Entity][coll2Entity].push_back(&contact);
-      entityContactMap[coll2Entity][coll1Entity].push_back(&contact);
+      ContactData data = std::make_pair(&contact_point, extra_contact_data); 
+      entityContactMap[coll1Entity][coll2Entity].push_back(data);
+      entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }
   }
 
@@ -3808,12 +3821,33 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             contactMsg->mutable_collision2()->set_name(
               removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
           }
-          for (const auto &contact : contactData)
+          for (const auto &contact_data : contactData)
           {
             auto *position = contactMsg->add_position();
-            position->set_x(contact->point.x());
-            position->set_y(contact->point.y());
-            position->set_z(contact->point.z());
+            position->set_x(contact_data.first->point.x());
+            position->set_y(contact_data.first->point.y());
+            position->set_z(contact_data.first->point.z());
+
+             auto *normal = contactMsg->add_normal();
+            normal->set_x(contact_data.second->normal.x());
+            normal->set_y(contact_data.second->normal.y());
+            normal->set_z(contact_data.second->normal.z());
+
+            auto *wrench = contactMsg->add_wrench();
+            auto *body1_wrench = wrench->mutable_body_1_wrench();
+            auto *body1_force = body1_wrench->mutable_force();
+            body1_force->set_x(contact_data.second->force.x());
+            body1_force->set_y(contact_data.second->force.y());
+            body1_force->set_z(contact_data.second->force.z());
+            
+            // The force on the second body is equal and opposite
+            auto *body2_wrench = wrench->mutable_body_2_wrench();
+            auto *body2_force = body2_wrench->mutable_force();
+            body2_force->set_x(-contact_data.second->force.x());
+            body2_force->set_y(-contact_data.second->force.y());
+            body2_force->set_z(-contact_data.second->force.z());
+
+            contactMsg->add_depth(contact_data.second->depth);
           }
         }
 
