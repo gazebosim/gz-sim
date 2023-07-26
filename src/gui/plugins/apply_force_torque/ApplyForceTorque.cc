@@ -18,15 +18,23 @@
 #include <mutex>
 #include <string>
 
+#include <gz/common/MeshManager.hh>
 #include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
+#include <gz/rendering/ArrowVisual.hh>
+#include <gz/rendering/Marker.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/RenderTypes.hh>
+#include <gz/rendering/Scene.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Link.hh>
 #include <gz/sim/Model.hh>
@@ -50,6 +58,9 @@ namespace sim
     /// \param[in] _applyForce True if the force should be applied
     /// \param[in] _applyTorque True if the torque should be applied
     public: void PublishWrench(bool _applyForce, bool _applyTorque);
+
+    /// \brief Perform rendering calls in the rendering thread.
+    public: void OnRender();
 
     /// \brief Transport node
     public: transport::Node node;
@@ -84,8 +95,12 @@ namespace sim
     /// \brief True if a new link was selected from the dropdown
     public: bool changedIndex{false};
 
-    /// \brief Force to be applied in link-fixed frame''
+    /// \brief Force to be applied in link-fixed frame
     public: math::Vector3d force{0.0, 0.0, 0.0};
+
+    /// \brief Offset of force application point in link-fixed frame
+    /// relative to the center of mass
+    public: math::Vector3d offset{0.0, 0.0, 0.0};
 
     /// \brief Torque to be applied in link-fixed frame
     public: math::Vector3d torque{0.0, 0.0, 0.0};
@@ -93,8 +108,17 @@ namespace sim
     /// \brief Offset from the link origin to the center of mass in world coords
     public: math::Vector3d inertialPos;
 
-    /// \brief Orientation of the link-fixed frame
-    public: math::Quaterniond linkRot;
+    /// \brief Pose of the link-fixed frame
+    public: math::Pose3d linkWorldPose;
+
+    /// \brief Pointer to the rendering scene
+    public: rendering::ScenePtr scene{nullptr};
+
+    /// \brief Arrow for visualizing force.
+    public: rendering::ArrowVisualPtr forceVisual{nullptr};
+
+    /// \brief Arrow for visualizing torque.
+    public: rendering::VisualPtr torqueVisual{nullptr};
   };
 }
 }
@@ -156,6 +180,10 @@ bool ApplyForceTorque::eventFilter(QObject *_obj, QEvent *_event)
   {
     this->dataPtr->selectedEntity.reset();
     this->dataPtr->changedEntity = true;
+  }
+  else if (_event->type() == gz::gui::events::Render::kType)
+  {
+    this->dataPtr->OnRender();
   }
 
   return QObject::eventFilter(_obj, _event);
@@ -308,7 +336,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     {
       this->dataPtr->inertialPos =
         linkWorldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
-      this->dataPtr->linkRot = linkWorldPose.Rot();
+      this->dataPtr->linkWorldPose = linkWorldPose;
     }
   }
 
@@ -384,9 +412,9 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
   }
 
   // Force and torque in world coordinates
-  math::Vector3d forceToApply = this->linkRot.RotateVector(
+  math::Vector3d forceToApply = this->linkWorldPose.Rot().RotateVector(
     _applyForce ? this->force : math::Vector3d::Zero);
-  math::Vector3d torqueToApply = this->linkRot.RotateVector(
+  math::Vector3d torqueToApply = this->linkWorldPose.Rot().RotateVector(
     _applyTorque ? this->torque : math::Vector3d::Zero) +
     this->inertialPos.Cross(forceToApply);
 
@@ -396,6 +424,109 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torqueToApply);
 
   this->pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorquePrivate::OnRender()
+{
+  double forceSize = 2.0;
+  double torqueSize = 2.0;
+
+  // Get scene and user camera
+  if (!this->scene)
+  {
+    this->scene = rendering::sceneFromFirstRenderEngine();
+    if (!this->scene)
+    {
+      return;
+    }
+
+    // Make material into overlay
+    auto mat = this->scene->Material("Default/TransRed")->Clone();
+    mat->SetDepthCheckEnabled(false);
+    mat->SetDepthWriteEnabled(false);
+
+    this->forceVisual = this->scene->CreateArrowVisual();
+    this->forceVisual->SetMaterial(mat);
+    double scale = forceSize / 0.75;
+    this->forceVisual->SetLocalScale(scale, scale, scale);
+    this->forceVisual->ShowArrowHead(true);
+    this->forceVisual->ShowArrowShaft(true);
+    this->forceVisual->ShowArrowRotation(false);
+
+    common::MeshManager *meshMgr = common::MeshManager::Instance();
+    std::string meshName{"torque_tube"};
+    if (!meshMgr->HasMesh(meshName))
+      meshMgr->CreateTube(meshName, 0.45f, 0.5f, 0.2f, 1, 32);
+    rendering::VisualPtr torqueTube = this->scene->CreateVisual();
+    torqueTube->AddGeometry(this->scene->CreateMesh(meshName));
+    torqueTube->SetOrigin(0, 0, -torqueSize);
+    torqueTube->SetLocalPosition(0, 0, 0);
+
+    rendering::VisualPtr cylinder = this->scene->CreateVisual();
+    cylinder->AddGeometry(this->scene->CreateCylinder());
+    cylinder->SetOrigin(0, 0, -0.5);
+    cylinder->SetLocalPosition(0, 0, 0);
+    cylinder->SetLocalScale(0.01, 0.01, torqueSize);
+
+    this->torqueVisual = this->scene->CreateVisual();
+    this->torqueVisual->AddChild(torqueTube);
+    this->torqueVisual->AddChild(cylinder);
+    this->torqueVisual->SetMaterial(mat);
+  }
+
+  math::Vector3d applicationPoint = this->linkWorldPose.Pos() +
+    this->inertialPos + this->linkWorldPose.Rot().RotateVector(this->offset);
+  // Update force visualization
+  if (this->force != math::Vector3d::Zero &&
+      this->selectedEntity.has_value())
+  {
+    math::Vector3d worldForce =
+      this->linkWorldPose.Rot().RotateVector(this->force);
+    math::Vector3d u = worldForce.Normalized();
+    math::Vector3d v = gz::math::Vector3d::UnitZ;
+    double angle = acos(v.Dot(u));
+    math::Quaterniond quat;
+    // check the parallel case
+    if (math::equal(angle, GZ_PI))
+      quat.SetFromAxisAngle(u.Perpendicular(), angle);
+    else
+      quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
+
+    this->forceVisual->SetLocalPosition(
+      applicationPoint - forceSize * u);
+    this->forceVisual->SetLocalRotation(quat);
+    this->forceVisual->SetVisible(true);
+  }
+  else
+  {
+    this->forceVisual->SetVisible(false);
+  }
+
+  // Update torque visualization
+  if (this->torque != math::Vector3d::Zero &&
+      this->selectedEntity.has_value())
+  {
+    math::Vector3d worldTorque =
+      this->linkWorldPose.Rot().RotateVector(this->torque);
+    math::Vector3d u = worldTorque.Normalized();
+    math::Vector3d v = gz::math::Vector3d::UnitZ;
+    double angle = acos(v.Dot(u));
+    math::Quaterniond quat;
+    // check the parallel case
+    if (math::equal(angle, GZ_PI))
+      quat.SetFromAxisAngle(u.Perpendicular(), angle);
+    else
+      quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
+
+    this->torqueVisual->SetLocalPosition(applicationPoint);
+    this->torqueVisual->SetLocalRotation(quat);
+    this->torqueVisual->SetVisible(true);
+  }
+  else
+  {
+    this->torqueVisual->SetVisible(false);
+  }
 }
 
 // Register this plugin
