@@ -21,5 +21,6 @@ using Factory = gz::sim::components::Factory;
 
 Factory *Factory::Instance()
 {
-  return common::SingletonT<Factory>::Instance();
+  static gz::utils::NeverDestroyed<Factory> instance;
+  return &instance.Access();
 }
