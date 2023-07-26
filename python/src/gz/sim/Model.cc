@@ -38,7 +38,7 @@ void defineSimModel(py::object module)
       "Get the entity which this Model is related to.")
   .def("valid", &gz::sim::Model::Valid,
       py::arg("ecm"),
-      "Check whether this model correctly refers to an entity that"
+      "Check whether this model correctly refers to an entity that "
       "has a components::Model.")
   .def("name", &gz::sim::Model::Name,
       py::arg("ecm"),
@@ -55,17 +55,17 @@ void defineSimModel(py::object module)
   .def("source_file_path", &gz::sim::Model::SourceFilePath,
       py::arg("ecm"),
       "Get the source file where this model came from. If empty,"
-      "the model wasn't loaded directly from a file, probably from an SDF"
+      "the model wasn't loaded directly from a file, probably from an SDF "
       "string.")
   .def("joint_by_name", &gz::sim::Model::JointByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a joint entity which is an immediate child of"
+      "Get the ID of a joint entity which is an immediate child of "
       "this model.")
   .def("link_by_name", &gz::sim::Model::LinkByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a link entity which is an immediate child of"
+      "Get the ID of a link entity which is an immediate child of "
       "this model.")
   .def("joints", &gz::sim::Model::Joints,
       py::arg("ecm"),
@@ -78,11 +78,11 @@ void defineSimModel(py::object module)
       "Get all models which are immediate children of this model.")
   .def("joint_count", &gz::sim::Model::JointCount,
       py::arg("ecm"),
-      "Get the number of joints which are immediate children of this"
+      "Get the number of joints which are immediate children of this "
       "model.")
   .def("link_count", &gz::sim::Model::LinkCount,
       py::arg("ecm"),
-      "Get the number of links which are immediate children of this"
+      "Get the number of links which are immediate children of this "
       "model.")
   .def("set_world_pose_cmd", &gz::sim::Model::SetWorldPoseCmd,
       py::arg("ecm"),
