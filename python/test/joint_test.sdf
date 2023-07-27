@@ -17,8 +17,27 @@
                 <axis>
                     <xyz>0 0 1</xyz>
                 </axis>
+
                 <sensor type="camera" name="sensor_test">
+                    <pose>0 1 0 0 0 0</pose>
+                    <topic>sensor_topic_test</topic>
+                    <enable_metrics>true</enable_metrics>
+                    <camera>
+                        <horizontal_fov>1.047</horizontal_fov>
+                        <image>
+                        <width>320</width>
+                        <height>240</height>
+                        </image>
+                        <clip>
+                        <near>0.1</near>
+                        <far>100</far>
+                        </clip>
+                    </camera>
+                    <always_on>1</always_on>
+                    <update_rate>30</update_rate>
+                    <visualize>true</visualize>
                 </sensor>
+
             </joint>
         </model>
     </world>
