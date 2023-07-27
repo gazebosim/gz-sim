@@ -120,7 +120,7 @@ Gazebo will look for URIs (path / URL) in the following, in order:
    path is URI, scheme is stripped)
 2. Current running path / absolute path
 3. [Gazebo Fuel](https://app.gazebosim.org/fuel/models)
-    1. Cache (i.e. `$HOME/.ignition/fuel`)
+    1. Cache (i.e. `$HOME/.gz/fuel`)
     2. Web server
 
 \* The `SDF_PATH` environment variable also works in some scenarios, but

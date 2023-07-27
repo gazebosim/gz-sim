@@ -376,14 +376,14 @@ namespace gz
               UpdatePeriod() const;
 
       /// \brief Path to where simulation resources, such as models downloaded
-      /// from fuel.ignitionrobotics.org, should be stored.
+      /// from fuel.gazebosim.org, should be stored.
       /// \return Path to a location on disk. An empty string indicates that
       /// the default value will be used, which is currently
       /// ~/.gz/fuel.
       public: const std::string &ResourceCache() const;
 
       /// \brief Set the path to where simulation resources, such as models
-      /// downloaded from fuel.ignitionrobotics.org, should be stored.
+      /// downloaded from fuel.gazebosim.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
       /// indicates that the default value will be used, which is currently
       /// ~/.gz/fuel.

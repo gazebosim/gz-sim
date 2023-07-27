@@ -237,6 +237,3 @@ GZ_ADD_PLUGIN(LensFlare,
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
 GZ_ADD_PLUGIN_ALIAS(LensFlare, "gz::sim::systems::LensFlare")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LensFlare, "ignition::gazebo::systems::LensFlare")

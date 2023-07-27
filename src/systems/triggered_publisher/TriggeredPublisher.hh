@@ -86,8 +86,8 @@ namespace systems
   ///   * Attributes:
   ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
   ///     * `timeout`: Service timeout
-  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
-  ///     * `repType`: Service response message type (eg. ignition.msgs.Empty)
+  ///     * `reqType`: Service request message type (eg. gz.msgs.Pose)
+  ///     * `repType`: Service response message type (eg. gz.msgs.Empty)
   ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// Examples:

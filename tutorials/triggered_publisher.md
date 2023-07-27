@@ -275,16 +275,16 @@ metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
 Multiple `<service>` tags can be used as well as with the `<output>` tag.
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
-  name="ignition::gazebo::systems::TriggeredPublisher">
-  <input type="ignition.msgs.Empty" topic="/reset_robot"/>
-  <output type="ignition.msgs.Twist" topic="/cmd_vel">
+<plugin filename="gz-sim-triggered-publisher-system"
+  name="gz::sim::systems::TriggeredPublisher">
+  <input type="gz.msgs.Empty" topic="/reset_robot"/>
+  <output type="gz.msgs.Twist" topic="/cmd_vel">
       linear: {x: 0}
   </output>
   <service
     name="/world/triggered_publisher/set_pose"
-    reqType="ignition.msgs.Pose"
-    repType="ignition.msgs.Boolean"
+    reqType="gz.msgs.Pose"
+    repType="gz.msgs.Boolean"
     timeout="3000"
     reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 1}">
   </service>
@@ -299,16 +299,16 @@ metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
 Multiple `<service>` tags can be used as well as with the `<output>` tag.
 
 ```xml
-<plugin filename="ignition-gazebo-triggered-publisher-system"
-  name="ignition::gazebo::systems::TriggeredPublisher">
-  <input type="ignition.msgs.Empty" topic="/reset_robot"/>
-  <output type="ignition.msgs.Twist" topic="/cmd_vel">
+<plugin filename="gz-sim-triggered-publisher-system"
+  name="gz::sim::systems::TriggeredPublisher">
+  <input type="gz.msgs.Empty" topic="/reset_robot"/>
+  <output type="gz.msgs.Twist" topic="/cmd_vel">
       linear: {x: 0}
   </output>
   <service
     name="/world/triggered_publisher/set_pose"
-    reqType="ignition.msgs.Pose"
-    repType="ignition.msgs.Boolean"
+    reqType="gz.msgs.Pose"
+    repType="gz.msgs.Boolean"
     timeout="3000"
     reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 1}">
   </service>

@@ -1240,8 +1240,8 @@ void ComponentInspector::QuerySystems()
 
     // Remove common prefixes and suffixes
     auto humanReadable = plugin.filename();
-    removePrefix("ignition-gazebo-", humanReadable);
-    removePrefix("ignition-gazebo" +
+    removePrefix("gz-sim-", humanReadable);
+    removePrefix("gz-sim" +
         std::string(GZ_SIM_MAJOR_VERSION_STR) + "-", humanReadable);
     removeSuffix("-system", humanReadable);
     removeSuffix("system", humanReadable);

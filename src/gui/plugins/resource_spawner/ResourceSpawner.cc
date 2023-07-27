@@ -553,25 +553,20 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
 
   auto servers = this->dataPtr->fuelClient->Config().Servers();
   // Since the ign->gz rename, `servers` here returns two items for the
-  // canonical Fuel server: fuel.ignitionrobotics.org and fuel.gazebosim.org.
+  // canonical Fuel server: fuel.gazebosim.org and fuel.gazebosim.org.
   // For the purposes of the ResourceSpawner, these will be treated as the same
-  // and we will remove the ignitionrobotics server here.
+  // and we will remove the gazebo server here.
   auto urlIs = [](const std::string &_url)
   {
     return [_url](const fuel_tools::ServerConfig &_server)
     { return _server.Url().Str() == _url; };
   };
 
-  auto ignIt = std::find_if(servers.begin(), servers.end(),
-                            urlIs("https://fuel.ignitionrobotics.org"));
-  if (ignIt != servers.end())
+  auto gzsimIt = std::find_if(servers.begin(), servers.end(),
+      urlIs("https://fuel.gazebosim.org"));
+  if (gzsimIt != servers.end())
   {
-    auto gzsimIt = std::find_if(servers.begin(), servers.end(),
-                                urlIs("https://fuel.gazebosim.org"));
-    if (gzsimIt != servers.end())
-    {
-      servers.erase(ignIt);
-    }
+    servers.erase(ignIt);
   }
 
   gzmsg << "Please wait... Loading models from Fuel.\n";
