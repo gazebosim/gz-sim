@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+#include <pybind11/chrono.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -40,7 +40,7 @@ void defineSimActor(py::object module)
       "Reset Entity to a new one.")
   .def("valid", &gz::sim::Actor::Valid,
       py::arg("ecm"),
-      "Check whether this actor correctly refers to an entity that"
+      "Check whether this actor correctly refers to an entity that "
       "has a components::Actor.")
   .def("name", &gz::sim::Actor::Name,
       py::arg("ecm"),
@@ -48,39 +48,46 @@ void defineSimActor(py::object module)
   .def("pose", &gz::sim::Actor::Pose,
       py::arg("ecm"),
       "Get the pose of the actor."
-      "If the actor has a trajectory, this will only return the origin"
+      "If the actor has a trajectory, this will only return the origin "
       "pose of the trajectory and not the actual world pose of the actor.")
   .def("trajectory_pose", &gz::sim::Actor::TrajectoryPose,
       py::arg("ecm"),
-      "Get the trajectory pose of the actor. There are two"
-      "ways that the actor can follow a trajectory: 1) SDF script,"
-      "2) manually setting trajectory pose. This function retrieves 2) the"
-      "manual trajectory pose set by the user. The Trajectory pose is"
+      "Get the trajectory pose of the actor. There are two "
+      "ways that the actor can follow a trajectory: 1) SDF script, "
+      "2) manually setting trajectory pose. This function retrieves 2) the "
+      "manual trajectory pose set by the user. The Trajectory pose is "
       "given relative to the trajectory pose origin returned by Pose().")
   .def("set_trajectory_pose", &gz::sim::Actor::SetTrajectoryPose,
       py::arg("ecm"),
       py::arg("pose"),
-      "Set the trajectory pose of the actor. There are two"
-      "ways that the actor can follow a trajectory: 1) SDF script,"
-      "2) manually setting trajectory pose. This function enables option 2)."
-      "Manually setting the trajectory pose will override the scripted"
+      "Set the trajectory pose of the actor. There are two "
+      "ways that the actor can follow a trajectory: 1) SDF script, "
+      "2) manually setting trajectory pose. This function enables option 2). "
+      "Manually setting the trajectory pose will override the scripted "
       "trajectory specified in SDF.")
   .def("world_pose", &gz::sim::Actor::WorldPose,
       py::arg("ecm"),
       "Get the world pose of the actor."
       "This returns the current world pose of the actor computed by gazebo."
-      "The world pose is the combination of the actor's pose and its"
-      "trajectory pose. The currently trajectory pose is either manually set"
-      "via SetTrajectoryPose or interpolated from waypoints in the SDF script"
+      "The world pose is the combination of the actor's pose and its "
+      "trajectory pose. The currently trajectory pose is either manually set "
+      "via set_trajectory_pose or interpolated from waypoints in the SDF script "
       "based on the current time.")
   .def("set_animation_name", &gz::sim::Actor::SetAnimationName,
       py::arg("ecm"),
       py::arg("name"),
       "Set the name of animation to use for this actor.")
-  .def("set_animation_time", &gz::sim::Actor::SetAnimationTime,
+  .def("set_animation_time", [](
+      Actor &_actor,
+      EntityComponentManager &_ecm,
+      int32_t &_time)
+      {
+        std::chrono::steady_clock::duration animTime = std::chrono::milliseconds(_time);
+        return _actor.SetAnimationTime(_ecm, animTime);
+      },
       py::arg("ecm"),
-      py::arg("name"),
-      "Set the name of animation to use for this actor.")
+      py::arg("time"),
+      "Set the time of animation to use for this actor (the time argument is expected in ms).")
   .def("animation_name", &gz::sim::Actor::AnimationName,
       py::arg("ecm"),
       "Get the name of animation used by the actor.")
