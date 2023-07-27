@@ -47,7 +47,7 @@ void defineSimSensor(py::object module)
       "Get the sensor's unscoped name.")
   .def("pose", &gz::sim::Sensor::Pose,
       py::arg("ecm"),
-      "Get the pose of the sensor."
+      "Get the pose of the sensor. "
       "If the sensor has a trajectory, this will only return the origin"
       "pose of the trajectory and not the actual world pose of the sensor.")
   .def("topic", &gz::sim::Sensor::Topic,
