@@ -203,7 +203,7 @@ MouseDrag::MouseDrag()
 MouseDrag::~MouseDrag() = default;
 
 /////////////////////////////////////////////////
-void MouseDrag::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
+void MouseDrag::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
     this->title = "Mouse drag";
@@ -223,6 +223,22 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
     this->dataPtr->pub =
       this->dataPtr->node.Advertise<msgs::EntityWrench>(topic);
     gzdbg << "Created publisher to " << topic << std::endl;
+  }
+
+  // Read configuration
+  if (_pluginElem)
+  {
+    if (auto elem = _pluginElem->FirstChildElement("rotation_stiffness"))
+    {
+      elem->QueryDoubleText(&this->dataPtr->rotStiffness);
+      emit this->RotStiffnessChanged();
+    }
+
+    if (auto elem = _pluginElem->FirstChildElement("position_stiffness"))
+    {
+      elem->QueryDoubleText(&this->dataPtr->posStiffness);
+      emit this->PosStiffnessChanged();
+    }
   }
 
   gz::gui::App()->findChild<gz::gui::MainWindow *>
@@ -496,6 +512,30 @@ void MouseDrag::Update(const UpdateInfo &_info,
 void MouseDrag::OnSwitchCOM(const bool _checked)
 {
   this->dataPtr->applyCOM = _checked;
+}
+
+/////////////////////////////////////////////////
+double MouseDrag::RotStiffness() const
+{
+  return this->dataPtr->rotStiffness;
+}
+
+/////////////////////////////////////////////////
+void MouseDrag::SetRotStiffness(double _rotStiffness)
+{
+  this->dataPtr->rotStiffness = _rotStiffness;
+}
+
+/////////////////////////////////////////////////
+double MouseDrag::PosStiffness() const
+{
+  return this->dataPtr->posStiffness;
+}
+
+/////////////////////////////////////////////////
+void MouseDrag::SetPosStiffness(double _posStiffness)
+{
+  this->dataPtr->posStiffness = _posStiffness;
 }
 
 /////////////////////////////////////////////////
