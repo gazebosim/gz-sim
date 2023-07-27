@@ -87,6 +87,7 @@ endif()
 
 if (BUILD_TESTING)
   set(python_tests
+    light_TEST
     testFixture_TEST
     world_TEST
   )

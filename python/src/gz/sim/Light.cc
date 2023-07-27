@@ -40,15 +40,15 @@ void defineSimLight(py::object module)
       "Reset Entity to a new one.")
   .def("valid", &gz::sim::Light::Valid,
       py::arg("ecm"),
-      "Check whether this light correctly refers to an entity that"
+      "Check whether this light correctly refers to an entity that "
       "has a components::Light.")
   .def("name", &gz::sim::Light::Name,
       py::arg("ecm"),
       "Get the light's unscoped name.")
   .def("pose", &gz::sim::Light::Pose,
       py::arg("ecm"),
-      "Get the pose of the light."
-      "The pose is given w.r.t the light's parent. which can be a world or"
+      "Get the pose of the light. "
+      "The pose is given w.r.t the light's parent. which can be a world or "
       "a link.")
   .def("type", &gz::sim::Light::Type,
       py::arg("ecm"),
@@ -70,19 +70,19 @@ void defineSimLight(py::object module)
       "Get the light direction.")
   .def("attenuation_range", &gz::sim::Light::AttenuationRange,
       py::arg("ecm"),
-      "Get the light attenuation range."
+      "Get the light attenuation range. "
       "Light attenuation is not applicable to directional lights.")
   .def("attenuation_constant", &gz::sim::Light::AttenuationConstant,
       py::arg("ecm"),
-      "Get the light attenuation constant value."
+      "Get the light attenuation constant value. "
       "Light attenuation is not applicable to directional lights.")
   .def("attenuation_linear", &gz::sim::Light::AttenuationLinear,
       py::arg("ecm"),
-      "Get the light attenuation linear value."
+      "Get the light attenuation linear value. "
       "Light attenuation is not applicable to directional lights.")
   .def("attenuation_quadratic", &gz::sim::Light::AttenuationQuadratic,
       py::arg("ecm"),
-      "Get the light attenuation quadratic value."
+      "Get the light attenuation quadratic value. "
       "Light attenuation is not applicable to directional lights.")
   .def("spot_inner_angle", &gz::sim::Light::SpotInnerAngle,
       py::arg("ecm"),
@@ -90,7 +90,7 @@ void defineSimLight(py::object module)
   .def("spot_outer_angle", &gz::sim::Light::SpotOuterAngle,
       py::arg("ecm"),
       "Get the outer angle of light. Applies to spot lights only.")
-  .def("spot_fall_off", &gz::sim::Light::SpotFalloff,
+  .def("spot_falloff", &gz::sim::Light::SpotFalloff,
       py::arg("ecm"),
       "Get the fall off value of light. Applies to spot lights only.")
   .def("set_pose", &gz::sim::Light::SetPose,
@@ -141,9 +141,9 @@ void defineSimLight(py::object module)
       py::arg("ecm"),
       py::arg("angle"),
       "Set outer angle for this light. Applies to spot lights only.")
-  .def("set_spot_fall_off", &gz::sim::Light::SetSpotFalloff,
+  .def("set_spot_falloff", &gz::sim::Light::SetSpotFalloff,
       py::arg("ecm"),
-      py::arg("fall_off"),
+      py::arg("falloff"),
       "Set fall off value for this light. Applies to spot lights only.")
   .def("parent", &gz::sim::Light::Parent,
       py::arg("ecm"),
