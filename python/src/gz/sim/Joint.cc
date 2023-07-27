@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,14 +67,14 @@ void defineSimJoint(py::object module)
   .def("sensor_by_name", &gz::sim::Joint::SensorByName,
       py::arg("ecm"),
       py::arg("name"),
-      "Get the ID of a sensor entity which is an immediate child of"
+      "Get the ID of a sensor entity which is an immediate child of "
       "this joint.")
   .def("sensors", &gz::sim::Joint::Sensors,
       py::arg("ecm"),
       "Get all sensors which are immediate children of this joint.")
   .def("sensor_count", &gz::sim::Joint::SensorCount,
       py::arg("ecm"),
-      "Get the number of sensors which are immediate children of this"
+      "Get the number of sensors which are immediate children of this "
       "joint.")
   .def("set_velocity", &gz::sim::Joint::SetVelocity,
       py::arg("ecm"),
@@ -83,7 +83,7 @@ void defineSimJoint(py::object module)
   .def("set_force", &gz::sim::Joint::SetForce,
       py::arg("ecm"),
       py::arg("forces"),
-      "Set force on this joint. If both forces and velocities are set,"
+      "Set force on this joint. If both forces and velocities are set, "
       "only forces are applied.")
   .def("set_velocity_limits", &gz::sim::Joint::SetVelocityLimits,
       py::arg("ecm"),
@@ -108,20 +108,20 @@ void defineSimJoint(py::object module)
   .def("enable_velocity_check", &gz::sim::Joint::EnableVelocityCheck,
       py::arg("ecm"),
       py::arg("enable") = true,
-      "By default, Gazebo will not report velocities for a joint, so"
-      "functions like `Velocity` will return nullopt. This"
+      "By default, Gazebo will not report velocities for a joint, so "
+      "functions like `Velocity` will return nullopt. This "
       "function can be used to enable joint velocity check.")
   .def("enable_position_check", &gz::sim::Joint::EnablePositionCheck,
       py::arg("ecm"),
       py::arg("enable") = true,
-      "By default, Gazebo will not report positions for a joint, so"
-      "functions like `Position` will return nullopt. This"
+      "By default, Gazebo will not report positions for a joint, so "
+      "functions like `Position` will return nullopt. This "
       "function can be used to enable joint position check.")
   .def("enable_transmitted_wrench_check", &gz::sim::Joint::EnableTransmittedWrenchCheck,
       py::arg("ecm"),
       py::arg("enable") = true,
-      "By default, Gazebo will not report transmitted wrench for a"
-      "joint, so functions like `TransmittedWrench` will return nullopt. This"
+      "By default, Gazebo will not report transmitted wrench for a "
+      "joint, so functions like `TransmittedWrench` will return nullopt. This "
       "function can be used to enable joint transmitted wrench check.")
   .def("velocity", &gz::sim::Joint::Velocity,
       py::arg("ecm"),
