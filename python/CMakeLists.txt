@@ -91,6 +91,7 @@ if (BUILD_TESTING)
   set(python_tests
     joint_TEST
     model_TEST
+    sensor_TEST
     testFixture_TEST
     world_TEST
   )
