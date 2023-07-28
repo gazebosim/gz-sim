@@ -95,6 +95,7 @@ gz_find_package(gz-common5
     events
     av
     io
+    graphics
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})

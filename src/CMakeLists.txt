@@ -159,6 +159,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-math${GZ_MATH_VER}
   gz-plugin${GZ_PLUGIN_VER}::core
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
