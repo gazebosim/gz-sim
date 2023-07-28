@@ -56,6 +56,19 @@ namespace gz
 {
 namespace sim
 {
+  /// \enum RotationToolVector
+  /// \brief Unique identifiers for which vector is currently being
+  /// modified by the rotation tool
+  enum RotationToolVector
+  {
+    /// \brief No vector
+    NONE = 0,
+    /// \brief Force vector
+    FORCE = 1,
+    /// \brief Torque vector
+    TORQUE = 2,
+  };
+
   class ApplyForceTorquePrivate
   {
     /// \brief Publish EntityWrench messages in order to apply force and torque
@@ -65,6 +78,9 @@ namespace sim
 
     /// \brief Perform rendering calls in the rendering thread.
     public: void OnRender();
+
+    /// \brief Update visuals for force and torque
+    public: void UpdateVisuals();
 
     /// \brief Handle mouse events
     public: void HandleMouseEvents();
@@ -131,23 +147,29 @@ namespace sim
     /// \brief True if there are new mouse events to process.
     public: bool mouseDirty{false};
 
-    /// \brief Where the mouse left off
-    public: math::Vector2i mousePressPos = math::Vector2i::Zero;
+    /// \brief True if one of the vector values changed
+    public: bool vectorDirty{false};
 
     /// \brief Whether the transform gizmo is being dragged.
     public: bool transformActive{false};
-
-    /// \brief Vector value on transformation start
-    public: math::Vector3d initialVector;
-
-    /// \brief Active transformation axis on the gizmo
-    public: rendering::TransformAxis activeAxis{rendering::TA_NONE};
 
     /// \brief Block orbit
     public: bool blockOrbit{false};
 
     /// \brief True if BlockOrbit events should be sent
     public: bool sendBlockOrbit{false};
+
+    /// \brief Where the mouse left off
+    public: math::Vector2i mousePressPos = math::Vector2i::Zero;
+
+    /// \brief Vector value on transformation start
+    public: math::Vector3d initialVector;
+
+    /// \brief Vector currently being rotated
+    public: RotationToolVector vec = RotationToolVector::NONE;
+
+    /// \brief Active transformation axis on the gizmo
+    public: rendering::TransformAxis activeAxis{rendering::TA_NONE};
 
     /// \brief Holds the latest mouse event
     public: gz::common::MouseEvent mouseEvent;
@@ -211,6 +233,15 @@ bool ApplyForceTorque::eventFilter(QObject *_obj, QEvent *_event)
   if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+
+    if (this->dataPtr->vectorDirty)
+    {
+      this->dataPtr->vectorDirty = false;
+      if (this->dataPtr->vec == RotationToolVector::FORCE)
+        emit this->ForceChanged();
+      else if (this->dataPtr->vec == RotationToolVector::TORQUE)
+        emit this->TorqueChanged();
+    }
   }
   else if (_event->type() == gz::sim::gui::events::EntitiesSelected::kType)
   {
@@ -437,15 +468,33 @@ void ApplyForceTorque::SetLinkIndex(int _linkIndex)
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorque::UpdateForce(double _x, double _y, double _z)
+QVector3D ApplyForceTorque::Force() const
 {
-  this->dataPtr->force = {_x, _y, _z};
+  return QVector3D(
+    this->dataPtr->force.X(),
+    this->dataPtr->force.Y(),
+    this->dataPtr->force.Z());
 }
 
 /////////////////////////////////////////////////
-void ApplyForceTorque::UpdateTorque(double _x, double _y, double _z)
+void ApplyForceTorque::SetForce(QVector3D _force)
 {
-  this->dataPtr->torque = {_x, _y, _z};
+  this->dataPtr->force.Set(_force.x(), _force.y(), _force.z());
+}
+
+/////////////////////////////////////////////////
+QVector3D ApplyForceTorque::Torque() const
+{
+  return QVector3D(
+    this->dataPtr->torque.X(),
+    this->dataPtr->torque.Y(),
+    this->dataPtr->torque.Z());
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorque::SetTorque(QVector3D _torque)
+{
+  this->dataPtr->torque.Set(_torque.x(), _torque.y(), _torque.z());
 }
 
 /////////////////////////////////////////////////
@@ -495,12 +544,9 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
 /////////////////////////////////////////////////
 void ApplyForceTorquePrivate::OnRender()
 {
-  double forceSize = 2.0;
-  double torqueSize = 2.0;
-
-  // Get scene and user camera
   if (!this->scene)
   {
+    // Get scene and user camera
     this->scene = rendering::sceneFromFirstRenderEngine();
     if (!this->scene)
     {
@@ -515,8 +561,8 @@ void ApplyForceTorquePrivate::OnRender()
           std::get<bool>(cam->UserData("user-camera")))
       {
         this->camera = cam;
-        gzdbg << "TransformControl plugin is using camera ["
-               << this->camera->Name() << "]" << std::endl;
+        gzdbg << "ApplyForceTorque plugin is using camera ["
+              << this->camera->Name() << "]" << std::endl;
         break;
       }
     }
@@ -528,40 +574,63 @@ void ApplyForceTorquePrivate::OnRender()
     mat->SetDepthCheckEnabled(false);
     mat->SetDepthWriteEnabled(false);
 
+    // Create force visual
     this->forceVisual = this->scene->CreateArrowVisual();
     this->forceVisual->SetMaterial(mat);
-    double scale = forceSize / 0.75;
-    this->forceVisual->SetLocalScale(scale, scale, scale);
     this->forceVisual->ShowArrowHead(true);
     this->forceVisual->ShowArrowShaft(true);
     this->forceVisual->ShowArrowRotation(false);
 
+    // Create torque visual
     common::MeshManager *meshMgr = common::MeshManager::Instance();
     std::string meshName{"torque_tube"};
     if (!meshMgr->HasMesh(meshName))
-      meshMgr->CreateTube(meshName, 0.45f, 0.5f, 0.2f, 1, 32);
+      meshMgr->CreateTube(meshName, 0.28f, 0.3f, 0.2f, 1, 32);
     rendering::VisualPtr torqueTube = this->scene->CreateVisual();
     torqueTube->AddGeometry(this->scene->CreateMesh(meshName));
-    torqueTube->SetOrigin(0, 0, -torqueSize);
+    torqueTube->SetOrigin(0, 0, -0.9f);
     torqueTube->SetLocalPosition(0, 0, 0);
 
     rendering::VisualPtr cylinder = this->scene->CreateVisual();
     cylinder->AddGeometry(this->scene->CreateCylinder());
     cylinder->SetOrigin(0, 0, -0.5);
+    cylinder->SetLocalScale(0.01, 0.01, 0.8);
     cylinder->SetLocalPosition(0, 0, 0);
-    cylinder->SetLocalScale(0.01, 0.01, torqueSize);
 
     this->torqueVisual = this->scene->CreateVisual();
     this->torqueVisual->AddChild(torqueTube);
     this->torqueVisual->AddChild(cylinder);
     this->torqueVisual->SetMaterial(mat);
 
+    // Create gizmo visual
     this->gizmoVisual = this->scene->CreateGizmoVisual();
     this->scene->RootVisual()->AddChild(this->gizmoVisual);
   }
 
+  this->UpdateVisuals();
+
+  this->HandleMouseEvents();
+
+  if (this->sendBlockOrbit)
+  {
+    // Events with false should only be sent once
+    if (!this->blockOrbit)
+      this->sendBlockOrbit = false;
+
+    gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+        &blockOrbitEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorquePrivate::UpdateVisuals()
+{
   math::Vector3d applicationPoint = this->linkWorldPose.Pos() +
     this->inertialPos + this->linkWorldPose.Rot().RotateVector(this->offset);
+  double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
+    / 3.0;
   // Update force visualization
   if (this->force != math::Vector3d::Zero &&
       this->selectedEntity.has_value())
@@ -578,20 +647,61 @@ void ApplyForceTorquePrivate::OnRender()
     else
       quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
 
-    double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
-      / 2.0;
-
-    this->forceVisual->SetLocalScale(scale, scale, scale);
+    this->forceVisual->SetLocalScale(scale);
     this->forceVisual->SetLocalPosition(applicationPoint - 0.75 * scale * u);
     this->forceVisual->SetLocalRotation(quat);
     this->forceVisual->SetVisible(true);
+  }
+  else
+  {
+    this->forceVisual->SetVisible(false);
+  }
 
-    // Update gizmo visual position
-    math::Vector3d pos = applicationPoint;
+  // Update torque visualization
+  if (this->torque != math::Vector3d::Zero &&
+      this->selectedEntity.has_value())
+  {
+    math::Vector3d worldTorque =
+      this->linkWorldPose.Rot().RotateVector(this->torque);
+    math::Vector3d u = worldTorque.Normalized();
+    math::Vector3d v = gz::math::Vector3d::UnitZ;
+    double angle = acos(v.Dot(u));
+    math::Quaterniond quat;
+    // check the parallel case
+    if (math::equal(angle, GZ_PI))
+      quat.SetFromAxisAngle(u.Perpendicular(), angle);
+    else
+      quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
+
+    this->torqueVisual->SetLocalScale(scale);
+    this->torqueVisual->SetLocalPosition(this->linkWorldPose.Pos() +
+      this->inertialPos);
+    this->torqueVisual->SetLocalRotation(quat);
+    this->torqueVisual->SetVisible(true);
+  }
+  else
+  {
+    this->torqueVisual->SetVisible(false);
+  }
+
+  // Update gizmo visual
+  if (this->vec != RotationToolVector::NONE)
+  {
+    math::Vector3d pos;
+    math::Vector3d u;
+    if (this->vec == RotationToolVector::FORCE)
+    {
+      pos = applicationPoint;
+      u = this->force;
+    }
+    else if (this->vec == RotationToolVector::TORQUE)
+    {
+      pos = this->linkWorldPose.Pos() + this->inertialPos;
+      u = this->torque;
+    }
+
     // Update gizmo visual rotation so that they are always facing the
     // eye position
-    math::Quaterniond rot;
-
     math::Vector3d eye = (this->camera->WorldPosition() - pos).Normalize();
     math::Quaterniond nodeRot = math::Matrix4d::LookAt(pos - u, pos).Rotation();
     eye = nodeRot.RotateVectorReverse(eye);
@@ -620,10 +730,10 @@ void ApplyForceTorquePrivate::OnRender()
     circleVis->SetWorldRotation(
       lookAt.Rotation() * math::Quaterniond(circleRotOffset));
 
-
     this->gizmoVisual->SetLocalScale(scale, scale, scale);
     this->gizmoVisual->SetTransformMode(rendering::TransformMode::TM_ROTATION);
-    this->gizmoVisual->SetWorldPose(math::Pose3d(pos, rot));
+    this->gizmoVisual->SetLocalPosition(pos);
+
     if (this->activeAxis == rendering::TransformAxis::TA_ROTATION_Y)
       this->gizmoVisual->SetActiveAxis(math::Vector3d::UnitY);
     else if (this->activeAxis == rendering::TransformAxis::TA_ROTATION_Z)
@@ -633,48 +743,8 @@ void ApplyForceTorquePrivate::OnRender()
   }
   else
   {
-    this->forceVisual->SetVisible(false);
     this->gizmoVisual->SetTransformMode(rendering::TransformMode::TM_NONE);
     this->gizmoVisual->SetActiveAxis(math::Vector3d::Zero);
-  }
-
-  // Update torque visualization
-  if (this->torque != math::Vector3d::Zero &&
-      this->selectedEntity.has_value())
-  {
-    math::Vector3d worldTorque =
-      this->linkWorldPose.Rot().RotateVector(this->torque);
-    math::Vector3d u = worldTorque.Normalized();
-    math::Vector3d v = gz::math::Vector3d::UnitZ;
-    double angle = acos(v.Dot(u));
-    math::Quaterniond quat;
-    // check the parallel case
-    if (math::equal(angle, GZ_PI))
-      quat.SetFromAxisAngle(u.Perpendicular(), angle);
-    else
-      quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
-
-    this->torqueVisual->SetLocalPosition(applicationPoint);
-    this->torqueVisual->SetLocalRotation(quat);
-    this->torqueVisual->SetVisible(true);
-  }
-  else
-  {
-    this->torqueVisual->SetVisible(false);
-  }
-
-  this->HandleMouseEvents();
-
-  if (this->sendBlockOrbit)
-  {
-    // Events with false should only be sent once
-    if (!this->blockOrbit)
-      this->sendBlockOrbit = false;
-
-    gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-    gz::gui::App()->sendEvent(
-        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-        &blockOrbitEvent);
   }
 }
 
@@ -700,21 +770,38 @@ void ApplyForceTorquePrivate::HandleMouseEvents()
 
       if (visual)
       {
+        auto id = visual->Id();
         // check if the visual is an axis in the gizmo visual
         auto axis = this->gizmoVisual->AxisById(visual->Id());
         if (axis == rendering::TransformAxis::TA_ROTATION_Y
             || axis == rendering::TransformAxis::TA_ROTATION_Z)
         {
+          if (this->vec == RotationToolVector::FORCE)
+            this->initialVector = this->force;
+          else if (this->vec == RotationToolVector::TORQUE)
+            this->initialVector = this->torque;
+          else
+            return;
           this->blockOrbit = true;
           this->sendBlockOrbit = true;
           this->activeAxis = axis;
-          this->initialVector = this->force;
+        }
+        else if (this->forceVisual->Id() == id ||
+                this->forceVisual->ChildById(id))
+        {
+          this->vec = RotationToolVector::FORCE;
+        }
+        else if (this->torqueVisual->Id() == id ||
+                this->torqueVisual->ChildById(id))
+        {
+          this->vec = RotationToolVector::TORQUE;
         }
         else
         {
           this->blockOrbit = false;
           this->sendBlockOrbit = true;
           this->activeAxis = rendering::TransformAxis::TA_NONE;
+          this->vec = RotationToolVector::NONE;
           return;
         }
       }
@@ -775,10 +862,14 @@ void ApplyForceTorquePrivate::HandleMouseEvents()
     double angle = atan2(
       (startPos.Cross(endPos)).Length(), startPos.Dot(endPos));
     if (signTest < 0)
-      angle *= -1;
+      angle = -angle;
 
     math::Quaterniond rot(axis, angle);
-    this->force = rot.RotateVector(this->initialVector);
+    if (this->vec == RotationToolVector::FORCE)
+      this->force = rot.RotateVector(this->initialVector);
+    else if (this->vec == RotationToolVector::TORQUE)
+      this->torque = rot.RotateVector(this->initialVector);
+    this->vectorDirty = true;
   }
 }
 

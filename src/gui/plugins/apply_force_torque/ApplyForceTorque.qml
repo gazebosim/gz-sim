@@ -102,11 +102,10 @@ GridLayout {
     id: forceX
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.force.x
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateForce(
-      forceX.value, forceY.value, forceZ.value)
+    onValueChanged: ApplyForceTorque.force.x = forceX.value
   }
 
   Label {
@@ -123,11 +122,10 @@ GridLayout {
     id: forceY
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.force.y
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateForce(
-      forceX.value,forceY.value, forceZ.value)
+    onValueChanged: ApplyForceTorque.force.y = forceY.value
   }
 
   Label {
@@ -144,11 +142,10 @@ GridLayout {
     id: forceZ
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.force.z
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateForce(
-      forceX.value, forceY.value, forceZ.value)
+    onValueChanged: ApplyForceTorque.force.z = forceZ.value
   }
 
   Button {
@@ -182,11 +179,10 @@ GridLayout {
     id: torqueX
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.torque.x
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateTorque(
-      torqueX.value,torqueY.value, torqueZ.value)
+    onValueChanged: ApplyForceTorque.torque.x = torqueX.value
   }
 
   Label {
@@ -203,11 +199,10 @@ GridLayout {
     id: torqueY
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.torque.y
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateTorque(
-      torqueX.value,torqueY.value, torqueZ.value)
+    onValueChanged: ApplyForceTorque.torque.y = torqueY.value
   }
 
   Label {
@@ -224,11 +219,10 @@ GridLayout {
     id: torqueZ
     maximumValue: maxValue
     minimumValue: minValue
-    value: 0
+    value: ApplyForceTorque.torque.z
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.UpdateTorque(
-      torqueX.value,torqueY.value, torqueZ.value)
+    onValueChanged: ApplyForceTorque.torque.z = torqueZ.value
   }
 
   Button {
