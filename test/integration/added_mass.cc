@@ -20,6 +20,7 @@
 
 #include <gtest/gtest.h>
 
+
 #include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/LinearVelocity.hh>
 #include <gz/sim/components/Model.hh>

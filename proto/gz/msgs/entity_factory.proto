@@ -1,0 +1,86 @@
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "EntityFactoryProtos";
+
+/// \ingroup gz.msgs
+/// \interface EntityFactory
+/// \brief Message to create new entities at a given pose.
+/// An entity can be created in one of the following ways:
+///
+/// 1. From an SDF string (sdf)
+/// 2. From an SDF file (sdf_filename)
+/// 3. From a message (model / light)
+/// 4. Cloning an existing entity (clone_name)
+
+import "gz/msgs/header.proto";
+import "gz/msgs/light.proto";
+import "gz/msgs/model.proto";
+import "gz/msgs/pose.proto";
+import "gz/msgs/spherical_coordinates.proto";
+
+message EntityFactory
+{
+  /// \brief Optional header data
+  Header header                    = 1;
+
+  /// \brief Only one method is supported at a time
+  oneof from
+  {
+    /// \brief SDF description in string format.
+    string sdf                     = 2;
+
+    /// \brief Full path to SDF file.
+    string sdf_filename            = 3;
+
+    /// \brief Description of model to be inserted.
+    Model model                    = 4;
+
+    /// \brief Description of light to be inserted.
+    Light light                    = 5;
+
+    /// \brief Name of entity to clone.
+    string clone_name              = 6;
+  }
+
+  /// \brief Pose where the entity will be spawned in the world.
+  /// If set, `spherical_coordinates` will be ignored.
+  Pose pose                        = 7;
+
+  /// \brief New name for the entity, overrides the name on the SDF.
+  string name                      = 8;
+
+  /// \brief Whether the server is allowed to rename the entity in case of
+  /// overlap with existing entities.
+  bool allow_renaming              = 9;
+
+  /// \brief The pose will be defined relative to this frame. If left empty,
+  /// the "world" frame will be used.
+  string relative_to               = 10;
+
+  /// \brief Spherical coordinates where the entity will be spawned in the
+  /// world.
+  /// If `pose` is also set:
+  /// * `pose.position` is ignored in favor of latitude, longitude and
+  ///   elevation.
+  /// * `pose.orientation` is used in conjunction with heading:
+  ///       Quaternion::fromEuler(0, 0, heading) * pose.orientation
+  SphericalCoordinates spherical_coordinates = 11;
+}

@@ -23,7 +23,7 @@
 #include <gz/sim/Export.hh>
 
 #include "NetworkRole.hh"
-#include "msgs/peer_info.pb.h"
+#include "gz/msgs/peer_info.pb.h"
 
 namespace gz
 {
@@ -54,12 +54,12 @@ namespace gz
     /// \param[in] _proto Message
     /// \result Equivalent PeerInfo
     GZ_SIM_VISIBLE PeerInfo fromProto(
-        const private_msgs::PeerInfo &_proto);
+        const gz::msgs::PeerInfo &_proto);
 
     /// \brief Construct a `PeerInfo` message from an object.
     /// \param[in] _info Peer info object
     /// \result Equivalent message
-    GZ_SIM_VISIBLE private_msgs::PeerInfo toProto(
+    GZ_SIM_VISIBLE gz::msgs::PeerInfo toProto(
         const PeerInfo &_info);
   }  // namespace sim
 }  // namespace gz

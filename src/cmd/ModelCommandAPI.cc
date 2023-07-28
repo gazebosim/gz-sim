@@ -32,6 +32,7 @@
 
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>

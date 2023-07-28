@@ -42,36 +42,36 @@ std::string PeerInfo::Namespace() const
 }
 
 /////////////////////////////////////////////////
-private_msgs::PeerInfo sim::toProto(
+gz::msgs::PeerInfo sim::toProto(
     const PeerInfo &_info)
 {
-  private_msgs::PeerInfo proto;
+  gz::msgs::PeerInfo proto;
   proto.set_id(_info.id);
   proto.set_hostname(_info.hostname);
 
   switch (_info.role)
   {
     case NetworkRole::ReadOnly:
-      proto.set_role(private_msgs::PeerInfo::READ_ONLY);
+      proto.set_role(gz::msgs::PeerInfo::READ_ONLY);
       break;
     case NetworkRole::SimulationPrimary:
       proto.set_role(
-          private_msgs::PeerInfo::SIMULATION_PRIMARY);
+          gz::msgs::PeerInfo::SIMULATION_PRIMARY);
       break;
     case NetworkRole::SimulationSecondary:
       proto.set_role(
-          private_msgs::PeerInfo::SIMULATION_SECONDARY);
+          gz::msgs::PeerInfo::SIMULATION_SECONDARY);
       break;
     case NetworkRole::None:
     default:
-      proto.set_role(private_msgs::PeerInfo::NONE);
+      proto.set_role(gz::msgs::PeerInfo::NONE);
   }
   return proto;
 }
 
 /////////////////////////////////////////////////
 PeerInfo sim::fromProto(
-    const private_msgs::PeerInfo& _proto)
+    const gz::msgs::PeerInfo& _proto)
 {
   PeerInfo info;
   info.id = _proto.id();
@@ -79,16 +79,16 @@ PeerInfo sim::fromProto(
 
   switch (_proto.role())
   {
-    case private_msgs::PeerInfo::READ_ONLY:
+    case gz::msgs::PeerInfo::READ_ONLY:
       info.role = NetworkRole::ReadOnly;
       break;
-    case private_msgs::PeerInfo::SIMULATION_PRIMARY:
+    case gz::msgs::PeerInfo::SIMULATION_PRIMARY:
       info.role = NetworkRole::SimulationPrimary;
       break;
-    case private_msgs::PeerInfo::SIMULATION_SECONDARY:
+    case gz::msgs::PeerInfo::SIMULATION_SECONDARY:
       info.role = NetworkRole::SimulationSecondary;
       break;
-    case private_msgs::PeerInfo::NONE:
+    case gz::msgs::PeerInfo::NONE:
     default:
       info.role = NetworkRole::None;
       break;

@@ -15,6 +15,9 @@
  *
 */
 
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
+
 #include <iostream>
 #include <list>
 #include <regex>

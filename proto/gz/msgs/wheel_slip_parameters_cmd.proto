@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2022 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "WheelSlipParametersCmd";
+
+/// \ingroup gz.msgs
+/// \interface WheelSlipParametersCmd
+/// \brief Message containing a wheel slip parameters user command.
+
+import "gz/msgs/entity.proto";
+import "gz/msgs/header.proto";
+
+message WheelSlipParametersCmd
+{
+  /// \brief Optional header data
+  Header header                       = 1;
+
+  /// \brief Entity which wheel slip parameters are going to be modified.
+  ///
+  /// The entity might be a model with at least one link or a link.
+  /// If the entity is a model, the wheel slip parameters of all its
+  /// links will be updated.
+  ///
+  /// The entity name (entity.name) will be used as an scoped name.
+  /// For example, in this
+  /// hierarchy:
+  ///
+  /// world_name
+  ///  model_name
+  ///    link_name
+  ///
+  /// All these names will return the link entity:
+  ///
+  /// * world_name::model_name::link_name
+  /// * model_name::link_name
+  /// * link_name
+  Entity entity                       = 2;
+
+  /// \brief Unitless lateral slip ratio.
+  ///
+  /// See https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics).
+  /// to tangential force ratio (tangential / normal force).
+  /// At each time step, these compliances are multiplied by
+  /// the linear wheel spin velocity and divided by the wheel normal force
+  /// parameter specified in the sdf.
+  double slip_compliance_lateral      = 4;
+  /// \brief Unitless longitudinal slip ratio.
+  ///
+  /// See https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics).
+  /// to tangential force ratio (tangential / normal force).
+  /// At each time step, these compliances are multiplied by
+  /// the linear wheel spin velocity and divided by the wheel normal force
+  /// parameter specified in the sdf.
+  double slip_compliance_longitudinal = 5;
+}

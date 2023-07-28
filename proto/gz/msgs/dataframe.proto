@@ -1,0 +1,43 @@
+/*
+ * Copyright (C) 2022 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "DataframeProtos";
+
+/// \ingroup gz.msgs
+/// \interface Dataframe
+/// \brief A message containing some payload and who are the sender and
+/// destination.
+
+import "gz/msgs/header.proto";
+
+message Dataframe
+{
+  /// \brief Header data.
+  Header header      = 1;
+
+  /// \brief Address of the sender.
+  string src_address = 2;
+
+  /// \brief Address of the destination.
+  string dst_address = 3;
+
+  /// \brief Payload.
+  bytes data         = 4;
+}

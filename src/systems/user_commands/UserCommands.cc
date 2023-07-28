@@ -30,6 +30,7 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>

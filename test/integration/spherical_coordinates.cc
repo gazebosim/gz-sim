@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/entity_factory.pb.h>
+
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <gz/math/SphericalCoordinates.hh>

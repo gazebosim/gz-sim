@@ -1,0 +1,63 @@
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "PhysicsProtos";
+
+/// \ingroup gz.msgs
+/// \interface Physics
+/// \brief A message containing a description of the global physics properties
+
+import "gz/msgs/vector3d.proto";
+import "gz/msgs/header.proto";
+
+message Physics
+{
+  enum Type
+  {
+    ODE = 0;
+    BULLET = 1;
+    SIMBODY = 2;
+    DART = 3;
+  }
+  /// \brief Optional header data
+  Header header                     = 1;
+
+  Type type                         = 2;
+
+  string solver_type                = 3;
+  double min_step_size              = 4;
+  int32 precon_iters                = 5;
+  int32 iters                       = 6;
+  double sor                        = 7;
+  double cfm                        = 8;
+  double erp                        = 9;
+  double contact_max_correcting_vel = 10;
+  double contact_surface_layer      = 11;
+  Vector3d gravity                  = 12;
+  bool enable_physics               = 13;
+  double real_time_factor           = 14;
+  double real_time_update_rate      = 15;
+  double max_step_size              = 16;
+  // The name of this physics profile (not to be confused with type)
+  string profile_name               = 17;
+
+  /// \brief Magnetic field
+  Vector3d magnetic_field           = 18;
+}

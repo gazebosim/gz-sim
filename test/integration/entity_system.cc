@@ -15,6 +15,9 @@
  *
  */
 
+#include <gz/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/twist.pb.h>
+
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

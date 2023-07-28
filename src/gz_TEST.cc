@@ -16,6 +16,9 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/clock.pb.h>
+
 #include <cstdio>
 #include <cstdlib>
 

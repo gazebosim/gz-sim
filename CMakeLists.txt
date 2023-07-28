@@ -78,12 +78,12 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport13 REQUIRED COMPONENTS log parameters)
+gz_find_package(gz-transport13 REQUIRED COMPONENTS msgs log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs10 REQUIRED)
+gz_find_package(gz-msgs10 REQUIRED COMPONENTS msgs)
 set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
 #--------------------------------------
@@ -101,12 +101,12 @@ set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools9 REQUIRED)
+gz_find_package(gz-fuel_tools9 REQUIRED COMPONENTS msgs)
 set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui8 REQUIRED)
+gz_find_package(gz-gui8 REQUIRED COMPONENTS msgs)
 set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
@@ -232,6 +232,7 @@ set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
 gz_configure_build(QUIT_IF_BUILD_ERRORS)
 
 add_subdirectory(examples)
+add_subdirectory(proto)
 
 #============================================================================
 # Create package information

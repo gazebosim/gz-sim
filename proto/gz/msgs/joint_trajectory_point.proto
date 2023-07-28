@@ -1,0 +1,57 @@
+/*
+ * Copyright (C) 2020 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "JointTrajectoryPointProtos";
+
+/// \ingroup gz.msgs
+/// \interface JointTrajectoryPoint
+/// \brief Message that specifies the desired state of all single-axis joints
+/// at a specific trajectory point. All values for each joint must be ordered
+/// according to the joint names provided in JointTrajectory message
+
+import "gz/msgs/duration.proto";
+
+message JointTrajectoryPoint
+{
+  /// \brief Position of each joint relative to their "0" position. Units are
+  /// dependent on the joint type, where radians are used for revolute or
+  /// continuous joints, and meters for prismatic joints
+  repeated double positions     = 1;
+
+  /// \brief Rate of change in position of each joint. Units are dependent on
+  /// the joint type, where radians/second are used for revolute or continuous
+  /// joints, and meters/second for prismatic joints
+  repeated double velocities    = 2;
+
+  /// \brief Rate of change in velocity of each joint. Units are dependent on
+  /// the joint type, where radians/second^2 are used for revolute or
+  /// continuous joints, and meters/second^2 for prismatic joints
+  repeated double accelerations = 3;
+
+  /// \brief Torque or force applied at each joint. Units are dependent on the
+  /// joint type, where newton-meters are used for revolute or continuous
+  /// joints (torque), and newtons for prismatic joints (force)
+  repeated double effort        = 4;
+
+  /// \brief Desired time from the beginning of trajectory execution until
+  /// this trajectory point should be reached. This value must be strictly
+  /// increasing for consecutive points
+  Duration time_from_start      = 5;
+}

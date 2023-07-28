@@ -146,11 +146,11 @@ namespace gz
 
       /// \brief Callback for the announcement of a peer
       /// \param[in] _info Announcement from another peer.
-      private: void OnPeerAnnounce(const private_msgs::PeerAnnounce &_info);
+      private: void OnPeerAnnounce(const gz::msgs::PeerAnnounce &_info);
 
       /// \brief Callback for peer heartbeat
       /// \param[in] _info Heartbeat from another peer.
-      private: void OnPeerHeartbeat(const private_msgs::PeerInfo &_info);
+      private: void OnPeerHeartbeat(const gz::msgs::PeerInfo &_info);
 
       /// \brief Callback for when a peer is added.
       /// \param[in] _info Info from peer which was added.

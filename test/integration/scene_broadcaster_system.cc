@@ -28,6 +28,10 @@
 #pragma warning(pop)
 #endif
 
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/uint32_v.pb.h>
+
 #include <thread>
 
 #include <gz/common/Console.hh>

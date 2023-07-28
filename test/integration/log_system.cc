@@ -16,6 +16,9 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 
 #include <algorithm>

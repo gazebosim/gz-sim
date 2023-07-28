@@ -31,7 +31,7 @@
 #include <gz/sim/Entity.hh>
 #include <gz/transport/Node.hh>
 
-#include "msgs/simulation_step.pb.h"
+#include "gz/msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"
 
@@ -100,14 +100,14 @@ namespace gz
       /// \brief Populate the step message with the latest affinities according
       /// to levels.
       /// \param[in] _msg Step message.
-      private: void PopulateAffinities(private_msgs::SimulationStep &_msg);
+      private: void PopulateAffinities(gz::msgs::SimulationStep &_msg);
 
       /// \brief Set the performer to secondary affinity.
       /// \param[in] _performer Performer entity.
       /// \param[in] _secondary Secondary identifier.
       /// \param[out] _msg Message to be populated.
       private: void SetAffinity(Entity _performer,
-          const std::string &_secondary, private_msgs::PerformerAffinity *_msg);
+          const std::string &_secondary, gz::msgs::PerformerAffinity *_msg);
 
       /// \brief Container of currently used secondary peers
       private: std::map<std::string, SecondaryControl::Ptr> secondaries;

@@ -35,7 +35,10 @@
 #include <gz/msgs/plugin.pb.h>
 #include <gz/msgs/projector.pb.h>
 #include <gz/msgs/spheregeom.pb.h>
+
 #include <gz/msgs/Utility.hh>
+
+#include <gz/msgs/convert/Inertial.hh>
 
 #include <gz/math/Angle.hh>
 #include <gz/math/AxisAlignedBox.hh>

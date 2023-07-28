@@ -1,0 +1,58 @@
+/*
+ * Copyright (C) 2020 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+syntax = "proto3";
+
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "SdfGeneratorConfigProtos";
+
+/// \ingroup gz.msgs
+/// \interface SdfGeneratorConfig
+/// \brief Message containing configuration options for generating SDFormat from
+/// currently loaded worlds
+
+import "gz/msgs/boolean.proto";
+import "gz/msgs/header.proto";
+
+message SdfGeneratorConfig
+{
+  /// \brief Configuration for SDFormat generation of entities (eg. models, actors, lights)
+  message EntityGeneratorConfig
+  {
+    /// \brief Expand and inline included entities
+    gz.msgs.Boolean expand_include_tags = 1;
+    /// \brief Use the Fuel version in generated URIs of Fuel resources
+    gz.msgs.Boolean save_fuel_version = 2;
+    /// \brief Use absolute paths for resources such as meshes
+    gz.msgs.Boolean resources_use_absolute_paths = 3;
+    /// \brief Copy model resources, such as meshes, and create a self contained
+    /// model.
+    gz.msgs.Boolean copy_model_resources = 4;
+  };
+
+  /// \brief Optional header data
+  gz.msgs.Header header = 1;
+
+  /// \brief Global setting for SDFormat generation of entities
+  EntityGeneratorConfig global_entity_gen_config = 2;
+
+  /// \brief Per-entity override of global settings for SDFormat generation.
+  /// The key is the scoped name of an entity.
+  map<string, EntityGeneratorConfig> override_entity_gen_configs = 3;
+};
+

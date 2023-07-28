@@ -1,0 +1,47 @@
+/*
+ * Copyright (C) 2020 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "JointTrajectoryProtos";
+
+/// \ingroup gz.msgs
+/// \interface JointTrajectory
+/// \brief Message for joint trajectory, which can be used to control a model
+/// with multiple single-axis joints simultaneously. This message is utilised
+/// by JointTrajectoryController plugin
+
+import "gz/msgs/header.proto";
+import "gz/msgs/joint_trajectory_point.proto";
+
+message JointTrajectory
+{
+  /// \brief Optional header data
+  Header header                        = 1;
+
+  /// \brief Ordered list of joint names that must be active during execution
+  /// of this trajectory. The order shall correspond to the values in each
+  /// trajectory point
+  repeated string joint_names          = 2;
+
+  /// \brief Ordered list of time-parameterised trajectory points, which can
+  /// describe positions, velocities, accelerations and/or effort for all
+  /// active joints at each point in time. All points must be ordered
+  /// according to their time from start, which must be strictly increasing
+  repeated JointTrajectoryPoint points = 3;
+}

@@ -17,7 +17,10 @@
 
 #include "TrackedVehicle.hh"
 
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/twist.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <limits>
 #include <map>

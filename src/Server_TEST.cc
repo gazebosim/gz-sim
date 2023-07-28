@@ -18,6 +18,10 @@
 #include <gtest/gtest.h>
 #include <csignal>
 #include <vector>
+
+#include <gz/msgs/server_control.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Rand.hh>

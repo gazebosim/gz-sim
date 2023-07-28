@@ -1,0 +1,40 @@
+/*
+ * Copyright (C) 2022 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "TwistWithCovarianceProtos";
+
+/// \ingroup gz.msgs
+/// \interface TwistWithCovariance
+/// \brief Message with twist and a covariance matrix
+
+import "gz/msgs/float_v.proto";
+import "gz/msgs/twist.proto";
+
+message TwistWithCovariance
+{
+  /// \brief Twist message.
+  Twist twist        = 1;
+
+  /// \brief Row-major representation of the 6x6 covariance matrix
+  /// The orientation parameters use a fixed-axis representation.
+  /// In order, the parameters are:
+  /// (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis)
+  Float_V covariance = 2;
+}

@@ -32,15 +32,15 @@ PeerTracker::PeerTracker(
   node(_options)
 {
   this->heartbeatPub =
-      this->node.Advertise<private_msgs::PeerInfo>("heartbeat");
+      this->node.Advertise<gz::msgs::PeerInfo>("heartbeat");
   this->announcePub =
-      this->node.Advertise<private_msgs::PeerAnnounce>("announce");
+      this->node.Advertise<gz::msgs::PeerAnnounce>("announce");
   this->node.Subscribe("heartbeat", &PeerTracker::OnPeerHeartbeat, this);
   this->node.Subscribe("announce", &PeerTracker::OnPeerAnnounce, this);
 
-  private_msgs::PeerAnnounce msg;
+  gz::msgs::PeerAnnounce msg;
   *msg.mutable_info() = toProto(this->info);
-  msg.set_state(private_msgs::PeerAnnounce::CONNECTING);
+  msg.set_state(gz::msgs::PeerAnnounce::CONNECTING);
   this->announcePub.Publish(msg);
 
   this->heartbeatRunning = true;
@@ -62,9 +62,9 @@ PeerTracker::~PeerTracker()
     this->heartbeatThread.join();
   }
 
-  private_msgs::PeerAnnounce msg;
+  gz::msgs::PeerAnnounce msg;
   *msg.mutable_info() = toProto(this->info);
-  msg.set_state(private_msgs::PeerAnnounce::DISCONNECTING);
+  msg.set_state(gz::msgs::PeerAnnounce::DISCONNECTING);
 
   this->announcePub.Publish(msg);
 }
@@ -173,7 +173,7 @@ bool PeerTracker::RemovePeer(const PeerInfo &_info)
 }
 
 /////////////////////////////////////////////////
-void PeerTracker::OnPeerAnnounce(const private_msgs::PeerAnnounce &_announce)
+void PeerTracker::OnPeerAnnounce(const gz::msgs::PeerAnnounce &_announce)
 {
   auto peer = fromProto(_announce.info());
 
@@ -183,10 +183,10 @@ void PeerTracker::OnPeerAnnounce(const private_msgs::PeerAnnounce &_announce)
 
   switch (_announce.state())
   {
-    case private_msgs::PeerAnnounce::CONNECTING:
+    case gz::msgs::PeerAnnounce::CONNECTING:
       this->OnPeerAdded(peer);
       break;
-    case private_msgs::PeerAnnounce::DISCONNECTING:
+    case gz::msgs::PeerAnnounce::DISCONNECTING:
       this->OnPeerRemoved(peer);
       break;
     default:
@@ -195,7 +195,7 @@ void PeerTracker::OnPeerAnnounce(const private_msgs::PeerAnnounce &_announce)
 }
 
 /////////////////////////////////////////////////
-void PeerTracker::OnPeerHeartbeat(const private_msgs::PeerInfo &_info)
+void PeerTracker::OnPeerHeartbeat(const gz::msgs::PeerInfo &_info)
 {
   auto peer = fromProto(_info);
 

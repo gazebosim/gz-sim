@@ -22,7 +22,7 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
-#include "msgs/peer_control.pb.h"
+#include "gz/msgs/peer_control.pb.h"
 
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/Conversions.hh"
@@ -88,8 +88,8 @@ std::string NetworkManagerSecondary::Namespace() const
 }
 
 //////////////////////////////////////////////////
-bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
-                                        private_msgs::PeerControl& _resp)
+bool NetworkManagerSecondary::OnControl(const gz::msgs::PeerControl &_req,
+                                        gz::msgs::PeerControl& _resp)
 {
   this->enableSim = _req.enable_sim();
   _resp.set_enable_sim(this->enableSim);
@@ -98,7 +98,7 @@ bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
 
 /////////////////////////////////////////////////
 void NetworkManagerSecondary::OnStep(
-    const private_msgs::SimulationStep &_msg)
+    const gz::msgs::SimulationStep &_msg)
 {
   GZ_PROFILE("NetworkManagerSecondary::OnStep");
 

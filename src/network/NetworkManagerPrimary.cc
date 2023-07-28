@@ -27,8 +27,8 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
-#include "msgs/peer_control.pb.h"
-#include "msgs/simulation_step.pb.h"
+#include "gz/msgs/peer_control.pb.h"
+#include "gz/msgs/simulation_step.pb.h"
 
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"
@@ -52,7 +52,7 @@ NetworkManagerPrimary::NetworkManagerPrimary(
   NetworkManager(_stepFunction, _ecm, _eventMgr, _config, _options),
   node(_options)
 {
-  this->simStepPub = this->node.Advertise<private_msgs::SimulationStep>("step");
+  this->simStepPub = this->node.Advertise<gz::msgs::SimulationStep>("step");
 
   this->node.Subscribe("step_ack", &NetworkManagerPrimary::OnStepAck, this);
 }
@@ -63,7 +63,7 @@ void NetworkManagerPrimary::Handshake()
   auto peers = this->dataPtr->tracker->SecondaryPeers();
   for (const auto &peer : peers)
   {
-    private_msgs::PeerControl req, resp;
+    gz::msgs::PeerControl req, resp;
     req.set_enable_sim(true);
 
     auto sc = std::make_unique<SecondaryControl>();
@@ -129,7 +129,7 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
     return false;
   }
 
-  private_msgs::SimulationStep step;
+  gz::msgs::SimulationStep step;
   step.mutable_stats()->CopyFrom(convert<msgs::WorldStatistics>(_info));
 
   // Affinities that changed this step
@@ -218,7 +218,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
 
 //////////////////////////////////////////////////
 void NetworkManagerPrimary::PopulateAffinities(
-    private_msgs::SimulationStep &_msg)
+    gz::msgs::SimulationStep &_msg)
 {
   GZ_PROFILE("NetworkManagerPrimary::PopulateAffinities");
 
@@ -305,7 +305,7 @@ void NetworkManagerPrimary::PopulateAffinities(
 
 //////////////////////////////////////////////////
 void NetworkManagerPrimary::SetAffinity(Entity _performer,
-    const std::string &_secondary, private_msgs::PerformerAffinity *_msg)
+    const std::string &_secondary, gz::msgs::PerformerAffinity *_msg)
 {
   // Populate message
   _msg->mutable_entity()->set_id(_performer);

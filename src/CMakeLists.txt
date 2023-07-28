@@ -1,21 +1,6 @@
 add_subdirectory(rendering)
 add_subdirectory(gui)
 add_subdirectory(systems)
-add_subdirectory(msgs)
-
-set_source_files_properties(
-  ${PROTO_PRIVATE_SRC}
-  ${PROTO_PRIVATE_HEADERS}
-  PROPERTIES GENERATED TRUE
-)
-
-# Suppress compiler warnings in generated protobuf C++ code.
-if(NOT MSVC)
-  set_source_files_properties(
-    ${PROTO_PRIVATE_SRC}
-    COMPILE_FLAGS -Wno-unused-parameter
-  )
-endif()
 
 set(network_sources
   network/NetworkConfig.cc
@@ -69,7 +54,6 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
 )
@@ -176,7 +160,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   gz-transport${GZ_TRANSPORT_VER}::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
-  protobuf::libprotobuf
+  gz-sim${PROJECT_VERSION_MAJOR}-msgs
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
 )
@@ -188,10 +172,6 @@ endif()
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-)
-
-add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  gz-sim_private_msgs
 )
 
 set(GZ_SIM_PLUGIN_INSTALL_DIR
@@ -208,6 +188,7 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-msgs
 )
 
 # Some server unit tests require rendering.

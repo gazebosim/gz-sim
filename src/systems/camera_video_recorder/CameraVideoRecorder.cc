@@ -15,6 +15,8 @@
  *
 */
 
+#include <gz/msgs/video_record.pb.h>
+
 #include <regex>
 #include <set>
 #include <string>

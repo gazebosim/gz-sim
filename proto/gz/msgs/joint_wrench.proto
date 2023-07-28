@@ -1,0 +1,42 @@
+/*
+ * Copyright (C) 2017 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+syntax = "proto3";
+package gz.msgs;
+option java_package = "com.gz.msgs";
+option java_outer_classname = "JointWrenchProtos";
+
+/// \ingroup gz.msgs
+/// \interface JointWrench
+/// \brief Joint wrench message
+
+import "gz/msgs/wrench.proto";
+import "gz/msgs/header.proto";
+
+message JointWrench
+{
+  /// \brief Optional header data
+  Header header      = 1;
+
+  string body_1_name = 2;
+  uint32 body_1_id   = 3;
+  string body_2_name = 4;
+  uint32 body_2_id   = 5;
+
+  Wrench body_1_wrench = 6;
+  Wrench body_2_wrench = 7;
+}

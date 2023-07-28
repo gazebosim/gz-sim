@@ -17,6 +17,7 @@
 
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <string>
 #include <vector>

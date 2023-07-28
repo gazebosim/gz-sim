@@ -19,6 +19,8 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/odometry.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 

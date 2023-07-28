@@ -15,6 +15,8 @@
  *
  */
 
+#include <gz/msgs/pointcloud_packed.pb.h>
+
 #include <algorithm>
 #include <atomic>
 #include <optional>
