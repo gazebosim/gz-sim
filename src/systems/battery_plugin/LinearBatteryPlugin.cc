@@ -394,7 +394,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           std::bind(&LinearBatteryPluginPrivate::OnBatteryStopDrainingMsg,
           this->dataPtr.get(), std::placeholders::_1, std::placeholders::_2,
           std::placeholders::_3));
-      ignmsg << "LinearBatteryPlugin subscribes to stop power draining topic ["
+      gzmsg << "LinearBatteryPlugin subscribes to stop power draining topic ["
              << topic << "]." << std::endl;
       sdfElem = sdfElem->GetNextElement("power_draining_topic");
     }
@@ -498,7 +498,7 @@ void LinearBatteryPlugin::PreUpdate(
   bool success = this->dataPtr->battery->SetPowerLoad(
       this->dataPtr->consumerId, total_power_load);
   if (!success)
-      ignerr << "Failed to set consumer power load." << std::endl;
+      gzerr << "Failed to set consumer power load." << std::endl;
 
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)

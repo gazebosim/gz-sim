@@ -295,7 +295,7 @@ void Hydrodynamics::Configure(
 {
   if (_sdf->HasElement("waterDensity"))
   {
-    ignwarn <<
+    gzwarn <<
       "<waterDensity> parameter is deprecated and will be removed Gazebo G.\n"
       << "\tPlease update your SDF to use <water_density> instead.";
   }
@@ -342,7 +342,7 @@ void Hydrodynamics::Configure(
 
   if (warnBehaviourChange)
   {
-    ignwarn << "You are using parameters that may cause instabilities "
+    gzwarn << "You are using parameters that may cause instabilities "
       << "in your simulation. If your simulation crashes we recommend "
       << "renaming <xUU> -> <xUabsU> and likewise for other axis "
       << "for more information see:" << std::endl

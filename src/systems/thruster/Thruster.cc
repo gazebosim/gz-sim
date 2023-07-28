@@ -451,7 +451,7 @@ void Thruster::Configure(
   {
     if (!_sdf->HasElement("battery_name"))
     {
-      ignerr << "Specified a <power_load> but missing <battery_name>."
+      gzerr << "Specified a <power_load> but missing <battery_name>."
           "Specify a battery name so the power load can be assigned to it."
           << std::endl;
     }
@@ -586,14 +586,14 @@ void Thruster::PreUpdate(
       });
     if (numBatteriesWithName == 0)
     {
-      ignerr << "Can't assign battery consumption to battery: ["
+      gzerr << "Can't assign battery consumption to battery: ["
              << this->dataPtr->batteryName << "]. No batteries"
              "were found with the given name." << std::endl;
       return;
     }
     if (numBatteriesWithName > 1)
     {
-      ignerr << "More than one battery found with name: ["
+      gzerr << "More than one battery found with name: ["
              << this->dataPtr->batteryName << "]. Please make"
              "sure battery names are unique within the system."
              << std::endl;

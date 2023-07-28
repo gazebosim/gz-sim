@@ -1271,7 +1271,7 @@ void RenderUtil::Update()
       }
       else
       {
-        ignerr << "Failed to create light" << std::endl;
+        gzerr << "Failed to create light" << std::endl;
       }
     }
 
