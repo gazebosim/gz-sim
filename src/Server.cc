@@ -26,6 +26,7 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
+#include "gz/sim/MeshInertiaCalculator.hh"
 
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
@@ -118,6 +119,9 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig;
+
+      MeshInertiaCalculator meshInertiaCalculator;
+      sdfParserConfig.RegisterCustomMoiCalculator(meshInertiaCalculator);
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
@@ -132,7 +136,7 @@ Server::Server(const ServerConfig &_config)
         {
           // If the specified file only contains a model, load the default
           // world and add the model to it.
-          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(), sdfParserConfig);
           sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
           if (world == nullptr) {
             return;
