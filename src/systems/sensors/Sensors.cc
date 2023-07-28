@@ -147,7 +147,7 @@ class ignition::gazebo::systems::SensorsPrivate
   public: std::mutex sensorsMutex;
 
   /// \brief Mask sensor updates for sensors currently being rendered
-  public: std::map<sensors::SensorId,
+  public: std::unordered_map<sensors::SensorId,
     std::chrono::steady_clock::duration> sensorMask;
 
   /// \brief Pointer to the event manager
