@@ -11,7 +11,7 @@ set (GZ_DISTRIBUTION "?")
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake3 REQUIRED)
+find_package(gz-cmake4 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -73,8 +73,8 @@ set(SDF_VER ${sdformat13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin2 REQUIRED COMPONENTS loader register)
-set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
+gz_find_package(gz-plugin3 REQUIRED COMPONENTS loader register)
+set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
@@ -89,7 +89,7 @@ set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common5
+gz_find_package(gz-common6
   COMPONENTS
     profiler
     events
@@ -97,7 +97,7 @@ gz_find_package(gz-common5
     io
   REQUIRED
 )
-set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
+set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
