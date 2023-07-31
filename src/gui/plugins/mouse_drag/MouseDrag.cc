@@ -144,19 +144,19 @@ namespace sim
     public: MouseDragMode mode = MouseDragMode::NONE;
 
     /// \brief Link to which the wrenches are applied
-    public: Entity linkId;
+    public: Entity linkId{kNullEntity};
 
     /// \brief Plane of force application
     public: math::Planed plane;
 
     /// \brief Application point of the wrench in world coordinates
-    math::Vector3d applicationPoint;
+    public: math::Vector3d applicationPoint;
 
     /// \brief Initial world rotation of the link during mouse click
     public: math::Quaterniond initialRot;
 
     /// \brief Point to which the link is dragged to, in translation mode
-    math::Vector3d target;
+    public: math::Vector3d target;
 
     /// \brief Goal link rotation for rotation mode
     public: math::Quaterniond goalRot;
@@ -215,7 +215,7 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     this->dataPtr->worldName = worldNames[0].toStdString();
     auto topic = transport::TopicUtils::AsValidTopic(
       "/world/" + this->dataPtr->worldName + "/wrench");
-    if (topic == "")
+    if (topic.empty())
     {
       gzerr << "Unable to create publisher" << std::endl;
       return;
@@ -343,9 +343,10 @@ void MouseDrag::Update(const UpdateInfo &_info,
       msgs::Boolean res;
       bool result;
       unsigned int timeout = 5000;
-      std::string service{"/world/" + this->dataPtr->worldName +
-          "/entity/system/add"};
-      if (this->dataPtr->node.Request(service, req, timeout, res, result))
+      auto service = transport::TopicUtils::AsValidTopic(
+        "/world/" + this->dataPtr->worldName + "/entity/system/add");
+      if (!service.empty() &&
+          this->dataPtr->node.Request(service, req, timeout, res, result))
       {
         this->dataPtr->systemLoaded = true;
         gzdbg << "ApplyLinkWrench system has been loaded" << std::endl;
