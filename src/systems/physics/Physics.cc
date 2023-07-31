@@ -3748,7 +3748,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   using GCFeature = physics::GetContactsFromLastStepFeature;
   using ExtraContactData = GCFeature::ExtraContactDataT<Policy>; 
 
-  // A contact is described by a contact_point and the corresponding
+  // A contact is described by a contactPoint and the corresponding
   // extraContactData which we bundle in a pair data structure
   using ContactData = std::pair<const WorldShapeType::ContactPoint *,
                                 const ExtraContactData *>;
@@ -3771,17 +3771,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
   for (const auto &contactComposite : allContacts)
   {
-    const auto &contact_point = contactComposite.Get<WorldShapeType::ContactPoint>();
-    const auto &extra_contact_data =
+    const auto &contactPoint = contactComposite.Get<WorldShapeType::ContactPoint>();
+    const auto &extraContactData =
         contactComposite.Query<ExtraContactData>();
     auto coll1Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact_point.collision1->EntityID());
+      this->entityCollisionMap.GetByPhysicsId(contactPoint.collision1->EntityID());
     auto coll2Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact_point.collision2->EntityID());
+      this->entityCollisionMap.GetByPhysicsId(contactPoint.collision2->EntityID());
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      ContactData data = std::make_pair(&contact_point, extra_contact_data); 
+      ContactData data = std::make_pair(&contactPoint, extraContactData); 
       entityContactMap[coll1Entity][coll2Entity].push_back(data);
       entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }
@@ -3821,33 +3821,39 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             contactMsg->mutable_collision2()->set_name(
               removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
           }
-          for (const auto &contact_data : contactData)
+          for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();
-            position->set_x(contact_data.first->point.x());
-            position->set_y(contact_data.first->point.y());
-            position->set_z(contact_data.first->point.z());
+            position->set_x(contact.first->point.x());
+            position->set_y(contact.first->point.y());
+            position->set_z(contact.first->point.z());
 
-             auto *normal = contactMsg->add_normal();
-            normal->set_x(contact_data.second->normal.x());
-            normal->set_y(contact_data.second->normal.y());
-            normal->set_z(contact_data.second->normal.z());
+            // Check if the extra contact data exists,
+            // since not all physics engines support it.
+            // Then, fill the msg with extra data.
+            if(contact.second != nullptr)
+            {
+              auto *normal = contactMsg->add_normal();
+              normal->set_x(contact.second->normal.x());
+              normal->set_y(contact.second->normal.y());
+              normal->set_z(contact.second->normal.z());
 
-            auto *wrench = contactMsg->add_wrench();
-            auto *body1_wrench = wrench->mutable_body_1_wrench();
-            auto *body1_force = body1_wrench->mutable_force();
-            body1_force->set_x(contact_data.second->force.x());
-            body1_force->set_y(contact_data.second->force.y());
-            body1_force->set_z(contact_data.second->force.z());
-            
-            // The force on the second body is equal and opposite
-            auto *body2_wrench = wrench->mutable_body_2_wrench();
-            auto *body2_force = body2_wrench->mutable_force();
-            body2_force->set_x(-contact_data.second->force.x());
-            body2_force->set_y(-contact_data.second->force.y());
-            body2_force->set_z(-contact_data.second->force.z());
+              auto *wrench = contactMsg->add_wrench();
+              auto *body1_wrench = wrench->mutable_body_1_wrench();
+              auto *body1_force = body1_wrench->mutable_force();
+              body1_force->set_x(contact.second->force.x());
+              body1_force->set_y(contact.second->force.y());
+              body1_force->set_z(contact.second->force.z());
 
-            contactMsg->add_depth(contact_data.second->depth);
+              // The force on the second body is equal and opposite
+              auto *body2_wrench = wrench->mutable_body_2_wrench();
+              auto *body2_force = body2_wrench->mutable_force();
+              body2_force->set_x(-contact.second->force.x());
+              body2_force->set_y(-contact.second->force.y());
+              body2_force->set_z(-contact.second->force.z());
+
+              contactMsg->add_depth(contact.second->depth);
+            }
           }
         }
 
