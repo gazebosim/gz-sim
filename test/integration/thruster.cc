@@ -211,7 +211,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   // Check no movement because of invalid commands
   fixture.Server()->Run(true, 100, false);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
@@ -248,7 +247,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
     for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
         ++sleep)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       fixture.Server()->Run(true, 100, false);
     }
     EXPECT_LT(sleep, maxSleep);
@@ -351,7 +349,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // When the deadband is disabled, any command value
     // (especially values below the deadband threshold) should move the model
     fixture.Server()->Run(true, 1000, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // make sure we have run a 1000 times
     EXPECT_EQ(1000u, modelPoses.size());
