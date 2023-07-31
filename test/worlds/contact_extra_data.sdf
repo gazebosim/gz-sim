@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="contact_extra_data">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <model name="contact_model">
+      <pose>0 0 0.5 0 0.0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.4</ixx>
+          <iyy>0.4</iyy>
+          <izz>0.4</izz>
+        </inertia>
+      </inertial>
+      <link name="link">
+        <collision name="collision_sphere">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_sphere">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <sensor name='sensor_contact' type='contact'>
+          <contact>
+            <collision>collision_sphere</collision>
+            <topic>/test_extra_collision_data</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>1000</update_rate>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
