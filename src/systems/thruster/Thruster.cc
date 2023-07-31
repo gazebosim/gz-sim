@@ -152,6 +152,9 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Flag to enable/disable deadband
   public: bool enableDeadband = false;
 
+  /// \brief Mutex to protect enableDeadband
+  public: std::mutex deadbandMutex;
+
   /// \brief Topic name used to enable/disable the deadband
   public: std::string deadbandTopic = "";
 
@@ -525,6 +528,7 @@ void ThrusterPrivateData::OnCmdThrust(const gz::msgs::Double &_msg)
 /////////////////////////////////////////////////
 void ThrusterPrivateData::OnDeadbandEnable(const gz::msgs::Boolean &_msg)
 {
+  std::lock_guard<std::mutex> lock(this->deadbandMutex);
   if (_msg.data() != this->enableDeadband)
   {
     if (_msg.data())
