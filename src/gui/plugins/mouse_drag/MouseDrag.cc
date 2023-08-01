@@ -79,21 +79,25 @@ namespace sim
     /// \brief Perform rendering calls in the rendering thread.
     public: void OnRender();
 
-    /// \brief Update the PID loop on 3 coordinates
-    /// \param[in] _pid PID controllers on 3 coordinates to be updated
-    /// \param[in] _error Error vector since last call (p_state - p_target)
+    /// \brief Calculate the wrench to be applied to the link,
+    /// based on a spring-damper control law.
+    ///
+    /// This attempts to minimize the error (in position or
+    /// rotation, depending on the mode) with a proportional control, while
+    /// damping the rate of change of the link's pose.
+    ///
+    /// \param[in] _error Position error in translation mode, Rotation error
+    /// (in Euler angles) in rotation mode
     /// \param[in] _dt Change in time since last call
-    /// \return the command value
-    public: math::Vector3d CalculatePID(
-      math::PID _pid[3],
-      const math::Vector3d &_error,
-      const std::chrono::duration<double> &_dt);
-
-    /// \brief Update the PID gains with critical damping
-    /// \param[in] _linkWorldPose world pose of the link
+    /// \param[in] _linkWorldPose World pose of the link
     /// \param[in] _inertial inertial of the link
-    public: void UpdateGains(math::Pose3d _linkWorldPose,
-      math::Inertiald _inertial);
+    /// \return The EntityWrench message containing the calculated
+    /// force and torque
+    public: msgs::EntityWrench CalculateWrench(
+      const math::Vector3d &_error,
+      const std::chrono::duration<double> &_dt,
+      const math::Pose3d &_linkWorldPose,
+      const math::Inertiald &_inertial);
 
     /// \brief Transport node
     public: transport::Node node;
@@ -155,7 +159,7 @@ namespace sim
     /// \brief Initial world rotation of the link during mouse click
     public: math::Quaterniond initialRot;
 
-    /// \brief Point to which the link is dragged to, in translation mode
+    /// \brief Point to which the link is dragged in translation mode
     math::Vector3d target;
 
     /// \brief Goal link rotation for rotation mode
@@ -165,17 +169,14 @@ namespace sim
     /// link origin, expressed in the link-fixed frame
     public: math::Vector3d offset{0.0, 0.0, 0.0};
 
-    /// \brief PID controllers for translation
-    public: math::PID posPid[3];
-
-    /// \brief PID controllers for rotation
-    public: math::PID rotPid[3];
+    /// \brief Link world pose in previous Update call. Used for damping
+    public: math::Pose3d poseLast;
 
     /// \brief Spring stiffness for translation, in (m/s²)/m
     public: double posStiffness = 100.0;
 
     /// \brief Spring stiffness for rotation, in (rad/s²)/rad
-    public: double rotStiffness = 100.0;
+    public: double rotStiffness = 200.0;
 
     /// \brief Arrow for visualizing force in translation mode.
     /// This arrow goes from the application point to the target point.
@@ -373,7 +374,6 @@ void MouseDrag::Update(const UpdateInfo &_info,
     this->dataPtr->sendBlockOrbit = true;
 
   this->dataPtr->dragActive = true;
-  this->dataPtr->UpdateGains(linkWorldPose, inertial->Data());
 
   if (this->dataPtr->modeDirty)
   {
@@ -386,6 +386,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
     this->dataPtr->initialRot = linkWorldPose.Rot();
+    this->dataPtr->poseLast = linkWorldPose;
 
     // Calculate offset of force application from link origin
     if (this->dataPtr->applyCOM || this->dataPtr->mode == MouseDragMode::ROTATE)
@@ -406,12 +407,6 @@ void MouseDrag::Update(const UpdateInfo &_info,
     math::Vector3d direction = this->dataPtr->camera->WorldPose().Rot().XAxis();
     double planeOffset = direction.Dot(this->dataPtr->applicationPoint);
     this->dataPtr->plane = math::Planed(direction, planeOffset);
-
-    for (auto i : {0, 1, 2})
-    {
-      this->dataPtr->posPid[i].Reset();
-      this->dataPtr->rotPid[i].Reset();
-    }
   }
   // Track the application point
   else
@@ -434,8 +429,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
   math::Vector3d end = this->dataPtr->rayQuery->Direction();
 
   // Wrench in world coordinates, applied at the link origin
-  math::Vector3d force;
-  math::Vector3d torque;
+  msgs::EntityWrench msg;
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
   {
     // Calculate rotation angle from mouse displacement
@@ -457,8 +451,8 @@ void MouseDrag::Update(const UpdateInfo &_info,
       math::Quaterniond(axis, angle) * this->dataPtr->initialRot;
     math::Quaterniond errorRot =
       linkWorldPose.Rot() * this->dataPtr->goalRot.Inverse();
-    torque = this->dataPtr->CalculatePID(
-      this->dataPtr->rotPid, errorRot.Euler(), _info.dt);
+    msg = this->dataPtr->CalculateWrench(
+      errorRot.Euler(), _info.dt, linkWorldPose, inertial->Data());
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
@@ -470,25 +464,11 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
     math::Vector3d errorPos =
       this->dataPtr->applicationPoint - this->dataPtr->target;
-    force = this->dataPtr->CalculatePID(
-      this->dataPtr->posPid, errorPos, _info.dt);
-    torque =
-      linkWorldPose.Rot().RotateVector(this->dataPtr->offset).Cross(force);
-    // Rotation damping on translation mode isn't done if the force
-    // is applied to the center of mass
-    if (!this->dataPtr->applyCOM)
-    {
-      torque += this->dataPtr->CalculatePID(
-        this->dataPtr->rotPid, linkWorldPose.Rot().Euler(), _info.dt);
-    }
+    msg = this->dataPtr->CalculateWrench(
+      errorPos, _info.dt, linkWorldPose, inertial->Data());
   }
 
   // Publish wrench
-  msgs::EntityWrench msg;
-  msg.mutable_entity()->set_id(this->dataPtr->linkId);
-  msgs::Set(msg.mutable_wrench()->mutable_force(), force);
-  msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
-
   this->dataPtr->pub.Publish(msg);
 }
 
@@ -670,44 +650,83 @@ void MouseDragPrivate::HandleMouseEvents()
 }
 
 /////////////////////////////////////////////////
-math::Vector3d MouseDragPrivate::CalculatePID(
-  math::PID _pid[3],
+msgs::EntityWrench MouseDragPrivate::CalculateWrench(
   const math::Vector3d &_error,
-  const std::chrono::duration<double> &_dt)
+  const std::chrono::duration<double> &_dt,
+  const math::Pose3d &_linkWorldPose,
+  const math::Inertiald &_inertial)
 {
-  math::Vector3d result;
-  for (auto i : {0, 1, 2})
-  {
-    result[i] = _pid[i].Update(_error[i], _dt);
-  }
-  return result;
-}
-
-/////////////////////////////////////////////////
-void MouseDragPrivate::UpdateGains(math::Pose3d _linkWorldPose,
-  math::Inertiald _inertial)
-{
-  math::Matrix3d R(_linkWorldPose.Rot() * _inertial.Pose().Rot());
-  math::Matrix3d inertia = R * _inertial.Moi() * R.Transposed();
+  math::Vector3d force, torque;
   if (this->mode == MouseDragMode::ROTATE)
   {
+    // TODO(anyone): is this the best way to scale rotation gains?
+    double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+
+    math::Vector3d dErrorRot =
+      (_linkWorldPose.Rot() * this->poseLast.Rot().Inverse()).Euler()
+      / _dt.count();
     for (auto i : {0, 1, 2})
     {
-      this->rotPid[i].SetPGain(this->rotStiffness * inertia(i, i));
-      this->rotPid[i].SetDGain(2 * sqrt(this->rotStiffness) * inertia(i, i));
+      double pGainRot = this->rotStiffness * avgInertia;
+      double dGainRot = 2 * sqrt(this->rotStiffness) * avgInertia;
+
+      // Correct angle discontinuity around 0/2pi
+      if (dErrorRot[i] > GZ_PI)
+        dErrorRot[i] -= 2 * GZ_PI;
+      else if (dErrorRot[i] < -GZ_PI)
+        dErrorRot[i] += 2 * GZ_PI;
+
+      torque[i] = - pGainRot * _error[i] - dGainRot * dErrorRot[i];
     }
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
     double mass = _inertial.MassMatrix().Mass();
-    for (auto i : {0, 1, 2})
+    double pGainPos = this->posStiffness * mass;
+    double dGainPos = 0.5 * sqrt(this->posStiffness) * mass;
+
+    math::Vector3d dErrorPos =
+      (_linkWorldPose.Pos() - this->poseLast.Pos()) / _dt.count();
+
+    force = - pGainPos * _error - dGainPos * dErrorPos;
+    torque =
+      _linkWorldPose.Rot().RotateVector(this->offset).Cross(force);
+
+    // If the force is not applied to the center of mass, slightly damp the
+    // resulting rotation
+    if (!this->applyCOM)
     {
-      this->posPid[i].SetPGain(this->posStiffness * mass);
-      this->posPid[i].SetDGain(2 * sqrt(this->posStiffness) * mass);
-      this->rotPid[i].SetPGain(0);
-      this->rotPid[i].SetDGain(0.5 * sqrt(this->rotStiffness) * inertia(i, i));
+      double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+
+      math::Vector3d dErrorRot =
+        (_linkWorldPose.Rot() * this->poseLast.Rot().Inverse()).Euler()
+        / _dt.count();
+      for (auto i : {0, 1, 2})
+      {
+        double dGainRot = 0.5 * sqrt(this->rotStiffness) * avgInertia;
+
+        // Correct angle discontinuity around 0/2pi
+        if (dErrorRot[i] > GZ_PI)
+          dErrorRot[i] -= 2 * GZ_PI;
+        else if (dErrorRot[i] < -GZ_PI)
+          dErrorRot[i] += 2 * GZ_PI;
+
+        torque -= dGainRot * dErrorRot[i];
+      }
     }
   }
+  else
+  {
+    return msgs::EntityWrench();
+  }
+
+  this->poseLast = _linkWorldPose;
+
+  msgs::EntityWrench msg;
+  msg.mutable_entity()->set_id(this->linkId);
+  msgs::Set(msg.mutable_wrench()->mutable_force(), force);
+  msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
+  return msg;
 }
 
 // Register this plugin
