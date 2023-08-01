@@ -3839,18 +3839,18 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
               normal->set_z(contact.second->normal.z());
 
               auto *wrench = contactMsg->add_wrench();
-              auto *body1_wrench = wrench->mutable_body_1_wrench();
-              auto *body1_force = body1_wrench->mutable_force();
-              body1_force->set_x(contact.second->force.x());
-              body1_force->set_y(contact.second->force.y());
-              body1_force->set_z(contact.second->force.z());
+              auto *body1Wrench = wrench->mutable_body_1_wrench();
+              auto *body1Force = body1Wrench->mutable_force();
+              body1Force->set_x(contact.second->force.x());
+              body1Force->set_y(contact.second->force.y());
+              body1Force->set_z(contact.second->force.z());
 
               // The force on the second body is equal and opposite
-              auto *body2_wrench = wrench->mutable_body_2_wrench();
-              auto *body2_force = body2_wrench->mutable_force();
-              body2_force->set_x(-contact.second->force.x());
-              body2_force->set_y(-contact.second->force.y());
-              body2_force->set_z(-contact.second->force.z());
+              auto *body2Wrench = wrench->mutable_body_2_wrench();
+              auto *body2Force = body2Wrench->mutable_force();
+              body2Force->set_x(-contact.second->force.x());
+              body2Force->set_y(-contact.second->force.y());
+              body2Force->set_z(-contact.second->force.z());
 
               contactMsg->add_depth(contact.second->depth);
             }
