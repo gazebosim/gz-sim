@@ -79,6 +79,10 @@ namespace sim
     /// \brief Perform rendering calls in the rendering thread.
     public: void OnRender();
 
+    /// \brief Update the gains for the controller
+    /// \param[in] _inertial Inertial of the link
+    public: void UpdateGains(const math::Inertiald &_inertial);
+
     /// \brief Calculate the wrench to be applied to the link,
     /// based on a spring-damper control law.
     ///
@@ -96,8 +100,7 @@ namespace sim
     public: msgs::EntityWrench CalculateWrench(
       const math::Vector3d &_error,
       const std::chrono::duration<double> &_dt,
-      const math::Pose3d &_linkWorldPose,
-      const math::Inertiald &_inertial);
+      const math::Pose3d &_linkWorldPose);
 
     /// \brief Transport node
     public: transport::Node node;
@@ -173,10 +176,22 @@ namespace sim
     public: math::Pose3d poseLast;
 
     /// \brief Spring stiffness for translation, in (m/s²)/m
-    public: double posStiffness = 100.0;
+    public: double posStiffness{100.0};
+
+    /// \brief P-gain for translation
+    public: double pGainPos{0.0};
+
+    /// \brief D-gain for translation
+    public: double dGainPos{0.0};
 
     /// \brief Spring stiffness for rotation, in (rad/s²)/rad
-    public: double rotStiffness = 200.0;
+    public: double rotStiffness{200.0};
+
+    /// \brief P-gain for rotation
+    public: double pGainRot{0.0};
+
+    /// \brief D-gain for rotation
+    public: double dGainRot{0.0};
 
     /// \brief Arrow for visualizing force in translation mode.
     /// This arrow goes from the application point to the target point.
@@ -184,6 +199,9 @@ namespace sim
 
     /// \brief Box for visualizing rotation mode
     public: rendering::VisualPtr boxVisual{nullptr};
+
+    /// \brief Plane for visualizing the wrench application plane
+    public: rendering::VisualPtr planeVisual{nullptr};
 
     /// \brief Size of the bounding box of the selected link
     public: math::Vector3d bboxSize;
@@ -387,6 +405,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
     this->dataPtr->mousePressPos = this->dataPtr->mouseEvent.Pos();
     this->dataPtr->initialRot = linkWorldPose.Rot();
     this->dataPtr->poseLast = linkWorldPose;
+    this->dataPtr->UpdateGains(inertial->Data());
 
     // Calculate offset of force application from link origin
     if (this->dataPtr->applyCOM || this->dataPtr->mode == MouseDragMode::ROTATE)
@@ -452,7 +471,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
     math::Quaterniond errorRot =
       linkWorldPose.Rot() * this->dataPtr->goalRot.Inverse();
     msg = this->dataPtr->CalculateWrench(
-      errorRot.Euler(), _info.dt, linkWorldPose, inertial->Data());
+      errorRot.Euler(), _info.dt, linkWorldPose);
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
@@ -464,8 +483,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
     math::Vector3d errorPos =
       this->dataPtr->applicationPoint - this->dataPtr->target;
-    msg = this->dataPtr->CalculateWrench(
-      errorPos, _info.dt, linkWorldPose, inertial->Data());
+    msg = this->dataPtr->CalculateWrench(errorPos, _info.dt, linkWorldPose);
   }
 
   // Publish wrench
@@ -520,14 +538,31 @@ void MouseDragPrivate::OnRender()
     this->arrowVisual->ShowArrowHead(true);
     this->arrowVisual->ShowArrowShaft(true);
     this->arrowVisual->ShowArrowRotation(false);
-    this->arrowVisual->SetVisible(false);
 
     this->boxVisual = scene->CreateVisual();
     this->boxVisual->AddGeometry(scene->CreateBox());
     this->boxVisual->SetInheritScale(false);
     this->boxVisual->SetMaterial(mat);
     this->boxVisual->SetUserData("gui-only", static_cast<bool>(true));
-    this->boxVisual->SetVisible(false);
+
+    auto planeMat = this->scene->Material("trans-gray");
+    if (!planeMat)
+    {
+      planeMat = this->scene->CreateMaterial("trans-gray");
+      planeMat->SetAmbient(1.0, 1.0, 1.0);
+      planeMat->SetDiffuse(1.0, 1.0, 1.0);
+      planeMat->SetSpecular(1.0, 1.0, 1.0);
+      planeMat->SetTransparency(0.7);
+      planeMat->SetCastShadows(false);
+      planeMat->SetReceiveShadows(false);
+      planeMat->SetLightingEnabled(false);
+    }
+
+    this->planeVisual = scene->CreateVisual();
+    this->planeVisual->AddGeometry(scene->CreatePlane());
+    this->planeVisual->SetInheritScale(false);
+    this->planeVisual->SetMaterial(planeMat);
+    this->planeVisual->SetUserData("gui-only", static_cast<bool>(true));
   }
 
   // Update the visualization
@@ -535,6 +570,7 @@ void MouseDragPrivate::OnRender()
   {
     this->arrowVisual->SetVisible(false);
     this->boxVisual->SetVisible(false);
+    this->planeVisual->SetVisible(false);
   }
   else if (this->mode == MouseDragMode::ROTATE)
   {
@@ -544,27 +580,27 @@ void MouseDragPrivate::OnRender()
 
     this->arrowVisual->SetVisible(false);
     this->boxVisual->SetVisible(true);
+    this->planeVisual->SetVisible(false);
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
     math::Vector3d axisDir = this->target - this->applicationPoint;
-    math::Vector3d u = axisDir.Normalized();
-    math::Vector3d v = gz::math::Vector3d::UnitZ;
-    double angle = acos(v.Dot(u));
     math::Quaterniond quat;
-    // check the parallel case
-    if (math::equal(angle, GZ_PI))
-      quat.SetFromAxisAngle(u.Perpendicular(), angle);
-    else
-      quat.SetFromAxisAngle((v.Cross(u)).Normalize(), angle);
+    quat.SetFrom2Axes(math::Vector3d::UnitZ, axisDir);
     double scale = 2 * this->bboxSize.Length();
-
     this->arrowVisual->SetLocalPosition(this->applicationPoint);
     this->arrowVisual->SetLocalRotation(quat);
     this->arrowVisual->SetLocalScale(scale, scale, axisDir.Length() / 0.75);
 
+    quat.SetFrom2Axes(math::Vector3d::UnitZ, -this->plane.Normal());
+    scale = this->applicationPoint.Distance(this->camera->WorldPose().Pos());
+    this->planeVisual->SetLocalRotation(quat);
+    this->planeVisual->SetLocalPosition(this->applicationPoint);
+    this->planeVisual->SetLocalScale(scale);
+
     this->arrowVisual->SetVisible(true);
     this->boxVisual->SetVisible(false);
+    this->planeVisual->SetVisible(true);
   }
 
   if (this->sendBlockOrbit)
@@ -650,45 +686,60 @@ void MouseDragPrivate::HandleMouseEvents()
 }
 
 /////////////////////////////////////////////////
-msgs::EntityWrench MouseDragPrivate::CalculateWrench(
-  const math::Vector3d &_error,
-  const std::chrono::duration<double> &_dt,
-  const math::Pose3d &_linkWorldPose,
-  const math::Inertiald &_inertial)
+void MouseDragPrivate::UpdateGains(const math::Inertiald &_inertial)
 {
-  math::Vector3d force, torque;
   if (this->mode == MouseDragMode::ROTATE)
   {
     // TODO(anyone): is this the best way to scale rotation gains?
     double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+    this->pGainRot = this->rotStiffness * avgInertia;
+    this->dGainRot = 2 * sqrt(this->rotStiffness) * avgInertia;
+    this->pGainPos = 0.0;
+    this->dGainPos = 0.0;
+  }
+  else if (this->mode == MouseDragMode::TRANSLATE)
+  {
+    double mass = _inertial.MassMatrix().Mass();
+    this->pGainPos = this->posStiffness * mass;
+    this->dGainPos = 0.5 * sqrt(this->posStiffness) * mass;
+    this->pGainRot = 0.0;
 
+    if (!this->applyCOM)
+    {
+      double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+      this->dGainRot = 0.5 * sqrt(this->rotStiffness) * avgInertia;
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+msgs::EntityWrench MouseDragPrivate::CalculateWrench(
+  const math::Vector3d &_error,
+  const std::chrono::duration<double> &_dt,
+  const math::Pose3d &_linkWorldPose)
+{
+  math::Vector3d force, torque;
+  if (this->mode == MouseDragMode::ROTATE)
+  {
     math::Vector3d dErrorRot =
       (_linkWorldPose.Rot() * this->poseLast.Rot().Inverse()).Euler()
       / _dt.count();
     for (auto i : {0, 1, 2})
     {
-      double pGainRot = this->rotStiffness * avgInertia;
-      double dGainRot = 2 * sqrt(this->rotStiffness) * avgInertia;
-
       // Correct angle discontinuity around 0/2pi
       if (dErrorRot[i] > GZ_PI)
         dErrorRot[i] -= 2 * GZ_PI;
       else if (dErrorRot[i] < -GZ_PI)
         dErrorRot[i] += 2 * GZ_PI;
-
-      torque[i] = - pGainRot * _error[i] - dGainRot * dErrorRot[i];
     }
+    torque = - this->pGainRot * _error - this->dGainRot * dErrorRot;
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
-    double mass = _inertial.MassMatrix().Mass();
-    double pGainPos = this->posStiffness * mass;
-    double dGainPos = 0.5 * sqrt(this->posStiffness) * mass;
-
     math::Vector3d dErrorPos =
       (_linkWorldPose.Pos() - this->poseLast.Pos()) / _dt.count();
 
-    force = - pGainPos * _error - dGainPos * dErrorPos;
+    force = - this->pGainPos * _error - this->dGainPos * dErrorPos;
     torque =
       _linkWorldPose.Rot().RotateVector(this->offset).Cross(force);
 
@@ -696,23 +747,18 @@ msgs::EntityWrench MouseDragPrivate::CalculateWrench(
     // resulting rotation
     if (!this->applyCOM)
     {
-      double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
-
       math::Vector3d dErrorRot =
         (_linkWorldPose.Rot() * this->poseLast.Rot().Inverse()).Euler()
         / _dt.count();
       for (auto i : {0, 1, 2})
       {
-        double dGainRot = 0.5 * sqrt(this->rotStiffness) * avgInertia;
-
         // Correct angle discontinuity around 0/2pi
         if (dErrorRot[i] > GZ_PI)
           dErrorRot[i] -= 2 * GZ_PI;
         else if (dErrorRot[i] < -GZ_PI)
           dErrorRot[i] += 2 * GZ_PI;
-
-        torque -= dGainRot * dErrorRot[i];
       }
+      torque -= this->dGainRot * dErrorRot;
     }
   }
   else
