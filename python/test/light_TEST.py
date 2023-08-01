@@ -103,7 +103,7 @@ class TestLight(unittest.TestCase):
             # Spot Falloff Test
             self.assertEqual(2, light_spot.spot_falloff(_ecm))
             light_spot.set_spot_falloff(_ecm, 4)
-            
+
         def on_udpate_cb(_info, _ecm):
             global iterations
             iterations += 1
