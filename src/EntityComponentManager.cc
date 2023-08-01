@@ -965,17 +965,15 @@ std::unordered_set<ComponentTypeId>
 
 /////////////////////////////////////////////////
 void EntityComponentManager::UpdatePeriodicChangeCache(
-  std::unordered_map<Entity,
-    std::unordered_set<ComponentTypeId>> &_changes) const
+  std::unordered_map<ComponentTypeId,
+  std::unordered_set<Entity>> &_changes) const
 {
   // Get all changes
   for (const auto &[componentType, entities] :
     this->dataPtr->periodicChangedComponents)
   {
-    for (const auto entity : entities)
-    {
-      _changes[entity].emplace(componentType);
-    }
+    _changes[componentType].insert(
+      entities.begin(), entities.end());
   }
 
   // Get all removed components
@@ -984,13 +982,20 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
   {
     for (const auto &comp : components)
     {
-      _changes[entity].erase(comp);
+      _changes[comp].erase(entity);
     }
   }
 
   // Get all removed entities
   for (const auto &entity : this->dataPtr->toRemoveEntities) {
-    _changes.erase(entity);
+    for (
+      auto components = _changes.begin();
+      components != _changes.end(); components++) {
+      // Its ok to leave component entries empty, the serialization
+      // code will simply ignore it. In any case the number of components
+      // is limited, so this cache will never grow too large.
+      components->second.erase(entity);
+    }
   }
 }
 
@@ -1712,22 +1717,22 @@ void EntityComponentManager::State(
 //////////////////////////////////////////////////
 void EntityComponentManager::PeriodicStateFromCache(
   msgs::SerializedStateMap &_state,
-  const std::unordered_map<Entity,
-        std::unordered_set<ComponentTypeId>> &_entityMap) const
+  const std::unordered_map<ComponentTypeId,
+    std::unordered_set<Entity>> &_cache) const
 {
-  for (auto &[entity, components] : _entityMap) {
-    // Add entity to message if it does not exist
-    auto entIter = _state.mutable_entities()->find(entity);
-    if (entIter == _state.mutable_entities()->end())
-    {
-      msgs::SerializedEntityMap ent;
-      ent.set_id(entity);
-      (*_state.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
-      entIter = _state.mutable_entities()->find(entity);
-    }
-
+  for (auto &[typeId, entities] : _cache) {
     // Serialize components that have changed
-    for (auto &typeId : components) {
+    for (auto &entity : entities) {
+      // Add entity to message if it does not exist
+      auto entIter = _state.mutable_entities()->find(entity);
+      if (entIter == _state.mutable_entities()->end())
+      {
+        msgs::SerializedEntityMap ent;
+        ent.set_id(entity);
+        (*_state.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
+        entIter = _state.mutable_entities()->find(entity);
+      }
+
       // Find the component in the message
       auto compIter = entIter->second.mutable_components()->find(typeId);
       if (compIter != entIter->second.mutable_components()->end())

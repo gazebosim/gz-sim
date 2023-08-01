@@ -2211,8 +2211,8 @@ TEST_P(EntityComponentManagerFixture,
   Entity e1 = manager.CreateEntity();
   auto c1 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
 
-  std::unordered_map<Entity,
-                        std::unordered_set<ComponentTypeId>> changeTracker;
+  std::unordered_map<ComponentTypeId,
+                        std::unordered_set<Entity>> changeTracker;
 
   // No periodic changes keep cache empty.
   manager.UpdatePeriodicChangeCache(changeTracker);
@@ -2224,15 +2224,15 @@ TEST_P(EntityComponentManagerFixture,
   // 1 periodic change, should be reflected in cache.
   manager.UpdatePeriodicChangeCache(changeTracker);
   EXPECT_EQ(changeTracker.size(), 1);
-  EXPECT_EQ(changeTracker[e1].count(c1->TypeId()), 1);
+  EXPECT_EQ(changeTracker[c1->TypeId()].count(e1), 1);
 
   manager.RunSetAllComponentsUnchanged();
 
   // Has periodic change. Cache should be full.
   manager.UpdatePeriodicChangeCache(changeTracker);
   EXPECT_EQ(changeTracker.size(), 1);
-  EXPECT_EQ(changeTracker[e1].count(c1->TypeId()), 1);
-  EXPECT_EQ(changeTracker[e1].size(), 1);
+  EXPECT_EQ(changeTracker[c1->TypeId()].count(e1), 1);
+  EXPECT_EQ(changeTracker[c1->TypeId()].size(), 1);
 
   // Serialize state
   msgs::SerializedStateMap state;
@@ -2248,13 +2248,26 @@ TEST_P(EntityComponentManagerFixture,
   manager.RemoveComponent<IntComponent>(e1);
   manager.UpdatePeriodicChangeCache(changeTracker);
   EXPECT_EQ(changeTracker.size(), 1);
-  EXPECT_EQ(changeTracker[e1].size(), 0);
+  EXPECT_EQ(changeTracker[c1->TypeId()].size(), 0);
+
+  manager.RunSetAllComponentsUnchanged();
+
+  // Add another component to the entity
+  auto c2 = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  manager.UpdatePeriodicChangeCache(changeTracker);
+
+  // Cache does not track additions, only PeriodicChanges
+  EXPECT_EQ(changeTracker[c2->TypeId()].size(), 0);
+
+  // Track change
+  manager.SetChanged(e1, c1->TypeId(), ComponentState::PeriodicChange);
+  manager.UpdatePeriodicChangeCache(changeTracker);
+  EXPECT_EQ(changeTracker[c2->TypeId()].size(), 1);
 
   // Entity removed cache should be updated.
   manager.RequestRemoveEntity(e1);
   manager.UpdatePeriodicChangeCache(changeTracker);
-  EXPECT_EQ(changeTracker.size(), 0);
-
+  EXPECT_EQ(changeTracker[c2->TypeId()].size(), 0);
 }
 
 //////////////////////////////////////////////////

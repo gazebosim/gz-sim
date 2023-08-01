@@ -262,8 +262,8 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Stores a cache of components that are changed. (This prevents
   ///  dropping of periodic change components which may not be updated
   ///  frequently enough)
-  public: std::unordered_map<Entity,
-    std::unordered_set<ComponentTypeId>> changedComponents;
+  public: std::unordered_map<ComponentTypeId,
+    std::unordered_set<Entity>> changedComponents;
 };
 
 

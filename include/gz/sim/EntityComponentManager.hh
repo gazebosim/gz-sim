@@ -609,8 +609,8 @@ namespace ignition
       /// entities which have had periodic changes in the past and still
       /// exist within the ECM.
       /// \sa EntityComponentManager::PeriodicStateFromCache
-      public: void UpdatePeriodicChangeCache(std::unordered_map<Entity,
-        std::unordered_set<ComponentTypeId>> &_changes) const;
+      public: void UpdatePeriodicChangeCache(std::unordered_map<ComponentTypeId,
+        std::unordered_set<Entity>>&) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -645,12 +645,12 @@ namespace ignition
       /// responsibility of the caller to timestamp it before use. Additionally,
       /// changes such as addition or removal will not be populated.
       /// \param[inout] _state The serialized state message to populate.
-      /// \param[in] _entityMap A map of entities and components to serialize.
+      /// \param[in] _cache A map of entities and components to serialize.
       /// \sa EntityComponenetManager::UpdatePeriodicChangeCache
       public: void PeriodicStateFromCache(
                   msgs::SerializedStateMap &_state,
-                  const std::unordered_map<Entity,
-                        std::unordered_set<ComponentTypeId>> &_entityMap) const;
+                  const std::unordered_map<ComponentTypeId,
+                        std::unordered_set<Entity>> &_cache) const;
 
       /// \brief Get a message with the serialized state of all entities and
       /// components that are changing in the current iteration
