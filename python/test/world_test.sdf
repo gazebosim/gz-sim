@@ -23,5 +23,17 @@
             <elevation>20</elevation>
             <heading_deg>25</heading_deg>
         </spherical_coordinates>
+
+        <light type="point" name="light_point_test">
+        </light>
+
+        <actor name="actor_test">
+        </actor>
+
+        <model name="model_test">
+            <link name="model_link_test">
+                <pose>0 0 0 0 0 0</pose>
+            </link>
+        </model>
     </world>
 </sdf>

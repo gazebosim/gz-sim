@@ -18,7 +18,7 @@ import unittest
 
 from gz.common import set_verbosity
 from gz.sim8 import TestFixture, World, world_entity
-from gz.math7 import Vector3d
+from gz.math7 import Angle, SphericalCoordinates, Vector3d 
 from sdformat13 import Atmosphere
 
 post_iterations = 0
@@ -31,7 +31,7 @@ class TestWorld(unittest.TestCase):
         set_verbosity(4)
 
         file_path = os.path.dirname(os.path.realpath(__file__))
-        fixture = TestFixture(os.path.join(file_path, 'world.sdf'))
+        fixture = TestFixture(os.path.join(file_path, 'world_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
             global post_iterations
@@ -57,7 +57,27 @@ class TestWorld(unittest.TestCase):
             self.assertEqual(100000, atmosphere.pressure())
             self.assertEqual(-0.005, atmosphere.temperature_gradient())
             # Spherical Coordinates Test
-            self.assertTrue(world.spherical_coordinates(_ecm))
+            self.assertEqual(SphericalCoordinates.SurfaceType.EARTH_WGS84, world.spherical_coordinates(_ecm).surface())
+            if pre_iterations <= 1:
+                self.assertAlmostEqual(float(10), world.spherical_coordinates(_ecm).latitude_reference().degree())
+                self.assertAlmostEqual(float(15), world.spherical_coordinates(_ecm).longitude_reference().degree())
+                self.assertAlmostEqual(float(20), world.spherical_coordinates(_ecm).elevation_reference())
+                self.assertAlmostEqual(float(25), world.spherical_coordinates(_ecm).heading_offset().degree())
+                world.set_spherical_coordinates(_ecm, SphericalCoordinates())
+            else:
+                self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).latitude_reference().degree())
+                self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).longitude_reference().degree())
+                self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).elevation_reference())
+                self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).heading_offset().degree())
+            # Light Test
+            self.assertEqual(7, world.light_by_name(_ecm, 'light_point_test'))
+            self.assertEqual(1, world.light_count(_ecm))
+            # Actor test
+            self.assertEqual(6, world.actor_by_name(_ecm, 'actor_test'))
+            self.assertEqual(1, world.actor_count(_ecm))
+            # Model Test
+            self.assertEqual(4, world.model_by_name(_ecm, 'model_test'))
+            self.assertEqual(1, world.model_count(_ecm))
 
         def on_udpate_cb(_info, _ecm):
             global iterations
