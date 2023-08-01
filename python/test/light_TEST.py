@@ -26,7 +26,7 @@ pre_iterations = 0
 
 # This class test the Light class API created with pybind11. Since the setters methods
 # require other systems to work (eg. Rendering sensors), those methods will not be fully
-# tested, just verifying the method is being called.  
+# tested, just verifying the method is being called.
 class TestLight(unittest.TestCase):
 
     def test_light(self):
