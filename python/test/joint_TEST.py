@@ -66,13 +66,13 @@ class TestJoint(unittest.TestCase):
             # Sensors Test
             self.assertEqual(8, joint.sensor_by_name(_ecm, 'sensor_test'))
             self.assertEqual(1, joint.sensor_count(_ecm))
-            # Velocity Test
-            self.assertEqual(None, joint.velocity(_ecm))
+            # Velocity Test.
             joint.enable_velocity_check(_ecm, True)
             joint.set_velocity(_ecm, [10])
-            # This should be 'self.assertEqual([10], joint.velocity(_ecm))'
-            self.assertEqual([], joint.velocity(_ecm))
-            joint.enable_velocity_check(_ecm, False)
+            if pre_iterations == 0:
+                self.assertEqual(None, joint.velocity(_ecm))
+            elif pre_iterations > 1:
+                self.assertAlmostEqual(10, joint.velocity(_ecm)[0])
             # Position Test
             self.assertEqual(None, joint.position(_ecm))
             joint.enable_position_check(_ecm, True)
