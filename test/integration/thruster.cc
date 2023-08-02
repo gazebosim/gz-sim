@@ -340,11 +340,12 @@ void ThrusterTest::TestWorld(const std::string &_world,
   msgs::Boolean db_msg;
   if (_namespace == "deadband")
   {
+    force = _deadband / 2.0;
     // disable the deadband
     db_msg.set_data(false);
     db_pub.Publish(db_msg);
-    // And we send a command that are below the deadband threshold
-    msg.set_data(_deadband / 2.0);
+    // And we send a command that is below the deadband threshold
+    msg.set_data(force);
     pub.Publish(msg);
     // When the deadband is disabled, any command value
     // (especially values below the deadband threshold) should move the model
@@ -360,16 +361,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_LT(0.1, modelPoses.back().Pos().X());
 
     // Check that the propeller are rotating
-    force = _deadband / 2.0;
     omega = sqrt(abs(force / (_density * _thrustCoefficient *
         pow(_diameter, 4))));
     // Account for negative thrust and/or negative thrust coefficient
     omega *= (force * _thrustCoefficient > 0 ? 1 : -1);
 
-    // for (unsigned int i = 0; i < propellerAngVels.size(); ++i)
-    // {
-    //   EXPECT_NEAR(omega, propellerAngVels[i].X(), omegaTol) << i;
-    // }
+    // it takes a few iteration to reach the speed
+    for (unsigned int i = 25; i < propellerAngVels.size(); ++i)
+    {
+      EXPECT_NEAR(omega, propellerAngVels[i].X(), omegaTol) << i;
+    }
     modelPoses.clear();
     propellerAngVels.clear();
     propellerLinVels.clear();
