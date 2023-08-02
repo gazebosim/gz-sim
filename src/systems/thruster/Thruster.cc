@@ -714,9 +714,12 @@ void Thruster::PreUpdate(
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
 
-  if (this->dataPtr->enableDeadband)
   {
-    this->dataPtr->ApplyDeadband(desiredThrust, desiredPropellerAngVel);
+    std::lock_guard<std::mutex> lock(this->dataPtr->deadbandMutex);
+    if (this->dataPtr->enableDeadband)
+    {
+      this->dataPtr->ApplyDeadband(desiredThrust, desiredPropellerAngVel);
+    }
   }
 
 
