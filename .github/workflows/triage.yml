@@ -14,4 +14,3 @@ jobs:
         with:
           project-url: https://github.com/orgs/gazebosim/projects/7
           github-token: ${{ secrets.TRIAGE_TOKEN }}
-
