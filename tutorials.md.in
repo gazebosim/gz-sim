@@ -32,6 +32,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage migrationjointapi "Joint API": Guide on what Joint C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage migrationactorapi "Actor API": Guide on what Actor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationsensorapi "Sensor API": Guide on what Sensor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo.
 
 ## Intermediate
