@@ -247,6 +247,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
     for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
         ++sleep)
     {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       fixture.Server()->Run(true, 100, false);
     }
     EXPECT_LT(sleep, maxSleep);
