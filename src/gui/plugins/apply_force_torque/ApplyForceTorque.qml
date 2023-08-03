@@ -37,8 +37,11 @@ GridLayout {
   // Precision of the GzSpinBoxes in decimal places
   property int decimalPlaces: 2
 
-  // Step size of the GzSpinBoxes
-  property double step: 1.0
+  // Step size of the force and torque
+  property double step: 100.0
+
+  // Step size of the offset
+  property double stepOffset: 1.0
 
   Label {
     Layout.columnSpan: 8
@@ -133,7 +136,7 @@ GridLayout {
     minimumValue: minValue
     value: 0
     decimals: decimalPlaces
-    stepSize: step
+    stepSize: stepOffset
     onValueChanged: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }
@@ -174,7 +177,7 @@ GridLayout {
     minimumValue: minValue
     value: 0
     decimals: decimalPlaces
-    stepSize: step
+    stepSize: stepOffset
     onValueChanged: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }
@@ -215,7 +218,7 @@ GridLayout {
     minimumValue: minValue
     value: 0
     decimals: decimalPlaces
-    stepSize: step
+    stepSize: stepOffset
     onValueChanged: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }

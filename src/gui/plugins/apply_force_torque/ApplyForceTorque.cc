@@ -497,6 +497,7 @@ void ApplyForceTorque::SetForce(QVector3D _force)
     this->dataPtr->vectorRot = math::Matrix4d::LookAt(
       -this->dataPtr->force, math::Vector3d::Zero).Rotation();
   }
+  emit this->ForceMagChanged();
 }
 
 /////////////////////////////////////////////////
@@ -539,6 +540,7 @@ void ApplyForceTorque::SetTorque(QVector3D _torque)
     this->dataPtr->vectorRot = math::Matrix4d::LookAt(
       -this->dataPtr->torque, math::Vector3d::Zero).Rotation();
   }
+  emit this->TorqueMagChanged();
 }
 
 /////////////////////////////////////////////////
@@ -678,6 +680,7 @@ void ApplyForceTorquePrivate::OnRender()
 /////////////////////////////////////////////////
 void ApplyForceTorquePrivate::UpdateVisuals()
 {
+  math::Pose3d inertialWorldPose = this->linkWorldPose * this->inertialPose;
   // Update force visualization
   if (this->force != math::Vector3d::Zero &&
       this->selectedEntity.has_value())
@@ -685,7 +688,7 @@ void ApplyForceTorquePrivate::UpdateVisuals()
     math::Vector3d worldForce =
       this->linkWorldPose.Rot().RotateVector(this->force);
     math::Vector3d applicationPoint =
-      this->linkWorldPose.Pos() + this->inertialPose.Pos() +
+      inertialWorldPose.Pos() +
       this->linkWorldPose.Rot().RotateVector(this->offset);
     double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
       / 2.0;
@@ -704,7 +707,7 @@ void ApplyForceTorquePrivate::UpdateVisuals()
     math::Vector3d worldTorque =
       this->linkWorldPose.Rot().RotateVector(this->torque);
     math::Vector3d applicationPoint =
-      this->linkWorldPose.Pos() + this->inertialPose.Pos();
+      inertialWorldPose.Pos();
     double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
       / 2.0;
     this->wrenchVis.UpdateVectorVisual(
@@ -724,14 +727,14 @@ void ApplyForceTorquePrivate::UpdateVisuals()
         && this->force != math::Vector3d::Zero)
     {
       pos =
-        this->linkWorldPose.Pos() + this->inertialPose.Pos() +
+        inertialWorldPose.Pos() +
         this->linkWorldPose.Rot().RotateVector(this->offset);
       u = this->force;
     }
     else if (this->vector == RotationToolVector::TORQUE
             && this->torque != math::Vector3d::Zero)
     {
-      pos = this->linkWorldPose.Pos() + this->inertialPose.Pos();
+      pos = inertialWorldPose.Pos();
       u = this->torque;
     }
     else
@@ -910,7 +913,8 @@ void ApplyForceTorquePrivate::HandleMouseEvents()
     }
 
     /// get start and end pos in world frame from 2d point
-    math::Vector3d pos = this->linkWorldPose.Pos() + this->inertialPose.Pos() +
+    math::Pose3d inertialWorldPose = this->linkWorldPose * this->inertialPose;
+    math::Vector3d pos = inertialWorldPose.Pos() +
       this->linkWorldPose.Rot().RotateVector(this->offset);
     double d = pos.Dot(axis);
     math::Planed plane(axis, d);
