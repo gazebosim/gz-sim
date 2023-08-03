@@ -49,7 +49,8 @@ namespace systems
   ///              This value is searched in the scoped name of all collision
   ///              entities, so it can possibly match more than one collision.
   ///              For example, using the name of a model will match all of its
-  ///              collisions (scoped name /model_name/link_name/collision_name).
+  ///              collisions (scoped name
+  ///              /model_name/link_name/collision_name).
   ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///
