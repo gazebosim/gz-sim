@@ -3049,7 +3049,7 @@
 1. Fix generation of systems library symlinks in build directory
     * [Pull request #1160](https://github.com/gazebosim/gz-sim/pull/1160)
 
-1. Backport sim::Util::validTopic() from gz-sim4.
+1. Backport sim::Util::validTopic() from ign-gazebo4.
     * [Pull request #1153](https://github.com/gazebosim/gz-sim/pull/1153)
 
 1. Support setting the background color for sensors
