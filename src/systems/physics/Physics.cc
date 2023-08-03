@@ -3746,7 +3746,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Using ExtraContactData to expose contact Norm, Force & Depth
   using Policy = physics::FeaturePolicy3d;
   using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>; 
+  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   // A contact is described by a contactPoint and the corresponding
   // extraContactData which we bundle in a pair data structure
@@ -3771,17 +3771,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
   for (const auto &contactComposite : allContacts)
   {
-    const auto &contactPoint = contactComposite.Get<WorldShapeType::ContactPoint>();
-    const auto &extraContactData =
-        contactComposite.Query<ExtraContactData>();
-    auto coll1Entity =
-      this->entityCollisionMap.GetByPhysicsId(contactPoint.collision1->EntityID());
-    auto coll2Entity =
-      this->entityCollisionMap.GetByPhysicsId(contactPoint.collision2->EntityID());
+    const auto &contactPoint =
+        contactComposite.Get<WorldShapeType::ContactPoint>();
+    const auto &extraContactData = contactComposite.Query<ExtraContactData>();
+    auto coll1Entity = this->entityCollisionMap.GetByPhysicsId(
+        contactPoint.collision1->EntityID());
+    auto coll2Entity = this->entityCollisionMap.GetByPhysicsId(
+        contactPoint.collision2->EntityID());
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      ContactData data = std::make_pair(&contactPoint, extraContactData); 
+      ContactData data = std::make_pair(&contactPoint, extraContactData);
       entityContactMap[coll1Entity][coll2Entity].push_back(data);
       entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }

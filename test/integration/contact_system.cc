@@ -273,7 +273,7 @@ TEST_F(ContactSystemTest,
 }
 
 /////////////////////////////////////////////////
-// The test checks that contacts are published with 
+// The test checks that contacts are published with
 // the correct extraContactData
 TEST_F(ContactSystemTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ExtraContactData))
@@ -321,34 +321,46 @@ TEST_F(ContactSystemTest,
     EXPECT_EQ(1, lastContacts.contact_size());
 
     // The sphere weighs 1kg and gravity is set to 9.81 m/s^2
-    // Hence the contact force should be m*g = 9.81 N 
+    // Hence the contact force should be m*g = 9.81 N
     // along the z-axis. The force on body 2 should be equal
-    // and opposite. 
+    // and opposite.
     // All torques should be zero.
     // The normal should align with the world z-axis
     for (const auto &contact : lastContacts.contact())
     {
       ASSERT_EQ(1, contact.wrench_size());
       ASSERT_EQ(1, contact.normal_size());
- 
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().x(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().y(), 5e-2);
-      EXPECT_NEAR(9.81, contact.wrench().Get(0).body_1_wrench().force().z(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().x(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().y(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().z(), 5e-2);
- 
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().x(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().y(), 5e-2);
-      EXPECT_NEAR(-9.81, contact.wrench().Get(0).body_2_wrench().force().z(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().x(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().y(), 5e-2);
-      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().z(), 5e-2);
- 
+
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().y(),
+                  5e-2);
+      EXPECT_NEAR(9.81, contact.wrench().Get(0).body_1_wrench().force().z(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().y(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().z(),
+                  5e-2);
+
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().y(),
+                  5e-2);
+      EXPECT_NEAR(-9.81, contact.wrench().Get(0).body_2_wrench().force().z(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().y(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().z(),
+                  5e-2);
+
       EXPECT_NEAR(0.0, contact.normal().Get(0).x(), 5e-2);
       EXPECT_NEAR(0.0, contact.normal().Get(0).y(), 5e-2);
       EXPECT_NEAR(1.0, contact.normal().Get(0).z(), 5e-2);
- 
+
     }
   }
 }
