@@ -22,16 +22,6 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
-#if __APPLE__
-// This is here to avoid segfaults on macOS tests. The segfaults
-// happen when components are registered by plugins and component creation is
-// attempted after the plugin that registered the component has been unloaded.
-// Including this header insures that all components are registered by the core
-// library ahead of any plugin.
-// TODO(azeey) Find a better solution for keeping track of component
-// registrations.
-#include "gz/sim/components/components.hh"
-#else
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/AirSpeedSensor.hh"
@@ -93,7 +83,6 @@
 #include "gz/sim/components/WideAngleCamera.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
-#endif
 
 class gz::sim::SdfEntityCreatorPrivate
 {
@@ -339,13 +328,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
-  for (const sdf::Plugin &p : _world->Plugins())
-  {
-    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
-        p.ToElement());
-    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -365,13 +347,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newModels)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newModels.clear();
 
@@ -379,13 +354,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newSensors)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newSensors.clear();
 
@@ -393,13 +361,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newVisuals)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newVisuals.clear();
 
@@ -543,13 +504,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
-  for (const sdf::Plugin &p : _actor->Plugins())
-  {
-    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
-        p.ToElement());
-    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  }
 
   return actorEntity;
 }
