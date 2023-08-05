@@ -572,7 +572,9 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
 
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
+        link.SetVisualizationLabel("Buoyancy");
         link.AddWorldWrench(_ecm, buoyancy, torque);
+        return true;
       }
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
@@ -624,9 +626,9 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         auto [force, torque] = this->dataPtr->ResolveForces(linkWorldPose);
         // Apply the wrench to the link. This wrench is applied in the
         // Physics System.
+        link.SetVisualizationLabel("Buoyancy");
         link.AddWorldWrench(_ecm, force, torque);
       }
-
       return true;
   });
 }

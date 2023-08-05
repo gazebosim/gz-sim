@@ -6,7 +6,7 @@
 
   Try sending commands:
 
-    gz topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
+    gz topic -t "/model/lift_drag_demo_model/joint/rod_1_joint/cmd_vel" -m gz.msgs.Double -p "data: 500.0"
 
   Listen to joint states:
 
@@ -15,6 +15,11 @@
 -->
 <sdf version="1.6">
   <world name="lift_drag">
+    <physics name="1ms" type="ignore">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -226,7 +231,7 @@
           </limit>
           <xyz>0.0 0.0 -1.0</xyz>
           <dynamics>
-            <damping>0.0001</damping>
+            <damping>0.001</damping>
           </dynamics>
         </axis>
         <physics>
@@ -278,10 +283,15 @@
         <upward>0 0 1</upward>
         <link_name>blade_2</link_name>
       </plugin>
+
       <plugin
-        filename="gz-sim-apply-joint-force-system"
-        name="gz::sim::systems::ApplyJointForce">
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
         <joint_name>rod_1_joint</joint_name>
+        <use_force_commands>true</use_force_commands>
+        <p_gain>1.0</p_gain>
+        <i_gain>0.1</i_gain>
+        <d_gain>0.0</d_gain>
       </plugin>
     </model>
   </world>
