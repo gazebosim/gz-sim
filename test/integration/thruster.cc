@@ -17,12 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Link.hh"
@@ -55,12 +57,16 @@ class ThrusterTest : public InternalFixture<::testing::Test>
   /// \param[in] _useAngVelCmd Send commands in angular velocity instead of
   /// force
   /// \param[in] _mass Mass of the body being propelled.
+  /// \param[in] _deadband deadband value in newtons
+  /// \param[in] _dp_topic deadband enable topic
   public: void TestWorld(const std::string &_world,
       const std::string &_namespace, const std::string &_topic,
       double _thrustCoefficient, double _density, double _diameter,
       double _baseTol, double _wakeFraction = 0.2, double _alpha_1 = 1,
       double _alpha_2 = 0, bool _calculateCoefficient = false,
-      bool _useAngVelCmd = false, double _mass = 100.1);
+      bool _useAngVelCmd = false, double _mass = 100.1,
+      double _deadband = 0,
+      const std::string &_db_topic = std::string());
 };
 
 //////////////////////////////////////////////////
@@ -68,7 +74,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
     const std::string &_namespace, const std::string &_topic,
     double _thrustCoefficient, double _density, double _diameter,
     double _baseTol, double _wakeFraction, double _alpha1, double _alpha2,
-    bool _calculateCoefficient, bool _useAngVelCmd, double _mass)
+    bool _calculateCoefficient, bool _useAngVelCmd, double _mass,
+    double _deadband, const std::string &_db_topic)
 {
   // Start server
   ServerConfig serverConfig;
@@ -152,15 +159,35 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // Publish command and check that vehicle moved
   transport::Node node;
   auto pub = node.Advertise<msgs::Double>(_topic);
+  transport::Node::Publisher db_pub;
+  if (!_db_topic.empty()) {
+    // create publisher only if topic is not empty, otherwise tests will get
+    // get complains
+    db_pub = node.Advertise<msgs::Boolean>(_db_topic);
+  }
 
   int sleep{0};
   int maxSleep{30};
-  for (; !pub.HasConnections() && sleep < maxSleep; ++sleep)
+  if (_namespace != "deadband")
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    for (; !pub.HasConnections() && sleep < maxSleep; ++sleep) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+  }
+  else
+  {
+    for (;
+         !(pub.HasConnections() && db_pub.HasConnections()) && sleep < maxSleep;
+         ++sleep) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
   }
   EXPECT_LT(sleep, maxSleep);
   EXPECT_TRUE(pub.HasConnections());
+  if (_namespace == "deadband")
+  {
+    EXPECT_TRUE(db_pub.HasConnections());
+  }
 
   // Test the cmd limits specified in the world file. These should be:
   //    if (use_angvel_cmd && thrust_coefficient < 0):
@@ -170,13 +197,20 @@ void ThrusterTest::TestWorld(const std::string &_world,
   //        min_thrust = 0
   //        max_thrust = 300
   double invalidCmd = (_useAngVelCmd && _thrustCoefficient < 0) ? 1000 : -1000;
+  if (_namespace == "deadband")
+  {
+    // an invalid command in case the deadband is enabled is a command
+    // below the deadband threshold
+    invalidCmd = _deadband / 2.0;
+    // note that in the deadband world, deadband is enabled by default,
+    // because the deadband parameter is specified.
+  }
   msgs::Double msg;
   msg.set_data(invalidCmd);
   pub.Publish(msg);
 
-  // Check no movement
+  // Check no movement because of invalid commands
   fixture.Server()->Run(true, 100, false);
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
@@ -285,14 +319,67 @@ void ThrusterTest::TestWorld(const std::string &_world,
       {
         EXPECT_NEAR(0.0, angVel.X(), _baseTol);
       }
+      else if (_namespace == "deadband")
+      {
+        continue;
+      }
       else
       {
-        EXPECT_NEAR(omega, angVel.X(), omegaTol) << i;
+        ASSERT_NEAR(omega, angVel.X(), omegaTol) << i;
       }
     }
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
+
+  modelPoses.clear();
+  propellerAngVels.clear();
+  propellerLinVels.clear();
+  // Make sure that when the deadband is disabled
+  // commands below the deadband should create a movement
+  auto latest_pose = modelPoses.back();
+  msgs::Boolean db_msg;
+  if (_namespace == "deadband")
+  {
+    force = _deadband / 2.0;
+    // disable the deadband
+    db_msg.set_data(false);
+    db_pub.Publish(db_msg);
+    // And we send a command that is below the deadband threshold
+    msg.set_data(force);
+    pub.Publish(msg);
+    // When the deadband is disabled, any command value
+    // (especially values below the deadband threshold) should move the model
+    fixture.Server()->Run(true, 1000, false);
+
+    // make sure we have run a 1000 times
+    EXPECT_EQ(1000u, modelPoses.size());
+    EXPECT_EQ(1000u, propellerAngVels.size());
+    EXPECT_EQ(1000u, propellerLinVels.size());
+
+    // the model should have moved. Note that the distance moved is small
+    // This is because we are sending small forces (deadband/2)
+    EXPECT_LT(0.1, modelPoses.back().Pos().X());
+
+    // Check that the propeller are rotating
+    omega = sqrt(abs(force / (_density * _thrustCoefficient *
+        pow(_diameter, 4))));
+    // Account for negative thrust and/or negative thrust coefficient
+    omega *= (force * _thrustCoefficient > 0 ? 1 : -1);
+
+    // it takes a few iteration to reach the speed
+    for (unsigned int i = 25; i < propellerAngVels.size(); ++i)
+    {
+      EXPECT_NEAR(omega, propellerAngVels[i].X(), omegaTol) << i;
+    }
+    modelPoses.clear();
+    propellerAngVels.clear();
+    propellerLinVels.clear();
+    // re-enable the deadband
+    db_msg.set_data(true);
+    db_pub.Publish(db_msg);
+  }
+
 }
 
 /////////////////////////////////////////////////
@@ -307,7 +394,7 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AngVelCmdControl))
 
   //  Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, ns, topic, 0.005, 950, 0.2, 1e-2, 0.2, 1, 0, false,
-      true, 100.01);
+                  true, 100.01);
 }
 
 /////////////////////////////////////////////////
@@ -392,4 +479,20 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ThrustCoefficient))
 
   // Tolerance is high because the joint command disturbs the vehicle body
   this->TestWorld(world, ns, topic, 1, 950, 0.25, 1e-2, 0.2, 0.9, 0.01, true);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ThrusterDeadBand))
+{
+  const std::string ns = "deadband";
+  const std::string topic = "/model/" + ns +
+      "/joint/propeller_joint/cmd_thrust";
+  const std::string db_topic = "/model/" + ns +
+      "/joint/propeller_joint/enable_deadband";
+  auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "thruster_deadband.sdf");
+
+  // Tolerance is high because the joint command disturbs the vehicle body
+  this->TestWorld(world, ns, topic, 0.005, 950, 0.25, 1e-2, 0.2, 0.9, 0.01,
+                  false, false, 100.1, 50.0, db_topic);
 }

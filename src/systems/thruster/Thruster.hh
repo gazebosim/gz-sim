@@ -85,6 +85,11 @@ namespace systems
   ///                      [Optional, defaults to 1000N or 1000rad/s]
   /// - <min_thrust_cmd> - Minimum input thrust or angular velocity command.
   ///                      [Optional, defaults to -1000N or -1000rad/s]
+  /// - <deadband> - Deadband of the thruster. Absolute value below which the
+  ///                thruster won't spin nor generate thrust. This value can
+  ///                be changed at runtime using a topic. The topic is either
+  ///                `/model/{ns}/joint/{jointName}/enable_deadband` or
+  ///                `{ns}/{topic}/enable_deadband` depending on other params
   /// - <wake_fraction>  - Relative speed reduction between the water
   ///                      at the propeller (Va) vs behind the vessel.
   ///                      [Optional, defults to 0.2]
