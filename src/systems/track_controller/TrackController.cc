@@ -17,8 +17,6 @@
 
 #include "TrackController.hh"
 
-#include <gz/msgs/odometry.pb.h>
-
 #include <limits>
 #include <mutex>
 #include <string>
@@ -27,6 +25,7 @@
 
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/marker.pb.h>
+#include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/Utility.hh>
 
 #include <gz/math/eigen3.hh>
