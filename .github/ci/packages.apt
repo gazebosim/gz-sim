@@ -32,7 +32,7 @@ python3-distutils
 python3-gz-math7
 python3-pybind11
 python3-pytest
-python3-sdformat13
+python3-sdformat14
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
 qml-module-qtgraphicaleffects
