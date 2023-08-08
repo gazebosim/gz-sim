@@ -17,8 +17,8 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz.sim8 import TestFixture, Link, Model, World, world_entity
-from gz.math7 import Matrix3d, Vector3d
+from gz_test_deps.sim import TestFixture, Link, Model, World, world_entity
+from gz_test_deps.math import Matrix3d, Vector3d
 
 post_iterations = 0
 iterations = 0
