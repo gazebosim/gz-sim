@@ -86,7 +86,7 @@ namespace systems
   ///   and instantaneous velocity) is published. This can be used e.g. to
   ///   simulate a conveyor with encoder feedback.
   ///   Defaults to `/model/${model_name}/link/${link_name}/odometry`.
-  /// 
+  ///
   /// `<odometry_publish_frequency>` the frequency (in Hz) at which the
   ///   odometry messages are published. Defaults to 50 Hz.
   ///
