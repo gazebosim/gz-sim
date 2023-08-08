@@ -18,8 +18,8 @@ import time
 import unittest
 
 from gz.common import set_verbosity
-from gz.sim8 import Actor, TestFixture, World, world_entity
-from gz.math7 import Pose3d
+from gz_test_deps.sim import Actor, TestFixture, World, world_entity
+from gz_test_deps.math import Pose3d
 
 post_iterations = 0
 iterations = 0
