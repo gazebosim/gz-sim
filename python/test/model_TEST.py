@@ -17,7 +17,7 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz.sim8 import TestFixture, Model, World, world_entity
+from gz_test_deps.sim import TestFixture, Model, World, world_entity
 
 post_iterations = 0
 iterations = 0
