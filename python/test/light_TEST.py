@@ -17,8 +17,8 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz.sim8 import Light, TestFixture, World, world_entity
-from gz.math7 import Angle, Color, Pose3d, Vector3d
+from gz_test_deps.sim import Light, TestFixture, World, world_entity
+from gz_test_deps.math import Angle, Color, Pose3d, Vector3d
 
 post_iterations = 0
 iterations = 0
