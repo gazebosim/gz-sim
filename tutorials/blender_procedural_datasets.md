@@ -93,7 +93,7 @@ blender [blender options] file.blend
 4. Run the script using the *Run script* button in the panel of the
    *Text Editor* tab at the top of the screen.
 
-@image html https://github.com/gazebosim/gz-sim/tree/main/tutorials/files/blender_procedural_datasets/blender_instructions.png "Instructions in Blender" width=100%
+![Instructions in Blender](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/blender_instructions.png)
 
 Once you follow these steps and configure the script for your `.blend` project,
 you can save it and use Option B in the future.

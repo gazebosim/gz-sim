@@ -213,21 +213,6 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
   }
-  else if (_event->type() == gz::sim::gui::events::VisualPlugin::kType)
-  {
-    auto visualPluginEvent =
-      reinterpret_cast<gui::events::VisualPlugin *>(_event);
-    if (visualPluginEvent)
-    {
-      std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
-
-      Entity entity = visualPluginEvent->Entity();
-      sdf::ElementPtr pluginElem = visualPluginEvent->Element();
-      sdf::Plugin plugin;
-      plugin.Load(pluginElem);
-      this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
-    }
-  }
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
