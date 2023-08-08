@@ -171,7 +171,7 @@ static Entity FindDescendentLinkEntityByName(const std::string &_name,
                                              const Entity &_model,
                                              const EntityComponentManager &_ecm)
 {
-  auto ind = _name.find(sdf::kSdfScopeDelimiter);
+  auto ind = _name.find(sdf::kScopeDelimiter);
   std::vector<Entity> candidates;
   if (ind != std::string::npos)
   {
