@@ -605,9 +605,9 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
   math::Vector3d torqueToApply = _applyTorque ?
     this->linkWorldPose.Rot().RotateVector(this->torque) :
     math::Vector3d::Zero;
-  // The ApplyLinkWrench system takes the offset in the inertial frame
+  // The ApplyLinkWrench system takes the offset in the link frame
   math::Vector3d offsetToApply = _applyForce ?
-    this->inertialPose.Rot().RotateVectorReverse(this->offset) :
+    this->offset + this->inertialPose.Pos() :
     math::Vector3d::Zero;
 
   msgs::EntityWrench msg;
