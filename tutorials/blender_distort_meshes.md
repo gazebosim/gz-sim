@@ -25,7 +25,7 @@ If newer versions do not work for you, Blender 2.92 can be found
 ## Usage
 
 Locate or download the Blender Python
-[script](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/scripts/blender/distort_mesh.py).
+[script](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/scripts/blender/distort_mesh.py).
 
 Launch the Blender GUI.
 

@@ -305,6 +305,3 @@ GZ_ADD_PLUGIN(AirSpeed, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(AirSpeed, "gz::sim::systems::AirSpeed")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AirSpeed, "ignition::gazebo::systems::AirSpeed")
