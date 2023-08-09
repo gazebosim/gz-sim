@@ -81,15 +81,16 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
 /// it's a model, its canonical link is returned.
 /// \param[out] Force to apply.
 /// \param[out] Torque to apply.
+/// \param[out] Offset of the force application point expressed in the link
+/// frame.
 /// \return Target link entity.
 Link decomposeMessage(const EntityComponentManager &_ecm,
     const msgs::EntityWrench &_msg, math::Vector3d &_force,
-    math::Vector3d &_torque)
+    math::Vector3d &_torque, math::Vector3d &_offset)
 {
   if (_msg.wrench().has_force_offset())
   {
-    gzwarn << "Force offset currently not supported, it will be ignored."
-            << std::endl;
+    _offset = msgs::Convert(_msg.wrench().force_offset());
   }
 
   if (_msg.wrench().has_force())
@@ -270,8 +271,9 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     auto msg = this->dataPtr->newWrenches.front();
 
     math::Vector3d force;
+    math::Vector3d offset;
     math::Vector3d torque;
-    auto link = decomposeMessage(_ecm, msg, force, torque);
+    auto link = decomposeMessage(_ecm, msg, force, torque, offset);
     if (!link.Valid(_ecm))
     {
       gzerr << "Entity not found." << std::endl
@@ -280,11 +282,12 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       continue;
     }
 
-    link.AddWorldWrench(_ecm, force, torque);
+    link.AddWorldWrench(_ecm, force, torque, offset);
 
     if (this->dataPtr->verbose)
     {
-      gzdbg << "Applying wrench [" << force << " " << torque << "] to entity ["
+      gzdbg << "Applying wrench [" << force << " " << torque
+            << "] with force offset [" << offset << "] to entity ["
             << link.Entity() << "] for 1 time step." << std::endl;
     }
 
@@ -295,15 +298,16 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
   for (auto msg : this->dataPtr->persistentWrenches)
   {
     math::Vector3d force;
+    math::Vector3d offset;
     math::Vector3d torque;
-    auto link = decomposeMessage(_ecm, msg, force, torque);
+    auto link = decomposeMessage(_ecm, msg, force, torque, offset);
     if (!link.Valid(_ecm))
     {
       // Not an error, persistent wrenches can be applied preemptively before
       // an entity is inserted
       continue;
     }
-    link.AddWorldWrench(_ecm, force, torque);
+    link.AddWorldWrench(_ecm, force, torque, offset);
   }
 }
 
