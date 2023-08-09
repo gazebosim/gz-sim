@@ -5,6 +5,16 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 7.x to 8.0
+* **Deprecated**
+    + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and
+      `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)`
+       have been deprecated. Instead, please use
+       `gz::sim::components::Factory::Register(const char *_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId  _regObjId)`
+    + `gz::sim::components::Factory::Unregister()` has been deprecated. Instead, please use
+       `gz::sim::components::Factory::Unregister(RegistrationObjectId  _regObjId)`.
+* The type of the static data member `gz::sim::components::Component::typeName` has been changed from `std::string` to `const char*`.
+
 ## Gazebo Sim 6.x to 7.0
 
 * **Deprecated**
