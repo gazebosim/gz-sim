@@ -434,21 +434,13 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Link::AddWorldWrenchRelativeToCOM(EntityComponentManager &_ecm,
-                                      const math::Vector3d &_force,
-                                      const math::Vector3d &_offset,
-                                      const math::Vector3d &_torque) const
+void Link::AddWorldWrench(EntityComponentManager &_ecm,
+                          const math::Vector3d &_force,
+                          const math::Vector3d &_offset,
+                          const math::Vector3d &_torque) const
 {
-  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);
-
-  // Can't apply force if the inertial's pose is not found
-  if (!inertial)
-  {
-    gzdbg << "Inertial Component not found" << std::endl;
-    return;
-  }
   math::Pose3d linkWorldPose;
+  auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);
   if (worldPoseComp)
   {
     linkWorldPose = worldPoseComp->Data();
@@ -458,18 +450,13 @@ void Link::AddWorldWrenchRelativeToCOM(EntityComponentManager &_ecm,
     linkWorldPose = worldPose(this->dataPtr->id, _ecm);
   }
 
-  // We want the force to be applied at an offset from the center of mass, but
-  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
-  // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord = linkWorldPose.Rot().RotateVector(
-    inertial->Data().Pose().Rot().RotateVector(_offset) +
-    inertial->Data().Pose().Pos());
-
+  // We want the force to be applied at an offset from the link origin, so we
+  // must compute the resulting force and torque on the link origin.
+  auto posComWorldCoord = linkWorldPose.Rot().RotateVector(_offset);
   math::Vector3d torqueWithOffset = _torque + posComWorldCoord.Cross(_force);
 
   auto linkWrenchComp =
     _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
-
   if (!linkWrenchComp)
   {
     components::ExternalWorldWrenchCmd wrench;

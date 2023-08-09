@@ -80,8 +80,8 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
 /// \param[in] _msg Entity message. If it's a link, that link is returned. If
 /// it's a model, its canonical link is returned.
 /// \param[out] Force to apply.
-/// \param[out] Offset of the force application point relative to the
-/// link's center of mass.
+/// \param[out] Offset of the force application point expressed in the link
+/// frame.
 /// \param[out] Torque to apply.
 /// \return Target link entity.
 Link decomposeMessage(const EntityComponentManager &_ecm,
@@ -282,7 +282,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       continue;
     }
 
-    link.AddWorldWrenchRelativeToCOM(_ecm, force, offset, torque);
+    link.AddWorldWrench(_ecm, force, offset, torque);
 
     if (this->dataPtr->verbose)
     {
@@ -307,7 +307,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       // an entity is inserted
       continue;
     }
-    link.AddWorldWrenchRelativeToCOM(_ecm, force, offset, torque);
+    link.AddWorldWrench(_ecm, force, offset, torque);
   }
 }
 

@@ -39,8 +39,7 @@ namespace systems
   /// will receive it. No other entity types are supported.
   ///
   /// Forces and torques are expressed in world coordinates, and the force
-  /// offset is expressed in the link's inertial frame (i.e., relative to the
-  /// center of mass)
+  /// offset is expressed in the link frame.
   ///
   /// ## Topics
   ///
