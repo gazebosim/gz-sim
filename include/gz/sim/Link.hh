@@ -307,15 +307,14 @@ namespace gz
                                  const math::Vector3d &_torque) const;
 
       /// \brief Add a wrench expressed in world coordinates and applied to
-      /// the link at the given offset from its center of mass. This wrench
+      /// the link at an offset from the link's origin. This wrench
       /// is applied for one simulation step.
       /// \param[in] _ecm Mutable Entity-component manager.
       /// \param[in] _force Force to be applied expressed in world coordinates
       /// \param[in] _offset The point of application of the force expressed
-      /// in the link's inertial frame and relative to the center of mass
+      /// in the link frame
       /// \param[in] _torque Torque to be applied expressed in world coordinates
-      public: void AddWorldWrenchRelativeToCOM(
-                                EntityComponentManager &_ecm,
+      public: void AddWorldWrench(EntityComponentManager &_ecm,
                                 const math::Vector3d &_force,
                                 const math::Vector3d &_offset,
                                 const math::Vector3d &_torque) const;
