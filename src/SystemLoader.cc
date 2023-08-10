@@ -208,39 +208,6 @@ void SystemLoader::AddSystemPluginPath(const std::string &_path)
 
 //////////////////////////////////////////////////
 std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
-  const std::string &_filename,
-  const std::string &_name,
-  const sdf::ElementPtr &_sdf)
-{
-  if (_filename == "")
-  {
-    gzerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _filename << "] " << std::endl;
-    return {};
-  }
-
-  sdf::Plugin plugin;
-  plugin.Load(_sdf);
-  plugin.SetFilename(_filename);
-  plugin.SetName(_name);
-  return LoadPlugin(plugin);
-}
-
-//////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
-  const sdf::ElementPtr &_sdf)
-{
-  if (nullptr == _sdf)
-  {
-    return {};
-  }
-  sdf::Plugin plugin;
-  plugin.Load(_sdf);
-  return LoadPlugin(plugin);
-}
-
-//////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
     const sdf::Plugin &_plugin)
 {
   if (_plugin.Filename() == "")

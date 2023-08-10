@@ -13,7 +13,7 @@ libgz-fuel-tools9-dev
 libgz-gui8-dev
 libgz-math7-eigen3-dev
 libgz-msgs10-dev
-libgz-physics6-dev
+libgz-physics7-dev
 libgz-plugin2-dev
 libgz-rendering8-dev
 libgz-sensors8-dev
@@ -24,7 +24,7 @@ libogre-1.9-dev
 libogre-next-2.3-dev
 libprotobuf-dev
 libprotoc-dev
-libsdformat13-dev
+libsdformat14-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev
@@ -32,6 +32,7 @@ python3-distutils
 python3-gz-math7
 python3-pybind11
 python3-pytest
+python3-sdformat14
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
 qml-module-qtgraphicaleffects

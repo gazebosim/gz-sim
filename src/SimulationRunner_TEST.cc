@@ -1277,19 +1277,6 @@ TEST_P(SimulationRunnerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(visualComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(visualId,
       visualComponentId));
-
-  // Clang re-registers components between tests. If we don't unregister them
-  // beforehand, the new plugin tries to create a storage type from a previous
-  // plugin, causing a crash.
-  // Is this only a problem with GTest, or also during simulation? How to
-  // reproduce? Maybe we need to test unloading plugins, but we have no API for
-  // it yet.
-  #if defined (__clang__)
-    Factory::Instance()->Unregister(worldComponentId);
-    Factory::Instance()->Unregister(modelComponentId);
-    Factory::Instance()->Unregister(sensorComponentId);
-    Factory::Instance()->Unregister(visualComponentId);
-  #endif
 }
 
 /////////////////////////////////////////////////
@@ -1402,18 +1389,6 @@ TEST_P(SimulationRunnerTest,
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
       sensorComponentId));
-
-  // Clang re-registers components between tests. If we don't unregister them
-  // beforehand, the new plugin tries to create a storage type from a previous
-  // plugin, causing a crash.
-  // Is this only a problem with GTest, or also during simulation? How to
-  // reproduce? Maybe we need to test unloading plugins, but we have no API for
-  // it yet.
-  #if defined (__clang__)
-    Factory::Instance()->Unregister(worldComponentId);
-    Factory::Instance()->Unregister(modelComponentId);
-    Factory::Instance()->Unregister(sensorComponentId);
-  #endif
 }
 
 /////////////////////////////////////////////////

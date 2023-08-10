@@ -239,11 +239,6 @@ void LevelManager::ReadLevelPerformerInfo()
   this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
       this->runner->sdfWorld->Plugins());
 
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
-      this->runner->sdfWorld->Element());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
   // Store the world's SDF DOM to be used when saving the world to file
   this->runner->entityCompMgr.CreateComponent(
       worldEntity, components::WorldSdf(*this->runner->sdfWorld));

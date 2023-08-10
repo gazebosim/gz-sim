@@ -9,7 +9,7 @@ In addition to the API, we have also expanded the simulation system API with a R
 System authors may now choose to implement the Reset interface to have a more intelligent
 reset process (avoiding reloading assets or regenerating scene graphs being the motivating examples).
 Since this interface is opt-in, systems that don't implement the API will still be reset via destruction and reconstruction.
-The [physics](https://github.com/gazebosim/gz-sim/blob/gz-sim7/src/systems/physics/Physics.cc#L928-L937) and [rendering systems](https://github.com/gazebosim/gz-sim/blob/gz-sim7/src/systems/scene_broadcaster/SceneBroadcaster.cc#L452-L458) are the first two to implement this optimized reset functionality, with more to come as it makes sense to.
+The [physics](https://github.com/gazebosim/gz-sim/blob/gz-sim8/src/systems/physics/Physics.cc#L928-L937) and [rendering systems](https://github.com/gazebosim/gz-sim/blob/gz-sim8/src/systems/scene_broadcaster/SceneBroadcaster.cc#L452-L458) are the first two to implement this optimized reset functionality, with more to come as it makes sense to.
 
 Following the tutorial \subpage createsystemplugins we should implement `ISystemReset` interface.
 
