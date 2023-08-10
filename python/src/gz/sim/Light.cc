@@ -34,6 +34,7 @@ void defineSimLight(py::object module)
 {
   py::class_<gz::sim::Light>(module, "Light")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Light>())
   .def("entity", &gz::sim::Light::Entity,
       "Get the entity which this light is related to.")
   .def("reset_entity", &gz::sim::Light::ResetEntity,
@@ -147,7 +148,17 @@ void defineSimLight(py::object module)
       "Set fall off value for this light. Applies to spot lights only.")
   .def("parent", &gz::sim::Light::Parent,
       py::arg("ecm"),
-      "Get the parent entity. This can be a world or a link.");
+      "Get the parent entity. This can be a world or a link.")
+  .def("__copy__",
+      [](const gz::sim::Light &self)
+      {
+        return gz::sim::Light(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Light &self, pybind11::dict)
+      {
+        return gz::sim::Light(self);
+      });
 }
 }  // namespace python
 }  // namespace sim
