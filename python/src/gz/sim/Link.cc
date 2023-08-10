@@ -33,6 +33,7 @@ void defineSimLink(py::object module)
 {
   py::class_<gz::sim::Link>(module, "Link")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Link>())
   .def("entity", &gz::sim::Link::Entity,
       "Get the entity which this Link is related to.")
   .def("reset_entity", &gz::sim::Link::ResetEntity,
@@ -153,7 +154,17 @@ void defineSimLink(py::object module)
       py::arg("torque"),
       "Add a wrench expressed in world coordinates and applied to "
       "the link at the link's origin. This wrench is applied for one "
-      "simulation step.");
+      "simulation step.")
+  .def("__copy__", 
+      [](const gz::sim::Link &self)
+      {
+        return gz::sim::Link(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Link &self, pybind11::dict)
+      {
+        return gz::sim::Link(self);
+      });
 }
 }  // namespace python
 }  // namespace sim

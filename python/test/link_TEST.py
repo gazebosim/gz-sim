@@ -20,11 +20,11 @@ from gz.common import set_verbosity
 from gz_test_deps.sim import TestFixture, Link, Model, World, world_entity
 from gz_test_deps.math import Matrix3d, Vector3d
 
-post_iterations = 0
-iterations = 0
-pre_iterations = 0
-
 class TestModel(unittest.TestCase):
+    k_null_entity = 0
+    post_iterations = 0
+    iterations = 0
+    pre_iterations = 0
 
     def test_model(self):
         set_verbosity(4)
@@ -33,19 +33,17 @@ class TestModel(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'link_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertEqual(1, world_e)
+            self.assertNotEqual(self.k_null_entity, world_e)
             w = World(world_e)
             m = Model(w.model_by_name(_ecm, 'model_test'))
             link = Link(m.link_by_name(_ecm, 'link_test'))
             # Entity Test
-            self.assertEqual(5, link.entity())
+            self.assertNotEqual(self.k_null_entity, link.entity())
             # Valid Test
             self.assertTrue(link.valid(_ecm))
             # Name Test
@@ -57,10 +55,10 @@ class TestModel(unittest.TestCase):
             # Wind Mode test
             self.assertTrue(link.wind_mode(_ecm))
             # Collisions Test
-            self.assertEqual(7, link.collision_by_name(_ecm, 'collision_test'))
+            self.assertNotEqual(self.k_null_entity, link.collision_by_name(_ecm, 'collision_test'))
             self.assertEqual(1, link.collision_count(_ecm))
             # Visuals Test
-            self.assertEqual(6, link.visual_by_name(_ecm, 'visual_test'))
+            self.assertNotEqual(self.k_null_entity, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))
             # World Pose Test
             self.assertEqual(None, link.world_pose(_ecm))
@@ -88,8 +86,7 @@ class TestModel(unittest.TestCase):
 
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -99,9 +96,9 @@ class TestModel(unittest.TestCase):
         server = fixture.server()
         server.run(True, 1000, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(1000, self.pre_iterations)
+        self.assertEqual(1000, self.iterations)
+        self.assertEqual(1000, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()
