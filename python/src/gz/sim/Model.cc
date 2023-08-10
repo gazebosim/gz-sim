@@ -32,6 +32,7 @@ void defineSimModel(py::object module)
 {
   py::class_<gz::sim::Model>(module, "Model")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Model>())
   .def("entity", &gz::sim::Model::Entity,
       "Get the entity which this Model is related to.")
   .def("valid", &gz::sim::Model::Valid,
@@ -88,7 +89,17 @@ void defineSimModel(py::object module)
       "Set a command to change the model's pose.")
   .def("canonical_link", &gz::sim::Model::CanonicalLink,
       py::arg("ecm"),
-      "Get the model's canonical link entity.");
+      "Get the model's canonical link entity.")
+  .def("__copy__",
+      [](const gz::sim::Model &self)
+      {
+        return gz::sim::Model(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Model &self, pybind11::dict)
+      {
+        return gz::sim::Model(self);
+      });
 }
 }  // namespace python
 }  // namespace sim

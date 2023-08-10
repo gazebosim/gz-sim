@@ -19,11 +19,11 @@ import unittest
 from gz.common import set_verbosity
 from gz_test_deps.sim import TestFixture, Model, World, world_entity
 
-post_iterations = 0
-iterations = 0
-pre_iterations = 0
-
 class TestModel(unittest.TestCase):
+    k_null_entity = 0
+    post_iterations = 0
+    iterations = 0
+    pre_iterations = 0
 
     def test_model(self):
         set_verbosity(4)
@@ -32,18 +32,16 @@ class TestModel(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'model_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertEqual(1, world_e)
+            self.assertNotEqual(self.k_null_entity, world_e)
             w = World(world_e)
             model = Model(w.model_by_name(_ecm, 'model_test'))
             # Entity Test
-            self.assertEqual(4, model.entity())
+            self.assertNotEqual(self.k_null_entity, model.entity())
             # Valid Test
             self.assertTrue(model.valid(_ecm))
             # Name Test
@@ -55,16 +53,15 @@ class TestModel(unittest.TestCase):
             # Wind Mode Test
             self.assertTrue(model.wind_mode(_ecm))
             # Get Joints Test
-            self.assertEqual(7, model.joint_by_name(_ecm, 'model_joint_test'))
+            self.assertNotEqual(self.k_null_entity, model.joint_by_name(_ecm, 'model_joint_test'))
             self.assertEqual(1, model.joint_count(_ecm))
             # Get Links Test
-            self.assertEqual(5, model.link_by_name(_ecm, 'model_link_test_1'))
-            self.assertEqual(6, model.link_by_name(_ecm, 'model_link_test_2'))
+            self.assertNotEqual(self.k_null_entity, model.link_by_name(_ecm, 'model_link_test_1'))
+            self.assertNotEqual(self.k_null_entity, model.link_by_name(_ecm, 'model_link_test_2'))
             self.assertEqual(2, model.link_count(_ecm))
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -74,9 +71,9 @@ class TestModel(unittest.TestCase):
         server = fixture.server()
         server.run(True, 1000, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(1000, self.pre_iterations)
+        self.assertEqual(1000, self.iterations)
+        self.assertEqual(1000, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()

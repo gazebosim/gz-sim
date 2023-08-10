@@ -15,7 +15,7 @@
                 <pose>0 0 0 0 0 0</pose>
             </link>
 
-            <joint name="model_joint_test" type="revolute">
+            <joint name="model_joint_test" type="fixed">
                 <parent>model_link_test_1</parent>
                 <child>model_link_test_2</child>
             </joint>
