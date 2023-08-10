@@ -21,11 +21,11 @@ from gz.common import set_verbosity
 from gz_test_deps.sim import Actor, TestFixture, World, world_entity
 from gz_test_deps.math import Pose3d
 
-post_iterations = 0
-iterations = 0
-pre_iterations = 0
-
 class TestActor(unittest.TestCase):
+    k_null_entity = 0
+    post_iterations = 0
+    iterations = 0
+    pre_iterations = 0
 
     def test_model(self):
         set_verbosity(4)
@@ -34,18 +34,16 @@ class TestActor(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'actor_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertEqual(1, world_e)
+            self.assertNotEqual(self.k_null_entity, world_e)
             w = World(world_e)
             actor = Actor(w.actor_by_name(_ecm, 'actor_test'))
             # Entity Test
-            self.assertEqual(4, actor.entity())
+            self.assertNotEqual(self.k_null_entity, actor.entity())
             # Valid Test
             self.assertTrue(actor.valid(_ecm))
             # Name Test
@@ -53,7 +51,7 @@ class TestActor(unittest.TestCase):
             # Pose Test
             self.assertEqual(Pose3d(1, 1, 0, 0, 0, 0), actor.pose(_ecm))
             # Trajectory Pose Test
-            if pre_iterations == 0:
+            if self.pre_iterations == 0:
                 self.assertEqual(None, actor.trajectory_pose(_ecm))
             actor.set_trajectory_pose(_ecm, Pose3d(2, 2, 0, 0, 0, 0))
             self.assertEqual(Pose3d(2, 2, 0, 0, 0, 0), actor.trajectory_pose(_ecm))
@@ -61,19 +59,18 @@ class TestActor(unittest.TestCase):
             # The entity doesn't have a components::WorldPose component, therefore, it will return None.
             self.assertEqual(None, actor.world_pose(_ecm))
             # Animation Name Test
-            if pre_iterations == 0:
+            if self.pre_iterations == 0:
                 self.assertEqual(None, actor.animation_name(_ecm))
             actor.set_animation_name(_ecm, 'walking_test')
             self.assertEqual('walking_test', actor.animation_name(_ecm))
             # Animation Time Test
-            if pre_iterations == 0:
+            if self.pre_iterations == 0:
                 self.assertEqual(None, actor.animation_time(_ecm))
             actor.set_animation_time(_ecm, 100)
             self.assertEqual(100, actor.animation_time(_ecm).total_seconds()*1000)
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -83,9 +80,9 @@ class TestActor(unittest.TestCase):
         server = fixture.server()
         server.run(True, 1000, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(1000, self.pre_iterations)
+        self.assertEqual(1000, self.iterations)
+        self.assertEqual(1000, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()

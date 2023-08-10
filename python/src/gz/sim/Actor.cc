@@ -34,6 +34,7 @@ void defineSimActor(py::object module)
 {
   py::class_<gz::sim::Actor>(module, "Actor")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Actor>())
   .def("entity", &gz::sim::Actor::Entity,
       "Get the entity which this actor is related to.")
   .def("reset_entity", &gz::sim::Actor::ResetEntity,
@@ -93,7 +94,17 @@ void defineSimActor(py::object module)
       "Get the name of animation used by the actor.")
   .def("animation_time", &gz::sim::Actor::AnimationTime,
       py::arg("ecm"),
-      "Get the time of animation for this actor.");
+      "Get the time of animation for this actor.")
+  .def("__copy__",
+      [](const gz::sim::Actor &self)
+      {
+        return gz::sim::Actor(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Actor &self, pybind11::dict)
+      {
+        return gz::sim::Actor(self);
+      });
 }
 }  // namespace python
 }  // namespace sim
