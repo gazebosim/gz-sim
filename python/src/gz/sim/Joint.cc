@@ -136,7 +136,7 @@ void defineSimJoint(py::object module)
   .def("parent_model", &gz::sim::Joint::ParentModel,
       py::arg("ecm"),
       "Get the parent model of the joint.")
-  .def("__copy__", 
+  .def("__copy__",
       [](const gz::sim::Joint &self)
       {
         return gz::sim::Joint(self);
