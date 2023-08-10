@@ -57,7 +57,7 @@ void defineSimSensor(py::object module)
   .def("parent", &gz::sim::Sensor::Parent,
       py::arg("ecm"),
       "Get the parent entity. This can be a link or a joint.")
-  .def("__copy__", 
+  .def("__copy__",
       [](const gz::sim::Sensor &self)
       {
         return gz::sim::Sensor(self);
