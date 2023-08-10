@@ -1705,6 +1705,9 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           // No need to create this joint because it was already created when
           // parsing the model.
+          this->entityJointMap.AddEntity(_entity, existingJoint);
+          this->topLevelModelMap.insert(
+            std::make_pair(_entity, topLevelModel(_entity, _ecm)));
 
           // Check if mimic constraint should be applied to this joint's axes.
           using AxisIndex = std::size_t;
@@ -1756,9 +1759,6 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             }
           }
 
-          this->entityJointMap.AddEntity(_entity, existingJoint);
-          this->topLevelModelMap.insert(
-            std::make_pair(_entity, topLevelModel(_entity, _ecm)));
           return true;
         }
 
