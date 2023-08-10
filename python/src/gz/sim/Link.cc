@@ -155,7 +155,7 @@ void defineSimLink(py::object module)
       "Add a wrench expressed in world coordinates and applied to "
       "the link at the link's origin. This wrench is applied for one "
       "simulation step.")
-  .def("__copy__", 
+  .def("__copy__",
       [](const gz::sim::Link &self)
       {
         return gz::sim::Link(self);
