@@ -34,6 +34,7 @@ void defineSimJoint(py::object module)
 {
   py::class_<gz::sim::Joint>(module, "Joint")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Joint>())
   .def("entity", &gz::sim::Joint::Entity,
       "Get the entity which this Joint is related to.")
   .def("reset_entity", &gz::sim::Joint::ResetEntity,
@@ -134,7 +135,17 @@ void defineSimJoint(py::object module)
       "Get the transmitted wrench of the joint.")
   .def("parent_model", &gz::sim::Joint::ParentModel,
       py::arg("ecm"),
-      "Get the parent model of the joint.");
+      "Get the parent model of the joint.")
+  .def("__copy__", 
+      [](const gz::sim::Joint &self)
+      {
+        return gz::sim::Joint(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Joint &self, pybind11::dict)
+      {
+        return gz::sim::Joint(self);
+      });
 }
 }  // namespace python
 }  // namespace sim
