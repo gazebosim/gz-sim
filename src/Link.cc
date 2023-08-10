@@ -412,32 +412,14 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_torque) const
 {
-  auto linkWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
-
-  components::ExternalWorldWrenchCmd wrench;
-
-  if (!linkWrenchComp)
-  {
-    msgs::Set(wrench.Data().mutable_force(), _force);
-    msgs::Set(wrench.Data().mutable_torque(), _torque);
-    _ecm.CreateComponent(this->dataPtr->id, wrench);
-  }
-  else
-  {
-    msgs::Set(linkWrenchComp->Data().mutable_force(),
-              msgs::Convert(linkWrenchComp->Data().force()) + _force);
-
-    msgs::Set(linkWrenchComp->Data().mutable_torque(),
-              msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
-  }
+  this->AddWorldWrench(_ecm, _force, _torque, math::Vector3d::Zero);
 }
 
 //////////////////////////////////////////////////
 void Link::AddWorldWrench(EntityComponentManager &_ecm,
                           const math::Vector3d &_force,
-                          const math::Vector3d &_offset,
-                          const math::Vector3d &_torque) const
+                          const math::Vector3d &_torque,
+                          const math::Vector3d &_offset) const
 {
   math::Pose3d linkWorldPose;
   auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);

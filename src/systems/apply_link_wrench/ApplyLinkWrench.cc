@@ -83,10 +83,12 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
 /// \param[out] Offset of the force application point expressed in the link
 /// frame.
 /// \param[out] Torque to apply.
+/// \param[out] Offset of the force application point expressed in the link
+/// frame.
 /// \return Target link entity.
 Link decomposeMessage(const EntityComponentManager &_ecm,
     const msgs::EntityWrench &_msg, math::Vector3d &_force,
-    math::Vector3d &_offset, math::Vector3d &_torque)
+    math::Vector3d &_torque, math::Vector3d &_offset)
 {
   if (_msg.wrench().has_force_offset())
   {
@@ -273,7 +275,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     math::Vector3d force;
     math::Vector3d offset;
     math::Vector3d torque;
-    auto link = decomposeMessage(_ecm, msg, force, offset, torque);
+    auto link = decomposeMessage(_ecm, msg, force, torque, offset);
     if (!link.Valid(_ecm))
     {
       gzerr << "Entity not found." << std::endl
@@ -282,7 +284,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
       continue;
     }
 
-    link.AddWorldWrench(_ecm, force, offset, torque);
+    link.AddWorldWrench(_ecm, force, torque, offset);
 
     if (this->dataPtr->verbose)
     {
@@ -300,14 +302,14 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     math::Vector3d force;
     math::Vector3d offset;
     math::Vector3d torque;
-    auto link = decomposeMessage(_ecm, msg, force, offset, torque);
+    auto link = decomposeMessage(_ecm, msg, force, torque, offset);
     if (!link.Valid(_ecm))
     {
       // Not an error, persistent wrenches can be applied preemptively before
       // an entity is inserted
       continue;
     }
-    link.AddWorldWrench(_ecm, force, offset, torque);
+    link.AddWorldWrench(_ecm, force, torque, offset);
   }
 }
 
