@@ -51,6 +51,7 @@ set(tests
   model.cc
   model_photo_shoot_default_joints.cc
   model_photo_shoot_random_joints.cc
+  mouse_drag.cc
   multicopter.cc
   multiple_servers.cc
   navsat_system.cc
@@ -207,6 +208,13 @@ endif()
 if(TARGET INTEGRATION_reset_sensors)
   target_link_libraries(INTEGRATION_reset_sensors
     gz-common${GZ_COMMON_VER}::graphics
+  )
+endif()
+
+if(TARGET INTEGRATION_mouse_drag)
+  target_link_libraries(INTEGRATION_mouse_drag
+    # gz-sim7-gui
+    ${PROJECT_LIBRARY_TARGET_NAME}-gui
   )
 endif()
 
