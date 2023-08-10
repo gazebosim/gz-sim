@@ -412,23 +412,46 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_torque) const
 {
+  this->AddWorldWrench(_ecm, _force, _torque, math::Vector3d::Zero);
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldWrench(EntityComponentManager &_ecm,
+                          const math::Vector3d &_force,
+                          const math::Vector3d &_torque,
+                          const math::Vector3d &_offset) const
+{
+  math::Pose3d linkWorldPose;
+  auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  if (worldPoseComp)
+  {
+    linkWorldPose = worldPoseComp->Data();
+  }
+  else
+  {
+    linkWorldPose = worldPose(this->dataPtr->id, _ecm);
+  }
+
+  // We want the force to be applied at an offset from the link origin, so we
+  // must compute the resulting force and torque on the link origin.
+  auto posComWorldCoord = linkWorldPose.Rot().RotateVector(_offset);
+  math::Vector3d torqueWithOffset = _torque + posComWorldCoord.Cross(_force);
+
   auto linkWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
-
-  components::ExternalWorldWrenchCmd wrench;
-
+    _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
   if (!linkWrenchComp)
   {
+    components::ExternalWorldWrenchCmd wrench;
     msgs::Set(wrench.Data().mutable_force(), _force);
-    msgs::Set(wrench.Data().mutable_torque(), _torque);
+    msgs::Set(wrench.Data().mutable_torque(), torqueWithOffset);
     _ecm.CreateComponent(this->dataPtr->id, wrench);
   }
   else
   {
     msgs::Set(linkWrenchComp->Data().mutable_force(),
-              msgs::Convert(linkWrenchComp->Data().force()) + _force);
+      msgs::Convert(linkWrenchComp->Data().force()) + _force);
 
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
-              msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
+      msgs::Convert(linkWrenchComp->Data().torque()) + torqueWithOffset);
   }
 }
