@@ -510,9 +510,8 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     auto msgType = iter->Type();
 
-    // Support gz.msgs for backwards compatibility, don't remove on tock
-    // so users can use logs across versions
-    std::string deprecatedPrefix{"gz.msgs"};
+    // Support ignition.msgs for backwards compatibility. Remove on gz-sim9
+    std::string deprecatedPrefix{"ignition.msgs"};
     auto pos = msgType.find(deprecatedPrefix);
     if (pos != std::string::npos)
     {
