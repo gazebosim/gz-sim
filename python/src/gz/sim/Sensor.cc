@@ -34,6 +34,7 @@ void defineSimSensor(py::object module)
 {
   py::class_<gz::sim::Sensor>(module, "Sensor")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::Sensor>())
   .def("entity", &gz::sim::Sensor::Entity,
       "Get the entity which this sensor is related to.")
   .def("reset_entity", &gz::sim::Sensor::ResetEntity,
@@ -55,7 +56,17 @@ void defineSimSensor(py::object module)
       "Get the topic of the sensor.")
   .def("parent", &gz::sim::Sensor::Parent,
       py::arg("ecm"),
-      "Get the parent entity. This can be a link or a joint.");
+      "Get the parent entity. This can be a link or a joint.")
+  .def("__copy__", 
+      [](const gz::sim::Sensor &self)
+      {
+        return gz::sim::Sensor(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::Sensor &self, pybind11::dict)
+      {
+        return gz::sim::Sensor(self);
+      });
 }
 }  // namespace python
 }  // namespace sim

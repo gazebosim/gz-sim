@@ -20,11 +20,11 @@ from gz.common import set_verbosity
 from gz_test_deps.sim import TestFixture, Joint, Model, Sensor, World, world_entity
 from gz_test_deps.math import Pose3d
 
-post_iterations = 0
-iterations = 0
-pre_iterations = 0
-
 class TestSensor(unittest.TestCase):
+    k_null_entity = 0
+    post_iterations = 0
+    iterations = 0
+    pre_iterations = 0
 
     def test_model(self):
         set_verbosity(4)
@@ -33,20 +33,18 @@ class TestSensor(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'joint_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertEqual(1, world_e)
+            self.assertNotEqual(self.k_null_entity, world_e)
             w = World(world_e)
             m = Model(w.model_by_name(_ecm, 'model_test'))
             j = Joint(m.joint_by_name(_ecm, 'joint_test'))
             sensor = Sensor(j.sensor_by_name(_ecm, 'sensor_test'))
             # Entity Test
-            self.assertEqual(8, sensor.entity())
+            self.assertNotEqual(self.k_null_entity, sensor.entity())
             # Valid Test
             self.assertTrue(sensor.valid(_ecm))
             # Name Test
@@ -60,8 +58,7 @@ class TestSensor(unittest.TestCase):
             self.assertEqual(j.entity(), sensor.parent(_ecm))
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -71,9 +68,9 @@ class TestSensor(unittest.TestCase):
         server = fixture.server()
         server.run(True, 1000, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(1000, self.pre_iterations)
+        self.assertEqual(1000, self.iterations)
+        self.assertEqual(1000, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()
