@@ -15,10 +15,12 @@
  *
 */
 
+#include <mutex>
 #include <string>
 
 #include <gz/common/Console.hh>
 #include <gz/common/MouseEvent.hh>
+#include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
@@ -107,6 +109,9 @@ namespace sim
 
     /// \brief Publisher for EntityWrench messages
     public: transport::Node::Publisher pub;
+
+    /// \brief To synchronize member access
+    public: std::mutex mutex;
 
     /// \brief World name
     public: std::string worldName;
@@ -293,6 +298,7 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
 void MouseDrag::Update(const UpdateInfo &_info,
   EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("MouseDrag::Update");
   // Load the ApplyLinkWrench system
   if (!this->dataPtr->systemLoaded)
   {
@@ -363,6 +369,8 @@ void MouseDrag::Update(const UpdateInfo &_info,
       }
     }
   }
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   if (this->dataPtr->mode == MouseDragMode::NONE ||
       _info.paused)
@@ -565,6 +573,8 @@ void MouseDragPrivate::OnRender()
     this->planeVisual->SetUserData("gui-only", static_cast<bool>(true));
   }
 
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   // Update the visualization
   if (!this->dragActive)
   {
@@ -625,6 +635,8 @@ void MouseDragPrivate::HandleMouseEvents()
     return;
   }
   this->mouseDirty = false;
+
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   if (this->mouseEvent.Type() == common::MouseEvent::PRESS &&
       this->mouseEvent.Control() &&
