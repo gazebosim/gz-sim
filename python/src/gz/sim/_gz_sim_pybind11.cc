@@ -30,7 +30,7 @@
 
 PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
-  m.attr("k_null_entity") = gz::sim::kNullEntity;
+  m.attr("K_NULL_ENTITY") = gz::sim::kNullEntity;
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
   gz::sim::python::defineSimModel(m);
