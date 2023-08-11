@@ -17,12 +17,11 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, World, world_entity
+from gz_test_deps.sim import k_null_entity, TestFixture, World, world_entity
 from gz_test_deps.math import SphericalCoordinates, Vector3d
 from gz_test_deps.sdformat import Atmosphere
 
 class TestWorld(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -39,7 +38,7 @@ class TestWorld(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(k_null_entity, world_e)
             world = World(world_e)
             # Valid Test
             self.assertTrue(world.valid(_ecm))
@@ -68,13 +67,13 @@ class TestWorld(unittest.TestCase):
                 self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).elevation_reference())
                 self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).heading_offset().degree())
             # Light Test
-            self.assertNotEqual(self.k_null_entity, world.light_by_name(_ecm, 'light_point_test'))
+            self.assertNotEqual(k_null_entity, world.light_by_name(_ecm, 'light_point_test'))
             self.assertEqual(1, world.light_count(_ecm))
             # Actor test
-            self.assertNotEqual(self.k_null_entity, world.actor_by_name(_ecm, 'actor_test'))
+            self.assertNotEqual(k_null_entity, world.actor_by_name(_ecm, 'actor_test'))
             self.assertEqual(1, world.actor_count(_ecm))
             # Model Test
-            self.assertNotEqual(self.k_null_entity, world.model_by_name(_ecm, 'model_test'))
+            self.assertNotEqual(k_null_entity, world.model_by_name(_ecm, 'model_test'))
             self.assertEqual(1, world.model_count(_ecm))
 
         def on_udpate_cb(_info, _ecm):

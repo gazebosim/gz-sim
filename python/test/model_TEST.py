@@ -17,10 +17,9 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, Model, World, world_entity
+from gz_test_deps.sim import k_null_entity, TestFixture, Model, World, world_entity
 
 class TestModel(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -37,11 +36,11 @@ class TestModel(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(k_null_entity, world_e)
             w = World(world_e)
             model = Model(w.model_by_name(_ecm, 'model_test'))
             # Entity Test
-            self.assertNotEqual(self.k_null_entity, model.entity())
+            self.assertNotEqual(k_null_entity, model.entity())
             # Valid Test
             self.assertTrue(model.valid(_ecm))
             # Name Test
@@ -53,11 +52,11 @@ class TestModel(unittest.TestCase):
             # Wind Mode Test
             self.assertTrue(model.wind_mode(_ecm))
             # Get Joints Test
-            self.assertNotEqual(self.k_null_entity, model.joint_by_name(_ecm, 'model_joint_test'))
+            self.assertNotEqual(k_null_entity, model.joint_by_name(_ecm, 'model_joint_test'))
             self.assertEqual(1, model.joint_count(_ecm))
             # Get Links Test
-            self.assertNotEqual(self.k_null_entity, model.link_by_name(_ecm, 'model_link_test_1'))
-            self.assertNotEqual(self.k_null_entity, model.link_by_name(_ecm, 'model_link_test_2'))
+            self.assertNotEqual(k_null_entity, model.link_by_name(_ecm, 'model_link_test_1'))
+            self.assertNotEqual(k_null_entity, model.link_by_name(_ecm, 'model_link_test_2'))
             self.assertEqual(2, model.link_count(_ecm))
 
         def on_udpate_cb(_info, _ecm):
