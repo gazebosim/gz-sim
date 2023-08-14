@@ -35,6 +35,7 @@
 #include <gz/msgs/plugin.pb.h>
 #include <gz/msgs/projector.pb.h>
 #include <gz/msgs/spheregeom.pb.h>
+#include <gz/msgs/sky.pb.h>
 #include <gz/msgs/Utility.hh>
 
 #include <gz/math/Angle.hh>
@@ -794,15 +795,9 @@ msgs::Scene gz::sim::convert(const sdf::Scene &_in)
     skyMsg->set_wind_direction(_in.Sky()->CloudDirection().Radian());
     skyMsg->set_humidity(_in.Sky()->CloudHumidity());
     skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
+    skyMsg->set_cubemap_uri(_in.Sky()->CubemapUri());
     msgs::Set(skyMsg->mutable_cloud_ambient(),
         _in.Sky()->CloudAmbient());
-
-    if (!_in.Sky()->CubemapUri().empty())
-    {
-      auto header = skyMsg->mutable_header()->add_data();
-      header->set_key("cubemap_uri");
-      header->add_value(_in.Sky()->CubemapUri());
-    }
   }
 
   return out;
@@ -833,15 +828,7 @@ sdf::Scene gz::sim::convert(const msgs::Scene &_in)
     sky.SetCloudHumidity(_in.sky().humidity());
     sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
     sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
-
-    for (int i = 0; i < _in.sky().header().data_size(); ++i)
-    {
-      auto data = _in.sky().header().data(i);
-      if (data.key() == "cubemap_uri" && data.value_size() > 0)
-      {
-        sky.SetCubemapUri(data.value(0));
-      }
-    }
+    sky.SetCubemapUri(_in.sky().cubemap_uri());
 
     out.SetSky(sky);
   }
