@@ -17,14 +17,13 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, Joint, Model, World, world_entity
+from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Joint, Model, World, world_entity
 from gz_test_deps.math import Pose3d
 from gz_test_deps.sdformat import JointAxis, JointType
 
 
 
 class TestJoint(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -43,12 +42,12 @@ class TestJoint(unittest.TestCase):
             global pre_iterations
             pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
             m = Model(w.model_by_name(_ecm, 'model_test'))
             joint = Joint(m.joint_by_name(_ecm, 'joint_test'))
             # Entity Test
-            self.assertNotEqual(self.k_null_entity, joint.entity())
+            self.assertNotEqual(K_NULL_ENTITY, joint.entity())
             # Valid Test
             self.assertTrue(joint.valid(_ecm))
             # Name Test
@@ -66,7 +65,7 @@ class TestJoint(unittest.TestCase):
             # Type Test
             self.assertEqual(JointType.REVOLUTE, joint.type(_ecm))
             # Sensors Test
-            self.assertNotEqual(self.k_null_entity, joint.sensor_by_name(_ecm, 'sensor_test'))
+            self.assertNotEqual(K_NULL_ENTITY, joint.sensor_by_name(_ecm, 'sensor_test'))
             self.assertEqual(1, joint.sensor_count(_ecm))
             # Velocity Test.
             joint.enable_velocity_check(_ecm, True)
