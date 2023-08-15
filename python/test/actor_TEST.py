@@ -18,11 +18,10 @@ import time
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import Actor, TestFixture, World, world_entity
+from gz_test_deps.sim import Actor, K_NULL_ENTITY, TestFixture, World, world_entity
 from gz_test_deps.math import Pose3d
 
 class TestActor(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -39,11 +38,11 @@ class TestActor(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
             actor = Actor(w.actor_by_name(_ecm, 'actor_test'))
             # Entity Test
-            self.assertNotEqual(self.k_null_entity, actor.entity())
+            self.assertNotEqual(K_NULL_ENTITY, actor.entity())
             # Valid Test
             self.assertTrue(actor.valid(_ecm))
             # Name Test
