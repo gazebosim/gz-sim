@@ -17,11 +17,10 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, Joint, Model, Sensor, World, world_entity
+from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Joint, Model, Sensor, World, world_entity
 from gz_test_deps.math import Pose3d
 
 class TestSensor(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -38,13 +37,13 @@ class TestSensor(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
             m = Model(w.model_by_name(_ecm, 'model_test'))
             j = Joint(m.joint_by_name(_ecm, 'joint_test'))
             sensor = Sensor(j.sensor_by_name(_ecm, 'sensor_test'))
             # Entity Test
-            self.assertNotEqual(self.k_null_entity, sensor.entity())
+            self.assertNotEqual(K_NULL_ENTITY, sensor.entity())
             # Valid Test
             self.assertTrue(sensor.valid(_ecm))
             # Name Test
