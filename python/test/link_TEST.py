@@ -17,11 +17,10 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, Link, Model, World, world_entity
+from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
 from gz_test_deps.math import Matrix3d, Vector3d
 
 class TestModel(unittest.TestCase):
-    k_null_entity = 0
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -38,12 +37,12 @@ class TestModel(unittest.TestCase):
         def on_pre_udpate_cb(_info, _ecm):
             self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertNotEqual(self.k_null_entity, world_e)
+            self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
             m = Model(w.model_by_name(_ecm, 'model_test'))
             link = Link(m.link_by_name(_ecm, 'link_test'))
             # Entity Test
-            self.assertNotEqual(self.k_null_entity, link.entity())
+            self.assertNotEqual(K_NULL_ENTITY, link.entity())
             # Valid Test
             self.assertTrue(link.valid(_ecm))
             # Name Test
@@ -55,10 +54,10 @@ class TestModel(unittest.TestCase):
             # Wind Mode test
             self.assertTrue(link.wind_mode(_ecm))
             # Collisions Test
-            self.assertNotEqual(self.k_null_entity, link.collision_by_name(_ecm, 'collision_test'))
+            self.assertNotEqual(K_NULL_ENTITY, link.collision_by_name(_ecm, 'collision_test'))
             self.assertEqual(1, link.collision_count(_ecm))
             # Visuals Test
-            self.assertNotEqual(self.k_null_entity, link.visual_by_name(_ecm, 'visual_test'))
+            self.assertNotEqual(K_NULL_ENTITY, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))
             # World Pose Test
             self.assertEqual(None, link.world_pose(_ecm))
