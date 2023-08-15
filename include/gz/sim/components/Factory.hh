@@ -32,6 +32,7 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
+#include <gz/utils/NeverDestroyed.hh>
 
 namespace gz
 {
@@ -193,17 +194,12 @@ namespace components
   };
 
   /// \brief A factory that generates a component based on a string type.
-  // TODO(azeey) Do not inherit from common::SingletonT in Harmonic
   class Factory
-      : public gz::common::SingletonT<Factory>
   {
-    // Deleted copy constructors to make the ABI checker happy
     public: Factory(Factory &) = delete;
     public: Factory(const Factory &) = delete;
-    // Since the copy constructors are deleted, we need to explicitly declare a
-    // default constructor.
-    // TODO(azeey) Make this private in Harmonic
-    public: Factory() = default;
+    public: void operator=(const Factory &) = delete;
+    public: void operator=(Factory &&) = delete;
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
@@ -214,12 +210,31 @@ namespace components
     /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
     ///  objects.
     /// \tparam ComponentTypeT Type of component to register.
-    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
+    // Deprecated in favor of overload that takes _regObjId
     public: template <typename ComponentTypeT>
-    void Register(const std::string &_type, ComponentDescriptorBase *_compDesc)
+    void GZ_DEPRECATED(8) Register(const std::string &_type,
+                                   ComponentDescriptorBase *_compDesc)
     {
-      this->Register<ComponentTypeT>(_type, _compDesc,
+      const char* typeDup = strdup(_type.c_str());
+      this->Register<ComponentTypeT>(typeDup, _compDesc,
                                      RegistrationObjectId{nullptr});
+    }
+    /// \brief Register a component so that the factory can create instances
+    /// of the component based on an ID.
+    /// \param[in] _type Type of component to register.
+    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
+    ///  objects.
+    /// \param[in] _regObjId An ID that identifies the registration object. This
+    /// is generally derived from the `this` pointer of the static component
+    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
+    /// \tparam ComponentTypeT Type of component to register.
+    // Deprecated in favor of overload that takes `const char *_type`
+    public: template <typename ComponentTypeT>
+    void GZ_DEPRECATED(8) Register(const std::string &_type,
+        ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)
+    {
+      const char* typeDup = strdup(_type.c_str());
+      this->Register<ComponentTypeT>(typeDup, _compDesc, _regObjId);
     }
 
     /// \brief Register a component so that the factory can create instances
@@ -232,7 +247,7 @@ namespace components
     /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
     /// \tparam ComponentTypeT Type of component to register.
     public: template <typename ComponentTypeT>
-    void Register(const std::string &_type, ComponentDescriptorBase *_compDesc,
+    void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
       auto typeHash = gz::common::hash64(_type);
@@ -293,9 +308,9 @@ namespace components
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
-    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
+    // Deprecated in favor of overload that takes _regObjId
     public: template <typename ComponentTypeT>
-    void Unregister()
+    void GZ_DEPRECATED(8) Unregister()
     {
       this->Unregister<ComponentTypeT>(RegistrationObjectId{nullptr});
     }
@@ -318,8 +333,8 @@ namespace components
     /// within the component type itself. Prefer using the templated
     /// `Unregister` function when possible.
     /// \param[in] _typeId Type of component to unregister.
-    // TODO(azeey) Deprecate in favor of overload that takes _regObjId
-    public: void Unregister(ComponentTypeId _typeId)
+    // Deprecated in favor of overload that takes _regObjId
+    public: void GZ_DEPRECATED(8) Unregister(ComponentTypeId _typeId)
     {
       this->Unregister(_typeId, RegistrationObjectId{nullptr});
     }
@@ -439,6 +454,10 @@ namespace components
       return "";
     }
 
+    // Since the copy constructors are deleted, we need to explicitly declare a
+    // default constructor.
+    private: Factory() = default;
+    friend gz::utils::NeverDestroyed<Factory>;
     /// \brief A list of registered components where the key is its id.
     private: std::map<ComponentTypeId, ComponentDescriptorQueue> compsById;
 

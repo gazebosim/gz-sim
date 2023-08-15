@@ -6,8 +6,8 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-transport13 QUIET REQUIRED OPTIONAL_COMPONENTS log)
   set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
-  find_package(sdformat13 REQUIRED)
-  set(SDF_VER ${sdformat13_VERSION_MAJOR})
+  find_package(sdformat14 REQUIRED)
+  set(SDF_VER ${sdformat14_VERSION_MAJOR})
 
   find_package(gz-msgs10 REQUIRED)
   set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})

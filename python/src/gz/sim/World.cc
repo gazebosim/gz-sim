@@ -32,6 +32,7 @@ void defineSimWorld(py::object module)
 {
   py::class_<gz::sim::World>(module, "World")
   .def(py::init<gz::sim::Entity>())
+  .def(py::init<gz::sim::World>())
   .def("entity", &gz::sim::World::Entity,
       "Get the entity which this World is related to.")
   .def("valid", &gz::sim::World::Valid,
@@ -92,7 +93,17 @@ void defineSimWorld(py::object module)
   .def("model_count", &gz::sim::World::ModelCount,
       py::arg("ecm"),
       "Get the number of models which are immediate children of this "
-      "world.");
+      "world.")
+  .def("__copy__",
+      [](const gz::sim::World &self)
+      {
+        return gz::sim::World(self);
+      })
+  .def("__deepcopy__",
+      [](const gz::sim::World &self, pybind11::dict)
+      {
+        return gz::sim::World(self);
+      });
 }
 }  // namespace python
 }  // namespace sim
