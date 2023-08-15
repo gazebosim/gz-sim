@@ -60,6 +60,16 @@ set(cli_sources
   cmd/ModelCommandAPI.cc
 )
 
+set (simulation_sources
+  simulation/Clock.cc
+  simulation/Duration.cc
+  simulation/Simulation.cc
+  simulation/SimulationBuilder.cc
+  simulation/SimulationBuilderPrivate.cc
+  simulation/SimulationDefaults.cc
+  simulation/Time.cc
+)
+
 set (sources
   Actor.cc
   Barrier.cc
@@ -230,6 +240,9 @@ if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE stdc++fs)
 endif()
+
+add_executable(simulation_main simulation/simulation_main.cc)
+target_link_libraries(simulation_main ${PROJECT_LIBRARY_TARGET_NAME})
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
