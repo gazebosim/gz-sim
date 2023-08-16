@@ -15,8 +15,10 @@
  *
 */
 
+#include <chrono>
 #include <mutex>
 #include <string>
+#include <variant>
 
 #include <gz/common/Console.hh>
 #include <gz/common/MouseEvent.hh>
@@ -173,13 +175,13 @@ namespace sim
     public: math::Planed plane;
 
     /// \brief Application point of the wrench in world coordinates
-    math::Vector3d applicationPoint;
+    public: math::Vector3d applicationPoint;
 
     /// \brief Initial world rotation of the link during mouse click
     public: math::Quaterniond initialRot;
 
     /// \brief Point to which the link is dragged in translation mode
-    math::Vector3d target;
+    public: math::Vector3d target;
 
     /// \brief Goal link rotation for rotation mode
     public: math::Quaterniond goalRot;
