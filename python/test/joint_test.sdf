@@ -13,11 +13,10 @@
                 <parent>link_test_1</parent>
                 <child>link_test_2</child>
                 <pose>0 0.5 0 0 0 0</pose>
-                <thread_pitch>2</thread_pitch>
                 <axis>
                     <xyz>0 0 1</xyz>
                 </axis>
-                <sensor type="camera" name="sensor_test">
+                <sensor type="force_torque" name="sensor_test">
                 </sensor>
             </joint>
         </model>

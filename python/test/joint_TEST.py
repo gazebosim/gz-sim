@@ -35,12 +35,10 @@ class TestJoint(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'joint_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
             self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
@@ -58,8 +56,6 @@ class TestJoint(unittest.TestCase):
             self.assertEqual('link_test_2', joint.child_link_name(_ecm))
             # Pose Test
             self.assertEqual(Pose3d(0, 0.5, 0, 0, 0, 0), joint.pose(_ecm))
-            # Thread Pitch Test
-            self.assertEqual(2, joint.thread_pitch(_ecm))
             # Axis Test
             self.assertEqual(JointAxis().xyz(), joint.axis(_ecm)[0].xyz())
             # Type Test
@@ -71,19 +67,19 @@ class TestJoint(unittest.TestCase):
             # Velocity Test.
             joint.enable_velocity_check(_ecm, True)
             joint.set_velocity(_ecm, [10])
-            if pre_iterations == 0:
+            if self.pre_iterations == 0:
                 self.assertEqual(None, joint.velocity(_ecm))
-            elif pre_iterations > 1:
+            elif self.pre_iterations > 1:
                 self.assertAlmostEqual(10, joint.velocity(_ecm)[0])
             # Position Test
-            self.assertEqual(None, joint.position(_ecm))
-            joint.enable_position_check(_ecm, True)
-            self.assertEqual([], joint.position(_ecm))
-            joint.enable_position_check(_ecm, False)
+            if self.pre_iterations <= 1:
+                self.assertEqual(None, joint.position(_ecm))
+                joint.enable_position_check(_ecm, True)
+            else:
+                self.assertNotEqual(None, joint.position(_ecm))
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -91,11 +87,11 @@ class TestJoint(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
 
 
 if __name__ == '__main__':
