@@ -28,7 +28,7 @@ using namespace sim;
 using namespace detail;
 
 /// Private data for the WrenchVisualizer class
-class gz::sim::detail::WrenchVisualizerPrivate
+class gz::sim::detail::WrenchVisualizer::Implementation
 {
   /// \brief Pointer to the rendering scene
   public: rendering::ScenePtr scene{nullptr};
@@ -36,7 +36,7 @@ class gz::sim::detail::WrenchVisualizerPrivate
 
 /////////////////////////////////////////////////
 WrenchVisualizer::WrenchVisualizer() :
-  dataPtr(std::make_unique<WrenchVisualizerPrivate>())
+  dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -44,14 +44,14 @@ WrenchVisualizer::WrenchVisualizer() :
 WrenchVisualizer::~WrenchVisualizer() = default;
 
 /////////////////////////////////////////////////
-void WrenchVisualizer::Init(rendering::ScenePtr _scene)
+bool WrenchVisualizer::Init(rendering::ScenePtr _scene)
 {
   if (!_scene)
   {
-    gzwarn << "Invalid scene" << std::endl;
-    return;
+    return false;
   }
   this->dataPtr->scene = _scene;
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -105,10 +105,10 @@ rendering::VisualPtr WrenchVisualizer::CreateTorqueVisual(
 
 /////////////////////////////////////////////////
 void WrenchVisualizer::UpdateVectorVisual(rendering::VisualPtr _visual,
-                                          math::Vector3d _direction,
-                                          math::Vector3d _position,
-                                          double _size,
-                                          bool _tip)
+                                          const math::Vector3d &_direction,
+                                          const math::Vector3d &_position,
+                                          const double _size,
+                                          const bool _tip)
 {
   math::Quaterniond quat;
   quat.SetFrom2Axes(math::Vector3d::UnitZ, _direction);
@@ -123,5 +123,4 @@ void WrenchVisualizer::UpdateVectorVisual(rendering::VisualPtr _visual,
   }
   _visual->SetLocalRotation(quat);
   _visual->SetLocalScale(_size);
-  _visual->SetVisible(true);
 }

@@ -21,6 +21,7 @@
 
 #include <gz/sim/config.hh>
 #include <gz/sim/rendering/Export.hh>
+#include <gz/utils/ImplPtr.hh>
 
 #include <gz/math/Vector3.hh>
 #include <gz/rendering/RenderTypes.hh>
@@ -30,11 +31,10 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_SIM_VERSION_NAMESPACE {
-namespace detail{
-  // Forward declare private data class.
-  class WrenchVisualizerPrivate;
-
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+namespace detail
+{
   /// \brief Creates, deletes, and maintains force and torque visuals
   class GZ_SIM_RENDERING_VISIBLE WrenchVisualizer
   {
@@ -42,10 +42,12 @@ namespace detail{
     public: WrenchVisualizer();
 
     /// \brief Destructor
-    public: virtual ~WrenchVisualizer();
+    public: ~WrenchVisualizer();
 
     /// \brief Initialize the Wrench visualizer
-    void Init(rendering::ScenePtr _scene);
+    /// \param[in] _scene The rendering scene where the visuals are created
+    /// \return True if the scene is valid
+    bool Init(rendering::ScenePtr _scene);
 
     /// \brief Create a new force visual
     /// \param[in] _material The material used for the visual
@@ -60,21 +62,21 @@ namespace detail{
       rendering::MaterialPtr _material);
 
     /// \brief Update the visual of a vector to match its direction and position
-    /// \param[in] _visual Pointer to the vector visual
+    /// \param[in] _visual Pointer to the vector visual to be updated
     /// \param[in] _direction Direction of the vector
     /// \param[in] _position Position of the arrow
     /// \param[in] _size Size of the arrow in meters
     /// \param[in] _tip True if _position specifies the tip of the vector,
     /// false if it specifies tha base of the vector
     public: void UpdateVectorVisual(rendering::VisualPtr _visual,
-                                    math::Vector3d _direction,
-                                    math::Vector3d _position,
-                                    double _size,
-                                    bool _tip = false);
+                                    const math::Vector3d &_direction,
+                                    const math::Vector3d &_position,
+                                    const double _size,
+                                    const bool _tip = false);
 
     /// \internal
     /// \brief Private data pointer
-    private: std::unique_ptr<WrenchVisualizerPrivate> dataPtr;
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }
