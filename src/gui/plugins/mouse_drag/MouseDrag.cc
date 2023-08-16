@@ -104,6 +104,17 @@ namespace sim
       const std::chrono::duration<double> &_dt,
       const math::Pose3d &_linkWorldPose);
 
+    /// \brief Sets the RayQuery from the user camera to the given position
+    /// on the screen
+    /// \param[in] _pos Position on the screen
+    public: void SetRayFromCamera(const math::Vector2i &_pos);
+
+    /// \brief Corrects an angle so that it is in the [-pi; pi] interval,
+    /// in order to eliminate the discontinuity around 0 and 2pi
+    /// \param[in] _angle The angle in radians
+    /// \return The corrected angle
+    public: double CorrectAngle(const double _angle);
+
     /// \brief Transport node
     public: transport::Node node;
 
@@ -233,11 +244,11 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     this->title = "Mouse drag";
 
   // Create wrench publisher
-  auto worldNames = gz::gui::worldNames();
+  const auto worldNames = gz::gui::worldNames();
   if (!worldNames.empty())
   {
     this->dataPtr->worldName = worldNames[0].toStdString();
-    auto topic = transport::TopicUtils::AsValidTopic(
+    const auto topic = transport::TopicUtils::AsValidTopic(
       "/world/" + this->dataPtr->worldName + "/wrench");
     if (topic.empty())
     {
@@ -247,6 +258,11 @@ void MouseDrag::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
     this->dataPtr->pub =
       this->dataPtr->node.Advertise<msgs::EntityWrench>(topic);
     gzdbg << "Created publisher to " << topic << std::endl;
+  }
+  else
+  {
+    gzerr << "Unable to find world" << std::endl;
+    return;
   }
 
   // Read configuration
@@ -278,28 +294,34 @@ bool MouseDrag::eventFilter(QObject *_obj, QEvent *_event)
   }
   else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    auto event =
+    // Mutex can't be locked on the whole eventFilter because that causes
+    // the program to freeze, since the Update function sends GUI events
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    const auto event =
       static_cast<gz::gui::events::LeftClickOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == gz::gui::events::RightClickOnScene::kType)
   {
-    auto event =
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    const auto event =
       static_cast<gz::gui::events::RightClickOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == gz::gui::events::MousePressOnScene::kType)
   {
-    auto event =
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    const auto event =
       static_cast<gz::gui::events::MousePressOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
   }
   else if (_event->type() == gz::gui::events::DragOnScene::kType)
   {
-    auto event =
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+    const auto event =
       static_cast<gz::gui::events::DragOnScene *>(_event);
     this->dataPtr->mouseEvent = event->Mouse();
     this->dataPtr->mouseDirty = true;
@@ -338,7 +360,8 @@ void MouseDrag::Update(const UpdateInfo &_info,
       });
 
     // Check if already loaded
-    auto msg = _ecm.ComponentData<components::SystemPluginInfo>(worldEntity);
+    const auto msg =
+      _ecm.ComponentData<components::SystemPluginInfo>(worldEntity);
     if (!msg)
     {
       gzdbg << "Unable to find SystemPluginInfo component for entity "
@@ -367,11 +390,15 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
       msgs::Boolean res;
       bool result;
-      unsigned int timeout = 5000;
-      auto service = transport::TopicUtils::AsValidTopic(
+      const unsigned int timeout = 5000;
+      const auto service = transport::TopicUtils::AsValidTopic(
         "/world/" + this->dataPtr->worldName + "/entity/system/add");
-      if (!service.empty() &&
-          this->dataPtr->node.Request(service, req, timeout, res, result))
+      if (service.empty())
+      {
+        gzerr << "Unable to request " << service << std::endl;
+        return;
+      }
+      if (this->dataPtr->node.Request(service, req, timeout, res, result))
       {
         this->dataPtr->systemLoaded = true;
         gzdbg << "ApplyLinkWrench system has been loaded" << std::endl;
@@ -383,6 +410,7 @@ void MouseDrag::Update(const UpdateInfo &_info,
               << "Name: " << name << "\n"
               << "Filename: " << filename << "\n"
               << "Inner XML: " << innerxml << std::endl;
+        return;
       }
     }
   }
@@ -398,18 +426,15 @@ void MouseDrag::Update(const UpdateInfo &_info,
   }
 
   // Get Link corresponding to clicked Visual
-  Link link(this->dataPtr->linkId);
-  auto model = link.ParentModel(_ecm);
-  if (!link.Valid(_ecm) || model->Static(_ecm))
+  const Link link(this->dataPtr->linkId);
+  const auto model = link.ParentModel(_ecm);
+  const auto linkWorldPose = worldPose(this->dataPtr->linkId, _ecm);
+  const auto inertial =
+    _ecm.Component<components::Inertial>(this->dataPtr->linkId);
+  if (!link.Valid(_ecm) || !inertial ||
+      !model->Valid(_ecm) || model->Static(_ecm))
   {
     this->dataPtr->blockOrbit = false;
-    return;
-  }
-
-  auto linkWorldPose = worldPose(this->dataPtr->linkId, _ecm);
-  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->linkId);
-  if (!inertial)
-  {
     return;
   }
 
@@ -448,8 +473,10 @@ void MouseDrag::Update(const UpdateInfo &_info,
 
     // The plane of wrench application should be normal to the center
     // of the camera view and pass through the application point
-    math::Vector3d direction = this->dataPtr->camera->WorldPose().Rot().XAxis();
-    double planeOffset = direction.Dot(this->dataPtr->applicationPoint);
+    const math::Vector3d direction =
+      this->dataPtr->camera->WorldPose().Rot().XAxis();
+    const double planeOffset =
+      direction.Dot(this->dataPtr->applicationPoint);
     this->dataPtr->plane = math::Planed(direction, planeOffset);
   }
   // Track the application point
@@ -460,30 +487,19 @@ void MouseDrag::Update(const UpdateInfo &_info,
       linkWorldPose.Rot().RotateVector(this->dataPtr->offset);
   }
 
-  // Normalize mouse position on the image
-  double width = this->dataPtr->camera->ImageWidth();
-  double height = this->dataPtr->camera->ImageHeight();
-
-  double nx = 2.0 * this->dataPtr->mouseEvent.Pos().X() / width - 1.0;
-  double ny = 1.0 - 2.0 * this->dataPtr->mouseEvent.Pos().Y() / height;
-
   // Make a ray query at the mouse position
-  this->dataPtr->rayQuery->SetFromCamera(
-    this->dataPtr->camera, math::Vector2d(nx, ny));
-  math::Vector3d end = this->dataPtr->rayQuery->Direction();
+  this->dataPtr->SetRayFromCamera(this->dataPtr->mouseEvent.Pos());
+  const math::Vector3d end = this->dataPtr->rayQuery->Direction();
 
   // Wrench in world coordinates, applied at the link origin
   msgs::EntityWrench msg;
   if (this->dataPtr->mode == MouseDragMode::ROTATE)
   {
     // Calculate rotation angle from mouse displacement
-    nx = 2.0 * this->dataPtr->mousePressPos.X() / width - 1.0;
-    ny = 1.0 - 2.0 * this->dataPtr->mousePressPos.Y() / height;
-    this->dataPtr->rayQuery->SetFromCamera(
-      this->dataPtr->camera, math::Vector2d(nx, ny));
-    math::Vector3d start = this->dataPtr->rayQuery->Direction();
+    this->dataPtr->SetRayFromCamera(this->dataPtr->mousePressPos);
+    const math::Vector3d start = this->dataPtr->rayQuery->Direction();
     math::Vector3d axis = start.Cross(end);
-    double angle = -atan2(axis.Length(), start.Dot(end));
+    const double angle = -atan2(axis.Length(), start.Dot(end));
 
     // Project rotation axis onto plane
     axis -= axis.Dot(this->dataPtr->plane.Normal()) *
@@ -493,20 +509,20 @@ void MouseDrag::Update(const UpdateInfo &_info,
     // Calculate the necessary rotation and torque
     this->dataPtr->goalRot =
       math::Quaterniond(axis, angle) * this->dataPtr->initialRot;
-    math::Quaterniond errorRot =
+    const math::Quaterniond errorRot =
       linkWorldPose.Rot() * this->dataPtr->goalRot.Inverse();
     msg = this->dataPtr->CalculateWrench(
       errorRot.Euler(), _info.dt, linkWorldPose);
   }
   else if (this->dataPtr->mode == MouseDragMode::TRANSLATE)
   {
-    math::Vector3d origin = this->dataPtr->rayQuery->Origin();
-    if (auto t = this->dataPtr->plane.Intersection(origin, end))
+    const math::Vector3d origin = this->dataPtr->rayQuery->Origin();
+    if (const auto t = this->dataPtr->plane.Intersection(origin, end))
       this->dataPtr->target = *t;
     else
       return;
 
-    math::Vector3d errorPos =
+    const math::Vector3d errorPos =
       this->dataPtr->applicationPoint - this->dataPtr->target;
     msg = this->dataPtr->CalculateWrench(errorPos, _info.dt, linkWorldPose);
   }
@@ -548,6 +564,8 @@ void MouseDrag::SetPosStiffness(double _posStiffness)
 /////////////////////////////////////////////////
 void MouseDragPrivate::OnRender()
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   // Get scene and user camera
   if (!this->scene)
   {
@@ -559,7 +577,7 @@ void MouseDragPrivate::OnRender()
 
     for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
     {
-      auto cam = std::dynamic_pointer_cast<rendering::Camera>(
+      const auto cam = std::dynamic_pointer_cast<rendering::Camera>(
         this->scene->NodeByIndex(i));
       if (cam && cam->HasUserData("user-camera") &&
           std::get<bool>(cam->UserData("user-camera")))
@@ -592,7 +610,7 @@ void MouseDragPrivate::OnRender()
     this->boxVisual->AddGeometry(scene->CreateBox());
     this->boxVisual->SetInheritScale(false);
     this->boxVisual->SetMaterial(mat);
-    this->boxVisual->SetUserData("gui-only", static_cast<bool>(true));
+    this->boxVisual->SetUserData("gui-only", true);
 
     auto planeMat = this->scene->Material("trans-gray");
     if (!planeMat)
@@ -605,6 +623,8 @@ void MouseDragPrivate::OnRender()
       planeMat->SetCastShadows(false);
       planeMat->SetReceiveShadows(false);
       planeMat->SetLightingEnabled(false);
+      planeMat->SetDepthCheckEnabled(false);
+      planeMat->SetDepthWriteEnabled(false);
     }
 
     this->planeVisual = scene->CreateVisual();
@@ -613,8 +633,6 @@ void MouseDragPrivate::OnRender()
     this->planeVisual->SetMaterial(planeMat);
     this->planeVisual->SetUserData("gui-only", static_cast<bool>(true));
   }
-
-  std::lock_guard<std::mutex> lock(this->mutex);
 
   // Update the visualization
   if (!this->dragActive)
@@ -635,7 +653,7 @@ void MouseDragPrivate::OnRender()
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
-    math::Vector3d axisDir = this->target - this->applicationPoint;
+    const math::Vector3d axisDir = this->target - this->applicationPoint;
     math::Quaterniond quat;
     quat.SetFrom2Axes(math::Vector3d::UnitZ, axisDir);
     double scale = 2 * this->bboxSize.Length();
@@ -684,7 +702,7 @@ void MouseDragPrivate::HandleMouseEvents()
       this->mouseEvent.Button() != common::MouseEvent::MIDDLE)
   {
     // Get the visual at mouse position
-    rendering::VisualPtr visual = this->scene->VisualAt(
+    const rendering::VisualPtr visual = this->scene->VisualAt(
       this->camera,
       this->mouseEvent.Pos());
 
@@ -744,7 +762,8 @@ void MouseDragPrivate::UpdateGains(const math::Inertiald &_inertial)
   if (this->mode == MouseDragMode::ROTATE)
   {
     // TODO(anyone): is this the best way to scale rotation gains?
-    double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+    const double avgInertia =
+      _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
     this->pGainRot = this->rotStiffness * avgInertia;
     this->dGainRot = 2 * sqrt(this->rotStiffness) * avgInertia;
     this->pGainPos = 0.0;
@@ -752,14 +771,16 @@ void MouseDragPrivate::UpdateGains(const math::Inertiald &_inertial)
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
-    double mass = _inertial.MassMatrix().Mass();
+    const double mass =
+      _inertial.MassMatrix().Mass();
     this->pGainPos = this->posStiffness * mass;
     this->dGainPos = 0.5 * sqrt(this->posStiffness) * mass;
     this->pGainRot = 0.0;
 
     if (!this->applyCOM)
     {
-      double avgInertia = _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
+      const double avgInertia =
+        _inertial.MassMatrix().PrincipalMoments().Sum() / 3;
       this->dGainRot = 0.5 * sqrt(this->rotStiffness) * avgInertia;
     }
   }
@@ -779,17 +800,13 @@ msgs::EntityWrench MouseDragPrivate::CalculateWrench(
       / _dt.count();
     for (auto i : {0, 1, 2})
     {
-      // Correct angle discontinuity around 0/2pi
-      if (dErrorRot[i] > GZ_PI)
-        dErrorRot[i] -= 2 * GZ_PI;
-      else if (dErrorRot[i] < -GZ_PI)
-        dErrorRot[i] += 2 * GZ_PI;
+      dErrorRot[i] = this->CorrectAngle(dErrorRot[i]);
     }
     torque = - this->pGainRot * _error - this->dGainRot * dErrorRot;
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
-    math::Vector3d dErrorPos =
+    const math::Vector3d dErrorPos =
       (_linkWorldPose.Pos() - this->poseLast.Pos()) / _dt.count();
 
     force = - this->pGainPos * _error - this->dGainPos * dErrorPos;
@@ -805,11 +822,7 @@ msgs::EntityWrench MouseDragPrivate::CalculateWrench(
         / _dt.count();
       for (auto i : {0, 1, 2})
       {
-        // Correct angle discontinuity around 0/2pi
-        if (dErrorRot[i] > GZ_PI)
-          dErrorRot[i] -= 2 * GZ_PI;
-        else if (dErrorRot[i] < -GZ_PI)
-          dErrorRot[i] += 2 * GZ_PI;
+        dErrorRot[i] = this->CorrectAngle(dErrorRot[i]);
       }
       torque -= this->dGainRot * dErrorRot;
     }
@@ -826,6 +839,31 @@ msgs::EntityWrench MouseDragPrivate::CalculateWrench(
   msgs::Set(msg.mutable_wrench()->mutable_force(), force);
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torque);
   return msg;
+}
+
+/////////////////////////////////////////////////
+void MouseDragPrivate::SetRayFromCamera(const math::Vector2i &_pos)
+{
+  // Normalize position on the image
+  const double width = this->camera->ImageWidth();
+  const double height = this->camera->ImageHeight();
+
+  const double nx = 2.0 * _pos.X() / width - 1.0;
+  const double ny = 1.0 - 2.0 * _pos.Y() / height;
+
+  // Make a ray query at the given position
+  this->rayQuery->SetFromCamera(this->camera, math::Vector2d(nx, ny));
+}
+
+
+double MouseDragPrivate::CorrectAngle(const double _angle)
+{
+  double result = _angle;
+  if (_angle > GZ_PI)
+    result -= 2 * GZ_PI;
+  else if (_angle < -GZ_PI)
+    result += 2 * GZ_PI;
+  return result;
 }
 
 // Register this plugin
