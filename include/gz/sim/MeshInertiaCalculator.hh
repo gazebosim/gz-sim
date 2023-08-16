@@ -31,6 +31,7 @@
 
 #include <gz/math/Vector3.hh>
 #include <gz/math/MassMatrix3.hh>
+#include <gz/math/Inertial.hh>
 
 
 namespace gz
@@ -50,12 +51,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
             const gz::common::Mesh* mesh);
 
     public: void CalculateMassProperties(std::vector<Triangle>& triangles, 
-            const double density, gz::math::MassMatrix3d& massMatrix);
+            double density, gz::math::MassMatrix3d& massMatrix,
+            gz::math::Pose3d& centreOfMass);
 
-    public: std::optional<gz::math::MassMatrix3d> CalculateMeshInertia(sdf::Errors& _errors, 
-            const sdf::InterfaceMoiCalculator& _calculatorParams);
-
-    public: std::optional<gz::math::MassMatrix3d> operator()(sdf::Errors& _errors,
+    public: std::optional<gz::math::Inertiald> operator()(sdf::Errors& _errors,
             const sdf::InterfaceMoiCalculator& _calculatorParams);
     
     //public: sdf::CustomMOICalculator customCalculator = CalculateMeshInertia;
@@ -88,19 +87,16 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
       triangles.push_back(triangle);
     }
-    std::cout << "Number of Indices of the mesh: " << mesh->IndexCount() << std::endl;
-    std::cout << "Number of Vertices of the mesh: " << mesh->VertexCount() << std::endl;
   }
 
   void MeshInertiaCalculator::CalculateMassProperties(std::vector<Triangle>& triangles,
-            const double density, gz::math::MassMatrix3d& massMatrix)
+            double density, gz::math::MassMatrix3d& massMatrix, gz::math::Pose3d& centreOfMass)
   {
     const double coefficients[10] = {1.0 / 6, 1.0 / 24, 1.0 / 24, 1.0 / 24, 1.0 / 60,
                                        1.0 / 60, 1.0 / 60, 1.0 / 120, 1.0 / 120, 1.0 / 120};
 
     // Number of triangles. Would probably add this as a data member of the MeshAdapterClass
     int numTriangles = triangles.size();
-    std::cout << "Number of Traingles of the mesh: " << numTriangles << std::endl;
 
     // Calculate cross products of triangles 
     std::vector<gz::math::Vector3d> crosses(numTriangles);
@@ -190,7 +186,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     std::cout << "Off Diagonal Elements of the Inertia Matrix are: " << massMatrix.OffDiagonalMoments() << std::endl;
   }
 
-  std::optional<gz::math::MassMatrix3d> MeshInertiaCalculator::operator()(sdf::Errors& _errors,
+  std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()(sdf::Errors& _errors,
           const sdf::InterfaceMoiCalculator& _calculatorParams)
   {
     const gz::common::Mesh *mesh = nullptr;
@@ -212,13 +208,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     std::vector<Triangle> meshTriangles;
     gz::math::MassMatrix3d meshMassMatrix;
+    gz::math::Pose3d centreOfMass;
 
     // Create a list of Triangle objects from the mesh vertices and indices
     GetMeshTriangles(meshTriangles, mesh);
 
-    CalculateMassProperties(meshTriangles, density, meshMassMatrix);
+    CalculateMassProperties(meshTriangles, density, meshMassMatrix, centreOfMass);
 
-    return meshMassMatrix;
+    gz::math::Inertiald meshInertial;
+
+    if (!meshInertial.SetMassMatrix(meshMassMatrix))
+    {
+      return std::nullopt;
+    }
+    else
+    {
+      meshInertial.SetPose(centreOfMass);
+      return meshInertial;
+    }
   }
 }
 }
