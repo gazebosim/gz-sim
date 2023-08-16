@@ -121,7 +121,7 @@ Server::Server(const ServerConfig &_config)
       sdf::ParserConfig sdfParserConfig;
 
       MeshInertiaCalculator meshInertiaCalculator;
-      sdfParserConfig.RegisterCustomMoiCalculator(meshInertiaCalculator);
+      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
