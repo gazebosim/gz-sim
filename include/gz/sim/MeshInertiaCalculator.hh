@@ -168,8 +168,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     gz::math::Vector3d ixyxzyz = gz::math::Vector3d();
 
     // Diagonal Elements of the Mass Matrix
-    ixxyyzz.X() = integral[5] + integral[6] - mass * (centreOfMass.Y() * centreOfMass.Y() + centreOfMass.Z() * centreOfMass.Z());
-    ixxyyzz.Y() = integral[4] + integral[6] - mass * (centreOfMass.Z() * centreOfMass.Z() + centreOfMass.X() * centreOfMass.X());
+    ixxyyzz.X() = (integral[5] + integral[6] - mass * (centreOfMass.Y() * centreOfMass.Y() + centreOfMass.Z() * centreOfMass.Z()));
+    ixxyyzz.Y() = (integral[4] + integral[6] - mass * (centreOfMass.Z() * centreOfMass.Z() + centreOfMass.X() * centreOfMass.X()));
     ixxyyzz.Z() = integral[4] + integral[5] - mass * (centreOfMass.X() * centreOfMass.X() + centreOfMass.Y() * centreOfMass.Y());
 
     // Off Diagonal Elements of the Mass Matrix
@@ -179,8 +179,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     // Set the values in the MassMatrix object
     massMatrix.SetMass(mass);
-    massMatrix.SetDiagonalMoments(ixxyyzz);
-    massMatrix.SetOffDiagonalMoments(ixyxzyz);
+    massMatrix.SetDiagonalMoments(ixxyyzz * density);
+    massMatrix.SetOffDiagonalMoments(ixyxzyz * density);
     std::cout << "Mass of the mesh is: " << massMatrix.Mass() << std::endl;
     std::cout << "Diagonal Elements of the Inertia Matrix are: " << massMatrix.DiagonalMoments() << std::endl;
     std::cout << "Off Diagonal Elements of the Inertia Matrix are: " << massMatrix.OffDiagonalMoments() << std::endl;
