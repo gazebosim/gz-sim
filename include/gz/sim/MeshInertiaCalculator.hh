@@ -159,23 +159,23 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // Accumulate the result and add it to MassMatrix object of gz::math
     double volume = integral[0];
     double mass = volume * density;
-    gz::math::Vector3d center_of_mass = gz::math::Vector3d();
-    center_of_mass.X() = integral[0] / mass;
-    center_of_mass.Y() = integral[1] / mass;
-    center_of_mass.Z() = integral[2] / mass;
+
+    centreOfMass.SetX(integral[1] / mass);
+    centreOfMass.SetY(integral[2] / mass);
+    centreOfMass.SetZ(integral[3] / mass);
 
     gz::math::Vector3d ixxyyzz = gz::math::Vector3d();
     gz::math::Vector3d ixyxzyz = gz::math::Vector3d();
 
     // Diagonal Elements of the Mass Matrix
-    ixxyyzz.X() = integral[5] + integral[6] - mass * (center_of_mass.Y() * center_of_mass.Y() + center_of_mass.Z() * center_of_mass.Z());
-    ixxyyzz.Y() = -(integral[4] + integral[6] - mass * (center_of_mass.Z() * center_of_mass.Z() + center_of_mass.X() * center_of_mass.X()));
-    ixxyyzz.Z() = -(integral[4] + integral[5] - mass * (center_of_mass.X() * center_of_mass.X() + center_of_mass.Y() * center_of_mass.Y()));
+    ixxyyzz.X() = integral[5] + integral[6] - mass * (centreOfMass.Y() * centreOfMass.Y() + centreOfMass.Z() * centreOfMass.Z());
+    ixxyyzz.Y() = integral[4] + integral[6] - mass * (centreOfMass.Z() * centreOfMass.Z() + centreOfMass.X() * centreOfMass.X());
+    ixxyyzz.Z() = integral[4] + integral[5] - mass * (centreOfMass.X() * centreOfMass.X() + centreOfMass.Y() * centreOfMass.Y());
 
     // Off Diagonal Elements of the Mass Matrix
-    ixyxzyz.X() = - (integral[7] - mass * center_of_mass.X() * center_of_mass.Y());
-    ixyxzyz.Y() = - (integral[8] - mass * center_of_mass.Y() * center_of_mass.Z());
-    ixyxzyz.Z() = - (integral[9] - mass * center_of_mass.X() * center_of_mass.Z());
+    ixyxzyz.X() = - (integral[7] - mass * centreOfMass.X() * centreOfMass.Y());
+    ixyxzyz.Y() = - (integral[8] - mass * centreOfMass.Y() * centreOfMass.Z());
+    ixyxzyz.Z() = - (integral[9] - mass * centreOfMass.X() * centreOfMass.Z());
 
     // Set the values in the MassMatrix object
     massMatrix.SetMass(mass);
