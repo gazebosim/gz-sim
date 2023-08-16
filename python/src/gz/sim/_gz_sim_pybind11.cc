@@ -20,6 +20,7 @@
 
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
+#include "Link.hh"
 #include "Model.hh"
 #include "Server.hh"
 #include "ServerConfig.hh"
@@ -33,6 +34,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.attr("K_NULL_ENTITY") = gz::sim::kNullEntity;
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
+  gz::sim::python::defineSimLink(m);
   gz::sim::python::defineSimModel(m);
   gz::sim::python::defineSimServer(m);
   gz::sim::python::defineSimServerConfig(m);
