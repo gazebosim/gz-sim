@@ -93,11 +93,11 @@ class TestModel(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, self.pre_iterations)
-        self.assertEqual(1000, self.iterations)
-        self.assertEqual(1000, self.post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()

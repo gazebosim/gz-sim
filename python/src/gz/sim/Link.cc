@@ -85,14 +85,16 @@ void defineSimLink(py::object module)
       py::arg("ecm"),
       "Get the world pose of the link inertia.")
   .def("world_linear_velocity",
-      py::overload_cast<const EntityComponentManager &>(&gz::sim::Link::WorldLinearVelocity, py::const_),
+      py::overload_cast<const EntityComponentManager &>
+        (&gz::sim::Link::WorldLinearVelocity, py::const_),
       py::arg("ecm"),
       "Get the linear velocity at the origin of of the link frame "
       "expressed in the world frame, using an offset expressed in a "
       "body-fixed frame. If no offset is given, the velocity at the origin of "
       "the Link frame will be returned.")
   .def("world_linear_velocity",
-      py::overload_cast<const EntityComponentManager &, const math::Vector3d &>(&gz::sim::Link::WorldLinearVelocity, py::const_),
+      py::overload_cast<const EntityComponentManager &, const math::Vector3d &>
+        (&gz::sim::Link::WorldLinearVelocity, py::const_),
       py::arg("ecm"),
       py::arg("offset"),
       "Get the linear velocity of a point on the body in the world "
@@ -136,13 +138,17 @@ void defineSimLink(py::object module)
       "Get the rotational and translational kinetic energy of the "
       "link with respect to the world frame.")
   .def("add_world_force",
-      py::overload_cast<EntityComponentManager &, const math::Vector3d &>(&gz::sim::Link::AddWorldForce, py::const_),
+      py::overload_cast<EntityComponentManager &, const math::Vector3d &>
+        (&gz::sim::Link::AddWorldForce, py::const_),
       py::arg("ecm"),
       py::arg("force"),
       "Add a force expressed in world coordinates and applied at the "
       "center of mass of the link.")
   .def("add_world_force",
-      py::overload_cast<EntityComponentManager &, const math::Vector3d &, const math::Vector3d &>(&gz::sim::Link::AddWorldForce, py::const_),
+      py::overload_cast<EntityComponentManager &,
+                        const math::Vector3d &,
+                        const math::Vector3d &>
+                        (&gz::sim::Link::AddWorldForce, py::const_),
       py::arg("ecm"),
       py::arg("force"),
       py::arg("position"),
