@@ -216,9 +216,6 @@ namespace sim
     /// \brief Box for visualizing rotation mode
     public: rendering::VisualPtr boxVisual{nullptr};
 
-    /// \brief Plane for visualizing the wrench application plane
-    public: rendering::VisualPtr planeVisual{nullptr};
-
     /// \brief Size of the bounding box of the selected link
     public: math::Vector3d bboxSize;
   };
@@ -571,27 +568,6 @@ void MouseDragPrivate::OnRender()
     this->boxVisual->SetInheritScale(false);
     this->boxVisual->SetMaterial(mat);
     this->boxVisual->SetUserData("gui-only", true);
-
-    auto planeMat = this->scene->Material("trans-gray");
-    if (!planeMat)
-    {
-      planeMat = this->scene->CreateMaterial("trans-gray");
-      planeMat->SetAmbient(1.0, 1.0, 1.0);
-      planeMat->SetDiffuse(1.0, 1.0, 1.0);
-      planeMat->SetSpecular(1.0, 1.0, 1.0);
-      planeMat->SetTransparency(0.7);
-      planeMat->SetCastShadows(false);
-      planeMat->SetReceiveShadows(false);
-      planeMat->SetLightingEnabled(false);
-      planeMat->SetDepthCheckEnabled(false);
-      planeMat->SetDepthWriteEnabled(false);
-    }
-
-    this->planeVisual = scene->CreateVisual();
-    this->planeVisual->AddGeometry(scene->CreatePlane());
-    this->planeVisual->SetInheritScale(false);
-    this->planeVisual->SetMaterial(planeMat);
-    this->planeVisual->SetUserData("gui-only", static_cast<bool>(true));
   }
 
   // Update the visualization
@@ -599,7 +575,6 @@ void MouseDragPrivate::OnRender()
   {
     this->arrowVisual->SetVisible(false);
     this->boxVisual->SetVisible(false);
-    this->planeVisual->SetVisible(false);
   }
   else if (this->mode == MouseDragMode::ROTATE)
   {
@@ -609,27 +584,19 @@ void MouseDragPrivate::OnRender()
 
     this->arrowVisual->SetVisible(false);
     this->boxVisual->SetVisible(true);
-    this->planeVisual->SetVisible(false);
   }
   else if (this->mode == MouseDragMode::TRANSLATE)
   {
     const math::Vector3d axisDir = this->target - this->applicationPoint;
     math::Quaterniond quat;
     quat.SetFrom2Axes(math::Vector3d::UnitZ, axisDir);
-    double scale = 2 * this->bboxSize.Length();
+    const double scale = 2 * this->bboxSize.Length();
     this->arrowVisual->SetLocalPosition(this->applicationPoint);
     this->arrowVisual->SetLocalRotation(quat);
     this->arrowVisual->SetLocalScale(scale, scale, axisDir.Length() / 0.75);
 
-    quat.SetFrom2Axes(math::Vector3d::UnitZ, -this->plane.Normal());
-    scale = this->applicationPoint.Distance(this->camera->WorldPose().Pos());
-    this->planeVisual->SetLocalRotation(quat);
-    this->planeVisual->SetLocalPosition(this->applicationPoint);
-    this->planeVisual->SetLocalScale(scale);
-
     this->arrowVisual->SetVisible(true);
     this->boxVisual->SetVisible(false);
-    this->planeVisual->SetVisible(true);
   }
 
   if (this->sendBlockOrbit)
@@ -666,7 +633,7 @@ void MouseDragPrivate::HandleMouseEvents()
       this->camera,
       this->mouseEvent.Pos());
 
-    if (!visual)
+    if (!visual || !visual->Parent())
     {
       this->mode = MouseDragMode::NONE;
       return;
