@@ -45,6 +45,7 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/EntityComponentManager.cc
   src/gz/sim/EventManager.cc
   src/gz/sim/Joint.cc
+  src/gz/sim/Link.cc
   src/gz/sim/Model.cc
   src/gz/sim/TestFixture.cc
   src/gz/sim/Server.cc
@@ -89,6 +90,7 @@ endif()
 if (BUILD_TESTING)
   set(python_tests
     joint_TEST
+    link_TEST
     model_TEST
     testFixture_TEST
     world_TEST
