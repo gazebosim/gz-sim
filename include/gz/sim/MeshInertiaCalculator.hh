@@ -21,7 +21,7 @@
 #include <optional>
 
 #include <sdf/sdf.hh>
-#include <sdf/InterafaceMoiCalculator.hh>
+#include <sdf/CustomInertiaCalcProperties.hh>
 
 #include "gz/sim/Util.hh"
 
@@ -55,7 +55,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
             gz::math::Pose3d& centreOfMass);
 
     public: std::optional<gz::math::Inertiald> operator()(sdf::Errors& _errors,
-            const sdf::InterfaceMoiCalculator& _calculatorParams);
+            const sdf::CustomInertiaCalcProperties& _calculatorParams);
     
     //public: sdf::CustomMOICalculator customCalculator = CalculateMeshInertia;
   };
@@ -187,7 +187,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()(sdf::Errors& _errors,
-          const sdf::InterfaceMoiCalculator& _calculatorParams)
+          const sdf::CustomInertiaCalcProperties& _calculatorParams)
   {
     const gz::common::Mesh *mesh = nullptr;
     const double density = _calculatorParams.Density();
