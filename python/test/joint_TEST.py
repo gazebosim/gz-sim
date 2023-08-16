@@ -17,10 +17,10 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Joint, Model, World, world_entity
+from gz_test_deps.sim import (K_NULL_ENTITY, TestFixture,
+                              Joint, Model, World, world_entity)
 from gz_test_deps.math import Pose3d
 from gz_test_deps.sdformat import JointAxis, JointType
-
 
 
 class TestJoint(unittest.TestCase):
@@ -65,7 +65,8 @@ class TestJoint(unittest.TestCase):
             # Type Test
             self.assertEqual(JointType.REVOLUTE, joint.type(_ecm))
             # Sensors Test
-            self.assertNotEqual(K_NULL_ENTITY, joint.sensor_by_name(_ecm, 'sensor_test'))
+            self.assertNotEqual(K_NULL_ENTITY,
+                                joint.sensor_by_name(_ecm, 'sensor_test'))
             self.assertEqual(1, joint.sensor_count(_ecm))
             # Velocity Test.
             joint.enable_velocity_check(_ecm, True)
@@ -95,6 +96,7 @@ class TestJoint(unittest.TestCase):
         self.assertEqual(1000, pre_iterations)
         self.assertEqual(1000, iterations)
         self.assertEqual(1000, post_iterations)
+
 
 if __name__ == '__main__':
     unittest.main()
