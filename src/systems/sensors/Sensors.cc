@@ -447,6 +447,7 @@ void SensorsPrivate::Stop()
 //////////////////////////////////////////////////
 void SensorsPrivate::ForceRender()
 {
+  std::cout << "SensorsPrivate::ForceRender()\n";
   this->forceUpdate = true;
 }
 
@@ -562,6 +563,7 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->stopConn = this->dataPtr->eventManager->Connect<events::Stop>(
       std::bind(&SensorsPrivate::Stop, this->dataPtr.get()));
 
+  std::cout << "Sensors::Configure\n";
   this->dataPtr->forceRenderConn = _eventMgr.Connect<events::ForceRender>(
       std::bind(&SensorsPrivate::ForceRender, this->dataPtr.get()));
 
@@ -661,6 +663,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+      std::cout << "\n\n renderUtil.UpdateFromECM \n\n";
       this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
       this->dataPtr->updateTime = _info.simTime;
     }

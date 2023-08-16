@@ -299,12 +299,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world,
     return true;
   });
 
+  std::cout << "\n!!!!!! DOES IT HAVE A SCENE!!!!\n";
   // scene
   if (_world->Scene())
   {
+    std::cout << "\n!!!!!!  YES SCENE!!!!\n";
     this->dataPtr->ecm->CreateComponent(_worldEntity,
         components::Scene(*_world->Scene()));
   }
+  else
+  {
+    std::cout << "\n!!!!!!  NOOOO  !!!!\n";
+}
 
   // atmosphere
   if (_world->Atmosphere())

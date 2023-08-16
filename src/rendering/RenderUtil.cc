@@ -1722,6 +1722,16 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
+  std::cout << "\nRenderUtilPrivate::CreateEntitiesFirstUpdate\n";
+  _ecm.Each<components::World>(
+      [&](const Entity &,
+        const components::World *)->bool
+      {
+        std::cout << "\n\nHERE in the world\n\n";
+        return true;
+      });
+
+
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
@@ -1730,6 +1740,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
         const components::World *,
         const components::Scene *_scene)->bool
       {
+        std::cout << "\n\nHERE in the world with Scene\n\n";
         this->sceneManager.SetWorldId(_entity);
         const sdf::Scene &sceneSdf = _scene->Data();
         this->newScenes.push_back(sceneSdf);
@@ -2010,6 +2021,8 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
 
+  std::cout << "\nRenderUtilPrivate::CreateEntitiesRuntime\n";
+
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
   // extend the sensor system to support mutliple scenes in the future
@@ -2018,6 +2031,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
         const components::World *,
         const components::Scene *_scene)->bool
       {
+        std::cout << "\n\nHERE\n\n";
         this->sceneManager.SetWorldId(_entity);
         const sdf::Scene &sceneSdf = _scene->Data();
         this->newScenes.push_back(sceneSdf);

@@ -522,7 +522,7 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
             options['render_engine_gui'], options['file'],
             options['record-topics'].join(':'), options['wait_gui'],
             options['headless-rendering'], options['record-period'],
-            options['wait-for-assets']))
+            options['wait-for-assets'])
         end
 
         guiPid = Process.fork do

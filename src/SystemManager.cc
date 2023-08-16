@@ -242,9 +242,11 @@ void SystemManager::AddSystemImpl(
     {
       systemInfoMsg = systemInfoComp->Data();
     }
+    //if (_system.configureSdf)
     if (_sdf)
     {
       auto pluginMsg = systemInfoMsg.add_plugins();
+      //pluginMsg->CopyFrom(convert<msgs::Plugin>(*_system.configureSdf.get()));
       pluginMsg->CopyFrom(convert<msgs::Plugin>(*_sdf.get()));
     }
 

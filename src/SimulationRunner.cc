@@ -1400,10 +1400,12 @@ void SimulationRunner::SetStepSize(
 /////////////////////////////////////////////////
 bool SimulationRunner::HasEntity(const std::string &_name) const
 {
+  std::cout << "simRunning::HasEntity[" << _name << "]\n";
   bool result = false;
   this->entityCompMgr.Each<components::Name>([&](const Entity,
         const components::Name *_entityName)->bool
     {
+      std::cout << "HasEntity?[" <<_entityName->Data()<<"]\n";
       if (_entityName->Data() == _name)
       {
         result = true;
@@ -1564,7 +1566,7 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
   std::scoped_lock<std::mutex> stepLock(this->stepMutex);
 
-  std::cout << "\n\nSimulationRunner::CreateEntities\n\n";
+  std::cout << "\n\nSimulationRunner::CreateEntities World[" << _world.Name() << "]\n\n";
   this->sdfWorld = _world;
 
   // Instantiate the SDF creator
@@ -1594,6 +1596,7 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Create all the entities specified in the world.
   std::cout << "================ CREATING ENTITIES ==================\n";
+  std::cout << "World Entity[" << worldEntity << "]\n";
 
   // Create components based on the contents of the server configuration.
   this->entityCompMgr.CreateComponent(worldEntity,

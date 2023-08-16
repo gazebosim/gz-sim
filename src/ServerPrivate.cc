@@ -116,17 +116,24 @@ ServerPrivate::ServerPrivate()
 //////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
 {
+  std::cout << "ServerPrivate::~ServerPrivate(): 1\n";
   this->Stop();
+  std::cout << "ServerPrivate::~ServerPrivate(): 2\n";
   if (this->runThread.joinable())
   {
+  std::cout << "ServerPrivate::~ServerPrivate(): 3\n";
     this->runThread.join();
   }
+  std::cout << "ServerPrivate::~ServerPrivate(): 4\n";
   if (this->stopThread && this->stopThread->joinable())
   {
+  std::cout << "ServerPrivate::~ServerPrivate(): 5\n";
     this->stopThread->join();
   }
+  std::cout << "ServerPrivate::~ServerPrivate(): 6\n";
   if (this->downloadThread.joinable())
   {
+  std::cout << "ServerPrivate::~ServerPrivate(): 7\n";
     this->downloadThread.join();
   }
 }
@@ -214,6 +221,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::CreateSimulationRunners()
 {
+  std::cout << "ServerPrivate::CreateSimulationRunners(). WorldCount[" << this->sdfRoot.WorldCount() << "\n";
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
@@ -562,11 +570,37 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     default:
       {
         _outputMsgs += "Loading default world.\n";
+
+        sdf::World defaultWorld;
+        defaultWorld.SetName("default");
+
         // Load an empty world.
-        /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-        errors = _root.LoadSdfString(DefaultWorld::World());
+        errors = _root.AddWorld(defaultWorld);
         break;
       }
+  }
+
+  // If the world only contains a model, load the default
+  // world and add the model to it.
+  if (_root.WorldCount() == 0)
+  {
+    std::cout << "Adding default world\n";
+    sdf::World defaultWorld;
+    defaultWorld.SetName("default");
+    if (_root.Model())
+    {
+      std::cout << "Adding model\n";
+      defaultWorld.AddModel(*_root.Model());
+    }
+    if (_root.Actor())
+      defaultWorld.AddActor(*_root.Actor());
+    if (_root.Light())
+      defaultWorld.AddLight(*_root.Light());
+
+    _root.AddWorld(defaultWorld);
+
+    std::cout << "WorldCount[" << _root.WorldCount() << "]\n";
+    _root.WorldByIndex(0)->ToElement()->PrintValues("---");
   }
 
   return errors;
@@ -575,7 +609,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 //////////////////////////////////////////////////
 void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 {
-  std::cout << "\n\nDownloadAssets\n\n";
   std::mutex assetMutex;
   std::condition_variable assetCv;
   std::unique_lock assetLock(assetMutex);
@@ -586,10 +619,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
   // Download models in a separate thread.
   this->downloadThread = std::thread([&]()
   {
-    std::cout << "DOWNLOAD THREAD \n";
     if (_config.WaitForAssets())
       std::lock_guard threadLocalLock(assetMutex);
-    std::cout << "DOWNLOADing in  thread \n";
 
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
@@ -597,7 +628,6 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
         localRoot, ignoreMessages);
 
-    std::cout << "DOne DOWNLOADing in  thread \n";
     // Output any errors.
     if (!localErrors.empty())
     {
@@ -623,10 +653,13 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
         runner->CreateEntities(*world);
       }
     }
-    assetCv.notify_one();
+    if (_config.WaitForAssets())
+      assetCv.notify_one();
   });
 
   // Wait for assets to download.
   if (_config.WaitForAssets())
+  {
     assetCv.wait(assetLock);
+  }
 }

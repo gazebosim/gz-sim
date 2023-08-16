@@ -62,8 +62,15 @@ Server::Server(const ServerConfig &_config)
 
   // Ignore the sdf::Errors returned by this function. The errors will be
   // displayed later in the downloadThread.
-  this->dataPtr->LoadSdfRootHelper(_config, this->dataPtr->sdfRoot, outputMsgs);
+  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config, this->dataPtr->sdfRoot, outputMsgs);
   gzmsg << outputMsgs;
+
+  std::cout << "Error count[" << errors.size() << "]\n";
+  for (auto const err : errors ) {
+    std::cout << err << std::endl;
+  }
+  std::cout << "WORLD COUNT[" << this->dataPtr->sdfRoot.WorldCount() << "]\n";
+
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
@@ -270,6 +277,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
 bool Server::HasEntity(const std::string &_name,
                        const unsigned int _worldIndex) const
 {
+  std::cout << "Server::HasEntity[" << this->dataPtr->simRunners.size() << "]\n";
   if (_worldIndex < this->dataPtr->simRunners.size())
     return this->dataPtr->simRunners[_worldIndex]->HasEntity(_name);
 
