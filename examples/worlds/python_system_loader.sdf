@@ -3,10 +3,10 @@
   Gazebo python system loader example
 
   Before running this, add `examples/scripts/python_api/systems` to your
-  PYTHONPATH
+  GZ_SIM_SYSTEM_PLUGIN_PATH
 
 ```
-  export PYTHONPATH=path_to_gazebo/examples/scripts/python_api/systems:$PYTHONPATH
+  export GZ_SIM_SYSTEM_PLUGIN_PATH=path_to_gazebo/examples/scripts/python_api/systems
 ```
 
 If you're building with Colcon, you'll also need to put `install/lib/python` in
@@ -98,7 +98,7 @@ your PYTHONPATH
       </link>
       <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader">
         <module_name>test_system</module_name>
-        <some_int>100</some_int>
+        <force>3000</force>
       </plugin>
     </model>
 

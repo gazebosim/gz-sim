@@ -17,6 +17,8 @@
 
 #include "PythonSystemLoader.hh"
 
+#include <pybind11/stl.h>
+
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/SystemLoader.hh>
@@ -36,28 +38,40 @@ void PythonSystemLoader::Configure(
           << "Failed to initialize." << std::endl;
     return;
   }
-  // TODO (azeey) Where do we look for the python file? Do we need a separate
-  // environment variable similar to GZ_SIM_SYSTEM_PLUGIN_PATH or can we use the
-  // same variable? For now, just load it as a module, which will be affected by 
-  // PYTHONPATH.
+
+  // Load the `gz.sim` and sdformat modules to register all pybind bindings 
+  // necessary for System interface functions
+  const auto gzSimModule =
+      std::string("gz.sim") + std::to_string(GZ_SIM_MAJOR_VERSION);
+  const auto sdformatModule =
+      std::string("sdformat") + std::to_string(SDF_MAJOR_VERSION);
+  py::module_ sysModule;
   try
   {
-    py::module_ sys = py::module_::import("sys");
-    SystemLoader systemLoader;
-    for (const auto &pluginPath : systemLoader.PluginPaths())
-    {
-      sys.attr("path").attr("append")(pluginPath);
-    }
-
-    gzdbg << "Searching for python module in:\n";
-    auto searchPaths = sys.attr("path");
-    // TODO (azeey) Improve formatting.
-    gzdbg << py::str(searchPaths).cast<std::string>() << std::endl;
+    py::module::import(gzSimModule.c_str());
+    py::module::import(sdformatModule.c_str());
+    sysModule = py::module_::import("sys");
   }
   catch (const pybind11::error_already_set &_err)
   {
-    gzerr << "Error while loading module 'sys'\n"
-      << _err.what() << std::endl;
+    gzerr << "Error while loading required modules:\n"
+          << _err.what() << std::endl;
+    return;
+  }
+
+  // Add GZ_SIM_SYSTEM_PLUGIN_PATH and other default plugin 
+  // locations to PYTHONPATH
+  try
+  {
+    SystemLoader systemLoader;
+    for (const auto &pluginPath : systemLoader.PluginPaths())
+    {
+      sysModule.attr("path").attr("append")(pluginPath);
+    }
+  }
+  catch (const std::runtime_error &_err)
+  {
+    gzerr << _err.what() << std::endl;
     return;
   }
 
@@ -68,7 +82,13 @@ void PythonSystemLoader::Configure(
   catch (const pybind11::error_already_set &_err)
   {
     gzerr << "Error while loading module " << moduleName << "\n"
-          << _err.what() << std::endl;
+          << _err.what() << "\n";
+
+    gzerr << "Searched in:\n";
+    for (const auto &path : sysModule.attr("path"))
+    {
+      gzerr << "  \"" << path << "\"\n";
+    }
     return;
   }
 
@@ -89,9 +109,18 @@ void PythonSystemLoader::Configure(
   }
   if (py::hasattr(this->pythonSystem, "configure"))
   {
-    sdf::ElementPtr sdfClone = _sdf->Clone();
-    this->pythonSystem.attr("configure")(
-        _entity, sdfClone, py::cast(_ecm, py::return_value_policy::reference));
+    try
+    {
+      // _ecm and _eventMgr are passed in as pointers so pybind11 would use the
+      // write `return_value_policy`. Otherwise, it would use
+      // `return_value_policy = copy`.
+      this->pythonSystem.attr("configure")(_entity, _sdf, &_ecm, &_eventMgr);
+    }
+    catch (const pybind11::error_already_set &_err)
+    {
+      gzerr << _err.what() << std::endl;
+      return;
+    }
   }
   // TODO(azeey) Add support for ConfigureParameters
   if (py::hasattr(this->pythonSystem, "pre_update"))
@@ -140,33 +169,28 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args&&... _args)
 void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
                                    EntityComponentManager &_ecm)
 {
-  CallPythonMethod(this->preUpdateMethod, _info,
-                   py::cast(_ecm, py::return_value_policy::reference));
+  CallPythonMethod(this->preUpdateMethod, _info, &_ecm);
 }
 
 //////////////////////////////////////////////////
 void PythonSystemLoader::Update(const UpdateInfo &_info,
                                 EntityComponentManager &_ecm)
 {
-  CallPythonMethod(this->updateMethod, _info,
-                   py::cast(_ecm, py::return_value_policy::reference));
+  CallPythonMethod(this->updateMethod, _info, &_ecm);
 }
 
 //////////////////////////////////////////////////
 void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
                                     const EntityComponentManager &_ecm)
 {
-  CallPythonMethod(this->postUpdateMethod, _info,
-                   py::cast(_ecm, py::return_value_policy::reference));
+  CallPythonMethod(this->postUpdateMethod, _info, &_ecm);
 }
 //////////////////////////////////////////////////
 void PythonSystemLoader::Reset(const UpdateInfo &_info,
                                EntityComponentManager &_ecm)
 {
-  CallPythonMethod(this->resetMethod, _info,
-                   py::cast(_ecm, py::return_value_policy::reference));
+  CallPythonMethod(this->resetMethod, _info, &_ecm);
 }
-
 
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
               ISystemUpdate, ISystemPostUpdate, ISystemReset)

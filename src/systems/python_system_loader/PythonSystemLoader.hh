@@ -21,10 +21,9 @@
 #include <pybind11/embed.h>
 
 #include <gz/sim/System.hh>
-#include <sdf/Element.hh>
-
 #include <gz/sim/config.hh>
 #include <gz/sim/python-system-loader-system/Export.hh>
+#include <sdf/Element.hh>
 
 namespace gz
 {
@@ -34,6 +33,17 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
+/// \brief Allows systems to be written in Python.
+///
+/// The convention for a system written in Python supported by the
+/// `PythonSystemLoader` is that it's a Python module providing a `get_system`
+/// function which itself returns an instance of a class that implements the
+/// various interfaces in gz::sim::System.
+/// See examples/scripts/python_api/systems/test_system.py for an example
+///
+/// ## Parameters
+/// <module_name> : Name of python module to be loaded. The search path includes
+///                 `GZ_SIM_SYTEM_PLUGIN_PATH` as well as `PYTHONPATH`.
 // TODO(azeey) Add ParameterConfigure
 class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
     : public System,
@@ -65,6 +75,8 @@ class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
   public: void Reset(const UpdateInfo &_info,
                      EntityComponentManager &_ecm) final;
 
+  /// \brief Function that calls each of the python equivalents of Configure,
+  /// PreUpdate, etc.
   private: template <typename ...Args>
   void CallPythonMethod(pybind11::object _method, Args&&...);
 
