@@ -1165,26 +1165,25 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
-  // TODO(ahcorde): Enable this code in Harmonic
-  // else if (_in.Type() == sdf::SensorType::AIR_SPEED)
-  // {
-  //   if (_in.AirSpeedSensor())
-  //   {
-  //     msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
-  //
-  //     if (_in.AirSpeedSensor()->SpeedNoise().Type()
-  //         != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_speed_noise(),
-  //           _in.AirSpeedSensor()->PressureNoise());
-  //     }
-  //   }
-  //   else
-  //   {
-  //     gzerr << "Attempting to convert an air speed SDF sensor, but the "
-  //       << "sensor pointer is null.\n";
-  //   }
-  // }
+  else if (_in.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    if (_in.AirSpeedSensor())
+    {
+      msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
+
+      if (_in.AirSpeedSensor()->PressureNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_pressure_noise(),
+            _in.AirSpeedSensor()->PressureNoise());
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed SDF sensor, but the "
+            << "sensor pointer is null.\n";
+    }
+  }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -1410,27 +1409,25 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
     out.SetAirPressureSensor(sensor);
   }
-  // TODO(ahcorde): Enable this code in Harmonic
-  // else if (out.Type() == sdf::SensorType::AIR_SPEED)
-  // {
-  //   sdf::AirSpeed sensor;
-  //   if (_in.has_air_speed())
-  //   {
-  //     if (_in.air_speed().has_speed_noise())
-  //     {
-  //       sensor.SetSpeedNoise(sim::convert<sdf::Noise>(
-  //             _in.air_speed().speed_noise()));
-  //     }
-  //
-  //   }
-  //   else
-  //   {
-  //     gzerr << "Attempting to convert an air speed sensor message, but the "
-  //       << "message does not have an air speed nested message.\n";
-  //   }
-  //
-  //   out.SetAirSpeedSensor(sensor);
-  // }
+  else if (out.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    sdf::AirSpeed sensor;
+    if (_in.has_air_speed())
+    {
+      if (_in.air_speed().has_pressure_noise())
+      {
+        sensor.SetPressureNoise(sim::convert<sdf::Noise>(
+              _in.air_speed().pressure_noise()));
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed sensor message, but the "
+        << "message does not have an air speed nested message.\n";
+    }
+
+    out.SetAirSpeedSensor(sensor);
+  }
   else if (out.Type() == sdf::SensorType::IMU)
   {
     sdf::Imu sensor;

@@ -17,7 +17,7 @@
 
 #include "AirSpeed.hh"
 
-#include <gz/msgs/fluid_pressure.pb.h>
+#include <gz/msgs/air_speed.pb.h>
 
 #include <string>
 #include <unordered_map>

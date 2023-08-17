@@ -118,7 +118,8 @@ void defineSimJoint(py::object module)
       "By default, Gazebo will not report positions for a joint, so "
       "functions like `Position` will return nullopt. This "
       "function can be used to enable joint position check.")
-  .def("enable_transmitted_wrench_check", &gz::sim::Joint::EnableTransmittedWrenchCheck,
+  .def("enable_transmitted_wrench_check",
+      &gz::sim::Joint::EnableTransmittedWrenchCheck,
       py::arg("ecm"),
       py::arg("enable") = true,
       "By default, Gazebo will not report transmitted wrench for a "
