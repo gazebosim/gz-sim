@@ -796,4 +796,4 @@ double MouseDragPrivate::CorrectAngle(const double _angle)
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(MouseDrag, gz::gui::Plugin);
+GZ_ADD_PLUGIN(MouseDrag, gz::gui::Plugin)
