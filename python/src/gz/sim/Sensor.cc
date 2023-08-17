@@ -18,8 +18,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <iostream>
-
 #include "Sensor.hh"
 
 namespace py = pybind11;
