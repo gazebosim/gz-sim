@@ -114,12 +114,13 @@ Server::Server(const ServerConfig &_config)
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRoot;
+      sdf::ParserConfig sdfParserConfig;
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      errors = sdfRoot.Load(filePath);
+      errors = sdfRoot.Load(filePath, sdfParserConfig);
       if (errors.empty()) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
@@ -139,6 +140,9 @@ Server::Server(const ServerConfig &_config)
           }
         }
       }
+      
+      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
+      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
       break;
     }
 
