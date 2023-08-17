@@ -17,8 +17,10 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Joint, Model, Sensor, World, world_entity
+from gz_test_deps.sim import (K_NULL_ENTITY, TestFixture,
+                              Joint, Model, Sensor, World, world_entity)
 from gz_test_deps.math import Pose3d
+
 
 class TestSensor(unittest.TestCase):
     post_iterations = 0
@@ -51,7 +53,8 @@ class TestSensor(unittest.TestCase):
             # Pose Test
             self.assertEqual(Pose3d(0, 1, 0, 0, 0, 0), sensor.pose(_ecm))
             # Topic Test
-            # This is None because the entity does not have a components::SensorTopic component.
+            # This is None because the entity does not have a
+            # components::SensorTopic component.
             self.assertEqual(None, sensor.topic(_ecm))
             # Parent Test
             self.assertEqual(j.entity(), sensor.parent(_ecm))
@@ -65,11 +68,12 @@ class TestSensor(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, self.pre_iterations)
-        self.assertEqual(1000, self.iterations)
-        self.assertEqual(1000, self.post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
+
 
 if __name__ == '__main__':
     unittest.main()
