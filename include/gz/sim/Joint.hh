@@ -260,7 +260,7 @@ namespace gz
       public: std::optional<std::vector<double>> Position(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the position of the joint
+      /// \brief Get the transmitted wrench of the joint
       /// \param[in] _ecm Entity-component manager.
       /// \return Transmitted wrench of the joint or nullopt if transmitted
       /// wrench check is not enabled.

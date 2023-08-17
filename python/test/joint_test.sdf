@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="world_test">
+        <model name="model_test">
+
+            <link name="link_test_1">
+            </link>
+
+            <link name="link_test_2">
+            </link>
+
+            <joint name="joint_test" type="revolute">
+                <parent>link_test_1</parent>
+                <child>link_test_2</child>
+                <pose>0 0.5 0 0 0 0</pose>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                </axis>
+                <sensor type="force_torque" name="sensor_test">
+                </sensor>
+            </joint>
+        </model>
+    </world>
+</sdf>
