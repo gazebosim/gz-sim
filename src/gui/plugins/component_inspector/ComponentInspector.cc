@@ -764,6 +764,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsEnginePlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsEnginePlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::PhysicsSolver::typeId)
     {
       auto comp = _ecm.Component<components::PhysicsSolver>(
@@ -1215,7 +1222,7 @@ void ComponentInspector::QuerySystems()
       "/system/info"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "Unable to query available systems." << std::endl;
+    gzerr << "Unable to query available systems." << std::endl;
     return;
   }
 
@@ -1225,8 +1232,8 @@ void ComponentInspector::QuerySystems()
   {
     if (plugin.filename().empty())
     {
-      ignerr << "Received empty plugin name. This shouldn't happen."
-             << std::endl;
+      gzerr << "Received empty plugin name. This shouldn't happen."
+            << std::endl;
       continue;
     }
 
@@ -1273,7 +1280,7 @@ void ComponentInspector::OnAddSystem(const QString &_name,
   auto it = this->dataPtr->systemMap.find(filenameStr);
   if (it == this->dataPtr->systemMap.end())
   {
-    ignerr << "Internal error: failed to find [" << filenameStr
+    gzerr << "Internal error: failed to find [" << filenameStr
            << "] in system map." << std::endl;
     return;
   }
@@ -1296,11 +1303,11 @@ void ComponentInspector::OnAddSystem(const QString &_name,
       "/entity/system/add"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "Error adding new system to entity: "
-           << this->dataPtr->entity << "\n"
-           << "Name: " << name << "\n"
-           << "Filename: " << filename << "\n"
-           << "Inner XML: " << innerxml << std::endl;
+    gzerr << "Error adding new system to entity: "
+          << this->dataPtr->entity << "\n"
+          << "Name: " << name << "\n"
+          << "Filename: " << filename << "\n"
+          << "Inner XML: " << innerxml << std::endl;
   }
 }
 

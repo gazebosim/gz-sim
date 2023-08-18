@@ -101,6 +101,7 @@ set(tests_needing_display
   depth_camera.cc
   distortion_camera.cc
   gpu_lidar.cc
+  mesh_uri.cc
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc
@@ -148,6 +149,8 @@ gz_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 

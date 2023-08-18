@@ -33,6 +33,7 @@
 #include <sdf/Console.hh>
 
 #include "gz/sim/config.hh"
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
@@ -70,7 +71,8 @@ extern "C" void cmdVerbosity(
 //////////////////////////////////////////////////
 extern "C" const char *worldInstallDir()
 {
-  return GZ_SIM_WORLD_INSTALL_DIR;
+  static std::string worldInstallDir = gz::sim::getWorldInstallDir();
+  return worldInstallDir.c_str();
 }
 
 //////////////////////////////////////////////////

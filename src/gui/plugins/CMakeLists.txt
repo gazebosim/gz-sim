@@ -118,7 +118,9 @@ function(gz_add_gui_plugin plugin_name)
           # Used to make test-directory headers visible to the unit tests
           ${PROJECT_SOURCE_DIR}
           # Used to make test_config.h visible to the unit tests
-          ${PROJECT_BINARY_DIR})
+          ${PROJECT_BINARY_DIR}
+        ENVIRONMENT
+          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
     endif()
   endif()
 
@@ -129,6 +131,7 @@ add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(apply_force_torque)
 add_subdirectory(banana_for_scale)
 add_subdirectory(component_inspector)
 add_subdirectory(component_inspector_editor)
@@ -139,6 +142,7 @@ add_subdirectory(environment_loader)
 add_subdirectory(environment_visualization)
 add_subdirectory(joint_position_controller)
 add_subdirectory(lights)
+add_subdirectory(mouse_drag)
 add_subdirectory(playback_scrubber)
 add_subdirectory(plot_3d)
 add_subdirectory(plotting)
