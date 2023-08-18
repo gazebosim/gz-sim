@@ -53,9 +53,10 @@ class TestSensor(unittest.TestCase):
             # Pose Test
             self.assertEqual(Pose3d(0, 1, 0, 0, 0, 0), sensor.pose(_ecm))
             # Topic Test
-            # This is None because the entity does not have a
-            # components::SensorTopic component.
-            self.assertEqual(None, sensor.topic(_ecm))
+            if self.pre_iterations <= 1:
+                self.assertEqual(None, sensor.topic(_ecm))
+            else:
+                self.assertEqual('sensor_topic_test', sensor.topic(_ecm))
             # Parent Test
             self.assertEqual(j.entity(), sensor.parent(_ecm))
 
