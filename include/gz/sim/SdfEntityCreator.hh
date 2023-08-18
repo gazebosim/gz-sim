@@ -93,7 +93,11 @@ namespace gz
       /// \return World entity.
       public: Entity CreateEntities(const sdf::World *_world);
 
-      public: Entity CreateEntities(const sdf::World *_world,
+      /// \brief Create all entities that exist in the sdf::World object and
+      /// load their plugins.
+      /// \param[in] _world SDF world object.
+      /// \param[in] _worldEntity The world entity object.
+      public: void CreateEntities(const sdf::World *_world,
                   Entity _worldEntity);
 
       /// \brief Create all entities that exist in the sdf::Model object and

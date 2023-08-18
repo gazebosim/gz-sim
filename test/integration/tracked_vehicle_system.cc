@@ -89,7 +89,6 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     ASSERT_FALSE(pathToLib.empty())
         << "Failed to find plugin [" << *pluginLib << "]";
 
-    std::cout << "\n\n PATH TO LIB[" << pathToLib << "] for [" << *pluginLib << "]\n\n";
     // Load engine plugin
     plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
@@ -574,12 +573,12 @@ TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
     "/model/simple_tracked/cmd_vel",
     "/model/simple_tracked/odometry");
 }
-//
-// /////////////////////////////////////////////////
-// TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
-// {
-//   this->TestConveyor(
-//     std::string(PROJECT_SOURCE_PATH) +
-//     "/test/worlds/conveyor.sdf",
-//     "/model/conveyor/link/base_link/track_cmd_vel");
-// }
+
+/////////////////////////////////////////////////
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
+{
+  this->TestConveyor(
+    std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/conveyor.sdf",
+    "/model/conveyor/link/base_link/track_cmd_vel");
+}

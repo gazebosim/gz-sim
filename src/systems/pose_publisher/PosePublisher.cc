@@ -47,7 +47,6 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
-#include "gz/sim/components/World.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Model.hh"
 

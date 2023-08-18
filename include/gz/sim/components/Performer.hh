@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_PERFORMER_HH_
 #define GZ_SIM_COMPONENTS_PERFORMER_HH_
 
+#include <string>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 

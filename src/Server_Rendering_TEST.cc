@@ -82,7 +82,6 @@ TEST_F(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
     };
 
     private: void CheckMeshes(){
-               std::cout << "Check meshes\n";
       if (this->scene == nullptr){
         this->FindScene();
       }

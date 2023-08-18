@@ -92,7 +92,7 @@ void LevelManager::ReadLevelPerformerInfo(const sdf::World &_world)
   const std::string kPluginName{"gz::sim"};
 
   bool found = false;
-  for (const sdf::Plugin &plugin: _world.Plugins())
+  for (const sdf::Plugin &plugin : _world.Plugins())
   {
     if (plugin.Name() == kPluginName)
     {

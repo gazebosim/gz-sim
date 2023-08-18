@@ -37,24 +37,6 @@
 using namespace gz;
 using namespace sim;
 
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
-
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -116,26 +98,13 @@ ServerPrivate::ServerPrivate()
 //////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
 {
-  std::cout << "ServerPrivate::~ServerPrivate(): 1\n";
   this->Stop();
-  std::cout << "ServerPrivate::~ServerPrivate(): 2\n";
   if (this->runThread.joinable())
-  {
-  std::cout << "ServerPrivate::~ServerPrivate(): 3\n";
     this->runThread.join();
-  }
-  std::cout << "ServerPrivate::~ServerPrivate(): 4\n";
   if (this->stopThread && this->stopThread->joinable())
-  {
-  std::cout << "ServerPrivate::~ServerPrivate(): 5\n";
     this->stopThread->join();
-  }
-  std::cout << "ServerPrivate::~ServerPrivate(): 6\n";
   if (this->downloadThread.joinable())
-  {
-  std::cout << "ServerPrivate::~ServerPrivate(): 7\n";
     this->downloadThread.join();
-  }
 }
 
 //////////////////////////////////////////////////
@@ -221,7 +190,6 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 //////////////////////////////////////////////////
 void ServerPrivate::CreateSimulationRunners()
 {
-  std::cout << "ServerPrivate::CreateSimulationRunners(). WorldCount[" << this->sdfRoot.WorldCount() << "\n";
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
@@ -584,12 +552,10 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
   // world and add the model to it.
   if (_root.WorldCount() == 0)
   {
-    std::cout << "Adding default world\n";
     sdf::World defaultWorld;
     defaultWorld.SetName("default");
     if (_root.Model())
     {
-      std::cout << "Adding model\n";
       defaultWorld.AddModel(*_root.Model());
     }
     if (_root.Actor())
@@ -599,7 +565,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 
     _root.AddWorld(defaultWorld);
 
-    std::cout << "WorldCount[" << _root.WorldCount() << "]\n";
     _root.WorldByIndex(0)->ToElement()->PrintValues("---");
   }
 

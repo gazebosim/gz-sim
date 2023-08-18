@@ -49,7 +49,7 @@ using namespace std::chrono_literals;
 class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 {
 };
-/*
+
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
@@ -230,7 +230,7 @@ TEST_P(ServerFixture, ServerConfigSdfPluginInfo)
     EXPECT_EQ(cfgPlugins.front().Plugin().ToElement()->ToString(""),
         plugins.front().Plugin().ToElement()->ToString(""));
   }
-}*/
+}
 
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))

@@ -1620,9 +1620,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogTopics))
 
   int clockMsgCount = 0;
   std::function<void(const msgs::Clock &)> clockCb =
-      [&](const msgs::Clock &_c) -> void
+      [&](const msgs::Clock &) -> void
   {
-    std::cout << _c.DebugString() << std::endl;
     clockMsgCount++;
   };
 

@@ -242,11 +242,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
 
-  return this->CreateEntities(_world, worldEntity);
+  this->CreateEntities(_world, worldEntity);
+  return worldEntity;
 }
 
 //////////////////////////////////////////////////
-Entity SdfEntityCreator::CreateEntities(const sdf::World *_world,
+void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     Entity _worldEntity)
 {
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
@@ -299,18 +300,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world,
     return true;
   });
 
-  std::cout << "\n!!!!!! DOES IT HAVE A SCENE!!!!\n";
   // scene
   if (_world->Scene())
   {
-    std::cout << "\n!!!!!!  YES SCENE!!!!\n";
     this->dataPtr->ecm->CreateComponent(_worldEntity,
         components::Scene(*_world->Scene()));
   }
-  else
-  {
-    std::cout << "\n!!!!!!  NOOOO  !!!!\n";
-}
 
   // atmosphere
   if (_world->Atmosphere())
@@ -439,8 +434,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world,
 
   // Load model plugins after the world plugin.
   this->LoadModelPlugins();
-
-  return _worldEntity;
 }
 
 //////////////////////////////////////////////////

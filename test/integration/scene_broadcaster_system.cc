@@ -176,7 +176,6 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneGraph))
   EXPECT_TRUE(result);
 
   EXPECT_FALSE(res.data().empty());
-  std::cout << res.data() << std::endl;
   EXPECT_NE(res.data().find("default (1)"), std::string::npos);
   EXPECT_NE(res.data().find("box (4)"), std::string::npos);
   EXPECT_NE(res.data().find("box_link (5)"), std::string::npos);

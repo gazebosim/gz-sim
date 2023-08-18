@@ -142,7 +142,7 @@ namespace gz
                    const sdf::Geometry &_geom);
 
       private: void UnloadLevel(const Entity &_entity,
-                   const std::set<std::string> &_entityNamesMarked={});
+                   const std::set<std::string> &_entityNamesMarked = {});
 
       /// \brief List of currently active levels
       private: std::set<Entity> activeLevels;

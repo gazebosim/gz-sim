@@ -592,7 +592,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // Ensure that tile_1 is loaded at the start, deploy a breadcrumb
         if (_info.iterations == iterTestStart)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto tiles = ModelsByNameRegex(_ecm, reTile1);
           EXPECT_EQ(1u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
@@ -600,7 +599,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // Check if the breadcrumb has been deployed
         else if (_info.iterations == iterTestStart + 1000)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
           EXPECT_EQ(1u, breadcrumbs.size());
         }
@@ -608,7 +606,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // tile_1 to be unloaded
         else if (_info.iterations == iterTestStart + 1001)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           msgs::Pose req;
           req.set_name("sphere");
           req.mutable_position()->set_x(30);
@@ -623,7 +620,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // is unloaded.
         else if (_info.iterations == iterTestStart + 2000)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto tiles = ModelsByNameRegex(_ecm, reTile1);
           EXPECT_EQ(0u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
@@ -631,7 +627,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // Check that no new breadcrumbs have been deployed
         else if (_info.iterations == iterTestStart + 3000)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
           EXPECT_EQ(1u, breadcrumbs.size());
         }
@@ -639,7 +634,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // tile_1 and a new Breadcrumbs system.
         else if (_info.iterations == iterTestStart + 3001)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           msgs::Pose req;
           req.set_name("sphere");
           req.mutable_position()->set_x(0);
@@ -652,7 +646,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // Check that tile_1 is loaded, then try deploying breadcrumb.
         else if (_info.iterations == iterTestStart + 4000)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto tiles = ModelsByNameRegex(_ecm, reTile1);
           EXPECT_EQ(1u, tiles.size());
           EXPECT_TRUE(deploy.Publish(msgs::Empty()));
@@ -663,7 +656,6 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
         // model gets a new Entity ID.
         else if (_info.iterations == iterTestStart + 5000)
         {
-        std::cout << "In Test Post Update[" << _info.iterations << "]\n";
           auto breadcrumbs = ModelsByNameRegex(_ecm, reBreadcrumb);
           EXPECT_EQ(2u, breadcrumbs.size());
         }

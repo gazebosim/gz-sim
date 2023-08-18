@@ -238,7 +238,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 //////////////////////////////////////////////////
 SimulationRunner::~SimulationRunner()
 {
-  std::cout << "\nSimulationRunner destructor\n";
   this->StopWorkerThreads();
 }
 
@@ -787,7 +786,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 void SimulationRunner::Step(const UpdateInfo &_info)
 {
   GZ_PROFILE("SimulationRunner::Step");
-  // std::cout << "Step[" << this->Paused() << "]\n";
   this->currentInfo = _info;
 
   // Process new ECM state information, typically sent from the GUI after
@@ -1002,8 +1000,6 @@ void SimulationRunner::LoadLoggingPlugins(sdf::Plugins &_plugins)
       }
     }
 
-    std::cout << "\nAdding Record plugin\n";
-    std::cout <<recordPlugin.Plugin().ToElement()->ToString("") << std::endl;
     _plugins.push_back(recordPlugin.Plugin());
   }
 }
@@ -1400,12 +1396,10 @@ void SimulationRunner::SetStepSize(
 /////////////////////////////////////////////////
 bool SimulationRunner::HasEntity(const std::string &_name) const
 {
-  std::cout << "simRunning::HasEntity[" << _name << "]\n";
   bool result = false;
   this->entityCompMgr.Each<components::Name>([&](const Entity,
         const components::Name *_entityName)->bool
     {
-      std::cout << "HasEntity?[" <<_entityName->Data()<<"]\n";
       if (_entityName->Data() == _name)
       {
         result = true;
@@ -1566,7 +1560,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
   std::scoped_lock<std::mutex> stepLock(this->stepMutex);
 
-  std::cout << "\n\nSimulationRunner::CreateEntities World[" << _world.Name() << "]\n\n";
   this->sdfWorld = _world;
 
   // Instantiate the SDF creator
@@ -1591,12 +1584,7 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Configure the default level
   this->levelMgr->ConfigureDefaultLevel();
 
-    //sdf::Plugins worldPlugins(_world.Plugins());
   this->LoadLoggingPlugins(this->sdfWorld.Plugins());
-
-  // Create all the entities specified in the world.
-  std::cout << "================ CREATING ENTITIES ==================\n";
-  std::cout << "World Entity[" << worldEntity << "]\n";
 
   // Create components based on the contents of the server configuration.
   this->entityCompMgr.CreateComponent(worldEntity,
@@ -1616,7 +1604,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Load the world entities from SDF
   creator->CreateEntities(&this->sdfWorld, worldEntity);
-  std::cout << "================ DONE CREATING ENTITIES ==================\n";
 
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
@@ -1646,7 +1633,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   if (_world.Gui())
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
 
-  std::cout << "\n\n Un force pausing \n\n";
   // Allow the runner to resume normal operations.
   this->SetForcedPause(false);
   this->creationCv.notify_all();

@@ -203,7 +203,6 @@ rendering::VisualPtr SceneManager::CreateModel(Entity _id,
   rendering::VisualPtr parent;
   if (_parentId != this->dataPtr->worldId)
   {
-    gzerr << "WorldId[" << this->dataPtr->worldId << "]\n";
     auto it = this->dataPtr->visuals.find(_parentId);
     if (it == this->dataPtr->visuals.end())
     {

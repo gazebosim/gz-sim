@@ -154,9 +154,8 @@ void NetworkManagerSecondary::OnStep(
     auto parent = this->dataPtr->ecm->Component<components::ParentEntity>(perf);
     if (parent == nullptr)
     {
-      /*gzerr << "Failed to get parent for performer [" << perf << "]"
+      gzerr << "Failed to get parent for performer [" << perf << "]"
              << std::endl;
-             */
       continue;
     }
     auto modelEntity = parent->Data();
