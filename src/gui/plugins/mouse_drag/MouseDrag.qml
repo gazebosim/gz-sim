@@ -40,7 +40,6 @@ GridLayout {
   Text {
     Layout.columnSpan: 8
     id: rotationText
-    color: "dimgrey"
     text: qsTr("Rotation (Ctrl+Left-Click)")
   }
 
@@ -48,7 +47,6 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: rotStiffText
-    color: "dimgrey"
     text: qsTr("Rotation stiffness")
   }
 
@@ -67,7 +65,6 @@ GridLayout {
   Text {
     Layout.columnSpan: 8
     id: translationText
-    color: "dimgrey"
     text: qsTr("Translation (Ctrl+Right-Click)")
   }
 
@@ -75,7 +72,6 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: posStiffText
-    color: "dimgrey"
     text: qsTr("Position stiffness")
   }
 
