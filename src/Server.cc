@@ -95,7 +95,10 @@ Server::Server(const ServerConfig &_config)
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
       gzmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+      sdf::ParserConfig sdfParserConfig;
+      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString(), sdfParserConfig);
+      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
+      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());      
       break;
     }
 
