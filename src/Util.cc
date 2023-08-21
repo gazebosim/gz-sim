@@ -15,8 +15,13 @@
  *
 */
 
+#include <gz/msgs/entity.pb.h>
+
 #include <gz/common/Filesystem.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/URI.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
@@ -29,7 +34,9 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 
 #include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
@@ -37,12 +44,15 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/LinearVelocity.hh"
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 namespace gz
@@ -78,6 +88,45 @@ math::Pose3d worldPose(const Entity &_entity,
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
   return pose;
+}
+
+//////////////////////////////////////////////////
+math::Vector3d relativeVel(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto poseComp = _ecm.Component<components::Pose>(_entity);
+  if (nullptr == poseComp)
+  {
+    gzwarn << "Trying to get world pose from entity [" << _entity
+            << "], which doesn't have a pose component" << std::endl;
+    return math::Vector3d();
+  }
+
+  // work out pose in world frame
+  math::Pose3d pose = poseComp->Data();
+  auto p = _ecm.Component<components::ParentEntity>(_entity);
+  while (p)
+  {
+    // get pose of parent entity
+    auto parentPose = _ecm.Component<components::Pose>(p->Data());
+    if (!parentPose)
+      break;
+    // transform pose
+    pose = parentPose->Data() * pose;
+    // keep going up the tree
+    p = _ecm.Component<components::ParentEntity>(p->Data());
+  }
+
+  auto worldLinVel = _ecm.Component<components::WorldLinearVelocity>(_entity);
+  if (nullptr == worldLinVel)
+  {
+    gzwarn << "Trying to get world velocity from entity [" << _entity
+            << "], which doesn't have a velocity component" << std::endl;
+    return math::Vector3d();
+  }
+
+  math::Vector3d vel = worldLinVel->Data();
+  return pose.Rot().RotateVectorReverse(vel);
 }
 
 //////////////////////////////////////////////////
@@ -233,6 +282,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::ParticleEmitter::typeId;
   }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = components::Projector::typeId;
+  }
 
   return type;
 }
@@ -282,6 +335,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
     type = "particle_emitter";
+  }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = "projector";
   }
 
   return type;
@@ -672,6 +729,45 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
 }
 
 //////////////////////////////////////////////////
+std::optional<math::Vector3d> getGridFieldCoordinates(
+  const EntityComponentManager &_ecm,
+  const math::Vector3d& _worldPosition,
+  const std::shared_ptr<components::EnvironmentalData>& _gridField
+  )
+{
+
+  auto origin =
+    _ecm.Component<components::SphericalCoordinates>(worldEntity(_ecm));
+  if (!origin)
+  {
+    if (_gridField->reference == math::SphericalCoordinates::SPHERICAL)
+    {
+      // If the reference frame is spherical, we must have some world reference
+      // coordinates.
+      gzerr << "World has no spherical coordinates,"
+          << " but data was loaded with spherical reference plane"
+          << std::endl;
+      return std::nullopt;
+    }
+    else
+    {
+      // No need to transform
+      return _worldPosition;
+    }
+  }
+  auto position = origin->Data().PositionTransform(
+      _worldPosition, math::SphericalCoordinates::LOCAL2,
+      _gridField->reference);
+  if (_gridField->reference == math::SphericalCoordinates::SPHERICAL &&
+    _gridField->units == components::EnvironmentalData::ReferenceUnits::DEGREES)
+  {
+    position.X(GZ_RTOD(position.X()));
+    position.Y(GZ_RTOD(position.Y()));
+  }
+  return position;
+}
+
+//////////////////////////////////////////////////
 // Getting the first .sdf file in the path
 std::string findFuelResourceSdf(const std::string &_path)
 {
@@ -737,12 +833,50 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with gz-sim
-    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(gz::sim::getWorldInstallDir());
 
     filePath = systemPaths.FindFile(_sdfFile);
   }
 
   return filePath;
+}
+
+const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
+{
+  const common::Mesh *mesh = nullptr;
+  auto &meshManager = *common::MeshManager::Instance();
+  if (common::URI(_meshSdf.Uri()).Scheme() == "name")
+  {
+    // if it has a name:// scheme, see if the mesh
+    // exists in the mesh manager and load it by name
+    const std::string basename = common::basename(_meshSdf.Uri());
+    mesh = meshManager.MeshByName(basename);
+    if (nullptr == mesh)
+    {
+      gzwarn << "Failed to load mesh by name [" << basename
+             << "]." << std::endl;
+      return nullptr;
+    }
+  }
+  else if (meshManager.IsValidFilename(_meshSdf.Uri()))
+  {
+    // load mesh by file path
+    auto fullPath = asFullPath(_meshSdf.Uri(), _meshSdf.FilePath());
+    mesh = meshManager.Load(fullPath);
+    if (nullptr == mesh)
+    {
+      gzwarn << "Failed to load mesh from [" << fullPath
+             << "]." << std::endl;
+      return nullptr;
+    }
+  }
+  else
+  {
+    gzwarn << "Failed to load mesh [" << _meshSdf.Uri()
+           << "]." << std::endl;
+    return nullptr;
+  }
+  return mesh;
 }
 }
 }

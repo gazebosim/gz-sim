@@ -64,7 +64,7 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*this->server->Running(0));
     // A pointer to the ecm. This will be valid once we run the mock system
     relay->OnPreUpdate(
-        [this](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &, EntityComponentManager &_ecm)
         {
           this->ecm = &_ecm;
         });
@@ -97,9 +97,9 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     this->creator->SetParent(modelEntity, worldEntity);
   }
 
-  public: sim::Model GetModel(const std::string &_name)
+  public: Model GetModel(const std::string &_name)
   {
-    return sim::Model(this->ecm->EntityByComponents(
+    return Model(this->ecm->EntityByComponents(
         components::Model(), components::Name(_name)));
   }
 
@@ -164,8 +164,8 @@ TEST_F(SdfFrameSemanticsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
   EXPECT_NE(link2, kNullEntity);
 
   // Expect the pose of L2 relative to model to be 0 0 1 0 0 pi
-  gz::math::Pose3d expRelPose(0, 0, 1, 0, 0, GZ_PI);
-  gz::math::Pose3d expWorldPose(0, 0, 3, 0, 0, GZ_PI);
+  math::Pose3d expRelPose(0, 0, 1, 0, 0, GZ_PI);
+  math::Pose3d expWorldPose(0, 0, 3, 0, 0, GZ_PI);
 
   EXPECT_EQ(expRelPose, this->GetPose(link2));
 
@@ -231,7 +231,7 @@ TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
 
   // Expect the pose of J1 relative to model to be the same as L2 (default
   // behavior)
-  gz::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
+  math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
 
   // Expect the pose of J2 relative to model to be the same as L2 (non default
   // behavior due to "relative_to='L2'")
@@ -286,7 +286,7 @@ TEST_F(SdfFrameSemanticsTest, VisualCollisionRelativeTo)
 
   // Expect the pose of v1 and relative to L2 (their parent link) to be the same
   // as the pose of L1 relative to L2
-  gz::math::Pose3d expPose(0, 0, -1, 0, 0, 0);
+  math::Pose3d expPose(0, 0, -1, 0, 0, 0);
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
 
@@ -334,13 +334,13 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithLinks)
 
   // Expect the pose of L1 and relative to M to be the same
   // as the pose of F1 relative to M
-  gz::math::Pose3d link1ExpRelativePose(0, 0, 1, 0, 0, 0);
+  math::Pose3d link1ExpRelativePose(0, 0, 1, 0, 0, 0);
 
   EXPECT_EQ(link1ExpRelativePose, this->GetPose(link1));
 
   // Expect the pose of L2 and relative to M to be the same
   // as the pose of F2, which is at the origin of M
-  gz::math::Pose3d link2ExpRelativePose = gz::math::Pose3d::Zero;
+  math::Pose3d link2ExpRelativePose = math::Pose3d::Zero;
 
   EXPECT_EQ(link2ExpRelativePose, this->GetPose(link2));
 
@@ -389,7 +389,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
   this->server->Run(true, 1, false);
 
   // Expect the pose of J1 relative to model to be the same as F1 in world
-  gz::math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
+  math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
   // TODO(anyone) Enable the following expectation when a joint's WorldPose
   // can be computed by gz-physics.
   // EXPECT_EQ(expWorldPose, this->GetWorldPose(joint1));
@@ -440,7 +440,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithVisualAndCollision)
 
   // Expect the pose of v1 and relative to L1 (their parent link) to be the same
   // as the pose of F1 relative to L1
-  gz::math::Pose3d expPose(0, 0, 1, 0, 0, 0);
+  math::Pose3d expPose(0, 0, 1, 0, 0, 0);
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
 

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include <gz/sim/config.hh>
 #include <gz/sim/rendering/Export.hh>
 
 #include "gz/rendering/RenderTypes.hh"
@@ -65,6 +66,11 @@ class GZ_SIM_RENDERING_VISIBLE MarkerManager
   /// \brief Set the marker service topic name.
   /// \param[in] _name Name of service
   public: void SetTopic(const std::string &_name);
+
+  /// \brief Clear the marker manager
+  /// Clears internal resources stored in the marker manager.
+  /// Note: this does not actually destroy the objects.
+  public: void Clear();
 
   /// \internal
   /// \brief Private data pointer

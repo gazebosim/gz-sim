@@ -27,6 +27,7 @@
 
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -721,6 +722,15 @@ namespace sdf_generator
     if (airPressureComp)
     {
       const sdf::Sensor &sensor = airPressureComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
+    // air speed
+    auto airSpeedComp =
+        _ecm.Component<components::AirSpeedSensor>(_entity);
+    if (airSpeedComp)
+    {
+      const sdf::Sensor &sensor = airSpeedComp->Data();
       _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }

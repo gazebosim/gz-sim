@@ -152,7 +152,21 @@
             </pressure>
           </air_pressure>
         </sensor>
-
+        <sensor name="air_speed" type="air_speed">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>air_pressure</topic>
+          <enable_metrics>true</enable_metrics>
+          <air_speed>
+            <pressure>
+              <noise type="gaussian">
+                <mean>0.2</mean>
+                <stddev>0.1</stddev>
+              </noise>
+            </pressure>
+          </air_speed>
+        </sensor>
         <sensor name="imu" type="imu">
           <always_on>1</always_on>
           <update_rate>100</update_rate>

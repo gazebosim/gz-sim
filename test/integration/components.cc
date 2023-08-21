@@ -77,6 +77,7 @@
 #include "gz/sim/components/PerformerLevels.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SourceFilePath.hh"
@@ -120,7 +121,7 @@ TEST_F(ComponentsTest, Actor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
-  EXPECT_EQ(gz::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -183,7 +184,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   sdf::Sensor data1;
   data1.SetName("abc");
   data1.SetType(sdf::SensorType::AIR_PRESSURE);
-  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::AirPressure airPressure1;
   data1.SetAirPressureSensor(airPressure1);
@@ -211,7 +212,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
-  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -474,7 +475,7 @@ TEST_F(ComponentsTest, Imu)
   data1.SetType(sdf::SensorType::IMU);
   data1.SetUpdateRate(100);
   data1.SetTopic("imu_data");
-  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Imu imu1;
   data1.SetImuSensor(imu1);
@@ -505,7 +506,7 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
-  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -1100,7 +1101,7 @@ TEST_F(ComponentsTest, Magnetometer)
   data1.SetType(sdf::SensorType::MAGNETOMETER);
   data1.SetUpdateRate(12.4);
   data1.SetTopic("grape");
-  data1.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Magnetometer mag1;
   data1.SetMagnetometerSensor(mag1);
@@ -1130,7 +1131,7 @@ TEST_F(ComponentsTest, Magnetometer)
   EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
   EXPECT_EQ("grape", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(12.4, comp3.Data().UpdateRate());
-  EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -1781,6 +1782,35 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, Projector)
+{
+  // Create components
+  sdf::Projector projector1;
+  projector1.SetName("projector1");
+  projector1.SetRawPose(math::Pose3d(0, 3, 4, GZ_PI, 0, 0));
+  projector1.SetNearClip(1.5);
+  projector1.SetFarClip(10.3);
+  projector1.SetHorizontalFov(math::Angle(3.0));
+  projector1.SetVisibilityFlags(0xFE);
+  projector1.SetTexture("path_to_texture");
+  auto comp1 = components::Projector(projector1);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  std::istringstream istr(ostr.str());
+  components::Projector comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("projector1", comp3.Data().Name());
+  EXPECT_EQ(math::Pose3d(0, 3, 4, GZ_PI, 0, 0), comp3.Data().RawPose());
+  EXPECT_DOUBLE_EQ(1.5, comp3.Data().NearClip());
+  EXPECT_DOUBLE_EQ(10.3, comp3.Data().FarClip());
+  EXPECT_EQ(math::Angle(3.0), comp3.Data().HorizontalFov());
+  EXPECT_EQ(0xFE, comp3.Data().VisibilityFlags());
+  EXPECT_EQ("path_to_texture", comp3.Data().Texture());
 }
 
 //////////////////////////////////////////////////

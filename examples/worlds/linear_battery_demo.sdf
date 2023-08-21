@@ -282,7 +282,7 @@
         <resistance>0.07</resistance>
         <smooth_current_tau>2.0</smooth_current_tau>
         <enable_recharge>true</enable_recharge>
-        <!-- charging I = c / t, discharging I = P / V, 
+        <!-- charging I = c / t, discharging I = P / V,
           charging I should be > discharging I -->
         <charging_time>3.0</charging_time>
         <soc_threshold>0.51</soc_threshold>
@@ -484,7 +484,7 @@
         <power_load>6.6</power_load>
         <fix_issue_225>true</fix_issue_225>
         <enable_recharge>true</enable_recharge>
-        <!-- charging I = c / t, discharging I = P / V, 
+        <!-- charging I = c / t, discharging I = P / V,
           charging I should be > discharging I -->
         <charging_time>3.0</charging_time>
         <!-- Consumer-specific -->

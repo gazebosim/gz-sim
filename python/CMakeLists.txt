@@ -28,6 +28,7 @@ else()
   set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
 
+set(GZ_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 
 # Set the build location and install location for a CPython extension
@@ -36,32 +37,10 @@ function(configure_build_install_location _library_name)
   install(TARGETS ${_library_name}
     DESTINATION "${GZ_PYTHON_INSTALL_PATH}"
   )
-
-  # TODO(CH3): Deprecated. Remove on tock.
-  # Install Python library symlinks
-  if(${GZ_PYTHON_INSTALL_PATH} MATCHES "gz$")
-    cmake_policy(SET CMP0087 NEW)  # Allow evaluation of generator expressions in install(CODE )
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/ignition")
-
-    string(REGEX REPLACE "gz$" "ignition" IGN_PYTHON_INSTALL_PATH ${GZ_PYTHON_INSTALL_PATH})
-    if (WIN32)  # Windows requires copy instead of symlink
-      install(TARGETS ${_library_name}
-        DESTINATION "${IGN_PYTHON_INSTALL_PATH}"
-      )
-    else()
-      install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink \
-          ../gz/$<TARGET_FILE_NAME:${_library_name}> \
-          ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>)")
-      install(FILES ${PROJECT_BINARY_DIR}\/ignition/$<TARGET_FILE_NAME:${_library_name}>
-        DESTINATION "${IGN_PYTHON_INSTALL_PATH}/"
-      )
-    endif()
-  endif()
-
 endfunction()
 
-# TODO(CH3): Deprecated. Remove on tock. Duplicating to reduce work...
-pybind11_add_module(gazebo SHARED
+set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
+pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/_gz_sim_pybind11.cc
   src/gz/sim/EntityComponentManager.cc
   src/gz/sim/EventManager.cc
@@ -73,31 +52,16 @@ pybind11_add_module(gazebo SHARED
   src/gz/sim/World.cc
 )
 
-# TODO(CH3): Deprecated. Remove on tock. Duplicating to reduce work...
-target_link_libraries(gazebo PRIVATE
+target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-pybind11_add_module(sim SHARED
-  src/gz/sim/_gz_sim_pybind11.cc
-  src/gz/sim/EntityComponentManager.cc
-  src/gz/sim/EventManager.cc
-  src/gz/sim/TestFixture.cc
-  src/gz/sim/Server.cc
-  src/gz/sim/ServerConfig.cc
-  src/gz/sim/UpdateInfo.cc
-  src/gz/sim/Util.cc
-  src/gz/sim/World.cc
-)
-
-target_link_libraries(sim PRIVATE
-  ${PROJECT_LIBRARY_TARGET_NAME}
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-)
+target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
+  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
 # TODO(ahcorde): Move this module to gz-common
-pybind11_add_module(common SHARED
+pybind11_add_module(common MODULE
   src/gz/common/_gz_common_pybind11.cc
   src/gz/common/Console.cc
 )
@@ -106,8 +70,7 @@ target_link_libraries(common PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
-configure_build_install_location(gazebo)  # TODO(CH3): Deprecated. Remove on tock.
-configure_build_install_location(sim)
+configure_build_install_location(${BINDINGS_MODULE_NAME})
 configure_build_install_location(common)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -117,7 +80,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   if(${pybind11_VERSION} VERSION_LESS "2.4.4")
     target_compile_options(common PRIVATE -fsized-deallocation)
     target_compile_options(sim PRIVATE -fsized-deallocation)
-    target_compile_options(gazebo PRIVATE -fsized-deallocation)  # TODO(CH3): Deprecated. Remove on tock.
   endif()
 endif()
 
@@ -127,7 +89,7 @@ if (BUILD_TESTING)
     testFixture_TEST
   )
 
-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -m pytest --version
+  execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
     ERROR_VARIABLE  PYTEST_error
     RESULT_VARIABLE PYTEST_result)
@@ -140,17 +102,17 @@ if (BUILD_TESTING)
 
   foreach (test ${python_tests})
     if (pytest_FOUND)
-      add_test(NAME ${test}.py COMMAND
-        "${PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
+      add_test(NAME ${test} COMMAND
+        "${GZ_PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
     else()
-      add_test(NAME ${test}.py COMMAND
-        "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+      add_test(NAME ${test} COMMAND
+        "${GZ_PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
 
     set(_env_vars)
     list(APPEND _env_vars "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
     list(APPEND _env_vars "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
-    set_tests_properties(${test}.py PROPERTIES
+    set_tests_properties(${test} PROPERTIES
       ENVIRONMENT "${_env_vars}")
   endforeach()
 endif()

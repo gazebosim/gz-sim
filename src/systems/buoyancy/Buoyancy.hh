@@ -113,7 +113,8 @@ namespace systems
   class Buoyancy
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemPostUpdate
   {
     /// \brief Constructor
     public: Buoyancy();
@@ -129,8 +130,13 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const gz::sim::UpdateInfo &_info,
-                gz::sim::EntityComponentManager &_ecm) override;
+                const UpdateInfo &_info,
+                EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(
+                const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override;
 
     /// \brief Check if an entity is enabled or not.
     /// \param[in] _entity Target entity

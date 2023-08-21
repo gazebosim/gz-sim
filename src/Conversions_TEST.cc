@@ -35,6 +35,7 @@
 #include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Polyline.hh>
+#include <sdf/Projector.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
@@ -58,8 +59,8 @@ TEST(Conversions, Light)
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
   light.SetVisualize(true);
-  light.SetDiffuse(gz::math::Color(0.4f, 0.5f, 0.6f, 1.0));
-  light.SetSpecular(gz::math::Color(0.8f, 0.9f, 0.1f, 1.0));
+  light.SetDiffuse(math::Color(0.4f, 0.5f, 0.6f, 1.0));
+  light.SetSpecular(math::Color(0.8f, 0.9f, 0.1f, 1.0));
   light.SetAttenuationRange(3.2);
   light.SetConstantAttenuationFactor(0.5);
   light.SetLinearAttenuationFactor(0.1);
@@ -246,11 +247,11 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(gz::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetDiffuse(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(math::Color(0.9f, 1.0f, 1.1f, 1.2f));
   material.SetShininess(0.5);
-  material.SetEmissive(gz::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetEmissive(math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
@@ -344,7 +345,7 @@ TEST(Conversions, GeometryBox)
   geometry.SetType(sdf::GeometryType::BOX);
 
   sdf::Box boxShape;
-  boxShape.SetSize(gz::math::Vector3d(1, 2, 3));
+  boxShape.SetSize(math::Vector3d(1, 2, 3));
   geometry.SetBoxShape(boxShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -458,7 +459,7 @@ TEST(Conversions, GeometryMesh)
   geometry.SetType(sdf::GeometryType::MESH);
 
   sdf::Mesh meshShape;
-  meshShape.SetScale(gz::math::Vector3d(1, 2, 3));
+  meshShape.SetScale(math::Vector3d(1, 2, 3));
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
@@ -489,8 +490,8 @@ TEST(Conversions, GeometryPlane)
   geometry.SetType(sdf::GeometryType::PLANE);
 
   sdf::Plane planeShape;
-  planeShape.SetSize(gz::math::Vector2d(1, 2));
-  planeShape.SetNormal(gz::math::Vector3d::UnitY);
+  planeShape.SetSize(math::Vector2d(1, 2));
+  planeShape.SetNormal(math::Vector3d::UnitY);
   geometry.SetPlaneShape(planeShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -684,8 +685,8 @@ TEST(Conversions, JointAxis)
 TEST(Conversions, Scene)
 {
   sdf::Scene scene;
-  scene.SetAmbient(gz::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  scene.SetBackground(gz::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetAmbient(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   scene.SetShadows(true);
   scene.SetGrid(true);
   scene.SetOriginVisual(true);
@@ -718,6 +719,7 @@ TEST(Conversions, Scene)
   sky.SetCloudHumidity(0.11);
   sky.SetCloudMeanSize(0.88);
   sky.SetCloudAmbient(math::Color::Red);
+  sky.SetCubemapUri("test.dds");
   scene.SetSky(sky);
 
   auto sceneSkyMsg = convert<msgs::Scene>(scene);
@@ -731,6 +733,10 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
   EXPECT_EQ(math::Color::Red,
       msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+  ASSERT_GT(sceneSkyMsg.sky().header().data_size(), 0);
+  auto header = sceneSkyMsg.sky().header().data(0);
+  EXPECT_EQ("cubemap_uri", header.key());
+  EXPECT_EQ("test.dds", header.value(0));
 
   auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
   ASSERT_NE(nullptr, newSceneSky.Sky());
@@ -742,6 +748,7 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
   EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
   EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
+  EXPECT_EQ("test.dds", newSceneSky.Sky()->CubemapUri());
 }
 
 /////////////////////////////////////////////////
@@ -771,7 +778,7 @@ TEST(Conversions, MagnetometerSensor)
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -811,7 +818,7 @@ TEST(Conversions, AltimeterSensor)
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(gz::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -1032,9 +1039,10 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_NEAR(0.2, emitterMsg.max_velocity().data(), 1e-3);
   EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(emitterMsg.size()));
   EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
-  EXPECT_EQ(math::Color(0.1, 0.2, 0.3),
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f),
       msgs::Convert(emitterMsg.color_start()));
-  EXPECT_EQ(math::Color(0.4, 0.5, 0.6), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f),
+      msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
 
   auto header = emitterMsg.header().data(0);
@@ -1068,6 +1076,40 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Projector)
+{
+  sdf::Projector projector;
+  projector.SetName("my_projector");
+  projector.SetNearClip(0.03);
+  projector.SetFarClip(30);
+  projector.SetHorizontalFov(math::Angle(0.4));
+  projector.SetTexture("projector.png");
+  projector.SetVisibilityFlags(0xFF);
+
+  // Convert SDF to a message.
+  msgs::Projector projectorMsg = convert<msgs::Projector>(projector);
+
+  EXPECT_EQ("my_projector", projectorMsg.name());
+  EXPECT_NEAR(0.03, projectorMsg.near_clip(), 1e-3);
+  EXPECT_NEAR(30, projectorMsg.far_clip(), 1e-3);
+  EXPECT_NEAR(0.4, projectorMsg.fov(), 1e-3);
+  EXPECT_EQ("projector.png", projectorMsg.texture());
+
+  auto header = projectorMsg.header().data(0);
+  EXPECT_EQ("visibility_flags", header.key());
+  EXPECT_EQ(0xFF, std::stoul(header.value(0)));
+
+  // Convert the message back to SDF.
+  sdf::Projector projector2 = convert<sdf::Projector>(projectorMsg);
+  EXPECT_EQ(projector2.Name(), projector.Name());
+  EXPECT_NEAR(projector2.NearClip(), projector.NearClip(), 1e-3);
+  EXPECT_NEAR(projector2.FarClip(), projector.FarClip(), 1e-3);
+  EXPECT_EQ(projector2.HorizontalFov(), projector.HorizontalFov());
+  EXPECT_EQ(projector2.Texture(), projector.Texture());
+  EXPECT_EQ(projector2.VisibilityFlags(), projector.VisibilityFlags());
 }
 
 /////////////////////////////////////////////////

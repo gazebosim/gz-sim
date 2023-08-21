@@ -128,6 +128,9 @@ struct RadioState
 
   /// \brief Accumulation of bytes received in an epoch.
   uint64_t bytesReceivedThisEpoch = 0;
+
+  /// \brief Name of the model associated with the radio.
+  std::string name;
 };
 
 /// \brief Type for holding RF power as a Normally distributed random variable.
@@ -234,7 +237,7 @@ RFPower RFComms::Implementation::LogNormalReceivedPower(
   const double kPL = this->rangeConfig.l0 +
     10 * this->rangeConfig.fadingExponent * log10(kRange);
 
-  return {_txPower - kPL, this->rangeConfig.sigma};
+  return {_txPower - kPL, pow(this->rangeConfig.sigma, 2.)};
 }
 
 /////////////////////////////////////////////
@@ -245,7 +248,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Maintain running window of bytes sent over the last epoch, e.g., 1s.
   while (!_txState.bytesSent.empty() &&
-         _txState.bytesSent.front().first < now - this->epochDuration)
+         _txState.bytesSent.front().first <= now - this->epochDuration)
   {
     _txState.bytesSentThisEpoch -= _txState.bytesSent.front().second;
     _txState.bytesSent.pop_front();
@@ -257,13 +260,16 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Compute prospective accumulated bits along with time window
   // (including this packet).
-  double bitsSent = (_txState.bytesSentThisEpoch + _numBytes) * 8;
+  auto bitsSent =
+    static_cast<double>((_txState.bytesSentThisEpoch + _numBytes) * 8);
 
   // Check current epoch bitrate vs capacity and fail to send accordingly
   if (bitsSent > this->radioConfig.capacity * this->epochDuration)
   {
-    gzwarn << "Bitrate limited: " << bitsSent << "bits sent (limit: "
-            << this->radioConfig.capacity * this->epochDuration << std::endl;
+    gzwarn << "Bitrate limited: [" << _txState.name << "] " << bitsSent
+            << " bits sent (limit: "
+            << this->radioConfig.capacity * this->epochDuration << ")"
+            << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
@@ -286,8 +292,9 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
   // error rate (BER).
   double ber = this->QPSKPowerToBER(
     this->DbmToPow(rxPower), this->DbmToPow(this->radioConfig.noiseFloor));
+  double packetDropProb =
 
-  double packetDropProb = 1.0 - exp(_numBytes * log(1 - ber));
+    1.0 - exp(static_cast<double>(_numBytes) * log(1 - ber));
 
   // gzdbg << "TX power (dBm): " << this->radioConfig.txPower << "\n" <<
   //           "RX power (dBm): " << rxPower << "\n" <<
@@ -303,7 +310,7 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Maintain running window of bytes received over the last epoch, e.g., 1s.
   while (!_rxState.bytesReceived.empty() &&
-         _rxState.bytesReceived.front().first < now - this->epochDuration)
+         _rxState.bytesReceived.front().first <= now - this->epochDuration)
   {
     _rxState.bytesReceivedThisEpoch -= _rxState.bytesReceived.front().second;
     _rxState.bytesReceived.pop_front();
@@ -315,14 +322,16 @@ std::tuple<bool, double> RFComms::Implementation::AttemptSend(
 
   // Compute prospective accumulated bits along with time window
   // (including this packet).
-  double bitsReceived = (_rxState.bytesReceivedThisEpoch + _numBytes) * 8;
+  auto bitsReceived =
+    static_cast<double>((_rxState.bytesReceivedThisEpoch + _numBytes) * 8);
 
   // Check current epoch bitrate vs capacity and fail to send accordingly.
   if (bitsReceived > this->radioConfig.capacity * this->epochDuration)
   {
-    // gzwarn << "Bitrate limited: " <<  bitsReceived
-    //         << "bits received (limit: "
-    //         << this->radioConfig.capacity * this->epochDuration << std::endl;
+    gzwarn << "Bitrate limited: [" << _rxState.name << "] " <<  bitsReceived
+           << " bits received (limit: "
+           << this->radioConfig.capacity * this->epochDuration << ")"
+           << std::endl;
     return std::make_tuple(false, std::numeric_limits<double>::lowest());
   }
 
@@ -421,6 +430,7 @@ void RFComms::Step(
       this->dataPtr->radioStates[address].pose = kPose;
       this->dataPtr->radioStates[address].timeStamp =
         std::chrono::duration<double>(_info.simTime).count();
+      this->dataPtr->radioStates[address].name = content.modelName;
     }
   }
 
@@ -442,11 +452,7 @@ void RFComms::Step(
           continue;
 
         auto [sendPacket, rssi] = this->dataPtr->AttemptSend(
-#if GOOGLE_PROTOBUF_VERSION < 3004001
-          itSrc->second, itDst->second, msg->ByteSize());
-#else
-          itSrc->second, itDst->second, msg->ByteSizeLong());
-#endif
+          itSrc->second, itDst->second, msg->data().size());
 
         if (sendPacket)
         {

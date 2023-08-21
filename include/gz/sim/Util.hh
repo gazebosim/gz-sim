@@ -19,16 +19,22 @@
 
 #include <gz/msgs/entity.pb.h>
 
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
+#include <gz/common/Mesh.hh>
 #include <gz/math/Pose3.hh>
+#include <sdf/Mesh.hh>
+
+#include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
+
 
 namespace gz
 {
@@ -42,6 +48,13 @@ namespace gz
     /// \param[in] _ecm Immutable reference to ECM.
     /// \return World pose of entity
     math::Pose3d GZ_SIM_VISIBLE worldPose(const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Helper function to compute world velocity of an entity
+    /// \param[in] _entity Entity to get the world pose for
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return World pose of entity
+    math::Vector3d GZ_SIM_VISIBLE relativeVel(const Entity &_entity,
         const EntityComponentManager &_ecm);
 
     /// \brief Helper function to generate scoped name for an entity.
@@ -287,6 +300,21 @@ namespace gz
     /// haven't been defined, this will return nullopt.
     std::optional<math::Vector3d> GZ_SIM_VISIBLE sphericalCoordinates(
         Entity _entity, const EntityComponentManager &_ecm);
+
+    /// \brief Get grid field coordinates based on a world position in cartesian
+    /// coordinate frames.
+    /// \param[in] _ecm Entity Component Manager
+    /// \param[in] _worldPosition world position
+    /// \param[in] _gridField Gridfield you are interested in.
+    std::optional<math::Vector3d> GZ_SIM_VISIBLE getGridFieldCoordinates(
+      const EntityComponentManager &_ecm,
+      const math::Vector3d& _worldPosition,
+      const std::shared_ptr<components::EnvironmentalData>& _gridField);
+
+    /// \brief Load a mesh from a Mesh SDF DOM
+    /// \param[in] _meshSdf Mesh SDF DOM
+    /// \return The loaded mesh or null if the mesh can not be loaded.
+    GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};

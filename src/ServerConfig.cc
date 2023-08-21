@@ -25,6 +25,7 @@
 #include <gz/fuel_tools/Result.hh>
 #include <gz/math/Rand.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -248,9 +249,11 @@ class gz::sim::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
+            initialSimTime(_cfg->initialSimTime),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
+            logRecordPeriod(_cfg->logRecordPeriod),
             logPlaybackPath(_cfg->logPlaybackPath),
             logRecordResources(_cfg->logRecordResources),
             logRecordCompressPath(_cfg->logRecordCompressPath),
@@ -263,7 +266,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -274,6 +278,9 @@ class gz::sim::ServerConfigPrivate
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
 
+  /// \brief The initial simulation time in seconds.
+  public: double initialSimTime = 0;
+
   /// \brief Use the level system
   public: bool useLevels{false};
 
@@ -282,6 +289,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Path to place recorded states
   public: std::string logRecordPath = "";
+
+  /// \brief Time period to record states
+  public: std::chrono::steady_clock::duration logRecordPeriod{0};
 
   /// \brief Path to recorded states to play back using logging system
   public: std::string logPlaybackPath = "";
@@ -293,7 +303,7 @@ class gz::sim::ServerConfigPrivate
   public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
-  /// from fuel.ignitionrobotics.org, should be stored.
+  /// from fuel.gazebosim.org, should be stored.
   public: std::string resourceCache = "";
 
   /// \brief File containing physics engine plugin. If empty, DART will be used.
@@ -386,10 +396,22 @@ std::string ServerConfig::SdfString() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::SetInitialSimTime(const double &_initialSimTime) const
+{
+  this->dataPtr->initialSimTime = _initialSimTime;
+}
+
+//////////////////////////////////////////////////
 void ServerConfig::SetUpdateRate(const double &_hz)
 {
   if (_hz > 0)
     this->dataPtr->updateRate = _hz;
+}
+
+/////////////////////////////////////////////////
+double ServerConfig::InitialSimTime() const
+{
+  return this->dataPtr->initialSimTime;
 }
 
 /////////////////////////////////////////////////
@@ -481,6 +503,19 @@ void ServerConfig::SetLogRecordPath(const std::string &_recordPath)
 }
 
 /////////////////////////////////////////////////
+std::chrono::steady_clock::duration ServerConfig::LogRecordPeriod() const
+{
+  return this->dataPtr->logRecordPeriod;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetLogRecordPeriod(
+  const std::chrono::steady_clock::duration &_period)
+{
+  this->dataPtr->logRecordPeriod = _period;
+}
+
+/////////////////////////////////////////////////
 const std::string ServerConfig::LogPlaybackPath() const
 {
   return this->dataPtr->logPlaybackPath;
@@ -526,7 +561,7 @@ unsigned int ServerConfig::Seed() const
 void ServerConfig::SetSeed(unsigned int _seed)
 {
   this->dataPtr->seed = _seed;
-  gz::math::Rand::Seed(_seed);
+  math::Rand::Seed(_seed);
 }
 
 /////////////////////////////////////////////////
@@ -692,6 +727,17 @@ ServerConfig::LogRecordPlugin() const
     plugin.InsertContent(topicElem);
   }
 
+  if (this->LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    sdf::ElementPtr periodElem = std::make_shared<sdf::Element>();
+    periodElem->SetName("record_period");
+    periodElem->AddValue("double", "0", false, "");
+    double t = std::chrono::duration_cast<std::chrono::milliseconds>(
+        this->LogRecordPeriod()).count() * 1e-3;
+    periodElem->Set<double>(t);
+    plugin.InsertContent(periodElem);
+  }
+
   gzdbg << plugin.ToElement()->ToString("") << std::endl;
 
   return ServerConfig::PluginInfo(entityName,
@@ -767,6 +813,7 @@ ServerConfig::SourceType ServerConfig::Source() const
 }
 
 /////////////////////////////////////////////////
+namespace {
 void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
@@ -873,10 +920,11 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::parsePluginsFromFile(const std::string &_fname)
+sim::parsePluginsFromFile(const std::string &_fname)
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile(_fname.c_str());
@@ -885,7 +933,7 @@ gz::sim::parsePluginsFromFile(const std::string &_fname)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::parsePluginsFromString(const std::string &_str)
+sim::parsePluginsFromString(const std::string &_str)
 {
   tinyxml2::XMLDocument doc;
   doc.Parse(_str.c_str());
@@ -894,21 +942,21 @@ gz::sim::parsePluginsFromString(const std::string &_str)
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
-gz::sim::loadPluginInfo(bool _isPlayback)
+sim::loadPluginInfo(bool _isPlayback)
 {
   std::list<ServerConfig::PluginInfo> ret;
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = gz::common::env(sim::kServerConfigPathEnv,
-                                   envConfig,
-                                   true);
+  bool configSet = common::env(sim::kServerConfigPathEnv,
+                               envConfig,
+                               true);
 
   if (!configSet)
   {
-    configSet = gz::common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
-                                envConfig,
-                                true);
+    configSet = common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
+                            envConfig,
+                            true);
     if (configSet)
     {
       gzwarn << "Config path found using deprecated environment variable "
@@ -919,16 +967,16 @@ gz::sim::loadPluginInfo(bool _isPlayback)
 
   if (configSet)
   {
-    if (gz::common::exists(envConfig))
+    if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = gz::sim::parsePluginsFromFile(envConfig);
+      ret = sim::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        gzwarn << sim::kServerConfigPathEnv
+        gzwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -941,7 +989,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      gzwarn << sim::kServerConfigPathEnv
+      gzwarn << kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;
@@ -959,27 +1007,27 @@ gz::sim::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  gz::common::env(GZ_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = gz::common::joinPaths(defaultConfigDir, ".gz",
+  common::env(GZ_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = common::joinPaths(defaultConfigDir, ".gz",
     "sim", GZ_SIM_MAJOR_VERSION_STR);
 
-  auto defaultConfig = gz::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = common::joinPaths(defaultConfigDir,
       configFilename);
 
-  if (!gz::common::exists(defaultConfig))
+  if (!common::exists(defaultConfig))
   {
-    auto installedConfig = gz::common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+    auto installedConfig = common::joinPaths(
+        gz::sim::getServerConfigPath(),
         configFilename);
 
-    if (!gz::common::createDirectories(defaultConfigDir))
+    if (!common::createDirectories(defaultConfigDir))
     {
       gzerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
       return ret;
     }
 
-    if (!gz::common::exists(installedConfig))
+    if (!common::exists(installedConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -987,7 +1035,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!gz::common::copyFile(installedConfig, defaultConfig))
+    else if (!common::copyFile(installedConfig, defaultConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1002,7 +1050,7 @@ gz::sim::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = gz::sim::parsePluginsFromFile(defaultConfig);
+  ret = sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {

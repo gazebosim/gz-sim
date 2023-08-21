@@ -67,14 +67,14 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
     uint32_t msgBufferIndex =
       _j * this->normalForces.step() + _i * 3 * sizeof(float);
 
-    measuredPoint.X() = static_cast<float>(
-      msgBuffer[msgBufferIndex]);
+    measuredPoint.X() = *reinterpret_cast<float*>(
+      &msgBuffer[msgBufferIndex]);
 
-    measuredPoint.Y() = static_cast<float>(
-      msgBuffer[msgBufferIndex + sizeof(float)]);
+    measuredPoint.Y() = *reinterpret_cast<float*>(
+      &msgBuffer[msgBufferIndex + sizeof(float)]);
 
-    measuredPoint.Z() = static_cast<float>(
-      msgBuffer[msgBufferIndex + 2*sizeof(float)]);
+    measuredPoint.Z() = *reinterpret_cast<float*>(
+      &msgBuffer[msgBufferIndex + 2*sizeof(float)]);
 
     return measuredPoint;
   }

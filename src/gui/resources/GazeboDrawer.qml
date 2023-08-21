@@ -133,7 +133,7 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     folder: shortcuts.home
-    nameFilters: [ "World files (*.sdf)" ]
+    nameFilters: [ "SDF files (*.sdf)" ]
     selectMultiple: false
     selectExisting: false
     onAccepted: {
@@ -152,6 +152,7 @@ Rectangle {
     focus: true
     parent: ApplicationWindow.overlay
     width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
@@ -261,6 +262,7 @@ Rectangle {
     modal: true
     focus: true
     parent: ApplicationWindow.overlay
+    width: messageText.implicitWidth
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape

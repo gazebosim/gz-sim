@@ -35,7 +35,7 @@ using namespace sim;
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
 {
-  gz::common::Console::SetVerbosity(4);
+  common::Console::SetVerbosity(4);
 
   std::string sdfFile{""};
   if (_argc >= 2)
@@ -58,7 +58,7 @@ int main(int _argc, char** _argv)
   }
   gzdbg << "Update rate: " << updateRate << std::endl;
 
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
     gzerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
@@ -70,23 +70,23 @@ int main(int _argc, char** _argv)
     serverConfig.SetUpdateRate(updateRate);
 
   // Create the Gazebo server
-  gz::sim::Server server(serverConfig);
+  Server server(serverConfig);
 
-  gz::transport::Node node;
+  transport::Node node;
 
-  std::vector<gz::msgs::Clock> msgs;
+  std::vector<msgs::Clock> msgs;
   msgs.reserve(iterations);
 
-  std::function<void(const gz::msgs::Clock&)> cb =
-    [&](const gz::msgs::Clock &_msg)
+  std::function<void(const msgs::Clock&)> cb =
+    [&](const msgs::Clock &_msg)
     {
       msgs.push_back(_msg);
     };
 
   double progress = 0;
 
-  std::function<void(const gz::msgs::WorldStatistics &)> cb2 =
-    [&](const gz::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb2 =
+    [&](const msgs::WorldStatistics &_msg)
     {
       double nIters = static_cast<double>(_msg.iterations());
       nIters = nIters / iterations * 100;

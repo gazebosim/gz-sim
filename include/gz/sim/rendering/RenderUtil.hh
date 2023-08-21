@@ -53,6 +53,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief Initialize the renderer. Must be called in the rendering thread.
     public: void Init();
 
+    /// \brief Destroy the renderer. Must be called in the rendering thread.
+    public: void Destroy();
+
     /// \brief Count of pending sensors. Must be called in the rendering thread.
     /// \return Number of sensors to be added on the next `Update` call
     ///
@@ -200,6 +203,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 
     /// \brief Clears the set of selected entities and lowlights all of them.
     public: void DeselectAllEntities();
+
+    /// \brief Init render engine plugins paths. This lets gz-rendering know
+    /// paths to find render engine plugins
+    public: void InitRenderEnginePluginPaths();
 
     /// \brief Helper function to get all child links of a model entity.
     /// \param[in] _entity Entity to find child links

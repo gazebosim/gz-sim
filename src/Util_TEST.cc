@@ -32,6 +32,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
@@ -39,6 +40,7 @@
 #include "gz/sim/Util.hh"
 
 #include "helpers/EnvTestFixture.hh"
+#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;
@@ -360,6 +362,10 @@ TEST_F(UtilTest, EntityTypeId)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
   EXPECT_EQ(components::ParticleEmitter::typeId, entityTypeId(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ(components::Projector::typeId, entityTypeId(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -409,6 +415,10 @@ TEST_F(UtilTest, EntityTypeStr)
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
   EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
+
+  entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ("projector", entityTypeStr(entity, ecm));
 }
 
 /////////////////////////////////////////////////
@@ -824,7 +834,7 @@ TEST_F(UtilTest, EntityFromMsg)
   ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
 
   // Check entities
-  auto createMsg = [&ecm](Entity _id, const std::string &_name = "",
+  auto createMsg = [&](Entity _id, const std::string &_name = "",
       msgs::Entity::Type _type = msgs::Entity::NONE) -> msgs::Entity
   {
     msgs::Entity msg;
@@ -993,4 +1003,24 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 
   // A bad relative path should return an empty string
   EXPECT_TRUE(resolveSdfWorldFile("../invalid/does_not_exist.sdf").empty());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, LoadMesh)
+{
+  sdf::Mesh meshSdf;
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("invalid_uri");
+  meshSdf.SetFilePath("invalid_filepath");
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("name://unit_box");
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("duck.dae");
+  std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "media", "duck.dae");
+  meshSdf.SetFilePath(filePath);
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
 }

@@ -38,10 +38,10 @@ TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
 
   common::Console::SetVerbosity(4);
 
-  gz::common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
+  common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
          (std::string(PROJECT_BINARY_PATH) + "/lib").c_str());
 
-  gz::sim::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
                           "/test/worlds/level_performance.sdf");
   math::Stopwatch watch;
@@ -53,7 +53,7 @@ TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // measuring time differences between levels and no levels.
   {
     serverConfig.SetUseLevels(true);
-    sim::Server server(serverConfig);
+    Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     server.Run(true, 1, false);
@@ -62,7 +62,7 @@ TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server with levels
   {
     serverConfig.SetUseLevels(true);
-    sim::Server server(serverConfig);
+    Server server(serverConfig);
     server.SetUpdatePeriod(1ns);
 
     watch.Start(true);
@@ -74,7 +74,7 @@ TEST(LevelManagerPerfrormance, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelVsNoLevel))
   // Server without levels
   {
     serverConfig.SetUseLevels(false);
-    sim::Server serverNoLevels(serverConfig);
+    Server serverNoLevels(serverConfig);
     serverNoLevels.SetUpdatePeriod(1ns);
 
     watch.Start(true);

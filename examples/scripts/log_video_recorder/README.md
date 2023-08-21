@@ -40,7 +40,7 @@ timestamped directory where the `record_one_run.bash` is in.
 ## Troubleshooting
 
 1. The world / models are not being loaded on log playback?
-    A: Make sure you have all the fuel models downloaded in ~/.ignition/fuel cache
+    A: Make sure you have all the fuel models downloaded in ~/.gz/fuel cache
 directory
 
 1. I see `tmp_record` dir, `tmp_recording.mp4` and other left over mp4 files

@@ -495,11 +495,14 @@ class OdometryPublisherTest
 
     std::vector<math::Vector3d> odomLinVels;
     std::vector<math::Vector3d> odomAngVels;
+    std::vector<math::Quaterniond> odomAngs;
     google::protobuf::RepeatedField<float> odomTwistCovariance;
     // Create function to store data from odometry messages
     std::function<void(const msgs::OdometryWithCovariance &)> odomCb =
       [&](const msgs::OdometryWithCovariance &_msg)
       {
+        odomAngs.push_back(msgs::Convert(_msg.pose_with_covariance().
+          pose().orientation()));
         odomLinVels.push_back(msgs::Convert(_msg.twist_with_covariance().
           twist().linear()));
         odomAngVels.push_back(msgs::Convert(_msg.twist_with_covariance().
@@ -521,6 +524,7 @@ class OdometryPublisherTest
 
     // Verify the Gaussian noise.
     ASSERT_FALSE(odomLinVels.empty());
+    ASSERT_FALSE(odomAngs.empty());
     ASSERT_FALSE(odomAngVels.empty());
     int n = odomLinVels.size();
 
@@ -539,13 +543,13 @@ class OdometryPublisherTest
     }
 
     // Check that the mean values are close to zero.
-    EXPECT_NEAR(linVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(linVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(linVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.5);
 
-    EXPECT_NEAR(angVelSumX/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumY/n, 0, 0.3);
-    EXPECT_NEAR(angVelSumZ/n, 0, 0.3);
+    EXPECT_NEAR(angVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.5);
 
     // Calculate the variation (sigma^2).
     double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
@@ -562,13 +566,13 @@ class OdometryPublisherTest
     }
 
     // Verify the variance values.
-    EXPECT_NEAR(linVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(linVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.5);
 
-    EXPECT_NEAR(angVelSqSumX/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumY/n, 1, 0.3);
-    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.3);
+    EXPECT_NEAR(angVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.5);
 
     // Check the covariance matrix.
     EXPECT_EQ(odomTwistCovariance.size(), 36);

@@ -32,6 +32,7 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/CastShadows.hh"
@@ -45,12 +46,14 @@
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -88,21 +91,21 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(gz::msgs::Scene &_res);
+  public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(gz::msgs::StringMsg &_res);
+  public: bool SceneGraphService(msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(gz::msgs::SerializedStepMap &_res);
+  public: bool StateService(msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const gz::msgs::StringMsg &_req);
+  public: void StateAsyncService(const msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -164,6 +167,15 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
+
+  /// \brief Adds projectors to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the projectors
+  /// will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddProjectors(msgs::Link *_msg,
               const Entity _entity, const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -252,6 +264,10 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \brief Store SDF scene information so that it can be inserted into
   /// scene message.
   public: sdf::Scene sdfScene;
+
+  /// \brief Flag used to indicate if periodic changes need to be published
+  /// This is currently only used in playback mode.
+  public: bool pubPeriodicChanges{false};
 };
 
 //////////////////////////////////////////////////
@@ -351,8 +367,11 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   auto now = std::chrono::system_clock::now();
   bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
        this->dataPtr->statePublishPeriod[_info.paused]);
+  // check if we need to publish periodic changes in playback mode.
+  bool pubChanges = this->dataPtr->pubPeriodicChanges &&
+      _manager.HasPeriodicComponentChanges();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
+       (changeEvent || itsPubTime || pubChanges);
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
@@ -375,9 +394,39 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else if (!_info.paused)
     {
       GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, periodicComponents);
+
+      if (_manager.HasPeriodicComponentChanges())
+      {
+        auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
+        _manager.State(*this->dataPtr->stepMsg.mutable_state(),
+             {}, periodicComponents);
+        this->dataPtr->pubPeriodicChanges = false;
+      }
+      else
+      {
+        // log files may be recorded at lower rate than sim time step. So in
+        // playback mode, the scene broadcaster may not see any periodic
+        // changed states here since it no longer happens every iteration.
+        // As the result, no state changes are published to be GUI, causing
+        // visuals in the GUI scene to miss updates. The visuals are only
+        // updated if by some timing coincidence that log playback updates
+        // the ECM at the same iteration as when the scene broadcaster is going
+        // to publish perioidc changes here.
+        // To work around the issue, we force the scene broadcaster
+        // to publish states at an offcycle iteration the next time it sees
+        // periodic changes.
+        auto playbackComp =
+            _manager.Component<components::LogPlaybackStatistics>(
+            this->dataPtr->worldEntity);
+        if (playbackComp)
+        {
+          this->dataPtr->pubPeriodicChanges = true;
+        }
+        // this creates an empty state in the msg even there are no periodic
+        // changed components - done to preseve existing behavior.
+        // we may be able to remove this in the future and update tests
+        this->dataPtr->stepMsg.mutable_state();
+      }
     }
 
     // Full state on demand
@@ -590,7 +639,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<gz::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<msgs::Scene>(sceneTopic);
 
   gzmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
@@ -599,7 +648,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<gz::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<msgs::UInt32_V>(deletionTopic);
 
   gzmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
@@ -608,7 +657,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<gz::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<msgs::SerializedStepMap>(stateTopic);
 
   gzmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -637,7 +686,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -657,7 +706,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(gz::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const gz::msgs::StringMsg &_req)
+    const msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -666,7 +715,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    gz::msgs::SerializedStepMap &_res)
+    msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -688,7 +737,7 @@ bool SceneBroadcasterPrivate::StateService(
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(gz::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -855,6 +904,12 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         {
           sensorMsg->set_type("air_pressure");
         }
+        auto airSpeedComp = _manager.Component<
+          components::AirSpeedSensor>(_entity);
+        if (airSpeedComp)
+        {
+          sensorMsg->set_type("air_speed");
+        }
         auto cameraComp = _manager.Component<components::Camera>(_entity);
         if (cameraComp)
         {
@@ -958,22 +1013,22 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
           const auto * imu = imuComp->Data().ImuSensor();
 
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
               imu->LinearAccelerationXNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
               imu->LinearAccelerationYNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
               imu->LinearAccelerationZNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_x_noise(),
               imu->AngularVelocityXNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_y_noise(),
               imu->AngularVelocityYNoise());
-          gz::sim::set(
+          set(
               imuMsg->mutable_angular_velocity()->mutable_z_noise(),
               imu->AngularVelocityZNoise());
         }
@@ -1029,6 +1084,29 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 
         // Add to graph
         newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Projectors
+  _manager.EachNew<components::Projector, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::Projector *_projectorComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto projectorMsg = std::make_shared<msgs::Projector>();
+        projectorMsg->CopyFrom(
+            convert<msgs::Projector>(_projectorComp->Data()));
+        // \todo(anyone) add id field to projector msg
+        // projectorMsg->set_id(_entity);
+        projectorMsg->mutable_pose()->CopyFrom(
+            msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(projectorMsg->name(), projectorMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
         newEntity = true;
         return true;
@@ -1216,6 +1294,24 @@ void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddProjectors(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto projectorMsg = std::dynamic_pointer_cast<msgs::Projector>(
+        vertex.second.get().Data());
+    if (!projectorMsg)
+      continue;
+
+    _msg->add_projector()->CopyFrom(*projectorMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1243,6 +1339,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Particle emitters
     AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
+
+    // Projectors
+    AddProjectors(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

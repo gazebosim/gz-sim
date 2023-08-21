@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <world name="joints_in_world">
+    <joint name="fix_to_world" type="fixed">
+      <parent>world</parent>
+      <child>m1</child>
+    </joint>
+
+    <model name="m1">
+      <link name="link1">
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <joint name="j1" type="revolute">
+      <pose relative_to="m1"/>
+      <parent>m1</parent>
+      <child>m2</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <model name="m2">
+      <pose>2 0 0   0 0 0</pose>
+      <link name="link2">
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

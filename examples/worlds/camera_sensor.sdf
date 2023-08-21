@@ -15,7 +15,7 @@
     <plugin
       filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
-      <render_engine>ogre</render_engine>
+      <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="gz-sim-user-commands-system"
@@ -136,6 +136,7 @@
         <gz-gui>
           <property key="state" type="string">docked</property>
         </gz-gui>
+        <topic>camera</topic>
       </plugin>
 
       <!-- Inspector -->
@@ -307,7 +308,7 @@
     <include>
       <pose>0 1 3 0.0 0.0 1.57</pose>
       <uri>
-      https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
       </uri>
     </include>
 

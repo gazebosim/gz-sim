@@ -246,6 +246,15 @@ namespace gz
       /// an UpdateRate has not been set.
       public: std::optional<double> UpdateRate() const;
 
+      /// \brief Set the initial simulation time in seconds.
+      /// \param[in] _initialSimTime The desired initial simulation time in
+      /// seconds.
+      public: void SetInitialSimTime(const double &_initialSimTime) const;
+
+      /// \brief Get the initial simulation time in seconds.
+      /// \return The initial simulation time in seconds.
+      public: double InitialSimTime() const;
+
       /// \brief Get whether the server is using the level system
       /// \return True if the server is set to use the level system
       public: bool UseLevels() const;
@@ -306,6 +315,15 @@ namespace gz
       /// \param[in] _recordPath Path to place recorded states
       public: void SetLogRecordPath(const std::string &_recordPath);
 
+      /// \brief Get time period to record states
+      /// \return Time period to record states
+      public: std::chrono::steady_clock::duration LogRecordPeriod() const;
+
+      /// \brief Set time period to record states
+      /// \param[in] _period Time period to record states
+      public: void SetLogRecordPeriod(
+          const std::chrono::steady_clock::duration &_period);
+
       /// \brief Add a topic to record.
       /// \param[in] _topic Topic name, which can include wildcards.
       public: void AddLogRecordTopic(const std::string &_topic);
@@ -358,14 +376,14 @@ namespace gz
               UpdatePeriod() const;
 
       /// \brief Path to where simulation resources, such as models downloaded
-      /// from fuel.ignitionrobotics.org, should be stored.
+      /// from fuel.gazebosim.org, should be stored.
       /// \return Path to a location on disk. An empty string indicates that
       /// the default value will be used, which is currently
       /// ~/.gz/fuel.
       public: const std::string &ResourceCache() const;
 
       /// \brief Set the path to where simulation resources, such as models
-      /// downloaded from fuel.ignitionrobotics.org, should be stored.
+      /// downloaded from fuel.gazebosim.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
       /// indicates that the default value will be used, which is currently
       /// ~/.gz/fuel.

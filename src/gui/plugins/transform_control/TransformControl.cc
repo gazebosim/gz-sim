@@ -56,6 +56,9 @@ namespace gz::sim
     /// \brief Perform transformations in the render thread.
     public: void HandleTransform();
 
+    /// \brief Handle mouse events
+    public: void HandleMouseEvents();
+
     /// \brief Snaps a point at intervals of a fixed distance. Currently used
     /// to give a snapping behavior when moving models with a mouse.
     /// \param[in] _point Input point to snap.
@@ -170,6 +173,9 @@ namespace gz::sim
 
     /// \brief Block orbit
     public: bool blockOrbit = false;
+
+    /// \brief True if BlockOrbit events should be sent
+    public: bool sendBlockOrbit = false;
   };
 }
 
@@ -494,9 +500,28 @@ void TransformControlPrivate::HandleTransform()
   // update gizmo visual
   this->transformControl.Update();
 
+  this->HandleMouseEvents();
+
+  if (this->sendBlockOrbit)
+  {
+    // Events with false should only be sent once
+    if (!this->blockOrbit)
+      this->sendBlockOrbit = false;
+
+    gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+        &blockOrbitEvent);
+  }
+}
+
+/////////////////////////////////////////////////
+void TransformControlPrivate::HandleMouseEvents()
+{
   // check for mouse events
   if (!this->mouseDirty)
     return;
+  this->mouseDirty = false;
 
   // handle mouse movements
   if (this->mouseEvent.Button() == gz::common::MouseEvent::LEFT)
@@ -519,6 +544,7 @@ void TransformControlPrivate::HandleTransform()
         if (axis != gz::math::Vector3d::Zero)
         {
           this->blockOrbit = true;
+          this->sendBlockOrbit = true;
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
@@ -534,11 +560,11 @@ void TransformControlPrivate::HandleTransform()
               // It's ok to get here
             }
           }
-          this->mouseDirty = false;
         }
         else
         {
           this->blockOrbit = false;
+          this->sendBlockOrbit = true;
           return;
         }
       }
@@ -546,6 +572,7 @@ void TransformControlPrivate::HandleTransform()
     else if (this->mouseEvent.Type() == gz::common::MouseEvent::RELEASE)
     {
       this->blockOrbit = false;
+      this->sendBlockOrbit = true;
 
       this->isStartWorldPosSet = false;
       if (this->transformControl.Active())
@@ -601,7 +628,6 @@ void TransformControlPrivate::HandleTransform()
         }
 
         this->transformControl.Stop();
-        this->mouseDirty = false;
       }
       // Select entity
       else if (!this->mouseEvent.Dragging())
@@ -672,7 +698,6 @@ void TransformControlPrivate::HandleTransform()
               }
             }
 
-            this->mouseDirty = false;
             return;
           }
         }
@@ -694,6 +719,7 @@ void TransformControlPrivate::HandleTransform()
     }
 
     this->blockOrbit = true;
+    this->sendBlockOrbit = true;
     // compute the the start and end mouse positions in normalized coordinates
     auto imageWidth = static_cast<double>(this->camera->ImageWidth());
     auto imageHeight = static_cast<double>(
@@ -829,13 +855,7 @@ void TransformControlPrivate::HandleTransform()
       }
       this->transformControl.Scale(scale);
     }
-    this->mouseDirty = false;
   }
-
-  gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  gz::gui::App()->sendEvent(
-      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-      &blockOrbitEvent);
 }
 
 /////////////////////////////////////////////////
@@ -934,5 +954,5 @@ void TransformControlPrivate::SnapPoint(
 }
 
 // Register this plugin
-GZ_ADD_PLUGIN(gz::sim::TransformControl,
-                    gz::gui::Plugin)
+GZ_ADD_PLUGIN(TransformControl,
+              gz::gui::Plugin)

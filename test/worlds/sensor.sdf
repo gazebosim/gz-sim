@@ -2,7 +2,8 @@
 <sdf version="1.6">
   <world name="camera_sensor">
     <physics name="fast" type="ignored">
-      <real_time_factor>0</real_time_factor>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
     </physics>
 
     <plugin
@@ -87,6 +88,7 @@
       <static>true</static>
       <link name="camera_link">
         <sensor name="camera" type="camera">
+          <update_rate>50</update_rate>
           <camera>
             <horizontal_fov>1.047</horizontal_fov>
             <image>
@@ -103,6 +105,7 @@
 
       <link name="gpu_lidar_link">
         <sensor name='gpu_lidar' type='gpu_lidar'>"
+          <update_rate>40</update_rate>
           <ray>
             <scan>
               <horizontal>
@@ -129,6 +132,7 @@
 
       <link name="depth_camera_link">
         <sensor name="depth_camera" type="depth_camera">
+          <update_rate>25</update_rate>
           <camera>
             <horizontal_fov>1.05</horizontal_fov>
             <image>
@@ -152,6 +156,7 @@
 
       <link name="rgbd_camera_link">
         <sensor name="rgbd_camera" type="rgbd_camera">
+          <update_rate>10</update_rate>
           <camera>
             <horizontal_fov>1.05</horizontal_fov>
             <image>
@@ -168,6 +173,7 @@
 
       <link name="thermal_camera_link">
         <sensor name="thermal_camera" type="thermal_camera">
+          <update_rate>40</update_rate>
           <camera>
             <horizontal_fov>1.15</horizontal_fov>
             <image>
@@ -184,6 +190,7 @@
 
       <link name="segmentation_camera_link">
         <sensor name="segmentation_camera" type="segmentation_camera">
+          <update_rate>25</update_rate>
           <camera>
             <horizontal_fov>1.0</horizontal_fov>
             <image>
