@@ -1,0 +1,206 @@
+/*
+ * Copyright (C) 2023 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#include <optional>
+
+#include <sdf/sdf.hh>
+#include <sdf/CustomInertiaCalcProperties.hh>
+
+#include <gz/sim/Util.hh>
+
+#include <gz/common/graphics.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
+
+#include <gz/math/Vector3.hh>
+#include <gz/math/MassMatrix3.hh>
+#include <gz/math/Inertial.hh>
+
+#include <gz/sim/MeshInertiaCalculator.hh>
+
+using namespace gz;
+using namespace sim;
+
+//////////////////////////////////////////////////
+MeshInertiaCalculator::MeshInertiaCalculator() = default;
+
+//////////////////////////////////////////////////
+MeshInertiaCalculator::~MeshInertiaCalculator() = default;
+
+//////////////////////////////////////////////////
+void MeshInertiaCalculator::GetMeshTriangles(
+    std::vector<Triangle>& _triangles,
+    const gz::common::Mesh* _mesh)
+{
+  // Get the vertices & indices of the mesh
+  double* vertArray = NULL;
+  int* indArray = NULL;
+  _mesh->FillArrays(&vertArray, &indArray);
+  
+  // Add check to see if size of the ind array is divisible by 3
+  for (unsigned int i = 0; i < _mesh->IndexCount(); i += 3)
+  {
+    Triangle triangle;
+    triangle.v0.X() = vertArray[3 * indArray[i]];
+    triangle.v0.Y() = vertArray[3 * indArray[i] + 1];
+    triangle.v0.Z() = vertArray[3 * indArray[i] + 2];
+    triangle.v1.X() = vertArray[3 * indArray[i+1]];
+    triangle.v1.Y() = vertArray[3 * indArray[i+1] + 1];
+    triangle.v1.Z() = vertArray[3 * indArray[i+1] + 2];
+    triangle.v2.X() = vertArray[3 * indArray[i+2]];
+    triangle.v2.Y() = vertArray[3 * indArray[i+2] + 1];
+    triangle.v2.Z() = vertArray[3 * indArray[i+2] + 2];
+    _triangles.push_back(triangle);
+  }
+}
+
+//////////////////////////////////////////////////
+void MeshInertiaCalculator::CalculateMassProperties(
+  std::vector<Triangle>& _triangles,
+  double _density,
+  gz::math::MassMatrix3d& _massMatrix,
+  gz::math::Pose3d& _centreOfMass)
+{
+  const double coefficients[10] = {1.0 / 6, 1.0 / 24, 1.0 / 24, 1.0 / 24, 1.0 / 60,
+                                     1.0 / 60, 1.0 / 60, 1.0 / 120, 1.0 / 120, 1.0 / 120};
+  
+  // Number of triangles. Would probably add this as a data member of the MeshAdapterClass
+  int numTriangles = _triangles.size();
+  
+  // Calculate cross products of triangles 
+  std::vector<gz::math::Vector3d> crosses(numTriangles);
+  
+  for (int i = 0; i < numTriangles; ++i) {
+      crosses[i] =
+        (_triangles[i].v1 - _triangles[i].v0).Cross(_triangles[i].v2 - _triangles[i].v0);
+  }
+
+  // Calculate subexpressions of the integral
+  std::vector<gz::math::Vector3d> f1(numTriangles), f2(numTriangles), f3(numTriangles), g0(numTriangles), g1(numTriangles), g2(numTriangles);
+  
+  for (int i = 0; i < numTriangles; ++i) {
+      f1[i] = _triangles[i].v0 + _triangles[i].v1 + _triangles[i].v2;
+      f2[i] = _triangles[i].v0 * _triangles[i].v0 +
+              _triangles[i].v1 * _triangles[i].v1 +
+              _triangles[i].v0 * _triangles[i].v1 +
+              _triangles[i].v2 * f1[i];
+      f3[i] = _triangles[i].v0 * _triangles[i].v0 * _triangles[i].v0 +
+              _triangles[i].v0 * _triangles[i].v0 * _triangles[i].v1 +
+              _triangles[i].v0 * _triangles[i].v1 * _triangles[i].v1 +
+              _triangles[i].v1 * _triangles[i].v1 * _triangles[i].v1 +
+              _triangles[i].v2 * f2[i];
+      g0[i] = f2[i] + (_triangles[i].v0 + f1[i]) * (_triangles[i].v0);
+      g1[i] = f2[i] + (_triangles[i].v1 + f1[i]) * (_triangles[i].v1);
+      g2[i] = f2[i] + (_triangles[i].v2 + f1[i]) * (_triangles[i].v2);
+  }
+
+  // Calculate integral terms
+  std::vector<double> integral(10);
+  for (int i = 0; i < numTriangles; ++i) {
+      double x0 = _triangles[i].v0.X();
+      double y0 = _triangles[i].v0.Y();
+      double z0 = _triangles[i].v0.Z();
+      double x1 = _triangles[i].v1.X();
+      double y1 = _triangles[i].v1.Y();
+      double z1 = _triangles[i].v1.Z();
+      double x2 = _triangles[i].v2.X();
+      double y2 = _triangles[i].v2.Y();
+      double z2 = _triangles[i].v2.Z();
+      integral[0] += crosses[i].X() * f1[i].X();
+      integral[1] += crosses[i].X() * f2[i].X();
+      integral[2] += crosses[i].Y() * f2[i].Y();
+      integral[3] += crosses[i].Z() * f2[i].Z();
+      integral[4] += crosses[i].X() * f3[i].X();
+      integral[5] += crosses[i].Y() * f3[i].Y();
+      integral[6] += crosses[i].Z() * f3[i].Z();
+      integral[7] += crosses[i].X() * (y0 * g0[i].X() + y1 * g1[i].X() + y2 * g2[i].X());
+      integral[8] += crosses[i].Y() * (z0 * g0[i].Y() + z1 * g1[i].Y() + z2 * g2[i].Y());
+      integral[9] += crosses[i].Z() * (x0 * g0[i].Z() + x1 * g1[i].Z() + x2 * g2[i].Z());
+  }
+
+  for (int i = 0; i < 10; ++i) {
+      integral[i] *= coefficients[i];
+  }
+  
+  // Accumulate the result and add it to MassMatrix object of gz::math
+  double volume = integral[0];
+  double mass = volume * _density;
+  _centreOfMass.SetX(integral[1] / mass);
+  _centreOfMass.SetY(integral[2] / mass);
+  _centreOfMass.SetZ(integral[3] / mass);
+  gz::math::Vector3d ixxyyzz = gz::math::Vector3d();
+  gz::math::Vector3d ixyxzyz = gz::math::Vector3d();
+  
+  // Diagonal Elements of the Mass Matrix
+  ixxyyzz.X() = (integral[5] + integral[6] - mass * (_centreOfMass.Y() * _centreOfMass.Y() + _centreOfMass.Z() * _centreOfMass.Z()));
+  ixxyyzz.Y() = (integral[4] + integral[6] - mass * (_centreOfMass.Z() * _centreOfMass.Z() + _centreOfMass.X() * _centreOfMass.X()));
+  ixxyyzz.Z() = integral[4] + integral[5] - mass * (_centreOfMass.X() * _centreOfMass.X() + _centreOfMass.Y() * _centreOfMass.Y());
+  
+  // Off Diagonal Elements of the Mass Matrix
+  ixyxzyz.X() = - (integral[7] - mass * _centreOfMass.X() * _centreOfMass.Y());
+  ixyxzyz.Y() = - (integral[8] - mass * _centreOfMass.Y() * _centreOfMass.Z());
+  ixyxzyz.Z() = - (integral[9] - mass * _centreOfMass.X() * _centreOfMass.Z());
+
+  // Set the values in the MassMatrix object
+  _massMatrix.SetMass(mass);
+  _massMatrix.SetDiagonalMoments(ixxyyzz * _density);
+  _massMatrix.SetOffDiagonalMoments(ixyxzyz * _density);
+  std::cout << "Mass of the mesh is: " << _massMatrix.Mass() << std::endl;
+  std::cout << "Diagonal Elements of the Inertia Matrix are: " << _massMatrix.DiagonalMoments() << std::endl;
+  std::cout << "Off Diagonal Elements of the Inertia Matrix are: " << _massMatrix.OffDiagonalMoments() << std::endl;
+}
+
+//////////////////////////////////////////////////
+std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
+  (sdf::Errors& _errors,
+  const sdf::CustomInertiaCalcProperties& _calculatorParams)
+{
+  const gz::common::Mesh *mesh = nullptr;
+  const double density = _calculatorParams.Density();
+  const sdf::Mesh sdfMesh = _calculatorParams.Mesh();
+  auto fullPath = asFullPath(sdfMesh.Uri(), sdfMesh.FilePath());
+
+  if (fullPath.empty())
+  {
+    gzerr << "Mesh geometry missing uri" << std::endl;
+    _errors.push_back({sdf::ErrorCode::URI_INVALID,
+        "Attempting to load the mesh but the URI seems to be incorrect"});
+    return std::nullopt;
+  }
+
+  // Load the Mesh
+  gz::common::MeshManager *meshManager = gz::common::MeshManager::Instance();
+  mesh = meshManager->Load(fullPath);
+  std::vector<Triangle> meshTriangles;
+  gz::math::MassMatrix3d meshMassMatrix;
+  gz::math::Pose3d centreOfMass;
+
+  // Create a list of Triangle objects from the mesh vertices and indices
+  GetMeshTriangles(meshTriangles, mesh);
+  CalculateMassProperties(meshTriangles, density, meshMassMatrix, centreOfMass);
+  gz::math::Inertiald meshInertial;
+
+  if (!meshInertial.SetMassMatrix(meshMassMatrix))
+  {
+    return std::nullopt;
+  }
+  else
+  {
+    meshInertial.SetPose(centreOfMass);
+    return meshInertial;
+  }
+}

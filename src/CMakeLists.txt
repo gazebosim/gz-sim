@@ -50,6 +50,7 @@ set (sources
   EntityComponentManagerDiff.cc
   LevelManager.cc
   Link.cc
+  MeshInertiaCalculator.cc
   Model.cc
   Primitives.cc
   SdfEntityCreator.cc
