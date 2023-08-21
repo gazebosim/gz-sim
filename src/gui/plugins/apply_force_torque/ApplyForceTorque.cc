@@ -632,10 +632,10 @@ void ApplyForceTorquePrivate::OnRender()
       return;
     }
 
-    for (unsigned int i = 0; i < this->scene->NodeCount(); ++i)
+    for (unsigned int i = 0; i < this->scene->SensorCount(); ++i)
     {
       auto cam = std::dynamic_pointer_cast<rendering::Camera>(
-        this->scene->NodeByIndex(i));
+        this->scene->SensorByIndex(i));
       if (cam && cam->HasUserData("user-camera") &&
           std::get<bool>(cam->UserData("user-camera")))
       {
@@ -751,6 +751,9 @@ void ApplyForceTorquePrivate::UpdateVisuals()
 
     double scale = pos.Distance(this->camera->WorldPose().Pos())
       / 2.0;
+
+    // TODO(anyone): use GizmoVisual::LookAt function from
+    // https://github.com/gazebosim/gz-rendering/pull/882
 
     // Update gizmo visual rotation so that they are always facing the
     // eye position and alligned with the active vector
