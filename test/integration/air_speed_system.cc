@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/air_speed_sensor.pb.h>
+#include <gz/msgs/air_speed.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
@@ -99,10 +99,10 @@ TEST_F(AirSpeedTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirSpeed))
 
   // Subscribe to air_speed topic
   bool received{false};
-  msgs::AirSpeedSensor msg;
+  msgs::AirSpeed msg;
   msg.Clear();
-  std::function<void(const msgs::AirSpeedSensor &)>  cb =
-      [&received, &msg](const msgs::AirSpeedSensor &_msg)
+  std::function<void(const msgs::AirSpeed &)> cb =
+      [&received, &msg](const msgs::AirSpeed &_msg)
   {
     // Only need one message
     if (received)

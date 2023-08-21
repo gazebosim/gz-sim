@@ -17,9 +17,12 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Model, World, world_entity
+from gz_test_deps.sim import (K_NULL_ENTITY, TestFixture,
+                              Joint, Model, Sensor, World, world_entity)
+from gz_test_deps.math import Pose3d
 
-class TestModel(unittest.TestCase):
+
+class TestSensor(unittest.TestCase):
     post_iterations = 0
     iterations = 0
     pre_iterations = 0
@@ -28,7 +31,7 @@ class TestModel(unittest.TestCase):
         set_verbosity(4)
 
         file_path = os.path.dirname(os.path.realpath(__file__))
-        fixture = TestFixture(os.path.join(file_path, 'model_test.sdf'))
+        fixture = TestFixture(os.path.join(file_path, 'joint_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
             self.post_iterations += 1
@@ -38,26 +41,24 @@ class TestModel(unittest.TestCase):
             world_e = world_entity(_ecm)
             self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
-            model = Model(w.model_by_name(_ecm, 'model_test'))
+            m = Model(w.model_by_name(_ecm, 'model_test'))
+            j = Joint(m.joint_by_name(_ecm, 'joint_test'))
+            sensor = Sensor(j.sensor_by_name(_ecm, 'sensor_test'))
             # Entity Test
-            self.assertNotEqual(K_NULL_ENTITY, model.entity())
+            self.assertNotEqual(K_NULL_ENTITY, sensor.entity())
             # Valid Test
-            self.assertTrue(model.valid(_ecm))
+            self.assertTrue(sensor.valid(_ecm))
             # Name Test
-            self.assertEqual('model_test', model.name(_ecm))
-            # Static Test
-            self.assertTrue(model.static(_ecm))
-            # Self Collide Test
-            self.assertTrue(model.self_collide(_ecm))
-            # Wind Mode Test
-            self.assertTrue(model.wind_mode(_ecm))
-            # Get Joints Test
-            self.assertNotEqual(K_NULL_ENTITY, model.joint_by_name(_ecm, 'model_joint_test'))
-            self.assertEqual(1, model.joint_count(_ecm))
-            # Get Links Test
-            self.assertNotEqual(K_NULL_ENTITY, model.link_by_name(_ecm, 'model_link_test_1'))
-            self.assertNotEqual(K_NULL_ENTITY, model.link_by_name(_ecm, 'model_link_test_2'))
-            self.assertEqual(2, model.link_count(_ecm))
+            self.assertEqual('sensor_test', sensor.name(_ecm))
+            # Pose Test
+            self.assertEqual(Pose3d(0, 1, 0, 0, 0, 0), sensor.pose(_ecm))
+            # Topic Test
+            if self.pre_iterations <= 1:
+                self.assertEqual(None, sensor.topic(_ecm))
+            else:
+                self.assertEqual('sensor_topic_test', sensor.topic(_ecm))
+            # Parent Test
+            self.assertEqual(j.entity(), sensor.parent(_ecm))
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1
@@ -73,6 +74,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(2, self.pre_iterations)
         self.assertEqual(2, self.iterations)
         self.assertEqual(2, self.post_iterations)
+
 
 if __name__ == '__main__':
     unittest.main()
