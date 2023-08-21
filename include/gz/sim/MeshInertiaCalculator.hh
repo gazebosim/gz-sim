@@ -19,6 +19,7 @@
 #define GZ_SIM_MESHINERTIACALCULATOR_HH_
 
 #include <optional>
+#include <vector>
 
 #include <sdf/sdf.hh>
 #include <sdf/CustomInertiaCalcProperties.hh>
@@ -52,12 +53,13 @@ namespace gz
       };
 
       /// \class MeshInertiaCalculator gz/sim/MeshInertiaCalculator.hh
-      /// \brief Inertial Properties (Mass, Centre of Mass and Moments of Inertia)
-      /// calculator for 3D meshes.
+      /// \brief Inertial Properties (Mass, Centre of Mass & Moments of
+      /// Inertia) calculator for 3D meshes.
       ///
-      /// This class overloads the () operator, therefore, an instance of this class
-      /// registered with libsdformat as a Custom Inertia Calculator. This would used
-      /// to calculate the inertial properties of 3D mesh using SDFormat.
+      /// This class overloads the () operator, therefore, an instance
+      /// of this class registered with libsdformat as a Custom
+      /// Inertia Calculator. This would used to calculate the
+      /// inertial properties of 3D mesh using SDFormat.
       ///
       /// The calculation method used in this class is described here:
       /// https://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
@@ -72,37 +74,42 @@ namespace gz
 
         /// \brief Function to get the vertices & indices of the given mesh
         /// & convert them into instances of the Triangle struct
-        /// Each triangle represents a triangle in the mesh & is added to a vector
-        /// \param[out] _triangles A vector to hold all the Triangle instances obtained 
+        /// Each triangle represents a triangle in the mesh & is added
+        /// to a vector
+        /// \param[out] _triangles A vector to hold all the Triangle
+        /// instances obtained
         /// from the vertices & indices of the mesh
         /// \param[in] _mesh Mesh object
-        public: void GetMeshTriangles(std::vector<Triangle>& _triangles,
-                const gz::common::Mesh* _mesh);
+        public: void GetMeshTriangles(
+          std::vector<Triangle>& _triangles,
+          const gz::common::Mesh* _mesh);
 
-        /// \brief Function that calculates the mass, mass matrix & centre of 
+        /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
         /// \param[in] _triangles A vector of all the Triangles of the mesh
         /// \param[in] _density Density of the mesh
         /// \param[out] _massMatrix MassMatrix object to hold mass &
         /// moment of inertia of the mesh
-        /// \param[out] _centreOfMass Pose3d object to hold the centre of 
+        /// \param[out] _centreOfMass Pose3d object to hold the centre of
         /// mass of the object
         public: void CalculateMassProperties(
-          std::vector<Triangle>& _triangles, 
+          std::vector<Triangle>& _triangles,
           double _density,
           gz::math::MassMatrix3d& _massMatrix,
           gz::math::Pose3d& _centreOfMass);
 
-        /// \brief Overloaded () operator which allows an instance of this class
-        /// to be registered as a Custom Inertia Calculator with libsdformat
+        /// \brief Overloaded () operator which allows an instance
+        /// of this class to be registered as a Custom Inertia
+        /// Calculator with libsdformat
         /// \param[in] _errors A vector of Errors object. Each object
         /// would contain an error code and an error message.
-        /// \param _calculatorParams An instance of CustomInertiaCalcProperties.
-        /// This instance can be used to access the data like density, properties
-        /// of the mesh, etc.
-        public: std::optional<gz::math::Inertiald> operator()
-          (sdf::Errors& _errors, 
-          const sdf::CustomInertiaCalcProperties& _calculatorParams);  
+        /// \param _calculatorParams An instance of
+        /// CustomInertiaCalcProperties. This instance can be used
+        /// to access the data like density,
+        /// properties of the mesh, etc.
+        public: std::optional<gz::math::Inertiald> operator()(
+          sdf::Errors& _errors,
+          const sdf::CustomInertiaCalcProperties& _calculatorParams);
       };
     }
   }

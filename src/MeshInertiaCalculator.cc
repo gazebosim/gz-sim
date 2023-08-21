@@ -16,6 +16,7 @@
  */
 
 #include <optional>
+#include <vector>
 
 #include <sdf/sdf.hh>
 #include <sdf/CustomInertiaCalcProperties.hh>
@@ -50,7 +51,7 @@ void MeshInertiaCalculator::GetMeshTriangles(
   double* vertArray = NULL;
   int* indArray = NULL;
   _mesh->FillArrays(&vertArray, &indArray);
-  
+
   // Add check to see if size of the ind array is divisible by 3
   for (unsigned int i = 0; i < _mesh->IndexCount(); i += 3)
   {
@@ -75,24 +76,32 @@ void MeshInertiaCalculator::CalculateMassProperties(
   gz::math::MassMatrix3d& _massMatrix,
   gz::math::Pose3d& _centreOfMass)
 {
-  const double coefficients[10] = {1.0 / 6, 1.0 / 24, 1.0 / 24, 1.0 / 24, 1.0 / 60,
-                                     1.0 / 60, 1.0 / 60, 1.0 / 120, 1.0 / 120, 1.0 / 120};
-  
-  // Number of triangles. Would probably add this as a data member of the MeshAdapterClass
+  // Some coefficients for the calculation of integral terms
+  const double coefficients[10] = {1.0/6, 1.0/24, 1.0/24,
+                                  1.0/24, 1.0/60, 1.0/60,
+                                  1.0/60, 1.0/120, 1.0/120, 1.0/120};
+
+  // Number of triangles of in the mesh
   int numTriangles = _triangles.size();
-  
-  // Calculate cross products of triangles 
+
+  // Vector to store cross products of 2 vectors of the triangles
   std::vector<gz::math::Vector3d> crosses(numTriangles);
-  
-  for (int i = 0; i < numTriangles; ++i) {
-      crosses[i] =
-        (_triangles[i].v1 - _triangles[i].v0).Cross(_triangles[i].v2 - _triangles[i].v0);
+
+  // Caculating cross products of 2 vectors emerging from a common vertex
+  // This basically gives a vector normal to the plane of triangle
+  for (int i = 0; i < numTriangles; ++i)
+  {
+    crosses[i] =
+      (_triangles[i].v1 - _triangles[i].v0).Cross(
+        _triangles[i].v2 - _triangles[i].v0);
   }
 
   // Calculate subexpressions of the integral
-  std::vector<gz::math::Vector3d> f1(numTriangles), f2(numTriangles), f3(numTriangles), g0(numTriangles), g1(numTriangles), g2(numTriangles);
-  
-  for (int i = 0; i < numTriangles; ++i) {
+  std::vector<gz::math::Vector3d> f1(numTriangles), f2(numTriangles),
+  f3(numTriangles), g0(numTriangles), g1(numTriangles), g2(numTriangles);
+
+  for (int i = 0; i < numTriangles; ++i)
+  {
       f1[i] = _triangles[i].v0 + _triangles[i].v1 + _triangles[i].v2;
       f2[i] = _triangles[i].v0 * _triangles[i].v0 +
               _triangles[i].v1 * _triangles[i].v1 +
@@ -110,7 +119,8 @@ void MeshInertiaCalculator::CalculateMassProperties(
 
   // Calculate integral terms
   std::vector<double> integral(10);
-  for (int i = 0; i < numTriangles; ++i) {
+  for (int i = 0; i < numTriangles; ++i)
+  {
       double x0 = _triangles[i].v0.X();
       double y0 = _triangles[i].v0.Y();
       double z0 = _triangles[i].v0.Z();
@@ -127,15 +137,19 @@ void MeshInertiaCalculator::CalculateMassProperties(
       integral[4] += crosses[i].X() * f3[i].X();
       integral[5] += crosses[i].Y() * f3[i].Y();
       integral[6] += crosses[i].Z() * f3[i].Z();
-      integral[7] += crosses[i].X() * (y0 * g0[i].X() + y1 * g1[i].X() + y2 * g2[i].X());
-      integral[8] += crosses[i].Y() * (z0 * g0[i].Y() + z1 * g1[i].Y() + z2 * g2[i].Y());
-      integral[9] += crosses[i].Z() * (x0 * g0[i].Z() + x1 * g1[i].Z() + x2 * g2[i].Z());
+      integral[7] += crosses[i].X() *
+        (y0 * g0[i].X() + y1 * g1[i].X() + y2 * g2[i].X());
+      integral[8] += crosses[i].Y() *
+        (z0 * g0[i].Y() + z1 * g1[i].Y() + z2 * g2[i].Y());
+      integral[9] += crosses[i].Z() *
+        (x0 * g0[i].Z() + x1 * g1[i].Z() + x2 * g2[i].Z());
   }
 
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 10; ++i)
+  {
       integral[i] *= coefficients[i];
   }
-  
+
   // Accumulate the result and add it to MassMatrix object of gz::math
   double volume = integral[0];
   double mass = volume * _density;
@@ -144,24 +158,27 @@ void MeshInertiaCalculator::CalculateMassProperties(
   _centreOfMass.SetZ(integral[3] / mass);
   gz::math::Vector3d ixxyyzz = gz::math::Vector3d();
   gz::math::Vector3d ixyxzyz = gz::math::Vector3d();
-  
+
   // Diagonal Elements of the Mass Matrix
-  ixxyyzz.X() = (integral[5] + integral[6] - mass * (_centreOfMass.Y() * _centreOfMass.Y() + _centreOfMass.Z() * _centreOfMass.Z()));
-  ixxyyzz.Y() = (integral[4] + integral[6] - mass * (_centreOfMass.Z() * _centreOfMass.Z() + _centreOfMass.X() * _centreOfMass.X()));
-  ixxyyzz.Z() = integral[4] + integral[5] - mass * (_centreOfMass.X() * _centreOfMass.X() + _centreOfMass.Y() * _centreOfMass.Y());
-  
+  ixxyyzz.X() = (integral[5] + integral[6] - mass *
+                (_centreOfMass.Y() * _centreOfMass.Y() +
+                _centreOfMass.Z() * _centreOfMass.Z()));
+  ixxyyzz.Y() = (integral[4] + integral[6] - mass *
+                (_centreOfMass.Z() * _centreOfMass.Z() +
+                _centreOfMass.X() * _centreOfMass.X()));
+  ixxyyzz.Z() = integral[4] + integral[5] - mass *
+                (_centreOfMass.X() * _centreOfMass.X() +
+                _centreOfMass.Y() * _centreOfMass.Y());
+
   // Off Diagonal Elements of the Mass Matrix
-  ixyxzyz.X() = - (integral[7] - mass * _centreOfMass.X() * _centreOfMass.Y());
-  ixyxzyz.Y() = - (integral[8] - mass * _centreOfMass.Y() * _centreOfMass.Z());
-  ixyxzyz.Z() = - (integral[9] - mass * _centreOfMass.X() * _centreOfMass.Z());
+  ixyxzyz.X() = -(integral[7] - mass * _centreOfMass.X() * _centreOfMass.Y());
+  ixyxzyz.Y() = -(integral[8] - mass * _centreOfMass.Y() * _centreOfMass.Z());
+  ixyxzyz.Z() = -(integral[9] - mass * _centreOfMass.X() * _centreOfMass.Z());
 
   // Set the values in the MassMatrix object
   _massMatrix.SetMass(mass);
   _massMatrix.SetDiagonalMoments(ixxyyzz * _density);
   _massMatrix.SetOffDiagonalMoments(ixyxzyz * _density);
-  std::cout << "Mass of the mesh is: " << _massMatrix.Mass() << std::endl;
-  std::cout << "Diagonal Elements of the Inertia Matrix are: " << _massMatrix.DiagonalMoments() << std::endl;
-  std::cout << "Off Diagonal Elements of the Inertia Matrix are: " << _massMatrix.OffDiagonalMoments() << std::endl;
 }
 
 //////////////////////////////////////////////////

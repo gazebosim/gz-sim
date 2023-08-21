@@ -97,9 +97,11 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString(), sdfParserConfig);
-      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
-      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());      
+      errors = this->dataPtr->sdfRoot.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      sdf::Errors inertialErr =
+        this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
+      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
       break;
     }
 
@@ -136,7 +138,8 @@ Server::Server(const ServerConfig &_config)
         {
           // If the specified file only contains a model, load the default
           // world and add the model to it.
-          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World(), sdfParserConfig);
+          errors = this->dataPtr->sdfRoot.LoadSdfString(
+            DefaultWorld::World(), sdfParserConfig);
           sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
           if (world == nullptr) {
             return;
@@ -147,8 +150,9 @@ Server::Server(const ServerConfig &_config)
           }
         }
       }
-      
-      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
+
+      sdf::Errors inertialErr =
+        this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
       errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
       break;
     }
