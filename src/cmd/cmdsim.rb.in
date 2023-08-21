@@ -577,7 +577,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
     rescue
       puts "Library error: Problem running [#{options['command']}]() "\
         "from #{plugin}."
-    # begin
     end
   # execute
   end

@@ -193,6 +193,7 @@ namespace gz
       private: Entity CreateEntities(const sdf::Model *_model,
                                      bool _staticParent);
 
+      /// \brief Load plugins for all models
       private: void LoadModelPlugins();
 
       /// \brief Pointer to private data.

@@ -654,8 +654,8 @@ namespace gz
       /// \brief Get an Entity based on a name component that is associated
       /// with the entity.
       /// \param[in] _name Name associated with the Entity
-      /// \return The Entity, if an Entity with the given name exits,
-      /// or std::nullopt
+      /// \return The Entity, if an Entity with the given name exists,
+      /// otherwise return std::nullopt.
       public: std::optional<Entity> EntityByName(
                   const std::string &_name) const;
 

@@ -2868,9 +2868,8 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
   }
   else
   {
-    _ecm.Each<components::Link, components::Name>(
-      [&](const Entity &_entity, components::Link *,
-          components::Name *_name) -> bool
+    _ecm.Each<components::Link>(
+      [&](const Entity &_entity, components::Link *) -> bool
       {
         if (this->staticEntities.find(_entity) != this->staticEntities.end() ||
             _ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
@@ -2892,8 +2891,7 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
             if (!_ecm.Component<components::Actor>(parentId))
             {
               gzerr << "Internal error: link [" << _entity
-                    << "][" << _name->Data() << "] not in entity map"
-                    << std::endl;
+                    << "] not in entity map" << std::endl;
             }
           }
           return true;

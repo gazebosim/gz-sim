@@ -156,12 +156,13 @@ namespace gz
           const sdf::Plugins &_plugins);
 
       /// \brief Load server plugins for a given entity.
-      /// \param[in] _config Configuration to load plugins from.
-      ///     plugins based on the _config contents
+      /// \param[in] _plugins Load any additional plugins from the
+      /// Server Configuration
       public: void LoadServerPlugins(
           const std::list<ServerConfig::PluginInfo> &_plugins);
 
       /// \brief Load logging/playback plugins
+      /// \params[out] _plugins Logging plugins that should be loaded.
       public: void LoadLoggingPlugins(sdf::Plugins &_plugins);
 
       /// \brief Get whether this is running. When running is true,
