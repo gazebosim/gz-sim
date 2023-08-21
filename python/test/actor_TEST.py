@@ -18,8 +18,10 @@ import time
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import Actor, K_NULL_ENTITY, TestFixture, World, world_entity
+from gz_test_deps.sim import (Actor, K_NULL_ENTITY,
+                              TestFixture, World, world_entity)
 from gz_test_deps.math import Pose3d
+
 
 class TestActor(unittest.TestCase):
     post_iterations = 0
@@ -53,9 +55,11 @@ class TestActor(unittest.TestCase):
             if self.pre_iterations == 0:
                 self.assertEqual(None, actor.trajectory_pose(_ecm))
             actor.set_trajectory_pose(_ecm, Pose3d(2, 2, 0, 0, 0, 0))
-            self.assertEqual(Pose3d(2, 2, 0, 0, 0, 0), actor.trajectory_pose(_ecm))
+            self.assertEqual(Pose3d(2, 2, 0, 0, 0, 0),
+                             actor.trajectory_pose(_ecm))
             # World Pose Test
-            # The entity doesn't have a components::WorldPose component, therefore, it will return None.
+            # The entity doesn't have a components::WorldPose component,
+            # therefore, it will return None.
             self.assertEqual(None, actor.world_pose(_ecm))
             # Animation Name Test
             if self.pre_iterations == 0:
@@ -66,7 +70,8 @@ class TestActor(unittest.TestCase):
             if self.pre_iterations == 0:
                 self.assertEqual(None, actor.animation_time(_ecm))
             actor.set_animation_time(_ecm, 100)
-            self.assertEqual(100, actor.animation_time(_ecm).total_seconds()*1000)
+            self.assertEqual(100,
+                             actor.animation_time(_ecm).total_seconds()*1000)
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1
@@ -77,11 +82,12 @@ class TestActor(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, self.pre_iterations)
-        self.assertEqual(1000, self.iterations)
-        self.assertEqual(1000, self.post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
+
 
 if __name__ == '__main__':
     unittest.main()

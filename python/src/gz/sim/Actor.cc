@@ -18,11 +18,13 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <iostream>
+#include <chrono>
+#include <cstdint>
 
 #include "Actor.hh"
 
 namespace py = pybind11;
+using std::chrono::milliseconds;
 
 namespace gz
 {
@@ -72,8 +74,8 @@ void defineSimActor(py::object module)
       "This returns the current world pose of the actor computed by gazebo."
       "The world pose is the combination of the actor's pose and its "
       "trajectory pose. The currently trajectory pose is either manually set "
-      "via set_trajectory_pose or interpolated from waypoints in the SDF script "
-      "based on the current time.")
+      "via set_trajectory_pose or interpolated from waypoints in the SDF "
+      "script based on the current time.")
   .def("set_animation_name", &gz::sim::Actor::SetAnimationName,
       py::arg("ecm"),
       py::arg("name"),
@@ -83,12 +85,13 @@ void defineSimActor(py::object module)
       EntityComponentManager &_ecm,
       int32_t &_time)
       {
-        std::chrono::steady_clock::duration animTime = std::chrono::milliseconds(_time);
+        std::chrono::steady_clock::duration animTime = milliseconds(_time);
         return _actor.SetAnimationTime(_ecm, animTime);
       },
       py::arg("ecm"),
       py::arg("time"),
-      "Set the time of animation to use for this actor (the time argument is expected in ms).")
+      "Set the time of animation to use for this actor (the time argument "
+      "is expected in ms).")
   .def("animation_name", &gz::sim::Actor::AnimationName,
       py::arg("ecm"),
       "Get the name of animation used by the actor.")
