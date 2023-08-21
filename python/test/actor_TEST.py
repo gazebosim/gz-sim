@@ -69,7 +69,8 @@ class TestActor(unittest.TestCase):
             # Animation Time Test
             if self.pre_iterations == 0:
                 self.assertEqual(None, actor.animation_time(_ecm))
-            actor.set_animation_time(_ecm, datetime.timedelta(milliseconds=100))
+            actor.set_animation_time(_ecm,
+                                     datetime.timedelta(milliseconds=100))
             self.assertEqual(100,
                              actor.animation_time(_ecm).total_seconds()*1000)
 
