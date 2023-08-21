@@ -23,6 +23,7 @@
 #include "Joint.hh"
 #include "Link.hh"
 #include "Model.hh"
+#include "Sensor.hh"
 #include "Server.hh"
 #include "ServerConfig.hh"
 #include "TestFixture.hh"
@@ -38,6 +39,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   gz::sim::python::defineSimJoint(m);
   gz::sim::python::defineSimLink(m);
   gz::sim::python::defineSimModel(m);
+  gz::sim::python::defineSimSensor(m);
   gz::sim::python::defineSimServer(m);
   gz::sim::python::defineSimServerConfig(m);
   gz::sim::python::defineSimTestFixture(m);
