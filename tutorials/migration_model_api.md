@@ -218,7 +218,7 @@ Classic | Gazebo
 -- | --
 GetJointController | Use this system: `gz::sim::systems::JointController`
 GetNearestEntityBelow | Requires a system
-PlaceOnEntity | Involves Requires a system
+PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system
 
 ---

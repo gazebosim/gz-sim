@@ -121,7 +121,7 @@ Link decomposeMessage(const EntityComponentManager &_ecm,
   }
 
   gzerr << "Wrench can only be applied to a link or a model. Entity ["
-         << entity << "] isn't either of them." << std::endl;
+        << entity << "] isn't either of them." << std::endl;
   return Link();
 }
 
@@ -141,7 +141,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   if (!world.Valid(_ecm))
   {
     gzerr << "ApplyLinkWrench system should be attached to a world."
-           << std::endl;
+          << std::endl;
     return;
   }
 
@@ -157,7 +157,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
     if (!elem->HasElement("entity_name") || !elem->HasElement("entity_type"))
     {
       gzerr << "Skipping <persistent> element missing entity name or type."
-             << std::endl;
+            << std::endl;
       continue;
     }
 
@@ -175,7 +175,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
     else
     {
       gzerr << "Skipping <persistent> element, entity type [" << typeStr
-             << "] not supported." << std::endl;
+            << "] not supported." << std::endl;
       continue;
     }
 
@@ -202,7 +202,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
       this->dataPtr.get());
 
   gzmsg << "Listening to instantaneous wrench commands in [" << topic << "]"
-         << std::endl;
+        << std::endl;
 
   // Topic to apply wrench continuously
   topic = "/world/" + world.Name(_ecm).value() + "/wrench/persistent";
@@ -213,7 +213,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
       &ApplyLinkWrenchPrivate::OnWrenchPersistent, this->dataPtr.get());
 
   gzmsg << "Listening to persistent wrench commands in [" << topic << "]"
-         << std::endl;
+        << std::endl;
 
   // Topic to clear persistent wrenches
   topic = "/world/" + world.Name(_ecm).value() + "/wrench/clear";
@@ -224,7 +224,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
       &ApplyLinkWrenchPrivate::OnWrenchClear, this->dataPtr.get());
 
   gzmsg << "Listening to wrench clear commands in [" << topic << "]"
-         << std::endl;
+        << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -252,7 +252,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
         if (this->dataPtr->verbose)
         {
           gzdbg << "Clearing persistent wrench for entity [" << clearEntity
-                 << "]" << std::endl;
+                << "]" << std::endl;
         }
       }
     }
@@ -275,7 +275,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     if (!link.Valid(_ecm))
     {
       gzerr << "Entity not found." << std::endl
-             << msg.DebugString() << std::endl;
+            << msg.DebugString() << std::endl;
       this->dataPtr->newWrenches.pop();
       continue;
     }
@@ -285,7 +285,7 @@ void ApplyLinkWrench::PreUpdate(const UpdateInfo &_info,
     if (this->dataPtr->verbose)
     {
       gzdbg << "Applying wrench [" << force << " " << torque << "] to entity ["
-             << link.Entity() << "] for 1 time step." << std::endl;
+            << link.Entity() << "] for 1 time step." << std::endl;
     }
 
     this->dataPtr->newWrenches.pop();
@@ -315,7 +315,7 @@ void ApplyLinkWrenchPrivate::OnWrench(const msgs::EntityWrench &_msg)
   if (!_msg.has_entity() || !_msg.has_wrench())
   {
     gzerr << "Missing entity or wrench in message: " << std::endl
-           << _msg.DebugString() << std::endl;
+          << _msg.DebugString() << std::endl;
     return;
   }
 
@@ -330,14 +330,14 @@ void ApplyLinkWrenchPrivate::OnWrenchPersistent(const msgs::EntityWrench &_msg)
   if (!_msg.has_entity() || !_msg.has_wrench())
   {
     gzerr << "Missing entity or wrench in message: " << std::endl
-           << _msg.DebugString() << std::endl;
+          << _msg.DebugString() << std::endl;
     return;
   }
 
   if (this->verbose)
   {
     gzdbg << "Queueing persistent wrench:" << std::endl
-           << _msg.DebugString() << std::endl;
+          << _msg.DebugString() << std::endl;
   }
 
   this->persistentWrenches.push_back(_msg);

@@ -120,11 +120,6 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
   EXPECT_EQ("an_entity", plugins.front().EntityName());
   EXPECT_EQ("model", plugins.front().EntityType());
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  EXPECT_EQ("filename", plugins.front().Filename());
-  EXPECT_EQ("interface", plugins.front().Name());
-  EXPECT_EQ(nullptr, plugins.front().Sdf());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Test operator=
   {

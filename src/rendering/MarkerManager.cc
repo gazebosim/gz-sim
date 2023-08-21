@@ -637,3 +637,11 @@ bool MarkerManagerPrivate::OnMarkerMsgArray(
   _res.set_data(true);
   return true;
 }
+
+/////////////////////////////////////////////////
+void MarkerManager::Clear()
+{
+  this->dataPtr->visuals.clear();
+  this->dataPtr->markerMsgs.clear();
+  this->dataPtr->scene.reset();
+}

@@ -202,31 +202,31 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "view_transparent")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewTransparentService, req, cb);
   }
   else if (request == "view_com")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewCOMService, req, cb);
   }
   else if (request == "view_inertia")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewInertiaService, req, cb);
   }
   else if (request == "view_joints")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewJointsService, req, cb);
   }
   else if (request == "view_wireframes")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewWireframesService, req, cb);
   }
@@ -244,13 +244,13 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "copy")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->copyService, req, cb);
   }
   else if (request == "paste")
   {
-    gz::msgs::Empty req;
+    msgs::Empty req;
     this->dataPtr->node.Request(this->dataPtr->pasteService, req, cb);
   }
   else
