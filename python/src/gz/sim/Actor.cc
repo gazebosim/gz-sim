@@ -18,7 +18,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <chrono>
 #include <cstdint>
 
 #include "Actor.hh"
@@ -80,14 +79,7 @@ void defineSimActor(py::object module)
       py::arg("ecm"),
       py::arg("name"),
       "Set the name of animation to use for this actor.")
-  .def("set_animation_time", [](
-      Actor &_actor,
-      EntityComponentManager &_ecm,
-      int32_t &_time)
-      {
-        std::chrono::steady_clock::duration animTime = milliseconds(_time);
-        return _actor.SetAnimationTime(_ecm, animTime);
-      },
+  .def("set_animation_time", &gz::sim::Actor::SetAnimationTime,
       py::arg("ecm"),
       py::arg("time"),
       "Set the time of animation to use for this actor (the time argument "
