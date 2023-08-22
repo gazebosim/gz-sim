@@ -2668,6 +2668,7 @@ void RenderUtil::InitRenderEnginePluginPaths()
 /////////////////////////////////////////////////
 void RenderUtil::Init()
 {
+  std::cerr << " == RenderUtil::Init() " << std::endl;
   // Already initialized
   if (nullptr != this->dataPtr->scene)
     return;
@@ -2702,6 +2703,9 @@ void RenderUtil::Init()
     this->dataPtr->engine = rendering::engine("ogre2", params);
   }
 
+
+  std::cerr << " ==== scene name " << this->dataPtr->sceneName << std::endl;
+
   // Scene
   this->dataPtr->scene =
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);
@@ -2725,12 +2729,22 @@ void RenderUtil::Init()
       }
       this->dataPtr->scene->SetSkyEnabled(this->dataPtr->skyEnabled);
     }
+    else
+    {
+      std::cerr << " ==== failed to create scene " << this->dataPtr->sceneName << std::endl;
+    }
+  }
+  else
+  {
+    std::cerr << " ==== scene already exists!" << std::endl;
   }
 
   this->dataPtr->sceneManager.SetScene(this->dataPtr->scene);
   if (this->dataPtr->enableSensors)
     this->dataPtr->markerManager.SetTopic("/sensors/marker");
   this->dataPtr->markerManager.Init(this->dataPtr->scene);
+
+  std::cerr << " == RenderUtil::Init() Done " << std::endl;
 }
 
 /////////////////////////////////////////////////
