@@ -23,23 +23,68 @@ GridLayout {
   columns: 8
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 200
+  Layout.minimumHeight: 300
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
+  // Maximum value for GzSpinBoxes
+  property int maxValue: 1000000
+
+  // Precision of the GzSpinBoxes in decimal places
+  property int decimalPlaces: 1
+
+  // Step size of the GzSpinBoxes
+  property double step: 10.0
+
   Text {
     Layout.columnSpan: 8
     id: rotationText
-    color: "dimgrey"
-    text: qsTr("Ctrl+Left-Click: rotation")
+    text: qsTr("Rotation (Ctrl+Left-Click)")
+  }
+
+  Label {
+    Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
+    id: rotStiffText
+    text: qsTr("Rotation stiffness")
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    id: rotStiffness
+    maximumValue: maxValue
+    minimumValue: 0
+    value: MouseDrag.rotStiffness
+    decimals: decimalPlaces
+    stepSize: step
+    onValueChanged: MouseDrag.rotStiffness = rotStiffness.value
   }
 
   Text {
     Layout.columnSpan: 8
     id: translationText
-    color: "dimgrey"
-    text: qsTr("Ctrl+Right-Click: translation")
+    text: qsTr("Translation (Ctrl+Right-Click)")
+  }
+
+  Label {
+    Layout.columnSpan: 2
+    horizontalAlignment: Text.AlignRight
+    id: posStiffText
+    text: qsTr("Position stiffness")
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 6
+    Layout.fillWidth: true
+    id: posStiffness
+    maximumValue: maxValue
+    minimumValue: 0
+    value: MouseDrag.posStiffness
+    decimals: decimalPlaces
+    stepSize: step
+    onValueChanged: MouseDrag.posStiffness = posStiffness.value
   }
 
   Switch {

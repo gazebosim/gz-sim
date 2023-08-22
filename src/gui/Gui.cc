@@ -439,8 +439,10 @@ std::unique_ptr<gz::gui::Application> createGui(
                 "VisualizationCapabilities"};
 
             std::string msg{
-                "The [GzScene3D] GUI plugin has been removed since Garden. "
-                "Loading the following plugins instead:\n"};
+              "The [GzScene3D] GUI plugin has been removed since Garden.\n"
+              "SDF code to replace GzScene3D is available at "
+              "https://github.com/gazebosim/gz-sim/blob/gz-sim7/Migration.md\n"
+              "Loading the following plugins instead:\n"};
 
             for (auto extra : extras)
             {

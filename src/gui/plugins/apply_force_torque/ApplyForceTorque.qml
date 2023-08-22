@@ -48,7 +48,15 @@ GridLayout {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
     id: frameText
-    text: "Forces and torques are given in link-fixed frame"
+    text: "Forces and torques are given in link-fixed frame."
+  }
+
+  Label {
+    Layout.columnSpan: 8
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    id: rotText
+    text: "Click on an arrow to toggle its rotation tool."
   }
 
   Text {
