@@ -98,6 +98,9 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief Use angle steer only mode.
   public: bool steeringOnly{false};
 
+  /// \brief Can specifically specify angular limits.
+  public: bool angularLimits{false};
+
   /// \brief Entity of the left joint
   public: std::vector<Entity> leftJoints;
 
@@ -256,6 +259,13 @@ void AckermannSteering::Configure(const Entity &_entity,
             << std::endl;
   }
 
+  if (_sdf->HasElement("angular_limits"))
+  {
+    this->dataPtr->angularLimits = _sdf->Get<bool>("angular_limits");
+    gzmsg << "Using angular limits: " << this->dataPtr->angularLimits
+            << std::endl;
+  }
+
   if (_sdf->HasElement("use_actuator_msg") &&
     _sdf->Get<bool>("use_actuator_msg"))
   {
@@ -374,7 +384,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
 
   // Instantiate the angular speed limiters if angular_limits is set to true.
-  if (_sdf->HasElement("angular_limits") && _sdf->Get<bool>("angular_limits"))
+  if (this->dataPtr->angularLimits)
   {
     // Parse angular speed limiter parameters.
     if (_sdf->HasElement("min_angular_velocity"))
