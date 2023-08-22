@@ -9,7 +9,7 @@ step simulation and check entities and components.
 
  - **Step 1**: Load a world with a fixture
 
-```{.python}
+```python
 file_path = os.path.dirname(os.path.realpath(__file__))
 fixture = TestFixture(os.path.join(file_path, 'gravity.sdf'))
 ```
@@ -43,7 +43,7 @@ server.run(True, 1000, False)
 # Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/gz-sim7/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
 If you compiled Gazebo from source you should modify your `PYTHONPATH`:

@@ -22,18 +22,9 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
-#if __APPLE__
-// This is here to avoid segfaults on macOS tests. The segfaults
-// happen when components are registered by plugins and component creation is
-// attempted after the plugin that registered the component has been unloaded.
-// Including this header insures that all components are registered by the core
-// library ahead of any plugin.
-// TODO(azeey) Find a better solution for keeping track of component
-// registrations.
-#include "gz/sim/components/components.hh"
-#else
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Atmosphere.hh"
@@ -69,11 +60,12 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/NavSat.hh"
-#include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
 #include <gz/sim/components/ParticleEmitter.hh>
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
+#include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/SegmentationCamera.hh"
@@ -91,7 +83,6 @@
 #include "gz/sim/components/WideAngleCamera.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
-#endif
 
 class gz::sim::SdfEntityCreatorPrivate
 {
@@ -337,13 +328,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
-  for (const sdf::Plugin &p : _world->Plugins())
-  {
-    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
-        p.ToElement());
-    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -363,13 +347,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newModels)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newModels.clear();
 
@@ -377,13 +354,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newSensors)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newSensors.clear();
 
@@ -391,13 +361,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
   for (const auto &[entity, plugins] : this->dataPtr->newVisuals)
   {
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
-    for (const sdf::Plugin &p : plugins)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
-          p.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-    }
   }
   this->dataPtr->newVisuals.clear();
 
@@ -528,16 +491,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Links
+  for (uint64_t linkIndex = 0; linkIndex < _actor->LinkCount();
+      ++linkIndex)
+  {
+    auto link = _actor->LinkByIndex(linkIndex);
+    auto linkEntity = this->CreateEntities(link);
+
+    this->SetParent(linkEntity, actorEntity);
+  }
+
   // Actor plugins
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
         _actor->Plugins());
-  for (const sdf::Plugin &p : _actor->Plugins())
-  {
-    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
-        p.ToElement());
-    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-  }
 
   return actorEntity;
 }
@@ -641,7 +607,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
   }
 
   // Particle emitters
-  for (uint64_t emitterIndex = 0; emitterIndex  < _link->ParticleEmitterCount();
+  for (uint64_t emitterIndex = 0; emitterIndex < _link->ParticleEmitterCount();
        ++emitterIndex)
   {
     auto emitter = _link->ParticleEmitterByIndex(emitterIndex);
@@ -649,6 +615,17 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 
     this->SetParent(emitterEntity, linkEntity);
   }
+
+  // Projectors
+  for (uint64_t projectorIndex = 0; projectorIndex < _link->ProjectorCount();
+       ++projectorIndex)
+  {
+    auto projector = _link->ProjectorByIndex(projectorIndex);
+    auto projectorEntity = this->CreateEntities(projector);
+
+    this->SetParent(projectorEntity, linkEntity);
+  }
+
 
   return linkEntity;
 }
@@ -861,6 +838,25 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 }
 
 //////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Projector *_projector)
+{
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Projector)");
+
+  // Entity
+  Entity projectorEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Projector(*_projector));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Pose(ResolveSdfPose(_projector->SemanticPose())));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Name(_projector->Name()));
+
+  return projectorEntity;
+}
+
+//////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
@@ -960,6 +956,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::AIR_SPEED)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::AirSpeedSensor(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldAngularVelocity(math::Vector3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {

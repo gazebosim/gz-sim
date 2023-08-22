@@ -495,11 +495,14 @@ class OdometryPublisherTest
 
     std::vector<math::Vector3d> odomLinVels;
     std::vector<math::Vector3d> odomAngVels;
+    std::vector<math::Quaterniond> odomAngs;
     google::protobuf::RepeatedField<float> odomTwistCovariance;
     // Create function to store data from odometry messages
     std::function<void(const msgs::OdometryWithCovariance &)> odomCb =
       [&](const msgs::OdometryWithCovariance &_msg)
       {
+        odomAngs.push_back(msgs::Convert(_msg.pose_with_covariance().
+          pose().orientation()));
         odomLinVels.push_back(msgs::Convert(_msg.twist_with_covariance().
           twist().linear()));
         odomAngVels.push_back(msgs::Convert(_msg.twist_with_covariance().
@@ -521,6 +524,7 @@ class OdometryPublisherTest
 
     // Verify the Gaussian noise.
     ASSERT_FALSE(odomLinVels.empty());
+    ASSERT_FALSE(odomAngs.empty());
     ASSERT_FALSE(odomAngVels.empty());
     int n = odomLinVels.size();
 

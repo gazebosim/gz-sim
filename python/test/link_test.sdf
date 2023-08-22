@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="world_test">
+        <model name="model_test">
+            <link name="link_test">
+                <pose>0 0 0 0 0 0</pose>
+                <enable_wind>true</enable_wind>
+                <inertial>
+                    <inertia>
+                        <ixx>1</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>1</iyy>
+                        <iyz>0</iyz>
+                        <izz>1</izz>
+                    </inertia>
+                    <mass>10.0</mass>
+                </inertial>
+
+                <collision name="collision_test">
+                    <pose>0 0 0.5 0 0 0</pose>
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                </collision>
+
+                <visual name="visual_test">
+                    <pose>0 0 1 0 0 0</pose>
+                    <geometry>
+                        <box>
+                            <size>1 1 1</size>
+                        </box>
+                    </geometry>
+                </visual>
+
+                <sensor type="camera" name="my_sensor">
+                </sensor>
+
+            </link>
+
+        </model>
+    </world>
+</sdf>

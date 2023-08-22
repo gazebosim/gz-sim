@@ -52,24 +52,6 @@ namespace gz
       /// \param[in] _path New path to be added.
       public: void AddSystemPluginPath(const std::string &_path);
 
-      /// \brief Load and instantiate system plugin from an SDF element.
-      /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
-      /// \returns Shared pointer to system instance or nullptr.
-      /// \deprecated Use `sdf::Plugin` interface.
-      public: std::optional<SystemPluginPtr> GZ_DEPRECATED(7) LoadPlugin(
-                  const sdf::ElementPtr &_sdf);
-
-      /// \brief Load and instantiate system plugin from name/filename.
-      /// \param[in] _filename Shared library filename to load plugin from.
-      /// \param[in] _name Class name to be instantiated.
-      /// \param[in] _sdf SDF Element describing plugin instance to be loaded.
-      /// \returns Shared pointer to system instance or nullptr.
-      /// \deprecated Use `sdf::Plugin` interface.
-      public: std::optional<SystemPluginPtr> GZ_DEPRECATED(7) LoadPlugin(
-                  const std::string &_filename,
-                  const std::string &_name,
-                  const sdf::ElementPtr &_sdf);
-
       /// \brief Load and instantiate system plugin from name/filename.
       /// \param[in] _plugin SDF Plugin to be loaded.
       /// \returns Shared pointer to system instance or nullptr.

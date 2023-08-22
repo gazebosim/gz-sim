@@ -76,3 +76,7 @@ gz_build_tests(TYPE UNIT
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
 )
+
+if(TARGET UNIT_Gui_clean_exit_TEST)
+  set_tests_properties(UNIT_Gui_clean_exit_TEST PROPERTIES TIMEOUT 300)
+endif()

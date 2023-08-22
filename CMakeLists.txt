@@ -4,8 +4,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 # Initialize the project
 #============================================================================
 project(gz-sim8 VERSION 8.0.0)
-# TODO(chapulina) Update name when it's chosen and the version bumped
-set (GZ_DISTRIBUTION "?")
+set (GZ_DISTRIBUTION "Harmonic")
 
 #============================================================================
 # Find gz-cmake
@@ -78,7 +77,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport13 REQUIRED COMPONENTS log)
+gz_find_package(gz-transport13 REQUIRED COMPONENTS log parameters)
 set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
 #--------------------------------------
@@ -134,6 +133,7 @@ gz_find_package(gz-sensors8 REQUIRED
   COMPONENTS
     # non-rendering
     air_pressure
+    air_speed
     altimeter
     imu
     force_torque
@@ -187,12 +187,10 @@ set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 gz_find_package(GzProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
-                 REQUIRED
-                 COMPONENTS all
-                 PRETTY Protobuf)
+                REQUIRED
+                COMPONENTS all
+                PRETTY Protobuf)
 set(Protobuf_IMPORT_DIRS ${gz-msgs10_INCLUDE_DIRS})
 
 #--------------------------------------

@@ -423,7 +423,11 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
   ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
+#endif

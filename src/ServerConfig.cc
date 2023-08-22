@@ -93,25 +93,6 @@ ServerConfig::PluginInfo::~PluginInfo() = default;
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_entityType,
-                       const std::string &_filename,
-                       const std::string &_name,
-                       const sdf::ElementPtr &_sdf)
-  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(this->dataPtr->sdf);
-  }
-  this->dataPtr->plugin.SetName(_name);
-  this->dataPtr->plugin.SetFilename(_filename);
-  this->dataPtr->entityName = _entityName;
-  this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
-                       const std::string &_entityType,
                        const sdf::Plugin &_plugin)
   : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>(_entityName,
         _entityType, _plugin))
@@ -155,48 +136,6 @@ const std::string &ServerConfig::PluginInfo::EntityType() const
 void ServerConfig::PluginInfo::SetEntityType(const std::string &_entityType)
 {
   this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Filename() const
-{
-  return this->dataPtr->plugin.Filename();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
-{
-  this->dataPtr->plugin.SetFilename(_filename);
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Name() const
-{
-  return this->dataPtr->plugin.Name();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetName(const std::string &_name)
-{
-  this->dataPtr->plugin.SetName(_name);
-}
-
-//////////////////////////////////////////////////
-const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
-{
-  return this->dataPtr->sdf;
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(_sdf);
-  }
-  else
-    this->dataPtr->sdf = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -248,6 +187,7 @@ class gz::sim::ServerConfigPrivate
           : sdfFile(_cfg->sdfFile),
             sdfString(_cfg->sdfString),
             updateRate(_cfg->updateRate),
+            initialSimTime(_cfg->initialSimTime),
             useLevels(_cfg->useLevels),
             useLogRecord(_cfg->useLogRecord),
             logRecordPath(_cfg->logRecordPath),
@@ -276,6 +216,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief An optional update rate.
   public: std::optional<double> updateRate;
+
+  /// \brief The initial simulation time in seconds.
+  public: double initialSimTime = 0;
 
   /// \brief Use the level system
   public: bool useLevels{false};
@@ -400,10 +343,22 @@ std::string ServerConfig::SdfString() const
 }
 
 //////////////////////////////////////////////////
+void ServerConfig::SetInitialSimTime(const double &_initialSimTime) const
+{
+  this->dataPtr->initialSimTime = _initialSimTime;
+}
+
+//////////////////////////////////////////////////
 void ServerConfig::SetUpdateRate(const double &_hz)
 {
   if (_hz > 0)
     this->dataPtr->updateRate = _hz;
+}
+
+/////////////////////////////////////////////////
+double ServerConfig::InitialSimTime() const
+{
+  return this->dataPtr->initialSimTime;
 }
 
 /////////////////////////////////////////////////
