@@ -6,7 +6,7 @@ links in the simulation through the graphical user interface.
 ## Examples
 
 Let's go through an example of applying force and torque to simple models. Open
-the `shapes` world with
+the `shapes.sdf` world with
 
 ```bash
 gz sim shapes.sdf
@@ -16,7 +16,6 @@ From the plugin dropdown, select the `Apply Force Torque` plugin. Make sure the
 simulation isn't paused.
 
 ![Interface](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/Interface.png)
-
 
 ### Apply force to a link
 
