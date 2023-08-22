@@ -23,7 +23,6 @@
 #include "Actor.hh"
 
 namespace py = pybind11;
-using std::chrono::milliseconds;
 
 namespace gz
 {
