@@ -23,7 +23,7 @@ GridLayout {
   columns: 8
   columnSpacing: 10
   Layout.minimumWidth: 350
-  Layout.minimumHeight: 650
+  Layout.minimumHeight: 700
   anchors.fill: parent
   anchors.leftMargin: 10
   anchors.rightMargin: 10
@@ -45,7 +45,15 @@ GridLayout {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
     id: frameText
-    text: "Forces and torques are given in link-fixed frame"
+    text: "Forces and torques are given in link-fixed frame."
+  }
+
+  Label {
+    Layout.columnSpan: 8
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    id: rotText
+    text: "Click on an arrow to toggle its rotation tool."
   }
 
   Text {
