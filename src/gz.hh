@@ -50,7 +50,9 @@ extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
 /// \param[in] _playback --playback option
 /// \param[in] _physicsEngine --physics-engine option
 /// \param[in] _renderEngineServer --render-engine-server option
+/// \param[in] _renderEngineServerApiBackend --render-engine-server-api-backend
 /// \param[in] _renderEngineGui --render-engine-gui option
+/// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend
 /// \param[in] _file Path to file being loaded
 /// \param[in] _recordTopics Colon separated list of topics to record. Leave
 /// \param[in] _waitGui Flag indicating whether the server waits until
@@ -58,16 +60,18 @@ extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
 /// null to record the default topics.
 /// \param[in] _headless True if server rendering should run headless
 /// \param[in] _recordPeriod --record-period option
+/// \param[in] _seed --seed value to be used for random number generator.
 /// \return 0 if successful, 1 if not.
 extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
     int _logCompress, const char *_playback,
-    const char *_physicsEngine, const char *_renderEngineServer,
-    const char *_renderEngineGui, const char *_file,
-    const char *_recordTopics, int _waitGui, int _headless,
-    float _recordPeriod);
+    const char *_physicsEngine,
+    const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
+    const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
+    const char *_file, const char *_recordTopics, int _waitGui, int _headless,
+    float _recordPeriod, int _seed);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.
@@ -76,9 +80,13 @@ extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
 /// \param[in] _waitGui Flag indicating whether the server waits until
 /// it receives a world path from GUI.
 /// \param[in] _renderEngine --render-engine-gui option
+/// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend option
 /// \return 0 if successful, 1 if not.
-extern "C" GZ_SIM_GZ_VISIBLE int runGui(const char *_guiConfig,
-    const char *_file, int _waitGui, const char *_renderEngine);
+extern "C" GZ_SIM_GZ_VISIBLE
+int runGui(const char *_guiConfig, const char *_file,
+           int _waitGui,
+           const char *_renderEngine,
+           const char *_renderEngineGuiApiBackend);
 
 /// \brief External hook to find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,

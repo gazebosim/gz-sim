@@ -364,6 +364,3 @@ GZ_ADD_PLUGIN(Imu, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Imu, "gz::sim::systems::Imu")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Imu, "ignition::gazebo::systems::Imu")

@@ -832,14 +832,7 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
   return std::all_of(this->matchers.begin(), this->matchers.end(),
                      [&](const auto &_matcher)
                      {
-                       try
-                       {
-                         return _matcher->Match(_inputMsg);
-                       } catch (const google::protobuf::FatalException &err)
-                       {
-                          gzerr << err.what() << std::endl;
-                          return false;
-                       }
+                       return _matcher->Match(_inputMsg);
                      });
 }
 
@@ -850,7 +843,3 @@ GZ_ADD_PLUGIN(TriggeredPublisher,
 
 GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "gz::sim::systems::TriggeredPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
-                          "ignition::gazebo::systems::TriggeredPublisher")

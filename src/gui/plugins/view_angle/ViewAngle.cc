@@ -21,7 +21,6 @@
 #include <gz/msgs/gui_camera.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
-#include <gz/msgs/Utility.hh>
 
 #include <iostream>
 #include <string>
@@ -32,6 +31,7 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Angle.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RenderingIface.hh>
@@ -338,9 +338,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   Entity entityId = kNullEntity;
   try
   {
-    // TODO(ahcorde): When forward porting this to Garder change var type to
-    // unsigned int
-    entityId = std::get<int>(visualToMove->UserData("gazebo-entity"));
+    entityId = std::get<unsigned int>(visualToMove->UserData("gazebo-entity"));
   }
   catch(std::bad_variant_access &_e)
   {

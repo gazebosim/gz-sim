@@ -53,6 +53,7 @@
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/Scene.hh"
@@ -153,6 +154,10 @@ void LevelManager::ReadLevelPerformerInfo()
       this->runner->serverConfig.RenderEngineServer()));
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
+      components::RenderEngineServerApiBackend(
+      this->runner->serverConfig.RenderEngineServerApiBackend()));
+
+  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::RenderEngineServerHeadless(
       this->runner->serverConfig.HeadlessRendering()));
 
@@ -233,11 +238,6 @@ void LevelManager::ReadLevelPerformerInfo()
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
       this->runner->sdfWorld->Plugins());
-
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  this->runner->EventMgr().Emit<events::LoadPlugins>(this->worldEntity,
-      this->runner->sdfWorld->Element());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->runner->entityCompMgr.CreateComponent(

@@ -96,6 +96,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \return Name of the rendering engine
     public: std::string EngineName() const;
 
+    /// \brief Set the API backend the rendering engine will use
+    /// \param[in] _apiBackend Name of the api backend.
+    /// See --render-engine-server-api-backend for possible options
+    public: void SetApiBackend(const std::string &_apiBackend);
+
+    /// \brief Get the API backend the rendering engine used
+    /// \return Name of the API backend. May be empty.
+    public: std::string ApiBackend() const;
+
     /// \brief Set the headless mode
     /// \param[in] _headless Set to true to enable headless mode.
     public: void SetHeadlessRendering(const bool &_headless);

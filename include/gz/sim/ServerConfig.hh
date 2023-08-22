@@ -83,24 +83,6 @@ namespace gz
         /// \param[in] _entityType Entity type which should receive  this
         /// plugin. The type is used in conjuction with _entityName to
         /// uniquely identify an entity.
-        /// \param[in] _filename Plugin library filename.
-        /// \param[in] _name Name of the interface within the plugin library
-        /// to load.
-        /// \param[in] _sdf Plugin XML elements associated with this plugin.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: GZ_DEPRECATED(7) PluginInfo(const std::string &_entityName,
-                           const std::string &_entityType,
-                           const std::string &_filename,
-                           const std::string &_name,
-                           const sdf::ElementPtr &_sdf);
-
-        /// \brief Constructor with plugin information specified.
-        /// \param[in] _entityName Name of the entity which should receive
-        /// this plugin. The name is used in conjuction with _entityType to
-        /// uniquely identify an entity.
-        /// \param[in] _entityType Entity type which should receive  this
-        /// plugin. The type is used in conjuction with _entityName to
-        /// uniquely identify an entity.
         /// \param[in] _plugin SDF Plugin library information.
         public: PluginInfo(const std::string &_entityName,
                            const std::string &_entityType,
@@ -138,40 +120,6 @@ namespace gz
         /// uniquely identify an entity.
         /// \param[in] _entityType Entity type string.
         public: void SetEntityType(const std::string &_entityType);
-
-        /// \brief Get the plugin library filename.
-        /// \return Plugin library filename.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string GZ_DEPRECATED(7) & Filename() const;
-
-        /// \brief Set the type of the entity which should receive this
-        /// plugin. The type is used in conjuction with EntityName to
-        /// uniquely identify an entity.
-        /// \param[in] _filename Entity type string.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetFilename(const std::string &_filename);
-
-        /// \brief Name of the interface within the plugin library
-        /// to load.
-        /// \return Interface name.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string GZ_DEPRECATED(7) & Name() const;
-
-        /// \brief Set the name of the interface within the plugin library
-        /// to load.
-        /// \param[in] _name Interface name.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetName(const std::string &_name);
-
-        /// \brief Plugin XML elements associated with this plugin.
-        /// \return SDF pointer.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const sdf::ElementPtr GZ_DEPRECATED(7) & Sdf() const;
-
-        /// \brief Set the plugin XML elements associated with this plugin.
-        /// \param[in] _sdf SDF pointer, it will be cloned.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetSdf(const sdf::ElementPtr &_sdf);
 
         /// \brief Get the SDF plugin information.
         /// \return The SDF Plugin object.
@@ -418,9 +366,27 @@ namespace gz
       public: void SetRenderEngineServer(
                   const std::string &_renderEngineServer);
 
+      /// \brief Set the render engine server API backend.
+      /// \param[in] _apiBackend See --render-engine-server-api-backend for
+      /// possible options
+      public: void SetRenderEngineServerApiBackend(
+                  const std::string &_apiBackend);
+
+      /// \return Api backend for server. See SetRenderEngineServerApiBackend()
+      const std::string &RenderEngineServerApiBackend() const;
+
       /// \brief Set the render engine gui plugin library.
       /// \param[in] _renderEngineGui File containing render engine library.
       public: void SetRenderEngineGui(const std::string &_renderEngineGui);
+
+      /// \brief Set the render engine gui API backend.
+      /// \param[in] _apiBackend See --render-engine-gui-api-backend for
+      /// possible options
+      public: void SetRenderEngineGuiApiBackend(
+                  const std::string &_apiBackend);
+
+      /// \return Api backend for gui. See SetRenderEngineGuiApiBackend()
+      const std::string &RenderEngineGuiApiBackend() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

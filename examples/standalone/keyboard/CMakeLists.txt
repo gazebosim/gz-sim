@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 project(gz-sim-keyboard)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
-  set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
+  find_package(gz-transport13 QUIET REQUIRED OPTIONAL_COMPONENTS log)
+  set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
-  find_package(sdformat13 REQUIRED)
-  set(SDF_VER ${sdformat13_VERSION_MAJOR})
+  find_package(sdformat14 REQUIRED)
+  set(SDF_VER ${sdformat14_VERSION_MAJOR})
 
-  find_package(gz-msgs9 REQUIRED)
-  set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
+  find_package(gz-msgs10 REQUIRED)
+  set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
   find_package(gz-common5 REQUIRED)
   set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})

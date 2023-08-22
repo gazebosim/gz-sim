@@ -1,3 +1,7 @@
+## Gazebo Sim 8.x
+
+### Gazebo Sim 8.X.X (20XX-XX-XX)
+
 ## Gazebo Sim 7.x
 
 ### Gazebo Sim 7.5.0 (2023-05-14)

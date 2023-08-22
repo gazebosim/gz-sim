@@ -659,7 +659,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     // Check for the existence of other publishers on `/stats`
     std::vector<transport::MessagePublisher> publishers;
-    this->node->TopicInfo("/stats", publishers);
+    std::vector<transport::MessagePublisher> subscribers;
+    this->node->TopicInfo("/stats", publishers, subscribers);
 
     if (!publishers.empty())
     {
@@ -692,7 +693,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     // Check for the existence of other publishers on `/clock`
     std::vector<transport::MessagePublisher> publishers;
-    this->node->TopicInfo("/clock", publishers);
+    std::vector<transport::MessagePublisher> subscribers;
+    this->node->TopicInfo("/clock", publishers, subscribers);
 
     if (!publishers.empty())
     {

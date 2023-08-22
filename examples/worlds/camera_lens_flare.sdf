@@ -1,0 +1,393 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <gui fullscreen="0">
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+            <title>3D View</title>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+          <gz-gui>
+              <property key="state" type="string">floating</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="GzSceneManager" name="Scene Manager">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="CameraTracking" name="Camera Tracking">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="MarkerManager" name="Marker manager">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="SelectEntities" name="Select Entities">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="Spawn" name="Spawn Entities">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+          <gz-gui>
+              <property key="resizable" type="bool">false</property>
+              <property key="width" type="double">5</property>
+              <property key="height" type="double">5</property>
+              <property key="state" type="string">floating</property>
+              <property key="showTitleBar" type="bool">false</property>
+          </gz-gui>
+      </plugin>
+
+    <!-- World control -->
+    <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+            <title>World control</title>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="bool" key="resizable">false</property>
+            <property type="double" key="height">72</property>
+            <property type="double" key="z">1</property>
+            <property type="string" key="state">floating</property>
+            <anchors target="3D View">
+                <line own="left" target="left"/>
+                <line own="bottom" target="bottom"/>
+            </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+    </plugin>
+
+    <!-- World statistics -->
+    <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+            <title>World stats</title>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="bool" key="resizable">false</property>
+            <property type="double" key="height">110</property>
+            <property type="double" key="width">290</property>
+            <property type="double" key="z">1</property>
+            <property type="string" key="state">floating</property>
+            <anchors target="3D View">
+                <line own="right" target="right"/>
+                <line own="bottom" target="bottom"/>
+            </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+    </plugin>
+
+    <!-- Insert simple shapes -->
+    <plugin filename="Shapes" name="Shapes">
+        <gz-gui>
+            <property key="resizable" type="bool">false</property>
+            <property key="x" type="double">0</property>
+            <property key="y" type="double">0</property>
+            <property key="width" type="double">250</property>
+            <property key="height" type="double">50</property>
+            <property key="state" type="string">floating</property>
+            <property key="showTitleBar" type="bool">false</property>
+            <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+    </plugin>
+
+    <!-- Insert lights -->
+    <plugin filename="Lights" name="Lights">
+        <gz-gui>
+            <property key="resizable" type="bool">false</property>
+            <property key="x" type="double">250</property>
+            <property key="y" type="double">0</property>
+            <property key="width" type="double">150</property>
+            <property key="height" type="double">50</property>
+            <property key="state" type="string">floating</property>
+            <property key="showTitleBar" type="bool">false</property>
+            <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+    </plugin>
+
+    <!-- Translate / rotate -->
+    <plugin filename="TransformControl" name="Transform control">
+        <gz-gui>
+            <property key="resizable" type="bool">false</property>
+            <property key="x" type="double">0</property>
+            <property key="y" type="double">50</property>
+            <property key="width" type="double">250</property>
+            <property key="height" type="double">50</property>
+            <property key="state" type="string">floating</property>
+            <property key="showTitleBar" type="bool">false</property>
+            <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+    </plugin>
+
+    <!-- Inspector -->
+    <plugin filename="ComponentInspector" name="Component inspector">
+        <gz-gui>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="string" key="state">docked</property>
+        </gz-gui>
+    </plugin>
+
+    <!-- Entity tree -->
+    <plugin filename="EntityTree" name="Entity tree">
+        <gz-gui>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="string" key="state">docked</property>
+        </gz-gui>
+    </plugin>
+
+        <!-- Image Display -->
+    <plugin filename="ImageDisplay" name="Image Display">
+        <gz-gui>
+            <property type="bool" key="showTitleBar">false</property>
+            <property type="string" key="state">docked</property>
+        </gz-gui>
+        <topic>camera</topic>
+    </plugin>
+  </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name='box'>
+      <pose>1.6 2.4 0.5 0 0 0</pose>
+      <link name='box_link'>
+        <inertial>
+          <inertia>
+            <ixx>0.16666</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.16666</iyy>
+            <iyz>0</iyz>
+            <izz>0.16666</izz>
+          </inertia>
+          <mass>1</mass>
+          <pose>0 0 0 0 0 0</pose>
+        </inertial>
+        <collision name='box_collision'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode/>
+            </friction>
+            <bounce/>
+            <contact/>
+          </surface>
+        </collision>
+        <visual name='box_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.7 0.7 0.7 1</diffuse>
+            <specular>1 1 1 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 0 0</pose>
+        <enable_wind>false</enable_wind>
+      </link>
+      <static>false</static>
+      <self_collide>false</self_collide>
+    </model>
+
+    <!-- wide-angle camera model with lens flare plugin -->
+    <model name="wide_angle_camera_lensflare">
+      <static>true</static>
+      <pose>0.3 2.22 0.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="wide_angle_camera" type="wideanglecamera">
+          <camera>
+            <horizontal_fov>3.14159</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <lens>
+              <type>equidistant</type>
+              <scale_to_hfov>true</scale_to_hfov>
+              <cutoff_angle>1.5707</cutoff_angle>
+              <env_texture_size>512</env_texture_size>
+            </lens>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>wide_angle_camera</topic>
+          <plugin
+            filename="gz-sim-lens-flare-system"
+            name="gz::sim::systems::LensFlare">
+          </plugin>
+        </sensor>
+      </link>
+    </model>
+
+    <!-- camera model with lens flare plugin -->
+    <model name="camera_lensflare">
+      <static>true</static>
+      <pose>0 2 0.3 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="camera" type="camera">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>camera</topic>
+          <plugin
+            filename="gz-sim-lens-flare-system"
+            name="gz::sim::systems::LensFlare">
+            <scale>0.5</scale>
+            <color>3 3 3</color>
+          </plugin>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>

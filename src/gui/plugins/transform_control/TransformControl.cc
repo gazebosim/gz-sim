@@ -20,7 +20,6 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -35,6 +34,7 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/Geometry.hh>
 #include <gz/rendering/Grid.hh>

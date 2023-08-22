@@ -49,6 +49,7 @@
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/RgbdCamera.hh"
@@ -504,6 +505,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
 
+  std::string apiBackend =
+    _sdf->Get<std::string>("render_engine_api_backend", "").first;
+
   // get whether or not to disable sensor when model battery is drained
   this->dataPtr->disableOnDrainedBattery =
       _sdf->Get<bool>("disable_on_drained_battery",
@@ -518,6 +522,11 @@ void Sensors::Configure(const Entity &/*_id*/,
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
+#ifdef __APPLE__
+  if (apiBackend.empty())
+    apiBackend = "metal";
+#endif
+  this->dataPtr->renderUtil.SetApiBackend(apiBackend);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -545,6 +554,16 @@ void Sensors::Configure(const Entity &/*_id*/,
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
+
+    // Set API backend if specified from command line
+    auto renderEngineServerApiBackendComp =
+      _ecm.Component<components::RenderEngineServerApiBackend>(worldEntity);
+    if (renderEngineServerApiBackendComp &&
+        !renderEngineServerApiBackendComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetApiBackend(
+        renderEngineServerApiBackendComp->Data());
     }
 
     // Set headless mode if specified from command line
@@ -1016,6 +1035,3 @@ GZ_ADD_PLUGIN(Sensors, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")
