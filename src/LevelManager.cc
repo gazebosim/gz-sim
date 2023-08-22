@@ -877,6 +877,7 @@ void LevelManager::LoadActiveEntities(const std::set<std::string> &_namesToLoad)
     }
   }
 
+
   this->activeEntityNames.insert(_namesToLoad.begin(), _namesToLoad.end());
 }
 
