@@ -18,6 +18,7 @@
 
 #include "gz/sim/Entity.hh"
 
+#include "Actor.hh"
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
 #include "Joint.hh"
@@ -34,6 +35,7 @@
 PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
   m.attr("K_NULL_ENTITY") = gz::sim::kNullEntity;
+  gz::sim::python::defineSimActor(m);
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
   gz::sim::python::defineSimJoint(m);
