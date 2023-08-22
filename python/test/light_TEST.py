@@ -17,12 +17,14 @@ import os
 import unittest
 
 from gz.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, Light, TestFixture, World, world_entity
+from gz_test_deps.sim import (K_NULL_ENTITY, Light,
+                              TestFixture, World, world_entity)
 from gz_test_deps.math import Angle, Color, Pose3d, Vector3d
 
-# This class test the Light class API created with pybind11. Since the setters methods
-# require other systems to work (eg. Rendering sensors), those methods will not be fully
-# tested, just verifying the method is being called.
+
+# This class test the Light class API created with pybind11. Since the setters
+# methods require other systems to work (eg. Rendering sensors), those methods
+# will not be fully tested, just verifying the method is being called.
 class TestLight(unittest.TestCase):
     post_iterations = 0
     iterations = 0
@@ -43,32 +45,34 @@ class TestLight(unittest.TestCase):
             self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
             light_point = Light(w.light_by_name(_ecm, 'light_point_test'))
-            light_directional = Light(w.light_by_name(_ecm, 'light_directional_test'))
+            light_dir = Light(w.light_by_name(_ecm, 'light_directional_test'))
             light_spot = Light(w.light_by_name(_ecm, 'light_spot_test'))
             # Entity Test
             self.assertNotEqual(K_NULL_ENTITY, light_point.entity())
-            self.assertNotEqual(K_NULL_ENTITY, light_directional.entity())
+            self.assertNotEqual(K_NULL_ENTITY, light_dir.entity())
             self.assertNotEqual(K_NULL_ENTITY, light_spot.entity())
             # Valid Test
             self.assertTrue(light_point.valid(_ecm))
-            self.assertTrue(light_directional.valid(_ecm))
+            self.assertTrue(light_dir.valid(_ecm))
             self.assertTrue(light_spot.valid(_ecm))
             # Name Test
             self.assertEqual('light_point_test', light_point.name(_ecm))
-            self.assertEqual('light_directional_test', light_directional.name(_ecm))
+            self.assertEqual('light_dir_test', light_dir.name(_ecm))
             self.assertEqual('light_spot_test', light_spot.name(_ecm))
             # Pose Test
             self.assertEqual(Pose3d(0, 2, 2, 0, 0, 0), light_point.pose(_ecm))
             light_point.set_pose(_ecm, Pose3d(4, 2, 2, 0, 0, 0))
             # Type Test
             self.assertEqual('point', light_point.type(_ecm))
-            self.assertEqual('directional', light_directional.type(_ecm))
+            self.assertEqual('directional', light_dir.type(_ecm))
             self.assertEqual('spot', light_spot.type(_ecm))
-            ## Diffuse Color Test
-            self.assertEqual(Color(1, 0, 0, 1), light_point.diffuse_color(_ecm))
+            # Diffuse Color Test
+            self.assertEqual(Color(1, 0, 0, 1),
+                             light_point.diffuse_color(_ecm))
             light_point.set_diffuse_color(_ecm, Color(1, 1, 0, 1))
             # Specular Color Test
-            self.assertEqual(Color(0.2, 0, 0, 1), light_point.specular_color(_ecm))
+            self.assertEqual(Color(0.2, 0, 0, 1),
+                             light_point.specular_color(_ecm))
             light_point.set_specular_color(_ecm, Color(0.2, 0.2, 0, 1))
             # Cast Shadows Test
             self.assertTrue(light_point.cast_shadows(_ecm))
@@ -77,8 +81,8 @@ class TestLight(unittest.TestCase):
             self.assertEqual(2, light_point.intensity(_ecm))
             light_point.set_intensity(_ecm, 5)
             # Direction Test
-            self.assertEqual(Vector3d(0.5, 0.5, -1), light_directional.direction(_ecm))
-            light_directional.set_direction(_ecm, Vector3d(1, 0, -1))
+            self.assertEqual(Vector3d(0.5, 0.5, -1), light_dir.direction(_ecm))
+            light_dir.set_direction(_ecm, Vector3d(1, 0, -1))
             # Attenuation Range Test
             self.assertEqual(20, light_point.attenuation_range(_ecm))
             light_point.set_attenuation_range(_ecm, 30)
@@ -100,6 +104,21 @@ class TestLight(unittest.TestCase):
             # Spot Falloff Test
             self.assertEqual(2, light_spot.spot_falloff(_ecm))
             light_spot.set_spot_falloff(_ecm, 4)
+            # Check that all the values have been modified.
+            if self.pre_iterations > 1:
+                self.assertEqual(Color(1, 1, 0, 1),
+                                 light_point.diffuse_color(_ecm))
+                self.assertEqual(Color(0.2, 0.2, 0, 1),
+                                 light_point.specular_color(_ecm))
+                self.assertFalse(light_point.cast_shadows(_ecm))
+                self.assertEqual(5, light_point.intensity(_ecm))
+                self.assertEqual(Vector3d(1, 0, -1), light_dir.direction(_ecm))
+                self.assertEqual(1.2, light_point.attenuation_constant(_ecm))
+                self.assertEqual(0.5, light_point.attenuation_linear(_ecm))
+                self.assertEqual(0.05, light_point.attenuation_quadratic(_ecm))
+                self.assertEqual(Angle(15), light_spot.spot_inner_angle(_ecm))
+                self.assertEqual(Angle(10), light_spot.spot_outer_angle(_ecm))
+                self.assertEqual(4, light_spot.spot_falloff(_ecm))
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1
@@ -110,11 +129,12 @@ class TestLight(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, self.pre_iterations)
-        self.assertEqual(1000, self.iterations)
-        self.assertEqual(1000, self.post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
+
 
 if __name__ == '__main__':
     unittest.main()
