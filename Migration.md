@@ -49,6 +49,11 @@ message's header.
       * CMake `-config` files
       * Paths that depend on the project name
 
+  * The `Scene3D` plugin has been removed and replaced with `gz-gui`'s `MinimalScene` plugin. See
+    this same document for the instructions to replace it when it was deprecated 5.x to 6.x.
+   Setting `<legacy>false</legacy>` is no longer required for `TransformControl` and
+    `ViewAndle` plugins.
+
 * Python library imports such `import ignition.gazebo` and `from ignition import
   gazebo` should be replaced with `import gz.sim7` and `from gz import sim7`.
   Note the change from `ignition` to `gz` and the addition of the major version
@@ -58,7 +63,6 @@ message's header.
  * **Modified**:
    + In the Hydrodynamics plugin, inverted the added mass contribution to make it
      act in the correct direction.
-
 
 ## Gazebo Sim 6.11.X to 6.12.X
 
@@ -116,20 +120,23 @@ since pose information is being logged in the `changed_state` topic.
 * The `GzScene3D` GUI plugin is being deprecated in favor of `MinimalScene`. In
   order to get the same functionality as `GzScene3D`, users need to add the
   following plugins:
-      + `MinimalScene`: base rendering functionality
-      + `GzSceneManager`: adds / removes / moves entities in the scene
-      + `EntityContextMenuPlugin`: right-click menu
-      + `InteractiveViewControl`: orbit controls
-      + `CameraTracking`: Move to, follow, set camera pose
-      + `MarkerManager`: Enables the use of markers
-      + `SelectEntities`: Select entities clicking on the scene
-      + `Spawn`: Functionality to spawn entities into the scene via GUI
-      + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
+    + `MinimalScene`: base rendering functionality
+    + `GzSceneManager`: adds / removes / moves entities in the scene
+    + `EntityContextMenuPlugin`: right-click menu
+    + `InteractiveViewControl`: orbit controls
+    + `CameraTracking`: Move to, follow, set camera pose
+    + `MarkerManager`: Enables the use of markers
+    + `SelectEntities`: Select entities clicking on the scene
+    + `Spawn`: Functionality to spawn entities into the scene via GUI
+    + `VisualizationCapabilities`: View collisions, inertial, CoM, joints, etc.
 
-    Moreover, legacy mode needs to be turned off for the following plugins
-    for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
-      + `TransformControl`: Translate and rotate
-      + `ViewAndle`: Move camera to preset angles
+  SDF code for all these can be found in:
+  https://github.com/gazebosim/gz-sim/blob/ff1c82b41e548dfdc8076374f9500db2df2c35a1/examples/worlds/minimal_scene.sdf#L29-L128
+
+  Moreover, legacy mode needs to be turned off for the following plugins
+  for them to work with `MinimalScene` (set `<legacy>false</legacy>`):
+    + `TransformControl`: Translate and rotate
+    + `ViewAndle`: Move camera to preset angles
 
 * The `gui.config` and `server.config` files are now located in a versioned
   folder inside `$HOME/.gz/sim`, i.e. `$HOME/.gz/sim/6/gui.config`.
