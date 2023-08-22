@@ -468,6 +468,7 @@
         <min_acceleration>-3</min_acceleration>
         <max_acceleration>3</max_acceleration>
 
+        <angular_limits>true</angular_limits>
         <min_angular_velocity>-10</min_angular_velocity>
         <max_angular_velocity>10</max_angular_velocity>
         <min_angular_acceleration>-20</min_angular_acceleration>
