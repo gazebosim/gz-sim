@@ -65,6 +65,22 @@ namespace sim
       NOTIFY LinkIndexChanged
     )
 
+    /// \brief Force
+    Q_PROPERTY(
+      QVector3D force
+      READ Force
+      WRITE SetForce
+      NOTIFY ForceChanged
+    )
+
+    /// \brief Torque
+    Q_PROPERTY(
+      QVector3D torque
+      READ Torque
+      WRITE SetTorque
+      NOTIFY TorqueChanged
+    )
+
     /// \brief Constructor
     public: ApplyForceTorque();
 
@@ -102,17 +118,27 @@ namespace sim
     /// \brief Set the index of the link in the list
     public: Q_INVOKABLE void SetLinkIndex(int _linkIndex);
 
-    /// \brief Set components of force
-    /// \param[in] _x X component of force
-    /// \param[in] _y Y component of force
-    /// \param[in] _z Z component of force
-    public: Q_INVOKABLE void UpdateForce(double _x, double _y, double _z);
+    /// \brief Get the force vector
+    /// \return The force vector
+    public: Q_INVOKABLE QVector3D Force() const;
 
-    /// \brief Set components of torque
-    /// \param[in] _x X component of torque
-    /// \param[in] _y Y component of torque
-    /// \param[in] _z Z component of torque
-    public: Q_INVOKABLE void UpdateTorque(double _x, double _y, double _z);
+    /// \brief Notify that the force changed
+    signals: void ForceChanged();
+
+    /// \brief Set the force vector
+    /// \param[in] _force The new force vector
+    public: Q_INVOKABLE void SetForce(QVector3D _force);
+
+    /// \brief Get the torque vector
+    /// \return The torque vector
+    public: Q_INVOKABLE QVector3D Torque() const;
+
+    /// \brief Notify that the torque changed
+    signals: void TorqueChanged();
+
+    /// \brief Set the torque vector
+    /// \param[in] _torque The new torque vector
+    public: Q_INVOKABLE void SetTorque(QVector3D _torque);
 
     /// \brief Apply the specified force
     public: Q_INVOKABLE void ApplyForce();
