@@ -14,44 +14,60 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_GUI_TESTHELPER_HH_
-#define GZ_GUI_TESTHELPER_HH_
+#ifndef GZ_GUI_GUIRELAY_HH_
+#define GZ_GUI_GUIRELAY_HH_
 
 #include <gz/gui/Application.hh>
 #include <gz/gui/Export.hh>
 #include <gz/gui/MainWindow.hh>
 
-#ifndef _WIN32
-#  define TestHelper_EXPORTS_API
-#else
-#  if (defined(TestHelper_EXPORTS))
-#    define TestHelper_EXPORTS_API __declspec(dllexport)
-#  else
-#    define TestHelper_EXPORTS_API __declspec(dllimport)
-#  endif
-#endif
-
 namespace gz
 {
 namespace sim
 {
-/// \brief
-class TestHelper_EXPORTS_API TestHelper : public QObject
+namespace test
+{
+/// \brief Helper class to be used in internal tests. It allows receiving
+/// events emitted in the GUI.
+///
+/// ## Usage
+///
+///  // Instantiate the class
+///  test::GuiRelay guiRelay;
+///
+///  // Register callback, for example:
+///  guiRelay.OnQEvent([&](QEvent *_event)
+///    {
+///      if (_event.type() == gz::gui::events::Render::kType)
+///      {
+///        // Do something
+///      }
+///    }
+///
+class GuiRelay : public QObject
 {
   Q_OBJECT
 
   /// \brief Constructor
-  public: inline TestHelper()
+  public: GuiRelay()
   {
     gz::gui::App()->findChild<gz::gui::MainWindow *>()->
       installEventFilter(this);
   }
 
   /// \brief Destructor
-  public: ~TestHelper() = default;
+  public: ~GuiRelay() = default;
+
+  /// \brief Wrapper around Qt's event filter
+  /// \param[in] _cb Function to be called on every received QEvent
+  public: GuiRelay &OnQEvent(std::function<void (QEvent *)> _cb)
+  {
+    this->forwardEvent = std::move(_cb);
+    return *this;
+  }
 
   /// \brief Documentation inherited
-  public: inline bool eventFilter(QObject *_obj, QEvent *_event) override
+  public: bool eventFilter(QObject *_obj, QEvent *_event) override
   {
     if (this->forwardEvent)
       this->forwardEvent(_event);
@@ -62,6 +78,7 @@ class TestHelper_EXPORTS_API TestHelper : public QObject
 
   public: std::function<void (QEvent *)> forwardEvent;
 };
+}
 }
 }
 

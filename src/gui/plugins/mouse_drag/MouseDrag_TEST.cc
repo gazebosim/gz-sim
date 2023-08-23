@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/  
+*/
 
 #include <gtest/gtest.h>
 #ifdef _MSC_VER
@@ -56,7 +56,8 @@ TEST_F(MouseDragGui, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Load))
   // Create app
   auto app = std::make_unique<gui::Application>(g_argc, g_argv);
   ASSERT_NE(nullptr, app);
-  app->AddPluginPath(std::string(PROJECT_BINARY_PATH) + "/lib");
+  app->AddPluginPath(
+    common::joinPaths(std::string(PROJECT_BINARY_PATH), "lib"));
 
   // Create GUI runner to handle sim::gui plugins
   auto runner = new sim::GuiRunner("default");

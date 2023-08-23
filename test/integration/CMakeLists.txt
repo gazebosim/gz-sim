@@ -213,27 +213,8 @@ if(TARGET INTEGRATION_reset_sensors)
 endif()
 
 if(TARGET INTEGRATION_mouse_drag)
-  find_package(Qt5Test REQUIRED)
-
-  set (qt_headers
-    TestHelper.hh
-  )
-
-  QT5_WRAP_CPP(headers_MOC ${qt_headers})
-
-  add_library(${PROJECT_NAME}_test_helpers SHARED
-    # TestHelper.cc
-    ${headers_MOC}
-  )
-  target_compile_definitions(${PROJECT_NAME}_test_helpers PRIVATE TestHelper_EXPORTS)
-  target_link_libraries(${PROJECT_NAME}_test_helpers
-    PUBLIC
-      ${PROJECT_LIBRARY_TARGET_NAME}
-  )
-
   target_link_libraries(INTEGRATION_mouse_drag
     ${PROJECT_LIBRARY_TARGET_NAME}-gui
-    Qt5::Test
     ${PROJECT_NAME}_test_helpers
   )
 endif()

@@ -44,7 +44,8 @@
 #include "gz/sim/TestFixture.hh"
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "TestHelper.hh"
+// #include "TestHelper.hh"
+#include "../helpers/GuiRelay.hh"
 
 #include "gz/sim/gui/Gui.hh"
 
@@ -64,7 +65,7 @@ class MouseDragTestFixture : public InternalFixture<::testing::Test>
   {
     std::vector<std::string> cmd = {
       common::joinPaths(getInstallPrefix(), "bin", "gz"),
-      "sim", "-s", "-r", "-v4", /* "--iterations=1000",  */_sdfFile};
+      "sim", "-s", "-r", "-v4", _sdfFile};
     std::vector<std::string> env = {
       "LD_LIBRARY_PATH=" + common::joinPaths(getInstallPrefix(), "lib")};
     auto serverProc = utils::Subprocess(cmd, env);
@@ -188,38 +189,39 @@ TEST_F(MouseDragTestFixture,
   rendering::ScenePtr scene;
   rendering::CameraPtr camera;
   std::optional<QEvent *> event;
-  auto testHelper = std::make_unique<TestHelper>();
-  testHelper->forwardEvent = [&](QEvent *_event)
-  {
-    if (_event->type() == gz::gui::events::Render::kType)
+  test::GuiRelay guiRelay;
+  guiRelay.OnQEvent([&](QEvent *_event)
     {
-      gzdbg << "Render" << std::endl;
-      // Get scene and user camera
-      if (!scene)
+      if (_event->type() == gz::gui::events::Render::kType)
       {
-        scene = rendering::sceneFromFirstRenderEngine();
-        EXPECT_NE(nullptr, scene);
-        for (unsigned int i = 0; i < scene->NodeCount(); ++i)
+        gzdbg << "Render" << std::endl;
+        // Get scene and user camera
+        if (!scene)
         {
-          auto cam = std::dynamic_pointer_cast<rendering::Camera>(
-            scene->NodeByIndex(i));
-          if (cam && cam->HasUserData("user-camera") &&
-              std::get<bool>(cam->UserData("user-camera")))
+          scene = rendering::sceneFromFirstRenderEngine();
+          EXPECT_NE(nullptr, scene);
+          for (unsigned int i = 0; i < scene->NodeCount(); ++i)
           {
-            camera = cam;
-            break;
+            auto cam = std::dynamic_pointer_cast<rendering::Camera>(
+              scene->NodeByIndex(i));
+            if (cam && cam->HasUserData("user-camera") &&
+                std::get<bool>(cam->UserData("user-camera")))
+            {
+              camera = cam;
+              break;
+            }
           }
+          EXPECT_NE(nullptr, camera);
         }
-        EXPECT_NE(nullptr, camera);
+        // Send events
+        if (event)
+        {
+          // TODO(anyone): use QTest mouse events instead of gz events?
+          app->sendEvent(app->findChild<gz::gui::MainWindow *>(), *event);
+          event.reset();
+        }
       }
-      // Send events
-      if (event)
-      {
-        app->sendEvent(app->findChild<gz::gui::MainWindow *>(), *event);
-        event.reset();
-      }
-    }
-  };
+    });
 
   // Wait for scene
   unsigned int sleep = 0;
