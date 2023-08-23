@@ -233,6 +233,10 @@ gz_build_tests(TYPE UNIT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
+if (TARGET UNIT_Server_TEST)
+  set_tests_properties(UNIT_Server_TEST PROPERTIES TIMEOUT 500)
+endif()
+
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
  target_link_libraries(UNIT_Server_Rendering_TEST
