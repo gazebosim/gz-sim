@@ -62,21 +62,21 @@ GridLayout {
   Text {
     Layout.columnSpan: 2
     id: modelText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Model:")
   }
 
   Text {
     Layout.columnSpan: 6
     id: modelName
-    color: "dimgrey"
+    color: "black"
     text: ApplyForceTorque.modelName
   }
 
   Text {
     Layout.columnSpan: 2
     id: linkText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Link:")
   }
 
@@ -95,7 +95,7 @@ GridLayout {
   Text {
     Layout.columnSpan: 4
     id: forceText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Force:")
   }
 
@@ -104,7 +104,7 @@ GridLayout {
     Layout.fillWidth: true
     wrapMode: Text.WordWrap
     id: offsetText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Offset (from COM):")
   }
 
@@ -112,7 +112,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: forceXText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("X (N)")
   }
 
@@ -132,7 +132,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: offsetXText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("X (m)")
   }
 
@@ -153,7 +153,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: forceYText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Y (N)")
   }
 
@@ -173,7 +173,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: offsetYText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Y (m)")
   }
 
@@ -194,7 +194,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: forceZText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Z (N)")
   }
 
@@ -214,7 +214,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: offsetZText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Z (m)")
   }
 
@@ -235,7 +235,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: forceMagText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Mag. (N)")
   }
 
@@ -264,7 +264,7 @@ GridLayout {
   Text {
     Layout.columnSpan: 8
     id: torqueText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Torque:")
   }
 
@@ -272,7 +272,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: torqueXText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("X (N.m)")
   }
 
@@ -292,7 +292,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: torqueYText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Y (N.m)")
   }
 
@@ -312,7 +312,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: torqueZText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Z (N.m)")
   }
 
@@ -332,7 +332,7 @@ GridLayout {
     Layout.columnSpan: 2
     horizontalAlignment: Text.AlignRight
     id: torqueMagText
-    color: "dimgrey"
+    color: "black"
     text: qsTr("Mag. (N.m)")
   }
 
