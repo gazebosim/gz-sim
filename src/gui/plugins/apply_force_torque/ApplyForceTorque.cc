@@ -15,6 +15,7 @@
  *
 */
 
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -26,6 +27,7 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
+#include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
