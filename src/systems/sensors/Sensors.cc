@@ -271,6 +271,7 @@ void SensorsPrivate::WaitForInit()
     }
 
     this->updateAvailable = false;
+    std::cerr << "SensorsPrivate::WaitForInit notify_one" << std::endl;
     this->renderCv.notify_one();
   }
   gzdbg << "Rendering Thread initialized" << std::endl;
@@ -279,6 +280,7 @@ void SensorsPrivate::WaitForInit()
 //////////////////////////////////////////////////
 void SensorsPrivate::RunOnce()
 {
+  std::cerr << "SensorsPrivate::RunOnce" << std::endl;
   {
     std::unique_lock<std::mutex> cvLock(this->renderMutex);
     this->renderCv.wait(cvLock, [this]()
@@ -296,10 +298,12 @@ void SensorsPrivate::RunOnce()
   std::chrono::steady_clock::duration updateTimeApplied;
   GZ_PROFILE("SensorsPrivate::RunOnce");
   {
+    std::cerr << "SensorsPrivate::RunOnce RenderUtil.Update()" << std::endl;
     GZ_PROFILE("Update");
     std::unique_lock<std::mutex> timeLock(this->renderMutex);
     this->renderUtil.Update();
     updateTimeApplied = this->updateTime;
+    std::cerr << "SensorsPrivate::RunOnce RenderUtil.Update() done" << std::endl;
   }
 
   bool activeSensorsEmpty = true;
@@ -328,6 +332,7 @@ void SensorsPrivate::RunOnce()
     }
 
     {
+     std::cerr << "SensorsPrivate::RunOnce scene PreRender" << std::endl;
       GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
       this->scene->SetTime(updateTimeApplied);
@@ -336,6 +341,7 @@ void SensorsPrivate::RunOnce()
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
       this->scene->PreRender();
+     std::cerr << "SensorsPrivate::RunOnce scene PreRender done" << std::endl;
     }
 
     // disable sensors that have no subscribers to prevent doing unnecessary
@@ -359,10 +365,12 @@ void SensorsPrivate::RunOnce()
     std::unique_lock<std::mutex> timeLock(this->renderMutex);
     if (updateTimeApplied <= this->updateTime)
     {
+     std::cerr << "SensorsPrivate::RunOnce sensor manager RunOnce" << std::endl;
       // publish data
       GZ_PROFILE("RunOnce");
       this->sensorManager.RunOnce(updateTimeApplied);
       this->eventManager->Emit<events::Render>();
+     std::cerr << "SensorsPrivate::RunOnce sensor manager RunOnce done" << std::endl;
     }
 
     // re-enble sensors
@@ -372,6 +380,7 @@ void SensorsPrivate::RunOnce()
     }
 
     {
+     std::cerr << "SensorsPrivate::RunOnce scene PostRender" << std::endl;
       GZ_PROFILE("PostRender");
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
@@ -379,6 +388,7 @@ void SensorsPrivate::RunOnce()
       // so we don't waste cycles doing one scene graph update per sensor
       this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
+     std::cerr << "SensorsPrivate::RunOnce scene PostRender done" << std::endl;
     }
 
     std::unique_lock<std::mutex> lk(this->sensorsMutex);
@@ -388,6 +398,7 @@ void SensorsPrivate::RunOnce()
   this->updateAvailable = false;
   this->forceUpdate = false;
   this->renderCv.notify_one();
+  std::cerr << "SensorsPrivate::RunOnce done" << std::endl;
 }
 
 //////////////////////////////////////////////////
