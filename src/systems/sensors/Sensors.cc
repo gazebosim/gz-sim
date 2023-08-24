@@ -281,11 +281,14 @@ void SensorsPrivate::RunOnce()
 {
   {
     std::unique_lock<std::mutex> cvLock(this->renderMutex);
-    this->renderCv.wait(cvLock, [this]()
+    this->renderCv.wait_for(cvLock, std::chrono::microseconds(1000), [this]()
     {
       return !this->running || this->updateAvailable;
     });
   }
+
+  if (!this->updateAvailable)
+    return;
 
   if (!this->running)
     return;
@@ -640,7 +643,7 @@ void Sensors::Update(const UpdateInfo &_info,
        _ecm.HasComponentType(components::WideAngleCamera::typeId)))
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    igndbg << "Initialization needed" << std::endl;
+    gzdbg << "Initialization needed" << std::endl;
     this->dataPtr->renderUtil.Init();
     this->dataPtr->nextUpdateTime = _info.simTime;
   }

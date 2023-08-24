@@ -306,6 +306,19 @@ namespace gz
                                  const math::Vector3d &_force,
                                  const math::Vector3d &_torque) const;
 
+      /// \brief Add a wrench expressed in world coordinates and applied to
+      /// the link at an offset from the link's origin. This wrench
+      /// is applied for one simulation step.
+      /// \param[in] _ecm Mutable Entity-component manager.
+      /// \param[in] _force Force to be applied expressed in world coordinates
+      /// \param[in] _torque Torque to be applied expressed in world coordinates
+      /// \param[in] _offset The point of application of the force expressed
+      /// in the link frame
+      public: void AddWorldWrench(EntityComponentManager &_ecm,
+                                  const math::Vector3d &_force,
+                                  const math::Vector3d &_torque,
+                                  const math::Vector3d &_offset) const;
+
       /// \brief Pointer to private data.
       private: std::unique_ptr<LinkPrivate> dataPtr;
     };

@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="contact_extra_data">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <gravity>0 0 -9.81</gravity>
+
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode/>
+            </friction>
+            <bounce/>
+            <contact/>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <pose>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <enable_wind>false</enable_wind>
+      </link>
+      <pose>0 0 0 0 -0 0</pose>
+      <self_collide>false</self_collide>
+    </model>
+
+    <model name="contact_model">
+      <pose>0 0 0.5 0 0.0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.4</ixx>
+          <iyy>0.4</iyy>
+          <izz>0.4</izz>
+        </inertia>
+      </inertial>
+      <link name="link">
+        <collision name="collision_sphere">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_sphere">
+          <geometry>
+            <sphere>
+              <radius>1.0</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <sensor name='sensor_contact' type='contact'>
+          <contact>
+            <collision>collision_sphere</collision>
+            <topic>/test_extra_collision_data</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>1000</update_rate>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
