@@ -67,11 +67,6 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \brief Show the quick start menu again.
   private: bool showAgain{true};
 
-  /// \brief Installed worlds path.
-  /// \warning This variable is unused and can be removed
-  ///          once an ABI break is allowed
-  private: std::string worldsPath{""};
-
   /// \brief Get starting world url.
   private: std::string startingWorld{""};
 };
