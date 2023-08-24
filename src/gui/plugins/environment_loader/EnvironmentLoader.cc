@@ -138,9 +138,18 @@ void EnvironmentLoader::Update(const UpdateInfo &,
   if (!this->dataPtr->pub.has_value())
   {
     auto world = worldEntity(_ecm);
-    auto topic = common::joinPaths(scopedName(world, _ecm), "environment");
+    auto topic = scopedName(world, _ecm) + "/" + "environment";
     this->dataPtr->pub =
       {this->dataPtr->node.Advertise<msgs::DataLoadPathOptions>(topic)};
+  }
+
+  static bool warned = false;
+  if (!this->dataPtr->pub->HasConnections() && !warned)
+  {
+    warned = true;
+    gzwarn << "Could not find a subscriber for the environment "
+      << "make sure to load the Environment Preload plugin"
+      << std::endl;
   }
 }
 
