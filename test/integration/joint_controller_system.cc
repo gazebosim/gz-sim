@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/actuators.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -176,6 +177,86 @@ TEST_F(JointControllerTestFixture,
   msg.set_data(testAngVel);
 
   pub.Publish(msg);
+}
+
+/////////////////////////////////////////////////
+// Tests that the JointController accepts actuator commands
+TEST_F(JointControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
+        JointControllerActuatorsCommand))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_controller.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string linkName = "rotor4";
+
+  test::Relay testSystem;
+  math::Vector3d angularVelocity;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto link = _ecm.EntityByComponents(components::Link(),
+                                            components::Name(linkName));
+        // Create an AngularVelocity component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::AngularVelocity>(link))
+        {
+          _ecm.CreateComponent(link, components::AngularVelocity());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Link, components::Name,
+                  components::AngularVelocity>(
+            [&](const Entity &,
+                const components::Link *,
+                const components::Name *_name,
+                const components::AngularVelocity *_angularVel) -> bool
+            {
+              EXPECT_EQ(_name->Data(), linkName);
+              angularVelocity = _angularVel->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  const std::size_t initIters = 10;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, angularVelocity.Length(), TOL);
+
+  // Publish command and check that the joint velocity is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Actuators>(
+      "/actuators");
+
+  const double testAngVel{10.0};
+  msgs::Actuators msg;
+  msg.add_velocity(testAngVel);
+
+  pub.Publish(msg);
+  // Wait for the message to be published
+  std::this_thread::sleep_for(100ms);
+
+  const std::size_t testIters = 3000;
+  server.Run(true, testIters , false);
+
+  EXPECT_NEAR(0, angularVelocity.X(), 1e-2);
+  EXPECT_NEAR(0, angularVelocity.Y(), 1e-2);
+  EXPECT_NEAR(testAngVel, angularVelocity.Z(), 1e-2);
 }
 
 /////////////////////////////////////////////////

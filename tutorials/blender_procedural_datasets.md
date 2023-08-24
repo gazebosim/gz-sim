@@ -93,7 +93,7 @@ blender [blender options] file.blend
 4. Run the script using the *Run script* button in the panel of the
    *Text Editor* tab at the top of the screen.
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/blender_instructions.png "Instructions in Blender" width=100%
+![Instructions in Blender](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/blender_instructions.png)
 
 Once you follow these steps and configure the script for your `.blend` project,
 you can save it and use Option B in the future.
@@ -155,9 +155,9 @@ blender rock.blend --python-text procedural_dataset_generator.py -- -o sdf_model
 blender woodland.blend --python-text procedural_dataset_generator.py -- -o sdf_models/woodland
 ```
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_rock.gif "Example of generating a dataset of rock SDF models" width=100%
+![Example of generating a dataset of rock SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_rock.gif)
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_woodland.gif "Example of generating a dataset of woodland SDF models" width=100%
+![Example of generating a dataset of woodland SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/demo_blender_woodland.gif)
 
 You can configure the script in several ways (see
 `blender rock.blend --python-text procedural_dataset_generator.py -- -h`). For
@@ -220,9 +220,9 @@ Hereafter, you can spawn the generated models inside Gazebo with your preferred
 approach, e.g. via the Resource Spawner GUI plugin. Below are some examples of
 Gazebo environments using the rock and woodland SDF models.
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_rock.png "Example of the generated rock SDF models in Gazebo" width=100%
+![Example of the generated rock SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_rock.png)
 
-@image html https://github.com/gazebosim/gz-sim/tree/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_woodland.png "Example of the generated woodland SDF models in Gazebo" width=100%
+![Example of the generated woodland SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/blender_procedural_datasets/demo_gazebo_woodland.png)
 
 Every object that uses Geometry Nodes in these projects has several input
 attributes that can be configured. You can open the `.blend` projects again,

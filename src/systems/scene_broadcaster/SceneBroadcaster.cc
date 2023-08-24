@@ -53,6 +53,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/Scene.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -166,6 +167,15 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \param[in] _entity Parent entity in the graph
   /// \param[in] _graph Scene graph
   public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
+
+  /// \brief Adds projectors to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the projectors
+  /// will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddProjectors(msgs::Link *_msg,
               const Entity _entity, const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
@@ -1079,6 +1089,29 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         return true;
       });
 
+  // Projectors
+  _manager.EachNew<components::Projector, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::Projector *_projectorComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto projectorMsg = std::make_shared<msgs::Projector>();
+        projectorMsg->CopyFrom(
+            convert<msgs::Projector>(_projectorComp->Data()));
+        // \todo(anyone) add id field to projector msg
+        // projectorMsg->set_id(_entity);
+        projectorMsg->mutable_pose()->CopyFrom(
+            msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(projectorMsg->name(), projectorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
   // Update the whole scene graph from the new graph
   {
     std::lock_guard<std::mutex> lock(this->graphMutex);
@@ -1261,6 +1294,24 @@ void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddProjectors(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto projectorMsg = std::dynamic_pointer_cast<msgs::Projector>(
+        vertex.second.get().Data());
+    if (!projectorMsg)
+      continue;
+
+    _msg->add_projector()->CopyFrom(*projectorMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -1288,6 +1339,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Particle emitters
     AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
+
+    // Projectors
+    AddProjectors(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 

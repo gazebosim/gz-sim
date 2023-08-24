@@ -301,6 +301,8 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
     testImages("3.png", "3_test.png");
     testImages("4.png", "4_test.png");
     testImages("5.png", "5_test.png");
+
+    postRenderConn.reset();
   }
 
   private: bool takeTestPics{false};

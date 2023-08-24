@@ -347,7 +347,7 @@ ColumnLayout {
       Layout.column: 0
       leftPadding: 5
     }
-    IgnSpinBox {
+    GzSpinBox {
       id: horizontalFOV
       Layout.fillWidth: true
       Layout.row: 0

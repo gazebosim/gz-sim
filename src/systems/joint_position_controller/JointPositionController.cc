@@ -18,6 +18,7 @@
 
 #include "JointPositionController.hh"
 
+#include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 
 #include <string>
@@ -29,6 +30,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
@@ -46,6 +48,10 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \param[in] _msg Position message
   public: void OnCmdPos(const msgs::Double &_msg);
 
+  /// \brief Callback for actuator position subscription
+  /// \param[in] _msg Position message
+  public: void OnActuatorPos(const msgs::Actuators &_msg);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
@@ -58,11 +64,17 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \brief Commanded joint position
   public: double jointPosCmd{0.0};
 
+  /// \brief Index of position actuator.
+  public: int actuatorNumber = 0;
+
   /// \brief mutex to protect joint commands
   public: std::mutex jointCmdMutex;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief True if using Actuator msg to control joint position.
+  public: bool useActuatorMsg{false};
 
   /// \brief Position PID controller.
   public: math::PID posPid;
@@ -190,9 +202,26 @@ void JointPositionController::Configure(const Entity &_entity,
     this->dataPtr->jointPosCmd = _sdf->Get<double>("initial_position");
   }
 
+  if (_sdf->HasElement("use_actuator_msg") &&
+    _sdf->Get<bool>("use_actuator_msg"))
+  {
+    if (_sdf->HasElement("actuator_number"))
+    {
+      this->dataPtr->actuatorNumber =
+        _sdf->Get<int>("actuator_number");
+      this->dataPtr->useActuatorMsg = true;
+    }
+    else
+    {
+      gzerr << "Please specify an actuator_number" <<
+        "to use Actuator position message control." << std::endl;
+    }
+  }
+
   // Subscribe to commands
   std::string topic;
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic")))
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (!this->dataPtr->useActuatorMsg))
   {
     topic = transport::TopicUtils::AsValidTopic("/model/" +
         this->dataPtr->model.Name(_ecm) + "/joint/" +
@@ -201,6 +230,18 @@ void JointPositionController::Configure(const Entity &_entity,
     if (topic.empty())
     {
       gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (this->dataPtr->useActuatorMsg))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/actuators");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create Actuator topic for joint ["
             << this->dataPtr->jointNames[0]
             << "]" << std::endl;
       return;
@@ -235,8 +276,24 @@ void JointPositionController::Configure(const Entity &_entity,
       return;
     }
   }
-  this->dataPtr->node.Subscribe(
-      topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
+  if (this->dataPtr->useActuatorMsg)
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointPositionControllerPrivate::OnActuatorPos,
+      this->dataPtr.get());
+
+    gzmsg << "JointPositionController subscribing to Actuator messages on ["
+      << topic << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointPositionControllerPrivate::OnCmdPos,
+      this->dataPtr.get());
+
+    gzmsg << "JointPositionController subscribing to Double messages on ["
+      << topic << "]" << std::endl;
+  }
 
   gzdbg << "[JointPositionController] system parameters:" << std::endl;
   gzdbg << "p_gain: ["     << p         << "]"            << std::endl;
@@ -424,6 +481,20 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->jointCmdMutex);
   this->jointPosCmd = _msg.data();
+}
+
+void JointPositionControllerPrivate::OnActuatorPos(const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->jointCmdMutex);
+  if (this->actuatorNumber > _msg.position_size() - 1)
+  {
+    gzerr << "You tried to access index " << this->actuatorNumber
+      << " of the Actuator position array which is of size "
+      << _msg.position_size() << std::endl;
+    return;
+  }
+
+  this->jointPosCmd = static_cast<double>(_msg.position(this->actuatorNumber));
 }
 
 GZ_ADD_PLUGIN(JointPositionController,

@@ -605,31 +605,31 @@ void TriggeredPublisher::Configure(const Entity &,
       serviceInfo.srvName = serviceElem->Get<std::string>("name");
       if (serviceInfo.srvName.empty())
       {
-        ignerr << "Service name cannot be empty\n";
+        gzerr << "Service name cannot be empty\n";
         return;
       }
       serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
       if (serviceInfo.reqType.empty())
       {
-        ignerr << "Service request type cannot be empty\n";
+        gzerr << "Service request type cannot be empty\n";
         return;
       }
       serviceInfo.repType = serviceElem->Get<std::string>("repType");
       if (serviceInfo.repType.empty())
       {
-        ignerr << "Service reply type cannot be empty\n";
+        gzerr << "Service reply type cannot be empty\n";
         return;
       }
       serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
       if (serviceInfo.reqMsg.empty())
       {
-        ignerr << "Service request message cannot be empty\n";
+        gzerr << "Service request message cannot be empty\n";
         return;
       }
       std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
       if (timeoutInfo.empty())
       {
-        ignerr << "Timeout value cannot be empty\n";
+        gzerr << "Timeout value cannot be empty\n";
         return;
       }
 
@@ -639,7 +639,7 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
   {
-    ignerr << "No output and service specified. Make sure to specify at least"
+    gzerr << "No output and service specified. Make sure to specify at least"
       "one of them." << std::endl;
     return;
   }
@@ -715,16 +715,16 @@ void TriggeredPublisher::CallService(std::size_t pendingSrv)
       auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
       if (!req)
       {
-        ignerr << "Unable to create request for type ["
-               << serviceInfo.reqType << "].\n";
+        gzerr << "Unable to create request for type ["
+              << serviceInfo.reqType << "].\n";
         return;
       }
 
       auto rep = msgs::Factory::New(serviceInfo.repType);
       if (!rep)
       {
-        ignerr << "Unable to create response for type ["
-               << serviceInfo.repType << "].\n";
+        gzerr << "Unable to create response for type ["
+              << serviceInfo.repType << "].\n";
         return;
       }
 
@@ -734,16 +734,16 @@ void TriggeredPublisher::CallService(std::size_t pendingSrv)
       {
         if (!result)
         {
-          ignerr << "Service call [" << serviceInfo.srvName << "] failed\n";
+          gzerr << "Service call [" << serviceInfo.srvName << "] failed\n";
         }
         else
         {
-          ignmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
+          gzmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
         }
       }
       else
       {
-        ignerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
+        gzerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
       }
     }
   }
@@ -832,14 +832,7 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
   return std::all_of(this->matchers.begin(), this->matchers.end(),
                      [&](const auto &_matcher)
                      {
-                       try
-                       {
-                         return _matcher->Match(_inputMsg);
-                       } catch (const google::protobuf::FatalException &err)
-                       {
-                          gzerr << err.what() << std::endl;
-                          return false;
-                       }
+                       return _matcher->Match(_inputMsg);
                      });
 }
 

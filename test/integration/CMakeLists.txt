@@ -1,8 +1,8 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  actor.cc
   ackermann_steering_system.cc
+  actor.cc
   acoustic_comms.cc
   air_pressure_system.cc
   air_speed_system.cc
@@ -33,6 +33,7 @@ set(tests
   hydrodynamics.cc
   hydrodynamics_flags.cc
   imu_system.cc
+  include_sim_hh.cc
   joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
@@ -62,6 +63,7 @@ set(tests
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
+  projector.cc
   rf_comms.cc
   recreate_entities.cc
   reset.cc
@@ -92,6 +94,7 @@ endif()
 
 # Tests that require a valid display
 set(tests_needing_display
+  actor_trajectory.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
@@ -103,6 +106,7 @@ set(tests_needing_display
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc
+  sensors_system_update_rate.cc
   shader_param_system.cc
   thermal_sensor_system.cc
   thermal_system.cc
@@ -144,6 +148,8 @@ gz_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 
@@ -214,6 +220,9 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+  )
+  target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()

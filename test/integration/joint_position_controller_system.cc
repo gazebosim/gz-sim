@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/actuators.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -123,6 +124,84 @@ TEST_F(JointPositionControllerTestFixture,
   std::this_thread::sleep_for(100ms);
 
   const std::size_t testIters = 1000;
+  server.Run(true, testIters , false);
+
+  EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);
+}
+
+/////////////////////////////////////////////////
+// Tests that the JointPositionController accepts joint position commands
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(JointPositionControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointPositionActuatorsCommand))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller_actuators.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string jointName = "j1";
+
+  test::Relay testSystem;
+  std::vector<double> currentPosition;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(components::Joint(),
+                                             components::Name(jointName));
+        // Create a JointPosition component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::JointPosition>(joint))
+        {
+          _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Joint, components::Name,
+                  components::JointPosition>(
+            [&](const Entity &,
+                const components::Joint *,
+                const components::Name *_name,
+                const components::JointPosition *_position) -> bool
+            {
+              EXPECT_EQ(_name->Data(), jointName);
+              currentPosition = _position->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  const std::size_t initIters = 10;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, currentPosition.at(0), TOL);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Actuators>(
+      "/actuators");
+
+  const double targetPosition{1.0};
+  msgs::Actuators msg;
+  msg.add_position(targetPosition);
+
+  pub.Publish(msg);
+  // Wait for the message to be published
+  std::this_thread::sleep_for(100ms);
+
+  const std::size_t testIters = 3000;
   server.Run(true, testIters , false);
 
   EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);

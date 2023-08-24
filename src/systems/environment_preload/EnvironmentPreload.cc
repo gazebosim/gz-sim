@@ -333,7 +333,6 @@ void EnvironmentPreload::PreUpdate(
       &EnvironmentPreloadPrivate::OnVisualResChanged, this->dataPtr.get());
 
     this->dataPtr->visualizationPtr->resample = true;
-
     this->dataPtr->ReadSdf(_ecm);
   }
 

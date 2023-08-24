@@ -261,7 +261,7 @@ logic that should be performed from within a system.
 Classic | Gazebo
 -- | --
 GetNearestEntityBelow | Requires a system
-PlaceOnEntity | Involves Requires a system
+PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system
 
 ---

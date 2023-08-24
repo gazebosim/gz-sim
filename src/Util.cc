@@ -41,6 +41,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
@@ -48,6 +49,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 namespace gz
@@ -277,6 +279,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   {
     type = components::ParticleEmitter::typeId;
   }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = components::Projector::typeId;
+  }
 
   return type;
 }
@@ -326,6 +332,10 @@ std::string entityTypeStr(const Entity &_entity,
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
     type = "particle_emitter";
+  }
+  else if (_ecm.Component<components::Projector>(_entity))
+  {
+    type = "projector";
   }
 
   return type;
@@ -820,7 +830,7 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with gz-sim
-    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(gz::sim::getWorldInstallDir());
 
     filePath = systemPaths.FindFile(_sdfFile);
   }
