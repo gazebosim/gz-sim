@@ -60,6 +60,8 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
+set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 

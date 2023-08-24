@@ -21,12 +21,28 @@
 
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
-#include <gz/sim/SystemLoader.hh>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "gz/sim/SystemLoader.hh"
 
 namespace py = pybind11;
 
 namespace gz::sim::systems
 {
+
+PythonSystemLoader::~PythonSystemLoader()
+{
+  if (this->pythonSystem)
+  {
+    if (py::hasattr(this->pythonSystem, "shutdown"))
+    {
+      this->pythonSystem.attr("shutdown")();
+    }
+  }
+}
+
 void PythonSystemLoader::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
@@ -39,7 +55,7 @@ void PythonSystemLoader::Configure(
     return;
   }
 
-  // Load the `gz.sim` and sdformat modules to register all pybind bindings 
+  // Load the `gz.sim` and sdformat modules to register all pybind bindings
   // necessary for System interface functions
   const auto gzSimModule =
       std::string("gz.sim") + std::to_string(GZ_SIM_MAJOR_VERSION);
@@ -59,7 +75,7 @@ void PythonSystemLoader::Configure(
     return;
   }
 
-  // Add GZ_SIM_SYSTEM_PLUGIN_PATH and other default plugin 
+  // Add GZ_SIM_SYSTEM_PLUGIN_PATH and other default plugin
   // locations to PYTHONPATH
   try
   {
@@ -97,7 +113,8 @@ void PythonSystemLoader::Configure(
     py::object getSystem = this->pythonModule.attr("get_system");
     if (!getSystem)
     {
-      gzerr << "Could not call 'get_system' on the module" << moduleName << "\n";
+      gzerr << "Could not call 'get_system' on the module " << moduleName
+            << "\n";
       return;
     }
     this->pythonSystem = getSystem();
@@ -160,6 +177,7 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args&&... _args)
     catch (const pybind11::error_already_set &_err)
     {
       gzerr << _err.what() << std::endl;
+      this->validConfig = false;
       return;
     }
   }
@@ -183,6 +201,7 @@ void PythonSystemLoader::Update(const UpdateInfo &_info,
 void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
                                     const EntityComponentManager &_ecm)
 {
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->postUpdateMethod, _info, &_ecm);
 }
 //////////////////////////////////////////////////

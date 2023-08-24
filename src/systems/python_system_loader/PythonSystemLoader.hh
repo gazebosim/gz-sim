@@ -20,10 +20,12 @@
 
 #include <pybind11/embed.h>
 
-#include <gz/sim/System.hh>
-#include <gz/sim/config.hh>
-#include <gz/sim/python-system-loader-system/Export.hh>
+#include <memory>
 #include <sdf/Element.hh>
+
+#include "gz/sim/System.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/python-system-loader-system/Export.hh"
 
 namespace gz
 {
@@ -43,9 +45,9 @@ namespace systems
 ///
 /// ## Parameters
 /// <module_name> : Name of python module to be loaded. The search path includes
-///                 `GZ_SIM_SYTEM_PLUGIN_PATH` as well as `PYTHONPATH`.
+///                 `GZ_SIM_SYSTEM_PLUGIN_PATH` as well as `PYTHONPATH`.
 // TODO(azeey) Add ParameterConfigure
-class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
+class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader final
     : public System,
       public ISystemConfigure,
       public ISystemPreUpdate,
@@ -53,6 +55,7 @@ class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
       public ISystemPostUpdate,
       public ISystemReset
 {
+  public: ~PythonSystemLoader() final;
   // Documentation inherited
   public: void Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
@@ -80,12 +83,22 @@ class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader
   private: template <typename ...Args>
   void CallPythonMethod(pybind11::object _method, Args&&...);
 
+  /// \brief Whether we have a valid configuration after Configure has run. This
+  /// includes checking if the Python module is found and that the system is
+  /// instantiated. This is set to false in the *Update/Reset calls if an
+  /// exception is thrown by the Python module.
   private: bool validConfig{false};
+  /// \brief Represents the imported Python module
   private: pybind11::module_ pythonModule;
+  /// \brief Represents the instantiated Python System
   private: pybind11::object pythonSystem;
+  /// \brief Pointer to the PreUpdate method inside the Python System
   private: pybind11::object preUpdateMethod;
+  /// \brief Pointer to the Update method inside the Python System
   private: pybind11::object updateMethod;
+  /// \brief Pointer to the PostUpdate method inside the Python System
   private: pybind11::object postUpdateMethod;
+  /// \brief Pointer to the Reset method inside the Python System
   private: pybind11::object resetMethod;
 };
 }  // namespace systems

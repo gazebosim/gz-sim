@@ -183,7 +183,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
-  target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE -DHAVE_PYBIND11)
+  target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC -DHAVE_PYBIND11)
 endif()
 
 if (UNIX AND NOT APPLE)
