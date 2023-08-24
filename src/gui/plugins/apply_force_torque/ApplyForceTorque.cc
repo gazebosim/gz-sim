@@ -211,7 +211,19 @@ ApplyForceTorque::ApplyForceTorque()
 }
 
 /////////////////////////////////////////////////
-ApplyForceTorque::~ApplyForceTorque() = default;
+ApplyForceTorque::~ApplyForceTorque()
+{
+  if (!this->dataPtr->scene)
+    return;
+  this->dataPtr->forceVisual->SetVisible(false);
+  this->dataPtr->forceVisual->Destroy();
+
+  this->dataPtr->torqueVisual->SetVisible(false);
+  this->dataPtr->torqueVisual->Destroy();
+
+  this->dataPtr->gizmoVisual->SetVisible(false);
+  this->dataPtr->gizmoVisual->Destroy();
+}
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
