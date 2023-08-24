@@ -52,9 +52,9 @@ rotating around the `Y` direction.
 
 On the dialog, write `10000` on the `X` field under `Force`. Click on the force
 vector to make the rotation tool appear. Drag the blue circle to rotate the
-force so that it is alligned with the `Y` direction. Notice how the XYZ fields
-changed, but not the magnitude. Press `Apply Force` to see the model move in the
-`Y` direction.
+force around the `Z` axis so that it is aligned with the `Y` direction. Notice
+how the XYZ fields changed, but not the magnitude. Press `Apply Force` to see
+the model move in the `Y` direction.
 
 ![Rotation tool](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/RotationTool.png)
 
@@ -67,7 +67,7 @@ unpaused.
 ### Force
 
 - **Force X, Y, Z**: Each field specifies how much force will be applied on that
-direction, in N. The frame is fixed to the link.
+direction, in Newtons (N). The frame is fixed to the link.
 
 - **Mag**: The total magnitude of the force which will be applied, which is the
 Euclidean norm of the 3 forces above. Changing the magnitude changes the XYZ
@@ -77,24 +77,25 @@ fields proportionally, maintaining the force direction.
 in meters. Here you can edit the X, Y and Z fields to give the force an offset
 with respect to the center of mass expressed in the link's frame.
 
-  - **Tip**: Right-click the model and choose View -> Center of mass to see its
-    position. You might want to also make the model transparent for that.
+  - **Tip**: Right-click the model and choose `View` -> `Center of Mass` to see
+    its position. You will want to also make the model transparent to see the
+    center of mass visual (`View` -> `Transparent`).
 
 - **Apply Force**: Click this to apply only force for one time step. Keep in
-mind that time steps are in the order of milliseconds, so relatively large
+mind that time steps are typically in the order of milliseconds, so relatively large
 forces are needed in order to apply a significant impulse.
 
 ### Torque
 
 - **X, Y, Z**: Each field specifies how much torque will be applied about that
-axis, in N.m. The frame is fixed to the link.
+axis, in Newton-meters (N.m). The frame is fixed to the link.
 
 - **Mag**: The total magnitude of the torque which will be applied, which is the
 Euclidean norm of the 3 torques above. Changing the magnitude changes the XYZ
 fields proportionally, maintaining the torque direction.
 
 - **Apply Torque**: Click this to apply only torque for one time step. Keep in
-mind that time steps are in the order of milliseconds, so relatively large
+mind that time steps are typically in the order of milliseconds, so relatively large
 torques are needed in order to apply a significant angular impulse.
 
   - **Note**: Torque is always applied about the center of mass.
@@ -110,6 +111,6 @@ specified in the dialog. From the dialog, the direction can be changed by
 editing the numbers on the XYZ fields.
 
 From the scene, select a vector to enable the rotation tool, then drag the
-circles. This changes the direction of the vector, updating the XYZ fields
+handles. This changes the direction of the vector, updating the XYZ fields
 accordingly without modifying its magnitude. You may click again on the vector
 to unselect the rotation tool.
