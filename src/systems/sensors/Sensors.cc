@@ -418,10 +418,13 @@ void SensorsPrivate::RenderThread()
 
   this->eventManager->Emit<events::RenderTeardown>();
 
+  std::cerr << "SensorsPrivate::RenderThread sensor manager Remove" << std::endl;
   // clean up before exiting
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+
+  std::cerr << "SensorsPrivate::RenderThread renderUtil.Destroy" << std::endl;
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
@@ -452,8 +455,12 @@ void SensorsPrivate::Stop()
 
   if (this->renderThread.joinable())
   {
+    std::cerr << "SensorsPrivate::Stop  renderThread.join" << std::endl;
     this->renderThread.join();
+    std::cerr << "SensorsPrivate::Stop  renderThread.join done" << std::endl;
   }
+
+  std::cerr << "SensorsPrivate::Stop  done" << std::endl;
 }
 
 //////////////////////////////////////////////////
