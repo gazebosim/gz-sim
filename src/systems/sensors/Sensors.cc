@@ -425,6 +425,7 @@ void SensorsPrivate::RenderThread()
 
 
   std::cerr << "SensorsPrivate::RenderThread renderUtil.Destroy" << std::endl;
+  this->scene.reset();
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
@@ -509,6 +510,7 @@ Sensors::Sensors() : System(), dataPtr(std::make_unique<SensorsPrivate>())
 Sensors::~Sensors()
 {
   this->dataPtr->Stop();
+  std::cerr << "Sensors destructor " << std::endl;
 }
 
 //////////////////////////////////////////////////

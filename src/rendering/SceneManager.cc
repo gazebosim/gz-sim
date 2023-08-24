@@ -2556,6 +2556,7 @@ void SceneManager::Clear()
   this->dataPtr->actorTrajectories.clear();
   this->dataPtr->lights.clear();
   this->dataPtr->particleEmitters.clear();
+  this->dataPtr->projectors.clear();
   this->dataPtr->sensors.clear();
   this->dataPtr->scene.reset();
   this->dataPtr->originalTransparency.clear();
