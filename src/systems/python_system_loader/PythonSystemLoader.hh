@@ -40,12 +40,28 @@ namespace systems
 /// The convention for a system written in Python supported by the
 /// `PythonSystemLoader` is that it's a Python module providing a `get_system`
 /// function which itself returns an instance of a class that implements the
-/// various interfaces in gz::sim::System.
+/// various interfaces in gz::sim::System. The spelling of the interfaces
+/// conforms to Python code style guides, so the following name mapping applies
+///
+/// * `configure` : Corresponds to System::ISystemConfigure::Configure
+/// * `pre_update` : Corresponds to System::ISystemPreUpdate::PreUpdate
+/// * `update` : Corresponds to System::ISystemUpdate::Update
+/// * `post_update` : Corresponds to System::ISystemPostUpdate::PostUpdate
+/// * `reset` : Corresponds to System::ISystemReset::Reset
+///
+/// It is not necessary to implement all the interfaces. PythonSystemLoader will
+/// check if the corresponding method is implemented in the Python system and
+/// skip it if it's not found.
+///
 /// See examples/scripts/python_api/systems/test_system.py for an example
 ///
 /// ## Parameters
-/// <module_name> : Name of python module to be loaded. The search path includes
-///                 `GZ_SIM_SYSTEM_PLUGIN_PATH` as well as `PYTHONPATH`.
+/// * <module_name> : Name of python module to be loaded. The search path
+///                   includes `GZ_SIM_SYSTEM_PLUGIN_PATH` as well as
+///                   `PYTHONPATH`.
+///
+/// The contents of the <plugin> tag will be available in the configure method
+/// of the Python system
 // TODO(azeey) Add ParameterConfigure
 class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader final
     : public System,
