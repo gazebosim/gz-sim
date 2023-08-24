@@ -595,7 +595,6 @@ void SimulationRunner::UpdateSystems()
       // might be calling into python. The system that does call into python
       // needs to lock the GIL from its thread.
       MaybeGilScopedRelease release;
-      // pybind11::gil_scoped_release release;
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }
