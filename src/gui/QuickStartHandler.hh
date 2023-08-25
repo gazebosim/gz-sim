@@ -67,9 +67,6 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \brief Show the quick start menu again.
   private: bool showAgain{true};
 
-  /// \brief Installed worlds path.
-  private: std::string worldsPath{GZ_SIM_WORLD_INSTALL_DIR};
-
   /// \brief Get starting world url.
   private: std::string startingWorld{""};
 };

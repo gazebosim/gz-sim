@@ -18,7 +18,10 @@
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/URI.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
@@ -49,6 +52,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 namespace gz
@@ -800,12 +804,50 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
     systemPaths.SetFilePathEnv(kResourcePathEnv);
 
     // Worlds installed with gz-sim
-    systemPaths.AddFilePaths(GZ_SIM_WORLD_INSTALL_DIR);
+    systemPaths.AddFilePaths(gz::sim::getWorldInstallDir());
 
     filePath = systemPaths.FindFile(_sdfFile);
   }
 
   return filePath;
+}
+
+const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
+{
+  const common::Mesh *mesh = nullptr;
+  auto &meshManager = *common::MeshManager::Instance();
+  if (common::URI(_meshSdf.Uri()).Scheme() == "name")
+  {
+    // if it has a name:// scheme, see if the mesh
+    // exists in the mesh manager and load it by name
+    const std::string basename = common::basename(_meshSdf.Uri());
+    mesh = meshManager.MeshByName(basename);
+    if (nullptr == mesh)
+    {
+      gzwarn << "Failed to load mesh by name [" << basename
+             << "]." << std::endl;
+      return nullptr;
+    }
+  }
+  else if (meshManager.IsValidFilename(_meshSdf.Uri()))
+  {
+    // load mesh by file path
+    auto fullPath = asFullPath(_meshSdf.Uri(), _meshSdf.FilePath());
+    mesh = meshManager.Load(fullPath);
+    if (nullptr == mesh)
+    {
+      gzwarn << "Failed to load mesh from [" << fullPath
+             << "]." << std::endl;
+      return nullptr;
+    }
+  }
+  else
+  {
+    gzwarn << "Failed to load mesh [" << _meshSdf.Uri()
+           << "]." << std::endl;
+    return nullptr;
+  }
+  return mesh;
 }
 }
 }

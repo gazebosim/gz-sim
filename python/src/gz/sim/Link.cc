@@ -152,13 +152,30 @@ void defineSimLink(py::object module)
       py::arg("position"),
       "Add a force expressed in world coordinates and applied at "
       "an offset from the center of mass of the link.")
-  .def("add_world_wrench", &gz::sim::Link::AddWorldWrench,
+  .def("add_world_wrench",
+      py::overload_cast<EntityComponentManager &,
+                        const math::Vector3d &,
+                        const math::Vector3d &>
+        (&gz::sim::Link::AddWorldWrench, py::const_),
       py::arg("ecm"),
       py::arg("force"),
       py::arg("torque"),
       "Add a wrench expressed in world coordinates and applied to "
       "the link at the link's origin. This wrench is applied for one "
       "simulation step.")
+  .def("add_world_wrench",
+      py::overload_cast<EntityComponentManager &,
+                        const math::Vector3d &,
+                        const math::Vector3d &,
+                        const math::Vector3d &>
+        (&gz::sim::Link::AddWorldWrench, py::const_),
+      py::arg("ecm"),
+      py::arg("force"),
+      py::arg("torque"),
+      py::arg("offset"),
+      "Add a wrench expressed in world coordinates and applied to "
+      "the link at an offset from the link's origin. This wrench is applied "
+      "for one simulation step.")
   .def("__copy__",
       [](const gz::sim::Link &self)
       {

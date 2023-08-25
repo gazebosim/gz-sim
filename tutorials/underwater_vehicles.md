@@ -1,5 +1,6 @@
 \page underwater_vehicles Underwater vehicles
-# Simulating Autnomous Underwater Vehicles
+
+## Simulating Autnomous Underwater Vehicles
 
 Gazebo now supports basic simulation of underwater vehicles.
 This capability is based on the equations described in Fossen's ["Guidance and
@@ -10,14 +11,16 @@ guide you through the setup of the [MBARI Tethys](https://app.gazebosim.org/accu
 One can find the final sdf file for this tutorial in the
 `examples/worlds/auv_controls.sdf` file.
 
-# Understanding Hydrodynamic Forces
+## Understanding Hydrodynamic Forces
+
 The behaviour of a moving body through water is different from the behaviour of
 a ground based vehicle. In particular bodies moving underwater experience much
 more forces derived from drag, buoyancy and lift. The way these forces act on
 a body can be seen in the following diagram:
 ![force diagram](https://raw.githubusercontent.com/gazebosim/gz-sim/ign-gazebo5/tutorials/files/underwater/MBARI%20forces.png)
 
-# Setting up the buoyancy plugin
+## Setting up the buoyancy plugin
+
 The buoyancy plugin in Gazebo uses the collision mesh to calculate the volume
 of the vehicle. The calculated volume is used to determine the buoyancy force,
 which is then applied at the pose of the collision mesh in the link frame. Note
@@ -35,7 +38,9 @@ tag:
     <uniform_fluid_density>1000</uniform_fluid_density>
 </plugin>
 ```
-# Setting up the thrusters
+
+## Setting up the thrusters
+
 We need the vehicle to move, so we will be adding the `Thruster` plugin. The
 thruster plugin takes in a force and applies it along with calculating the desired
 rpm. Under the `<include>` or `<model>` tag add the following:
@@ -64,7 +69,8 @@ constant is normally determined by individual manufacturers. In this case we are
 using the Tethys's thrust coefficient. you may also build a test rig to measure
 your thruster's thrust coefficient.
 
-# Adding Hydrodynamic behaviour
+## Adding Hydrodynamic behaviour
+
 You may notice that the robot now keeps getting faster and faster. This is
 because there is no drag to oppose the thruster's force. We will be using
 Fossen's equations which describe the motion of a craft through the water for
@@ -97,7 +103,8 @@ name="gz::sim::systems::Hydrodynamics">
 </plugin>
 ```
 
-# Control surfaces
+## Control surfaces
+
 Just like aeroplanes, an underwater vehicle may also use fins for stability and
 control. Fortunately, Gazebo already has a version of the LiftDrag plugin. In
 this tutorial, we will simply add two liftdrag plugins to the rudder and
@@ -169,7 +176,7 @@ gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
   -m gz.msgs.Double -p 'data: -0.17'
 ```
 
-# Testing the system out
+## Testing the system out
 
 To control the rudder of the craft run the following
 ```
@@ -183,7 +190,7 @@ gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
 ```
 The vehicle should move in a circle.
 
-# Ocean Currents
+## Ocean Currents
 
 When underwater, vehicles are often subject to ocean currents. The hydrodynamics
 plugin allows simulation of such currents. We can add a current simply by
