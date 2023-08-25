@@ -702,23 +702,22 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
   }
   else if (_geom.Type() == sdf::GeometryType::MESH)
   {
-    auto fullPath = asFullPath(_geom.MeshShape()->Uri(),
-        _geom.MeshShape()->FilePath());
-    if (fullPath.empty())
-    {
-      gzerr << "Mesh geometry missing uri" << std::endl;
-      return geom;
-    }
     rendering::MeshDescriptor descriptor;
+    descriptor.mesh = loadMesh(*_geom.MeshShape());
+    if (!descriptor.mesh)
+      return geom;
+    std::string meshUri =
+        (common::URI(_geom.MeshShape()->Uri()).Scheme() == "name") ?
+         common::basename(_geom.MeshShape()->Uri()) :
+         asFullPath(_geom.MeshShape()->Uri(),
+                    _geom.MeshShape()->FilePath());
+    auto a =     asFullPath(_geom.MeshShape()->Uri(),
+                    _geom.MeshShape()->FilePath());
 
-    // Assume absolute path to mesh file
-    descriptor.meshName = fullPath;
+    descriptor.meshName = meshUri;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    common::MeshManager *meshManager =
-        common::MeshManager::Instance();
-    descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
@@ -1707,10 +1706,7 @@ rendering::ProjectorPtr SceneManager::CreateProjector(
     name = parent->Name() +  "::" + name;
 
   rendering::ProjectorPtr projector;
-  projector = std::dynamic_pointer_cast<rendering::Projector>(
-      this->dataPtr->scene->Extension()->CreateExt("projector", name));
-  // \todo(iche033) replace above call with CreateProjector in gz-rendering8
-  // projector = this->dataPtr->scene->CreateProjector(name);
+  projector = this->dataPtr->scene->CreateProjector(name);
 
   this->dataPtr->projectors[_id] = projector;
 

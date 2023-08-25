@@ -20,12 +20,12 @@
  * \date January 2021
  */
 
+#include <gz/msgs/double.pb.h>
+
 #include <deque>
 #include <memory>
 #include <sstream>
 #include <utility>
-
-#include <gz/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
 

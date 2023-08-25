@@ -838,7 +838,3 @@ GZ_ADD_PLUGIN(OpticalTactilePlugin,
 
 GZ_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
   "gz::sim::systems::OpticalTactilePlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(OpticalTactilePlugin,
-  "ignition::gazebo::systems::OpticalTactilePlugin")

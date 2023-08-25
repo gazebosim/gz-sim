@@ -20,7 +20,6 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
-#include <gz/msgs/Utility.hh>
 
 #include <algorithm>
 #include <iostream>
@@ -35,6 +34,7 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/Geometry.hh>
 #include <gz/rendering/Grid.hh>
@@ -173,6 +173,9 @@ namespace gz::sim
 
     /// \brief Block orbit
     public: bool blockOrbit = false;
+
+    /// \brief True if BlockOrbit events should be sent
+    public: bool sendBlockOrbit = false;
   };
 }
 
@@ -499,10 +502,17 @@ void TransformControlPrivate::HandleTransform()
 
   this->HandleMouseEvents();
 
-  gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
-  gz::gui::App()->sendEvent(
-      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-      &blockOrbitEvent);
+  if (this->sendBlockOrbit)
+  {
+    // Events with false should only be sent once
+    if (!this->blockOrbit)
+      this->sendBlockOrbit = false;
+
+    gz::gui::events::BlockOrbit blockOrbitEvent(this->blockOrbit);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+        &blockOrbitEvent);
+  }
 }
 
 /////////////////////////////////////////////////
@@ -534,6 +544,7 @@ void TransformControlPrivate::HandleMouseEvents()
         if (axis != gz::math::Vector3d::Zero)
         {
           this->blockOrbit = true;
+          this->sendBlockOrbit = true;
           // start the transform process
           this->transformControl.SetActiveAxis(axis);
           this->transformControl.Start();
@@ -553,6 +564,7 @@ void TransformControlPrivate::HandleMouseEvents()
         else
         {
           this->blockOrbit = false;
+          this->sendBlockOrbit = true;
           return;
         }
       }
@@ -560,6 +572,7 @@ void TransformControlPrivate::HandleMouseEvents()
     else if (this->mouseEvent.Type() == gz::common::MouseEvent::RELEASE)
     {
       this->blockOrbit = false;
+      this->sendBlockOrbit = true;
 
       this->isStartWorldPosSet = false;
       if (this->transformControl.Active())
@@ -706,6 +719,7 @@ void TransformControlPrivate::HandleMouseEvents()
     }
 
     this->blockOrbit = true;
+    this->sendBlockOrbit = true;
     // compute the the start and end mouse positions in normalized coordinates
     auto imageWidth = static_cast<double>(this->camera->ImageWidth());
     auto imageHeight = static_cast<double>(

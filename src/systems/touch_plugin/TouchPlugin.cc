@@ -103,7 +103,7 @@ class gz::sim::systems::TouchPluginPrivate
   public: bool initialized{false};
 
   /// \brief Set during Load to true if the configuration for the plugin is
-  /// valid and the post update can run
+  /// valid and the pre and post update can run
   public: bool validConfig{false};
 
   /// \brief Whether the plugin is enabled.
@@ -373,7 +373,7 @@ void TouchPlugin::Configure(const Entity &_entity,
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("TouchPlugin::PreUpdate");
-  if (!this->dataPtr->initialized)
+  if ((!this->dataPtr->initialized) && this->dataPtr->sdfConfig)
   {
     // We call Load here instead of Configure because we can't be guaranteed
     // that all entities have been created when Configure is called
@@ -381,9 +381,8 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
     this->dataPtr->initialized = true;
   }
 
-  // This is not an "else" because "initialized" can be set in the if block
-  // above
-  if (this->dataPtr->initialized)
+  // If Load() was successful, validConfig is set to true
+  if (this->dataPtr->validConfig)
   {
     // Update target entities when new collisions are added
     std::vector<Entity> potentialEntities;
@@ -415,6 +414,3 @@ GZ_ADD_PLUGIN(TouchPlugin,
                     TouchPlugin::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

@@ -34,14 +34,14 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [gz/sim/Link.hh](https://gazebosim.org/api/gazebo/3.3/Link_8hh.html)
-* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [gz/sim/Link.hh](https://gazebosim.org/api/gazebo/7/Link_8hh.html)
+* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
+* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
+* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
 the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
 directly. The functions presented here exist for convenience and readability.
 
 ### Properties

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="world_test">
+        <model name="model_test">
+            <pose>0.2 0.1 0.5 0.1 0.3 0.4</pose>
+            <static>true</static>
+            <self_collide>true</self_collide>
+            <enable_wind>true</enable_wind>
+
+            <link name="model_link_test_1">
+                <pose>0 0 0 0 0 0</pose>
+            </link>
+
+            <link name="model_link_test_2">
+                <pose>0 0 0 0 0 0</pose>
+            </link>
+
+            <joint name="model_joint_test" type="fixed">
+                <parent>model_link_test_1</parent>
+                <child>model_link_test_2</child>
+            </joint>
+
+        </model>
+    </world>
+</sdf>

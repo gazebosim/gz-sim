@@ -115,6 +115,17 @@ TEST(CmdLine, CachedFuelWorld)
 }
 
 /////////////////////////////////////////////////
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(RandomSeedValue))
+{
+  std::string cmd = kGzCommand + " -r -v 4 --seed 5 --iterations 5";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
+  std::string output = customExecStr(cmd);
+  EXPECT_NE(output.find("Setting seed value"), std::string::npos)
+      << output;
+}
+
+/////////////////////////////////////////////////
 TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +

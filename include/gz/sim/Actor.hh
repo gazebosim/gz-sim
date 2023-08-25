@@ -110,7 +110,7 @@ namespace gz
       /// Manually setting the trajectory pose will override the scripted
       /// trajectory specified in SDF.
       /// \param[in] _ecm Entity Component manager.
-      /// \param[in] _name Trajectory pose w.r.t. to the trajectory origin
+      /// \param[in] _pose Trajectory pose w.r.t. to the trajectory origin
       /// \sa Pose
       public: void SetTrajectoryPose(EntityComponentManager &_ecm,
           const math::Pose3d &_pose);

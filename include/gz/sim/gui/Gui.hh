@@ -61,10 +61,12 @@ namespace gui
   /// \param[in] _waitGui Flag indicating whether the server waits until
   /// it receives a world path from GUI.
   /// \param[in] _renderEngine --render-engine-gui option
+  /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend
   /// \return -1 on failure, 0 on success
   GZ_SIM_GUI_VISIBLE int runGui(int &_argc, char **_argv,
         const char *_guiConfig, const char *_sdfFile, int _waitGui,
-        const char *_renderEngine = nullptr);
+        const char *_renderEngine = nullptr,
+        const char *_renderEngineApiBackend = nullptr);
 
   /// \brief Create a Gazebo GUI application
   /// \param[in] _argc Number of command line arguments (Used when running
@@ -110,12 +112,15 @@ namespace gui
   /// \param[in] _waitGui True if the server is waiting for the GUI to decide on
   /// a starting world.
   /// \param[in] _renderEngine --render-engine-gui option
+  /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend
+  /// option
   /// \return Newly created application.
   GZ_SIM_GUI_VISIBLE
   std::unique_ptr<gz::gui::Application> createGui(
       int &_argc, char **_argv, const char *_guiConfig,
       const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
-      const char *_sdfFile, int _waitGui, const char *_renderEngine = nullptr);
+      const char *_sdfFile, int _waitGui, const char *_renderEngine = nullptr,
+      const char *_renderEngineGuiApiBackend = nullptr );
 }  // namespace gui
 }  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim

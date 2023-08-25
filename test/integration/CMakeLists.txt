@@ -95,12 +95,17 @@ endif()
 # Tests that require a valid display
 set(tests_needing_display
   actor_trajectory.cc
+  camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc
+  dvl_system.cc
+  dvl_system_bottom_tracking.cc
+  dvl_system_water_mass_tracking.cc
   gpu_lidar.cc
+  mesh_uri.cc
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc

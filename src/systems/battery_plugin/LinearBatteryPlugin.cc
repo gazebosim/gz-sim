@@ -735,7 +735,3 @@ GZ_ADD_PLUGIN(LinearBatteryPlugin,
 
 GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "gz::sim::systems::LinearBatteryPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
-  "ignition::gazebo::systems::LinearBatteryPlugin")

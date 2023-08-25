@@ -38,6 +38,9 @@ namespace systems
   /// that will receive a wrench. If a model is provided, its canonical link
   /// will receive it. No other entity types are supported.
   ///
+  /// Forces and torques are expressed in world coordinates, and the force
+  /// offset is expressed in the link frame.
+  ///
   /// ## Topics
   ///
   /// * /world/<world_name>/wrench

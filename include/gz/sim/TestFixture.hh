@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include <gz/utils/ImplPtr.hh>
+
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Server.hh"
@@ -32,7 +34,6 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 //
-class GZ_SIM_HIDDEN TestFixturePrivate;
 /// \brief Helper class to write automated tests. It provides a convenient API
 /// to load a world file, step simulation and check entities and components.
 ///
@@ -65,7 +66,7 @@ class GZ_SIM_VISIBLE TestFixture
   public: explicit TestFixture(const ServerConfig &_config);
 
   /// \brief Destructor
-  public: virtual ~TestFixture();
+  public: virtual ~TestFixture() = default;
 
   /// \brief Wrapper around a system's pre-update callback
   /// \param[in] _cb Function to be called every pre-update
@@ -106,8 +107,7 @@ class GZ_SIM_VISIBLE TestFixture
 
   /// \internal
   /// \brief Pointer to private data.
-  // TODO(chapulina) Use GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr) when porting to v6
-  private: TestFixturePrivate *dataPtr;
+  private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

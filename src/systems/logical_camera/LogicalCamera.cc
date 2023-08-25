@@ -322,7 +322,3 @@ GZ_ADD_PLUGIN(LogicalCamera, System,
 
 GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
     "gz::sim::systems::LogicalCamera")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogicalCamera,
-    "ignition::gazebo::systems::LogicalCamera")

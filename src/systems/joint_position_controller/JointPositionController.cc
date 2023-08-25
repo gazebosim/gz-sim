@@ -504,7 +504,3 @@ GZ_ADD_PLUGIN(JointPositionController,
 
 GZ_ADD_PLUGIN_ALIAS(JointPositionController,
                           "gz::sim::systems::JointPositionController")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(JointPositionController,
-                          "ignition::gazebo::systems::JointPositionController")

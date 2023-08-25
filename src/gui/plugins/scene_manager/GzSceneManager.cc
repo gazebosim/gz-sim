@@ -180,18 +180,6 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     gz::gui::App()->sendEvent(
         gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &visualPluginsEvent);
-
-    // Send the old VisualPlugin event
-    for (const sdf::Plugin &plugin : it.second)
-    {
-      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-      gz::sim::gui::events::VisualPlugin visualPluginEvent(
-          it.first, plugin.ToElement());
-      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-      gz::gui::App()->sendEvent(
-          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
-          &visualPluginEvent);
-    }
   }
 
   // Emit entities created / removed event for gui::Plugins which don't have
