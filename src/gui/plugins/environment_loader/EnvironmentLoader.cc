@@ -20,8 +20,10 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/sim/Util.hh>
+#include <gz/sim/components/Name.hh>
 
 #include <gz/plugin/Register.hh>
+#include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <atomic>
 #include <mutex>
@@ -46,7 +48,10 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-
+const char* preload_plugin_name{
+  "gz::sim::systems::EnvironmentPreload"};
+const char* preload_plugin_filename{
+  "gz-sim-environment-preload-system"};
 using Units = msgs::DataLoadPathOptions_DataAngularUnits;
 /// \brief Private data class for EnvironmentLoader
 class EnvironmentLoaderPrivate
@@ -135,10 +140,12 @@ void EnvironmentLoader::LoadConfig(const tinyxml2::XMLElement *)
 void EnvironmentLoader::Update(const UpdateInfo &,
                                EntityComponentManager &_ecm)
 {
+  auto world = worldEntity(_ecm);
+
   if (!this->dataPtr->pub.has_value())
   {
-    auto world = worldEntity(_ecm);
-    auto topic = scopedName(world, _ecm) + "/" + "environment";
+    auto topic = transport::TopicUtils::AsValidTopic(
+      scopedName(world, _ecm) + "/" + "environment");
     this->dataPtr->pub =
       {this->dataPtr->node.Advertise<msgs::DataLoadPathOptions>(topic)};
   }
@@ -147,9 +154,41 @@ void EnvironmentLoader::Update(const UpdateInfo &,
   if (!this->dataPtr->pub->HasConnections() && !warned)
   {
     warned = true;
-    gzwarn << "Could not find a subscriber for the environment "
-      << "make sure to load the Environment Preload plugin"
+    gzwarn << "Could not find a subscriber for the environment. "
+      << "Attempting to load environmental preload plugin."
       << std::endl;
+
+    auto nameComp = _ecm.Component<components::Name>(world);
+    if (nullptr == nameComp) {
+      gzerr << "Failed to get world name" << std::endl;
+      return;
+    }
+    auto worldName = nameComp->Data();
+    msgs::EntityPlugin_V req;
+    req.mutable_entity()->set_id(world);
+    auto plugin = req.add_plugins();
+    plugin->set_name(preload_plugin_name);
+    plugin->set_filename(preload_plugin_filename);
+    plugin->set_innerxml("");
+    msgs::Boolean res;
+    bool result;
+    const unsigned int timeout = 5000;
+    const auto service = transport::TopicUtils::AsValidTopic(
+      "/world/" + worldName + "/entity/system/add");
+    if (service.empty())
+    {
+      gzerr << "Unable to request " << service << std::endl;
+      return;
+    }
+
+    if (this->dataPtr->node.Request(service, req, timeout, res, result))
+    {
+      gzdbg << "Added plugin successfully" << std::endl;
+    }
+    else
+    {
+      gzerr << "Failed to load plugin" << std::endl;
+    }
   }
 }
 
