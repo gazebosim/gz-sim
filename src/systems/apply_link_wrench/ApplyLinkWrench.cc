@@ -80,6 +80,8 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
 /// \param[in] _msg Entity message. If it's a link, that link is returned. If
 /// it's a model, its canonical link is returned.
 /// \param[out] Force to apply.
+/// \param[out] Offset of the force application point expressed in the link
+/// frame.
 /// \param[out] Torque to apply.
 /// \param[out] Offset of the force application point expressed in the link
 /// frame.
