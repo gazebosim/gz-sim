@@ -89,6 +89,9 @@ class gz::sim::systems::ShaderParamPrivate
   /// \brief Connection to pre-render event callback
   public: gz::common::ConnectionPtr connection{nullptr};
 
+  /// \brief Connection to render tear down event callback
+  public: gz::common::ConnectionPtr teardownConnection{nullptr};
+
   /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
 
@@ -118,6 +121,9 @@ class gz::sim::systems::ShaderParamPrivate
 
   /// \brief All rendering operations must happen within this call
   public: void OnUpdate();
+
+  /// \brief Callback to rendering engine tear down
+  public: void OnRenderTeardown();
 };
 
 /////////////////////////////////////////////////
@@ -246,6 +252,10 @@ void ShaderParam::Configure(const Entity &_entity,
   this->dataPtr->connection =
       _eventMgr.Connect<gz::sim::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
+
+  this->dataPtr->teardownConnection =
+      _eventMgr.Connect<gz::sim::events::RenderTeardown>(
+      std::bind(&ShaderParamPrivate::OnRenderTeardown, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
@@ -494,6 +504,15 @@ void ShaderParamPrivate::OnUpdate()
       params = this->material->VertexShaderParams();
     (*params)[spv.name] = floatValue;
   }
+}
+
+//////////////////////////////////////////////////
+void ShaderParamPrivate::OnRenderTeardown()
+{
+  std::cerr << "shader param render tear down " << std::endl;
+  this->visual.reset();
+  this->scene.reset();
+  this->material.reset();
 }
 
 GZ_ADD_PLUGIN(ShaderParam,
