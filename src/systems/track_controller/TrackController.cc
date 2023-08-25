@@ -528,7 +528,7 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
 
   // Set position and velocity
   msg.mutable_pose()->mutable_position()->set_x(this->dataPtr->position);
-  msg.mutable_twist()->mutable_linear()->set_x(this->dataPtr->velocity);
+  msg.mutable_twist()->mutable_linear()->set_x(this->dataPtr->limitedVelocity);
 
   this->dataPtr->odometryPub.Publish(msg);
 }
