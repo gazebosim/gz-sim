@@ -21,6 +21,8 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
 * \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
+* \subpage apply_force_torque "Apply Force and Torque": Applying forces and/or torques to models during simulation through the GUI.
+* \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
 
 ### Migration from Gazebo classic
 
@@ -51,8 +53,6 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
 * \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
-* \subpage apply_force_torque "Apply Force and Torque": Applying forces and/or torques to models during simulation through the GUI.
-* \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
 
 ## Advanced users
 
