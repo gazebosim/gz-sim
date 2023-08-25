@@ -119,7 +119,7 @@ void EnvironmentVisualization::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void EnvironmentVisualization::Update(const UpdateInfo &_info,
+void EnvironmentVisualization::Update(const UpdateInfo &,
                                EntityComponentManager &_ecm)
 {
   if (this->dataPtr->first)
