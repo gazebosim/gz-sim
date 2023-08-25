@@ -22,9 +22,14 @@
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
 #include <memory>
+#include <sdf/Element.hh>
 #include <string>
 #include <utility>
 
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
 namespace py = pybind11;

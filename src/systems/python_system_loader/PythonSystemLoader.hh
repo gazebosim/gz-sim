@@ -23,6 +23,8 @@
 #include <memory>
 #include <sdf/Element.hh>
 
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/python-system-loader-system/Export.hh"

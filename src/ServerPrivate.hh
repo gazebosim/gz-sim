@@ -22,7 +22,6 @@
 #include <gz/msgs/server_control.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
-
 #include <atomic>
 #include <condition_variable>
 #include <memory>

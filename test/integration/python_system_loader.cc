@@ -16,10 +16,17 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/world_control.pb.h>
 
+#include <chrono>
+#include <gz/common/Filesystem.hh>
 #include <gz/transport/Node.hh>
+#include <optional>
+#include <string>
 
 #include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
