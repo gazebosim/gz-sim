@@ -16,7 +16,7 @@
 
 #include "Console.hh"
 
-PYBIND11_MODULE(common, m) {
+PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Common Python Library.";
 
   m.def(
