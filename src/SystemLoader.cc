@@ -32,6 +32,7 @@
 
 #include <gz/plugin/Loader.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include <gz/sim/config.hh>
 
 using namespace gz::sim;
@@ -54,7 +55,7 @@ class gz::sim::SystemLoaderPrivate
     common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(common::joinPaths(
         homePath, ".gz", "sim", "plugins"));
-    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
+    systemPaths.AddPluginPaths(gz::sim::getPluginInstallDir());
 
     return systemPaths.PluginPaths();
   }

@@ -32,21 +32,25 @@ namespace systems
   // Forward declaration
   class TouchPluginPrivate;
 
-  /// \brief Plugin which checks if a model has touched some specific target
-  /// for a given time continuously and exclusively. After the touch is
-  /// completed, the plugin is disabled. It can be re-enabled through an
-  /// Gazebo Transport service.
+  /// \brief Plugin which publishes a message if the model it is attached
+  /// to has touched one or more specified targets continuously during a
+  /// given time.
   ///
-  /// It requires that contact sensors be placed in at least one link on the
-  /// model on which this plugin is attached.
+  /// After publishing, the plugin is disabled. It can be re-enabled through
+  /// a Gazebo Transport service call.
+  ///
+  /// The plugin requires that a contact sensors is placed in at least one
+  /// link on the model on which this plugin is attached.
   ///
   /// Parameters:
   ///
-  /// - `<target>` Scoped name of the desired collision entity that is checked
-  ///              to see if it's touching this model. This can be a substring
-  ///              of the desired collision name so we match more than one
-  ///              collision. For example, using the name of a model will match
-  ///              all its collisions.
+  /// - `<target>` Name, or substring of a name, that identifies the target
+  ///              collision entity/entities.
+  ///              This value is searched in the scoped name of all collision
+  ///              entities, so it can possibly match more than one collision.
+  ///              For example, using the name of a model will match all of its
+  ///              collisions (scoped name
+  ///              /model_name/link_name/collision_name).
   ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///

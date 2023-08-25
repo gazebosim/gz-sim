@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_set>
 
+#include <gz/math/AxisAlignedBox.hh>
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/Model.hh"

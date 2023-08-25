@@ -1,6 +1,6 @@
 \page model_photo_shoot Model Photo Shoot
 
-## Using the model photo shot plugin
+## Using the Model Photo Shoot plugin
 
 Gazebo offers a model photo taking tool that will take perspective,
 top, front, and both sides pictures of a model. You can test the demo world
