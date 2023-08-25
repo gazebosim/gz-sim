@@ -29,7 +29,11 @@
 
 namespace py = pybind11;
 
-namespace gz::sim::systems
+namespace gz
+{
+namespace sim
+{
+namespace systems
 {
 
 PythonSystemLoader::~PythonSystemLoader()
@@ -160,8 +164,8 @@ void PythonSystemLoader::Configure(
 }
 
 //////////////////////////////////////////////////
-template <typename ...Args>
-void PythonSystemLoader::CallPythonMethod(py::object _method, Args&&... _args)
+template <typename... Args>
+void PythonSystemLoader::CallPythonMethod(py::object _method, Args &&..._args)
 {
   if (!this->validConfig)
   {
@@ -214,4 +218,6 @@ void PythonSystemLoader::Reset(const UpdateInfo &_info,
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
               ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN_ALIAS(PythonSystemLoader, "gz::sim::systems::PythonSystemLoader")
-}  // namespace gz::sim::systems
+}  // namespace systems
+}  // namespace sim
+}  // namespace gz
