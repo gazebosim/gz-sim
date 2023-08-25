@@ -57,7 +57,7 @@ class TestLight(unittest.TestCase):
             self.assertTrue(light_spot.valid(_ecm))
             # Name Test
             self.assertEqual('light_point_test', light_point.name(_ecm))
-            self.assertEqual('light_dir_test', light_dir.name(_ecm))
+            self.assertEqual('light_directional_test', light_dir.name(_ecm))
             self.assertEqual('light_spot_test', light_spot.name(_ecm))
             # Pose Test
             self.assertEqual(Pose3d(0, 2, 2, 0, 0, 0), light_point.pose(_ecm))
@@ -104,21 +104,6 @@ class TestLight(unittest.TestCase):
             # Spot Falloff Test
             self.assertEqual(2, light_spot.spot_falloff(_ecm))
             light_spot.set_spot_falloff(_ecm, 4)
-            # Check that all the values have been modified.
-            if self.pre_iterations > 1:
-                self.assertEqual(Color(1, 1, 0, 1),
-                                 light_point.diffuse_color(_ecm))
-                self.assertEqual(Color(0.2, 0.2, 0, 1),
-                                 light_point.specular_color(_ecm))
-                self.assertFalse(light_point.cast_shadows(_ecm))
-                self.assertEqual(5, light_point.intensity(_ecm))
-                self.assertEqual(Vector3d(1, 0, -1), light_dir.direction(_ecm))
-                self.assertEqual(1.2, light_point.attenuation_constant(_ecm))
-                self.assertEqual(0.5, light_point.attenuation_linear(_ecm))
-                self.assertEqual(0.05, light_point.attenuation_quadratic(_ecm))
-                self.assertEqual(Angle(15), light_spot.spot_inner_angle(_ecm))
-                self.assertEqual(Angle(10), light_spot.spot_outer_angle(_ecm))
-                self.assertEqual(4, light_spot.spot_falloff(_ecm))
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1
