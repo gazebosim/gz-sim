@@ -77,8 +77,9 @@ TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
 {
   gz::sim::ServerConfig serverConfig;
 
-  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/sensor.sdf";
+  const std::string sdfFile =
+    common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "sensor.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
 
