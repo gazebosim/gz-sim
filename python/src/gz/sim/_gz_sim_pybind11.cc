@@ -22,6 +22,7 @@
 #include "EntityComponentManager.hh"
 #include "EventManager.hh"
 #include "Joint.hh"
+#include "Light.hh"
 #include "Link.hh"
 #include "Model.hh"
 #include "Sensor.hh"
@@ -39,6 +40,7 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   gz::sim::python::defineSimEntityComponentManager(m);
   gz::sim::python::defineSimEventManager(m);
   gz::sim::python::defineSimJoint(m);
+  gz::sim::python::defineSimLight(m);
   gz::sim::python::defineSimLink(m);
   gz::sim::python::defineSimModel(m);
   gz::sim::python::defineSimSensor(m);
