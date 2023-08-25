@@ -19,7 +19,6 @@ import threading
 # Add "../__file__" to sys.path to get gz_test_deps
 sys.path.append(dirname(dirname(realpath(__file__))))
 
-from gz.common import set_verbosity
 from gz_test_deps.sim import Model
 from gz_test_deps.transport import Node
 from gz_test_deps.msgs.pose_pb2 import Pose
