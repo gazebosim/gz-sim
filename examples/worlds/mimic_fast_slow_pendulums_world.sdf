@@ -3,7 +3,7 @@
   Gazebo Mimic constraint demo
 
 -->
-<sdf version="1.6">
+<sdf version="1.11">
   <world name="default">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
