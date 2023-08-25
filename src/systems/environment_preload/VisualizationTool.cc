@@ -146,14 +146,16 @@ void EnvironmentVisualizationTool::Publish()
 void EnvironmentVisualizationTool::ResizeCloud(
   const std::shared_ptr<components::EnvironmentalData> &_data,
   const EntityComponentManager &_ecm,
-  unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples)
+  unsigned int _numXSamples,
+  unsigned int _numYSamples,
+  unsigned int _numZSamples)
 {
   assert(pubs.size() > 0);
 
   // Assume all data have same point cloud.
   gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
       {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
-  auto numberOfPoints = _xSamples * _ySamples * _zSamples;
+  auto numberOfPoints = _numXSamples * _numYSamples * _numZSamples;
   std::size_t dataSize{
     static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
   pcMsg.mutable_data()->resize(dataSize);
@@ -165,26 +167,25 @@ void EnvironmentVisualizationTool::ResizeCloud(
   auto [lower_bound, upper_bound] = frame.Bounds(session);
 
   auto step = upper_bound - lower_bound;
-  auto dx = step.X() / _xSamples;
-  auto dy = step.Y() / _ySamples;
-  auto dz = step.Z() / _zSamples;
+  auto dx = step.X() / _numXSamples;
+  auto dy = step.Y() / _numYSamples;
+  auto dz = step.Z() / _numZSamples;
 
   // Populate point cloud
   gz::msgs::PointCloudPackedIterator<float> xIter(pcMsg, "x");
   gz::msgs::PointCloudPackedIterator<float> yIter(pcMsg, "y");
   gz::msgs::PointCloudPackedIterator<float> zIter(pcMsg, "z");
 
-  for (std::size_t x_steps = 0; x_steps < _xSamples; x_steps++)
+  for (std::size_t x_steps = 0; x_steps < _numXSamples; x_steps++)
   {
     auto x = lower_bound.X() + x_steps * dx;
-    for (std::size_t y_steps = 0; y_steps < _ySamples; y_steps++)
+    for (std::size_t y_steps = 0; y_steps < _numYSamples; y_steps++)
     {
       auto y = lower_bound.Y() + y_steps * dy;
-      for (std::size_t z_steps = 0; z_steps < _zSamples; z_steps++)
+      for (std::size_t z_steps = 0; z_steps < _numZSamples; z_steps++)
       {
         auto z = lower_bound.Z() + z_steps * dz;
-        auto coords = getGridFieldCoordinates(
-          _ecm, math::Vector3d{x, y, z},
+        auto coords = getGridFieldCoordinates(_ecm, math::Vector3d{x, y, z},
           _data);
 
         if (!coords.has_value())
