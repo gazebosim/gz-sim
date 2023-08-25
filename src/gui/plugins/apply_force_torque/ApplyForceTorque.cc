@@ -215,14 +215,9 @@ ApplyForceTorque::~ApplyForceTorque()
 {
   if (!this->dataPtr->scene)
     return;
-  this->dataPtr->forceVisual->SetVisible(false);
-  this->dataPtr->forceVisual->Destroy();
-
-  this->dataPtr->torqueVisual->SetVisible(false);
-  this->dataPtr->torqueVisual->Destroy();
-
-  this->dataPtr->gizmoVisual->SetVisible(false);
-  this->dataPtr->gizmoVisual->Destroy();
+  this->dataPtr->scene->DestroyNode(this->dataPtr->forceVisual, true);
+  this->dataPtr->scene->DestroyNode(this->dataPtr->torqueVisual, true);
+  this->dataPtr->scene->DestroyNode(this->dataPtr->gizmoVisual, true);
 }
 
 /////////////////////////////////////////////////
