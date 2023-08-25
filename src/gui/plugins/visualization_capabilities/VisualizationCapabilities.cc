@@ -1498,6 +1498,13 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
   if (!_visual.Geom())
     return rendering::VisualPtr();
 
+  if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    gzwarn << "Collision visualization for heightmaps are not supported yet."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
   std::string name = _visual.Name().empty() ? std::to_string(_id) :
       _visual.Name();
   if (_parent)
