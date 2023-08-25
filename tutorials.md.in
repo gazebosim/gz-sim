@@ -4,48 +4,25 @@ Welcome to the Gazebo @GZ_DESIGNATION_CAP@ tutorials. These tutorials
 will guide you through the process of understanding the capabilities of the
 Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 
+## Getting Started
 
-**Tutorials**
-
+* \subpage install "Installation": Install instructions.
 * \subpage terminology "Terminology": List of terms used across the documentation.
-* \subpage install "Install instructions": Install instructions.
-* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
-* \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
-* \subpage levels "Levels": Load entities on demand in large environments.
-* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
-* \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
-* \subpage entity_creation "Entity creation": Insert models or lights using services.
-* \subpage log "Logging": Record and play back time series of world state.
-* \subpage physics "Physics engines": Loading different physics engines.
-* \subpage light_config "Light config": Configure lights in the scene.
-* \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage gui_config "GUI configuration": Customizing your layout.
 * \subpage server_config "Server configuration": Customizing what system plugins are loaded.
-* \subpage debugging "Debugging": Information about debugging Gazebo.
-* \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
-* \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
-* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
-* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
-* \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
-* \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
-* \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
-* \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
-* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
-* \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
-* \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
-* \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
-* \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
-* \subpage model_and_optimize_meshes  "Model and optimize meshes": Some recomendations when creating meshes  in blender for simulations.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
-* \subpage test_fixture "Test Fixture": Writing automated CI tests
-* \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
-* \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
-* \subpage python_interfaces Python interfaces
-* \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
 * \subpage reset_simulation Reset simulation
-* \subpage move_camera_to_model Move camera to model
+* \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
+* \subpage debugging "Debugging": Information about debugging Gazebo.
 
-**Migration from Gazebo classic**
+### GUI and rendering features
+
+* \subpage move_camera_to_model Move camera to model
+* \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
+* \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
+* \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
+
+### Migration from Gazebo classic
 
 * \subpage migrationplugins "Plugins": Walk through the differences between writing plugins for Gazebo classic and Gazebo
 * \subpage migrationsdf "SDF": Migrating SDF files from Gazebo classic to Gazebo
@@ -55,7 +32,51 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage migrationjointapi "Joint API": Guide on what Joint C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage migrationactorapi "Actor API": Guide on what Actor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage migrationlinkapi "Link API": Guide on what Link C++ functions to call in Gazebo when migrating from Gazebo classic
+* \subpage migrationsensorapi "Sensor API": Guide on what Sensor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo.
+
+## Intermediate
+
+* \subpage log "Logging": Record and play back time series of world state.
+* \subpage light_config "Light config": Configure lights in the scene.
+* \subpage levels "Levels": Load entities on demand in large environments.
+* \subpage python_interfaces Python interfaces
+
+### Specific systems and features
+
+* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
+* \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
+* \subpage battery "Battery": Keep track of battery charge on robot models.
+* \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
+* \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
+* \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
+
+## Advanced users
+
+* \subpage physics "Physics engines": Loading different physics engines.
+* \subpage entity_creation "Entity creation": Insert models or lights using services.
+* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
+* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
+
+## Developers
+
+* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
+* \subpage test_fixture "Test Fixture": Writing automated CI tests
+
+## 3D modeling help
+
+* \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
+* \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
+* \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
+
+### Blender help
+
+* \subpage model_and_optimize_meshes "Model and optimize meshes in Blender": Some recomendations when creating meshes in Blender for simulations.
+* \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
+* \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
+* \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
 
 ## License
 
