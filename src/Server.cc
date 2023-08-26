@@ -22,6 +22,8 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+#include <sdf/ParserConfig.hh>
+#include <sdf/Types.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"

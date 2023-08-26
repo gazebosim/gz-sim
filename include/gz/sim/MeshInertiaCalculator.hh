@@ -23,6 +23,7 @@
 
 #include <sdf/sdf.hh>
 #include <sdf/CustomInertiaCalcProperties.hh>
+#include <sdf/Types.hh>
 
 #include <gz/sim/Util.hh>
 #include <gz/sim/Export.hh>
@@ -32,6 +33,7 @@
 #include <gz/common/MeshManager.hh>
 
 #include <gz/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/math/MassMatrix3.hh>
 #include <gz/math/Inertial.hh>
 

@@ -17,10 +17,14 @@
 
 #include <gtest/gtest.h>
 #include <optional>
+#include <string>
 
 #include <gz/sim/Server.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/Link.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/MeshInertiaCalculator.hh>
 
 #include <gz/sim/components/Inertial.hh>
@@ -28,8 +32,12 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
 
+#include <gz/common/Filesystem.hh>
+
 #include <gz/math/Inertial.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/math/Matrix3.hh>
+#include <gz/math/Vector3.hh>
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
