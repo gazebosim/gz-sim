@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.11">
-  <world name="default">
+  <world name="mesh_inertia_test">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
