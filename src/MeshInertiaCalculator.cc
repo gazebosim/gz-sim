@@ -188,8 +188,20 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 {
   const gz::common::Mesh *mesh = nullptr;
   const double density = _calculatorParams.Density();
-  const sdf::Mesh sdfMesh = _calculatorParams.Mesh();
-  auto fullPath = asFullPath(sdfMesh.Uri(), sdfMesh.FilePath());
+  
+  auto sdfMesh = _calculatorParams.Mesh();
+
+  if (sdfMesh == std::nullopt)
+  {
+    gzerr << "Could not calculate inertia for mesh "
+    "as it std::nullopt" << std::endl;
+    _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+        "Could not calculate mesh inertia as mesh object is"
+        "std::nullopt"}); 
+    return std::nullopt;
+  }
+
+  auto fullPath = asFullPath(sdfMesh->Uri(), sdfMesh->FilePath());
 
   if (fullPath.empty())
   {
