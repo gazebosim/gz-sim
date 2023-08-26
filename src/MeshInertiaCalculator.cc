@@ -48,8 +48,8 @@ void MeshInertiaCalculator::GetMeshTriangles(
     const gz::common::Mesh* _mesh)
 {
   // Get the vertices & indices of the mesh
-  double* vertArray = NULL;
-  int* indArray = NULL;
+  double* vertArray = nullptr;
+  int* indArray = nullptr;
   _mesh->FillArrays(&vertArray, &indArray);
 
   // Add check to see if size of the ind array is divisible by 3
@@ -188,7 +188,7 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 {
   const gz::common::Mesh *mesh = nullptr;
   const double density = _calculatorParams.Density();
-  
+
   auto sdfMesh = _calculatorParams.Mesh();
 
   if (sdfMesh == std::nullopt)
@@ -197,7 +197,7 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     "as it std::nullopt" << std::endl;
     _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
         "Could not calculate mesh inertia as mesh object is"
-        "std::nullopt"}); 
+        "std::nullopt"});
     return std::nullopt;
   }
 
@@ -220,7 +220,8 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 
   // Create a list of Triangle objects from the mesh vertices and indices
   this->GetMeshTriangles(meshTriangles, mesh);
-  this->CalculateMassProperties(meshTriangles, density, meshMassMatrix, centreOfMass);
+  this->CalculateMassProperties(meshTriangles, density,
+    meshMassMatrix, centreOfMass);
   gz::math::Inertiald meshInertial;
 
   if (!meshInertial.SetMassMatrix(meshMassMatrix))

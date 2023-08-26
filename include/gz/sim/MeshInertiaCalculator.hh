@@ -58,7 +58,7 @@ namespace gz
       ///
       /// This class overloads the () operator, therefore, an instance
       /// of this class registered with libsdformat as a Custom
-      /// Inertia Calculator. This would used to calculate the
+      /// Inertia Calculator. This would be used to calculate the
       /// inertial properties of 3D mesh using SDFormat.
       ///
       /// The calculation method used in this class is described here:
