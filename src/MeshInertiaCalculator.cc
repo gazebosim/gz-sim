@@ -207,8 +207,8 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   gz::math::Pose3d centreOfMass;
 
   // Create a list of Triangle objects from the mesh vertices and indices
-  GetMeshTriangles(meshTriangles, mesh);
-  CalculateMassProperties(meshTriangles, density, meshMassMatrix, centreOfMass);
+  this->GetMeshTriangles(meshTriangles, mesh);
+  this->CalculateMassProperties(meshTriangles, density, meshMassMatrix, centreOfMass);
   gz::math::Inertiald meshInertial;
 
   if (!meshInertial.SetMassMatrix(meshMassMatrix))
