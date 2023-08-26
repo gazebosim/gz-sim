@@ -2741,14 +2741,11 @@ void RenderUtil::Destroy()
   this->dataPtr->wireBoxes.clear();
   this->dataPtr->sceneManager.Clear();
   this->dataPtr->markerManager.Clear();
-  std::cerr << "RenderUtil::Destroy DestroyScene" << std::endl;
   this->dataPtr->engine->DestroyScene(this->dataPtr->scene);
   this->dataPtr->scene.reset();
-  std::cerr << "RenderUtil::Destroy unloadEngine" << std::endl;
   rendering::unloadEngine(this->dataPtr->engine->Name());
   this->dataPtr->engine = nullptr;
   this->dataPtr->initialized = false;
-  std::cerr << "RenderUtil::Destroy done" << std::endl;
 }
 
 /////////////////////////////////////////////////
