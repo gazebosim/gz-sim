@@ -70,8 +70,10 @@ class EnvironmentVisualizationTool
   /// \brief Create publisher structures whenever a new environment is made
   /// available.
   /// \param[in] _data Data to be visuallized
+  /// \param[in] _info simulation info for current time step
   private: void CreatePointCloudTopics(
-    const std::shared_ptr<components::EnvironmentalData> &_data);
+    const std::shared_ptr<components::EnvironmentalData> &_data,
+    const UpdateInfo &_info);
 
   /// \brief Invoke when new file is made available.
   public: void FileReloaded();

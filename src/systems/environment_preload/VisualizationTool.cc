@@ -26,7 +26,8 @@ EnvironmentVisualizationTool::EnvironmentVisualizationTool()
 
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::CreatePointCloudTopics(
-    const std::shared_ptr<components::EnvironmentalData> &_data)
+    const std::shared_ptr<components::EnvironmentalData> &_data,
+    const UpdateInfo &_info)
 {
   this->pubs.clear();
   this->sessions.clear();
@@ -36,7 +37,16 @@ void EnvironmentVisualizationTool::CreatePointCloudTopics(
     this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
     gz::msgs::Float_V msg;
     this->floatFields.emplace(key, msg);
-    this->sessions.emplace(key, _data->frame[key].CreateSession());
+    const double time = std::chrono::duration<double>(_info.simTime).count();
+    auto sess = _data->frame[key].CreateSession(time);
+    if (!_data->frame[key].IsValid(sess))
+    {
+      gzerr << key << "data is out of time bounds. Nothing will be published"
+        <<std::endl;
+      this->finishedTime = true;
+      continue;
+    }
+    this->sessions.emplace(key, sess);
   }
 }
 
@@ -53,12 +63,20 @@ void EnvironmentVisualizationTool::Step(
     const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples)
 {
+  if (this->finishedTime) 
+  {
+    return;
+  }
   auto now = std::chrono::steady_clock::now();
   std::chrono::duration<double> dt(now - this->lastTick);
 
   if (this->resample)
   {
-    this->CreatePointCloudTopics(_data);
+    this->CreatePointCloudTopics(_data, _info);
+    if (this->finishedTime) {
+      this->resample = false;
+      return;
+    }
     this->ResizeCloud(_data, _ecm, _xSamples, _ySamples, _zSamples);
     this->resample = false;
     this->lastTick = now;
@@ -76,6 +94,9 @@ void EnvironmentVisualizationTool::Step(
     }
     else
     {
+      gzerr << "Data does not exist beyond this time."
+        << " Not publishing new environment visuallization data."
+        << std::endl;
       this->finishedTime = true;
       return;
     }
