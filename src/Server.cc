@@ -97,8 +97,7 @@ Server::Server(const ServerConfig &_config)
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig;
       errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString(), sdfParserConfig);
-      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
-      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());      
+      this->dataPtr->sdfRoot.CalculateInertials(errors, sdfParserConfig);
       break;
     }
 
@@ -144,8 +143,7 @@ Server::Server(const ServerConfig &_config)
         }
       }
       
-      sdf::Errors inertialErr = this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
-      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
+      this->dataPtr->sdfRoot.CalculateInertials(errors, sdfParserConfig);
       break;
     }
 
