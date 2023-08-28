@@ -34,12 +34,10 @@
 
 namespace py = pybind11;
 
-namespace gz
-{
-namespace sim
-{
-namespace systems
-{
+
+using namespace gz;
+using namespace sim;
+using namespace systems;
 
 PythonSystemLoader::~PythonSystemLoader()
 {
@@ -223,6 +221,3 @@ void PythonSystemLoader::Reset(const UpdateInfo &_info,
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
               ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN_ALIAS(PythonSystemLoader, "gz::sim::systems::PythonSystemLoader")
-}  // namespace systems
-}  // namespace sim
-}  // namespace gz

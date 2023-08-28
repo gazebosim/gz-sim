@@ -96,7 +96,6 @@ Example python system:
 <!-- TODO(azeey) Allow including python files in doxygen -->
 <!-- \include examples/scripts/python_api/systems/test_system.py -->
 ```python
-
 from gz.math7 import Vector3d
 from gz.sim8 import Model, Link
 import random
@@ -133,7 +132,6 @@ def get_system():
 The system can be added to SDFormat model or world with:
 
 ```xml
-
 <plugin filename="gz-sim-python-system-loader-system"
         name="gz::sim::systems::PythonSystemLoader">
     <module_name>test_system</module_name>
