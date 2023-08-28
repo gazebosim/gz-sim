@@ -63,7 +63,7 @@ void EnvironmentVisualizationTool::Step(
     const std::shared_ptr<components::EnvironmentalData> &_data,
     double _xSamples, double _ySamples, double _zSamples)
 {
-  if (this->finishedTime) 
+  if (this->finishedTime)
   {
     return;
   }
