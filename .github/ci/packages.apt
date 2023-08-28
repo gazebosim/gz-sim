@@ -30,10 +30,11 @@ libxi-dev
 libxmu-dev
 python3-distutils
 python3-gz-math7
+python3-gz-msgs10
+python3-gz-transport13
 python3-pybind11
 python3-pytest
 python3-sdformat14
-python3-gz-transport13
 qml-module-qt-labs-folderlistmodel
 qml-module-qt-labs-settings
 qml-module-qtgraphicaleffects
