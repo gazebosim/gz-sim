@@ -22,6 +22,7 @@
 #include <chrono>
 #include <gz/common/Filesystem.hh>
 #include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <optional>
 #include <string>
 
@@ -59,7 +60,8 @@ void worldReset()
 }
 
 /////////////////////////////////////////////////
-TEST_F(PythonSystemLoaderTest, LoadMultipleSystems)
+TEST_F(PythonSystemLoaderTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadMultipleSystems))
 {
   common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
                  common::joinPaths(std::string(PROJECT_SOURCE_PATH), "python",
