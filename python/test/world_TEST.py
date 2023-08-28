@@ -16,16 +16,15 @@
 import os
 import unittest
 
-from gz.common import set_verbosity
-from gz_test_deps.sim import TestFixture, World, world_entity
+from gz_test_deps.common import set_verbosity
+from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, World, world_entity
 from gz_test_deps.math import SphericalCoordinates, Vector3d
 from gz_test_deps.sdformat import Atmosphere
 
-post_iterations = 0
-iterations = 0
-pre_iterations = 0
-
 class TestWorld(unittest.TestCase):
+    post_iterations = 0
+    iterations = 0
+    pre_iterations = 0
 
     def test_world(self):
         set_verbosity(4)
@@ -34,14 +33,12 @@ class TestWorld(unittest.TestCase):
         fixture = TestFixture(os.path.join(file_path, 'world_test.sdf'))
 
         def on_post_udpate_cb(_info, _ecm):
-            global post_iterations
-            post_iterations += 1
+            self.post_iterations += 1
 
         def on_pre_udpate_cb(_info, _ecm):
-            global pre_iterations
-            pre_iterations += 1
+            self.pre_iterations += 1
             world_e = world_entity(_ecm)
-            self.assertEqual(1, world_e)
+            self.assertNotEqual(K_NULL_ENTITY, world_e)
             world = World(world_e)
             # Valid Test
             self.assertTrue(world.valid(_ecm))
@@ -58,7 +55,7 @@ class TestWorld(unittest.TestCase):
             self.assertEqual(-0.005, atmosphere.temperature_gradient())
             # Spherical Coordinates Test
             self.assertEqual(SphericalCoordinates.SurfaceType.EARTH_WGS84, world.spherical_coordinates(_ecm).surface())
-            if pre_iterations <= 1:
+            if self.pre_iterations <= 1:
                 self.assertAlmostEqual(float(10), world.spherical_coordinates(_ecm).latitude_reference().degree())
                 self.assertAlmostEqual(float(15), world.spherical_coordinates(_ecm).longitude_reference().degree())
                 self.assertAlmostEqual(float(20), world.spherical_coordinates(_ecm).elevation_reference())
@@ -70,18 +67,17 @@ class TestWorld(unittest.TestCase):
                 self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).elevation_reference())
                 self.assertAlmostEqual(float(0), world.spherical_coordinates(_ecm).heading_offset().degree())
             # Light Test
-            self.assertEqual(7, world.light_by_name(_ecm, 'light_point_test'))
+            self.assertNotEqual(K_NULL_ENTITY, world.light_by_name(_ecm, 'light_point_test'))
             self.assertEqual(1, world.light_count(_ecm))
             # Actor test
-            self.assertEqual(6, world.actor_by_name(_ecm, 'actor_test'))
+            self.assertNotEqual(K_NULL_ENTITY, world.actor_by_name(_ecm, 'actor_test'))
             self.assertEqual(1, world.actor_count(_ecm))
             # Model Test
-            self.assertEqual(4, world.model_by_name(_ecm, 'model_test'))
+            self.assertNotEqual(K_NULL_ENTITY, world.model_by_name(_ecm, 'model_test'))
             self.assertEqual(1, world.model_count(_ecm))
 
         def on_udpate_cb(_info, _ecm):
-            global iterations
-            iterations += 1
+            self.iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
         fixture.on_update(on_udpate_cb)
@@ -89,11 +85,11 @@ class TestWorld(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
-        server.run(True, 1000, False)
+        server.run(True, 2, False)
 
-        self.assertEqual(1000, pre_iterations)
-        self.assertEqual(1000, iterations)
-        self.assertEqual(1000, post_iterations)
+        self.assertEqual(2, self.pre_iterations)
+        self.assertEqual(2, self.iterations)
+        self.assertEqual(2, self.post_iterations)
 
 if __name__ == '__main__':
     unittest.main()

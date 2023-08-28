@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="world_test">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque" />
+        <model name="model_test">
+
+            <link name="link_test_1">
+            </link>
+
+            <link name="link_test_2">
+            </link>
+
+            <joint name="joint_test" type="revolute">
+                <parent>link_test_1</parent>
+                <child>link_test_2</child>
+                <pose>0 0.5 0 0 0 0</pose>
+                <axis>
+                    <xyz>0 0 1</xyz>
+                </axis>
+
+                <sensor type="force_torque" name="sensor_test">
+                    <pose>0 1 0 0 0 0</pose>
+                    <topic>sensor_topic_test</topic>
+                </sensor>
+            </joint>
+        </model>
+    </world>
+</sdf>

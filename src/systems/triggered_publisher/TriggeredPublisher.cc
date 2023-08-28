@@ -716,7 +716,7 @@ void TriggeredPublisher::CallService(std::size_t pendingSrv)
       if (!req)
       {
         gzerr << "Unable to create request for type ["
-               << serviceInfo.reqType << "].\n";
+              << serviceInfo.reqType << "].\n";
         return;
       }
 
@@ -724,7 +724,7 @@ void TriggeredPublisher::CallService(std::size_t pendingSrv)
       if (!rep)
       {
         gzerr << "Unable to create response for type ["
-               << serviceInfo.repType << "].\n";
+              << serviceInfo.repType << "].\n";
         return;
       }
 

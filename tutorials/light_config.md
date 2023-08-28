@@ -3,7 +3,7 @@
 This tutorial gives an introduction to Gazebo Sim's service `/world/<world name>/light_config`.
 This service will allow to modify lights in the scene.
 
-# Modifying lights
+## Modifying lights
 
 To modify lights inside the scene we need to use the service `/world/<world name>/light_config` and
 fill the message [`gz::msgs::Light`](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html).
@@ -21,7 +21,7 @@ In this case we are creating random numbers to fill the diffuse and specular.
 
 \snippet examples/standalone/light_control/light_control.cc random numbers
 
-# Run the example
+## Run the example
 
 To run this example you should `cd` into `examples/standalone/light_control` and build the code:
 

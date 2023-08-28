@@ -50,6 +50,7 @@ set (sources
   ComponentFactory.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
+  InstallationDirectories.cc
   Joint.cc
   LevelManager.cc
   Light.cc
@@ -163,6 +164,21 @@ target_link_libraries(${gz_lib_target}
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+gz_add_get_install_prefix_impl(GET_INSTALL_PREFIX_FUNCTION gz::sim::getInstallPrefix
+                               GET_INSTALL_PREFIX_HEADER gz/sim/InstallationDirectories.hh
+                               OVERRIDE_INSTALL_PREFIX_ENV_VARIABLE GZ_SIM_INSTALL_PREFIX)
+
+set_property(
+  SOURCE InstallationDirectories.cc
+  PROPERTY COMPILE_DEFINITIONS
+  GZ_SIM_GUI_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}/gui"
+  GZ_SIM_SYSTEM_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}/systems"
+  GZ_SIM_SERVER_CONFIG_RELATIVE_PATH="${GZ_DATA_INSTALL_DIR}"
+  GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins"
+  GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui"
+  GZ_SIM_WORLD_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/worlds"
+)
+
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   gz-math${GZ_MATH_VER}
@@ -208,6 +224,8 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 # Some server unit tests require rendering.

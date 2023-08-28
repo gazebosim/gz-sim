@@ -765,6 +765,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsEnginePlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsEnginePlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::PhysicsSolver::typeId)
     {
       auto comp = _ecm.Component<components::PhysicsSolver>(
@@ -1234,7 +1241,7 @@ void ComponentInspector::QuerySystems()
     if (plugin.filename().empty())
     {
       gzerr << "Received empty plugin name. This shouldn't happen."
-             << std::endl;
+            << std::endl;
       continue;
     }
 

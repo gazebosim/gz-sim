@@ -1,7 +1,5 @@
 \page install Installation
 
-# Install
-
 These instructions are for installing only Gazebo. If you're interested
 in using all the Gazebo libraries, not only Igniton Gazebo, check out this
 [Gazebo installation](https://gazebosim.org/docs/latest/install).
@@ -117,7 +115,7 @@ feature which hasn't been released yet.
   sudo make install
   ```
 
-# Documentation
+## Documentation
 
 API documentation and tutorials can be accessed at [https://gazebosim.org/libs/gazebo](https://gazebosim.org/libs/gazebo)
 
@@ -147,7 +145,7 @@ You can also generate the documentation from a clone of this repository by follo
   firefox doxygen/html/index.html
   ```
 
-# Testing
+## Testing
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 
