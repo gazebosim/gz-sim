@@ -59,7 +59,7 @@ class TestModel(unittest.TestCase):
             # Visuals Test
             self.assertNotEqual(K_NULL_ENTITY, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))
-            # World Inertial Pose Test. 
+            # World Inertial Pose Test.
             self.assertEqual(Pose3d(), link.world_inertial_pose(_ecm))
             # World Velocity Test
             self.assertEqual(None, link.world_linear_velocity(_ecm))
