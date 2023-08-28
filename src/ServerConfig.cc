@@ -546,8 +546,7 @@ const std::string &ServerConfig::RenderEngineServer() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
-  auto engine = _engine;
-  this->dataPtr->renderEngineServer = engine;
+  this->dataPtr->renderEngineServer = _engine;
 }
 
 /////////////////////////////////////////////////
@@ -584,8 +583,7 @@ const std::string &ServerConfig::RenderEngineGui() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
-  auto engine = _engine;
-  this->dataPtr->renderEngineGui = engine;
+  this->dataPtr->renderEngineGui = _engine;
 }
 
 /////////////////////////////////////////////////

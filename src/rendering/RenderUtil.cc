@@ -2797,8 +2797,7 @@ void RenderUtil::ShowGrid()
 /////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
-  auto name = _name;
-  this->dataPtr->engineName = name;
+  this->dataPtr->engineName = _name;
 }
 
 /////////////////////////////////////////////////

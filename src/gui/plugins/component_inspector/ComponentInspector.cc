@@ -1312,10 +1312,10 @@ void ComponentInspector::OnAddSystem(const QString &_name,
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
     gzerr << "Error adding new system to entity: "
-           << this->dataPtr->entity << "\n"
-           << "Name: " << name << "\n"
-           << "Filename: " << filename << "\n"
-           << "Inner XML: " << innerxml << std::endl;
+          << this->dataPtr->entity << "\n"
+          << "Name: " << name << "\n"
+          << "Filename: " << filename << "\n"
+          << "Inner XML: " << innerxml << std::endl;
   }
 }
 
