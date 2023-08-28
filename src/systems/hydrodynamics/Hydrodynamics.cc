@@ -293,16 +293,7 @@ void Hydrodynamics::Configure(
   gz::sim::EventManager &/*_eventMgr*/
 )
 {
-  if (_sdf->HasElement("waterDensity"))
-  {
-    gzwarn <<
-      "<waterDensity> parameter is deprecated and will be removed in Gazebo G.\n"
-      << "\tPlease update your SDF to use <water_density> instead.";
-  }
-
-  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "waterDensity",
-                                  SdfParamDouble(_sdf, "water_density", 998)
-                                );
+  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "water_density", 998);
   // Load stability derivatives
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
