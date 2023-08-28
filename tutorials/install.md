@@ -61,7 +61,7 @@ feature which hasn't been released yet.
 
 1. Install tools
   ```
-  sudo apt install -y build-essential cmake g++-8 git gnupg lsb-release wget
+  sudo apt install -y build-essential cmake git gnupg lsb-release wget
   ```
 
 2. Enable the Ignition software repositories:

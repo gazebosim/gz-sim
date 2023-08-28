@@ -17,29 +17,29 @@
 
 #include "AckermannSteering.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <mutex>
 #include <set>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/Angle.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/Angle.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -58,21 +58,21 @@ class ignition::gazebo::systems::AckermannSteeringPrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -165,10 +165,10 @@ class ignition::gazebo::systems::AckermannSteeringPrivate
   public: std::chrono::steady_clock::duration lastOdomTime{0};
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -260,8 +260,8 @@ void AckermannSteering::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
   if (_sdf->HasElement("min_velocity"))
@@ -375,8 +375,8 @@ void AckermannSteering::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void AckermannSteering::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void AckermannSteering::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::PreUpdate");
 
@@ -587,8 +587,8 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateOdometry(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::UpdateOdometry");
   // Initialize, if not already initialized.
@@ -690,7 +690,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = tfMsg.add_pose();
+  msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -702,8 +702,8 @@ void AckermannSteeringPrivate::UpdateOdometry(
 
 //////////////////////////////////////////////////
 void AckermannSteeringPrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("AckermannSteering::UpdateVelocity");
 
@@ -729,14 +729,23 @@ void AckermannSteeringPrivate::UpdateVelocity(
   // Convert the target velocities to joint velocities and angles
   double turningRadius = linVel / angVel;
   double minimumTurningRadius = this->wheelBase / sin(this->steeringLimit);
-  if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+  if (fabs(linVel) > 0.0)
   {
-    turningRadius = minimumTurningRadius;
+    if ((turningRadius >= 0.0) && (turningRadius < minimumTurningRadius))
+    {
+      turningRadius = minimumTurningRadius;
+    }
+    if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+    {
+      turningRadius = -minimumTurningRadius;
+    }
   }
-  if ((turningRadius <= 0.0) && (turningRadius > -minimumTurningRadius))
+  // special case for angVel not zero and linVel zero
+  else if (fabs(angVel) >= 0.001)
   {
-    turningRadius = -minimumTurningRadius;
+    turningRadius = (angVel / fabs(angVel)) * minimumTurningRadius;
   }
+
   // special case for angVel of zero
   if (fabs(angVel) < 0.001)
   {
@@ -788,10 +797,14 @@ void AckermannSteeringPrivate::OnCmdVel(const msgs::Twist &_msg)
 }
 
 IGNITION_ADD_PLUGIN(AckermannSteering,
-                    ignition::gazebo::System,
+                    System,
                     AckermannSteering::ISystemConfigure,
                     AckermannSteering::ISystemPreUpdate,
                     AckermannSteering::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
+                          "gz::sim::systems::AckermannSteering")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(AckermannSteering,
                           "ignition::gazebo::systems::AckermannSteering")

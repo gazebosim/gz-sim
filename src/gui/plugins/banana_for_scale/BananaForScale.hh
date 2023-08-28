@@ -20,7 +20,7 @@
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -29,7 +29,7 @@ namespace gazebo
   class BananaPrivate;
 
   /// \brief Provides buttons for adding a banana for scale
-  class BananaForScale: public ignition::gui::Plugin
+  class BananaForScale: public gz::gui::Plugin
   {
     Q_OBJECT
 

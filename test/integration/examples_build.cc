@@ -18,19 +18,19 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/math/SemanticVersion.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/math/SemanticVersion.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 // File copied from
-// https://github.com/ignitionrobotics/ign-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
+// https://github.com/gazebosim/gz-gui/raw/ign-gui3/test/integration/ExamplesBuild_TEST.cc
 
-using namespace ignition;
+using namespace gz;
 
 #ifndef _WIN32
 #include <climits>  // NOLINT(build/include_order)
@@ -138,14 +138,14 @@ void ExamplesBuild::Build(const std::string &_type)
 
   // Path to examples of the given type
   auto examplesDir = std::string(PROJECT_SOURCE_PATH) + "/examples/" + _type;
-  ASSERT_TRUE(ignition::common::exists(examplesDir));
+  ASSERT_TRUE(common::exists(examplesDir));
 
   // Iterate over directory
-  ignition::common::DirIter endIter;
-  for (ignition::common::DirIter dirIter(examplesDir);
+  common::DirIter endIter;
+  for (common::DirIter dirIter(examplesDir);
       dirIter != endIter; ++dirIter)
   {
-    auto base = ignition::common::basename(*dirIter);
+    auto base = common::basename(*dirIter);
 
     math::SemanticVersion cmakeVersion{std::string(CMAKE_VERSION)};
     if (cmakeVersion < math::SemanticVersion(3, 11, 0) &&
@@ -161,13 +161,13 @@ void ExamplesBuild::Build(const std::string &_type)
     // Source directory for this example
     auto sourceDir = examplesDir;
     sourceDir += "/" + base;
-    ASSERT_TRUE(ignition::common::exists(sourceDir));
+    ASSERT_TRUE(common::exists(sourceDir));
     igndbg << "Source: " << sourceDir << std::endl;
 
     // Create a temp build directory
     std::string tmpBuildDir;
     ASSERT_TRUE(createAndSwitchToTempDir(tmpBuildDir));
-    EXPECT_TRUE(ignition::common::exists(tmpBuildDir));
+    EXPECT_TRUE(common::exists(tmpBuildDir));
     igndbg << "Build directory: " << tmpBuildDir<< std::endl;
 
     char cmd[1024];

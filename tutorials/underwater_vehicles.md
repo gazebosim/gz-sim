@@ -78,17 +78,17 @@ name="ignition::gazebo::systems::Hydrodynamics">
     <kDotP>0</kDotP>
     <mDotQ>-33.46</mDotQ>
     <nDotR>-33.46</nDotR>
-    <xUU>-6.2282</xUU>
+    <xUabsU>-6.2282</xUabsU>
     <xU>0</xU>
-    <yVV>-601.27</yVV>
+    <yVabsV>-601.27</yVabsV>
     <yV>0</yV>
-    <zWW>-601.27</zWW>
+    <zWabsW>-601.27</zWabsW>
     <zW>0</zW>
-    <kPP>-0.1916</kPP>
+    <kPabsP>-0.1916</kPabsP>
     <kP>0</kP>
-    <mQQ>-632.698957</mQQ>
+    <mQabsQ>-632.698957</mQabsQ>
     <mQ>0</mQ>
-    <nRR>-632.698957</nRR>
+    <nRabsR>-632.698957</nRabsR>
     <nR>0</nR>
 </plugin>
 ```

@@ -18,7 +18,7 @@
 #include "LogRecord.hh"
 
 #include <sys/stat.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <string>
 #include <fstream>
@@ -26,18 +26,18 @@
 #include <set>
 #include <list>
 
-#include <ignition/common/Time.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/fuel_tools/Zip.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/log/Log.hh>
-#include <ignition/transport/log/Recorder.hh>
+#include <gz/common/Time.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/common/Util.hh>
+#include <gz/fuel_tools/Zip.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/log/Log.hh>
+#include <gz/transport/log/Recorder.hh>
 
 #include <sdf/Collision.hh>
 #include <sdf/Element.hh>
@@ -49,20 +49,19 @@
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace ignition::gazebo;
+using namespace gz;
 using namespace ignition::gazebo::systems;
 
 // Private data class.
@@ -371,7 +370,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
 
   // This calls Log::Open() and loads sql schema
   if (this->recorder.Start(dbPath) ==
-      ignition::transport::log::RecorderError::SUCCESS)
+      transport::log::RecorderError::SUCCESS)
   {
     this->instStarted = true;
     return true;
@@ -736,11 +735,15 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->LogModelResources(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::systems::LogRecord,
-                    ignition::gazebo::System,
+IGNITION_ADD_PLUGIN(LogRecord,
+                    gz::sim::System,
                     LogRecord::ISystemConfigure,
                     LogRecord::ISystemPreUpdate,
                     LogRecord::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(ignition::gazebo::systems::LogRecord,
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
+                          "gz::sim::systems::LogRecord")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(LogRecord,
                           "ignition::gazebo::systems::LogRecord")

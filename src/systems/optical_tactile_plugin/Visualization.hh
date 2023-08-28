@@ -21,11 +21,11 @@
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
-#include <ignition/msgs/marker.pb.h>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
+#include <gz/msgs/marker.pb.h>
 
-#include "ignition/gazebo/components/ContactSensorData.hh"
+#include "gz/sim/components/ContactSensorData.hh"
 
 namespace ignition
 {
@@ -52,15 +52,12 @@ namespace optical_tactile_sensor
     /// \param[in] _forceLength Value of the forceLength attribute
     /// \param[in] _cameraUpdateRate Value of the cameraUpdateRate attribute
     /// \param[in] _depthCameraOffset Value of the depthCameraOffset attribute
-    /// \param[in] _visualizationResolution Value of the
-    /// visualizationResolution attribute
     public: OpticalTactilePluginVisualization(
         std::string &_modelName,
         ignition::math::Vector3d &_sensorSize,
         double &_forceLength,
         float &_cameraUpdateRate,
-        ignition::math::Pose3f &_depthCameraOffset,
-        int &_visualizationResolution);
+        ignition::math::Pose3f &_depthCameraOffset);
 
     /// \brief Initialize the marker message representing the optical tactile
     /// sensor
@@ -152,9 +149,6 @@ namespace optical_tactile_sensor
 
     /// \brief Offset between depth camera pose and model pose
     private: ignition::math::Pose3f depthCameraOffset;
-
-    /// \brief Resolution of the sensor in pixels to skip.
-    private: int visualizationResolution;
 
     /// \brief Whether the normal forces messages are initialized or not
     private: bool normalForcesMsgsAreInitialized{false};

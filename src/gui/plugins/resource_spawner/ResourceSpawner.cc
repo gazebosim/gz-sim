@@ -17,29 +17,33 @@
 
 #include "ResourceSpawner.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <set>
+#include <thread>
 #include <unordered_map>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
+
+
+Q_DECLARE_METATYPE(ignition::gazebo::Resource)
 
 namespace ignition::gazebo
 {
@@ -60,7 +64,7 @@ namespace ignition::gazebo
     public: PathModel ownerModel;
 
     /// \brief Client used to download resources from Ignition Fuel.
-    public: std::unique_ptr<ignition::fuel_tools::FuelClient>
+    public: std::unique_ptr<gz::fuel_tools::FuelClient>
             fuelClient = nullptr;
 
     /// \brief The map to cache resources after a search is made on an owner,
@@ -71,11 +75,36 @@ namespace ignition::gazebo
     /// \brief Holds all of the relevant data used by `DisplayData()` in order
     /// to filter and sort the displayed resources as desired by the user.
     public: Display displayData;
+
+    /// \brief The list of Fuel servers to download from.
+    public: std::vector<fuel_tools::ServerConfig> servers;
+
+    /// \brief Data structure to hold relevant bits for a worker thread that
+    /// fetches the list of recources available for an owner on Fuel.
+    struct FetchResourceListWorker
+    {
+      /// \brief Thread that runs the worker
+      std::thread thread;
+      /// \brief Flag to notify the worker that it needs to stop. This could be
+      /// when an owner is removed or when the program exits.
+      std::atomic<bool> stopDownloading{false};
+      /// \brief The workers own Fuel client to avoid synchronization.
+      fuel_tools::FuelClient fuelClient;
+    };
+
+    /// \brief Holds a map from owner to the associated resource list worker.
+    public: std::unordered_map<std::string,
+            FetchResourceListWorker> fetchResourceListWorkers;
   };
 }
 
+namespace {
+
+// Default owner to be fetched from Fuel. This owner cannot be removed.
+constexpr const char *kDefaultOwner = "openrobotics";
+}
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()
@@ -87,15 +116,27 @@ void PathModel::AddPath(const std::string &_path)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("PathModel::AddPath");
-  QStandardItem *parentItem{nullptr};
-
-  parentItem = this->invisibleRootItem();
-
   auto localModel = new QStandardItem(QString::fromStdString(_path));
   localModel->setData(QString::fromStdString(_path),
       this->roleNames().key("path"));
 
-  parentItem->appendRow(localModel);
+  this->appendRow(localModel);
+}
+
+/////////////////////////////////////////////////
+void PathModel::RemovePath(const std::string &_path)
+{
+  IGN_PROFILE_THREAD_NAME("Qt thread");
+  IGN_PROFILE("PathModel::RemovePath");
+  QString qPath = QString::fromStdString(_path);
+  for (int i = 0; i < this->rowCount(); ++i)
+  {
+    if (this->data(this->index(i, 0)) == qPath)
+    {
+      this->removeRow(i);
+      break;
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -115,14 +156,9 @@ ResourceModel::ResourceModel() : QStandardItemModel()
 /////////////////////////////////////////////////
 void ResourceModel::Clear()
 {
-  QStandardItem *parentItem{nullptr};
-  parentItem = this->invisibleRootItem();
-
-  while (parentItem->rowCount() > 0)
-  {
-    parentItem->removeRow(0);
-  }
+  this->clear();
   this->gridIndex = 0;
+  emit sizeChanged();
 }
 
 /////////////////////////////////////////////////
@@ -133,13 +169,10 @@ void ResourceModel::AddResources(std::vector<Resource> &_resources)
 }
 
 /////////////////////////////////////////////////
-void ResourceModel::AddResource(Resource &_resource)
+void ResourceModel::AddResource(const Resource &_resource)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("GridModel::AddResource");
-  QStandardItem *parentItem{nullptr};
-
-  parentItem = this->invisibleRootItem();
 
   auto resource = new QStandardItem(QString::fromStdString(_resource.name));
   resource->setData(_resource.isFuel,
@@ -167,8 +200,9 @@ void ResourceModel::AddResource(Resource &_resource)
         this->roleNames().key("index"));
     this->gridIndex++;
   }
+  emit sizeChanged();
 
-  parentItem->appendRow(resource);
+  this->appendRow(resource);
 }
 
 /////////////////////////////////////////////////
@@ -207,21 +241,57 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
 
 /////////////////////////////////////////////////
 ResourceSpawner::ResourceSpawner()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<ResourceSpawnerPrivate>())
 {
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  qRegisterMetaType<ignition::gazebo::Resource>();
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "ResourceList", &this->dataPtr->resourceModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
-  ignition::gui::App()->Engine()->rootContext()->setContextProperty(
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
   this->dataPtr->fuelClient =
-    std::make_unique<ignition::fuel_tools::FuelClient>();
+    std::make_unique<fuel_tools::FuelClient>();
+
+  auto servers = this->dataPtr->fuelClient->Config().Servers();
+  // Since the ign->gz rename, `servers` here returns two items for the
+  // canonical Fuel server: fuel.ignitionrobotics.org and fuel.gazebosim.org.
+  // For the purposes of the ResourceSpawner, these will be treated as the same
+  // and we will remove the ignitionrobotics server here.
+  auto urlIs = [](const std::string &_url)
+  {
+    return [_url](const fuel_tools::ServerConfig &_server)
+    { return _server.Url().Str() == _url; };
+  };
+
+  auto ignIt = std::find_if(servers.begin(), servers.end(),
+                            urlIs("https://fuel.ignitionrobotics.org"));
+  if (ignIt != servers.end())
+  {
+    auto gzsimIt = std::find_if(servers.begin(), servers.end(),
+                                urlIs("https://fuel.gazebosim.org"));
+    if (gzsimIt != servers.end())
+    {
+      servers.erase(ignIt);
+    }
+  }
+
+  this->dataPtr->servers = servers;
 }
 
 /////////////////////////////////////////////////
-ResourceSpawner::~ResourceSpawner() = default;
+ResourceSpawner::~ResourceSpawner()
+{
+  for (auto &workers : this->dataPtr->fetchResourceListWorkers)
+  {
+    workers.second.stopDownloading = true;
+    if (workers.second.thread.joinable())
+    {
+      workers.second.thread.join();
+    }
+  }
+}
 
 /////////////////////////////////////////////////
 void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
@@ -331,7 +401,7 @@ std::vector<Resource> ResourceSpawner::FuelResources(const std::string &_owner)
   if (this->dataPtr->ownerModelMap.find(_owner) !=
       this->dataPtr->ownerModelMap.end())
   {
-    for (Resource resource : this->dataPtr->ownerModelMap[_owner])
+    for (const Resource &resource : this->dataPtr->ownerModelMap[_owner])
     {
       fuelResources.push_back(resource);
     }
@@ -482,7 +552,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        ignition::common::URI(_path.toStdString()), localPath))
+        common::URI(_path.toStdString()), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -550,63 +620,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
     this->AddPath(path);
   }
 
-  auto servers = this->dataPtr->fuelClient->Config().Servers();
   ignmsg << "Please wait... Loading models from Fuel.\n";
-
-  // Add notice for the user that fuel resources are being loaded
-  this->dataPtr->ownerModel.AddPath("Please wait... Loading models from Fuel.");
-
-  // Pull in fuel models asynchronously
-  std::thread t([this, servers]
-  {
-    // A set isn't necessary to keep track of the owners, but it
-    // maintains alphabetical order
-    std::set<std::string> ownerSet;
-    for (auto const &server : servers)
-    {
-      std::vector<ignition::fuel_tools::ModelIdentifier> models;
-      for (auto iter = this->dataPtr->fuelClient->Models(server); iter; ++iter)
-      {
-        models.push_back(iter->Identification());
-      }
-
-      // Create each fuel resource and add them to the ownerModelMap
-      for (auto id : models)
-      {
-        Resource resource;
-        resource.name = id.Name();
-        resource.isFuel = true;
-        resource.isDownloaded = false;
-        resource.owner = id.Owner();
-        resource.sdfPath = id.UniqueName();
-        std::string path;
-
-        // If the resource is cached, we can go ahead and populate the
-        // respective information
-        if (this->dataPtr->fuelClient->CachedModel(
-              ignition::common::URI(id.UniqueName()), path))
-        {
-          resource.isDownloaded = true;
-          resource.sdfPath = ignition::common::joinPaths(path, "model.sdf");
-          std::string thumbnailPath = common::joinPaths(path, "thumbnails");
-          this->SetThumbnail(thumbnailPath, resource);
-        }
-        ownerSet.insert(id.Owner());
-        this->dataPtr->ownerModelMap[id.Owner()].push_back(resource);
-      }
-    }
-
-    // Clear the loading message
-    this->dataPtr->ownerModel.clear();
-
-    // Add all unique owners to the owner model
-    for (const auto &resource : ownerSet)
-    {
-      this->dataPtr->ownerModel.AddPath(resource);
-    }
-    ignmsg << "Fuel resources loaded.\n";
-  });
-  t.detach();
+  this->dataPtr->ownerModel.AddPath(kDefaultOwner);
+  RunFetchResourceListThread(kDefaultOwner);
 }
 
 /////////////////////////////////////////////////
@@ -626,12 +642,118 @@ void ResourceSpawner::OnSortChosen(const QString &_sortType)
 /////////////////////////////////////////////////
 void ResourceSpawner::OnResourceSpawn(const QString &_sdfPath)
 {
-  ignition::gui::events::SpawnFromPath event(_sdfPath.toStdString());
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gui::events::SpawnFromPath event(_sdfPath.toStdString());
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
+/////////////////////////////////////////////////
+void ResourceSpawner::UpdateOwnerListModel(Resource _resource)
+{
+  // If the resource is cached, we can go ahead and populate the
+  // respective information
+  std::string path;
+  if (this->dataPtr->fuelClient->CachedModel(
+        common::URI(_resource.sdfPath), path))
+  {
+    _resource.isDownloaded = true;
+    _resource.sdfPath = common::joinPaths(path, "model.sdf");
+    std::string thumbnailPath = common::joinPaths(path, "thumbnails");
+    this->SetThumbnail(thumbnailPath, _resource);
+  }
+
+  this->dataPtr->ownerModelMap[_resource.owner].push_back(_resource);
+  if (this->dataPtr->displayData.ownerPath == _resource.owner)
+  {
+    this->dataPtr->resourceModel.AddResource(_resource);
+  }
+}
+
+/////////////////////////////////////////////////
+bool ResourceSpawner::AddOwner(const QString &_owner)
+{
+  const std::string ownerString = _owner.toStdString();
+  if (this->dataPtr->ownerModelMap.find(ownerString) !=
+      this->dataPtr->ownerModelMap.end())
+  {
+    QString errorMsg = QString("Owner %1 already added").arg(_owner);
+    emit resourceSpawnerError(errorMsg);
+    return false;
+  }
+  this->dataPtr->ownerModel.AddPath(ownerString);
+  RunFetchResourceListThread(ownerString);
+  return true;
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::RemoveOwner(const QString &_owner)
+{
+  const std::string ownerString = _owner.toStdString();
+  this->dataPtr->ownerModelMap.erase(ownerString);
+  this->dataPtr->ownerModel.RemovePath(ownerString);
+  this->dataPtr->fetchResourceListWorkers[ownerString].stopDownloading = true;
+}
+
+/////////////////////////////////////////////////
+bool ResourceSpawner::IsDefaultOwner(const QString &_owner) const
+{
+  return _owner.toStdString() == kDefaultOwner;
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
+{
+  auto &worker = this->dataPtr->fetchResourceListWorkers[_owner];
+  // If the owner had been deleted, we need to clean the previous thread and
+  // restart.
+  if (worker.thread.joinable())
+  {
+    worker.stopDownloading = true;
+    worker.thread.join();
+  }
+
+  worker.stopDownloading = false;
+
+  // Pull in fuel models asynchronously
+  this->dataPtr->fetchResourceListWorkers[_owner].thread = std::thread(
+      [this, owner = _owner, &worker]
+      {
+        int counter = 0;
+        for (auto const &server : this->dataPtr->servers)
+        {
+          fuel_tools::ModelIdentifier modelId;
+          modelId.SetServer(server);
+          modelId.SetOwner(owner);
+          for (auto iter = worker.fuelClient.Models(modelId, false);
+               iter; ++iter, ++counter)
+          {
+            if (worker.stopDownloading)
+            {
+              return;
+            }
+            auto id = iter->Identification();
+            Resource resource;
+            resource.name = id.Name();
+            resource.isFuel = true;
+            resource.isDownloaded = false;
+            resource.owner = id.Owner();
+            resource.sdfPath = id.UniqueName();
+
+            QMetaObject::invokeMethod(
+                this, "UpdateOwnerListModel", Qt::QueuedConnection,
+                Q_ARG(ignition::gazebo::Resource, resource));
+          }
+        }
+        if (counter == 0)
+        {
+          QString errorMsg = QString("No resources found for %1")
+                                 .arg(QString::fromStdString(owner));
+          emit resourceSpawnerError(errorMsg);
+        }
+      });
+}
+
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ResourceSpawner,
-    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(ResourceSpawner,
+    gz::gui::Plugin)

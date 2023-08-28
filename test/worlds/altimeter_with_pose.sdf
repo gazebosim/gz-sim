@@ -7,15 +7,15 @@
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-altimeter-system"
-      name="ignition::gazebo::systems::Altimeter">
+      name="gz::sim::systems::Altimeter">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <model name="ground_plane">
@@ -81,7 +81,7 @@
 
       <plugin
         filename="ignition-gazebo-kinetic-energy-monitor-system"
-        name="ignition::gazebo::systems::KineticEnergyMonitor">
+        name="gz::sim::systems::KineticEnergyMonitor">
         <link_name>link</link_name>
         <kinetic_energy_threshold>2</kinetic_energy_threshold>
       </plugin>

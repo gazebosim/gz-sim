@@ -1,22 +1,25 @@
 \page triggeredpublisher Triggered Publisher
 
 The `TriggeredPublisher` system publishes a user specified message on an output
-topic in response to an input message that matches user specified criteria. The
-system works by checking the input against a set of Matchers. Matchers
-contain string representations of protobuf messages which are compared for
-equality or containment with the input message. Matchers can match the whole
-input message or only a specific field inside the message.
+topic in response to an input message that matches user specified criteria. It
+can also call a user specified service in response to an input
+message. The system works by checking the input against a set of Matchers.
+Matchers contain string representations of protobuf messages which are compared
+for equality or containment with the input message. Matchers can match the
+whole input message or only a specific field inside the message.
+
 
 This tutorial describes how the Triggered Publisher system can be used to
 cause a box to fall from its initial position by detaching a detachable joint
 in response to the motion of a vehicle. The tutorial also covers how Triggered
 Publisher systems can be chained together by showing how the falling of the box
-can trigger another box to fall. The finished world SDFormat file for this
+can trigger another box to fall. Last, it covers how a service call can be
+triggered to reset the robot pose. The finished world SDFormat file for this
 tutorial can be found in
-[examples/worlds/triggered_publisher.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
+[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-[examples/worlds/diff_drive.sdf](https://github.com/ignitionrobotics/ign-gazebo/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
+[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
 but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of
 the change to the `DiffDrive` system is shown below:
 
@@ -26,7 +29,7 @@ the change to the `DiffDrive` system is shown below:
 
   <plugin
     filename="ignition-gazebo-diff-drive-system"
-    name="ignition::gazebo::systems::DiffDrive">
+    name="gz::sim::systems::DiffDrive">
     <left_joint>front_left_wheel_joint</left_joint>
     <left_joint>rear_left_wheel_joint</left_joint>
     <right_joint>front_right_wheel_joint</right_joint>
@@ -45,7 +48,7 @@ a "start" message from the user:
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Empty" topic="/start"/>
   <output type="ignition.msgs.Twist" topic="/cmd_vel">
       linear: {x: 3}
@@ -118,18 +121,18 @@ indicating where the sensor is on the ground.
     </link>
     <plugin
       filename="ignition-gazebo-touchplugin-system"
-      name="ignition::gazebo::systems::TouchPlugin">
+      name="gz::sim::systems::TouchPlugin">
       <target>vehicle_blue</target>
       <namespace>trigger</namespace>
       <time>0.001</time>
       <enabled>true</enabled>
     </plugin>
     <plugin filename="ignition-gazebo-detachable-joint-system"
-            name="ignition::gazebo::systems::DetachableJoint">
+            name="gz::sim::systems::DetachableJoint">
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
       <child_link>box_body</child_link>
-      <topic>/box1/detach</topic>
+      <detach_topic>/box1/detach</detach_topic>
     </plugin>
   </model>
 
@@ -142,7 +145,7 @@ indicating where the sensor is on the ground.
       ...
       <plugin
         filename="ignition-gazebo-contact-system"
-        name="ignition::gazebo::systems::Contact">
+        name="gz::sim::systems::Contact">
       </plugin>
       ...
     </world>
@@ -164,7 +167,7 @@ message is `true`
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Boolean" topic="/trigger/touched">
     <match>data: true</match>
   </input>
@@ -197,7 +200,7 @@ the link "box_body" in `box1`
     <world>
       ...
       <plugin filename="ignition-gazebo-altimeter-system"
-        name="ignition::gazebo::systems::Altimeter">
+        name="gz::sim::systems::Altimeter">
       </plugin>
       ...
     </world>
@@ -220,11 +223,11 @@ static model `trigger` by adding the following to `trigger`
 <model name="trigger">
   ...
   <plugin filename="ignition-gazebo-detachable-joint-system"
-          name="ignition::gazebo::systems::DetachableJoint">
+          name="gz::sim::systems::DetachableJoint">
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
     <child_link>box_body</child_link>
-    <topic>/box2/detach</topic>
+    <detach_topic>/box2/detach</detach_topic>
   </plugin>
 </model>
 ```
@@ -244,7 +247,7 @@ numbers is not advised, we will set a tolerance of 0.2.
 
 ```xml
 <plugin filename="ignition-gazebo-triggered-publisher-system"
-        name="ignition::gazebo::systems::TriggeredPublisher">
+        name="gz::sim::systems::TriggeredPublisher">
   <input type="ignition.msgs.Altimeter" topic="/altimeter">
     <match field="vertical_position" tol="0.2">-7.5</match>
   </input>
@@ -262,4 +265,28 @@ and publish the start message
 
 ```
 ign topic -t "/start" -m ignition.msgs.Empty -p " "
+```
+
+Once both boxes have fallen, we can publish a message to invoke a service call
+to reset the robot position as well as set the speed to 0. As shown below, the
+`<output>` sets the linear x speed to 0, and the `<service>` tag contains
+metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
+`reqMsg` is expressed in the human-readable form of Google Protobuf meesages.
+Multiple `<service>` tags can be used as well as with the `<output>` tag.
+
+```xml
+<plugin filename="ignition-gazebo-triggered-publisher-system"
+  name="ignition::gazebo::systems::TriggeredPublisher">
+  <input type="ignition.msgs.Empty" topic="/reset_robot"/>
+  <output type="ignition.msgs.Twist" topic="/cmd_vel">
+      linear: {x: 0}
+  </output>
+  <service
+    name="/world/triggered_publisher/set_pose"
+    reqType="ignition.msgs.Pose"
+    repType="ignition.msgs.Boolean"
+    timeout="3000"
+    reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 1}">
+  </service>
+</plugin>
 ```

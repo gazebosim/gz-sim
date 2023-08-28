@@ -10,14 +10,14 @@ to developers touching the source code.
 
 * **Entity**: Every "object" in the world, such as models, links,
     collisions, visuals, lights, joints, etc.
-    An entity [is just a numeric ID](namespaceignition_1_1gazebo.html#ad83694d867b0e3a9446b535b5dfd208d),
+    An entity [is just a numeric ID](namespace gz_1_1gazebo.html#ad83694d867b0e3a9446b535b5dfd208d),
     and may have several components attached to it. Entity IDs are assigned
     at runtime.
 
 * **Component**: Adds a certain functionality or characteristic (e.g., pose,
     name, material, etc.) to an entity.
     Ignition Gazebo comes with various
-    [components](namespaceignition_1_1gazebo_1_1components.html)
+    [components](namespace gz_1_1gazebo_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
     [BaseComponent](classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
@@ -66,7 +66,7 @@ to developers touching the source code.
 * **[Event manager](classignition_1_1gazebo_1_1EventManager.html)**:
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
-    [Event](https://ignitionrobotics.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
+    [Event](https://gazebosim.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
     and / or emit / listen to events from Ignition Gazebo.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no

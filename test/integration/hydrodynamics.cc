@@ -17,22 +17,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utils/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/TestFixture.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -112,13 +112,15 @@ std::vector<math::Vector3d> HydrodynamicsTest::TestWorld(
 /////////////////////////////////////////////////
 /// This test evaluates whether the hydrodynamic plugin affects the motion
 /// of the body when a force is applied.
-TEST_F(HydrodynamicsTest, VelocityTestinOil)
+TEST_F(HydrodynamicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");
 
   auto sphere1Vels = this->TestWorld(world, "sphere1");
   auto sphere2Vels = this->TestWorld(world, "sphere2");
+
+  auto whenSphere1ExceedsSphere2Vel = 2000;
 
   for (unsigned int i = 0; i < 1000; ++i)
   {
@@ -128,26 +130,31 @@ TEST_F(HydrodynamicsTest, VelocityTestinOil)
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].X());
     EXPECT_FLOAT_EQ(0.0, sphere2Vels[i].Y());
 
-    // Wait a couple of iterations for the body to move
-    if(i > 4)
+    // Expect sphere1 to fall faster than sphere 2 as no hydro
+    // drag is applied to it.
+    EXPECT_LE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
+    if(sphere1Vels[i].Z() < sphere2Vels[i].Z()
+      &&  whenSphere1ExceedsSphere2Vel > 1000)
     {
-      EXPECT_LT(sphere1Vels[i].Z(), sphere2Vels[i].Z());
-
-      if (i > 900)
-      {
-        // Expect for the velocity to stabilize
-        EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
-        EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
-      }
+      // Mark this as the time when velocity of sphere1 exceeds sphere 2
+      whenSphere1ExceedsSphere2Vel = i;
+    }
+    if (i > 900)
+    {
+      // Expect for the velocity to stabilize
+      EXPECT_NEAR(sphere1Vels[i-1].Z(), sphere1Vels[i].Z(), 1e-6);
+      EXPECT_NEAR(sphere2Vels[i-1].Z(), sphere2Vels[i].Z(), 1e-6);
     }
   }
+  EXPECT_LT(whenSphere1ExceedsSphere2Vel, 500);
 }
 
 /////////////////////////////////////////////////
 /// This test makes sure that the transforms of the hydrodynamics
 /// plugin are correct by comparing 3 cylinders in different
 /// positions and orientations.
-TEST_F(HydrodynamicsTest, TransformsTestinWater)
+TEST_F(HydrodynamicsTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(TransformsTestinWater))
 {
   auto world = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "hydrodynamics.sdf");

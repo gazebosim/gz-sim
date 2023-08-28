@@ -38,7 +38,7 @@ the [GUI Configuration](gui_config.html) tutorial for more information.
 If you launched Ignition Gazebo with the
 `video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
 in the world SDF file so you will need to download a copy of the
-[sdf file](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/examples/worlds/video_record_dbl_pendulum.sdf).
+[sdf file](https://raw.githubusercontent.com/gazebosim/gz-sim/main/examples/worlds/video_record_dbl_pendulum.sdf).
 and modify the GUI configuration in that file. On the other hand, if you
 launched Ignition Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in
@@ -93,12 +93,12 @@ settings). Defaults to `false`. Note: the server publishes states at 60Hz
 and the video recorder records at 25 FPS so it also makes sense to update the
 Scene Broadcaster system to only publish states at 25Hz. You can do this by
 going to the world SDF file, locate the
-`ignition::gazebo::systems::SceneBroadcaster` system, and set the
+`gz::sim::systems::SceneBroadcaster` system, and set the
 `<state_hertz>` parameter:
 
 ```xml
         <plugin filename='ignition-gazebo-scene-broadcaster-system'
-                name='ignition::gazebo::systems::SceneBroadcaster'>
+                name='gz::sim::systems::SceneBroadcaster'>
           <state_hertz>25</state_hertz>
         </plugin>
 ```

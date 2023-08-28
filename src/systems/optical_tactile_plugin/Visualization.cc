@@ -15,9 +15,9 @@
  *
  */
 
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/transport/Node.hh>
 
 #include "Visualization.hh"
 
@@ -32,14 +32,12 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
   ignition::math::Vector3d &_sensorSize,
   double &_forceLength,
   float &_cameraUpdateRate,
-  ignition::math::Pose3f &_depthCameraOffset,
-  int &_visualizationResolution) :
+  ignition::math::Pose3f &_depthCameraOffset) :
   modelName(_modelName),
   sensorSize(_sensorSize),
   forceLength(_forceLength),
   cameraUpdateRate(_cameraUpdateRate),
-  depthCameraOffset(_depthCameraOffset),
-  visualizationResolution(_visualizationResolution)
+  depthCameraOffset(_depthCameraOffset)
 {
 }
 

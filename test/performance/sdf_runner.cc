@@ -17,23 +17,23 @@
 
 #include <array>
 
-#include <ignition/msgs.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/common/Console.hh>
+#include <gz/msgs.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/common/Console.hh>
 
-#include "ignition/transport/Node.hh"
+#include "gz/transport/Node.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 int main(int _argc, char** _argv)
 {
-  ignition::common::Console::SetVerbosity(4);
+  common::Console::SetVerbosity(4);
 
   std::string sdfFile{""};
   if (_argc >= 2)
@@ -56,7 +56,7 @@ int main(int _argc, char** _argv)
   }
   igndbg << "Update rate: " << updateRate << std::endl;
 
-  ignition::gazebo::ServerConfig serverConfig;
+  ServerConfig serverConfig;
   if (!serverConfig.SetSdfFile(sdfFile))
   {
     ignerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
@@ -68,23 +68,23 @@ int main(int _argc, char** _argv)
     serverConfig.SetUpdateRate(updateRate);
 
   // Create the Gazebo server
-  ignition::gazebo::Server server(serverConfig);
+  Server server(serverConfig);
 
-  ignition::transport::Node node;
+  transport::Node node;
 
-  std::vector<ignition::msgs::Clock> msgs;
+  std::vector<msgs::Clock> msgs;
   msgs.reserve(iterations);
 
-  std::function<void(const ignition::msgs::Clock&)> cb =
-    [&](const ignition::msgs::Clock &_msg)
+  std::function<void(const msgs::Clock&)> cb =
+    [&](const msgs::Clock &_msg)
     {
       msgs.push_back(_msg);
     };
 
   double progress = 0;
 
-  std::function<void(const ignition::msgs::WorldStatistics &)> cb2 =
-    [&](const ignition::msgs::WorldStatistics &_msg)
+  std::function<void(const msgs::WorldStatistics &)> cb2 =
+    [&](const msgs::WorldStatistics &_msg)
     {
       double nIters = static_cast<double>(_msg.iterations());
       nIters = nIters / iterations * 100;

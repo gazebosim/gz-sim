@@ -14,21 +14,21 @@
  * limitations under the License.
  *
 */
-#include "ignition/gazebo/ServerConfig.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/Result.hh>
-#include <ignition/math/Rand.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/Result.hh>
+#include <gz/math/Rand.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Private data for PluginInfoConfig.
 class ignition::gazebo::ServerConfig::PluginInfoPrivate
@@ -315,7 +315,7 @@ class ignition::gazebo::ServerConfigPrivate
   public: std::string logRecordCompressPath = "";
 
   /// \brief Path to where simulation resources, such as models downloaded
-  /// from fuel.ignitionrobotics.org, should be stored.
+  /// from fuel.gazebosim.org, should be stored.
   public: std::string resourceCache = "";
 
   /// \brief File containing physics engine plugin. If empty, DART will be used.
@@ -561,7 +561,7 @@ unsigned int ServerConfig::Seed() const
 void ServerConfig::SetSeed(unsigned int _seed)
 {
   this->dataPtr->seed = _seed;
-  ignition::math::Rand::Seed(_seed);
+  math::Rand::Seed(_seed);
 }
 
 /////////////////////////////////////////////////
@@ -637,7 +637,7 @@ ServerConfig::LogPlaybackPlugin() const
   sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  plugin.SetName("ignition::gazebo::systems::LogPlayback");
+  plugin.SetName("gz::sim::systems::LogPlayback");
   plugin.SetFilename("ignition-gazebo-log-system");
 
   if (!this->LogPlaybackPath().empty())
@@ -659,7 +659,7 @@ ServerConfig::LogRecordPlugin() const
   sdf::Plugin plugin;
   auto entityName = "*";
   auto entityType = "world";
-  plugin.SetName("ignition::gazebo::systems::LogRecord");
+  plugin.SetName("gz::sim::systems::LogRecord");
   plugin.SetFilename("ignition-gazebo-log-system");
 
   igndbg << "Generating LogRecord SDF:" << std::endl;
@@ -926,22 +926,22 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
 
   // 1. Check contents of environment variable
   std::string envConfig;
-  bool configSet = ignition::common::env(gazebo::kServerConfigPathEnv,
+  bool configSet = common::env(kServerConfigPathEnv,
                                          envConfig,
                                          true);
 
   if (configSet)
   {
-    if (ignition::common::exists(envConfig))
+    if (common::exists(envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = ignition::gazebo::parsePluginsFromFile(envConfig);
+      ret = gz::sim::parsePluginsFromFile(envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << gazebo::kServerConfigPathEnv
+        ignwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
       igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
@@ -954,7 +954,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << gazebo::kServerConfigPathEnv
+      ignwarn << kServerConfigPathEnv
               << " set but no file found,"
               << " no plugins loaded\n";
       return ret;
@@ -972,27 +972,27 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
   }
 
   std::string defaultConfigDir;
-  ignition::common::env(IGN_HOMEDIR, defaultConfigDir);
-  defaultConfigDir = ignition::common::joinPaths(defaultConfigDir, ".ignition",
+  common::env(IGN_HOMEDIR, defaultConfigDir);
+  defaultConfigDir = common::joinPaths(defaultConfigDir, ".ignition",
     "gazebo", IGNITION_GAZEBO_MAJOR_VERSION_STR);
 
-  auto defaultConfig = ignition::common::joinPaths(defaultConfigDir,
+  auto defaultConfig = common::joinPaths(defaultConfigDir,
       configFilename);
 
-  if (!ignition::common::exists(defaultConfig))
+  if (!common::exists(defaultConfig))
   {
-    auto installedConfig = ignition::common::joinPaths(
+    auto installedConfig = common::joinPaths(
         IGNITION_GAZEBO_SERVER_CONFIG_PATH,
         configFilename);
 
-    if (!ignition::common::createDirectories(defaultConfigDir))
+    if (!common::createDirectories(defaultConfigDir))
     {
       ignerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
       return ret;
     }
 
-    if (!ignition::common::exists(installedConfig))
+    if (!common::exists(installedConfig))
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1000,7 +1000,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!ignition::common::copyFile(installedConfig, defaultConfig))
+    else if (!common::copyFile(installedConfig, defaultConfig))
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1015,7 +1015,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = ignition::gazebo::parsePluginsFromFile(defaultConfig);
+  ret = gz::sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {

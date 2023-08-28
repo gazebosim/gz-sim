@@ -15,14 +15,14 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_3DPLOT_HH_
-#define IGNITION_GAZEBO_GUI_3DPLOT_HH_
+#ifndef GZ_GAZEBO_GUI_3DPLOT_HH_
+#define GZ_GAZEBO_GUI_3DPLOT_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
-#include "ignition/gui/qt.h"
+#include "gz/gui/qt.h"
 
 namespace ignition
 {

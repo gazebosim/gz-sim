@@ -26,21 +26,21 @@
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 namespace ignition
 {
@@ -58,6 +58,9 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief True if render engine plugins paths are initialized
+    public: bool renderEnginePluginPathsInit{false};
 
     /// \brief List of new entities from a gui event
     public: std::set<Entity> newEntities;
@@ -108,8 +111,8 @@ void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
   }
   done = true;
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   this->dataPtr->initialized = true;
 }
@@ -122,6 +125,12 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     return;
 
   IGN_PROFILE("GzSceneManager::Update");
+
+  if (!this->dataPtr->renderEnginePluginPathsInit)
+  {
+    this->dataPtr->renderUtil.InitRenderEnginePluginPaths();
+    this->dataPtr->renderEnginePluginPathsInit = true;
+  }
 
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
 
@@ -168,8 +177,8 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     // Send the new VisualPlugins event
     ignition::gazebo::gui::events::VisualPlugins visualPluginsEvent(
         it.first, it.second);
-    ignition::gui::App()->sendEvent(
-        ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &visualPluginsEvent);
 
     // Send the old VisualPlugin event
@@ -177,8 +186,8 @@ void GzSceneManager::Update(const UpdateInfo &_info,
     {
       ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
           it.first, plugin.ToElement());
-      ignition::gui::App()->sendEvent(
-          ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+      gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
           &visualPluginEvent);
     }
   }
@@ -202,15 +211,15 @@ void GzSceneManager::Update(const UpdateInfo &_info,
 
   ignition::gazebo::gui::events::NewRemovedEntities removedEvent(
       created, removed);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &removedEvent);
 }
 
 /////////////////////////////////////////////////
 bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -245,7 +254,7 @@ void GzSceneManagerPrivate::OnRender()
 
     this->renderUtil.SetScene(this->scene);
 
-    auto runners = ignition::gui::App()->findChildren<GuiRunner *>();
+    auto runners = gz::gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
       ignerr << "Internal error: no GuiRunner found." << std::endl;
@@ -261,4 +270,4 @@ void GzSceneManagerPrivate::OnRender()
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::GzSceneManager,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

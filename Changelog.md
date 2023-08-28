@@ -1,5 +1,305 @@
 ## Ignition Gazebo 6.x
 
+
+### Gazebo Sim 6.15.0 (2023-08-16)
+
+1. Fix Joint Position Controller Behaviour Described in #1997
+    * [Pull request #2001](https://github.com/gazebosim/gz-sim/pull/2001)
+
+1. Fix a minor issue in the documentation of the server API
+    * [Pull request #2067](https://github.com/gazebosim/gz-sim/pull/2067)
+
+1. Use sdf::Element::FindElement instead of GetElement in ApplyLinkWrench
+    * [Pull request #2052](https://github.com/gazebosim/gz-sim/pull/2052)
+
+1. Backport sensors system threading optimization changes
+    * [Pull request #2058](https://github.com/gazebosim/gz-sim/pull/2058)
+
+1. Adds a warning if the `Server` method of a `TestFixture` is called before `Finalize`
+    * [Pull request #2047](https://github.com/gazebosim/gz-sim/pull/2047)
+
+1. Protobuf: Do not require version 3 do support Protobuf 4.23.2 (23.2)
+    * [Pull request #2006](https://github.com/gazebosim/gz-sim/pull/2006)
+
+1. Disable pybind11 on Windows by default
+    * [Pull request #2005](https://github.com/gazebosim/gz-sim/pull/2005)
+
+1. Print an error message when trying to load SDF files that don't contain a `<world>`
+    * [Pull request #1998](https://github.com/gazebosim/gz-sim/pull/1998)
+
+1. Port record topic fix
+    * [Pull request #2004](https://github.com/gazebosim/gz-sim/pull/2004)
+
+1. Allow re-attaching detached joint
+    * [Pull request #1687](https://github.com/gazebosim/gz-sim/pull/1687)
+
+1.  Enable GzWeb visualization of markers by republishing service requests on a topic
+    * [Pull request #1994](https://github.com/gazebosim/gz-sim/pull/1994)
+
+1. Small fixes to gz headers
+    * [Pull request #1985](https://github.com/gazebosim/gz-sim/pull/1985)
+
+1. Speed up Resource Spawner load time by fetching model list asynchronously
+    * [Pull request #1962](https://github.com/gazebosim/gz-sim/pull/1962)
+
+1. Use ignition::gazebo:: in class instantiation
+    * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
+
+1. Add missing cmake exports from core library
+    * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
+
+1. Add tutorial on migrating the Sensor class from gazebo classic
+    * [Pull request #1930](https://github.com/gazebosim/gz-sim/pull/1930)
+
+1. Add tutorial on migrating the Actor class from gazebo classic
+    * [Pull request #1929](https://github.com/gazebosim/gz-sim/pull/1929)
+
+1. Fix use of actors that only has trajectory animation
+    * [Pull request #1947](https://github.com/gazebosim/gz-sim/pull/1947)
+
+1. Add tutorial on migrating the Joint class from gazebo classic
+    * [Pull request #1925](https://github.com/gazebosim/gz-sim/pull/1925)
+
+1. Add tutorial on migrating the Light class from gazebo classic
+    * [Pull request #1931](https://github.com/gazebosim/gz-sim/pull/1931)
+
+1. Infrastructure
+    * [Pull request #1988](https://github.com/gazebosim/gz-sim/pull/1988)
+    * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
+
+1. Rename COPYING to LICENSE
+    * [Pull request #1937](https://github.com/gazebosim/gz-sim/pull/1937)
+
+1. Add Light class
+    * [Pull request #1918](https://github.com/gazebosim/gz-sim/pull/1918)
+
+1. Resolve inconsistent visibility on ign-gazebo6
+    * [Pull request #1914](https://github.com/gazebosim/gz-sim/pull/1914)
+
+1. Relax msg count check in RF comms integration test
+    * [Pull request #1920](https://github.com/gazebosim/gz-sim/pull/1920)
+
+1. Add Actor class
+    * [Pull request #1913](https://github.com/gazebosim/gz-sim/pull/1913)
+
+1. Add Sensor class
+    * [Pull request #1912](https://github.com/gazebosim/gz-sim/pull/1912)
+
+1. Allow to change camera user hfov in camera_view plugin
+    * [Pull request #1807](https://github.com/gazebosim/gz-sim/pull/1807)
+
+1. Add Joint class
+    * [Pull request #1910](https://github.com/gazebosim/gz-sim/pull/1910)
+
+1. Add SensorTopic component to rendering sensors
+    * [Pull request #1908](https://github.com/gazebosim/gz-sim/pull/1908)
+
+1. Use a queue to track component registration from mulitiple sources
+    * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
+
+1. Document behaviour changes introduced #1784
+    * [Pull request #1888](https://github.com/gazebosim/gz-sim/pull/1888)
+
+1. Partial backport of 1728
+    * [Pull request #1901](https://github.com/gazebosim/gz-sim/pull/1901)
+
+1. Fix triggered camera test by waiting for rendering / scene to be ready
+    * [Pull request #1895](https://github.com/gazebosim/gz-sim/pull/1895)
+
+1. Backport portion of #1771 to fix command-line test
+    * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix some windows warnings (C4244 and C4305)
+    * [Pull request #1874](https://github.com/gazebosim/gz-sim/pull/1874)
+
+1. Minor optimization to transform control tool
+    * [Pull request #1854](https://github.com/gazebosim/gz-sim/pull/1854)
+
+1. Inherit material cast shadows property
+    * [Pull request #1856](https://github.com/gazebosim/gz-sim/pull/1856)
+
+1. Fix record topic
+    * [Pull request #1855](https://github.com/gazebosim/gz-sim/pull/1855)
+
+1. Remove duplicate Fuel server used by ResourceSpawner
+    * [Pull request #1830](https://github.com/gazebosim/gz-sim/pull/1830)
+
+1. Re-add namespace
+    * [Pull request #1826](https://github.com/gazebosim/gz-sim/pull/1826)
+
+1. Fix QML warnings regarding binding loops
+    * [Pull request #1829](https://github.com/gazebosim/gz-sim/pull/1829)
+
+1. Update documentation on `UpdateInfo::realTime`
+    * [Pull request #1817](https://github.com/gazebosim/gz-sim/pull/1817)
+
+1. Add jennuine as GUI codeowner
+    * [Pull request #1800](https://github.com/gazebosim/gz-sim/pull/1800)
+
+1. remove PlotIcon
+    * [Pull request #1658](https://github.com/gazebosim/gz-sim/pull/1658)
+
+1. ign -> gz
+    * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
+    * [Pull request #1646](https://github.com/gazebosim/gz-sim/pull/1646)
+    * [Pull request #1760](https://github.com/gazebosim/gz-sim/pull/1760)
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1759)
+    * [Pull request #1758](https://github.com/gazebosim/gz-sim/pull/1758)
+    * [Pull request #1757](https://github.com/gazebosim/gz-sim/pull/1757)
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1749)
+
+1. Added collection name to About Dialog
+    * [Pull request #1756](https://github.com/gazebosim/gz-sim/pull/1756)
+
+1. Citadel: Removed warnings
+    * [Pull request #1753](https://github.com/gazebosim/gz-sim/pull/1753)
+
+1. Remove actors from screen when they are supposed to
+    * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
+
+1. Readd namespaces for Q_ARGS
+    * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
+
+1. Remove redundant namespace references
+    * [Pull request #1635](https://github.com/gazebosim/gz-sim/pull/1635)
+
+
+### Gazebo Sim 6.14.0 (2022-12-29)
+
+1. Fix Ackermann plugin zero linVel turningRadius bug
+    * [Pull request #1849](https://github.com/gazebosim/gz-sim/pull/1849)
+
+1. Header guard fix for battery power load component
+    * [Pull request #1846](https://github.com/gazebosim/gz-sim/pull/1846)
+
+1. Add interface to allow systems to declare parameters
+    * [Pull request #1431](https://github.com/gazebosim/gz-sim/pull/1431)
+
+1. Adding battery consumers and extra fixes
+    * [Pull request #1811](https://github.com/gazebosim/gz-sim/pull/1811)
+
+1. Disable tests that require dartsim on windows
+    * [Pull request #1840](https://github.com/gazebosim/gz-sim/pull/1840)
+
+1. Added move camera to model service
+    * [Pull request #1823](https://github.com/gazebosim/gz-sim/pull/1823)
+
+1. Add spin box to View Angle plugin for configuring view control sensitivity
+    * [Pull request #1799](https://github.com/gazebosim/gz-sim/pull/1799)
+
+1. Sync View Angle GUI with view controller
+    * [Pull request #1825](https://github.com/gazebosim/gz-sim/pull/1825)
+
+1. Hydrodynamics flags test strengthening
+    * [Pull request #1819](https://github.com/gazebosim/gz-sim/pull/1819)
+
+1. Fixed Fortress tests related to lights
+    * [Pull request #1827](https://github.com/gazebosim/gz-sim/pull/1827)
+
+1. Allow to move to model from Angle view plugin
+    * [Pull request #1810](https://github.com/gazebosim/gz-sim/pull/1810)
+
+1. Fixed light entity number
+    * [Pull request #1818](https://github.com/gazebosim/gz-sim/pull/1818)
+
+1. Check AddBvnAnimation return value
+    * [Pull request #1750](https://github.com/gazebosim/gz-sim/pull/1750)
+
+1. Add checkbox in view angle plugin for toggling view control reference visual
+    * [Pull request #1788](https://github.com/gazebosim/gz-sim/pull/1788)
+
+1. Adds support for hydrodynamic cross terms
+    * [Pull request #1784](https://github.com/gazebosim/gz-sim/pull/1784)
+
+1. Addresses flakiness in `Hydrodynamics.VelocityTestInOil`.
+    * [Pull request #1787](https://github.com/gazebosim/gz-sim/pull/1787)
+
+1. Fix minor bugs in RFComms plugin
+    * [Pull request #1743](https://github.com/gazebosim/gz-sim/pull/1743)
+
+
+### Gazebo Sim 6.13.0 (2022-11-04)
+
+1. Fix two tests on Windows
+    * [Pull request #1779](https://github.com/gazebosim/ign-gazebo/pull/1779)
+
+1. 3 to 6 20221013
+    * [Pull request #1762](https://github.com/gazebosim/ign-gazebo/pull/1762)
+
+1. Some minor changes to hydrodynamic flags test
+    * [Pull request #1772](https://github.com/gazebosim/ign-gazebo/pull/1772)
+
+1. Fix thruster integration test
+    * [Pull request #1767](https://github.com/gazebosim/ign-gazebo/pull/1767)
+
+1. Fix scene_broadcaster_system test
+    * [Pull request #1766](https://github.com/gazebosim/ign-gazebo/pull/1766)
+
+1. Script and tutorial for generating procedural datasets with Blender
+    * [Pull request #1412](https://github.com/gazebosim/ign-gazebo/pull/1412)
+
+1. Enable use of ign gazebo -s on Windows (take two)
+    * [Pull request #1764](https://github.com/gazebosim/ign-gazebo/pull/1764)
+
+1. Removed unused speedlimit file
+    * [Pull request #1761](https://github.com/gazebosim/ign-gazebo/pull/1761)
+
+1. Fortress: Removed warnings
+    * [Pull request #1754](https://github.com/gazebosim/ign-gazebo/pull/1754)
+
+1. Enable/Disable individual hydrodynamic components.
+    * [Pull request #1692](https://github.com/gazebosim/ign-gazebo/pull/1692)
+
+1. Adding thrust coefficient calculation
+    * [Pull request #1652](https://github.com/gazebosim/ign-gazebo/pull/1652)
+
+1. Restore Add System GUI plugin
+    * [Pull request #1685](https://github.com/gazebosim/ign-gazebo/pull/1685)
+
+1. Return absolute path when finding a resource
+    * [Pull request #1741](https://github.com/gazebosim/ign-gazebo/pull/1741)
+
+1. Adds sky cubemap URI to the sky.proto's header
+    * [Pull request #1739](https://github.com/gazebosim/ign-gazebo/pull/1739)
+
+1. Update triggered_publisher.sdf
+    * [Pull request #1737](https://github.com/gazebosim/ign-gazebo/pull/1737)
+
+1. Add ResourceSpawner example file
+    * [Pull request #1701](https://github.com/gazebosim/ign-gazebo/pull/1701)
+
+1. Enable inherited model topic name.
+    * [Pull request #1689](https://github.com/gazebosim/ign-gazebo/pull/1689)
+
+1. Fix loading render engine plugins in GUI
+    * [Pull request #1694](https://github.com/gazebosim/ign-gazebo/pull/1694)
+
+1. Add a service to trigger functionality
+    * [Pull request #1611](https://github.com/gazebosim/ign-gazebo/pull/1611)
+
+1. Fix installation instructions on Ubuntu 22.04
+    * [Pull request #1686](https://github.com/gazebosim/ign-gazebo/pull/1686)
+
+1. Fix reference link in ackermann steering
+    * [Pull request #1683](https://github.com/gazebosim/ign-gazebo/pull/1683)
+
+### Gazebo Sim 6.12.0 (2022-08-30)
+
+1. Add topic parameter to thrust plugin
+    * [Pull request #1681](https://github.com/gazebosim/gz-sim/pull/1681)
+
+1. Add information about `<topic>` system parameter
+    * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
+
+1. Adding tests for hydrodynamics
+    * [Pull request #1617](https://github.com/gazebosim/gz-sim/pull/1617)
+
+1. Fix Windows and Doxygen
+    * [Pull request #1643](https://github.com/gazebosim/gz-sim/pull/1643)
+
 ### Gazebo Sim 6.11.0 (2022-08-17)
 
 1. Add support for specifying log record period
@@ -2108,7 +2408,120 @@
 1. Add window focus upon mouse entering the render window
     * [Github pull request 97](https://github.com/ignitionrobotics/ign-gazebo/pull/97)
 
-## Ignition Gazebo 3.x
+## Gazebo Sim 3.x
+
+### Gazebo Sim 3.15.0 (2023-05-08)
+
+1. Speed up Resource Spawner load time by fetching model list asynchronously
+    * [Pull request #1962](https://github.com/gazebosim/gz-sim/pull/1962)
+
+1. ign -> gz Migrate Ignition Headers : gz-sim
+    * [Pull request #1646](https://github.com/gazebosim/gz-sim/pull/1646)
+    * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
+    * [Pull request #1978](https://github.com/gazebosim/gz-sim/pull/1978)
+    * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
+    * [Pull request #1985](https://github.com/gazebosim/gz-sim/pull/1985)
+
+1. Infrastructure
+    * [Pull request #1940](https://github.com/gazebosim/gz-sim/pull/1940)
+    * [Pull request #1937](https://github.com/gazebosim/gz-sim/pull/1937)
+
+1. Backport portion of #1771 to fix command-line test
+    * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
+
+1. cmdsim.rb: fix ruby syntax
+    * [Pull request #1884](https://github.com/gazebosim/gz-sim/pull/1884)
+
+1. Fix loading wold with record topic
+    * [Pull request #1855](https://github.com/gazebosim/gz-sim/pull/1855)
+
+1. Remove duplicate Fuel server used by ResourceSpawner
+    * [Pull request #1830](https://github.com/gazebosim/gz-sim/pull/1830)
+
+1. Re-add namespace for GUI render event
+    * [Pull request #1826](https://github.com/gazebosim/gz-sim/pull/1826)
+
+1. Fix QML warnings regarding binding loops
+    * [Pull request #1829](https://github.com/gazebosim/gz-sim/pull/1829)
+
+1. Update documentation on `UpdateInfo::realTime`
+    * [Pull request #1817](https://github.com/gazebosim/gz-sim/pull/1817)
+
+1. Add jennuine as GUI codeowner
+    * [Pull request #1800](https://github.com/gazebosim/gz-sim/pull/1800)
+
+1. Remove plotIcon in Physics.qml for Component Inspector
+    * [Pull request #1658](https://github.com/gazebosim/gz-sim/pull/1658)
+
+1. Convert ignitionrobotics to gazebosim in tutorials
+    * [Pull request #1757](https://github.com/gazebosim/gz-sim/pull/1757)
+    * [Pull request #1758](https://github.com/gazebosim/gz-sim/pull/1758)
+    * [Pull request #1759](https://github.com/gazebosim/gz-sim/pull/1759)
+    * [Pull request #1760](https://github.com/gazebosim/gz-sim/pull/1760)
+
+1. Added collection name to About Dialog
+    * [Pull request #1756](https://github.com/gazebosim/gz-sim/pull/1756)
+
+1. Remove compiler warnings
+    * [Pull request #1753](https://github.com/gazebosim/gz-sim/pull/1753)
+
+1. Update examples to use gazebosim.org
+    * [Pull request #1749](https://github.com/gazebosim/gz-sim/pull/1749)
+
+1. Remove actors from screen when they are supposed to
+    * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
+
+1. Readd namespaces for Q_ARGS
+    * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
+
+### Gazebo Sim 3.14.0 (2022-08-17)
+
+1. Change `CODEOWNERS` and maintainer to Michael
+    * [Pull request #1644](https://github.com/gazebosim/gz-sim/pull/1644)
+
+1. Replace pose in `ViewAngle` with `GzPose`
+    * [Pull request #1641](https://github.com/gazebosim/gz-sim/pull/1641)
+
+1. Fix loading worlds from CLI
+    * [Pull request #1627](https://github.com/gazebosim/gz-sim/pull/1627)
+
+1. Quick start dialog
+    * [Pull request #1536](https://github.com/gazebosim/gz-sim/pull/1536)
+
+1. Quiet `libSDFormat` console on --verbose 0
+    * [Pull request #1621](https://github.com/gazebosim/gz-sim/pull/1621)
+
+1. Add Ackermann Steering system (backport from Fortress)
+    * [Pull request #1613](https://github.com/gazebosim/gz-sim/pull/1613)
+
+1. New Apply Link Wrench system
+    * [Pull request #1593](https://github.com/gazebosim/gz-sim/pull/1593)
+
+1. Implement Component Inspector `Vector3` with common widget `Vector3`
+    * [Pull request #1569](https://github.com/gazebosim/gz-sim/pull/1569)
+
+1. Helper function to get an entity from an entity message
+    * [Pull request #1595](https://github.com/gazebosim/gz-sim/pull/1595)
+
+1. Ignition -> Gazebo
+    * [Pull request #1596](https://github.com/gazebosim/gz-sim/pull/1596)
+
+1. Add Model::CanonicalLink getter
+    * [Pull request #1594](https://github.com/gazebosim/gz-sim/pull/1594)
+
+1. Implement Pose3d with common widget pose
+    * [Pull request #1571](https://github.com/gazebosim/gz-sim/pull/1571)
+
+1. Test fixes and updates
+    * [Pull request #1545](https://github.com/gazebosim/gz-sim/pull/1545)
+    * [Pull request #1531](https://github.com/gazebosim/gz-sim/pull/1531)
+    * [Pull request #1599](https://github.com/gazebosim/gz-sim/pull/1599)
+
+1. Bash completion for flags
+    * [Pull request #1504](https://github.com/gazebosim/gz-sim/pull/1504)
+
+1. Add new `GZ_GUI_RESOURCE_PATH` to help message
+    * [Pull request #1470](https://github.com/gazebosim/gz-sim/pull/1470)
 
 ### Ignition Gazebo 3.13.0 (2022-06-01)
 
@@ -2170,606 +2583,610 @@
 ### Ignition Gazebo 3.12.0 (2021-11-11)
 
 1. Prevent creation of spurious `<plugin>` elements when saving worlds
-    * [Pull request #1192](https://github.com/ignitionrobotics/ign-gazebo/pull/1192)
+    * [Pull request #1192](https://github.com/gazebosim/gz-sim/pull/1192)
 
 1. Added support for tracked vehicles
-    * [Pull request #869](https://github.com/ignitionrobotics/ign-gazebo/pull/869)
+    * [Pull request #869](https://github.com/gazebosim/gz-sim/pull/869)
 
 1. Add components to dynamically set joint limits
-    * [Pull request #847](https://github.com/ignitionrobotics/ign-gazebo/pull/847)
+    * [Pull request #847](https://github.com/gazebosim/gz-sim/pull/847)
 
 1. Fix updating a component's data via SerializedState msg
-    * [Pull request #1149](https://github.com/ignitionrobotics/ign-gazebo/pull/1149)
+    * [Pull request #1149](https://github.com/gazebosim/gz-sim/pull/1149)
 
 1. Sensor systems work if loaded after sensors
-    * [Pull request #1104](https://github.com/ignitionrobotics/ign-gazebo/pull/1104)
+    * [Pull request #1104](https://github.com/gazebosim/gz-sim/pull/1104)
 
 1. Fix generation of systems library symlinks in build directory
-    * [Pull request #1160](https://github.com/ignitionrobotics/ign-gazebo/pull/1160)
+    * [Pull request #1160](https://github.com/gazebosim/gz-sim/pull/1160)
 
-1. Backport gazebo::Util::validTopic() from ign-gazebo4.
-    * [Pull request #1153](https://github.com/ignitionrobotics/ign-gazebo/pull/1153)
+1. Backport sim::Util::validTopic() from ign-gazebo4.
+    * [Pull request #1153](https://github.com/gazebosim/gz-sim/pull/1153)
 
 1. Support setting the background color for sensors
-    * [Pull request #1147](https://github.com/ignitionrobotics/ign-gazebo/pull/1147)
+    * [Pull request #1147](https://github.com/gazebosim/gz-sim/pull/1147)
 
 1. Use uint64_t for ComponentInspector Entity IDs
-    * [Pull request #1144](https://github.com/ignitionrobotics/ign-gazebo/pull/1144)
+    * [Pull request #1144](https://github.com/gazebosim/gz-sim/pull/1144)
 
 1. Fix integers and floats on component inspector
-    * [Pull request #1143](https://github.com/ignitionrobotics/ign-gazebo/pull/1143)
+    * [Pull request #1143](https://github.com/gazebosim/gz-sim/pull/1143)
 
 ### Ignition Gazebo 3.11.0 (2021-10-21)
 
 1. Updates to camera video record from subt.
-    * [Pull request #1117](https://github.com/ignitionrobotics/ign-gazebo/pull/1117)
+    * [Pull request #1117](https://github.com/gazebosim/gz-sim/pull/1117)
 1. Fix performance level test flakiness.
-    * [Pull request #1129](https://github.com/ignitionrobotics/ign-gazebo/pull/1129)
+    * [Pull request #1129](https://github.com/gazebosim/gz-sim/pull/1129)
 
 ### Ignition Gazebo 3.10.0 (2021-10-15)
 
 1. Performance: use std::unordered_map where possible in SceneManager
-    * [Pull request #1083](https://github.com/ignitionrobotics/ign-gazebo/pull/1083)
+    * [Pull request #1083](https://github.com/gazebosim/gz-sim/pull/1083)
 
 1. Enable new CMake policy to fix protobuf compilation
-    * [Pull request #1059](https://github.com/ignitionrobotics/ign-gazebo/pull/1059)
+    * [Pull request #1059](https://github.com/gazebosim/gz-sim/pull/1059)
 
 1. Fix setting cast_shadows for visuals without material
-    * [Pull request #1015](https://github.com/ignitionrobotics/ign-gazebo/pull/1015)
+    * [Pull request #1015](https://github.com/gazebosim/gz-sim/pull/1015)
 
 1. Remove duplicate XML tag in pendulum_links example world
-    * [Pull request #1002](https://github.com/ignitionrobotics/ign-gazebo/pull/1002)
+    * [Pull request #1002](https://github.com/gazebosim/gz-sim/pull/1002)
 
 1. Enable sensor metrics on example worlds
-    * [Pull request #982](https://github.com/ignitionrobotics/ign-gazebo/pull/982)
+    * [Pull request #982](https://github.com/gazebosim/gz-sim/pull/982)
 
 1. Improved doxygen
-    * [Pull request #996](https://github.com/ignitionrobotics/ign-gazebo/pull/996)
+    * [Pull request #996](https://github.com/gazebosim/gz-sim/pull/996)
 
 1. JointPositionController: Improve misleading error message
-    * [Pull request #1098](https://github.com/ignitionrobotics/ign-gazebo/pull/1098)
+    * [Pull request #1098](https://github.com/gazebosim/gz-sim/pull/1098)
 
 1. Adjust pose decimals based on element width
-    * [Pull request #1089](https://github.com/ignitionrobotics/ign-gazebo/pull/1089)
+    * [Pull request #1089](https://github.com/gazebosim/gz-sim/pull/1089)
 
 1. Fixed IMU system plugin
-    * [Pull request #1043](https://github.com/ignitionrobotics/ign-gazebo/pull/1043)
+    * [Pull request #1043](https://github.com/gazebosim/gz-sim/pull/1043)
 
 1. Use QTimer to update plugins in the Qt thread
-    * [Pull request #1095](https://github.com/ignitionrobotics/ign-gazebo/pull/1095)
+    * [Pull request #1095](https://github.com/gazebosim/gz-sim/pull/1095)
 
 ### Ignition Gazebo 3.9.0 (2021-08-16)
 
 1. Entity tree: prevent creation of repeated entity items
-    * [Pull request #974](https://github.com/ignitionrobotics/ign-gazebo/pull/974)
+    * [Pull request #974](https://github.com/gazebosim/gz-sim/pull/974)
 
 1. Don't use $HOME on most tests (InternalFixture)
-    * [Pull request #971](https://github.com/ignitionrobotics/ign-gazebo/pull/971)
+    * [Pull request #971](https://github.com/gazebosim/gz-sim/pull/971)
 
 1. Be more specific when looking for physics plugins
-    * [Pull request #965](https://github.com/ignitionrobotics/ign-gazebo/pull/965)
+    * [Pull request #965](https://github.com/gazebosim/gz-sim/pull/965)
 
 1. Drag and drop meshes into scene
-    * [Pull request #939](https://github.com/ignitionrobotics/ign-gazebo/pull/939)
+    * [Pull request #939](https://github.com/gazebosim/gz-sim/pull/939)
 
 1. Set protobuf_MODULE_COMPATIBLE before any find_package call
-    * [Pull request #957](https://github.com/ignitionrobotics/ign-gazebo/pull/957)
+    * [Pull request #957](https://github.com/gazebosim/gz-sim/pull/957)
 
 1. [DiffDrive] add enable/disable
-    * [Pull request #772](https://github.com/ignitionrobotics/ign-gazebo/pull/772)
+    * [Pull request #772](https://github.com/gazebosim/gz-sim/pull/772)
 
 1. Fix component inspector shutdown crash
-    * [Pull request #724](https://github.com/ignitionrobotics/ign-gazebo/pull/724)
+    * [Pull request #724](https://github.com/gazebosim/gz-sim/pull/724)
 
 1. Add UserCommands Plugin.
-    * [Pull request #719](https://github.com/ignitionrobotics/ign-gazebo/pull/719)
+    * [Pull request #719](https://github.com/gazebosim/gz-sim/pull/719)
 
 1. Setting the intiial velocity for a model or joint
-    * [Pull request #693](https://github.com/ignitionrobotics/ign-gazebo/pull/693)
+    * [Pull request #693](https://github.com/gazebosim/gz-sim/pull/693)
 
 1. Examples and tutorial on using rendering API from plugins
-    * [Pull request #596](https://github.com/ignitionrobotics/ign-gazebo/pull/596)
+    * [Pull request #596](https://github.com/gazebosim/gz-sim/pull/596)
 
 1.  Add missing IGNITION_GAZEBO_VISIBLE macros
-    * [Pull request #563](https://github.com/ignitionrobotics/ign-gazebo/pull/563)
+    * [Pull request #563](https://github.com/gazebosim/gz-sim/pull/563)
 
 1. Fix visibility macro names when used by a different component (Windows)
-    * [Pull request #564](https://github.com/ignitionrobotics/ign-gazebo/pull/564)
+    * [Pull request #564](https://github.com/gazebosim/gz-sim/pull/564)
 
 1. No install apt recommends and clear cache
-    * [Pull request #423](https://github.com/ignitionrobotics/ign-gazebo/pull/423)
+    * [Pull request #423](https://github.com/gazebosim/gz-sim/pull/423)
 
 1. Add 25percent darker view angle icons
-    * [Pull request #426](https://github.com/ignitionrobotics/ign-gazebo/pull/426)
+    * [Pull request #426](https://github.com/gazebosim/gz-sim/pull/426)
 
 1. Expose a test fixture helper class
-    * [Pull request #926](https://github.com/ignitionrobotics/ign-gazebo/pull/926)
+    * [Pull request #926](https://github.com/gazebosim/gz-sim/pull/926)
 
 1. Fix logic to disable server default plugins loading
-    * [Pull request #953](https://github.com/ignitionrobotics/ign-gazebo/pull/953)
+    * [Pull request #953](https://github.com/gazebosim/gz-sim/pull/953)
 
 1. removed unneeded plugin update
-    * [Pull request #944](https://github.com/ignitionrobotics/ign-gazebo/pull/944)
+    * [Pull request #944](https://github.com/gazebosim/gz-sim/pull/944)
 
 1. Functions to enable velocity and acceleration checks on Link
-    * [Pull request #935](https://github.com/ignitionrobotics/ign-gazebo/pull/935)
+    * [Pull request #935](https://github.com/gazebosim/gz-sim/pull/935)
 
 1. Support adding systems that don't come from a plugin
-    * [Pull request #936](https://github.com/ignitionrobotics/ign-gazebo/pull/936)
+    * [Pull request #936](https://github.com/gazebosim/gz-sim/pull/936)
 
 1. 3D plot GUI plugin
-    * [Pull request #917](https://github.com/ignitionrobotics/ign-gazebo/pull/917)
+    * [Pull request #917](https://github.com/gazebosim/gz-sim/pull/917)
 
 1. Add a convenience function for getting possibly non-existing components.
-    * [Pull request #629](https://github.com/ignitionrobotics/ign-gazebo/pull/629)
+    * [Pull request #629](https://github.com/gazebosim/gz-sim/pull/629)
 
 1. Fix topLevelModel method
-    * [Pull request #600](https://github.com/ignitionrobotics/ign-gazebo/pull/600)
+    * [Pull request #600](https://github.com/gazebosim/gz-sim/pull/600)
 
 1. World exporter
-    * [Pull request #474](https://github.com/ignitionrobotics/ign-gazebo/pull/474)
+    * [Pull request #474](https://github.com/gazebosim/gz-sim/pull/474)
 
 1. Fix finding PBR materials
-    * [Pull request #575](https://github.com/ignitionrobotics/ign-gazebo/pull/575)
+    * [Pull request #575](https://github.com/gazebosim/gz-sim/pull/575)
 
 1. Handle multiple logical cameras
-    * [Pull request #539](https://github.com/ignitionrobotics/ign-gazebo/pull/539)
+    * [Pull request #539](https://github.com/gazebosim/gz-sim/pull/539)
 
 1. Make some tests more robust
-    * [Pull request #314](https://github.com/ignitionrobotics/ign-gazebo/pull/314)
+    * [Pull request #314](https://github.com/gazebosim/gz-sim/pull/314)
 
 1. Fix codecheck
-    * [Pull request #887](https://github.com/ignitionrobotics/ign-gazebo/pull/887)
+    * [Pull request #887](https://github.com/gazebosim/gz-sim/pull/887)
 
 1. Hello world plugin added
-    * [Pull request #699](https://github.com/ignitionrobotics/ign-gazebo/pull/699)
+    * [Pull request #699](https://github.com/gazebosim/gz-sim/pull/699)
 
 1. Model info CLI `ign model`
-    * [Pull request #893](https://github.com/ignitionrobotics/ign-gazebo/pull/893)
+    * [Pull request #893](https://github.com/gazebosim/gz-sim/pull/893)
 
 1. Don't create components for entities that don't exist
-    * [Pull request #927](https://github.com/ignitionrobotics/ign-gazebo/pull/927)
+    * [Pull request #927](https://github.com/gazebosim/gz-sim/pull/927)
 
 1. Adds Mesh Tutorial
-    * [Pull request #915](https://github.com/ignitionrobotics/ign-gazebo/pull/915)
+    * [Pull request #915](https://github.com/gazebosim/gz-sim/pull/915)
 
 1. Fix updating GUI plugin on load
-    * [Pull request #904](https://github.com/ignitionrobotics/ign-gazebo/pull/904)
+    * [Pull request #904](https://github.com/gazebosim/gz-sim/pull/904)
 
 1. Fix documentation for the Sensor component
-    * [Pull request #898](https://github.com/ignitionrobotics/ign-gazebo/pull/898)
+    * [Pull request #898](https://github.com/gazebosim/gz-sim/pull/898)
 
 1. Use UINT64_MAX for kComponentTpyeIDInvalid instead of relying on underflow
-    * [Pull request #889](https://github.com/ignitionrobotics/ign-gazebo/pull/889)
+    * [Pull request #889](https://github.com/gazebosim/gz-sim/pull/889)
 
 1. Fix mouse view control target position
-    * [Pull request #879](https://github.com/ignitionrobotics/ign-gazebo/pull/879)
+    * [Pull request #879](https://github.com/gazebosim/gz-sim/pull/879)
 
 1. Set GUI camera pose
-    * [Pull request #863](https://github.com/ignitionrobotics/ign-gazebo/pull/863)
+    * [Pull request #863](https://github.com/gazebosim/gz-sim/pull/863)
 
 1. Enables confirmation dialog when closing Gazebo.
-    * [Pull request #850](https://github.com/ignitionrobotics/ign-gazebo/pull/850)
+    * [Pull request #850](https://github.com/gazebosim/gz-sim/pull/850)
 
 1. Depend on ign-rendering 3.5
-    * [Pull request #867](https://github.com/ignitionrobotics/ign-gazebo/pull/867)
+    * [Pull request #867](https://github.com/gazebosim/gz-sim/pull/867)
 
 1. Using math::SpeedLimiter on the diff_drive controller.
-    * [Pull request #833](https://github.com/ignitionrobotics/ign-gazebo/pull/833)
+    * [Pull request #833](https://github.com/gazebosim/gz-sim/pull/833)
 
 1. New example: get an ECM snapshot from an external program
-    * [Pull request #859](https://github.com/ignitionrobotics/ign-gazebo/pull/859)
+    * [Pull request #859](https://github.com/gazebosim/gz-sim/pull/859)
 
 1. Fix WindEffects Plugin bug, not configuring new links
-    * [Pull request #844](https://github.com/ignitionrobotics/ign-gazebo/pull/844)
+    * [Pull request #844](https://github.com/gazebosim/gz-sim/pull/844)
 
 1. Fix potentially flaky integration component test case
-    * [Pull request #848](https://github.com/ignitionrobotics/ign-gazebo/pull/848)
+    * [Pull request #848](https://github.com/gazebosim/gz-sim/pull/848)
 
 1. Cleanup and alphabetize plugin headers
-    * [Pull request #838](https://github.com/ignitionrobotics/ign-gazebo/pull/838)
+    * [Pull request #838](https://github.com/gazebosim/gz-sim/pull/838)
 
 1. Removed duplicated code with rendering::sceneFromFirstRenderEngine
-    * [Pull request #819](https://github.com/ignitionrobotics/ign-gazebo/pull/819)
+    * [Pull request #819](https://github.com/gazebosim/gz-sim/pull/819)
 
 1. Remove unused headers in video_recoder plugin
-    * [Pull request #834](https://github.com/ignitionrobotics/ign-gazebo/pull/834)
+    * [Pull request #834](https://github.com/gazebosim/gz-sim/pull/834)
 
 1. Use moveToHelper from ign-rendering
-    * [Pull request #825](https://github.com/ignitionrobotics/ign-gazebo/pull/825)
+    * [Pull request #825](https://github.com/gazebosim/gz-sim/pull/825)
 
 1. Remove tools/code_check and update codecov
-    * [Pull request #814](https://github.com/ignitionrobotics/ign-gazebo/pull/814)
+    * [Pull request #814](https://github.com/gazebosim/gz-sim/pull/814)
 
 1. Add service and GUI to configure physics parameters
-    * [Pull request #536](https://github.com/ignitionrobotics/ign-gazebo/pull/536)
-    * [Pull request #812](https://github.com/ignitionrobotics/ign-gazebo/pull/812)
+    * [Pull request #536](https://github.com/gazebosim/gz-sim/pull/536)
+    * [Pull request #812](https://github.com/gazebosim/gz-sim/pull/812)
 
 1. Fix documentation for EntityComponentManager::EachNew
-    * [Pull request #795](https://github.com/ignitionrobotics/ign-gazebo/pull/795)
+    * [Pull request #795](https://github.com/gazebosim/gz-sim/pull/795)
 
 1. Fix macOS build: components::Name in benchmark
-    * [Pull request #784](https://github.com/ignitionrobotics/ign-gazebo/pull/784)
+    * [Pull request #784](https://github.com/gazebosim/gz-sim/pull/784)
 
 1. Don't store duplicate ComponentTypeId in ECM
-    * [Pull request #751](https://github.com/ignitionrobotics/ign-gazebo/pull/751)
+    * [Pull request #751](https://github.com/gazebosim/gz-sim/pull/751)
 
 1. [TPE] Support setting individual link velocity
-    * [Pull request #427](https://github.com/ignitionrobotics/ign-gazebo/pull/427)
+    * [Pull request #427](https://github.com/gazebosim/gz-sim/pull/427)
 
 1. 👩‍🌾 Enable Focal CI
-    * [Pull request #646](https://github.com/ignitionrobotics/ign-gazebo/pull/646)
+    * [Pull request #646](https://github.com/gazebosim/gz-sim/pull/646)
 
 1. Update benchmark comparison instructions
-    * [Pull request #766](https://github.com/ignitionrobotics/ign-gazebo/pull/766)
+    * [Pull request #766](https://github.com/gazebosim/gz-sim/pull/766)
 
 1. Use Protobuf_IMPORT_DIRS instead of PROTOBUF_IMPORT_DIRS for compatibility with Protobuf CMake config
-    * [Pull request #715](https://github.com/ignitionrobotics/ign-gazebo/pull/715)
+    * [Pull request #715](https://github.com/gazebosim/gz-sim/pull/715)
 
 1. Do not pass -Wno-unused-parameter to MSVC compiler
-    * [Pull request #716](https://github.com/ignitionrobotics/ign-gazebo/pull/716)
+    * [Pull request #716](https://github.com/gazebosim/gz-sim/pull/716)
 
 1. Scenebroadcaster sensors
-    * [Pull request #698](https://github.com/ignitionrobotics/ign-gazebo/pull/698)
+    * [Pull request #698](https://github.com/gazebosim/gz-sim/pull/698)
 
 1. Make it so joint state publisher is quieter
-    * [Pull request #696](https://github.com/ignitionrobotics/ign-gazebo/pull/696)
+    * [Pull request #696](https://github.com/gazebosim/gz-sim/pull/696)
 
 ### Ignition Gazebo 3.8.0 (2021-03-17)
 
 1. Add joint position controller GUI, also enable tests for GUI plugins
-    * [Pull request #534](https://github.com/ignitionrobotics/ign-gazebo/pull/534)
+    * [Pull request #534](https://github.com/gazebosim/gz-sim/pull/534)
 
 1. Remove visibility from headers that are not installed
-    * [Pull request #665](https://github.com/ignitionrobotics/ign-gazebo/pull/665)
+    * [Pull request #665](https://github.com/gazebosim/gz-sim/pull/665)
 
 1. Added screenshot to toolbar
-    * [Pull request #588](https://github.com/ignitionrobotics/ign-gazebo/pull/588)
+    * [Pull request #588](https://github.com/gazebosim/gz-sim/pull/588)
 
 1. Improve ign tool support on macOS
-    * [Pull request #477](https://github.com/ignitionrobotics/ign-gazebo/pull/477)
+    * [Pull request #477](https://github.com/gazebosim/gz-sim/pull/477)
 
 1. change nullptr to a int ptr for qt 5.15.2 bug
-    * [Pull request #527](https://github.com/ignitionrobotics/ign-gazebo/pull/527)
+    * [Pull request #527](https://github.com/gazebosim/gz-sim/pull/527)
 
 1. Kinetic energy monitor plugin
-    * [Pull request #492](https://github.com/ignitionrobotics/ign-gazebo/pull/492)
+    * [Pull request #492](https://github.com/gazebosim/gz-sim/pull/492)
 
 1. Use a std::promise/std::future to avoid busy waiting the step ack messages in NetworkManagerPrimary
-    * [Pull request #470](https://github.com/ignitionrobotics/ign-gazebo/pull/470)
+    * [Pull request #470](https://github.com/gazebosim/gz-sim/pull/470)
 
 1. clarified performer example
-    * [Pull request #390](https://github.com/ignitionrobotics/ign-gazebo/pull/390)
+    * [Pull request #390](https://github.com/gazebosim/gz-sim/pull/390)
 
 1. Add tutorial tweaks
-    * [Pull request #380](https://github.com/ignitionrobotics/ign-gazebo/pull/380)
+    * [Pull request #380](https://github.com/gazebosim/gz-sim/pull/380)
 
 1. Fix Qt5 warnings for using anchors
-    * [Pull request #363](https://github.com/ignitionrobotics/ign-gazebo/pull/363)
+    * [Pull request #363](https://github.com/gazebosim/gz-sim/pull/363)
 
 1. Update codeowners
-    * [Pull request #305](https://github.com/ignitionrobotics/ign-gazebo/pull/305)
+    * [Pull request #305](https://github.com/gazebosim/gz-sim/pull/305)
 
 1. Qt auto scale factor for HiDPI displays
-    * [Pull request #291](https://github.com/ignitionrobotics/ign-gazebo/pull/291)
+    * [Pull request #291](https://github.com/gazebosim/gz-sim/pull/291)
 
 1. Fix yaw units
-    * [Pull request #238](https://github.com/ignitionrobotics/ign-gazebo/pull/238)
+    * [Pull request #238](https://github.com/gazebosim/gz-sim/pull/238)
 
 1. Fixed docblock showGrid
-    * [Pull request #152](https://github.com/ignitionrobotics/ign-gazebo/pull/152)
+    * [Pull request #152](https://github.com/gazebosim/gz-sim/pull/152)
 
 1. Fix entity tree for large worlds
-    * [Pull request #673](https://github.com/ignitionrobotics/ign-gazebo/pull/673)
+    * [Pull request #673](https://github.com/gazebosim/gz-sim/pull/673)
 
 1. Master branch updates
-    * [Pull request #672](https://github.com/ignitionrobotics/ign-gazebo/pull/672)
+    * [Pull request #672](https://github.com/gazebosim/gz-sim/pull/672)
 
 1. Backport #561: Use common::setenv
-    * [Pull request #666](https://github.com/ignitionrobotics/ign-gazebo/pull/666)
+    * [Pull request #666](https://github.com/gazebosim/gz-sim/pull/666)
 
 1. Use a custom data structure to manage entity feature maps
-    * [Pull request #586](https://github.com/ignitionrobotics/ign-gazebo/pull/586)
+    * [Pull request #586](https://github.com/gazebosim/gz-sim/pull/586)
 
 1. Limit scene broadcast publications when paused
-    * [Pull request #497](https://github.com/ignitionrobotics/ign-gazebo/pull/497)
+    * [Pull request #497](https://github.com/gazebosim/gz-sim/pull/497)
 
 1. Fix flaky SceneBoradcaster test
-    * [Pull request #641](https://github.com/ignitionrobotics/ign-gazebo/pull/641)
+    * [Pull request #641](https://github.com/gazebosim/gz-sim/pull/641)
 
 1. Add TF/Pose_V publisher in DiffDrive
-    * [Pull request #548](https://github.com/ignitionrobotics/ign-gazebo/pull/548)
+    * [Pull request #548](https://github.com/gazebosim/gz-sim/pull/548)
 
 1. 👩‍🌾 Relax performance test
-    * [Pull request #640](https://github.com/ignitionrobotics/ign-gazebo/pull/640)
+    * [Pull request #640](https://github.com/gazebosim/gz-sim/pull/640)
 
 1. 👩‍🌾 Improve velocity control test
-    * [Pull request #642](https://github.com/ignitionrobotics/ign-gazebo/pull/642)
+    * [Pull request #642](https://github.com/gazebosim/gz-sim/pull/642)
 
 1. Add `laser_retro` support
-    * [Pull request #603](https://github.com/ignitionrobotics/ign-gazebo/pull/603)
+    * [Pull request #603](https://github.com/gazebosim/gz-sim/pull/603)
 
 1. Fix pose of plane visual with non-default normal vector
-    * [Pull request #574](https://github.com/ignitionrobotics/ign-gazebo/pull/574)
+    * [Pull request #574](https://github.com/gazebosim/gz-sim/pull/574)
 
 1. Add About dialog
-    * [Pull request #609](https://github.com/ignitionrobotics/ign-gazebo/pull/609)
+    * [Pull request #609](https://github.com/gazebosim/gz-sim/pull/609)
 
 1. Make topics configurable for joint controllers
-    * [Pull request #584](https://github.com/ignitionrobotics/ign-gazebo/pull/584)
+    * [Pull request #584](https://github.com/gazebosim/gz-sim/pull/584)
 
 1. Also use Ignition GUI render event
-    * [Pull request #598](https://github.com/ignitionrobotics/ign-gazebo/pull/598)
+    * [Pull request #598](https://github.com/gazebosim/gz-sim/pull/598)
 
 1. Tutorial on migrating SDF files from Gazebo classic
-    * [Pull request #400](https://github.com/ignitionrobotics/ign-gazebo/pull/400)
+    * [Pull request #400](https://github.com/gazebosim/gz-sim/pull/400)
 
 1. Visualize collisions
-    * [Pull request #531](https://github.com/ignitionrobotics/ign-gazebo/pull/531)
+    * [Pull request #531](https://github.com/gazebosim/gz-sim/pull/531)
 
 1. Backport state update changes from pull request #486
-    * [Pull request #583](https://github.com/ignitionrobotics/ign-gazebo/pull/583)
+    * [Pull request #583](https://github.com/gazebosim/gz-sim/pull/583)
 
 1. Publish all periodic change components in Scene Broadcaster
-    * [Pull request #544](https://github.com/ignitionrobotics/ign-gazebo/pull/544)
+    * [Pull request #544](https://github.com/gazebosim/gz-sim/pull/544)
 
 1. added size to `ground_plane` in examples
-    * [Pull request #573](https://github.com/ignitionrobotics/ign-gazebo/pull/573)
+    * [Pull request #573](https://github.com/gazebosim/gz-sim/pull/573)
 
 1. Parallelize State call in ECM
-    * [Pull request #451](https://github.com/ignitionrobotics/ign-gazebo/pull/451)
+    * [Pull request #451](https://github.com/gazebosim/gz-sim/pull/451)
 
 1. Non-blocking paths request
-    * [Pull request #555](https://github.com/ignitionrobotics/ign-gazebo/pull/555)
+    * [Pull request #555](https://github.com/gazebosim/gz-sim/pull/555)
 
 ### Ignition Gazebo 3.7.0 (2021-01-13)
 
 1. Fix examples in migration plugins tutorial.
-    * [Pull Request 543](https://github.com/ignitionrobotics/ign-gazebo/pull/543)
+    * [Pull Request 543](https://github.com/gazebosim/gz-sim/pull/543)
 
 1. Added missing namespace in `detail/EntityComponentManager.hh`.
-    * [Pull Request 541](https://github.com/ignitionrobotics/ign-gazebo/pull/541)
+    * [Pull Request 541](https://github.com/gazebosim/gz-sim/pull/541)
 
 1. Automatically load a subset of world plugins.
-    * [Pull Request 281](https://github.com/ignitionrobotics/ign-gazebo/pull/281)
+    * [Pull Request 281](https://github.com/gazebosim/gz-sim/pull/281)
 
 1. Update gtest to 1.10.0 for Windows compilation.
-    * [Pull Request 506](https://github.com/ignitionrobotics/ign-gazebo/pull/506)
+    * [Pull Request 506](https://github.com/gazebosim/gz-sim/pull/506)
 
 1. Updates to ardupilot migration tutorial.
-    * [Pull Request 525](https://github.com/ignitionrobotics/ign-gazebo/pull/525)
+    * [Pull Request 525](https://github.com/gazebosim/gz-sim/pull/525)
 
 1. Don't make docs on macOS.
-    * [Pull Request 528](https://github.com/ignitionrobotics/ign-gazebo/pull/528)
+    * [Pull Request 528](https://github.com/gazebosim/gz-sim/pull/528)
 
 ### Ignition Gazebo 3.6.0 (2020-12-30)
 
 1. Fix pose msg conversion when msg is missing orientation
-    * [Pull Request 450](https://github.com/ignitionrobotics/ign-gazebo/pull/450)
+    * [Pull Request 450](https://github.com/gazebosim/gz-sim/pull/450)
 
 1. Address code checker warnings
-    * [Pull Request 443](https://github.com/ignitionrobotics/ign-gazebo/pull/443)
-    * [Pull Request 491](https://github.com/ignitionrobotics/ign-gazebo/pull/491)
-    * [Pull Request 499](https://github.com/ignitionrobotics/ign-gazebo/pull/499)
-    * [Pull Request 502](https://github.com/ignitionrobotics/ign-gazebo/pull/502)
+    * [Pull Request 443](https://github.com/gazebosim/gz-sim/pull/443)
+    * [Pull Request 491](https://github.com/gazebosim/gz-sim/pull/491)
+    * [Pull Request 499](https://github.com/gazebosim/gz-sim/pull/499)
+    * [Pull Request 502](https://github.com/gazebosim/gz-sim/pull/502)
 
 1. Test fixes
-    * [Pull Request 455](https://github.com/ignitionrobotics/ign-gazebo/pull/455)
-    * [Pull Request 463](https://github.com/ignitionrobotics/ign-gazebo/pull/463)
-    * [Pull Request 452](https://github.com/ignitionrobotics/ign-gazebo/pull/452)
-    * [Pull Request 480](https://github.com/ignitionrobotics/ign-gazebo/pull/480)
+    * [Pull Request 455](https://github.com/gazebosim/gz-sim/pull/455)
+    * [Pull Request 463](https://github.com/gazebosim/gz-sim/pull/463)
+    * [Pull Request 452](https://github.com/gazebosim/gz-sim/pull/452)
+    * [Pull Request 480](https://github.com/gazebosim/gz-sim/pull/480)
 
 1. Documentation updates
-    * [Pull Request 472](https://github.com/ignitionrobotics/ign-gazebo/pull/472)
+    * [Pull Request 472](https://github.com/gazebosim/gz-sim/pull/472)
 
 1. Fix segfault in the Breadcrumb system when associated model is unloaded
-    * [Pull Request 454](https://github.com/ignitionrobotics/ign-gazebo/pull/454)
+    * [Pull Request 454](https://github.com/gazebosim/gz-sim/pull/454)
 
 1. Added user commands to example thermal camera world
-    * [Pull Request 442](https://github.com/ignitionrobotics/ign-gazebo/pull/442)
+    * [Pull Request 442](https://github.com/gazebosim/gz-sim/pull/442)
 
 1. Helper function to set component data
-    * [Pull Request 436](https://github.com/ignitionrobotics/ign-gazebo/pull/436)
+    * [Pull Request 436](https://github.com/gazebosim/gz-sim/pull/436)
 
 1. Remove unneeded if statement in EntityComponentManager
-    * [Pull Request 432](https://github.com/ignitionrobotics/ign-gazebo/pull/432)
+    * [Pull Request 432](https://github.com/gazebosim/gz-sim/pull/432)
 
 1. Clarify how time is represented in each phase of a System step
-    * [Pull Request 467](https://github.com/ignitionrobotics/ign-gazebo/pull/467)
+    * [Pull Request 467](https://github.com/gazebosim/gz-sim/pull/467)
 
 1. Switch to async state service request
-    * [Pull Request 461](https://github.com/ignitionrobotics/ign-gazebo/pull/461)
+    * [Pull Request 461](https://github.com/gazebosim/gz-sim/pull/461)
 
 1. Update key event handling
-    * [Pull Request 466](https://github.com/ignitionrobotics/ign-gazebo/pull/466)
+    * [Pull Request 466](https://github.com/gazebosim/gz-sim/pull/466)
 
 1. Tape Measure Plugin
-    * [Pull Request 456](https://github.com/ignitionrobotics/ign-gazebo/pull/456)
+    * [Pull Request 456](https://github.com/gazebosim/gz-sim/pull/456)
 
 1. Move deselect and preview termination to render thread
-    * [Pull Request 493](https://github.com/ignitionrobotics/ign-gazebo/pull/493)
+    * [Pull Request 493](https://github.com/gazebosim/gz-sim/pull/493)
 
 1. Logical audio sensor plugin
-    * [Pull Request 401](https://github.com/ignitionrobotics/ign-gazebo/pull/401)
+    * [Pull Request 401](https://github.com/gazebosim/gz-sim/pull/401)
 
 1. add frame_id and child_frame_id attribute support for DiffDrive
-    * [Pull Request 361](https://github.com/ignitionrobotics/ign-gazebo/pull/361)
+    * [Pull Request 361](https://github.com/gazebosim/gz-sim/pull/361)
 
 1. Add ability to record video based on sim time
-    * [Pull Request 414](https://github.com/ignitionrobotics/ign-gazebo/pull/414)
+    * [Pull Request 414](https://github.com/gazebosim/gz-sim/pull/414)
 
 1. Add lockstep mode to video recording
-    * [Pull Request 419](https://github.com/ignitionrobotics/ign-gazebo/pull/419)
+    * [Pull Request 419](https://github.com/gazebosim/gz-sim/pull/419)
 
 1. Disable right click menu when using measuring tool
-    * [Pull Request 458](https://github.com/ignitionrobotics/ign-gazebo/pull/458)
+    * [Pull Request 458](https://github.com/gazebosim/gz-sim/pull/458)
 
 ### Ignition Gazebo 3.5.0 (2020-11-03)
 
 1. Updated source build instructions
-    * [Pull Request 403](https://github.com/ignitionrobotics/ign-gazebo/pull/403)
+    * [Pull Request 403](https://github.com/gazebosim/gz-sim/pull/403)
 
 1. More world APIs, helper function ComponentData
-    * [Pull Request 378](https://github.com/ignitionrobotics/ign-gazebo/pull/378)
+    * [Pull Request 378](https://github.com/gazebosim/gz-sim/pull/378)
 
 1. Improve fork experience
-    * [Pull Request 411](https://github.com/ignitionrobotics/ign-gazebo/pull/411)
+    * [Pull Request 411](https://github.com/gazebosim/gz-sim/pull/411)
 
 1. Fix a crash in the grid config plugin, set grid material
-    * [Pull Request 412](https://github.com/ignitionrobotics/ign-gazebo/pull/412)
+    * [Pull Request 412](https://github.com/gazebosim/gz-sim/pull/412)
 
 1. Document deprecation of log playback `<path>` SDF param
-    * [Pull Request 424](https://github.com/ignitionrobotics/ign-gazebo/pull/424)
-    * [Pull Request 425](https://github.com/ignitionrobotics/ign-gazebo/pull/425)
+    * [Pull Request 424](https://github.com/gazebosim/gz-sim/pull/424)
+    * [Pull Request 425](https://github.com/gazebosim/gz-sim/pull/425)
 
 1. Enable mouse highlighting selection on resource spawner
-    * [Pull Request 402](https://github.com/ignitionrobotics/ign-gazebo/pull/402)
+    * [Pull Request 402](https://github.com/gazebosim/gz-sim/pull/402)
 
 1. Add support for custom render engines
-    * [Pull Request 373](https://github.com/ignitionrobotics/ign-gazebo/pull/373)
+    * [Pull Request 373](https://github.com/gazebosim/gz-sim/pull/373)
 
 1. Component Vector -> Map ECM Optimization
-    * [Pull Request 416](https://github.com/ignitionrobotics/ign-gazebo/pull/416)
+    * [Pull Request 416](https://github.com/gazebosim/gz-sim/pull/416)
 
 ### Ignition Gazebo 3.4.0 (2020-10-14)
 
 1. Fix gui sendEvent memory leaks
-    * [Pull Request 365](https://github.com/ignitionrobotics/ign-gazebo/pull/365)
+    * [Pull Request 365](https://github.com/gazebosim/gz-sim/pull/365)
 
 1. Support nested models
-    * [Pull Request 258](https://github.com/ignitionrobotics/ign-gazebo/pull/258)
+    * [Pull Request 258](https://github.com/gazebosim/gz-sim/pull/258)
 
 1. Generalize actor count and pose in actor population erb SDF
-    * [Pull Request 336](https://github.com/ignitionrobotics/ign-gazebo/pull/336)
+    * [Pull Request 336](https://github.com/gazebosim/gz-sim/pull/336)
 
 1. Add more link APIs, with tutorial
-    * [Pull Request 375](https://github.com/ignitionrobotics/ign-gazebo/pull/375)
+    * [Pull Request 375](https://github.com/gazebosim/gz-sim/pull/375)
 
 1. Add screenshots to GUI config tutorial
-    * [Pull Request 406](https://github.com/ignitionrobotics/ign-gazebo/pull/406)
+    * [Pull Request 406](https://github.com/gazebosim/gz-sim/pull/406)
 
 1. Fix adding performers to entity tree
-    * [Pull Request 374](https://github.com/ignitionrobotics/ign-gazebo/pull/374)
+    * [Pull Request 374](https://github.com/gazebosim/gz-sim/pull/374)
 
 1. Remove sidebar and put world control in bottom left for joint controller examples
-    * [Pull Request 384](https://github.com/ignitionrobotics/ign-gazebo/pull/384)
+    * [Pull Request 384](https://github.com/gazebosim/gz-sim/pull/384)
 
 1. Allow executing a blocking single Server run in both paused and unpaused states
-    * [Pull Request 297](https://github.com/ignitionrobotics/ign-gazebo/pull/297)
+    * [Pull Request 297](https://github.com/gazebosim/gz-sim/pull/297)
 
 1. Add camera video recorder system
-    * [Pull Request 316](https://github.com/ignitionrobotics/ign-gazebo/pull/316)
+    * [Pull Request 316](https://github.com/gazebosim/gz-sim/pull/316)
 
 1. Decrease time step for quadcopter world
-    * [Pull Request 372](https://github.com/ignitionrobotics/ign-gazebo/pull/372)
+    * [Pull Request 372](https://github.com/gazebosim/gz-sim/pull/372)
 
 1. Add support for moving the GUI camera to a pose
-    * [Pull Request 352](https://github.com/ignitionrobotics/ign-gazebo/pull/352)
+    * [Pull Request 352](https://github.com/gazebosim/gz-sim/pull/352)
 
 1. Remove `lib`+`.so` from plugin's name
-    * [Pull Request 279](https://github.com/ignitionrobotics/ign-gazebo/pull/279)
-    * [Pull Request 335](https://github.com/ignitionrobotics/ign-gazebo/pull/335)
+    * [Pull Request 279](https://github.com/gazebosim/gz-sim/pull/279)
+    * [Pull Request 335](https://github.com/gazebosim/gz-sim/pull/335)
 
 1. EntityComponentManager::EachRemoved documentation fix.
-    * [Pull Request 348](https://github.com/ignitionrobotics/ign-gazebo/pull/348)
+    * [Pull Request 348](https://github.com/gazebosim/gz-sim/pull/348)
 
 1. Add more model APIs.
-    * [Pull Request 349](https://github.com/ignitionrobotics/ign-gazebo/pull/349)
+    * [Pull Request 349](https://github.com/gazebosim/gz-sim/pull/349)
 
 1. Update dimensions of the grid config.
-    * [Pull Request 383](https://github.com/ignitionrobotics/ign-gazebo/pull/383)
+    * [Pull Request 383](https://github.com/gazebosim/gz-sim/pull/383)
 
 1. Fix top-left toolbar layout so magnet shows.
-    * [Pull Request 381](https://github.com/ignitionrobotics/ign-gazebo/pull/381)
+    * [Pull Request 381](https://github.com/gazebosim/gz-sim/pull/381)
 
 1. Add instructions to bitmask world.
-    * [Pull Request 377](https://github.com/ignitionrobotics/ign-gazebo/pull/377)
+    * [Pull Request 377](https://github.com/gazebosim/gz-sim/pull/377)
 
 1. Add search and sort for resource spawner.
-    * [Pull Request 359](https://github.com/ignitionrobotics/ign-gazebo/pull/359)
+    * [Pull Request 359](https://github.com/gazebosim/gz-sim/pull/359)
 
 1. Fix source build instructions for ign-gazebo3.
-    * [Pull Request 395](https://github.com/ignitionrobotics/ign-gazebo/pull/395)
+    * [Pull Request 395](https://github.com/gazebosim/gz-sim/pull/395)
 
 1. Added playback scrubber GUI
-    * [Pull Request 299](https://github.com/ignitionrobotics/ign-gazebo/pull/299)
-    * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
+    * [Pull Request 299](https://github.com/gazebosim/gz-sim/pull/299)
+    * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
 1. Added wheel slip system plugin.
-    * [Pull Request 134](https://github.com/ignitionrobotics/ign-gazebo/pull/134)
-    * [Pull Request 357](https://github.com/ignitionrobotics/ign-gazebo/pull/357)
-    * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
+    * [Pull Request 134](https://github.com/gazebosim/gz-sim/pull/134)
+    * [Pull Request 357](https://github.com/gazebosim/gz-sim/pull/357)
+    * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
 1. Enhanced log playback performance.
-    * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
-    * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
+    * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
+    * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
-    * [Pull Request 327](https://github.com/ignitionrobotics/ign-gazebo/pull/327)
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
+    * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.
-    * [Pull Request 315](https://github.com/ignitionrobotics/ign-gazebo/pull/315)
+    * [Pull Request 315](https://github.com/gazebosim/gz-sim/pull/315)
 
 1. Make sure OpenGL core profile context is used by GzScene3D.
-    * [Pull Request 339](https://github.com/ignitionrobotics/ign-gazebo/pull/339)
+    * [Pull Request 339](https://github.com/gazebosim/gz-sim/pull/339)
 
 1. Support relative paths for PBR materials
-    * [Pull Request 328](https://github.com/ignitionrobotics/ign-gazebo/pull/328)
-    * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
+    * [Pull Request 328](https://github.com/gazebosim/gz-sim/pull/328)
+    * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
 1. Add file extension automatically for record plugin.
-    * [Pull Request 303](https://github.com/ignitionrobotics/ign-gazebo/pull/303)
-    * [Pull Request 362](https://github.com/ignitionrobotics/ign-gazebo/pull/362)
+    * [Pull Request 303](https://github.com/gazebosim/gz-sim/pull/303)
+    * [Pull Request 362](https://github.com/gazebosim/gz-sim/pull/362)
 
 1. Support spawning during log playback.
-    * [Pull Request 346](https://github.com/ignitionrobotics/ign-gazebo/pull/346)
+    * [Pull Request 346](https://github.com/gazebosim/gz-sim/pull/346)
+
+1. Added wheel slip system plugin.
+    * [Pull Request 134](https://github.com/gazebosim/gz-sim/pull/134)
+    * [Pull Request 357](https://github.com/gazebosim/gz-sim/pull/357)
 
 1. Add Render Engine Cmd Line option
-    * [Pull Request 331](https://github.com/ignitionrobotics/ign-gazebo/pull/331)
+    * [Pull Request 331](https://github.com/gazebosim/gz-sim/pull/331)
 
 ### Ignition Gazebo 3.3.0 (2020-08-31)
 
 1. Added marker array service.
-    * [pull request 302](https://github.com/ignitionrobotics/ign-gazebo/pull/302)
+    * [pull request 302](https://github.com/gazebosim/gz-sim/pull/302)
 
 1. Introduced a new parameter in the scene3D plugin to launch in fullscreen.
-    * [pull request 254](https://github.com/ignitionrobotics/ign-gazebo/pull/254)
+    * [pull request 254](https://github.com/gazebosim/gz-sim/pull/254)
 
 1. Fix issue #285 by adding checks for a marker's parent.
-    * [pull request 290](https://github.com/ignitionrobotics/ign-gazebo/pull/290)
+    * [pull request 290](https://github.com/gazebosim/gz-sim/pull/290)
 
 1. Fix non-specified material error.
-    * [pull request 292](https://github.com/ignitionrobotics/ign-gazebo/pull/292)
+    * [pull request 292](https://github.com/gazebosim/gz-sim/pull/292)
 
 1. Added simulation world with large number of entities.
-    * [pull request 283](https://github.com/ignitionrobotics/ign-gazebo/pull/283)
+    * [pull request 283](https://github.com/gazebosim/gz-sim/pull/283)
 
 1. Fixed parsing of the touch plugin' enabled flag.
-    * [pull request 275](https://github.com/ignitionrobotics/ign-gazebo/pull/275)
+    * [pull request 275](https://github.com/gazebosim/gz-sim/pull/275)
 
 1. Added buoyancy system plugin.
-    * [pull request 252](https://github.com/ignitionrobotics/ign-gazebo/pull/252)
+    * [pull request 252](https://github.com/gazebosim/gz-sim/pull/252)
 
 1. Implemented shift + drag = rotate in the GUI.
-    * [pull request 247](https://github.com/ignitionrobotics/ign-gazebo/pull/247)
+    * [pull request 247](https://github.com/gazebosim/gz-sim/pull/247)
 
 1. Backport collision bitmask changes
-    * [pull request 223](https://github.com/ignitionrobotics/ign-gazebo/pull/223)
+    * [pull request 223](https://github.com/gazebosim/gz-sim/pull/223)
 
 1. Added velocity command to TPE.
-    * [pull request 169](https://github.com/ignitionrobotics/ign-gazebo/pull/169)
+    * [pull request 169](https://github.com/gazebosim/gz-sim/pull/169)
 
 1. This version includes all features in Gazebo 2.23.0
 
 ### Ignition Gazebo 3.2.0 (2020-05-20)
 
 1. Merge ign-gazebo2 to ign-gazebo3
-    * [pull request 149](https://github.com/ignitionrobotics/ign-gazebo/pull/149)
+    * [pull request 149](https://github.com/gazebosim/gz-sim/pull/149)
 
 ### Ignition Gazebo 3.1.0 (2020-05-19)
 
 1. Port support for computing model bounding box in physics system
-    * [pull request 127](https://github.com/ignitionrobotics/ign-gazebo/pull/127)
+    * [pull request 127](https://github.com/gazebosim/gz-sim/pull/127)
 
 1.  Add DetachableJoint: A system that initially attaches two models via a fixed joint and allows for the models to get detached during simulation via a topic.
     * [BitBucket pull request 440](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/440)
@@ -2798,7 +3215,7 @@
     * [BitBucket pull request 514](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/514)
 
 1. Add window focus upon mouse entering the render window
-    * [Github pull request 96](https://github.com/ignitionrobotics/ign-gazebo/pull/96)
+    * [Github pull request 96](https://github.com/gazebosim/gz-sim/pull/96)
 
 ### Ignition Gazebo 3.0.0 (2019-12-10)
 
@@ -2839,154 +3256,154 @@
 ### Ignition Gazebo 2.25.0 (2020-09-17)
 
 1. Added wheel slip system plugin.
-    * [Pull Request 134](https://github.com/ignitionrobotics/ign-gazebo/pull/134)
-    * [Pull Request 357](https://github.com/ignitionrobotics/ign-gazebo/pull/357)
+    * [Pull Request 134](https://github.com/gazebosim/gz-sim/pull/134)
+    * [Pull Request 357](https://github.com/gazebosim/gz-sim/pull/357)
 
 1. Enhanced log playback performance.
-    * [Pull Request 351](https://github.com/ignitionrobotics/ign-gazebo/pull/351)
+    * [Pull Request 351](https://github.com/gazebosim/gz-sim/pull/351)
 
-1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, ign_TEST
-    * [Pull Request 327](https://github.com/ignitionrobotics/ign-gazebo/pull/327)
+1. Tests & Warnings: Qt 5.14, breadcrumbs, Gui, gz_TEST
+    * [Pull Request 327](https://github.com/gazebosim/gz-sim/pull/327)
 
 1. Added support for specifying topics to record.
-    * [Pull Request 315](https://github.com/ignitionrobotics/ign-gazebo/pull/315)
+    * [Pull Request 315](https://github.com/gazebosim/gz-sim/pull/315)
 
 1. Make sure OpenGL core profile context is used by GzScene3D.
-    * [Pull Request 339](https://github.com/ignitionrobotics/ign-gazebo/pull/339)
+    * [Pull Request 339](https://github.com/gazebosim/gz-sim/pull/339)
 
 1. Support relative paths for PBR materials
-    * [Pull Request 328](https://github.com/ignitionrobotics/ign-gazebo/pull/328)
+    * [Pull Request 328](https://github.com/gazebosim/gz-sim/pull/328)
 
 1. Add file extension automatically for record plugin.
-    * [Pull Request 303](https://github.com/ignitionrobotics/ign-gazebo/pull/303)
+    * [Pull Request 303](https://github.com/gazebosim/gz-sim/pull/303)
 
 1. Support spawning during log playback.
-    * [Pull Request 346](https://github.com/ignitionrobotics/ign-gazebo/pull/346)
+    * [Pull Request 346](https://github.com/gazebosim/gz-sim/pull/346)
 
 ### Ignition Gazebo 2.24.0 (2020-09-03)
 
 1. Resource env var, with transport interface.
-    * [Pull Request 172](https://github.com/ignitionrobotics/ign-gazebo/pull/172)
+    * [Pull Request 172](https://github.com/gazebosim/gz-sim/pull/172)
 
 1. Save http URIs (fix tests)
-    * [Pull Request 271](https://github.com/ignitionrobotics/ign-gazebo/pull/271)
+    * [Pull Request 271](https://github.com/gazebosim/gz-sim/pull/271)
 
 1. Insert Local Models.
-    * [Pull Request 173](https://github.com/ignitionrobotics/ign-gazebo/pull/173)
+    * [Pull Request 173](https://github.com/gazebosim/gz-sim/pull/173)
 
 1. Modernize actions CI.
-    * [Pull Request 269](https://github.com/ignitionrobotics/ign-gazebo/pull/269)
+    * [Pull Request 269](https://github.com/gazebosim/gz-sim/pull/269)
 
 1. Sensor topics available through components and GUI.
-    * [Pull Request 266](https://github.com/ignitionrobotics/ign-gazebo/pull/266)
+    * [Pull Request 266](https://github.com/gazebosim/gz-sim/pull/266)
 
 1. Customizable layouts - fully functional.
-    * [Pull Request 278](https://github.com/ignitionrobotics/ign-gazebo/pull/278)
+    * [Pull Request 278](https://github.com/gazebosim/gz-sim/pull/278)
 
 1. Add Fuel World Support.
-    * [Pull Request 274](https://github.com/ignitionrobotics/ign-gazebo/pull/274)
+    * [Pull Request 274](https://github.com/gazebosim/gz-sim/pull/274)
 
 1. Insert Fuel Models.
-    * [Pull Request 263](https://github.com/ignitionrobotics/ign-gazebo/pull/263)
+    * [Pull Request 263](https://github.com/gazebosim/gz-sim/pull/263)
 
 1. Disable rendering tests on macOS that are known to fail.
-    * [Pull Request 209](https://github.com/ignitionrobotics/ign-gazebo/pull/209)
+    * [Pull Request 209](https://github.com/gazebosim/gz-sim/pull/209)
 
 1. Fix tests on Blueprint.
-    * [Pull Request 295](https://github.com/ignitionrobotics/ign-gazebo/pull/295)
+    * [Pull Request 295](https://github.com/gazebosim/gz-sim/pull/295)
 
 1. Publish remaining breadcrumb deployments.
-    * [Pull Request 308](https://github.com/ignitionrobotics/ign-gazebo/pull/308)
+    * [Pull Request 308](https://github.com/gazebosim/gz-sim/pull/308)
 
 ### Ignition Gazebo 2.23.0 (2020-07-28)
 
 1. Deactivate PerformerDetector if its parent model gets removed.
-    * [Pull Request 260](https://github.com/ignitionrobotics/ign-gazebo/pull/260)
+    * [Pull Request 260](https://github.com/gazebosim/gz-sim/pull/260)
 
 1. Backport support for <uri>s from Fuel #255
-    * [Pull Request 255](https://github.com/ignitionrobotics/ign-gazebo/pull/255)
+    * [Pull Request 255](https://github.com/gazebosim/gz-sim/pull/255)
 
 ### Ignition Gazebo 2.22.0 (2020-07-22)
 
 1. Allow zero or more key/value pairs to be added to detection header information.
-    * [Pull Request 257](https://github.com/ignitionrobotics/ign-gazebo/pull/257)
+    * [Pull Request 257](https://github.com/gazebosim/gz-sim/pull/257)
 
 ### Ignition Gazebo 2.21.0 (2020-07-16)
 
 1. Added support for controlling which joints are published by the
    JointStatePublisher.
-    * [Pull Request 222](https://github.com/ignitionrobotics/ign-gazebo/pull/222)
+    * [Pull Request 222](https://github.com/gazebosim/gz-sim/pull/222)
 
 1. Added an additional pose offset for the performer detector plugin.
-    * [Pull Request 236](https://github.com/ignitionrobotics/ign-gazebo/pull/236)
+    * [Pull Request 236](https://github.com/gazebosim/gz-sim/pull/236)
 
 1. Fixed battery issues and updated tutorial.
-    * [Pull Request 230](https://github.com/ignitionrobotics/ign-gazebo/pull/230)
+    * [Pull Request 230](https://github.com/gazebosim/gz-sim/pull/230)
 
 ### Ignition Gazebo 2.20.1 (2020-06-18)
 
 1. Properly add new models into the scenegraph. With this fix, when a model is spawned it will be added into the graph and resulting calls to the `scene/info` service will return a correct `msgs::Scene`.
-    * [Pull Request 212](https://github.com/ignitionrobotics/ign-gazebo/pull/212)
+    * [Pull Request 212](https://github.com/gazebosim/gz-sim/pull/212)
 
 ### Ignition Gazebo 2.20.0 (2020-06-09)
 
 1. Updated battery model to stop battery drain when there is no joint
    velocity/force command, and added a recharging trigger.
-    * [Pull Request 183](https://github.com/ignitionrobotics/ign-gazebo/pull/183)
+    * [Pull Request 183](https://github.com/gazebosim/gz-sim/pull/183)
 
 1. Fix segfault in the Breadcrumbs system
-    * [Pull Request 180](https://github.com/ignitionrobotics/ign-gazebo/pull/180)
+    * [Pull Request 180](https://github.com/gazebosim/gz-sim/pull/180)
 
 1. Added an `<odom_topic>` element to the DiffDrive system so that a custom odometry topic can be used.
-    * [Pull Request 179](https://github.com/ignitionrobotics/ign-gazebo/pull/179)
+    * [Pull Request 179](https://github.com/gazebosim/gz-sim/pull/179)
 
 ### Ignition Gazebo 2.19.0 (2020-06-02)
 
 1. Use updated model names for spawned models when generating SDFormat
-    * [Pull Request 166](https://github.com/ignitionrobotics/ign-gazebo/pull/166)
+    * [Pull Request 166](https://github.com/gazebosim/gz-sim/pull/166)
 
 1. Allow joint force commands (JointForceCmd) to dscharge a battery.
-    * [Pull Request 165](https://github.com/ignitionrobotics/ign-gazebo/pull/165)
+    * [Pull Request 165](https://github.com/gazebosim/gz-sim/pull/165)
 
 1. Allow renaming breadcrumb models if there is a name conflict
-    * [Pull Request 155](https://github.com/ignitionrobotics/ign-gazebo/pull/155)
+    * [Pull Request 155](https://github.com/gazebosim/gz-sim/pull/155)
 
 1. Add TriggeredPublisher system
-    * [Pull Request 139](https://github.com/ignitionrobotics/ign-gazebo/pull/139)
+    * [Pull Request 139](https://github.com/gazebosim/gz-sim/pull/139)
 
 1. Add PerformerDetector, a system for detecting when performers enter a specified region
-    * [Pull Request 125](https://github.com/ignitionrobotics/ign-gazebo/pull/125)
+    * [Pull Request 125](https://github.com/gazebosim/gz-sim/pull/125)
 
 ### Ignition Gazebo 2.18.0 (2020-05-20)
 
-1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `ignition::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
-    * [Pull Request 146](https://github.com/ignitionrobotics/ign-gazebo/pull/146)
+1. Added a `/world/<world_name>/create_multiple` service that parallels the current `/world/<world_name>/create` service. The `create_multiple` service can handle an `gz::msgs::EntityFactory_V` message that may contain one or more entities to spawn.
+    * [Pull Request 146](https://github.com/gazebosim/gz-sim/pull/146)
 
 1. DetachableJoint system: Add option to suppress warning about missing child model
-    * [Pull Request 132](https://github.com/ignitionrobotics/ign-gazebo/pull/132)
+    * [Pull Request 132](https://github.com/gazebosim/gz-sim/pull/132)
 
 ### Ignition Gazebo 2.17.0 (2020-05-13)
 
 1. Allow battery plugin to work with joint force systems.
-    * [Pull Request 120](https://github.com/ignitionrobotics/ign-gazebo/pull/120)
+    * [Pull Request 120](https://github.com/gazebosim/gz-sim/pull/120)
 
 1. Make breadcrumb static after specified time
-    * [Pull Request 90](https://github.com/ignitionrobotics/ign-gazebo/pull/90)
+    * [Pull Request 90](https://github.com/gazebosim/gz-sim/pull/90)
 
 1. Disable breadcrumbs if the `max_deployments` == 0.
-    * [Pull Request 88](https://github.com/ignitionrobotics/ign-gazebo/pull/88)
+    * [Pull Request 88](https://github.com/gazebosim/gz-sim/pull/88)
 
 1. Add static pose publisher and support pose\_v msg type in pose publisher system
-    * [Pull Request 65](https://github.com/ignitionrobotics/ign-gazebo/pull/65)
+    * [Pull Request 65](https://github.com/gazebosim/gz-sim/pull/65)
 
 1. Refactor Gui.hh so that the Gazebo GUI can be ran from other packages
-    * [Pull Request 79](https://github.com/ignitionrobotics/ign-gazebo/pull/79)
+    * [Pull Request 79](https://github.com/gazebosim/gz-sim/pull/79)
 
 1. Add ability to save worlds to SDFormat
     * [BitBucket pull request 545](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/545)
 
 1. Add window focus upon mouse entering the render window
-    * [Github pull request 95](https://github.com/ignitionrobotics/ign-gazebo/pull/95)
+    * [Github pull request 95](https://github.com/gazebosim/gz-sim/pull/95)
 
 ### Ignition Gazebo 2.16.0 (2020-03-24)
 
@@ -3376,7 +3793,7 @@
 1. Update Camera and DepthCamera components to use sdf::Sensor object instead of an sdf::ElementPtr.
     * [BitBucket pull request 299](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/299)
 
-1. Added system for ignition::sensors::AirPressureSensor.
+1. Added system for gz::sensors::AirPressureSensor.
     * [BitBucket pull request 300](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/300)
 
 1. Support conversion and serialization of Imu components. IMU sensors are

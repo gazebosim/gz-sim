@@ -5,6 +5,12 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.11.X to 6.12.X
+
+ * **Modified**:
+   + In the Hydrodynamics plugin, inverted the added mass contribution to make it
+     act in the correct direction.
+
 ## Ignition Gazebo 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now

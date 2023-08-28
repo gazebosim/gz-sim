@@ -21,12 +21,12 @@
 #include <functional>
 #include <mutex>
 
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace ignition;
@@ -61,12 +61,11 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
   {
     // Verify msg content
     std::lock_guard<std::mutex> lock(mutex);
-    std::string expected = "hello world " + std::to_string(msgCounter);
 
     ignition::msgs::StringMsg receivedMsg;
     receivedMsg.ParseFromString(_msg.data());
 
-    EXPECT_EQ(expected, receivedMsg.data());
+    EXPECT_NE(std::string::npos, receivedMsg.data().find("hello world"));
     ASSERT_GT(_msg.header().data_size(), 0);
     EXPECT_EQ("rssi", _msg.header().data(0).key());
     msgCounter++;
@@ -106,14 +105,16 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
     server.Run(true, 100, false);
   }
 
-  // Verify subscriber received all msgs.
+  // there is a non-zero probability that the packet may be lost
+  // Verify subscriber received most of the msgs.
+  unsigned int expectedMsgCount = static_cast<unsigned int>(pubCount * 0.5);
   int sleep = 0;
   bool done = false;
   while (!done && sleep++ < 10)
   {
     std::lock_guard<std::mutex> lock(mutex);
-    done = msgCounter == pubCount;
+    done = msgCounter > expectedMsgCount;
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
-  EXPECT_EQ(pubCount, msgCounter);
+  EXPECT_LT(expectedMsgCount, msgCounter);
 }

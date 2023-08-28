@@ -15,38 +15,38 @@
  *
  */
 
-#include <ignition/msgs/actuators.pb.h>
-#include <ignition/msgs/twist.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/math/Inertial.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Inertial.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/math/eigen3/Conversions.hh>
+#include <gz/math/eigen3/Conversions.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 
 #include "MulticopterVelocityControl.hh"
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 using namespace multicopter_control;
 
@@ -335,8 +335,8 @@ math::Inertiald MulticopterVelocityControl::VehicleInertial(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterVelocityControl::PreUpdate");
 
@@ -427,7 +427,7 @@ void MulticopterVelocityControl::OnEnable(
 
 //////////////////////////////////////////////////
 void MulticopterVelocityControl::PublishRotorVelocities(
-    ignition::gazebo::EntityComponentManager &_ecm,
+    EntityComponentManager &_ecm,
     const Eigen::VectorXd &_vels)
 {
   if (_vels.size() != this->rotorVelocitiesMsg.velocity_size())
@@ -464,10 +464,15 @@ void MulticopterVelocityControl::PublishRotorVelocities(
 }
 
 IGNITION_ADD_PLUGIN(MulticopterVelocityControl,
-                    ignition::gazebo::System,
+                    System,
                     MulticopterVelocityControl::ISystemConfigure,
                     MulticopterVelocityControl::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(
+    MulticopterVelocityControl,
+    "gz::sim::systems::MulticopterVelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(
     MulticopterVelocityControl,
     "ignition::gazebo::systems::MulticopterVelocityControl")

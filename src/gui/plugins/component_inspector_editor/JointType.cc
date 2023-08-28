@@ -16,11 +16,11 @@
 */
 #include <sdf/Joint.hh>
 
-#include <ignition/common/Console.hh>
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Recreate.hh"
-#include <ignition/gazebo/EntityComponentManager.hh>
+#include <gz/common/Console.hh>
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Recreate.hh"
+#include <gz/sim/EntityComponentManager.hh>
 
 #include "JointType.hh"
 #include "ComponentInspectorEditor.hh"

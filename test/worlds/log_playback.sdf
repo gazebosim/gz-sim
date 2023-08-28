@@ -6,11 +6,11 @@
     </physics>
 
     <plugin filename='ignition-gazebo-scene-broadcaster-system'
-            name='ignition::gazebo::systems::SceneBroadcaster'>
+            name='gz::sim::systems::SceneBroadcaster'>
     </plugin>
     <plugin
       filename='ignition-gazebo-log-system'
-      name='ignition::gazebo::systems::LogPlayback'>
+      name='gz::sim::systems::LogPlayback'>
     </plugin>
   </world>
 </sdf>

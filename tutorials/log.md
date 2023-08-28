@@ -8,7 +8,7 @@ Ignition records two types of information to files:
     * Always recorded
 * Simulation state
     * Entity poses, insertion and deletion
-    * Logged to an [Ignition Transport `state.tlog` file](https://ignitionrobotics.org/api/transport/7.0/logging.html)
+    * Logged to an [Ignition Transport `state.tlog` file](https://gazebosim.org/api/transport/7.0/logging.html)
     * Recording must be enabled from the command line or the C++ API
     * Can be played back using the command line or the C++ API
 
@@ -42,16 +42,16 @@ Other options for recording:
 ### From C++ API
 
 All features available through the command line are also available through
-[ignition::gazebo::ServerConfig](https://gazebosim.org/api/gazebo/6.9/classignition_1_1gazebo_1_1ServerConfig.html).
+[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1ServerConfig.html).
 When instantiating a server programmatically, logging options can be passed
 to the constructor, for example:
 
 ```
-ignition::gazebo::ServerConfig serverConfig;
+gz::sim::ServerConfig serverConfig;
 serverConfig.SetUseLogRecord(true);
 serverConfig.SetLogRecordPath("custom_path");
 
-ignition::gazebo::Server server(serverConfig);
+gz::sim::Server server(serverConfig);
 ```
 
 ### From plugin in SDF
@@ -63,7 +63,7 @@ Recording can be specified in the SDF, under `<world>` tag:
     ...
     <plugin
       filename="ignition-gazebo-log-system"
-      name="ignition::gazebo::systems::LogRecord">
+      name="gz::sim::systems::LogRecord">
     </plugin>
     ...
 </world>

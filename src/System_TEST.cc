@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/System.hh"
 
-using namespace ignition;
+using namespace gz;
 
 /////////////////////////////////////////////////
 TEST(System, Constructor)

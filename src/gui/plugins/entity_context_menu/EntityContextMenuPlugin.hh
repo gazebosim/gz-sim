@@ -20,11 +20,11 @@
 
 #include <memory>
 
-#include <ignition/common/MouseEvent.hh>
+#include <gz/common/MouseEvent.hh>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
-#include <ignition/rendering/Camera.hh>
+#include <gz/rendering/Camera.hh>
 
 namespace ignition
 {
@@ -34,7 +34,7 @@ namespace gazebo
 
   /// \brief This plugin is in charge of showing the entity context menu when
   /// the right button is clicked on a visual.
-  class EntityContextMenu : public ignition::gui::Plugin
+  class EntityContextMenu : public gz::gui::Plugin
   {
     Q_OBJECT
 

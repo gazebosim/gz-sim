@@ -18,58 +18,60 @@
 #include <iostream>
 #include <list>
 #include <regex>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
+#include <unordered_map>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AngularAcceleration.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/BatterySoC.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/CenterOfVolume.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightCmd.hh"
-#include "ignition/gazebo/components/LightType.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocitySeed.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/RenderEngineGuiPlugin.hh"
-#include "ignition/gazebo/components/RenderEngineServerPlugin.hh"
-#include "ignition/gazebo/components/SelfCollide.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/Volume.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AngularAcceleration.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/BatterySoC.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/CenterOfVolume.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightCmd.hh"
+#include "gz/sim/components/LightType.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/components/SelfCollide.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/Volume.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 #include "ComponentInspector.hh"
 #include "Pose3d.hh"
@@ -118,11 +120,37 @@ namespace ignition::gazebo
 
     /// \brief Handles all system info components.
     public: std::unique_ptr<inspector::SystemPluginInfo> systemInfo;
+
+    /// \brief A list of system plugin human readable names.
+    public: QStringList systemNameList;
+
+    /// \brief Maps plugin display names to their filenames.
+    public: std::unordered_map<std::string, std::string> systemMap;
   };
 }
 
+// Helper to remove a prefix from a string if present
+void removePrefix(const std::string &_prefix, std::string &_s)
+{
+  auto id = _s.find(_prefix);
+  if (id != std::string::npos)
+  {
+    _s = _s.substr(_prefix.length());
+  }
+}
+
+// Helper to remove a suffix from a string if present
+void removeSuffix(const std::string &_suffix, std::string &_s)
+{
+  auto id = _s.find(_suffix);
+  if (id != std::string::npos && id + _suffix.length() == _s.length())
+  {
+    _s.erase(id, _suffix.length());
+  }
+}
+
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 //////////////////////////////////////////////////
 template<>
@@ -389,7 +417,7 @@ ComponentsModel::ComponentsModel() : QStandardItemModel()
 
 /////////////////////////////////////////////////
 QStandardItem *ComponentsModel::AddComponentType(
-    ignition::gazebo::ComponentTypeId _typeId)
+    ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::AddComponentType");
@@ -420,7 +448,7 @@ QStandardItem *ComponentsModel::AddComponentType(
 
 /////////////////////////////////////////////////
 void ComponentsModel::RemoveComponentType(
-      ignition::gazebo::ComponentTypeId _typeId)
+      ComponentTypeId _typeId)
 {
   IGN_PROFILE_THREAD_NAME("Qt thread");
   IGN_PROFILE("ComponentsModel::RemoveComponentType");
@@ -457,7 +485,7 @@ QHash<int, QByteArray> ComponentsModel::RoleNames()
 ComponentInspector::ComponentInspector()
   : GuiSystem(), dataPtr(std::make_unique<ComponentInspectorPrivate>())
 {
-  qRegisterMetaType<ignition::gazebo::ComponentTypeId>();
+  qRegisterMetaType<ComponentTypeId>();
   qRegisterMetaType<Entity>("Entity");
 }
 
@@ -470,8 +498,8 @@ void ComponentInspector::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Component inspector";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 
   // Connect model
   this->Context()->setContextProperty(
@@ -895,7 +923,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
       if (comp)
       {
-        this->SetType("material");
         setData(item, comp->Data());
       }
     }
@@ -934,7 +961,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (!this->dataPtr->locked)
   {
-    if (_event->type() == gazebo::gui::events::EntitiesSelected::kType)
+    if (_event->type() == gui::events::EntitiesSelected::kType)
     {
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
@@ -943,7 +970,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       }
     }
 
-    if (_event->type() == gazebo::gui::events::DeselectAllEntities::kType)
+    if (_event->type() == gui::events::DeselectAllEntities::kType)
     {
       auto event = reinterpret_cast<gui::events::DeselectAllEntities *>(
           _event);
@@ -1028,8 +1055,8 @@ void ComponentInspector::OnLight(
   double _outerAngle, double _falloff, double _intensity, int _type,
   bool _isLightOn, bool _visualizeVisual)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error setting light configuration" << std::endl;
@@ -1100,14 +1127,14 @@ void ComponentInspector::OnLight(
 /////////////////////////////////////////////////
 void ComponentInspector::OnPhysics(double _stepSize, double _realTimeFactor)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
         ignerr << "Error setting physics parameters" << std::endl;
   };
 
-  ignition::msgs::Physics req;
+  msgs::Physics req;
   req.set_max_step_size(_stepSize);
   req.set_real_time_factor(_realTimeFactor);
   auto physicsCmdService = "/world/" + this->dataPtr->worldName
@@ -1216,6 +1243,106 @@ transport::Node &ComponentInspector::TransportNode()
   return this->dataPtr->node;
 }
 
+/////////////////////////////////////////////////
+void ComponentInspector::QuerySystems()
+{
+  msgs::Empty req;
+  msgs::EntityPlugin_V res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/system/info"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Unable to query available systems." << std::endl;
+    return;
+  }
+
+  this->dataPtr->systemNameList.clear();
+  this->dataPtr->systemMap.clear();
+  for (const auto &plugin : res.plugins())
+  {
+    if (plugin.filename().empty())
+    {
+      ignerr << "Received empty plugin name. This shouldn't happen."
+             << std::endl;
+      continue;
+    }
+
+    // Remove common prefixes and suffixes
+    auto humanReadable = plugin.filename();
+    removePrefix("ignition-gazebo-", humanReadable);
+    removePrefix("ignition-gazebo" +
+        std::string(IGNITION_GAZEBO_MAJOR_VERSION_STR) + "-", humanReadable);
+    removeSuffix("-system", humanReadable);
+    removeSuffix("system", humanReadable);
+    removeSuffix("-plugin", humanReadable);
+    removeSuffix("plugin", humanReadable);
+
+    // Replace - with space, capitalize
+    std::replace(humanReadable.begin(), humanReadable.end(), '-', ' ');
+    humanReadable[0] = std::toupper(humanReadable[0]);
+
+    this->dataPtr->systemMap[humanReadable] = plugin.filename();
+    this->dataPtr->systemNameList.push_back(
+        QString::fromStdString(humanReadable));
+  }
+  this->dataPtr->systemNameList.sort();
+  this->dataPtr->systemNameList.removeDuplicates();
+  this->SystemNameListChanged();
+}
+
+/////////////////////////////////////////////////
+QStringList ComponentInspector::SystemNameList() const
+{
+  return this->dataPtr->systemNameList;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::SetSystemNameList(const QStringList &_list)
+{
+  this->dataPtr->systemNameList = _list;
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnAddSystem(const QString &_name,
+    const QString &_filename, const QString &_innerxml)
+{
+  auto filenameStr = _filename.toStdString();
+  auto it = this->dataPtr->systemMap.find(filenameStr);
+  if (it == this->dataPtr->systemMap.end())
+  {
+    ignerr << "Internal error: failed to find [" << filenameStr
+           << "] in system map." << std::endl;
+    return;
+  }
+
+  msgs::EntityPlugin_V req;
+  auto ent = req.mutable_entity();
+  ent->set_id(this->dataPtr->entity);
+  auto plugin = req.add_plugins();
+  std::string name = _name.toStdString();
+  std::string filename = this->dataPtr->systemMap[filenameStr];
+  std::string innerxml = _innerxml.toStdString();
+  plugin->set_name(name);
+  plugin->set_filename(filename);
+  plugin->set_innerxml(innerxml);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 5000;
+  std::string service{"/world/" + this->dataPtr->worldName +
+      "/entity/system/add"};
+  if (!this->dataPtr->node.Request(service, req, timeout, res, result))
+  {
+    ignerr << "Error adding new system to entity: "
+           << this->dataPtr->entity << "\n"
+           << "Name: " << name << "\n"
+           << "Filename: " << filename << "\n"
+           << "Inner XML: " << innerxml << std::endl;
+  }
+}
+
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ComponentInspector,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(ComponentInspector,
+                    gz::gui::Plugin)

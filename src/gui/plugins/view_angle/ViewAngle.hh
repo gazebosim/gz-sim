@@ -15,14 +15,16 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
-#define IGNITION_GAZEBO_GUI_VIEWANGLE_HH_
+#ifndef GZ_GAZEBO_GUI_VIEWANGLE_HH_
+#define GZ_GAZEBO_GUI_VIEWANGLE_HH_
 
-#include <ignition/msgs/pose.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
 namespace ignition
 {
@@ -36,7 +38,7 @@ namespace gazebo
   /// \<service\> : Set the service to receive view angle requests.
   /// \<legacy\> : Set to true to use with GzScene3D, false to use with
   /// MinimalScene. Defaults to true.
-  class ViewAngle : public ignition::gui::Plugin
+  class ViewAngle : public gz::gui::Plugin
   {
     Q_OBJECT
 
@@ -52,6 +54,20 @@ namespace gazebo
       QList<double> camClipDist
       READ CamClipDist
       NOTIFY CamClipDistChanged
+    )
+
+    /// \brief view controller index for qml side (0: orbit; 1: ortho)
+    Q_PROPERTY(
+      int viewControlIndex
+      READ ViewControlIndex
+      NOTIFY ViewControlIndexChanged
+    )
+
+    /// \brief gui camera horizontal fov
+    Q_PROPERTY(
+      double horizontalFOV
+      READ HorizontalFOV
+      NOTIFY CamHorizontalFOVChanged
     )
 
     /// \brief Constructor
@@ -79,6 +95,26 @@ namespace gazebo
     /// \param[in] _mode New camera view controller
     public slots: void OnViewControl(const QString &_controller);
 
+    /// \brief Callback in Qt thread when camera view reference visual state
+    /// changes.
+    /// \param[in] _enable True to enable camera view control reference visual,
+    /// false to hide it
+    public slots: void OnViewControlReferenceVisual(bool _enable);
+
+    /// \brief Callback in Qt thread when camera view controller changes.
+    /// \param[in] _sensitivity View control sensitivity vlaue
+    public slots: void OnViewControlSensitivity(double _sensitivity);
+
+    /// \brief Updates gui camera's Horizontal fov
+    /// \param[in] _horizontalFOV Horizontal fov
+    public slots: void SetHorizontalFOV(double _horizontalFOV);
+
+    /// \brief Get the current gui horizontal fov.
+    public: Q_INVOKABLE double HorizontalFOV() const;
+
+    /// \brief Notify that the gui camera's horizontal fov changed
+    signals: void CamHorizontalFOVChanged();
+
     /// \brief Get the current gui camera pose.
     public: Q_INVOKABLE QList<double> CamPose() const;
 
@@ -95,6 +131,12 @@ namespace gazebo
     /// \param[in] _msg Pose message
     public: void CamPoseCb(const msgs::Pose &_msg);
 
+    /// \brief Move to model service received
+    /// \param[in] _msg GUI camera message
+    /// \param[in] _res Response
+    public: bool OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
+      ignition::msgs::Boolean &_res);
+
     /// \brief Get the current gui camera's near and far clipping distances
     public: Q_INVOKABLE QList<double> CamClipDist() const;
 
@@ -105,6 +147,12 @@ namespace gazebo
     /// \param[in] _near Near clipping plane distance
     /// \param[in] _far Far clipping plane distance
     public slots: void SetCamClipDist(double _near, double _far);
+
+    /// \brief Get the current index for view controller (on qml side)
+    public: int ViewControlIndex() const;
+
+    /// \brief Notify that the camera's view controller has changed
+    signals: void ViewControlIndexChanged();
 
     /// \internal
     /// \brief Pointer to private data.

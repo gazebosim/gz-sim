@@ -14,13 +14,13 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
-#define IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#ifndef GZ_GAZEBO_NETWORK_PEERINFO_HH_
+#define GZ_GAZEBO_NETWORK_PEERINFO_HH_
 
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/Export.hh>
 
 #include "NetworkRole.hh"
 #include "msgs/peer_info.pb.h"
@@ -64,5 +64,5 @@ namespace ignition
   }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_NETWORK_PEERINFO_HH_
+#endif  // GZ_GAZEBO_NETWORK_PEERINFO_HH_
 

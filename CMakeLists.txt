@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo6 VERSION 6.11.0)
+project(ignition-gazebo6 VERSION 6.15.0)
 set (GZ_DISTRIBUTION "Fortress")
 
 #============================================================================
@@ -15,7 +15,10 @@ find_package(ignition-cmake2 2.12.0 REQUIRED)
 #============================================================================
 # Configure the project
 #============================================================================
-ign_configure_project(VERSION_SUFFIX)
+ign_configure_project(
+  REPLACE_IGNITION_INCLUDE_PATH gz/sim
+  VERSION_SUFFIX
+)
 set (CMAKE_CXX_STANDARD 17)
 
 #============================================================================
@@ -35,6 +38,17 @@ if (UNIX AND NOT APPLE)
 else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
+
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
+set(skip_pybind11_default_value OFF)
+if (MSVC)
+  set(skip_pybind11_default_value ON)
+endif()
+
+option(SKIP_PYBIND11
+      "Skip generating Python bindings via pybind11"
+      ${skip_pybind11_default_value})
 
 include(test/find_dri.cmake)
 FindDRI()
@@ -60,7 +74,7 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-ign_find_package(sdformat12 REQUIRED VERSION 12.4)
+ign_find_package(sdformat12 REQUIRED VERSION 12.6)
 set(SDF_VER ${sdformat12_VERSION_MAJOR})
 
 #--------------------------------------
@@ -70,7 +84,7 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-transport
-ign_find_package(ignition-transport11 REQUIRED COMPONENTS log)
+ign_find_package(ignition-transport11 REQUIRED COMPONENTS log parameters)
 set(IGN_TRANSPORT_VER ${ignition-transport11_VERSION_MAJOR})
 
 #--------------------------------------
@@ -97,7 +111,7 @@ set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find ignition-gui
-ign_find_package(ignition-gui6 REQUIRED VERSION 6.5)
+ign_find_package(ignition-gui6 REQUIRED VERSION 6.8)
 set(IGN_GUI_VER ${ignition-gui6_VERSION_MAJOR})
 ign_find_package (Qt5
   COMPONENTS
@@ -173,9 +187,7 @@ set(IGN_UTILS_VER ${ignition-utils1_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
@@ -193,14 +205,17 @@ else()
 
   set(PYBIND11_PYTHON_VERSION 3)
   find_package(Python3 QUIET COMPONENTS Interpreter Development)
-  find_package(pybind11 2.2 QUIET)
 
-  if (${pybind11_FOUND})
-    message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
-	else()
-		IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
-		message (STATUS "Searching for pybind11 - not found.")
-	endif()
+  if (NOT SKIP_PYBIND11)
+    find_package(pybind11 2.2 QUIET)
+
+    if (${pybind11_FOUND})
+      message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
+    else()
+      IGN_BUILD_WARNING("pybind11 is missing: Python interfaces are disabled.")
+      message (STATUS "Searching for pybind11 - not found.")
+    endif()
+  endif()
 endif()
 # Plugin install dirs
 set(IGNITION_GAZEBO_PLUGIN_INSTALL_DIR
@@ -222,7 +237,7 @@ add_subdirectory(examples)
 #============================================================================
 ign_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================
@@ -235,7 +250,7 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_
 
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/ignitionrobotics/ign-gazebo/issues/520
+# https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
   ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"

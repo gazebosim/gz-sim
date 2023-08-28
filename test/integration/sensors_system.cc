@@ -25,35 +25,35 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/rendering/Events.hh"
+#include "gz/sim/rendering/Events.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace std::chrono_literals;
-namespace components = ignition::gazebo::components;
+namespace components = gz::sim::components;
 
 std::unordered_set<gazebo::Entity> g_sensorEntityIds;
 rendering::ScenePtr g_scene;
@@ -94,6 +94,39 @@ void testSensorEntityIds(const gazebo::EntityComponentManager &_ecm,
   }
 }
 
+/////////////////////////////////////////////////
+void testSensorTopicComponents(const gazebo::EntityComponentManager &_ecm,
+    const std::unordered_set<gazebo::Entity> &_ids,
+    const std::vector<std::string> &_topics)
+{
+  EXPECT_FALSE(_ids.empty());
+  for (const auto & id : _ids)
+  {
+    auto sensorTopicComp = _ecm.Component<gazebo::components::SensorTopic>(id);
+    EXPECT_TRUE(sensorTopicComp);
+    std::string topicStr = "/" + sensorTopicComp->Data();
+    EXPECT_FALSE(topicStr.empty());
+
+    // verify that the topic string stored in sensor topic component
+    // exits in the list of topics
+    // For rendering sensors, they may advertize more than one topics but
+    // the the sensor topic component will only contain one of them, e.g.
+    //   * <topic_prefix>/image - stored in sensor topic component
+    //   * <topic_prefix>/camera_info
+    bool foundTopic = false;
+    for (auto it = _topics.begin(); it != _topics.end(); ++it)
+    {
+      std::string topic = *it;
+      if (topic.find(topicStr) == 0u)
+      {
+        foundTopic = true;
+        break;
+      }
+    }
+    EXPECT_TRUE(foundTopic);
+  }
+}
+
 //////////////////////////////////////////////////
 class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 {
@@ -103,36 +136,25 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 
     sdf::Plugin sdfPlugin;
     sdfPlugin.SetFilename("libMockSystem.so");
-    sdfPlugin.SetName("ignition::gazebo::MockSystem");
+    sdfPlugin.SetName("gz::sim::MockSystem");
     auto plugin = sm.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
     this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<gazebo::MockSystem *>(
-        systemPtr->QueryInterface<gazebo::System>());
+    this->mockSystem = static_cast<sim::MockSystem *>(
+        systemPtr->QueryInterface<sim::System>());
   }
 
-  public: ignition::gazebo::SystemPluginPtr systemPtr;
-  public: gazebo::MockSystem *mockSystem;
+  public: gz::sim::SystemPluginPtr systemPtr;
+  public: gz::sim::MockSystem *mockSystem;
 
-  private: gazebo::SystemLoader sm;
+  private: gz::sim::SystemLoader sm;
 };
 
 //////////////////////////////////////////////////
-void testDefaultTopics()
+void testDefaultTopics(const std::vector<std::string> &_topics)
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
-  std::string prefix{"/world/camera_sensor/model/default_topics/"};
-  std::vector<std::string> topics{
-      prefix + "link/camera_link/sensor/camera/image",
-      prefix + "link/camera_link/sensor/camera/camera_info",
-      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
-      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
-      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
-      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
-      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image"
-  };
-
   std::vector<transport::MessagePublisher> publishers;
   transport::Node node;
 
@@ -140,14 +162,14 @@ void testDefaultTopics()
   // time
   int sleep{0};
   int maxSleep{30};
-  for (; sleep < maxSleep && !node.TopicInfo(topics.front(), publishers);
+  for (; sleep < maxSleep && !node.TopicInfo(_topics.front(), publishers);
       ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   ASSERT_LT(sleep, maxSleep);
 
-  for (const std::string &topic : topics)
+  for (const std::string &topic : _topics)
   {
     bool result = node.TopicInfo(topic, publishers);
 
@@ -162,7 +184,7 @@ void testDefaultTopics()
 /// are removed and then added back
 TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/sensor.sdf";
@@ -174,14 +196,14 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
   const sdf::World *sdfWorld = root.WorldByIndex(0);
   const sdf::Model *sdfModel = sdfWorld->ModelByIndex(0);
 
-  gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
 
   common::ConnectionPtr postRenderConn;
 
   // A pointer to the ecm. This will be valid once we run the mock system
-  gazebo::EntityComponentManager *ecm = nullptr;
+  gz::sim::EntityComponentManager *ecm = nullptr;
   this->mockSystem->preUpdateCallback =
-    [&ecm](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+    [&ecm](const gz::sim::UpdateInfo &, gz::sim::EntityComponentManager &_ecm)
     {
       ecm = &_ecm;
     };
@@ -199,16 +221,37 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
   server.Run(true, 50, false);
   ASSERT_NE(nullptr, ecm);
 
-  testDefaultTopics();
+  std::string prefix{"/world/camera_sensor/model/default_topics/"};
+  std::vector<std::string> topics{
+      prefix + "link/camera_link/sensor/camera/image",
+      prefix + "link/camera_link/sensor/camera/camera_info",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
+      prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/thermal_camera_link/sensor/thermal_camera/image",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/colored_map",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/labels_map",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/camera_info",
+      "/camera"
+  };
 
+  testDefaultTopics(topics);
   testSensorEntityIds(*ecm, g_sensorEntityIds);
+  testSensorTopicComponents(*ecm, g_sensorEntityIds, topics);
+
   g_sensorEntityIds.clear();
   g_scene.reset();
 
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
-  gazebo::EventManager dummyEventMgr;
-  gazebo::SdfEntityCreator creator(*ecm, dummyEventMgr);
+  gz::sim::EventManager dummyEventMgr;
+  gz::sim::SdfEntityCreator creator(*ecm, dummyEventMgr);
 
   unsigned int runs = 100;
   unsigned int runIterations = 2;
@@ -217,7 +260,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(
           components::Model(), components::Name(sdfModel->Name()));
-      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
 
       // Remove the first model in the world
       creator.RequestRemoveEntity(modelEntity, true);
@@ -230,7 +273,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
           components::Name(sdfModel->Name()));
 
       // Since the model is removed, we should get a null entity
-      EXPECT_EQ(gazebo::kNullEntity, modelEntity);
+      EXPECT_EQ(gz::sim::kNullEntity, modelEntity);
     }
 
     // Create the model again
@@ -245,7 +288,7 @@ TEST_F(SensorsFixture, IGN_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
     {
       auto modelEntity = ecm->EntityByComponents(components::Model(),
           components::Name(sdfModel->Name()));
-      EXPECT_NE(gazebo::kNullEntity, modelEntity);
+      EXPECT_NE(gz::sim::kNullEntity, modelEntity);
     }
   }
 }

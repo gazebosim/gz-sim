@@ -21,46 +21,46 @@
 #include <vector>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "VelocityControl.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::VelocityControlPrivate
 {
   /// \brief Callback for model velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for link velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnLinkCmdVel(const ignition::msgs::Twist &_msg,
-    const ignition::transport::MessageInfo &_info);
+  public: void OnLinkCmdVel(const msgs::Twist &_msg,
+    const transport::MessageInfo &_info);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update link velocity.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateLinkVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateLinkVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -180,8 +180,8 @@ void VelocityControl::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void VelocityControl::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void VelocityControl::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("VelocityControl::PreUpdate");
 
@@ -324,8 +324,8 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VeocityControl::UpdateVelocity");
 
@@ -336,8 +336,8 @@ void VelocityControlPrivate::UpdateVelocity(
 
 //////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateLinkVelocity(
-    const ignition::gazebo::UpdateInfo &/*_info*/,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+    const UpdateInfo &/*_info*/,
+    const EntityComponentManager &/*_ecm*/)
 {
   IGN_PROFILE("VelocityControl::UpdateLinkVelocity");
 
@@ -375,10 +375,14 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
 }
 
 IGNITION_ADD_PLUGIN(VelocityControl,
-                    ignition::gazebo::System,
+                    System,
                     VelocityControl::ISystemConfigure,
                     VelocityControl::ISystemPreUpdate,
                     VelocityControl::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
+                          "gz::sim::systems::VelocityControl")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(VelocityControl,
                           "ignition::gazebo::systems::VelocityControl")

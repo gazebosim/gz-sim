@@ -33,22 +33,22 @@
 #include "utils/DoorTimer.hh"
 #include "utils/JointMonitor.hh"
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/msgs/int32.pb.h>
-#include <ignition/msgs/laserscan.pb.h>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/laserscan.pb.h>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
 
 namespace ignition
 {
@@ -103,7 +103,7 @@ class ElevatorPrivate : public ElevatorCommonPrivate
   /// then publishes the new state
   /// \param[in] _info Current simulation step info
   /// \param[in] _ecm Entity component manager
-  public: void UpdateState(const ignition::gazebo::UpdateInfo &_info,
+  public: void UpdateState(const gz::sim::UpdateInfo &_info,
                            const EntityComponentManager &_ecm);
 
   /// \brief Callback for the door lidar scans
@@ -394,7 +394,7 @@ void ElevatorPrivate::SetCabinMonitor(
 }
 
 //////////////////////////////////////////////////
-void ElevatorPrivate::UpdateState(const ignition::gazebo::UpdateInfo &_info,
+void ElevatorPrivate::UpdateState(const gz::sim::UpdateInfo &_info,
                                   const EntityComponentManager &_ecm)
 {
   // Update state
@@ -444,6 +444,9 @@ void ElevatorPrivate::OnCmdMsg(const msgs::Int32 &_msg)
 IGNITION_ADD_PLUGIN(Elevator, System, Elevator::ISystemConfigure,
                     Elevator::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(Elevator, "gz::sim::systems::Elevator")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Elevator, "ignition::gazebo::systems::Elevator")
 
 }  // namespace systems

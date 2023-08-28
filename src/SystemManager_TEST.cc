@@ -17,12 +17,12 @@
 
 #include <gtest/gtest.h>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Types.hh"
-#include "ignition/gazebo/components/SystemPluginInfo.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/test_config.hh"  // NOLINT(build/include)
 
 #include "SystemManager.hh"
 
@@ -31,7 +31,8 @@ using namespace ignition::gazebo;
 /////////////////////////////////////////////////
 class SystemWithConfigure:
   public System,
-  public ISystemConfigure
+  public ISystemConfigure,
+  public ISystemConfigureParameters
 {
   // Documentation inherited
   public: void Configure(
@@ -40,7 +41,12 @@ class SystemWithConfigure:
                 EntityComponentManager &,
                 EventManager &) override { configured++; };
 
+  public: void ConfigureParameters(
+                ignition::transport::parameters::ParametersRegistry &,
+                EntityComponentManager &) override { configuredParameters++; }
+
   public: int configured = 0;
+  public: int configuredParameters = 0;
 };
 
 /////////////////////////////////////////////////
@@ -99,6 +105,7 @@ TEST(SystemManager, AddSystemNoEcm)
 
   // SystemManager without an ECM/EventmManager will mean no config occurs
   EXPECT_EQ(0, configSystem->configured);
+  EXPECT_EQ(0, configSystem->configuredParameters);
 
   EXPECT_EQ(0u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());
@@ -150,7 +157,10 @@ TEST(SystemManager, AddSystemEcm)
   auto ecm = EntityComponentManager();
   auto eventManager = EventManager();
 
-  SystemManager systemMgr(loader, &ecm, &eventManager);
+  auto paramRegistry = std::make_unique<
+    ignition::transport::parameters::ParametersRegistry>("SystemManager_TEST");
+  SystemManager systemMgr(
+    loader, &ecm, &eventManager, std::string(), paramRegistry.get());
 
   EXPECT_EQ(0u, systemMgr.ActiveCount());
   EXPECT_EQ(0u, systemMgr.PendingCount());
@@ -165,6 +175,7 @@ TEST(SystemManager, AddSystemEcm)
 
   // Configure called during AddSystem
   EXPECT_EQ(1, configSystem->configured);
+  EXPECT_EQ(1, configSystem->configuredParameters);
 
   EXPECT_EQ(0u, systemMgr.ActiveCount());
   EXPECT_EQ(1u, systemMgr.PendingCount());

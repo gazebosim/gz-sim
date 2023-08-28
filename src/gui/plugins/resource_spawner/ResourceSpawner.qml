@@ -98,14 +98,15 @@ Rectangle {
           border.color: "gray"
           border.width: 1
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 25
+          Layout.preferredHeight: 35
           Layout.fillWidth: true
+          Layout.leftMargin: -border.width
+          Layout.rightMargin: -border.width
           Label {
-            topPadding: 2
-            leftPadding: 5
+            padding: 5
             text: "Local resources"
             anchors.fill: parent
-            font.pointSize: 12
+            font.pointSize: 14
           }
         }
         TreeView {
@@ -121,6 +122,7 @@ Rectangle {
           verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
           headerVisible: false
           backgroundVisible: false
+          frameVisible: false
 
           headerDelegate: Rectangle {
             visible: false
@@ -143,7 +145,7 @@ Rectangle {
               height: treeItemHeight
             }
             itemDelegate: Rectangle {
-              id: item
+              id: localItem
               color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
               height: treeItemHeight
 
@@ -188,7 +190,7 @@ Rectangle {
               ToolTip {
                 visible: ma.containsMouse
                 delay: 500
-                y: item.z - 30
+                y: localItem.z - 30
                 text: model === null ?
                 "?" : model.path
                 enter: null
@@ -207,100 +209,136 @@ Rectangle {
           color: evenColor
           border.color: "gray"
           Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 25
+          Layout.preferredHeight: 35
           Layout.fillWidth: true
+          border.width: 1
+          Layout.leftMargin: -border.width
+          Layout.rightMargin: -border.width
+          Layout.topMargin: -border.width
           Label {
             text: "Fuel resources"
-            topPadding: 2
-            leftPadding: 5
+            padding: 5
             anchors.fill: parent
-            font.pointSize: 12
+            font.pointSize: 14
           }
         }
-        TreeView {
-          id: treeView2
+
+        ListView {
+          id: listView
           model: OwnerList
-          // For some reason, SingleSelection is not working
-          selectionMode: SelectionMode.MultiSelection
-          verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
-          headerVisible: false
-          backgroundVisible: false
-          Layout.minimumWidth: 300
-          Layout.alignment: Qt.AlignCenter
           Layout.fillWidth: true
           Layout.fillHeight: true
+          Layout.minimumWidth: 300
+          clip: true
 
-          headerDelegate: Rectangle {
-            visible: false
+          ScrollBar.vertical: ScrollBar {
+            active: true;
           }
 
-          TableViewColumn
-          {
-            role: "name"
-          }
-
-          selection: ItemSelectionModel {
-            model: OwnerList
-          }
-
-          style: TreeViewStyle {
-            indentation: 0
-            rowDelegate: Rectangle {
-              id: row2
-              color: Material.background
-              height: treeItemHeight
+          delegate: Rectangle {
+            id: fuelItem2
+            color: ListView.view.currentIndex == index ? Material.accent : (index % 2 == 0) ? evenColor : oddColor
+            height: treeItemHeight
+            width: ListView.view.width
+            ListView.onAdd : {
+              ListView.view.currentIndex = index
             }
-            itemDelegate: Rectangle {
-              id: item
-              color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
-              height: treeItemHeight
 
-              anchors.top: parent.top
-              anchors.right: parent.right
+            ListView.onCurrentItemChanged: {
+              if (index >= 0) {
+                currentPath = model.path
+                ResourceSpawner.OnOwnerClicked(model.path)
+                ResourceSpawner.DisplayResources();
+                treeView.selection.clearSelection()
+                gridView.currentIndex = -1
+              }
+            }
+
+            MouseArea {
+              anchors.fill: parent
+              onClicked: {
+                listView.currentIndex = index
+              }
+            }
+
+            RowLayout {
+              anchors.fill: parent
+              anchors.leftMargin: 10
+              anchors.rightMargin: 10
+              clip: true
 
               Image {
-                id: dirIcon
-                source: styleData.selected ? "folder_open.png" : "folder_closed.png"
-                height: treeItemHeight * 0.6
-                width: treeItemHeight * 0.6
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
+                id: dirIcon2
+                source: listView.currentIndex == index ? "folder_open.png" : "folder_closed.png"
+                Layout.preferredHeight: treeItemHeight * 0.6
+                Layout.preferredWidth: treeItemHeight * 0.6
               }
 
               Label {
-                text: (model === null) ? "" : model.path
+                text: model.path
+                Layout.fillWidth: true
                 elide: Text.ElideMiddle
                 font.pointSize: 12
-                anchors.leftMargin: 1
-                anchors.left: dirIcon.right
-                anchors.verticalCenter: parent.verticalCenter
                 leftPadding: 2
               }
 
-              MouseArea {
-                id: ma
-                anchors.fill: parent
-                propagateComposedEvents: true
-                hoverEnabled: true
+              Button {
+                // unicode for emdash (—)
+                text: "\u2014"
+                flat: true
+                Layout.fillHeight : true
+                Layout.preferredWidth: 30
+                visible: !ResourceSpawner.IsDefaultOwner(model.path)
+
                 onClicked: {
-                  ResourceSpawner.OnOwnerClicked(model.path)
-                  ResourceSpawner.DisplayResources();
-                  treeView2.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
-                  treeView.selection.clearSelection()
-                  currentPath = model.path
-                  gridView.currentIndex = -1
-                  mouse.accepted = false
+                  ResourceSpawner.RemoveOwner(model.path)
                 }
               }
+            }
+          }
+        }
 
-              ToolTip {
-                visible: ma.containsMouse
-                delay: 500
-                y: item.z - 30
-                text: model === null ?
-                "?" : model.path
-                enter: null
-                exit: null
+        // Add owner button
+        Rectangle {
+          id: addOwnerBar
+          color: evenColor
+          Layout.minimumHeight: 50
+          Layout.fillWidth: true
+          clip:true
+          RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            spacing: 10
+
+            TextField {
+              Layout.fillWidth: true
+              id: ownerInput
+              selectByMouse: true
+              color: Material.theme == Material.Light ? "black" : "white"
+              placeholderText: "Add owner"
+              function processInput() {
+                if (text != "" && ResourceSpawner.AddOwner(text)) {
+                  text = ""
+                }
+              }
+              onAccepted: {
+                processInput();
+              }
+            }
+
+            RoundButton {
+              Material.background: Material.Green
+              contentItem: Label {
+                text: "+"
+                color: "white"
+                font.pointSize: 30
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+              }
+              padding: 0
+              onClicked: {
+                ownerInput.processInput()
               }
             }
           }
@@ -322,6 +360,7 @@ Rectangle {
         RowLayout {
           id: rowLayout
           spacing: 7
+          anchors.fill: parent
           Rectangle {
             color: "transparent"
             height: 25
@@ -354,10 +393,11 @@ Rectangle {
           }
           Rectangle {
             color: "transparent"
-            height: 50
+            implicitHeight: sortComboBox.implicitHeight
             Layout.minimumWidth: 140
             Layout.preferredWidth: (searchSortBar.width - 80) / 2
             ComboBox {
+              id: sortComboBox
               anchors.fill: parent
               model: ListModel {
                 id: cbItems
@@ -379,9 +419,9 @@ Rectangle {
         Layout.fillWidth: true
         Layout.minimumWidth: 300
         height: 40
-        color: "transparent"
+        color: Material.accent
         Label {
-          text: currentPath
+          text: currentPath ? "Owner: " + currentPath + " (" + gridView.model.totalCount + ")" : ""
           font.pointSize: 12
           elide: Text.ElideMiddle
           anchors.margins: 5
@@ -420,6 +460,8 @@ Rectangle {
               layer.effect: ElevationEffect {
                 elevation: 6
               }
+              border.width: 1
+              border.color: "lightgray"
             }
 
             ColumnLayout {
@@ -438,7 +480,7 @@ Rectangle {
                 Layout.margins: 1
                 source: (model.isFuel && !model.isDownloaded) ?
                 "DownloadToUse.png" :
-                (model.thumbnail == "" ?
+                (model.thumbnail === "" ?
                 "NoThumbnail.png" : "file:" + model.thumbnail)
                 fillMode: Image.PreserveAspectFit
               }
@@ -470,6 +512,7 @@ Rectangle {
               modal: true
               focus: true
               title: "Note"
+              standardButtons: Dialog.Ok
               Rectangle {
                 color: "transparent"
                 anchors.fill: parent
@@ -516,6 +559,31 @@ Rectangle {
           }
         }
       }
+    }
+  }
+
+  // Dialog for error messages
+  Dialog {
+    id: messageDialog
+    width: 360
+    height: 150
+    parent: resourceSpawner.Window.window ? resourceSpawner.Window.window.contentItem : resourceSpawner
+    x: Math.round((parent.width - width) / 2)
+    y: Math.round((parent.height - height) / 2)
+    modal: true
+    focus: true
+    title: "Error"
+    standardButtons: Dialog.Ok
+    contentItem: Text {
+      text: ""
+    }
+  }
+
+  Connections {
+    target: ResourceSpawner
+    onResourceSpawnerError : {
+      messageDialog.contentItem.text = _errorMsg
+      messageDialog.visible = true
     }
   }
 }

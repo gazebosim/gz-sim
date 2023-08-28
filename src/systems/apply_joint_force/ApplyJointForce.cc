@@ -19,23 +19,23 @@
 
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::ApplyJointForcePrivate
 {
   /// \brief Callback for joint force subscription
   /// \param[in] _msg Joint force message
-  public: void OnCmdForce(const ignition::msgs::Double &_msg);
+  public: void OnCmdForce(const msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -111,8 +111,8 @@ void ApplyJointForce::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void ApplyJointForce::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("ApplyJointForce::PreUpdate");
 
@@ -164,9 +164,13 @@ void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(ApplyJointForce,
-                    ignition::gazebo::System,
+                    System,
                     ApplyJointForce::ISystemConfigure,
                     ApplyJointForce::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
+                          "gz::sim::systems::ApplyJointForce")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ApplyJointForce,
                           "ignition::gazebo::systems::ApplyJointForce")

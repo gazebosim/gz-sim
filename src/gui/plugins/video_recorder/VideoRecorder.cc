@@ -17,25 +17,25 @@
 
 #include "VideoRecorder.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/video_record.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/VideoEncoder.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/VideoEncoder.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 /// \brief condition variable for lockstepping video recording
 /// todo(anyone) avoid using a global condition variable when we support
@@ -122,7 +122,7 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::Initialize()
@@ -360,14 +360,14 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
            << "MinimalScene." << std::endl;
   }
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -386,13 +386,13 @@ void VideoRecorder::OnStart(const QString &_format)
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record start request" << std::endl;
     };
-    ignition::msgs::VideoRecord req;
+    msgs::VideoRecord req;
     req.set_start(this->dataPtr->recordVideo);
     req.set_format(this->dataPtr->format);
     req.set_save_filename(this->dataPtr->filename);
@@ -408,14 +408,14 @@ void VideoRecorder::OnStop()
 
   if (this->dataPtr->legacy)
   {
-    std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-        [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+    std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
         ignerr << "Error sending video record stop request" << std::endl;
     };
 
-    ignition::msgs::VideoRecord req;
+    msgs::VideoRecord req;
     req.set_stop(true);
     this->dataPtr->node.Request(this->dataPtr->service, req, cb);
   }
@@ -462,5 +462,5 @@ void VideoRecorder::OnCancel()
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VideoRecorder,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(VideoRecorder,
+                    gz::gui::Plugin)

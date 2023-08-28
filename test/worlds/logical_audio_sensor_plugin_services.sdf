@@ -11,7 +11,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-logicalaudiosensorplugin-system"
-        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>0 0 0 0 0 0</pose>
@@ -32,7 +32,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-logicalaudiosensorplugin-system"
-        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>2</id>
           <pose>0 0 0 0 0 0</pose>

@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include <ignition/msgs/wrench.pb.h>
+#include <gz/msgs/wrench.pb.h>
 
 #include <map>
 #include <mutex>
@@ -23,37 +23,37 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Mesh.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/CenterOfVolume.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Volume.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CenterOfVolume.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Volume.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "Buoyancy.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::BuoyancyPrivate
@@ -337,8 +337,8 @@ void Buoyancy::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void Buoyancy::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Buoyancy::PreUpdate");
   const components::Gravity *gravity = _ecm.Component<components::Gravity>(
@@ -376,8 +376,8 @@ void Buoyancy::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         _entity, components::Collision());
 
     double volumeSum = 0;
-    ignition::math::Vector3d weightedPosInLinkSum =
-      ignition::math::Vector3d::Zero;
+    math::Vector3d weightedPosInLinkSum =
+      math::Vector3d::Zero;
 
     // Compute the volume of the link by iterating over all the collision
     // elements and storing each geometry's volume.
@@ -581,9 +581,13 @@ bool Buoyancy::IsEnabled(Entity _entity,
 }
 
 IGNITION_ADD_PLUGIN(Buoyancy,
-                    ignition::gazebo::System,
+                    System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
+                          "gz::sim::systems::Buoyancy")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Buoyancy,
                           "ignition::gazebo::systems::Buoyancy")

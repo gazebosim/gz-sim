@@ -1,9 +1,9 @@
 \page gui_config GUI Configuration
 
 Ignition Gazebo's graphical user interface is powered by
-[Ignition GUI](https://ignitionrobotics.org/libs/gui). Therefore, Gazebo's
+[Ignition GUI](https://gazebosim.org/libs/gui). Therefore, Gazebo's
 GUI layout can be defined in
-[Ignition GUI configuration files](https://ignitionrobotics.org/api/gui/2.1/config.html).
+[Ignition GUI configuration files](https://gazebosim.org/api/gui/2.1/config.html).
 These are XML files that describe what plugins to be loaded and with what
 settings.
 
@@ -81,7 +81,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
   <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -104,11 +104,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
     </gui>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo</uri>
     </include>
 
   </world>

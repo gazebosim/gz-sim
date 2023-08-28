@@ -17,30 +17,30 @@
 
 #include "JointPositionController.hh"
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 #include <unordered_set>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/PID.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/PID.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/Model.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
-  public: void OnCmdPos(const ignition::msgs::Double &_msg);
+  public: void OnCmdPos(const msgs::Double &_msg);
 
   /// \brief Ignition communication node.
   public: transport::Node node;
@@ -57,11 +57,14 @@ class ignition::gazebo::systems::JointPositionControllerPrivate
   /// \brief mutex to protect joint commands
   public: std::mutex jointCmdMutex;
 
+  /// \brief Is the maximum PID gain set.
+  public: bool isMaxSet {false};
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
   /// \brief Position PID controller.
-  public: ignition::math::PID posPid;
+  public: math::PID posPid;
 
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
@@ -149,6 +152,7 @@ void JointPositionController::Configure(const Entity &_entity,
   if (_sdf->HasElement("cmd_max"))
   {
     cmdMax = _sdf->Get<double>("cmd_max");
+    this->dataPtr->isMaxSet = true;
   }
   if (_sdf->HasElement("cmd_min"))
   {
@@ -218,8 +222,8 @@ void JointPositionController::Configure(const Entity &_entity,
 
 //////////////////////////////////////////////////
 void JointPositionController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("JointPositionController::PreUpdate");
 
@@ -306,14 +310,14 @@ void JointPositionController::PreUpdate(
     auto maxMovement = this->dataPtr->posPid.CmdMax() * dt;
 
     // Limit the maximum change to maxMovement
-    if (abs(error) > maxMovement)
+    if (abs(error) > maxMovement && this->dataPtr->isMaxSet)
     {
       targetVel = (error < 0) ? this->dataPtr->posPid.CmdMax() :
         -this->dataPtr->posPid.CmdMax();
     }
     else
     {
-      targetVel = -error;
+      targetVel = - error / dt;
     }
 
     // Set velocity and return
@@ -357,9 +361,13 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
 }
 
 IGNITION_ADD_PLUGIN(JointPositionController,
-                    ignition::gazebo::System,
+                    System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+                          "gz::sim::systems::JointPositionController")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
                           "ignition::gazebo::systems::JointPositionController")

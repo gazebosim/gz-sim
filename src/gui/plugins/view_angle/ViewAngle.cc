@@ -17,26 +17,27 @@
 
 #include "ViewAngle.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/gui_camera.pb.h>
-#include <ignition/msgs/vector3d.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/gui_camera.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/MoveToHelper.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Angle.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/MoveToHelper.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 namespace ignition::gazebo
 {
@@ -60,8 +61,30 @@ namespace ignition::gazebo
     /// \brief View Control service name
     public: std::string viewControlService;
 
+    /// \brief View Control reference visual service name
+    public: std::string viewControlRefVisualService;
+
+    /// \brief View Control sensitivity service name
+    public: std::string viewControlSensitivityService;
+
     /// \brief Move gui camera to pose service name
     public: std::string moveToPoseService;
+
+    /// \brief Move gui camera to model service name
+    public: std::string moveToModelService;
+
+    /// \brief New move to model message
+    public: bool newMoveToModel = false;
+
+    /// \brief Distance of the camera to the model
+    public: double distanceMoveToModel = 0.0;
+
+    /// \brief Camera horizontal fov
+    public: double horizontalFov = 0.0;
+
+    /// \brief Flag indicating if there is a new camera horizontalFOV
+    /// coming from qml side
+    public: bool newHorizontalFOV = false;
 
     /// \brief gui camera pose
     public: math::Pose3d camPose;
@@ -77,6 +100,19 @@ namespace ignition::gazebo
     /// used to update qml side
     /// \return True if there is a new clipping distance from gui camera
     public: bool UpdateQtCamClipDist();
+
+    /// \brief View Control type
+    public: rendering::CameraProjectionType viewControlType =
+              rendering::CameraProjectionType::CPT_PERSPECTIVE;
+
+    /// \brief Checks if there is a new view controller, used to update qml side
+    /// \return True if there is a new view controller from gui camera
+    public: bool UpdateQtViewControl();
+
+    /// \brief Checks if there is new camera horizontal fov from gui camera,
+    /// used to update qml side
+    /// \return True if there is a new horizontal fov from gui camera
+    public: bool UpdateQtCamHorizontalFOV();
 
     /// \brief User camera
     public: rendering::CameraPtr camera{nullptr};
@@ -109,11 +145,11 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 ViewAngle::ViewAngle()
-  : ignition::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
+  : gz::gui::Plugin(), dataPtr(std::make_unique<ViewAnglePrivate>())
 {
 }
 
@@ -140,6 +176,14 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   // view control requests
   this->dataPtr->viewControlService = "/gui/camera/view_control";
 
+  // view control reference visual requests
+  this->dataPtr->viewControlRefVisualService =
+      "/gui/camera/view_control/reference_visual";
+
+  // view control sensitivity requests
+  this->dataPtr->viewControlSensitivityService =
+      "/gui/camera/view_control/sensitivity";
+
   // Subscribe to camera pose
   std::string topic = "/gui/camera/pose";
   this->dataPtr->node.Subscribe(
@@ -148,14 +192,21 @@ void ViewAngle::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   // Move to pose service
   this->dataPtr->moveToPoseService = "/gui/move_to/pose";
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  // Move to model service
+  this->dataPtr->moveToModelService = "/gui/move_to/model";
+  this->dataPtr->node.Advertise(this->dataPtr->moveToModelService,
+      &ViewAngle::OnMoveToModelService, this);
+  ignmsg << "Move to model service on ["
+         << this->dataPtr->moveToModelService << "]" << std::endl;
+
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
 
@@ -163,6 +214,17 @@ bool ViewAngle::eventFilter(QObject *_obj, QEvent *_event)
     if (this->dataPtr->UpdateQtCamClipDist())
     {
       this->CamClipDistChanged();
+    }
+
+    // updates qml cam horizontal fov spin boxes if changed
+    if (this->dataPtr->UpdateQtCamHorizontalFOV())
+    {
+      this->CamHorizontalFOVChanged();
+    }
+
+    if (this->dataPtr->UpdateQtViewControl())
+    {
+      this->ViewControlIndexChanged();
     }
   }
   else if (_event->type() ==
@@ -248,6 +310,46 @@ void ViewAngle::OnViewControl(const QString &_controller)
 }
 
 /////////////////////////////////////////////////
+void ViewAngle::OnViewControlReferenceVisual(bool _enable)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller reference visual" << std::endl;
+  };
+
+  msgs::Boolean req;
+  req.set_data(_enable);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlRefVisualService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::OnViewControlSensitivity(double _sensitivity)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller sensitivity" << std::endl;
+  };
+
+  if (_sensitivity <= 0.0)
+  {
+    ignerr << "View controller sensitivity must be greater than 0" << std::endl;
+    return;
+  }
+
+  msgs::Double req;
+  req.set_data(_sensitivity);
+
+  this->dataPtr->node.Request(
+      this->dataPtr->viewControlSensitivityService, req, cb);
+}
+
+/////////////////////////////////////////////////
 QList<double> ViewAngle::CamPose() const
 {
   return QList({
@@ -289,6 +391,84 @@ void ViewAngle::SetCamPose(double _x, double _y, double _z,
 }
 
 /////////////////////////////////////////////////
+bool ViewAngle::OnMoveToModelService(const ignition::msgs::GUICamera &_msg,
+  ignition::msgs::Boolean &_res)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  auto scene = this->dataPtr->camera->Scene();
+
+  auto visualToMove = scene->VisualByName(_msg.name());
+  if (nullptr == visualToMove)
+  {
+    ignerr << "Failed to get visual with ID ["
+           << _msg.name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+  Entity entityId = kNullEntity;
+  try
+  {
+    // TODO(ahcorde): When forward porting this to Garder change var type to
+    // unsigned int
+    entityId = std::get<int>(visualToMove->UserData("gazebo-entity"));
+  }
+  catch(std::bad_variant_access &_e)
+  {
+    ignerr << "Failed to get gazebo-entity user data ["
+           << visualToMove->Name() << "]" << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  math::Quaterniond q(
+    _msg.pose().orientation().w(),
+    _msg.pose().orientation().x(),
+    _msg.pose().orientation().y(),
+    _msg.pose().orientation().z());
+
+  ignition::math::Vector3d axis;
+  double angle;
+  q.ToAxis(axis, angle);
+
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      ignerr << "Error setting view controller" << std::endl;
+  };
+
+  msgs::StringMsg req;
+  std::string str = _msg.projection_type();
+  if (str.find("Orbit") != std::string::npos ||
+      str.find("orbit") != std::string::npos)
+  {
+    req.set_data("orbit");
+  }
+  else if (str.find("Ortho") != std::string::npos ||
+           str.find("ortho") != std::string::npos )
+  {
+    req.set_data("ortho");
+  }
+  else
+  {
+    ignerr << "Unknown view controller selected: " << str << std::endl;
+    _res.set_data(false);
+    return false;
+  }
+
+  this->dataPtr->node.Request(this->dataPtr->viewControlService, req, cb);
+
+  this->dataPtr->viewingAngle = true;
+  this->dataPtr->newMoveToModel = true;
+  this->dataPtr->viewAngleDirection = axis;
+  this->dataPtr->distanceMoveToModel = _msg.pose().position().z();
+  this->dataPtr->selectedEntities.push_back(entityId);
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
@@ -299,6 +479,19 @@ void ViewAngle::CamPoseCb(const msgs::Pose &_msg)
     this->dataPtr->camPose = pose;
     this->CamPoseChanged();
   }
+}
+
+/////////////////////////////////////////////////
+double ViewAngle::HorizontalFOV() const
+{
+  return this->dataPtr->horizontalFov;
+}
+
+/////////////////////////////////////////////////
+void ViewAngle::SetHorizontalFOV(double _horizontalFOV)
+{
+  this->dataPtr->horizontalFov = _horizontalFOV;
+  this->dataPtr->newHorizontalFOV = true;
 }
 
 /////////////////////////////////////////////////
@@ -435,6 +628,13 @@ void ViewAnglePrivate::OnRender()
     this->camera->SetFarClipPlane(this->camClipDist[1]);
     this->newCamClipDist = false;
   }
+
+  // Camera horizontalFOV
+  if (this->newHorizontalFOV)
+  {
+    this->camera->SetHFOV(gz::math::Angle(this->horizontalFov));
+    this->newHorizontalFOV = false;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -442,6 +642,47 @@ void ViewAnglePrivate::OnComplete()
 {
   this->viewingAngle = false;
   this->moveToPoseValue.reset();
+  if (this->newMoveToModel)
+  {
+    this->selectedEntities.pop_back();
+    this->newMoveToModel = false;
+
+    auto cameraPose = this->camera->WorldPose();
+    auto distance = -(this->viewAngleDirection * this->distanceMoveToModel);
+
+    if (!math::equal(this->viewAngleDirection.X(), 0.0))
+    {
+      cameraPose.Pos().X(distance.X());
+    }
+    if (!math::equal(this->viewAngleDirection.Y(), 0.0))
+    {
+      cameraPose.Pos().Y(distance.Y());
+    }
+    if (!math::equal(this->viewAngleDirection.Z(), 0.0))
+    {
+      cameraPose.Pos().Z(distance.Z());
+    }
+
+    this->moveToPoseValue = {
+      cameraPose.Pos().X(),
+      cameraPose.Pos().Y(),
+      cameraPose.Pos().Z(),
+      cameraPose.Rot().Roll(),
+      cameraPose.Rot().Pitch(),
+      cameraPose.Rot().Yaw()};
+  }
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtCamHorizontalFOV()
+{
+  bool updated = false;
+  if (std::abs(this->camera->HFOV().Radian() - this->horizontalFov) > 0.0001)
+  {
+    this->horizontalFov = this->camera->HFOV().Radian();
+    updated = true;
+  }
+  return updated;
 }
 
 /////////////////////////////////////////////////
@@ -462,6 +703,31 @@ bool ViewAnglePrivate::UpdateQtCamClipDist()
   return updated;
 }
 
+/////////////////////////////////////////////////
+int ViewAngle::ViewControlIndex() const
+{
+  if (this->dataPtr->viewControlType ==
+        rendering::CameraProjectionType::CPT_PERSPECTIVE)
+    return 0;
+
+  return 1;
+}
+
+/////////////////////////////////////////////////
+bool ViewAnglePrivate::UpdateQtViewControl()
+{
+  if (!this->camera)
+    return false;
+
+  if (this->camera->ProjectionType() != this->viewControlType)
+  {
+    this->viewControlType = this->camera->ProjectionType();
+    return true;
+  }
+
+  return false;
+}
+
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::ViewAngle,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(ViewAngle,
+                    gz::gui::Plugin)

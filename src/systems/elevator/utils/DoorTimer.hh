@@ -20,14 +20,14 @@
  * \date January 2021
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
+#define GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
 
 #include <chrono>
 #include <functional>
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -76,4 +76,4 @@ class DoorTimer
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif  // IGNITION_GAZEBO_SYSTEMS_DOOR_TIMER_HH_
+#endif  // GZ_GAZEBO_SYSTEMS_DOOR_TIMER_HH_

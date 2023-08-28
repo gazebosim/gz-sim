@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
-#define IGNITION_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
+#ifndef GZ_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
+#define GZ_GAZEBO_CAMERAVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -51,7 +51,7 @@ namespace systems
   ///
   ///   <bitrate> Video recorder bitrate (bps). The default value is
   ///             2070000 bps, and the supported type is unsigned int.
-  class CameraVideoRecorder:
+  class CameraVideoRecorder final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
