@@ -1713,9 +1713,16 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
                   .EntityCast<MimicConstraintJointFeatureList>(existingJoint);
               if (jointPtrMimic)
               {
+                const auto leaderJoint =
+                    basicModelPtrPhys->GetJoint(mimic->Joint());
+                std::size_t leaderAxis = 0;
+                if (mimic->Axis() == "axis2")
+                {
+                  leaderAxis = 1;
+                }
                 jointPtrMimic->SetMimicConstraint(axisIndex,
-                    mimic->Joint(),
-                    mimic->Axis(),
+                    leaderJoint,
+                    leaderAxis,
                     mimic->Multiplier(),
                     mimic->Offset(),
                     mimic->Reference());
