@@ -452,3 +452,8 @@ extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
   return gz::sim::gui::runGui(
     argc, argv, _guiConfig, _file, _waitGui, _renderEngine);
 }
+
+int main(int argc, char* argv[])
+{
+  return sim::gui::runGui(argc, argv, nullptr);
+}

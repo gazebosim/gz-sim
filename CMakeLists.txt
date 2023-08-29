@@ -38,12 +38,19 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
-include(test/find_dri.cmake)
-FindDRI()
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
+set(skip_pybind11_default_value OFF)
+if (MSVC)
+  set(skip_pybind11_default_value ON)
+endif()
 
 option(SKIP_PYBIND11
       "Skip generating Python bindings via pybind11"
-      OFF)
+      ${skip_pybind11_default_value})
+
+include(test/find_dri.cmake)
+FindDRI()
 
 include(CMakeDependentOption)
 cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
@@ -236,7 +243,7 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================

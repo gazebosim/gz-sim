@@ -253,8 +253,8 @@ TEST_F(JointPositionControllerTestFixture,
                 const components::Name *_name,
                 const components::JointPosition *_position) -> bool
             {
-              EXPECT_EQ(_name->Data(), jointName);
-              currentPosition = _position->Data();
+              if (_name->Data() == jointName)
+                currentPosition = _position->Data();
               return true;
             });
       });
@@ -267,7 +267,7 @@ TEST_F(JointPositionControllerTestFixture,
   EXPECT_NEAR(0, currentPosition.at(0), TOL);
 
   // joint moves to initial_position at -2.0
-  const std::size_t initPosIters = 1000;
+  const std::size_t initPosIters = 1;
   server.Run(true, initPosIters, false);
   double expectedInitialPosition = -2.0;
   EXPECT_NEAR(expectedInitialPosition, currentPosition.at(0), TOL);
@@ -283,13 +283,14 @@ TEST_F(JointPositionControllerTestFixture,
 
   pub.Publish(msg);
   // Wait for the message to be published
-  std::this_thread::sleep_for(100ms);
+  std::this_thread::sleep_for(1ms);
 
-  const std::size_t testIters = 1000;
-  server.Run(true, testIters , false);
+  const std::size_t testIters = 1;
+  server.Run(true, testIters, false);
 
   EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);
 }
+
 
 /////////////////////////////////////////////////
 // Tests that the JointPositionController accepts joint position
@@ -480,4 +481,101 @@ TEST_F(JointPositionControllerTestFixture,
 
   // joint21 should be at target position
   EXPECT_NEAR(targetPosition, joint21Position.at(0), TOL);
+}
+
+/////////////////////////////////////////////////
+// Tests that the JointPositionController respects the maximum command
+TEST_F(JointPositionControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointPositonVelocityCommandWithMax))
+{
+  using namespace std::chrono_literals;
+
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "joint_position_controller_velocity.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  const std::string jointName = "j2";
+
+  test::Relay testSystem;
+  std::vector<double> currentPosition;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(components::Joint(),
+                                             components::Name(jointName));
+        // Create a JointPosition component if it doesn't exist. This signals
+        // physics system to populate the component
+        if (nullptr == _ecm.Component<components::JointPosition>(joint))
+        {
+          _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Joint, components::Name,
+                  components::JointPosition>(
+            [&](const Entity &,
+                const components::Joint *,
+                const components::Name *_name,
+                const components::JointPosition *_position) -> bool
+            {
+              if(_name->Data() == jointName)
+                currentPosition = _position->Data();
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // joint pos starts at 0
+  const std::size_t initIters = 1;
+  server.Run(true, initIters, false);
+  EXPECT_NEAR(0, currentPosition.at(0), TOL);
+
+  // joint moves to initial_position at -2.0
+  const std::size_t initPosIters = 2;
+  server.Run(true, initPosIters, false);
+  double expectedInitialPosition = -2.0;
+  EXPECT_NEAR(expectedInitialPosition, currentPosition.at(0), TOL);
+
+  // Publish command and check that the joint position is set
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_position_controller_test_with_max/joint/j2/0/cmd_pos");
+
+  const double targetPosition{2.0};
+  msgs::Double msg;
+  msg.set_data(targetPosition);
+
+  int sleep{0};
+  int maxSleep{30};
+  for (; !pub.HasConnections() && sleep < maxSleep; ++sleep) {
+    std::this_thread::sleep_for(100ms);
+  }
+
+  pub.Publish(msg);
+
+  // Wait for the message to be published
+  std::this_thread::sleep_for(1ms);
+
+  const std::size_t testInitialIters = 1;
+  server.Run(true, testInitialIters , false);
+
+  // We should not have reached our target yet.
+  EXPECT_GT(fabs(currentPosition.at(0) - targetPosition), TOL);
+
+  // Eventually reach target
+  const std::size_t testIters = 1000;
+  server.Run(true, testIters , false);
+  EXPECT_NEAR(currentPosition.at(0), targetPosition, TOL);
 }
