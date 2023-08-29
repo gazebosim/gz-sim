@@ -289,15 +289,15 @@ void TrackController::Configure(const Entity &_entity,
 
   double odometryFreq = _sdf->Get<double>(
     "odometry_publish_frequency", 50).first;
-  std::chrono::duration<double> odometryPer{0.0};
+  std::chrono::duration<double> odomPer{0.0};
   if (odometryFreq > 0)
   {
-    odometryPer = std::chrono::duration<double>(1 / odometryFreq);
+    odomPer = std::chrono::duration<double>(1 / odometryFreq);
     this->dataPtr->odometryPubPeriod =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odometryPer);
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
   }
   gzdbg << "Publishing odometry to " << odometryTopic
-    << " with period " << odometryPer.count() << " seconds." << std::endl;
+    << " with period " << odomPer.count() << " seconds." << std::endl;
 
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(

@@ -550,19 +550,19 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
     // check reported odometry pose and twist
-    EXPECT_NEAR(0, odometryMsg.pose().position().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().position().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().position().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().w() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().z() ,1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
 
     poses.clear();
     odomMsgCounter = 0;
@@ -598,19 +598,19 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
     // check reported odometry pose and twist
-    EXPECT_NEAR(0.125, odometryMsg.pose().position().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.pose().position().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().position().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().w() ,1e-6);
-    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().z() ,1e-6);
+    EXPECT_NEAR(0.125, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
 
     server.Run(true, 1000, false);
 
@@ -629,19 +629,19 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
     // check reported odometry pose and twist
-    EXPECT_NEAR(0.5, odometryMsg.pose().position().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.pose().position().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().position().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().w() ,1e-6);
-    EXPECT_NEAR(0.5, odometryMsg.twist().linear().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().z() ,1e-6);
+    EXPECT_NEAR(0.5, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.5, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
 
     server.Run(true, 1000, false);
 
@@ -660,19 +660,19 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
     // check reported odometry pose and twist
-    EXPECT_NEAR(0.875, odometryMsg.pose().position().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.pose().position().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().position().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.pose().orientation().w() ,1e-6);
-    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x() ,1e-1);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().y() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().linear().z() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().x() ,1e-6);
-    EXPECT_NEAR(0, odometryMsg.twist().angular().z() ,1e-6);
+    EXPECT_NEAR(0.875, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
 
     poses.clear();
   }
