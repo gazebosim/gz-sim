@@ -1705,10 +1705,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
             jointAxisByIndex[1] = jointAxis2->Data();
           }
 
-          for (auto &axisByIndex : jointAxisByIndex)
+          for (const auto &[axisIndex, axis] : jointAxisByIndex)
           {
-            auto axisIndex = axisByIndex.first;
-            auto axis = axisByIndex.second;
             if (auto mimic = axis.Mimic())
             {
               auto jointPtrMimic = this->entityJointMap
