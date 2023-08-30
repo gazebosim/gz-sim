@@ -17,6 +17,11 @@
 
 #include "NetworkManagerPrimary.hh"
 
+#include <gz/msgs/world_stats.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include "gz/sim/private_msgs/peer_control.pb.h"
+#include "gz/sim/private_msgs/simulation_step.pb.h"
+
 #include <algorithm>
 #include <future>
 #include <set>
@@ -26,9 +31,6 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
-
-#include "msgs/peer_control.pb.h"
-#include "msgs/simulation_step.pb.h"
 
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"

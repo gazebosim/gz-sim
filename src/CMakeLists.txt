@@ -1,21 +1,6 @@
 add_subdirectory(rendering)
 add_subdirectory(gui)
 add_subdirectory(systems)
-add_subdirectory(msgs)
-
-set_source_files_properties(
-  ${PROTO_PRIVATE_SRC}
-  ${PROTO_PRIVATE_HEADERS}
-  PROPERTIES GENERATED TRUE
-)
-
-# Suppress compiler warnings in generated protobuf C++ code.
-if(NOT MSVC)
-  set_source_files_properties(
-    ${PROTO_PRIVATE_SRC}
-    COMPILE_FLAGS -Wno-unused-parameter
-  )
-endif()
 
 set(network_sources
   network/NetworkConfig.cc
@@ -195,6 +180,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   protobuf::libprotobuf
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
+  gz-sim${PROJECT_VERSION_MAJOR}-msgs
 )
 if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
@@ -207,7 +193,7 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
 )
 
 add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  gz-sim_private_msgs
+  gz-sim${PROJECT_VERSION_MAJOR}-msgs
 )
 
 set(GZ_SIM_PLUGIN_INSTALL_DIR
@@ -224,6 +210,7 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim${PROJECT_VERSION_MAJOR}-msgs
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
