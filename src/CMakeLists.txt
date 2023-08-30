@@ -1,6 +1,7 @@
 add_subdirectory(rendering)
 add_subdirectory(gui)
 add_subdirectory(systems)
+add_subdirectory(proto)
 
 set(network_sources
   network/NetworkConfig.cc
@@ -55,9 +56,9 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  ${PROTO_PRIVATE_SRC}
   ${network_sources}
   ${comms_sources}
+  ${msgs_sources}
 )
 
 set (gtest_sources
@@ -180,7 +181,6 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   protobuf::libprotobuf
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
-  gz-sim${PROJECT_VERSION_MAJOR}-msgs
 )
 if (UNIX AND NOT APPLE)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
@@ -190,10 +190,7 @@ endif()
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-)
-
-add_dependencies(${PROJECT_LIBRARY_TARGET_NAME}
-  gz-sim${PROJECT_VERSION_MAJOR}-msgs
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/gz_msgs_gen>
 )
 
 set(GZ_SIM_PLUGIN_INSTALL_DIR
@@ -210,7 +207,6 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-msgs
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
