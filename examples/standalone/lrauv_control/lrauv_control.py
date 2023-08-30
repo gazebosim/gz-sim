@@ -17,10 +17,13 @@
 
 #
 # Check README for detailed instructions.
+# Note: You need to update the PYTHONPATH variable if it is not set
+# before for other python examples. You can use then following:
+# $ export PYTHONPATH=$PYTHONPATH:<path_to_gazebo_ws>/install/lib/python
 # Usage:
 #   $ gz sim -r worlds/lrauv_control_demo.sdf
-#   $ # ./lrauv_control speed_m_s yaw_rad pitch_rad
-#   $ python3 ./lrauv_control.py 0.5 0.78 0.174
+#   $ # python3 lrauv_control.py speed_m_s yaw_rad pitch_rad
+#   $ python3 lrauv_control.py 0.5 0.78 0.174
 #
 
 from gz.msgs10.double_pb2 import Double
@@ -73,7 +76,7 @@ class Controller:
     def SetTargets(self, _speed, _yaw, _pitch):
         with self.controllerMutex:
             if _speed == 0 and (_yaw != 0 or _pitch != 0):
-                print("Speed needs to be non zero for non zero")
+                print("Speed needs to be non zero for non zero pitch and yaw angles")
                 return
             self.targetSpeed = float(_speed)
             self.targetYawAngle = float(_yaw)

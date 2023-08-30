@@ -22,6 +22,9 @@
 #   $ gz sim -r worlds/multi_lrauv_race.sdf
 #   $ python3 multi_lrauv_race.py
 #
+# Note: You need to update the PYTHONPATH variable if it is not set
+# before for other python examples. You can use then following:
+# $ export PYTHONPATH=$PYTHONPATH:<path_to_gazebo_ws>/install/lib/python
 
 from gz.msgs10.double_pb2 import Double
 from gz.transport13 import Node
