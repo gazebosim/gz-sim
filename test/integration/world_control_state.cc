@@ -17,7 +17,10 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
