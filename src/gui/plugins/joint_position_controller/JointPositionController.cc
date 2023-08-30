@@ -45,8 +45,11 @@ namespace gz::sim::gui
     /// \brief Model holding all the joints.
     public: JointsModel jointsModel;
 
-    /// \brief Model entity being controller.
+    /// \brief Model entity being controlled.
     public: Entity modelEntity{kNullEntity};
+
+    /// \brief Previous model entity being controlled.
+    public: Entity prevModelEntity{kNullEntity};
 
     /// \brief Name of the model
     public: QString modelName{"No model selected"};
@@ -211,6 +214,12 @@ void JointPositionController::Update(const UpdateInfo &,
 
   auto jointEntities = _ecm.EntitiesByComponents(components::Joint(),
       components::ParentEntity(this->dataPtr->modelEntity));
+
+  if (this->dataPtr->prevModelEntity != this->dataPtr->modelEntity)
+  {
+    this->dataPtr->prevModelEntity = this->dataPtr->modelEntity;
+    this->dataPtr->jointsModel.Clear();
+  }
 
   // List all joints
   for (const auto &jointEntity : jointEntities)
