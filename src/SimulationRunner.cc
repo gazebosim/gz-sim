@@ -484,13 +484,23 @@ void SimulationRunner::PublishStats()
     this->rootClockPub.Publish(clockMsg);
 }
 
+namespace {
+
+// Create an sdf::ElementPtr that corresponds to an empty `<plugin>` element.
+sdf::ElementPtr createEmptyPluginElement()
+{
+  auto plugin = std::make_shared<sdf::Element>();
+  sdf::initFile("plugin.sdf", plugin);
+  return plugin;
+}
+}
 //////////////////////////////////////////////////
 void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
-  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  auto sdf = _sdf.value_or(createEmptyPluginElement());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
@@ -501,7 +511,7 @@ void SimulationRunner::AddSystem(
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
-  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  auto sdf = _sdf.value_or(createEmptyPluginElement());
   this->systemMgr->AddSystem(_system, entity, sdf);
 }
 

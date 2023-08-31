@@ -15,6 +15,7 @@
  *
 */
 
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -26,6 +27,7 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
+#include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
@@ -129,11 +131,11 @@ namespace sim
     /// \brief Torque to be applied in link-fixed frame
     public: math::Vector3d torque{0.0, 0.0, 0.0};
 
-    /// \brief Offset from the link origin to the center of mass in world coords
-    public: math::Vector3d inertialPos;
-
     /// \brief Pose of the link-fixed frame
     public: math::Pose3d linkWorldPose;
+
+    /// \brief Pose of the inertial frame relative to the link frame
+    public: math::Pose3d inertialPose;
 
     /// \brief Pointer to the rendering scene
     public: rendering::ScenePtr scene{nullptr};
@@ -209,7 +211,14 @@ ApplyForceTorque::ApplyForceTorque()
 }
 
 /////////////////////////////////////////////////
-ApplyForceTorque::~ApplyForceTorque() = default;
+ApplyForceTorque::~ApplyForceTorque()
+{
+  if (!this->dataPtr->scene)
+    return;
+  this->dataPtr->scene->DestroyNode(this->dataPtr->forceVisual, true);
+  this->dataPtr->scene->DestroyNode(this->dataPtr->torqueVisual, true);
+  this->dataPtr->scene->DestroyNode(this->dataPtr->gizmoVisual, true);
+}
 
 /////////////////////////////////////////////////
 void ApplyForceTorque::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
@@ -443,9 +452,8 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
       *this->dataPtr->selectedEntity);
     if (inertial)
     {
-      this->dataPtr->inertialPos =
-        linkWorldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
       this->dataPtr->linkWorldPose = linkWorldPose;
+      this->dataPtr->inertialPose = inertial->Data().Pose();
     }
   }
 
@@ -499,6 +507,27 @@ void ApplyForceTorque::SetForce(QVector3D _force)
     this->dataPtr->vectorRot = math::Matrix4d::LookAt(
       -this->dataPtr->force, math::Vector3d::Zero).Rotation();
   }
+  emit this->ForceMagChanged();
+}
+
+/////////////////////////////////////////////////
+double ApplyForceTorque::ForceMag() const
+{
+  return this->dataPtr->force.Length();
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorque::SetForceMag(double _forceMag)
+{
+  if (this->dataPtr->force == math::Vector3d::Zero)
+  {
+    this->dataPtr->force.X() = _forceMag;
+  }
+  else
+  {
+    this->dataPtr->force = _forceMag * this->dataPtr->force.Normalized();
+  }
+  emit this->ForceChanged();
 }
 
 /////////////////////////////////////////////////
@@ -521,6 +550,33 @@ void ApplyForceTorque::SetTorque(QVector3D _torque)
     this->dataPtr->vectorRot = math::Matrix4d::LookAt(
       -this->dataPtr->torque, math::Vector3d::Zero).Rotation();
   }
+  emit this->TorqueMagChanged();
+}
+
+/////////////////////////////////////////////////
+double ApplyForceTorque::TorqueMag() const
+{
+  return this->dataPtr->torque.Length();
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorque::SetTorqueMag(double _torqueMag)
+{
+  if (this->dataPtr->torque == math::Vector3d::Zero)
+  {
+    this->dataPtr->torque.X() = _torqueMag;
+  }
+  else
+  {
+    this->dataPtr->torque = _torqueMag * this->dataPtr->torque.Normalized();
+  }
+  emit this->TorqueChanged();
+}
+
+/////////////////////////////////////////////////
+void ApplyForceTorque::UpdateOffset(double _x, double _y, double _z)
+{
+  this->dataPtr->offset.Set(_x, _y, _z);
 }
 
 /////////////////////////////////////////////////
@@ -553,15 +609,21 @@ void ApplyForceTorquePrivate::PublishWrench(bool _applyForce, bool _applyTorque)
   }
 
   // Force and torque in world coordinates
-  math::Vector3d forceToApply = this->linkWorldPose.Rot().RotateVector(
-    _applyForce ? this->force : math::Vector3d::Zero);
-  math::Vector3d torqueToApply = this->linkWorldPose.Rot().RotateVector(
-    _applyTorque ? this->torque : math::Vector3d::Zero) +
-    this->inertialPos.Cross(forceToApply);
+  math::Vector3d forceToApply = _applyForce ?
+    this->linkWorldPose.Rot().RotateVector(this->force) :
+    math::Vector3d::Zero;
+  math::Vector3d torqueToApply = _applyTorque ?
+    this->linkWorldPose.Rot().RotateVector(this->torque) :
+    math::Vector3d::Zero;
+  // The ApplyLinkWrench system takes the offset in the link frame
+  math::Vector3d offsetToApply = _applyForce ?
+    this->offset + this->inertialPose.Pos() :
+    math::Vector3d::Zero;
 
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_id(*this->selectedEntity);
   msgs::Set(msg.mutable_wrench()->mutable_force(), forceToApply);
+  msgs::Set(msg.mutable_wrench()->mutable_force_offset(), offsetToApply);
   msgs::Set(msg.mutable_wrench()->mutable_torque(), torqueToApply);
 
   this->pub.Publish(msg);
@@ -632,14 +694,16 @@ void ApplyForceTorquePrivate::OnRender()
 /////////////////////////////////////////////////
 void ApplyForceTorquePrivate::UpdateVisuals()
 {
+  math::Pose3d inertialWorldPose = this->linkWorldPose * this->inertialPose;
   // Update force visualization
   if (this->force != math::Vector3d::Zero &&
       this->selectedEntity.has_value())
   {
     math::Vector3d worldForce =
       this->linkWorldPose.Rot().RotateVector(this->force);
-    math::Vector3d applicationPoint = this->linkWorldPose.Pos() +
-      this->inertialPos + this->linkWorldPose.Rot().RotateVector(this->offset);
+    math::Vector3d applicationPoint =
+      inertialWorldPose.Pos() +
+      this->linkWorldPose.Rot().RotateVector(this->offset);
     double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
       / 2.0;
     this->wrenchVis.UpdateVectorVisual(
@@ -658,7 +722,7 @@ void ApplyForceTorquePrivate::UpdateVisuals()
     math::Vector3d worldTorque =
       this->linkWorldPose.Rot().RotateVector(this->torque);
     math::Vector3d applicationPoint =
-      this->linkWorldPose.Pos() + this->inertialPos;
+      inertialWorldPose.Pos();
     double scale = applicationPoint.Distance(this->camera->WorldPose().Pos())
       / 2.0;
     this->wrenchVis.UpdateVectorVisual(
@@ -678,13 +742,13 @@ void ApplyForceTorquePrivate::UpdateVisuals()
         && this->force != math::Vector3d::Zero)
     {
       pos =
-        this->linkWorldPose.Pos() + this->inertialPos +
+        inertialWorldPose.Pos() +
         this->linkWorldPose.Rot().RotateVector(this->offset);
     }
     else if (this->activeVector == RotationToolVector::TORQUE
             && this->torque != math::Vector3d::Zero)
     {
-      pos = this->linkWorldPose.Pos() + this->inertialPos;
+      pos = inertialWorldPose.Pos();
     }
     else
     {
@@ -865,7 +929,8 @@ void ApplyForceTorquePrivate::HandleMouseEvents()
     }
 
     /// get start and end pos in world frame from 2d point
-    math::Vector3d pos = this->linkWorldPose.Pos() + this->inertialPos +
+    math::Pose3d inertialWorldPose = this->linkWorldPose * this->inertialPose;
+    math::Vector3d pos = inertialWorldPose.Pos() +
       this->linkWorldPose.Rot().RotateVector(this->offset);
     double d = pos.Dot(axis);
     math::Planed plane(axis, d);

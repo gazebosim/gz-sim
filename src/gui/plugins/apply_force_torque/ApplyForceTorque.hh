@@ -24,6 +24,7 @@
 #include <QStringList>
 #include <QObject>
 #include <QEvent>
+#include <QVector3D>
 
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/gui/GuiSystem.hh>
@@ -73,12 +74,28 @@ namespace sim
       NOTIFY ForceChanged
     )
 
+    /// \brief Force magnitude
+    Q_PROPERTY(
+      double forceMag
+      READ ForceMag
+      WRITE SetForceMag
+      NOTIFY ForceMagChanged
+    )
+
     /// \brief Torque
     Q_PROPERTY(
       QVector3D torque
       READ Torque
       WRITE SetTorque
       NOTIFY TorqueChanged
+    )
+
+    /// \brief Torque magnitude
+    Q_PROPERTY(
+      double torqueMag
+      READ TorqueMag
+      WRITE SetTorqueMag
+      NOTIFY TorqueMagChanged
     )
 
     /// \brief Constructor
@@ -98,24 +115,28 @@ namespace sim
       EntityComponentManager &_ecm) override;
 
     /// \brief Get the name of the selected model
+    /// \return The model name
     public: Q_INVOKABLE QString ModelName() const;
 
     /// \brief Notify that the model name changed
     signals: void ModelNameChanged();
 
     /// \brief Get the name of the links of the selected model
+    /// \return The list of link names
     public: Q_INVOKABLE QStringList LinkNameList() const;
 
     /// \brief Notify that the link list changed
     signals: void LinkNameListChanged();
 
     /// \brief Get index of the link in the list
+    /// \return The link index
     public: Q_INVOKABLE int LinkIndex() const;
 
     /// \brief Notify that the link index changed
     signals: void LinkIndexChanged();
 
     /// \brief Set the index of the link in the list
+    /// \param[in] _linkIndex The new link index
     public: Q_INVOKABLE void SetLinkIndex(int _linkIndex);
 
     /// \brief Get the force vector
@@ -129,6 +150,18 @@ namespace sim
     /// \param[in] _force The new force vector
     public: Q_INVOKABLE void SetForce(QVector3D _force);
 
+    /// \brief Get the magnitude of the force vector
+    /// \return The force magnitude
+    public: Q_INVOKABLE double ForceMag() const;
+
+    /// \brief Notify that the force magnitude changed
+    signals: void ForceMagChanged();
+
+    /// \brief Set the magnitude of the force vector, scaling it to
+    /// keep its direction
+    /// \param[in] _forceMag The new force magnitude
+    public: Q_INVOKABLE void SetForceMag(double _forceMag);
+
     /// \brief Get the torque vector
     /// \return The torque vector
     public: Q_INVOKABLE QVector3D Torque() const;
@@ -139,6 +172,24 @@ namespace sim
     /// \brief Set the torque vector
     /// \param[in] _torque The new torque vector
     public: Q_INVOKABLE void SetTorque(QVector3D _torque);
+
+    /// \brief Get the magnitude of the torque vector
+    /// \return The torque magnitude
+    public: Q_INVOKABLE double TorqueMag() const;
+
+    /// \brief Notify that the torque magnitude changed
+    signals: void TorqueMagChanged();
+
+    /// \brief Set the magnitude of the torque vector, scaling it to
+    /// keep its direction
+    /// \param[in] _torqueMag The new torque magnitude
+    public: Q_INVOKABLE void SetTorqueMag(double _torqueMag);
+
+    /// \brief Set components of offset vector
+    /// \param[in] _x X component of offset
+    /// \param[in] _y Y component of offset
+    /// \param[in] _z Z component of offset
+    public: Q_INVOKABLE void UpdateOffset(double _x, double _y, double _z);
 
     /// \brief Apply the specified force
     public: Q_INVOKABLE void ApplyForce();

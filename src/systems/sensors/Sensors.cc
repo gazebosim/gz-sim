@@ -17,6 +17,8 @@
 
 #include "Sensors.hh"
 
+#include <atomic>
+#include <chrono>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>

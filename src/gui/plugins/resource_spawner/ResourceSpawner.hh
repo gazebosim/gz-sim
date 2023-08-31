@@ -18,10 +18,13 @@
 #ifndef GZ_SIM_GUI_RESOURCE_SPAWNER_HH_
 #define GZ_SIM_GUI_RESOURCE_SPAWNER_HH_
 
+#include <qobjectdefs.h>
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
 
 #include <gz/gui/Plugin.hh>
 
@@ -93,9 +96,13 @@ namespace sim
     /// \brief Destructor
     public: ~PathModel() override = default;
 
-    /// \brief Add a local model to the grid view.
-    /// param[in] _model The local model to be added
-    public slots: void AddPath(const std::string &_path);
+    /// \brief Add a path.
+    /// param[in] _path The path to be added.
+    public: void AddPath(const std::string &_path);
+
+    /// \brief Remove a path.
+    /// param[in] _path The path to be removed.
+    public: void RemovePath(const std::string &_path);
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
@@ -107,6 +114,10 @@ namespace sim
   {
     Q_OBJECT
 
+    /// \brief Property used to display the total number of resources associated
+    /// with an owner.
+    Q_PROPERTY(int totalCount MEMBER gridIndex NOTIFY sizeChanged)
+
     /// \brief Constructor
     public: explicit ResourceModel();
 
@@ -115,7 +126,7 @@ namespace sim
 
     /// \brief Add a resource to the grid view.
     /// param[in] _resource The local resource to be added
-    public: void AddResource(Resource &_resource);
+    public: void AddResource(const Resource &_resource);
 
     /// \brief Add a vector of resources to the grid view.
     /// param[in] _resource The vector of local resources to be added
@@ -133,6 +144,9 @@ namespace sim
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
+
+    /// \brief Signal used with the totalCount property
+    public: signals: void sizeChanged();
 
     // \brief Index to keep track of the position of each resource in the qml
     // grid, used primarily to access currently loaded resources for updates.
@@ -237,6 +251,36 @@ namespace sim
     /// \param[in] _resource The model to update with the thumbnail information
     public: void SetThumbnail(const std::string &_thumbnailPath,
                 Resource &_resource);
+
+    /// \brief Called form a download thread to update the GUI's list of
+    /// resources.
+    /// \param[in] _resource The resource fetched from Fuel. Note that it is
+    /// passed by value as a copy is necessary to update the resource if it's
+    /// cached.
+    public: Q_INVOKABLE void UpdateOwnerListModel(gz::sim::Resource _resource);
+
+    /// \brief Add owner to the list of owners whose resources would be fetched
+    /// from Fuel.
+    /// \param[in] _owner Name of owner.
+    /// \return True if the owner was successfully added.
+    public: Q_INVOKABLE bool AddOwner(const QString &_owner);
+
+    /// \brief Remove owner from the list of owners whose resources would be
+    /// fetched from Fuel.
+    /// \param[in] _owner Name of owner.
+    public: Q_INVOKABLE void RemoveOwner(const QString &_owner);
+
+    /// \brief Determine if owner is the default owner
+    /// \param[in] _owner Name of owner.
+    public: Q_INVOKABLE bool IsDefaultOwner(const QString &_owner) const;
+
+    /// \brief Signal emitted when an error is encountered regarding an owner
+    /// \param[in] _errorMsg Error message to be displayed.
+    signals: void resourceSpawnerError(const QString &_errorMsg);
+
+    /// \brief Starts a thread that fetches the resources list for a given owner
+    /// \param[in] _owner Name of owner.
+    private: void RunFetchResourceListThread(const std::string &_owner);
 
     /// \internal
     /// \brief Pointer to private data.
