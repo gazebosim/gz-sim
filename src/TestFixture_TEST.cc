@@ -42,7 +42,7 @@ class TestFixtureTest : public InternalFixture<::testing::Test>
     EXPECT_EQ(worldEntity, _entity);
 
     ASSERT_NE(nullptr, _sdf);
-    EXPECT_EQ("world", _sdf->GetName());
+    EXPECT_EQ("plugin", _sdf->GetName());
 
     EXPECT_NE(kNullEntity, _ecm.EntityByComponents(components::Name("box")));
     EXPECT_NE(kNullEntity, _ecm.EntityByComponents(components::Name("sphere")));
