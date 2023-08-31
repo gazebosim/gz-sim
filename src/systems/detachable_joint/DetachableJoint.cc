@@ -96,15 +96,115 @@ void DetachableJoint::Configure(const Entity &_entity,
   }
 
   // Setup detach topic
-  std::vector<std::string> topics;
+  std::vector<std::string> detachTopics;
+  if (_sdf->HasElement("detach_topic"))
+  {
+    detachTopics.push_back(_sdf->Get<std::string>("detach_topic"));
+  }
+  detachTopics.push_back("/model/" + this->model.Name(_ecm) +
+      "/detachable_joint/detach");
+
   if (_sdf->HasElement("topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    if (_sdf->HasElement("detach_topic"))
+    {
+      if (_sdf->Get<std::string>("topic") !=
+          _sdf->Get<std::string>("detach_topic"))
+      {
+        gzerr << "<topic> and <detach_topic> tags have different contents. "
+                 "Please verify the correct string and use <detach_topic>."
+              << std::endl;
+      }
+      else
+      {
+        gzdbg << "Ignoring <topic> tag and using <detach_topic> tag."
+              << std::endl;
+      }
+    }
+    else
+    {
+      detachTopics.insert(detachTopics.begin(),
+                          _sdf->Get<std::string>("topic"));
+    }
   }
-  topics.push_back("/model/" + this->model.Name(_ecm) +
-      "/detachable_joint/detach");
-  this->topic = validTopic(topics);
 
+  this->detachTopic = validTopic(detachTopics);
+  if (this->detachTopic.empty())
+  {
+    gzerr << "No valid detach topics for DetachableJoint could be found.\n";
+    return;
+  }
+  gzdbg << "Detach topic is: " << this->detachTopic << std::endl;
+
+  // Setup subscriber for detach topic
+  this->node.Subscribe(
+      this->detachTopic, &DetachableJoint::OnDetachRequest, this);
+
+  gzdbg << "DetachableJoint subscribing to messages on "
+         << "[" << this->detachTopic << "]" << std::endl;
+
+  // Setup attach topic
+  std::vector<std::string> attachTopics;
+  if (_sdf->HasElement("attach_topic"))
+  {
+    attachTopics.push_back(_sdf->Get<std::string>("attach_topic"));
+  }
+  attachTopics.push_back("/model/" + this->model.Name(_ecm) +
+      "/detachable_joint/attach");
+  this->attachTopic = validTopic(attachTopics);
+  if (this->attachTopic.empty())
+  {
+    gzerr << "No valid attach topics for DetachableJoint could be found.\n";
+    return;
+  }
+  gzdbg << "Attach topic is: " << this->attachTopic << std::endl;
+
+  // Setup subscriber for attach topic
+  auto msgCb = std::function<void(const transport::ProtoMsg &)>(
+      [this](const auto &)
+      {
+        if (this->isAttached){
+          gzdbg << "Already attached" << std::endl;
+          return;
+        }
+        this->attachRequested = true;
+      });
+
+  if (!this->node.Subscribe(this->attachTopic, msgCb))
+  {
+    gzerr << "Subscriber could not be created for [attach] topic.\n";
+    return;
+  }
+
+  // Setup output topic
+  std::vector<std::string> outputTopics;
+  if (_sdf->HasElement("output_topic"))
+  {
+    outputTopics.push_back(_sdf->Get<std::string>("output_topic"));
+  }
+
+  outputTopics.push_back("/model/" + this->childModelName +
+      "/detachable_joint/state");
+
+  this->outputTopic = validTopic(outputTopics);
+  if (this->outputTopic.empty())
+  {
+    gzerr << "No valid output topics for DetachableJoint could be found.\n";
+    return;
+  }
+  gzdbg << "Output topic is: " << this->outputTopic << std::endl;
+
+  // Setup publisher for output topic
+  this->outputPub = this->node.Advertise<gz::msgs::StringMsg>(
+      this->outputTopic);
+  if (!this->outputPub)
+  {
+    gzerr << "Error advertising topic [" << this->outputTopic << "]"
+              << std::endl;
+    return;
+  }
+
+  // Supress Child Warning
   this->suppressChildWarning =
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
           .first;
@@ -118,8 +218,13 @@ void DetachableJoint::PreUpdate(
   EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DetachableJoint::PreUpdate");
-  if (this->validConfig && !this->initialized)
+  // only allow attaching if child entity is detached
+  if (this->validConfig && !this->isAttached)
   {
+    // return if attach is not requested.
+    if (!this->attachRequested){
+      return;
+    }
     // Look for the child model and link
     Entity modelEntity{kNullEntity};
 
@@ -148,14 +253,11 @@ void DetachableJoint::PreUpdate(
             this->detachableJointEntity,
             components::DetachableJoint({this->parentLinkEntity,
                                          this->childLinkEntity, "fixed"}));
-
-        this->node.Subscribe(
-            this->topic, &DetachableJoint::OnDetachRequest, this);
-
-        gzmsg << "DetachableJoint subscribing to messages on "
-               << "[" << this->topic << "]" << std::endl;
-
-        this->initialized = true;
+        this->attachRequested = false;
+        this->isAttached = true;
+        this->PublishJointState(this->isAttached);
+        gzdbg << "Attaching entity: " << this->detachableJointEntity
+               << std::endl;
       }
       else
       {
@@ -170,7 +272,8 @@ void DetachableJoint::PreUpdate(
     }
   }
 
-  if (this->initialized)
+ // only allow detaching if child entity is attached
+  if (this->isAttached)
   {
     if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
     {
@@ -179,13 +282,34 @@ void DetachableJoint::PreUpdate(
       _ecm.RequestRemoveEntity(this->detachableJointEntity);
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
+      this->isAttached = false;
+      this->PublishJointState(this->isAttached);
     }
   }
 }
 
 //////////////////////////////////////////////////
+void DetachableJoint::PublishJointState(bool attached)
+{
+  msgs::StringMsg detachedStateMsg;
+  if (attached)
+  {
+    detachedStateMsg.set_data("attached");
+  }
+  else
+  {
+    detachedStateMsg.set_data("detached");
+  }
+  this->outputPub.Publish(detachedStateMsg);
+}
+
+//////////////////////////////////////////////////
 void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 {
+  if (!this->isAttached){
+    gzdbg << "Already detached" << std::endl;
+    return;
+  }
   this->detachRequested = true;
 }
 

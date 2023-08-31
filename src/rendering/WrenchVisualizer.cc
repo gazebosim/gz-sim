@@ -15,10 +15,14 @@
  *
 */
 
+#include <memory>
+
 #include <gz/common/Console.hh>
 #include <gz/common/MeshManager.hh>
+#include <gz/math/Quaternion.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/rendering/ArrowVisual.hh>
+#include <gz/rendering/Material.hh>
 #include <gz/rendering/Scene.hh>
 
 #include "gz/sim/rendering/WrenchVisualizer.hh"

@@ -80,6 +80,8 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
 /// \param[in] _msg Entity message. If it's a link, that link is returned. If
 /// it's a model, its canonical link is returned.
 /// \param[out] Force to apply.
+/// \param[out] Offset of the force application point expressed in the link
+/// frame.
 /// \param[out] Torque to apply.
 /// \param[out] Offset of the force application point expressed in the link
 /// frame.
@@ -149,8 +151,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   this->dataPtr->verbose = _sdf->Get<bool>("verbose", true).first;
 
   // Initial wrenches
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-  for (auto elem = ptr->GetElement("persistent");
+  for (auto elem = _sdf->FindElement("persistent");
        elem != nullptr;
        elem = elem->GetNextElement("persistent"))
   {
@@ -164,7 +165,7 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
 
     msg.mutable_entity()->set_name(elem->Get<std::string>("entity_name"));
 
-    auto typeStr = elem->GetElement("entity_type")->Get<std::string>();
+    auto typeStr = elem->FindElement("entity_type")->Get<std::string>();
     if (typeStr == "link")
     {
       msg.mutable_entity()->set_type(msgs::Entity::LINK);
@@ -183,12 +184,12 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
     if (elem->HasElement("force"))
     {
       msgs::Set(msg.mutable_wrench()->mutable_force(),
-          elem->GetElement("force")->Get<math::Vector3d>());
+          elem->FindElement("force")->Get<math::Vector3d>());
     }
     if (elem->HasElement("torque"))
     {
       msgs::Set(msg.mutable_wrench()->mutable_torque(),
-          elem->GetElement("torque")->Get<math::Vector3d>());
+          elem->FindElement("torque")->Get<math::Vector3d>());
     }
     this->dataPtr->OnWrenchPersistent(msg);
   }

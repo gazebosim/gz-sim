@@ -121,6 +121,11 @@
                             <size>5 0.2 0.1</size>
                         </box>
                     </geometry>
+                    <material>
+                        <ambient>0.05 0.05 0.70 1</ambient>
+                        <diffuse>0.05 0.05 0.70 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
+                    </material>
                 </visual>
                 <visual name='visual_1'>
                     <pose relative_to='base_link'>2.5 0 0 -1.570796327 0 0</pose>
@@ -130,6 +135,11 @@
                             <radius>0.05</radius>
                         </cylinder>
                     </geometry>
+                    <material>
+                        <ambient>0.05 0.05 0.70 1</ambient>
+                        <diffuse>0.05 0.05 0.70 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
+                    </material>
                 </visual>
                 <visual name='visual_2'>
                     <pose relative_to='base_link'>-2.5 0 0 -1.570796327 0 0</pose>
@@ -139,6 +149,11 @@
                             <radius>0.05</radius>
                         </cylinder>
                     </geometry>
+                    <material>
+                        <ambient>0.05 0.05 0.70 1</ambient>
+                        <diffuse>0.05 0.05 0.70 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
+                    </material>
                 </visual>
                 <gravity>1</gravity>
                 <kinematic>0</kinematic>
@@ -147,6 +162,7 @@
             <plugin filename="gz-sim-track-controller-system"
                     name="gz::sim::systems::TrackController">
                 <link>base_link</link>
+                <odometry_publish_frequency>1</odometry_publish_frequency>
                 <!--debug>true</debug-->
             </plugin>
 
@@ -157,7 +173,7 @@
                     <match field="data">87</match>
                 </input>
                 <output type="gz.msgs.Double" topic="/model/conveyor/link/base_link/track_cmd_vel">
-                    data: 10.0
+                    data: 1.0
                 </output>
             </plugin>
 
@@ -185,7 +201,7 @@
         </model>
 
         <model name='box'>
-            <pose frame=''>0 0 1 0 0 0</pose>
+            <pose>0 0 1 0 0 0</pose>
             <link name='base_link'>
                 <inertial>
                     <mass>1.06</mass>
@@ -206,7 +222,9 @@
                         </box>
                     </geometry>
                     <material>
-                        <ambient>1 1 1 1</ambient>
+                        <ambient>0.60 0.0 0.0 1</ambient>
+                        <diffuse>0.60 0.0 0.0 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
                     </material>
                 </visual>
                 <collision name='main_collision'>
@@ -271,6 +289,25 @@
                 <property key="state" type="string">floating</property>
                 <property key="showTitleBar" type="bool">false</property>
               </gz-gui>
+            </plugin>
+
+            <plugin name='World control' filename='WorldControl'>
+                <gz-gui>
+                    <title>World control</title>
+                    <property type='bool' key='showTitleBar'>0</property>
+                    <property type='bool' key='resizable'>0</property>
+                    <property type='double' key='height'>72</property>
+                    <property type='double' key='width'>150</property>
+                    <property type='double' key='z'>1</property>
+                    <property type='string' key='state'>floating</property>
+                    <anchors target='3D View'>
+                        <line own='left' target='left'/>
+                        <line own='bottom' target='bottom'/>
+                    </anchors>
+                </gz-gui>
+                <play_pause>1</play_pause>
+                <step>1</step>
+                <start_paused>0</start_paused>
             </plugin>
 
             <!-- World statistics -->

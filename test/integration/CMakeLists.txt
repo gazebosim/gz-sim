@@ -106,6 +106,7 @@ set(tests_needing_display
   dvl_system_bottom_tracking.cc
   dvl_system_water_mass_tracking.cc
   gpu_lidar.cc
+  markers.cc
   mesh_uri.cc
   optical_tactile_plugin.cc
   reset_sensors.cc
@@ -116,6 +117,7 @@ set(tests_needing_display
   shader_param_system.cc
   thermal_sensor_system.cc
   thermal_system.cc
+  triggered_camera.cc
   wide_angle_camera.cc
 )
 
@@ -159,6 +161,7 @@ gz_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
