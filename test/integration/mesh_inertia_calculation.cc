@@ -60,7 +60,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
   gz::sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf"));
-  ;
+
   common::setenv(
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
