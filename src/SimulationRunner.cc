@@ -18,6 +18,9 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#ifdef HAVE_PYBIND11
+#include <pybind11/pybind11.h>
+#endif
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
@@ -52,6 +55,34 @@ using namespace gz;
 using namespace sim;
 
 using StringSet = std::unordered_set<std::string>;
+
+namespace {
+#ifdef HAVE_PYBIND11
+// Helper struct to maybe do a scoped release of the Python GIL. There are a
+// number of ways where releasing and acquiring the GIL is not necessary:
+// 1. Gazebo is built without Pybind11
+// 2. The python interpreter is not initialized. This could happen in tests that
+//    create a SimulationRunner without sim::Server where the interpreter is
+//    intialized.
+// 3. sim::Server was instantiated by a Python module. In this case, there's a
+//    chance that this would be called with the GIL already released.
+struct MaybeGilScopedRelease
+{
+  MaybeGilScopedRelease()
+  {
+    if (Py_IsInitialized() != 0 && PyGILState_Check() == 1)
+    {
+      this->release.emplace();
+    }
+  }
+  std::optional<pybind11::gil_scoped_release> release;
+};
+#else
+  struct MaybeGilScopedRelease
+  {
+  };
+#endif
+}
 
 
 //////////////////////////////////////////////////
@@ -560,6 +591,10 @@ void SimulationRunner::UpdateSystems()
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
     {
+      // Release the GIL from the main thread to run PostUpdate threads which
+      // might be calling into python. The system that does call into python
+      // needs to lock the GIL from its thread.
+      MaybeGilScopedRelease release;
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }

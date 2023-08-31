@@ -159,7 +159,7 @@ hand, we'll create it from the UI.
 
 1. Let's start loading the SDF world we created above, with the `<gui>` element back:
 
-`gz sim <path to>/fuel_preview.sdf`
+    `gz sim <path to>/fuel_preview.sdf`
 
 2. Now from the top-right menu, choose to add the "View Angle" plugin. This
    plugin has convenient buttons to change the camera angle, try them out!

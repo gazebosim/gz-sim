@@ -17,6 +17,10 @@
 
 #include <numeric>
 
+#ifdef HAVE_PYBIND11
+#include <pybind11/embed.h>
+#endif
+
 #include <gz/common/SystemPaths.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
@@ -58,6 +62,24 @@ struct DefaultWorld
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+#ifdef HAVE_PYBIND11
+  if (Py_IsInitialized() == 0)
+  {
+    // We can't used pybind11::scoped_interpreter because:
+    //   1. It gets destructed before plugins are unloaded, which can cause
+    //      segfaults if the plugin tries to run python code, e.g. a message
+    //      that arrives during destruction.
+    //   2. It will prevent instantiation of other Servers. Running python
+    //      systems will not be supported with multiple servers in the same
+    //      process, but we shouldn't break existing behior for non-python use
+    //      cases.
+    // This means, we will not be calling pybind11::finalize_interpreter to
+    // clean up the interpreter. This could cause issues with tests suites that
+    // have multiple tests that load python systems.
+    pybind11::initialize_interpreter();
+  }
+#endif
+
   this->dataPtr->config = _config;
 
   // Configure the fuel client

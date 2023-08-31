@@ -2,6 +2,7 @@ set (rendering_comp_sources
   MarkerManager.cc
   RenderUtil.cc
   SceneManager.cc
+  WrenchVisualizer.cc
 )
 
 if (MSVC)

@@ -272,6 +272,99 @@ TEST_F(ContactSystemTest,
   }
 }
 
+/////////////////////////////////////////////////
+// The test checks that contacts are published with
+// the correct extraContactData
+TEST_F(ContactSystemTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ExtraContactData))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_extra_data.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::mutex contactMutex;
+  std::vector<msgs::Contacts> contactMsgs;
+
+  auto contactCb = [&](const msgs::Contacts &_msg) -> void
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    contactMsgs.push_back(_msg);
+  };
+
+  // subscribe to contacts topic
+  transport::Node node;
+  // Have to create an lvalue here for Node::Subscribe to work.
+  auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
+  node.Subscribe("/test_extra_collision_data", callbackFunc);
+
+  // Run server for 10 iters to ensure
+  // contact solver has converged
+  size_t iters = 10;
+  server.Run(true, iters, false);
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    ASSERT_GE(contactMsgs.size(), 1u);
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    const auto &lastContacts = contactMsgs.back();
+    EXPECT_EQ(1, lastContacts.contact_size());
+
+    // The sphere weighs 1kg and gravity is set to 9.81 m/s^2
+    // Hence the contact force should be m*g = 9.81 N
+    // along the z-axis. The force on body 2 should be equal
+    // and opposite.
+    // All torques should be zero.
+    // The normal should align with the world z-axis
+    for (const auto &contact : lastContacts.contact())
+    {
+      ASSERT_EQ(1, contact.wrench_size());
+      ASSERT_EQ(1, contact.normal_size());
+
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().y(),
+                  5e-2);
+      EXPECT_NEAR(9.81, contact.wrench().Get(0).body_1_wrench().force().z(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().y(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().z(),
+                  5e-2);
+
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().y(),
+                  5e-2);
+      EXPECT_NEAR(-9.81, contact.wrench().Get(0).body_2_wrench().force().z(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().x(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().y(),
+                  5e-2);
+      EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().z(),
+                  5e-2);
+
+      EXPECT_NEAR(0.0, contact.normal().Get(0).x(), 5e-2);
+      EXPECT_NEAR(0.0, contact.normal().Get(0).y(), 5e-2);
+      EXPECT_NEAR(1.0, contact.normal().Get(0).z(), 5e-2);
+
+    }
+  }
+}
+
 TEST_F(ContactSystemTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
 {

@@ -106,6 +106,7 @@ set(tests_needing_display
   dvl_system_bottom_tracking.cc
   dvl_system_water_mass_tracking.cc
   gpu_lidar.cc
+  mesh_uri.cc
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc
@@ -136,6 +137,11 @@ else()
   endforeach(test)
 endif()
 
+# Add tests that need pybind11
+if (${pybind11_FOUND})
+  list(APPEND tests python_system_loader.cc)
+endif()
+
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
   # by a class are not being exported. These generated source files have private
@@ -153,6 +159,8 @@ gz_build_tests(TYPE INTEGRATION
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 
@@ -228,4 +236,9 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
+endif()
+
+if (TARGET INTEGRATION_python_system_loader)
+  set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
+    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
 endif()

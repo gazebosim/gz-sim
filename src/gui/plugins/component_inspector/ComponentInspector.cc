@@ -15,6 +15,16 @@
  *
 */
 
+#include "ComponentInspector.hh"
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
+#include <gz/msgs/empty.pb.h>
+
 #include <iostream>
 #include <list>
 #include <regex>
@@ -27,6 +37,7 @@
 #include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
+
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Actor.hh"
@@ -78,7 +89,6 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-#include "ComponentInspector.hh"
 #include "Inertial.hh"
 #include "Pose3d.hh"
 #include "SystemPluginInfo.hh"
@@ -765,6 +775,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::PhysicsEnginePlugin::typeId)
+    {
+      auto comp = _ecm.Component<components::PhysicsEnginePlugin>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::PhysicsSolver::typeId)
     {
       auto comp = _ecm.Component<components::PhysicsSolver>(
@@ -1223,7 +1240,7 @@ void ComponentInspector::QuerySystems()
       "/system/info"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "Unable to query available systems." << std::endl;
+    gzerr << "Unable to query available systems." << std::endl;
     return;
   }
 
@@ -1233,8 +1250,8 @@ void ComponentInspector::QuerySystems()
   {
     if (plugin.filename().empty())
     {
-      ignerr << "Received empty plugin name. This shouldn't happen."
-             << std::endl;
+      gzerr << "Received empty plugin name. This shouldn't happen."
+            << std::endl;
       continue;
     }
 
@@ -1281,7 +1298,7 @@ void ComponentInspector::OnAddSystem(const QString &_name,
   auto it = this->dataPtr->systemMap.find(filenameStr);
   if (it == this->dataPtr->systemMap.end())
   {
-    ignerr << "Internal error: failed to find [" << filenameStr
+    gzerr << "Internal error: failed to find [" << filenameStr
            << "] in system map." << std::endl;
     return;
   }
@@ -1304,11 +1321,11 @@ void ComponentInspector::OnAddSystem(const QString &_name,
       "/entity/system/add"};
   if (!this->dataPtr->node.Request(service, req, timeout, res, result))
   {
-    ignerr << "Error adding new system to entity: "
-           << this->dataPtr->entity << "\n"
-           << "Name: " << name << "\n"
-           << "Filename: " << filename << "\n"
-           << "Inner XML: " << innerxml << std::endl;
+    gzerr << "Error adding new system to entity: "
+          << this->dataPtr->entity << "\n"
+          << "Name: " << name << "\n"
+          << "Filename: " << filename << "\n"
+          << "Inner XML: " << innerxml << std::endl;
   }
 }
 
