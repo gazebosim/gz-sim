@@ -47,11 +47,15 @@ namespace gz
     {
       /// \struct Triangle gz/sim/MeshInertiaCalculator.hh
       /// \brief A struct to represent a triangle of the mesh
-      /// An instance of the struct holds 3 vector3d instances
-      /// each of which represents a vertex of the triangle
+      /// An instance of the struct holds 3 Vector3D instances
+      /// each of which represents a vertex of the triangle &
+      /// one more Vector3D that represents the centroid of the
+      /// triangle
       struct Triangle
       {
         gz::math::Vector3d v0, v1, v2;
+
+        gz::math::Vector3d centroid;
       };
 
       /// \class MeshInertiaCalculator gz/sim/MeshInertiaCalculator.hh
@@ -83,24 +87,37 @@ namespace gz
           std::vector<Triangle>& _triangles,
           const gz::common::Mesh* _mesh);
 
+        /// \brief Function to calculate the centroid of the mesh. Since
+        /// uniform density is considered for the mesh, the centroid value
+        /// is used as the centre of mass.
+        /// The mesh centroid is calculated by the average of the
+        /// centroid of mesh triangle weighted by the area of the
+        /// respective triangle
+        /// \param[out] _centreOfMass A gz::math::Pose3d object to hold
+        /// calculated centroid (centre of mass) of the mesh
+        /// \param[in] _triangles A vector with all the triangles of the
+        /// mesh represented as instances of the Triangle struct
+        public: void CalculateMeshCentroid(gz::math::Pose3d &_centreOfMass,
+          std::vector<Triangle> &_triangles);
+
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
         /// \param[in] _triangles A vector of all the Triangles of the mesh
         /// \param[in] _density Density of the mesh
         /// \param[out] _massMatrix MassMatrix object to hold mass &
         /// moment of inertia of the mesh
-        /// \param[out] _centreOfMass Pose3d object to hold the centre of
-        /// mass of the object
+        /// \param[out] _inertiaOrigin Pose3d object to hold the origin about
+        /// which the inertia tensor was calculated
         public: void CalculateMassProperties(
           const std::vector<Triangle>& _triangles,
           double _density,
           gz::math::MassMatrix3d& _massMatrix,
-          gz::math::Pose3d& _centreOfMass);
+          gz::math::Pose3d& _inertiaOrigin);
 
         /// \brief Overloaded () operator which allows an instance
         /// of this class to be registered as a Custom Inertia
         /// Calculator with libsdformat
-        /// \param[in] _errors A vector of Errors object. Each object
+        /// \param[out] _errors A vector of Errors object. Each object
         /// would contain an error code and an error message.
         /// \param _calculatorParams An instance of
         /// CustomInertiaCalcProperties. This instance can be used
