@@ -77,8 +77,10 @@ void MeshInertiaCalculator::CalculateMeshCentroid(
 
   for (Triangle &triangle : _triangles)
   {
-    // Calculate the area of the triangle using half of cross product magnitude
-    triangleCross = (triangle.v1 - triangle.v0).Cross(triangle.v2 - triangle.v0);
+    // Calculate the area of the triangle using half of
+    // cross product magnitude
+    triangleCross =
+      (triangle.v1 - triangle.v0).Cross(triangle.v2 - triangle.v0);
     triangleArea = triangleCross.Length() / 2;
 
     centroid = centroid + (triangle.centroid * triangleArea);
@@ -247,7 +249,7 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 
   // Calculate the mesh centroid and set is as centre of mass
   this->CalculateMeshCentroid(centreOfMass, meshTriangles);
-  
+
   // Calculate mesh mass properties
   this->CalculateMassProperties(meshTriangles, density,
     meshMassMatrix, inertiaOrigin);
